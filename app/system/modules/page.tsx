@@ -25,6 +25,7 @@ import {
   Menu,
   MessageSquare,
   Package,
+  RotateCcw,
   Search,
   Settings,
   Shield,
@@ -299,7 +300,9 @@ const PresetDropdown: React.FC<{
 const ConfigActions: React.FC<{
   modules: AdminModule[];
   preset?: SystemPreset;
-}> = ({ modules, preset }) => {
+  onReseed: () => void;
+  isReseeding?: boolean;
+}> = ({ modules, preset, onReseed, isReseeding }) => {
   const [showMarkdown, setShowMarkdown] = useState(false);
   const markdown = useMemo(() => generateConfigMarkdown(modules, preset), [modules, preset]);
 
@@ -322,6 +325,15 @@ const ConfigActions: React.FC<{
   return (
     <>
       <div className="flex items-center gap-2">
+        <button
+          onClick={onReseed}
+          disabled={isReseeding}
+          className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors disabled:opacity-50"
+          title="Seed lại modules hệ thống"
+        >
+          {isReseeding ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+          <span className="hidden sm:inline">Seed lại</span>
+        </button>
         <button
           onClick={() =>{  setShowMarkdown(true); }}
           className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
@@ -500,6 +512,7 @@ export default function ModuleManagementPage() {
   const [selectedPreset, setSelectedPreset] = useState<string>('custom');
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
   const [applyingPreset, setApplyingPreset] = useState(false);
+  const [isReseeding, setIsReseeding] = useState(false);
   
   // SYS-004: State cho cascade confirmation dialog
   const [cascadeDialog, setCascadeDialog] = useState<{
@@ -543,6 +556,28 @@ export default function ModuleManagementPage() {
       await applyPreset({ key: presetKey });
     } finally {
       setApplyingPreset(false);
+    }
+  };
+
+  const handleReseedModules = async () => {
+    setSelectedPreset('custom');
+    setIsReseeding(true);
+    try {
+      const modulesResult = await seedModule({ force: true, module: 'adminModules', quantity: 0 });
+      if (modulesResult.errors?.length) {
+        throw new Error(modulesResult.errors.join(', '));
+      }
+
+      const presetsResult = await seedModule({ force: true, module: 'systemPresets', quantity: 0 });
+      if (presetsResult.errors?.length) {
+        throw new Error(presetsResult.errors.join(', '));
+      }
+
+      toast.success('Đã seed lại modules hệ thống');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+    } finally {
+      setIsReseeding(false);
     }
   };
   
@@ -678,7 +713,12 @@ export default function ModuleManagementPage() {
           <span className="text-xs text-slate-500">
             Preset sẽ bật/tắt modules theo mẫu; bạn có thể chỉnh lại thủ công.
           </span>
-          <ConfigActions modules={modules} preset={currentPreset} />
+          <ConfigActions
+            modules={modules}
+            preset={currentPreset}
+            onReseed={handleReseedModules}
+            isReseeding={isReseeding}
+          />
         </div>
       </div>
 
