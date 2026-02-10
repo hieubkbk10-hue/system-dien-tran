@@ -33,6 +33,14 @@ Format output:
    - Reflection: ✓ Valid / ✗ Retry
 2. ...
 
+# Spec Mode Rules
+Khi ở chế độ Spec (read-only planning):
+* Bắt buộc dùng DARE framework: Decompose → Analyze → Reflect → Execute plan.
+* Dùng AskUser để làm rõ mọi điểm mơ hồ TRƯỚC khi chốt spec; không đoán requirement.
+* Plan phải chi tiết từng bước (step-by-step actionable), đủ để implement xong trong 1 lần — KHÔNG chia phase/giai đoạn.
+* Mỗi bước ghi rõ: file nào, thay đổi gì, logic cụ thể; ai đọc plan cũng tự implement được.
+* Ưu tiên full implement > incremental; nếu scope quá lớn thì AskUser để user quyết cắt scope, không tự ý chia phase.
+
 # 7 Nguyên tắc DB Bandwidth Optimization:
 * Filter ở DB, không ở JS - Không .collect()/.findAll() không filter; không fetch ALL rồi filter JS; không fetch ALL để count
 * Không N+1 - Không gọi DB trong loop; batch load bằng Promise.all(); dùng Map thay .find() (O(1) vs O(n²))
