@@ -80,19 +80,23 @@ export class RolesSeeder extends BaseSeeder<RoleData> {
   dependencies: SeedDependency[] = [];
 
   private roleIndex = 0;
+  private enabledModuleKeys: Set<string> | null = null;
+  private filteredDefaultRoles: RoleData[] = DEFAULT_ROLES;
 
   constructor(ctx: GenericMutationCtx<DataModel>) {
     super(ctx);
   }
 
   async seed(config: SeedConfig) {
+    this.roleIndex = 0;
+    await this.loadEnabledModules();
     await this.seedModuleConfig();
     return super.seed(config);
   }
 
   generateFake(): RoleData {
-    if (this.roleIndex < DEFAULT_ROLES.length) {
-      return DEFAULT_ROLES[this.roleIndex++];
+    if (this.roleIndex < this.filteredDefaultRoles.length) {
+      return this.filteredDefaultRoles[this.roleIndex++];
     }
 
     const name = `Role ${this.roleIndex + 1}`;
@@ -104,7 +108,7 @@ export class RolesSeeder extends BaseSeeder<RoleData> {
       isSuperAdmin: false,
       isSystem: false,
       name,
-      permissions: { custom: ['view'] },
+      permissions: this.filterPermissions({ custom: ['view'] }),
     };
   }
 
@@ -126,6 +130,43 @@ export class RolesSeeder extends BaseSeeder<RoleData> {
       this.ctx.db.insert('roleStats', { count: systemCount, key: 'system' }),
       this.ctx.db.insert('roleStats', { count: superAdminCount, key: 'superAdmin' }),
     ]);
+  }
+
+  private async loadEnabledModules(): Promise<void> {
+    const enabledModules = await this.ctx.db
+      .query('adminModules')
+      .withIndex('by_enabled_order', q => q.eq('enabled', true))
+      .collect();
+
+    if (enabledModules.length === 0) {
+      this.enabledModuleKeys = null;
+      this.filteredDefaultRoles = DEFAULT_ROLES;
+      return;
+    }
+
+    this.enabledModuleKeys = new Set(enabledModules.map(module => module.key));
+    this.filteredDefaultRoles = DEFAULT_ROLES.map(role => this.filterRole(role));
+  }
+
+  private filterRole(role: RoleData): RoleData {
+    if (!this.enabledModuleKeys || role.permissions['*']) {
+      return role;
+    }
+
+    return {
+      ...role,
+      permissions: this.filterPermissions(role.permissions),
+    };
+  }
+
+  private filterPermissions(permissions: Record<string, string[]>): Record<string, string[]> {
+    if (!this.enabledModuleKeys || permissions['*']) {
+      return permissions;
+    }
+
+    return Object.fromEntries(
+      Object.entries(permissions).filter(([moduleKey]) => this.enabledModuleKeys?.has(moduleKey))
+    );
   }
 
   private async seedModuleConfig(): Promise<void> {

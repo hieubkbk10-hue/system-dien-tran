@@ -10,16 +10,16 @@ import { toast } from 'sonner';
 import { AlertTriangle, Loader2, ShieldOff } from 'lucide-react';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { useAdminAuth } from '../../../auth/context';
+import {
+  ACTION_LABELS,
+  PERMISSION_ACTIONS,
+  getModuleActions,
+  isPermissionModule,
+  type PermissionAction,
+} from '../../permission-config';
 
 const MODULE_KEY = 'roles';
 
-const permissionActions = ['view', 'create', 'edit', 'delete'];
-const actionLabels: Record<string, string> = {
-  create: 'Tạo',
-  delete: 'Xóa',
-  edit: 'Sửa',
-  view: 'Xem',
-};
 
 export default function RoleEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { hasPermission, isLoading: isAuthLoading, token } = useAdminAuth();
@@ -94,12 +94,16 @@ function RoleEditForm({ params, token }: { params: Promise<{ id: string }>; toke
   const permissionModules = useMemo(() => {
     if (!modulesData) {return [];}
     return modulesData
-      .filter(m => m.enabled && !['settings', 'homepage'].includes(m.key))
+      .filter(m => m.enabled && isPermissionModule(m.key))
       .map(m => ({ key: m.key, label: m.name }));
   }, [modulesData]);
 
-  const togglePermission = (module: string, action: string) => {
+  const togglePermission = (module: string, action: PermissionAction) => {
     setPermissions(prev => {
+      const moduleActions = getModuleActions(module);
+      if (!moduleActions.includes(action)) {
+        return prev;
+      }
       const current = prev[module] || [];
       if (current.includes(action)) {
         return { ...prev, [module]: current.filter(a => a !== action) };
@@ -111,11 +115,15 @@ function RoleEditForm({ params, token }: { params: Promise<{ id: string }>; toke
 
   const toggleAllForModule = (module: string) => {
     setPermissions(prev => {
-      const current = prev[module] || [];
-      if (current.length === permissionActions.length) {
-        return { ...prev, [module]: [] };
+      const moduleActions = getModuleActions(module);
+      const current = new Set(prev[module] || []);
+      const hasAll = moduleActions.every((action) => current.has(action));
+      if (hasAll) {
+        moduleActions.forEach((action) => current.delete(action));
+      } else {
+        moduleActions.forEach((action) => current.add(action));
       }
-        return { ...prev, [module]: [...permissionActions] };
+      return { ...prev, [module]: Array.from(current) };
       
     });
   };
@@ -280,15 +288,16 @@ function RoleEditForm({ params, token }: { params: Promise<{ id: string }>; toke
                 <div className="grid grid-cols-6 gap-4 pb-2 border-b border-slate-200 dark:border-slate-700">
                   <div className="font-medium text-sm text-slate-500">Module</div>
                   <div className="text-center text-sm font-medium text-slate-500">Tất cả</div>
-                  {permissionActions.map(action => (
+                  {PERMISSION_ACTIONS.map(action => (
                     <div key={action} className="text-center text-sm font-medium text-slate-500">
-                      {actionLabels[action]}
+                      {ACTION_LABELS[action]}
                     </div>
                   ))}
                 </div>
                 {permissionModules.map(module => {
                   const modulePerms = permissions[module.key] || [];
-                  const allChecked = modulePerms.length === permissionActions.length;
+                  const moduleActions = getModuleActions(module.key);
+                  const allChecked = moduleActions.every((action) => modulePerms.includes(action));
                   return (
                     <div key={module.key} className="grid grid-cols-6 gap-4 items-center py-2">
                       <div className="font-medium text-slate-700 dark:text-slate-300">{module.label}</div>
@@ -301,15 +310,19 @@ function RoleEditForm({ params, token }: { params: Promise<{ id: string }>; toke
                           disabled={isSystemRole}
                         />
                       </div>
-                      {permissionActions.map(action => (
+                      {PERMISSION_ACTIONS.map(action => (
                         <div key={action} className="flex justify-center">
-                          <input
-                            type="checkbox"
-                            checked={modulePerms.includes(action)}
-                            onChange={() =>{  togglePermission(module.key, action); }}
-                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                            disabled={isSystemRole}
-                          />
+                          {moduleActions.includes(action) ? (
+                            <input
+                              type="checkbox"
+                              checked={modulePerms.includes(action)}
+                              onChange={() =>{  togglePermission(module.key, action); }}
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                              disabled={isSystemRole}
+                            />
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
                         </div>
                       ))}
                     </div>
