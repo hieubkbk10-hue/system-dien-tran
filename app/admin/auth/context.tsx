@@ -5,6 +5,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 interface AdminUser {
+  avatar?: string;
   id: string;
   name: string;
   email: string;
@@ -51,6 +52,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = Boolean(activeToken) && sessionResult?.valid === true;
   const isLoading = Boolean(activeToken) && sessionResult === undefined;
   const user = sessionResult?.user ? {
+    avatar: sessionResult.user.avatar,
     email: sessionResult.user.email,
     id: sessionResult.user.id,
     isSuperAdmin: sessionResult.user.isSuperAdmin,

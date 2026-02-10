@@ -201,6 +201,7 @@ export const verifyAdminSession = query({
     return {
       message: "Session hợp lệ",
       user: {
+        avatar: adminUser.avatar,
         email: adminUser.email,
         id: adminUser._id,
         isSuperAdmin: role.isSuperAdmin ?? false,
@@ -214,6 +215,7 @@ export const verifyAdminSession = query({
   returns: v.object({
     message: v.string(),
     user: v.optional(v.object({
+      avatar: v.optional(v.string()),
       email: v.string(),
       id: v.string(),
       isSuperAdmin: v.boolean(),
@@ -239,6 +241,50 @@ export const logoutAdmin = mutation({
     return null;
   },
   returns: v.null(),
+});
+
+export const changeMyPassword = mutation({
+  args: {
+    currentPassword: v.string(),
+    newPassword: v.string(),
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (args.newPassword.length < 6) {
+      return { message: "Mật khẩu mới tối thiểu 6 ký tự", success: false };
+    }
+
+    const session = await ctx.db
+      .query("userSessions")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!session || session.expiresAt < Date.now()) {
+      return { message: "Session không hợp lệ", success: false };
+    }
+
+    const user = await ctx.db.get(session.userId);
+    if (!user || user.status !== "Active") {
+      return { message: "Tài khoản không hợp lệ", success: false };
+    }
+
+    if (!user.passwordHash) {
+      return { message: "Tài khoản chưa có mật khẩu", success: false };
+    }
+
+    const passwordValid = await verifyPassword(args.currentPassword, user.passwordHash);
+    if (!passwordValid) {
+      return { message: "Mật khẩu hiện tại không đúng", success: false };
+    }
+
+    const passwordHash = await hashPassword(args.newPassword);
+    await ctx.db.patch(user._id, { passwordHash });
+
+    return { message: "Đổi mật khẩu thành công", success: true };
+  },
+  returns: v.object({
+    message: v.string(),
+    success: v.boolean(),
+  }),
 });
 
 // ============================================================

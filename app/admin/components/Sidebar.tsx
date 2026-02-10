@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { 
   Bell, Briefcase, ChevronRight, ChevronsLeft, 
   ChevronsRight, FileText, Globe, Image as ImageIcon, LayoutDashboard, Loader2,
-  LogOut, Settings, ShoppingCart, Ticket, Users, X
+  LogOut, Settings, ShoppingCart, Ticket, User, Users, X
 } from 'lucide-react';
 import { cn } from './ui';
 import { api } from '@/convex/_generated/api';
 import { useAdminModules } from '../context/AdminModulesContext';
+import { useAdminAuth } from '../auth/context';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -131,8 +132,12 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const { isModuleEnabled, isLoading } = useAdminModules();
+  const { logout, user } = useAdminAuth();
   const productSettings = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'products' });
 
   const isActive = (route: string) => pathname.startsWith(route);
@@ -189,6 +194,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showNotificationsSection = isModuleEnabled('notifications');
   const showPromotionsSection = isModuleEnabled('promotions');
   const variantEnabled = Boolean(productSettings?.find(setting => setting.settingKey === 'variantEnabled')?.value);
+
+  const displayName = user?.name ?? 'Admin';
+  const displayEmail = user?.email ?? '';
+  const avatarUrl = user?.avatar;
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  useEffect(() => {
+    if (!showUserMenu) {return;}
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!userMenuRef.current) {return;}
+      if (!userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
+
+  const handleLogout = async () => {
+    await logout();
+    setShowUserMenu(false);
+    router.push('/admin/auth/login');
+  };
 
   return (
     <>
@@ -435,19 +469,57 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
             {isSidebarCollapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
           </button>
 
-          <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer", isSidebarCollapsed ? "justify-center" : "")}>
-            <div className="relative">
-              <Image src="https://picsum.photos/100/100?random=999" alt="User" width={36} height={36} className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-700" />
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
-            </div>
-            
-            {!isSidebarCollapsed && (
-              <div className="flex-1 overflow-hidden">
-                <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">Admin User</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@vietadmin.com</div>
+          <div className="relative" ref={userMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowUserMenu((prev) => !prev)}
+              className={cn("w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors", isSidebarCollapsed ? "justify-center" : "")}
+              aria-expanded={showUserMenu}
+            >
+              <div className="relative">
+                {avatarUrl ? (
+                  <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-700" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white dark:ring-slate-700">
+                    {initials || 'AD'}
+                  </div>
+                )}
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
+              </div>
+
+              {!isSidebarCollapsed && (
+                <div className="flex-1 overflow-hidden text-left">
+                  <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{displayName}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{displayEmail}</div>
+                </div>
+              )}
+            </button>
+
+            {showUserMenu && (
+              <div
+                className={cn(
+                  "absolute z-50 rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900",
+                  isSidebarCollapsed ? "left-full bottom-0 ml-2 w-56" : "left-0 bottom-full mb-2 w-full"
+                )}
+              >
+                <Link
+                  href="/admin/profile"
+                  onClick={() => setShowUserMenu(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  <User size={16} />
+                  Hồ sơ
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                >
+                  <LogOut size={16} />
+                  Đăng xuất
+                </button>
               </div>
             )}
-            {!isSidebarCollapsed && <LogOut size={16} className="text-slate-400 hover:text-red-500" />}
           </div>
         </div>
       </aside>
