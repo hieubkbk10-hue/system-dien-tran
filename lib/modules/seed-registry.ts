@@ -56,6 +56,12 @@ export const SEED_MODULE_METADATA: Record<string, SeedModuleMetadata> = {
     description: 'Sections trang chủ',
     name: 'Homepage',
   },
+  kanban: {
+    category: 'system',
+    defaultQuantity: 1,
+    description: 'Bảng Kanban quản lý công việc nội bộ',
+    name: 'Kanban Board',
+  },
   media: {
     category: 'content',
     defaultQuantity: 20,

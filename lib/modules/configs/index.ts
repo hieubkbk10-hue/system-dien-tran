@@ -3,6 +3,7 @@ export { cartModule } from './cart.config';
  export { commentsModule } from './comments.config';
  export { customersModule } from './customers.config';
  export { homepageModule } from './homepage.config';
+ export { kanbanModule } from './kanban.config';
 export { mediaModule } from './media.config';
  export { menusModule } from './menus.config';
 export { notificationsModule } from './notifications.config';

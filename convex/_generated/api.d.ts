@@ -19,6 +19,7 @@ import type * as convexDashboard from "../convexDashboard.js";
 import type * as customers from "../customers.js";
 import type * as dataManager from "../dataManager.js";
 import type * as homeComponents from "../homeComponents.js";
+import type * as kanban from "../kanban.js";
 import type * as lib_helpers from "../lib/helpers.js";
 import type * as lib_password from "../lib/password.js";
 import type * as lib_permissions from "../lib/permissions.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   customers: typeof customers;
   dataManager: typeof dataManager;
   homeComponents: typeof homeComponents;
+  kanban: typeof kanban;
   "lib/helpers": typeof lib_helpers;
   "lib/password": typeof lib_password;
   "lib/permissions": typeof lib_permissions;

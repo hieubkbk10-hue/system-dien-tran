@@ -39,6 +39,7 @@ export const seedModules = mutation({
       { category: "marketing" as const, dependencies: ["products", "orders"], dependencyType: "all" as const, description: "Quản lý mã giảm giá, voucher", enabled: false, icon: "Megaphone", isCore: false, key: "promotions", name: "Khuyến mãi", order: 15 },
       { category: "marketing" as const, description: "Báo cáo và phân tích dữ liệu", enabled: true, icon: "BarChart3", isCore: false, key: "analytics", name: "Thống kê", order: 16 },
       { category: "content" as const, description: "Quản lý dịch vụ và danh mục dịch vụ", enabled: true, icon: "Briefcase", isCore: false, key: "services", name: "Dịch vụ", order: 17 },
+      { category: "system" as const, description: "Bảng Kanban quản lý công việc nội bộ", enabled: true, icon: "LayoutGrid", isCore: false, key: "kanban", name: "Kanban Board", order: 18 },
     ];
 
     for (const mod of modules) {
@@ -1704,7 +1705,7 @@ export const seedUsersModule = mutation({
       if (!existingRoles) {
         const roles: { name: string; description: string; color: string; isSystem: boolean; isSuperAdmin?: boolean; permissions: Record<string, string[]> }[] = [
           { color: "#ef4444", description: "Toàn quyền truy cập hệ thống", isSuperAdmin: true, isSystem: true, name: "Super Admin", permissions: { "*": ["*"] } },
-          { color: "#3b82f6", description: "Quản trị viên hệ thống", isSystem: true, name: "Admin", permissions: { customers: ["read", "update"], orders: ["read", "update"], posts: ["read", "create", "update", "delete"], products: ["read", "create", "update", "delete"], settings: ["read"], users: ["read"] } },
+          { color: "#3b82f6", description: "Quản trị viên hệ thống", isSystem: true, name: "Admin", permissions: { customers: ["read", "update"], kanban: ["read", "create", "update", "delete"], orders: ["read", "update"], posts: ["read", "create", "update", "delete"], products: ["read", "create", "update", "delete"], settings: ["read"], users: ["read"] } },
           { color: "#22c55e", description: "Biên tập viên nội dung", isSystem: false, name: "Editor", permissions: { media: ["read", "create"], posts: ["read", "create", "update"], products: ["read"] } },
           { color: "#f59e0b", description: "Kiểm duyệt viên", isSystem: false, name: "Moderator", permissions: { comments: ["read", "update", "delete"], customers: ["read"], posts: ["read"], products: ["read"] } },
         ];
@@ -1888,6 +1889,7 @@ export const seedRolesModule = mutation({
           name: "Admin", 
           permissions: { 
             customers: ["view", "create", "edit"],
+            kanban: ["view", "create", "edit", "delete"],
             media: ["view", "create", "delete"],
             orders: ["view", "create", "edit"],
             posts: ["view", "create", "edit", "delete"],

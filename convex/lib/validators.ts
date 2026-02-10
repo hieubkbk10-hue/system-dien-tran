@@ -34,6 +34,12 @@ export const commentStatus = v.union(
   v.literal("Spam")
 );
 
+export const kanbanPriority = v.union(
+  v.literal("LOW"),
+  v.literal("MEDIUM"),
+  v.literal("HIGH")
+);
+
 export const orderStatus = v.string();
 
 export const paymentMethod = v.union(

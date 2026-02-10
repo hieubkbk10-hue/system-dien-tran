@@ -529,6 +529,44 @@ export default defineSchema({
     .index("by_targetType", ["targetType"])
     .index("by_action", ["action"]),
 
+  // 19a. kanbanBoards - Bảng kanban
+  kanbanBoards: defineTable({
+    createdBy: v.id("users"),
+    description: v.optional(v.string()),
+    name: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
+
+  // 19b. kanbanColumns - Cột kanban
+  kanbanColumns: defineTable({
+    boardId: v.id("kanbanBoards"),
+    color: v.optional(v.string()),
+    icon: v.string(),
+    order: v.number(),
+    title: v.string(),
+    wipLimit: v.optional(v.number()),
+  }).index("by_board_order", ["boardId", "order"]),
+
+  // 19c. kanbanTasks - Task kanban
+  kanbanTasks: defineTable({
+    assigneeId: v.optional(v.id("users")),
+    boardId: v.id("kanbanBoards"),
+    columnId: v.id("kanbanColumns"),
+    createdBy: v.id("users"),
+    description: v.optional(v.string()),
+    dueDate: v.optional(v.number()),
+    order: v.number(),
+    priority: v.union(
+      v.literal("LOW"),
+      v.literal("MEDIUM"),
+      v.literal("HIGH")
+    ),
+    title: v.string(),
+  })
+    .index("by_board", ["boardId"])
+    .index("by_column_order", ["columnId", "order"])
+    .index("by_assignee", ["assigneeId"]),
+
   // 20. orders - Đơn hàng
   orders: defineTable({
     customerId: v.id("customers"),

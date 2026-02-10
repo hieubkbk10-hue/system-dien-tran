@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { 
   Bell, Briefcase, ChevronRight, ChevronsLeft, 
-  ChevronsRight, FileText, Globe, Image as ImageIcon, LayoutDashboard, Loader2,
+  ChevronsRight, FileText, Globe, Image as ImageIcon, LayoutDashboard, LayoutGrid, Loader2,
   LogOut, Settings, ShoppingCart, Ticket, User, Users, X
 } from 'lucide-react';
 import { cn } from './ui';
@@ -190,6 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showMediaSection = isModuleEnabled('media');
   const showUsersSection = isModuleEnabled('users') || isModuleEnabled('roles');
   const showWebsiteSection = isModuleEnabled('menus') || isModuleEnabled('homepage');
+  const showKanbanSection = isModuleEnabled('kanban');
   const showSettingsSection = isModuleEnabled('settings');
   const showNotificationsSection = isModuleEnabled('notifications');
   const showPromotionsSection = isModuleEnabled('promotions');
@@ -402,7 +403,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
             )}
 
             {/* System Section */}
-            {(showUsersSection || showWebsiteSection || showSettingsSection) && (
+            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection) && (
               <div className="space-y-1">
                 {!isSidebarCollapsed && <div className="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Hệ thống</div>}
                 
@@ -439,6 +440,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
                       { href: '/admin/menus', label: 'Menu', moduleKey: 'menus' },
                       { href: '/admin/home-components', label: 'Giao diện trang chủ', moduleKey: 'homepage' },
                     ]}
+                  />
+                )}
+
+                {showKanbanSection && (
+                  <SidebarItem
+                    icon={LayoutGrid}
+                    label="Kanban Board"
+                    href="/admin/kanban"
+                    active={isActive('/admin/kanban')}
+                    isCollapsed={isSidebarCollapsed}
+                    isExpanded={false}
+                    onToggle={() => {}}
+                    pathname={pathname}
+                    isModuleEnabled={isModuleEnabled}
                   />
                 )}
                 

@@ -7,6 +7,7 @@ import { CartSeeder } from './cart.seeder';
 import { CommentsSeeder } from './comments.seeder';
 import { CustomerSeeder } from './customers.seeder';
 import { HomepageSeeder } from './homepage.seeder';
+import { KanbanSeeder } from './kanban.seeder';
 import { MediaSeeder } from './media.seeder';
 import { MenusSeeder } from './menus.seeder';
 import { NotificationsSeeder } from './notifications.seeder';
@@ -33,6 +34,7 @@ export const SEEDER_REGISTRY: Record<string, SeederConstructor> = {
   comments: CommentsSeeder,
   customers: CustomerSeeder,
   homepage: HomepageSeeder,
+  kanban: KanbanSeeder,
   media: MediaSeeder,
   menus: MenusSeeder,
   notifications: NotificationsSeeder,

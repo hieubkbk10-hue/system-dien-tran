@@ -143,6 +143,7 @@ const moduleConfigRoutes: Record<string, string> = {
   comments: '/system/modules/comments',
   customers: '/system/modules/customers',
   homepage: '/system/modules/homepage',
+  kanban: '/system/modules/kanban',
   media: '/system/modules/media',
   menus: '/system/modules/menus',
   notifications: '/system/modules/notifications',
