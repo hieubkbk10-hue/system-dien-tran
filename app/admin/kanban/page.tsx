@@ -275,6 +275,7 @@ function KanbanBoardPage() {
           if (editSaveSequenceRef.current === sequence) {
             setEditTask(prev => (prev ? { ...prev, title: nextTitle, description: nextDescription || undefined } : prev));
             setEditSaveStatus('saved');
+            toast.success('Đã lưu task');
           }
         })
         .catch((error) => {
@@ -415,86 +416,6 @@ function KanbanBoardPage() {
     setEditTitle('');
     setEditDescription('');
     setEditSaveStatus('idle');
-  };
-
-  const handleManualSave = async () => {
-    const trimmedTitle = editTitle.trim();
-    const trimmedDescription = editDescription.trim();
-    const hasEditChanges = editTask
-      ? trimmedTitle !== editTask.title.trim()
-        || trimmedDescription !== (editTask.description?.trim() ?? '')
-      : false;
-    const canSaveEdit = hasEditChanges && Boolean(trimmedTitle);
-    const hasDragChanges = dragSaveActionRef.current !== null;
-    const hasInvalidEdit = hasEditChanges && !trimmedTitle;
-
-    if (hasInvalidEdit) {
-      toast.error('Tiêu đề task không được để trống');
-    }
-
-    if (!hasDragChanges && !canSaveEdit) {
-      if (!hasInvalidEdit) {
-        toast.info('Không có thay đổi cần lưu');
-      }
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      if (dragSaveTimerRef.current) {
-        clearTimeout(dragSaveTimerRef.current);
-        dragSaveTimerRef.current = null;
-      }
-      if (editSaveTimerRef.current) {
-        clearTimeout(editSaveTimerRef.current);
-        editSaveTimerRef.current = null;
-      }
-
-      const saveTasks: Promise<unknown>[] = [];
-
-      if (hasDragChanges && dragSaveActionRef.current) {
-        const pendingAction = dragSaveActionRef.current;
-        dragSaveActionRef.current = null;
-        setDragSaveStatus('saving');
-        const queuedSave = dragSaveQueueRef.current.then(() => pendingAction());
-        dragSaveQueueRef.current = queuedSave;
-        saveTasks.push(queuedSave);
-      }
-
-      if (canSaveEdit && editTask) {
-        setEditSaveStatus('saving');
-        saveTasks.push(
-          updateTask({
-            id: editTask._id,
-            title: trimmedTitle,
-            description: trimmedDescription || undefined,
-          }).then(() => {
-            setEditTask(prev => (prev
-              ? { ...prev, title: trimmedTitle, description: trimmedDescription || undefined }
-              : prev
-            ));
-          })
-        );
-      }
-
-      await Promise.all(saveTasks);
-
-      if (hasDragChanges) {
-        setDragSaveStatus('saved');
-      }
-      if (canSaveEdit) {
-        setEditSaveStatus('saved');
-      }
-
-      toast.success('Đã lưu tất cả thay đổi');
-    } catch (error) {
-      console.error(error);
-      setDragSaveStatus('idle');
-      setEditSaveStatus('idle');
-      toast.error('Lưu thất bại');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleCreateBoard = async () => {
@@ -861,7 +782,6 @@ function KanbanBoardPage() {
   const activeBoard = boardData?.board;
   const noBoards = !boards || boards.length === 0;
   const isDragDisabled = Boolean(searchTerm.trim());
-  const hasPendingSave = dragSaveStatus === 'saving' || editSaveStatus === 'saving';
 
   return (
     <div className="space-y-6">
@@ -871,18 +791,6 @@ function KanbanBoardPage() {
           <div className="flex items-center gap-2">
             <p className="text-sm text-slate-500">Theo dõi tiến độ công việc nội bộ.</p>
             <SaveStatus status={dragSaveStatus} />
-            {hasPendingSave && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleManualSave}
-                disabled={isSubmitting}
-                className="gap-2"
-              >
-                <CheckCircle2 size={14} />
-                Lưu ngay
-              </Button>
-            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
