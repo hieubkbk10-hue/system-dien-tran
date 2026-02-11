@@ -741,35 +741,13 @@ function KanbanBoardPage() {
         return;
       }
 
-      const destinationHasActive = destinationTasks.some(task => task._id === activeTaskId);
-      let nextSourceTasks = sourceTasks;
-      let nextDestinationTasks = destinationTasks;
-
-      if (!destinationHasActive) {
-        const activeIndex = sourceTasks.findIndex(task => task._id === activeTaskId);
-        if (activeIndex === -1) {
-          return;
-        }
-        const [movedTask] = sourceTasks.splice(activeIndex, 1);
-        const overIndex = overType === 'task'
-          ? destinationTasks.findIndex(task => task._id === over.id)
-          : destinationTasks.length;
-        const insertIndex = overIndex >= 0 ? overIndex : destinationTasks.length;
-        nextDestinationTasks = [...destinationTasks];
-        nextDestinationTasks.splice(insertIndex, 0, { ...movedTask, columnId: destinationColumnId });
-        nextSourceTasks = sourceTasks;
-
-        setTasksByColumn(prev => ({
-          ...prev,
-          [sourceColumnId]: nextSourceTasks,
-          [destinationColumnId]: nextDestinationTasks,
-        }));
-      }
+      const currentSourceTasks = tasksByColumn[sourceColumnId] ?? [];
+      const currentDestinationTasks = tasksByColumn[destinationColumnId] ?? [];
 
       scheduleDragSave(() => moveTask({
-        destinationOrderIds: nextDestinationTasks.map(task => task._id),
+        destinationOrderIds: currentDestinationTasks.map(task => task._id),
         fromColumnId: sourceColumnId,
-        sourceOrderIds: nextSourceTasks.map(task => task._id),
+        sourceOrderIds: currentSourceTasks.map(task => task._id),
         taskId: activeTaskId,
         toColumnId: destinationColumnId,
       }), 'Đã chuyển cột và lưu');
