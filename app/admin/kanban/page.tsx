@@ -5,7 +5,19 @@ import { useMutation, useQuery } from 'convex/react';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -76,6 +88,8 @@ function KanbanBoardPage() {
 
   const [columns, setColumns] = useState<KanbanColumn[]>([]);
   const [tasksByColumn, setTasksByColumn] = useState<Record<string, KanbanTask[]>>({});
+  const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
+  const [activeColumn, setActiveColumn] = useState<KanbanColumn | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
@@ -208,8 +222,27 @@ function KanbanBoardPage() {
     return map;
   }, [users]);
 
+  const columnsMap = useMemo(() => {
+    const map = new Map<string, KanbanColumn>();
+    columns.forEach(column => map.set(column._id, column));
+    return map;
+  }, [columns]);
+
+  const tasksMap = useMemo(() => {
+    const map = new Map<string, KanbanTask>();
+    Object.values(tasksByColumn).forEach(tasks => {
+      tasks.forEach(task => map.set(task._id, task));
+    });
+    return map;
+  }, [tasksByColumn]);
+
+  const findColumnIdByTask = (taskId: Id<'kanbanTasks'>) => Object.entries(tasksByColumn).find(([, tasks]) =>
+    tasks.some(task => task._id === taskId)
+  )?.[0] as Id<'kanbanColumns'> | undefined;
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -397,86 +430,69 @@ function KanbanBoardPage() {
     }
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
+    const activeType = event.active.data.current?.type as 'column' | 'task' | undefined;
+    if (activeType === 'column') {
+      setActiveColumn(columnsMap.get(event.active.id as string) ?? null);
+      setActiveTask(null);
+      return;
+    }
+    if (activeType === 'task') {
+      setActiveTask(tasksMap.get(event.active.id as string) ?? null);
+      setActiveColumn(null);
+      return;
+    }
+    setActiveTask(null);
+    setActiveColumn(null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over || !boardData) {
+    if (!over) {
       return;
     }
 
     const activeType = active.data.current?.type as 'column' | 'task' | undefined;
     const overType = over.data.current?.type as 'column' | 'task' | undefined;
-
-    if (activeType === 'column' && overType === 'column' && active.id !== over.id) {
-      const oldIndex = columns.findIndex(column => column._id === active.id);
-      const newIndex = columns.findIndex(column => column._id === over.id);
-      if (oldIndex === -1 || newIndex === -1) {
-        return;
-      }
-      const newColumns = arrayMove(columns, oldIndex, newIndex);
-      setColumns(newColumns);
-      try {
-        await reorderColumns({
-          boardId: boardData.board._id,
-          orderedIds: newColumns.map(column => column._id),
-        });
-      } catch (error) {
-        console.error(error);
-        toast.error('Không thể sắp xếp cột');
-      }
-      return;
-    }
-
-    if (activeType !== 'task') {
+    if (activeType !== 'task' || !overType) {
       return;
     }
 
     const activeTaskId = active.id as Id<'kanbanTasks'>;
-    const findColumnId = (taskId: Id<'kanbanTasks'>) => Object.entries(tasksByColumn).find(([, tasks]) =>
-      tasks.some(task => task._id === taskId)
-    )?.[0] as Id<'kanbanColumns'> | undefined;
-
-    const sourceColumnId = findColumnId(activeTaskId);
+    const sourceColumnId = findColumnIdByTask(activeTaskId);
     const destinationColumnId = overType === 'column'
       ? (over.id as Id<'kanbanColumns'>)
-      : findColumnId(over.id as Id<'kanbanTasks'>);
+      : findColumnIdByTask(over.id as Id<'kanbanTasks'>);
 
     if (!sourceColumnId || !destinationColumnId) {
       return;
     }
 
+    if (sourceColumnId === destinationColumnId) {
+      const columnTasks = tasksByColumn[sourceColumnId] ?? [];
+      const activeIndex = columnTasks.findIndex(task => task._id === activeTaskId);
+      const overIndex = overType === 'task'
+        ? columnTasks.findIndex(task => task._id === over.id)
+        : columnTasks.length - 1;
+
+      if (activeIndex < 0 || overIndex < 0 || activeIndex === overIndex) {
+        return;
+      }
+
+      const reordered = arrayMove(columnTasks, activeIndex, overIndex);
+      setTasksByColumn(prev => ({ ...prev, [sourceColumnId]: reordered }));
+      return;
+    }
+
+    if (isWipLimitReached(destinationColumnId, 1)) {
+      return;
+    }
+
     const sourceTasks = [...(tasksByColumn[sourceColumnId] ?? [])];
-    const destinationTasks = sourceColumnId === destinationColumnId
-      ? sourceTasks
-      : [...(tasksByColumn[destinationColumnId] ?? [])];
+    const destinationTasks = [...(tasksByColumn[destinationColumnId] ?? [])];
 
     const activeIndex = sourceTasks.findIndex(task => task._id === activeTaskId);
     if (activeIndex === -1) {
-      return;
-    }
-
-    if (sourceColumnId !== destinationColumnId && isWipLimitReached(destinationColumnId, 1)) {
-      toast.error('Cột đích đã đạt WIP limit');
-      return;
-    }
-
-    if (sourceColumnId === destinationColumnId) {
-      const overIndex = overType === 'task'
-        ? destinationTasks.findIndex(task => task._id === over.id)
-        : destinationTasks.length - 1;
-      if (overIndex < 0) {
-        return;
-      }
-      const reordered = arrayMove(destinationTasks, activeIndex, Math.max(overIndex, 0));
-      setTasksByColumn(prev => ({ ...prev, [sourceColumnId]: reordered }));
-      try {
-        await reorderTasks({
-          columnId: sourceColumnId,
-          orderedIds: reordered.map(task => task._id),
-        });
-      } catch (error) {
-        console.error(error);
-        toast.error('Không thể sắp xếp task');
-      }
       return;
     }
 
@@ -484,25 +500,139 @@ function KanbanBoardPage() {
     const overIndex = overType === 'task'
       ? destinationTasks.findIndex(task => task._id === over.id)
       : destinationTasks.length;
-    destinationTasks.splice(Math.max(overIndex, 0), 0, { ...movedTask, columnId: destinationColumnId });
+    const insertIndex = overIndex >= 0 ? overIndex : destinationTasks.length;
+
+    destinationTasks.splice(insertIndex, 0, { ...movedTask, columnId: destinationColumnId });
 
     setTasksByColumn(prev => ({
       ...prev,
       [sourceColumnId]: sourceTasks,
       [destinationColumnId]: destinationTasks,
     }));
+  };
 
+  const handleDragCancel = () => {
+    setActiveTask(null);
+    setActiveColumn(null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
     try {
-      await moveTask({
-        destinationOrderIds: destinationTasks.map(task => task._id),
-        fromColumnId: sourceColumnId,
-        sourceOrderIds: sourceTasks.map(task => task._id),
-        taskId: activeTaskId,
-        toColumnId: destinationColumnId,
-      });
-    } catch (error) {
-      console.error(error);
-      toast.error('Không thể di chuyển task');
+      const { active, over } = event;
+      if (!over || !boardData) {
+        return;
+      }
+
+      const activeType = active.data.current?.type as 'column' | 'task' | undefined;
+      const overType = over.data.current?.type as 'column' | 'task' | undefined;
+
+      if (activeType === 'column' && overType === 'column' && active.id !== over.id) {
+        const oldIndex = columns.findIndex(column => column._id === active.id);
+        const newIndex = columns.findIndex(column => column._id === over.id);
+        if (oldIndex === -1 || newIndex === -1) {
+          return;
+        }
+        const newColumns = arrayMove(columns, oldIndex, newIndex);
+        setColumns(newColumns);
+        try {
+          await reorderColumns({
+            boardId: boardData.board._id,
+            orderedIds: newColumns.map(column => column._id),
+          });
+        } catch (error) {
+          console.error(error);
+          toast.error('Không thể sắp xếp cột');
+        }
+        return;
+      }
+
+      if (activeType !== 'task') {
+        return;
+      }
+
+      const activeTaskId = active.id as Id<'kanbanTasks'>;
+      const sourceColumnId = (active.data.current?.columnId as Id<'kanbanColumns'> | undefined)
+        ?? findColumnIdByTask(activeTaskId);
+      const destinationColumnId = overType === 'column'
+        ? (over.id as Id<'kanbanColumns'>)
+        : findColumnIdByTask(over.id as Id<'kanbanTasks'>);
+
+      if (!sourceColumnId || !destinationColumnId) {
+        return;
+      }
+
+      const sourceTasks = [...(tasksByColumn[sourceColumnId] ?? [])];
+      const destinationTasks = sourceColumnId === destinationColumnId
+        ? sourceTasks
+        : [...(tasksByColumn[destinationColumnId] ?? [])];
+
+      if (sourceColumnId === destinationColumnId) {
+        const activeIndex = sourceTasks.findIndex(task => task._id === activeTaskId);
+        const overIndex = overType === 'task'
+          ? destinationTasks.findIndex(task => task._id === over.id)
+          : destinationTasks.length - 1;
+        if (activeIndex < 0 || overIndex < 0 || activeIndex === overIndex) {
+          return;
+        }
+        const reordered = arrayMove(destinationTasks, activeIndex, Math.max(overIndex, 0));
+        setTasksByColumn(prev => ({ ...prev, [sourceColumnId]: reordered }));
+        try {
+          await reorderTasks({
+            columnId: sourceColumnId,
+            orderedIds: reordered.map(task => task._id),
+          });
+        } catch (error) {
+          console.error(error);
+          toast.error('Không thể sắp xếp task');
+        }
+        return;
+      }
+
+      if (isWipLimitReached(destinationColumnId, 1)) {
+        toast.error('Cột đích đã đạt WIP limit');
+        return;
+      }
+
+      const destinationHasActive = destinationTasks.some(task => task._id === activeTaskId);
+      let nextSourceTasks = sourceTasks;
+      let nextDestinationTasks = destinationTasks;
+
+      if (!destinationHasActive) {
+        const activeIndex = sourceTasks.findIndex(task => task._id === activeTaskId);
+        if (activeIndex === -1) {
+          return;
+        }
+        const [movedTask] = sourceTasks.splice(activeIndex, 1);
+        const overIndex = overType === 'task'
+          ? destinationTasks.findIndex(task => task._id === over.id)
+          : destinationTasks.length;
+        const insertIndex = overIndex >= 0 ? overIndex : destinationTasks.length;
+        nextDestinationTasks = [...destinationTasks];
+        nextDestinationTasks.splice(insertIndex, 0, { ...movedTask, columnId: destinationColumnId });
+        nextSourceTasks = sourceTasks;
+
+        setTasksByColumn(prev => ({
+          ...prev,
+          [sourceColumnId]: nextSourceTasks,
+          [destinationColumnId]: nextDestinationTasks,
+        }));
+      }
+
+      try {
+        await moveTask({
+          destinationOrderIds: nextDestinationTasks.map(task => task._id),
+          fromColumnId: sourceColumnId,
+          sourceOrderIds: nextSourceTasks.map(task => task._id),
+          taskId: activeTaskId,
+          toColumnId: destinationColumnId,
+        });
+      } catch (error) {
+        console.error(error);
+        toast.error('Không thể di chuyển task');
+      }
+    } finally {
+      setActiveTask(null);
+      setActiveColumn(null);
     }
   };
 
@@ -585,7 +715,14 @@ function KanbanBoardPage() {
       )}
 
       {activeBoard && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragCancel={handleDragCancel}
+          onDragEnd={handleDragEnd}
+        >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <SortableContext items={columns.map(column => column._id)} strategy={rectSortingStrategy}>
               {columns.map(column => (
@@ -609,6 +746,17 @@ function KanbanBoardPage() {
               ))}
             </SortableContext>
           </div>
+          <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+            {activeTask ? (
+              <div className="pointer-events-none w-72 -rotate-2 scale-105">
+                <KanbanTaskOverlay task={activeTask} usersMap={usersMap} />
+              </div>
+            ) : activeColumn ? (
+              <div className="pointer-events-none w-72 -rotate-2 scale-105">
+                <KanbanColumnOverlay column={activeColumn} taskCount={tasksByColumn[activeColumn._id]?.length ?? 0} enableWipLimit={enableWipLimit} />
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
@@ -874,6 +1022,7 @@ function KanbanColumnCard({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
     data: { type: 'column' },
+    disabled: isDragDisabled,
   });
 
   const style = {
@@ -885,8 +1034,8 @@ function KanbanColumnCard({
   const ColumnIcon = COLUMN_ICON_MAP[column.icon as keyof typeof COLUMN_ICON_MAP] ?? CircleDashed;
 
   return (
-    <div ref={setNodeRef} style={style} className={cn(isDragging && 'opacity-60')}>
-      <Card className="p-4">
+    <div ref={setNodeRef} style={style} className={cn('transition', isDragging && 'opacity-30')}>
+      <Card className={cn('p-4', isDragging && 'border-dashed border-slate-300 bg-slate-50')}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className={cn('h-2 w-2 rounded-full', colorStyle.dot)} />
@@ -948,7 +1097,7 @@ function KanbanTaskCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
-    data: { type: 'task' },
+    data: { type: 'task', columnId: task.columnId },
     disabled: isDragDisabled,
   });
 
@@ -962,8 +1111,8 @@ function KanbanTaskCard({
   const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : null;
 
   return (
-    <div ref={setNodeRef} style={style} className={cn(isDragging && 'opacity-60')}>
-      <Card className="p-3 space-y-2">
+    <div ref={setNodeRef} style={style} className={cn('transition', isDragging && 'opacity-30')}>
+      <Card className={cn('p-3 space-y-2', isDragging && 'border-dashed border-slate-300 bg-slate-50')}>
         <div className="flex items-start justify-between gap-2">
           <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{task.title}</div>
           <div className="flex items-center gap-1">
@@ -1002,5 +1151,76 @@ function KanbanTaskCard({
         </div>
       </Card>
     </div>
+  );
+}
+
+function KanbanColumnOverlay({
+  column,
+  taskCount,
+  enableWipLimit,
+}: {
+  column: KanbanColumn;
+  taskCount: number;
+  enableWipLimit: boolean;
+}) {
+  const colorStyle = COLUMN_COLOR_STYLES[column.color ?? 'slate'] ?? COLUMN_COLOR_STYLES.slate;
+  const ColumnIcon = COLUMN_ICON_MAP[column.icon as keyof typeof COLUMN_ICON_MAP] ?? CircleDashed;
+
+  return (
+    <Card className="p-4 shadow-lg">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className={cn('h-2 w-2 rounded-full', colorStyle.dot)} />
+          <ColumnIcon size={16} className={cn(colorStyle.text)} />
+          <div>
+            <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{column.title}</div>
+            {enableWipLimit && column.wipLimit ? (
+              <Badge variant={taskCount > column.wipLimit ? 'destructive' : 'secondary'}>
+                {taskCount}/{column.wipLimit}
+              </Badge>
+            ) : (
+              <span className="text-xs text-slate-500">{taskCount} task</span>
+            )}
+          </div>
+        </div>
+        <span className="text-xs text-slate-400">Kéo để đổi vị trí</span>
+      </div>
+    </Card>
+  );
+}
+
+function KanbanTaskOverlay({
+  task,
+  usersMap,
+}: {
+  task: KanbanTask;
+  usersMap: Map<string, Doc<'users'>>;
+}) {
+  const priorityMeta = PRIORITY_LABELS[task.priority];
+  const assignee = task.assigneeId ? usersMap.get(task.assigneeId) : null;
+  const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : null;
+
+  return (
+    <Card className="p-3 space-y-2 shadow-lg">
+      <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{task.title}</div>
+      {task.description && (
+        <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
+      )}
+      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+        <Badge variant={priorityMeta.variant}>{priorityMeta.label}</Badge>
+        {assignee && (
+          <span className="inline-flex items-center gap-1">
+            <UserCircle size={14} />
+            {assignee.name}
+          </span>
+        )}
+        {dueDate && (
+          <span className="inline-flex items-center gap-1">
+            <Calendar size={14} />
+            {dueDate}
+          </span>
+        )}
+      </div>
+    </Card>
   );
 }
