@@ -704,8 +704,8 @@ function KanbanBoardPage() {
       }
 
       const activeTaskId = active.id as Id<'kanbanTasks'>;
-      const sourceColumnId = (active.data.current?.columnId as Id<'kanbanColumns'> | undefined)
-        ?? findColumnIdByTask(activeTaskId);
+      const sourceColumnId = findColumnIdByTask(activeTaskId)
+        ?? (active.data.current?.columnId as Id<'kanbanColumns'> | undefined);
       const destinationColumnId = overType === 'column'
         ? (over.id as Id<'kanbanColumns'>)
         : findColumnIdByTask(over.id as Id<'kanbanTasks'>);
