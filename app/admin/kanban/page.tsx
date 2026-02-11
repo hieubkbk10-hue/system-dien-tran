@@ -104,6 +104,7 @@ function KanbanBoardPage() {
   const dragSaveActionRef = useRef<(() => Promise<unknown>) | null>(null);
   const dragSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const dragSaveSequenceRef = useRef(0);
+  const dragOriginalColumnRef = useRef<Id<'kanbanColumns'> | null>(null);
   const editSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editSaveSequenceRef = useRef(0);
 
@@ -596,8 +597,10 @@ function KanbanBoardPage() {
       return;
     }
     if (activeType === 'task') {
-      setActiveTask(tasksMap.get(event.active.id as string) ?? null);
+      const task = tasksMap.get(event.active.id as string) ?? null;
+      setActiveTask(task);
       setActiveColumn(null);
+      dragOriginalColumnRef.current = task?.columnId ?? null;
       return;
     }
     setActiveTask(null);
@@ -672,6 +675,7 @@ function KanbanBoardPage() {
   const handleDragCancel = () => {
     setActiveTask(null);
     setActiveColumn(null);
+    dragOriginalColumnRef.current = null;
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -704,8 +708,7 @@ function KanbanBoardPage() {
       }
 
       const activeTaskId = active.id as Id<'kanbanTasks'>;
-      const sourceColumnId = (active.data.current?.columnId as Id<'kanbanColumns'> | undefined)
-        ?? findColumnIdByTask(activeTaskId);
+      const sourceColumnId = dragOriginalColumnRef.current ?? findColumnIdByTask(activeTaskId);
       const destinationColumnId = overType === 'column'
         ? (over.id as Id<'kanbanColumns'>)
         : findColumnIdByTask(over.id as Id<'kanbanTasks'>);
@@ -754,6 +757,7 @@ function KanbanBoardPage() {
     } finally {
       setActiveTask(null);
       setActiveColumn(null);
+      dragOriginalColumnRef.current = null;
     }
   };
 
