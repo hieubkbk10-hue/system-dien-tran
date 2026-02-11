@@ -9,7 +9,7 @@ import { hashPassword, verifyPassword } from "./lib/password";
 // ============================================================
 
 const SYSTEM_EMAIL = process.env.SYSTEM_EMAIL;
-const SYSTEM_PASSWORD_HASH = process.env.SYSTEM_PASSWORD_HASH;
+const SYSTEM_PASSWORD = process.env.SYSTEM_PASSWORD;
 
 export const verifySystemLogin = mutation({
   args: {
@@ -17,7 +17,7 @@ export const verifySystemLogin = mutation({
     password: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!SYSTEM_EMAIL || !SYSTEM_PASSWORD_HASH) {
+    if (!SYSTEM_EMAIL || !SYSTEM_PASSWORD) {
       return { message: "Chưa cấu hình tài khoản hệ thống", success: false };
     }
 
@@ -25,8 +25,7 @@ export const verifySystemLogin = mutation({
       return { message: "Thông tin đăng nhập không đúng", success: false };
     }
 
-    const isPasswordValid = await verifyPassword(args.password, SYSTEM_PASSWORD_HASH);
-    if (!isPasswordValid) {
+    if (args.password !== SYSTEM_PASSWORD) {
       return { message: "Thông tin đăng nhập không đúng", success: false };
     }
     
