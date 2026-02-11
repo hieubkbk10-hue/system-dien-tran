@@ -18,7 +18,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, HeroContent, HeroStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, HeroContent, HeroStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle, VoucherPromotionsStyle
 } from '../../previews';
 import { 
   AboutPreview,
@@ -47,7 +47,8 @@ import {
   TeamPreview,
   TestimonialsPreview,
   TrustBadgesPreview,
-  VideoPreview
+  VideoPreview,
+  VoucherPromotionsPreview
 } from '../../previews';
 import { useBrandColor } from '../../create/shared';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
@@ -84,6 +85,7 @@ const COMPONENT_TYPES = [
   { icon: Users, label: 'Khách hàng (Marquee)', value: 'Clients' },
   { icon: LayoutTemplate, label: 'Video / Media', value: 'Video' },
   { icon: AlertCircle, label: 'Khuyến mãi / Countdown', value: 'Countdown' },
+  { icon: Tag, label: 'Voucher khuyến mãi', value: 'VoucherPromotions' },
 ];
 
 interface HeroSlide extends ImageItem {
@@ -221,6 +223,13 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     heading: '', showDays: true, showHours: true, showMinutes: true, showSeconds: true, subHeading: ''
   });
   const [countdownStyle, setCountdownStyle] = useState<CountdownStyle>('banner');
+  const [voucherConfig, setVoucherConfig] = useState({
+    ctaLabel: 'Xem tất cả ưu đãi',
+    ctaUrl: '/promotions',
+    description: 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
+    heading: 'Voucher khuyến mãi'
+  });
+  const [voucherStyle, setVoucherStyle] = useState<VoucherPromotionsStyle>('grid');
   const [contactConfig, setContactConfig] = useState({ address: '', email: '', formDescription: '', formFields: ['name', 'email', 'phone', 'message'], formTitle: '', mapEmbed: '', phone: '', responseTimeText: '', showMap: true, socialLinks: [] as { id: number; platform: string; url: string }[], submitButtonText: '', workingHours: '' });
   const [contactStyle, setContactStyle] = useState<ContactStyle>('modern');
   const [productListConfig, setProductListConfig] = useState({ itemCount: 8, sortBy: 'newest' });
@@ -550,6 +559,16 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           setCountdownStyle((config.style as CountdownStyle) || 'banner');
           break;
         }
+        case 'VoucherPromotions': {
+          setVoucherConfig({
+            ctaLabel: (config.ctaLabel as string) || 'Xem tất cả ưu đãi',
+            ctaUrl: (config.ctaUrl as string) || '/promotions',
+            description: (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
+            heading: (config.heading as string) || 'Voucher khuyến mãi',
+          });
+          setVoucherStyle((config.style as VoucherPromotionsStyle) || 'grid');
+          break;
+        }
       }
       
       setIsInitialized(true);
@@ -740,6 +759,12 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         return {
           ...countdownConfig,
           style: countdownStyle,
+        };
+      }
+      case 'VoucherPromotions': {
+        return {
+          ...voucherConfig,
+          style: voucherStyle,
         };
       }
       default: {
@@ -3623,6 +3648,60 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               brandColor={brandColor}
               selectedStyle={countdownStyle}
               onStyleChange={setCountdownStyle}
+            />
+          </>
+        )}
+
+        {component.type === 'VoucherPromotions' && (
+          <>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-base">Nội dung voucher khuyến mãi</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Tiêu đề</Label>
+                  <Input 
+                    value={voucherConfig.heading} 
+                    onChange={(e) =>{  setVoucherConfig({...voucherConfig, heading: e.target.value}); }} 
+                    placeholder="Voucher khuyến mãi" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Mô tả</Label>
+                  <textarea 
+                    value={voucherConfig.description} 
+                    onChange={(e) =>{  setVoucherConfig({...voucherConfig, description: e.target.value}); }} 
+                    placeholder="Áp dụng mã để nhận ưu đãi tốt nhất hôm nay."
+                    className="w-full min-h-[60px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>CTA label</Label>
+                    <Input 
+                      value={voucherConfig.ctaLabel} 
+                      onChange={(e) =>{  setVoucherConfig({...voucherConfig, ctaLabel: e.target.value}); }} 
+                      placeholder="Xem tất cả ưu đãi" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CTA link</Label>
+                    <Input 
+                      value={voucherConfig.ctaUrl} 
+                      onChange={(e) =>{  setVoucherConfig({...voucherConfig, ctaUrl: e.target.value}); }} 
+                      placeholder="/promotions" 
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <VoucherPromotionsPreview
+              config={voucherConfig}
+              brandColor={brandColor}
+              selectedStyle={voucherStyle}
+              onStyleChange={setVoucherStyle}
             />
           </>
         )}

@@ -42,6 +42,7 @@ export const COMPONENT_TYPES = [
   { description: 'Logo khách hàng chạy auto-scroll', icon: Users, label: 'Khách hàng (Marquee)', route: 'clients', value: 'Clients' },
   { description: 'Video giới thiệu hoặc demo sản phẩm', icon: LayoutTemplate, label: 'Video / Media', route: 'video', value: 'Video' },
   { description: 'Banner khuyến mãi với đếm ngược thời gian', icon: AlertCircle, label: 'Khuyến mãi / Countdown', route: 'countdown', value: 'Countdown' },
+  { description: 'Voucher khuyến mãi với CTA dẫn tới ưu đãi', icon: Tag, label: 'Voucher khuyến mãi', route: 'voucher-promotions', value: 'VoucherPromotions' },
 ];
 
 export const DEFAULT_BRAND_COLOR = '#3b82f6';

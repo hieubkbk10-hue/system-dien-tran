@@ -158,6 +158,9 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
     case 'Countdown': {
       return <CountdownSection config={config} brandColor={brandColor} title={title} />;
     }
+    case 'VoucherPromotions': {
+      return <VoucherPromotionsSection config={config} brandColor={brandColor} title={title} />;
+    }
     case 'Footer': {
       return <FooterSection config={config} brandColor={brandColor} />;
     }
@@ -8960,6 +8963,179 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
         </div>
       </div>
     </div>
+  );
+}
+
+// ============ VOUCHER PROMOTIONS SECTION ============
+// 6 Styles: grid, split, strip, highlight, minimal, compact
+type VoucherPromotionsStyle = 'grid' | 'split' | 'strip' | 'highlight' | 'minimal' | 'compact';
+
+const voucherSamples = [
+  { code: 'EGA50', title: 'Giảm 15% cho đơn từ 500K', max: 'Tối đa 250K', expiry: '28/12/2026' },
+  { code: 'EGAT10', title: 'Giảm 10% cho đơn từ 1 triệu', max: 'Tối đa 300K', expiry: '30/12/2026' },
+  { code: 'FREESHIP', title: 'Miễn phí vận chuyển nội thành', max: 'Đơn từ 500K', expiry: '31/12/2026' },
+  { code: 'EGA500K', title: 'Giảm 90K cho đơn từ 1 triệu', max: 'Tối đa 1 mã/đơn', expiry: '31/12/2026' },
+];
+
+function VoucherPromotionsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+  const heading = (config.heading as string) || title || 'Voucher khuyến mãi';
+  const description = (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
+  const ctaLabel = (config.ctaLabel as string) || 'Xem tất cả ưu đãi';
+  const ctaUrl = (config.ctaUrl as string) || '/promotions';
+  const style = (config.style as VoucherPromotionsStyle) || 'grid';
+
+  const renderVoucherCard = (item: typeof voucherSamples[number], compact = false) => (
+    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${compact ? 'px-3 py-2' : 'p-4'}`}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Voucher</span>
+        {!compact && <span className="text-xs text-slate-400">{item.expiry}</span>}
+      </div>
+      <div className={`font-bold text-slate-900 ${compact ? 'text-sm mt-2' : 'text-lg mt-3'}`}>{item.code}</div>
+      {!compact && (
+        <>
+          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.title}</p>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-slate-400">{item.max}</span>
+            <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderHeader = (align: 'center' | 'left' = 'center') => (
+    <div className={`space-y-2 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+      <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{heading}</h2>
+      <p className="text-slate-500">{description}</p>
+      <a href={ctaUrl} className="inline-flex items-center gap-2 font-medium" style={{ color: brandColor }}>
+        {ctaLabel}
+        <ArrowRight size={16} />
+      </a>
+    </div>
+  );
+
+  if (style === 'split') {
+    return (
+      <section className="py-10 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="md:col-span-2">
+            {renderHeader('left')}
+          </div>
+          <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {voucherSamples.map((item) => (
+              <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (style === 'strip') {
+    return (
+      <section className="py-8 px-4">
+        <div className="max-w-6xl mx-auto rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">{heading}</h3>
+              <p className="text-sm text-slate-500">{description}</p>
+            </div>
+            <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>
+              {ctaLabel}
+              <ArrowRight size={14} />
+            </a>
+          </div>
+          <div className="flex gap-3 overflow-x-auto">
+            {voucherSamples.map((item) => (
+              <div key={item.code} className="min-w-[220px]">
+                {renderVoucherCard(item)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (style === 'highlight') {
+    return (
+      <section className="py-10 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="rounded-2xl p-6 md:p-8 text-white" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)` }}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <h3 className="text-2xl font-bold">{heading}</h3>
+                <p className="text-white/80 mt-2">{description}</p>
+              </div>
+              <a href={ctaUrl} className="inline-flex items-center gap-2 bg-white text-slate-900 font-semibold rounded-lg px-5 py-2.5">
+                {ctaLabel}
+                <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {voucherSamples.map((item) => (
+              <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (style === 'minimal') {
+    return (
+      <section className="py-10 px-4">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {renderHeader()}
+          <div className="space-y-3">
+            {voucherSamples.map((item) => (
+              <div key={item.code} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-slate-900">{item.code}</div>
+                  <div className="text-xs text-slate-500">{item.title}</div>
+                </div>
+                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (style === 'compact') {
+    return (
+      <section className="py-8 px-4">
+        <div className="max-w-6xl mx-auto space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">{heading}</h3>
+              <p className="text-sm text-slate-500">{description}</p>
+            </div>
+            <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>{ctaLabel}<ArrowRight size={14} /></a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {voucherSamples.map((item) => (
+              <React.Fragment key={item.code}>{renderVoucherCard(item, true)}</React.Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {renderHeader()}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {voucherSamples.map((item) => (
+            <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

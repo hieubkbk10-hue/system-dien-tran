@@ -13522,3 +13522,216 @@ export const CountdownPreview = ({
     </PreviewWrapper>
   );
 };
+
+// ============ VOUCHER PROMOTIONS PREVIEW ============
+export type VoucherPromotionsStyle = 'grid' | 'split' | 'strip' | 'highlight' | 'minimal' | 'compact';
+interface VoucherPromotionsConfig {
+  heading?: string;
+  description?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}
+
+const voucherSamples = [
+  { code: 'EGA50', title: 'Giảm 15% cho đơn từ 500K', max: 'Tối đa 250K', expiry: '28/12/2026' },
+  { code: 'EGAT10', title: 'Giảm 10% cho đơn từ 1 triệu', max: 'Tối đa 300K', expiry: '30/12/2026' },
+  { code: 'FREESHIP', title: 'Miễn phí vận chuyển nội thành', max: 'Đơn từ 500K', expiry: '31/12/2026' },
+  { code: 'EGA500K', title: 'Giảm 90K cho đơn từ 1 triệu', max: 'Tối đa 1 mã/đơn', expiry: '31/12/2026' },
+];
+
+export const VoucherPromotionsPreview = ({ 
+  config, 
+  brandColor, 
+  selectedStyle, 
+  onStyleChange 
+}: { 
+  config: VoucherPromotionsConfig; 
+  brandColor: string; 
+  selectedStyle?: VoucherPromotionsStyle; 
+  onStyleChange?: (style: VoucherPromotionsStyle) => void;
+}) => {
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
+  const previewStyle = selectedStyle ?? 'grid';
+  const setPreviewStyle = (s: string) => onStyleChange?.(s as VoucherPromotionsStyle);
+  const styles = [
+    { id: 'grid', label: 'Grid' },
+    { id: 'split', label: 'Split' },
+    { id: 'strip', label: 'Strip' },
+    { id: 'highlight', label: 'Highlight' },
+    { id: 'minimal', label: 'Minimal' },
+    { id: 'compact', label: 'Compact' },
+  ];
+
+  const heading = config.heading ?? 'Voucher khuyến mãi';
+  const description = config.description ?? 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
+  const ctaLabel = config.ctaLabel ?? 'Xem tất cả ưu đãi';
+  const ctaUrl = config.ctaUrl ?? '/promotions';
+
+  const VoucherCard = ({ item, compact = false }: { item: typeof voucherSamples[number]; compact?: boolean }) => (
+    <div className={cn(
+      'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm',
+      compact ? 'px-3 py-2' : 'p-4'
+    )}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Voucher</span>
+        {!compact && <span className="text-xs text-slate-400">{item.expiry}</span>}
+      </div>
+      <div className={cn('font-bold text-slate-900 dark:text-slate-100', compact ? 'text-sm mt-2' : 'text-lg mt-3')}>{item.code}</div>
+      {!compact && (
+        <>
+          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.title}</p>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-slate-400">{item.max}</span>
+            <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const Header = ({ align = 'center' }: { align?: 'center' | 'left' }) => (
+    <div className={cn('space-y-2', align === 'center' ? 'text-center' : 'text-left')}>
+      <h2 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>{heading}</h2>
+      <p className={cn('text-slate-500', device === 'mobile' ? 'text-sm' : 'text-base')}>{description}</p>
+      <a href={ctaUrl} className={cn('inline-flex items-center gap-2 font-medium', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: brandColor }}>
+        {ctaLabel}
+        <ArrowRight size={16} />
+      </a>
+    </div>
+  );
+
+  const renderGridStyle = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Header />
+        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-4'))}>
+          {voucherSamples.map((item) => (
+            <VoucherCard key={item.code} item={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderSplitStyle = () => (
+    <section className="py-8 px-4">
+      <div className={cn('max-w-6xl mx-auto gap-6', device === 'mobile' ? 'space-y-6' : 'grid grid-cols-5')}>
+        <div className={cn(device === 'mobile' ? '' : 'col-span-2')}>
+          <Header align="left" />
+        </div>
+        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : 'col-span-3 grid-cols-2')}>
+          {voucherSamples.slice(0, 4).map((item) => (
+            <VoucherCard key={item.code} item={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderStripStyle = () => (
+    <section className="py-6 px-4">
+      <div className="max-w-6xl mx-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-5">
+        <div className={cn('flex items-center justify-between gap-4 mb-4', device === 'mobile' && 'flex-col items-start')}> 
+          <div className="space-y-1">
+            <h3 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-lg' : 'text-xl')}>{heading}</h3>
+            <p className="text-sm text-slate-500">{description}</p>
+          </div>
+          <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>
+            {ctaLabel}
+            <ArrowRight size={14} />
+          </a>
+        </div>
+        <div className="flex gap-3 overflow-x-auto">
+          {voucherSamples.map((item) => (
+            <div key={item.code} className="min-w-[220px]">
+              <VoucherCard item={item} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderHighlightStyle = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="rounded-2xl p-6 md:p-8 text-white" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)` }}>
+          <div className={cn('flex items-center justify-between gap-6', device === 'mobile' && 'flex-col items-start')}> 
+            <div>
+              <h3 className={cn('font-bold', device === 'mobile' ? 'text-xl' : 'text-2xl')}>{heading}</h3>
+              <p className="text-white/80 mt-2">{description}</p>
+            </div>
+            <a href={ctaUrl} className="inline-flex items-center gap-2 bg-white text-slate-900 font-semibold rounded-lg px-5 py-2.5">
+              {ctaLabel}
+              <ArrowUpRight size={16} />
+            </a>
+          </div>
+        </div>
+        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : 'grid-cols-4')}>
+          {voucherSamples.map((item) => (
+            <VoucherCard key={item.code} item={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderMinimalStyle = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <Header />
+        <div className="space-y-3">
+          {voucherSamples.map((item) => (
+            <div key={item.code} className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3">
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.code}</div>
+                <div className="text-xs text-slate-500">{item.title}</div>
+              </div>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderCompactStyle = () => (
+    <section className="py-6 px-4">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className={cn('flex items-center justify-between gap-3', device === 'mobile' && 'flex-col items-start')}> 
+          <div>
+            <h3 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-lg' : 'text-xl')}>{heading}</h3>
+            <p className="text-sm text-slate-500">{description}</p>
+          </div>
+          <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>{ctaLabel}<ArrowRight size={14} /></a>
+        </div>
+        <div className={cn('grid gap-3', device === 'mobile' ? 'grid-cols-2' : 'grid-cols-4')}> 
+          {voucherSamples.map((item) => (
+            <VoucherCard key={item.code} item={item} compact />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  return (
+    <PreviewWrapper
+      title="Preview Voucher khuyến mãi"
+      device={device}
+      setDevice={setDevice}
+      previewStyle={previewStyle}
+      setPreviewStyle={setPreviewStyle}
+      styles={styles}
+      info="4 voucher mẫu"
+    >
+      <BrowserFrame>
+        {previewStyle === 'grid' && renderGridStyle()}
+        {previewStyle === 'split' && renderSplitStyle()}
+        {previewStyle === 'strip' && renderStripStyle()}
+        {previewStyle === 'highlight' && renderHighlightStyle()}
+        {previewStyle === 'minimal' && renderMinimalStyle()}
+        {previewStyle === 'compact' && renderCompactStyle()}
+      </BrowserFrame>
+    </PreviewWrapper>
+  );
+};
