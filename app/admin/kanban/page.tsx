@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
@@ -30,6 +30,7 @@ import {
   Plus,
   Search,
   Trash2,
+  X,
   UserCircle,
 } from 'lucide-react';
 import { Badge, Button, Card, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, cn } from '../components/ui';
@@ -40,6 +41,7 @@ import { useAdminAuth } from '../auth/context';
 type KanbanColumn = Doc<'kanbanColumns'>;
 type KanbanTask = Doc<'kanbanTasks'>;
 type KanbanPriority = KanbanTask['priority'];
+type SaveStatusState = 'idle' | 'saving' | 'saved';
 
 const MODULE_KEY = 'kanban';
 
@@ -92,6 +94,19 @@ function KanbanBoardPage() {
   const [activeColumn, setActiveColumn] = useState<KanbanColumn | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const [dragSaveStatus, setDragSaveStatus] = useState<SaveStatusState>('idle');
+  const [editSaveStatus, setEditSaveStatus] = useState<SaveStatusState>('idle');
+  const [editTask, setEditTask] = useState<KanbanTask | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+
+  const dragSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragSaveActionRef = useRef<(() => Promise<unknown>) | null>(null);
+  const dragSaveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const dragSaveSequenceRef = useRef(0);
+  const editSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editSaveSequenceRef = useRef(0);
+
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
   const [boardName, setBoardName] = useState('');
   const [boardDescription, setBoardDescription] = useState('');
@@ -127,6 +142,7 @@ function KanbanBoardPage() {
   const deleteColumn = useMutation(api.kanban.deleteColumn);
   const reorderColumns = useMutation(api.kanban.reorderColumns);
   const createTask = useMutation(api.kanban.createTask);
+  const updateTask = useMutation(api.kanban.updateTask);
   const deleteTask = useMutation(api.kanban.deleteTask);
   const reorderTasks = useMutation(api.kanban.reorderTasks);
   const moveTask = useMutation(api.kanban.moveTask);
@@ -200,6 +216,92 @@ function KanbanBoardPage() {
     setDeleteTargetColumnId(targetColumn?._id ?? '');
   }, [columns, deleteColumnId, deleteColumnOpen]);
 
+  useEffect(() => {
+    if (dragSaveStatus !== 'saved') {
+      return;
+    }
+    const timer = setTimeout(() => setDragSaveStatus('idle'), 1500);
+    return () => clearTimeout(timer);
+  }, [dragSaveStatus]);
+
+  useEffect(() => {
+    if (editSaveStatus !== 'saved') {
+      return;
+    }
+    const timer = setTimeout(() => setEditSaveStatus('idle'), 1500);
+    return () => clearTimeout(timer);
+  }, [editSaveStatus]);
+
+  useEffect(() => {
+    if (!editTask) {
+      return;
+    }
+
+    const nextTitle = editTitle.trim();
+    const nextDescription = editDescription.trim();
+    const currentTitle = editTask.title.trim();
+    const currentDescription = editTask.description?.trim() ?? '';
+    const hasChanges = nextTitle !== currentTitle || nextDescription !== currentDescription;
+
+    if (!hasChanges) {
+      if (editSaveStatus === 'saving') {
+        setEditSaveStatus('idle');
+      }
+      return;
+    }
+
+    if (!nextTitle) {
+      editSaveSequenceRef.current += 1;
+      setEditSaveStatus('idle');
+      return;
+    }
+
+    editSaveSequenceRef.current += 1;
+    const sequence = editSaveSequenceRef.current;
+    setEditSaveStatus('saving');
+
+    if (editSaveTimerRef.current) {
+      clearTimeout(editSaveTimerRef.current);
+    }
+
+    editSaveTimerRef.current = setTimeout(() => {
+      editSaveTimerRef.current = null;
+      void updateTask({
+        id: editTask._id,
+        title: nextTitle,
+        description: nextDescription || undefined,
+      })
+        .then(() => {
+          if (editSaveSequenceRef.current === sequence) {
+            setEditTask(prev => (prev ? { ...prev, title: nextTitle, description: nextDescription || undefined } : prev));
+            setEditSaveStatus('saved');
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (editSaveSequenceRef.current === sequence) {
+            setEditSaveStatus('idle');
+            toast.error('Tự lưu thất bại');
+          }
+        });
+    }, 800);
+
+    return () => {
+      if (editSaveTimerRef.current) {
+        clearTimeout(editSaveTimerRef.current);
+      }
+    };
+  }, [editDescription, editSaveStatus, editTask, editTitle, updateTask]);
+
+  useEffect(() => () => {
+    if (dragSaveTimerRef.current) {
+      clearTimeout(dragSaveTimerRef.current);
+    }
+    if (editSaveTimerRef.current) {
+      clearTimeout(editSaveTimerRef.current);
+    }
+  }, []);
+
   const filteredTasksByColumn = useMemo(() => {
     if (!searchTerm.trim()) {
       return tasksByColumn;
@@ -258,6 +360,61 @@ function KanbanBoardPage() {
     }
     const currentCount = tasksByColumn[columnId]?.length ?? 0;
     return currentCount + additional > column.wipLimit;
+  };
+
+  const scheduleDragSave = (action: () => Promise<unknown>, successMessage = 'Đã lưu thay đổi') => {
+    dragSaveSequenceRef.current += 1;
+    const sequence = dragSaveSequenceRef.current;
+    dragSaveActionRef.current = action;
+
+    if (dragSaveTimerRef.current) {
+      clearTimeout(dragSaveTimerRef.current);
+    }
+
+    setDragSaveStatus('saving');
+    dragSaveTimerRef.current = setTimeout(() => {
+      const pendingAction = dragSaveActionRef.current;
+      dragSaveActionRef.current = null;
+      dragSaveTimerRef.current = null;
+      if (!pendingAction) {
+        return;
+      }
+
+      dragSaveQueueRef.current = dragSaveQueueRef.current
+        .then(() => pendingAction())
+        .then(() => {
+          if (dragSaveSequenceRef.current === sequence) {
+            setDragSaveStatus('saved');
+            toast.success(successMessage);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (dragSaveSequenceRef.current === sequence) {
+            setDragSaveStatus('idle');
+            toast.error('Tự lưu thất bại');
+          }
+        });
+    }, 500);
+  };
+
+  const openEditTaskDialog = (task: KanbanTask) => {
+    setEditTask(task);
+    setEditTitle(task.title);
+    setEditDescription(task.description ?? '');
+    setEditSaveStatus('idle');
+  };
+
+  const closeEditTaskDialog = () => {
+    editSaveSequenceRef.current += 1;
+    if (editSaveTimerRef.current) {
+      clearTimeout(editSaveTimerRef.current);
+      editSaveTimerRef.current = null;
+    }
+    setEditTask(null);
+    setEditTitle('');
+    setEditDescription('');
+    setEditSaveStatus('idle');
   };
 
   const handleCreateBoard = async () => {
@@ -516,7 +673,7 @@ function KanbanBoardPage() {
     setActiveColumn(null);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     try {
       const { active, over } = event;
       if (!over || !boardData) {
@@ -534,15 +691,10 @@ function KanbanBoardPage() {
         }
         const newColumns = arrayMove(columns, oldIndex, newIndex);
         setColumns(newColumns);
-        try {
-          await reorderColumns({
-            boardId: boardData.board._id,
-            orderedIds: newColumns.map(column => column._id),
-          });
-        } catch (error) {
-          console.error(error);
-          toast.error('Không thể sắp xếp cột');
-        }
+        scheduleDragSave(() => reorderColumns({
+          boardId: boardData.board._id,
+          orderedIds: newColumns.map(column => column._id),
+        }));
         return;
       }
 
@@ -576,15 +728,10 @@ function KanbanBoardPage() {
         }
         const reordered = arrayMove(destinationTasks, activeIndex, Math.max(overIndex, 0));
         setTasksByColumn(prev => ({ ...prev, [sourceColumnId]: reordered }));
-        try {
-          await reorderTasks({
-            columnId: sourceColumnId,
-            orderedIds: reordered.map(task => task._id),
-          });
-        } catch (error) {
-          console.error(error);
-          toast.error('Không thể sắp xếp task');
-        }
+        scheduleDragSave(() => reorderTasks({
+          columnId: sourceColumnId,
+          orderedIds: reordered.map(task => task._id),
+        }));
         return;
       }
 
@@ -618,18 +765,13 @@ function KanbanBoardPage() {
         }));
       }
 
-      try {
-        await moveTask({
-          destinationOrderIds: nextDestinationTasks.map(task => task._id),
-          fromColumnId: sourceColumnId,
-          sourceOrderIds: nextSourceTasks.map(task => task._id),
-          taskId: activeTaskId,
-          toColumnId: destinationColumnId,
-        });
-      } catch (error) {
-        console.error(error);
-        toast.error('Không thể di chuyển task');
-      }
+      scheduleDragSave(() => moveTask({
+        destinationOrderIds: nextDestinationTasks.map(task => task._id),
+        fromColumnId: sourceColumnId,
+        sourceOrderIds: nextSourceTasks.map(task => task._id),
+        taskId: activeTaskId,
+        toColumnId: destinationColumnId,
+      }), 'Đã chuyển cột và lưu');
     } finally {
       setActiveTask(null);
       setActiveColumn(null);
@@ -645,7 +787,10 @@ function KanbanBoardPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Kanban Board</h1>
-          <p className="text-sm text-slate-500">Theo dõi tiến độ công việc nội bộ.</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-slate-500">Theo dõi tiến độ công việc nội bộ.</p>
+            <SaveStatus status={dragSaveStatus} />
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="min-w-[220px]">
@@ -741,6 +886,7 @@ function KanbanBoardPage() {
                     setDeleteTaskId(task._id);
                     setDeleteTaskName(task.title);
                   }}
+                  onEditTask={openEditTaskDialog}
                   usersMap={usersMap}
                 />
               ))}
@@ -935,6 +1081,54 @@ function KanbanBoardPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={Boolean(editTask)}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeEditTaskDialog();
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 top-3"
+            onClick={closeEditTaskDialog}
+          >
+            <X size={16} />
+          </Button>
+          <DialogHeader className="text-left">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <DialogTitle>Chỉnh sửa task</DialogTitle>
+                <DialogDescription>Tự lưu sau khi bạn dừng gõ.</DialogDescription>
+              </div>
+              <SaveStatus status={editSaveStatus} />
+            </div>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-title">Tiêu đề</Label>
+              <Input
+                id="edit-task-title"
+                value={editTitle}
+                onChange={(event) => setEditTitle(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-description">Mô tả</Label>
+              <textarea
+                id="edit-task-description"
+                value={editDescription}
+                onChange={(event) => setEditDescription(event.target.value)}
+                className="min-h-[100px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={deleteColumnOpen} onOpenChange={setDeleteColumnOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1008,6 +1202,7 @@ function KanbanColumnCard({
   isDragDisabled,
   onDelete,
   onDeleteTask,
+  onEditTask,
   usersMap,
 }: {
   column: KanbanColumn;
@@ -1017,6 +1212,7 @@ function KanbanColumnCard({
   isDragDisabled: boolean;
   onDelete: () => void;
   onDeleteTask: (task: KanbanTask) => void;
+  onEditTask: (task: KanbanTask) => void;
   usersMap: Map<string, Doc<'users'>>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -1070,7 +1266,14 @@ function KanbanColumnCard({
         <div className="mt-4 space-y-3">
           <SortableContext items={tasks.map(task => task._id)} strategy={verticalListSortingStrategy}>
             {tasks.map(task => (
-              <KanbanTaskCard key={task._id} task={task} isDragDisabled={isDragDisabled} onDelete={() => onDeleteTask(task)} usersMap={usersMap} />
+              <KanbanTaskCard
+                key={task._id}
+                task={task}
+                isDragDisabled={isDragDisabled}
+                onDelete={() => onDeleteTask(task)}
+                onEdit={() => onEditTask(task)}
+                usersMap={usersMap}
+              />
             ))}
           </SortableContext>
           {tasks.length === 0 && (
@@ -1088,11 +1291,13 @@ function KanbanTaskCard({
   task,
   isDragDisabled,
   onDelete,
+  onEdit,
   usersMap,
 }: {
   task: KanbanTask;
   isDragDisabled: boolean;
   onDelete: () => void;
+  onEdit: () => void;
   usersMap: Map<string, Doc<'users'>>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -1112,17 +1317,28 @@ function KanbanTaskCard({
 
   return (
     <div ref={setNodeRef} style={style} className={cn('transition', isDragging && 'opacity-30')}>
-      <Card className={cn('p-3 space-y-2', isDragging && 'border-dashed border-slate-300 bg-slate-50')}>
+      <Card
+        className={cn('cursor-pointer p-3 space-y-2', isDragging && 'border-dashed border-slate-300 bg-slate-50')}
+        onClick={onEdit}
+      >
         <div className="flex items-start justify-between gap-2">
           <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{task.title}</div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={onDelete}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
+            >
               <Trash2 size={14} />
             </Button>
             {!isDragDisabled && (
               <button
                 type="button"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100"
+                onClick={(event) => event.stopPropagation()}
                 {...attributes}
                 {...listeners}
               >
@@ -1222,5 +1438,26 @@ function KanbanTaskOverlay({
         )}
       </div>
     </Card>
+  );
+}
+
+function SaveStatus({ status, className }: { status: SaveStatusState; className?: string }) {
+  if (status === 'idle') {
+    return null;
+  }
+
+  const isSaving = status === 'saving';
+
+  return (
+    <div
+      className={cn(
+        'inline-flex items-center gap-2 text-xs',
+        isSaving ? 'text-slate-500' : 'text-emerald-600',
+        className
+      )}
+    >
+      {isSaving ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+      <span>{isSaving ? 'Đang lưu...' : 'Đã lưu'}</span>
+    </div>
   );
 }
