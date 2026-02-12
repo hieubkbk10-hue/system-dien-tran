@@ -5642,10 +5642,10 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
 
 // ============ PRODUCT CATEGORIES SECTION ============
 // Best Practices: Clear navigation, visual appeal, mobile optimization, hover effects
-// 6 styles: grid, carousel, cards, minimal, showcase, marquee
+// 7 styles: grid, carousel, cards, minimal, showcase, marquee, circular
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 
-type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee';
+type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee' | 'circular';
 
 function ProductCategoriesSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
   const categoriesConfig = (config.categories as { categoryId: string; customImage?: string; imageMode?: string }[]) || [];
@@ -6071,7 +6071,62 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
     );
   }
 
-  // Style 6: Marquee - Auto-scrolling horizontal animation (default fallback)
+  // Style 6: Circular - Horizontal scroll với circular containers
+  if (style === 'circular') {
+    return (
+      <section className="py-10 md:py-16">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center px-4 md:px-6">{title}</h2>
+          <div
+            className="flex overflow-x-auto scrollbar-hide pb-4 gap-4 md:gap-6 snap-x snap-mandatory px-4 md:px-6"
+            style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+          >
+            {resolvedCategories.map((cat) => (
+              <a
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="flex-shrink-0 snap-start group flex flex-col items-center w-28 md:w-36"
+              >
+                <div
+                  className="rounded-full overflow-hidden transition-all duration-300 mb-3"
+                  style={{
+                    border: `2px solid ${brandColor}15`,
+                    padding: '18px',
+                    backgroundColor: `${brandColor}05`,
+                    width: '100%',
+                    aspectRatio: '1/1'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div className="w-full h-full rounded-full overflow-hidden">
+                    {renderCategoryVisual(cat, 40)}
+                  </div>
+                </div>
+                <h3 className="font-semibold text-center text-sm line-clamp-1 w-full">{cat.name}</h3>
+                {showProductCount && (
+                  <p className="text-xs text-slate-500 text-center">{cat.productCount} sản phẩm</p>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+        <style jsx>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+      </section>
+    );
+  }
+
+  // Style 7: Marquee - Auto-scrolling horizontal animation (default fallback)
   return (
     <section className="py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
