@@ -9235,7 +9235,7 @@ export const SpeedDialPreview = ({
 // 6 styles: grid, carousel, cards, minimal, showcase, marquee
 interface CategoryConfigItem { id: number; categoryId: string; customImage?: string; imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url' }
 interface CategoryData { _id: string; name: string; slug: string; image?: string; description?: string }
-export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee';
+export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee' | 'circular';
 
 // Import icon render helper
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
@@ -9264,6 +9264,12 @@ export const ProductCategoriesPreview = ({
   const isTablet = device === 'tablet';
   const previewStyle = (selectedStyle ?? config.style) || 'grid';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as ProductCategoriesStyle);
+  const [isCircularDown, setIsCircularDown] = useState(false);
+  const [isCircularDragging, setIsCircularDragging] = useState(false);
+  const [circularStartX, setCircularStartX] = useState(0);
+  const [circularScrollLeft, setCircularScrollLeft] = useState(0);
+  const [circularScrollPosition, setCircularScrollPosition] = useState(0);
+  const circularScrollRef = React.useRef<HTMLDivElement>(null);
   
   const styles = [
     { id: 'grid', label: 'Grid' },
@@ -9272,6 +9278,7 @@ export const ProductCategoriesPreview = ({
     { id: 'minimal', label: 'Minimal' },
     { id: 'showcase', label: 'Showcase' },
     { id: 'marquee', label: 'Marquee' },
+    { id: 'circular', label: 'Circular' },
   ];
   const productsData = useQuery(api.products.listAll, { limit: 100 });
   const categoryMap = React.useMemo(() => {
@@ -9750,6 +9757,172 @@ export const ProductCategoriesPreview = ({
     </section>
   );
 
+  // Style 7: Circular - Horizontal scroll với drag, pagination dots, circular containers
+  const handleCircularMouseDown = (e: React.MouseEvent) => {
+    if (!circularScrollRef.current) {return;}
+    setIsCircularDown(true);
+    setIsCircularDragging(false);
+    setCircularStartX(e.pageX - circularScrollRef.current.offsetLeft);
+    setCircularScrollLeft(circularScrollRef.current.scrollLeft);
+  };
+
+  const handleCircularMouseMove = (e: React.MouseEvent) => {
+    if (!isCircularDown || !circularScrollRef.current) {return;}
+    e.preventDefault();
+    const x = e.pageX - circularScrollRef.current.offsetLeft;
+    const walk = (x - circularStartX) * 2;
+    circularScrollRef.current.scrollLeft = circularScrollLeft - walk;
+
+    if (Math.abs(x - circularStartX) > 5) {
+      setIsCircularDragging(true);
+    }
+  };
+
+  const handleCircularMouseUp = () => {
+    setIsCircularDown(false);
+    setTimeout(() => {
+      setIsCircularDragging(false);
+    }, 50);
+  };
+
+  const handleCircularMouseLeave = () => {
+    setIsCircularDown(false);
+    setIsCircularDragging(false);
+  };
+
+  const handleCircularScroll = () => {
+    if (!circularScrollRef.current) {return;}
+    const { scrollLeft, scrollWidth, clientWidth } = circularScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+
+    if (maxScroll <= 0) {
+      setCircularScrollPosition(0);
+      return;
+    }
+
+    const percentage = scrollLeft / maxScroll;
+
+    if (percentage < 0.3) {
+      setCircularScrollPosition(0);
+    } else if (percentage > 0.7) {
+      setCircularScrollPosition(2);
+    } else {
+      setCircularScrollPosition(1);
+    }
+  };
+
+  const handleCircularPageChange = (index: number) => {
+    if (!circularScrollRef.current) {return;}
+    const { scrollWidth, clientWidth } = circularScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+
+    let targetLeft = 0;
+    if (index === 1) {targetLeft = maxScroll / 2;}
+    if (index === 2) {targetLeft = maxScroll;}
+
+    circularScrollRef.current.scrollTo({ left: targetLeft, behavior: 'smooth' });
+  };
+
+  const renderCircularStyle = () => (
+    <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
+      <div className="max-w-7xl mx-auto">
+        <h2 className={cn("font-bold mb-6 text-center px-3", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
+          Danh mục sản phẩm
+        </h2>
+
+        {resolvedCategories.length === 0 ? (
+          <div className={cn(isMobile ? 'px-3' : 'px-6')}>{renderEmptyState()}</div>
+        ) : (
+          <>
+            <div
+              ref={circularScrollRef}
+              className={cn(
+                "flex overflow-x-auto scrollbar-hide pb-4 gap-5 snap-x snap-mandatory select-none",
+                isMobile ? 'px-3' : 'px-6 md:px-11',
+                isCircularDown ? 'cursor-grabbing' : 'cursor-grab'
+              )}
+              onMouseDown={handleCircularMouseDown}
+              onMouseLeave={handleCircularMouseLeave}
+              onMouseUp={handleCircularMouseUp}
+              onMouseMove={handleCircularMouseMove}
+              onScroll={handleCircularScroll}
+              style={{ scrollBehavior: 'auto', WebkitOverflowScrolling: 'touch' }}
+            >
+              {resolvedCategories.map((cat) => (
+                <div
+                  key={cat.itemId}
+                  className={cn("flex-shrink-0 snap-start group", isMobile ? 'w-[125px]' : 'w-[140px]')}
+                  onClick={(e) => { if (isCircularDragging) {e.preventDefault();} }}
+                >
+                  <div
+                    className="rounded-full overflow-hidden transition-all duration-300"
+                    style={{
+                      border: `1px solid ${brandColor}15`,
+                      padding: isMobile ? '15px' : '20px',
+                      backgroundColor: `${brandColor}05`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${brandColor}15`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div className="relative pb-[100%]">
+                      <div className="absolute inset-0 rounded-full overflow-hidden">
+                        {renderCategoryVisual(cat, 'md')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center pt-3">
+                    <h3 className={cn("font-semibold line-clamp-2 mb-1 leading-tight", isMobile ? 'text-sm min-h-[2rem]' : 'text-base min-h-[2.8rem]')}>
+                      {cat.name}
+                    </h3>
+
+                    <div className="relative h-[27px] overflow-hidden w-full">
+                      <span className={cn("block w-full text-slate-500 absolute top-0 left-0 transition-transform duration-300 group-hover:translate-y-full group-hover:opacity-0", isMobile ? 'text-xs' : 'text-sm')}>
+                        {config.showProductCount ? '12 sản phẩm' : '\u00A0'}
+                      </span>
+                      <span
+                        className={cn("block w-full underline absolute top-0 left-0 transition-transform duration-300 -translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100", isMobile ? 'text-xs' : 'text-sm')}
+                        style={{ color: brandColor }}
+                      >
+                        Xem chi tiết
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {resolvedCategories.length > 3 && (
+              <div className="flex items-center justify-center mt-8 gap-[10px]">
+                {[0, 1, 2].map((index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() =>{  handleCircularPageChange(index); }}
+                    className={cn(
+                      "inline-block h-[8px] rounded-[10px] cursor-pointer transition-all duration-300",
+                      circularScrollPosition === index ? 'w-[28px]' : 'w-[8px] border'
+                    )}
+                    style={
+                      circularScrollPosition === index
+                        ? { backgroundColor: brandColor }
+                        : { borderColor: brandColor, backgroundColor: 'transparent' }
+                    }
+                    aria-label={`Go to page ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </section>
+  );
+
   // Dynamic info bar với image size recommendations
   const getPreviewInfo = () => {
     const count = resolvedCategories.length;
@@ -9762,6 +9935,7 @@ export const ProductCategoriesPreview = ({
       marquee: `${count} danh mục • Ảnh: 80×80px (1:1)`,
       minimal: `${count} danh mục • Icon/Ảnh: 48×48px`,
       showcase: `${count} danh mục • Featured: 600×800px (3:4) • Others: 400×300px (4:3)`,
+      circular: `${count} danh mục • Ảnh: 500×500px (1:1, tròn)`,
     };
     return sizeRecommendations[previewStyle] || `${count} danh mục`;
   };
@@ -9784,6 +9958,7 @@ export const ProductCategoriesPreview = ({
           {previewStyle === 'minimal' && renderMinimalStyle()}
           {previewStyle === 'showcase' && renderShowcaseStyle()}
           {previewStyle === 'marquee' && renderMarqueeStyle()}
+          {previewStyle === 'circular' && renderCircularStyle()}
         </BrowserFrame>
       </PreviewWrapper>
       
@@ -9809,6 +9984,9 @@ export const ProductCategoriesPreview = ({
             )}
             {previewStyle === 'marquee' && (
               <p><strong>80×80px</strong> (1:1) • Avatar nhỏ trong pill, auto-scroll animation</p>
+            )}
+            {previewStyle === 'circular' && (
+              <p><strong>500×500px</strong> (1:1) • Ảnh vuông, tự động crop tròn</p>
             )}
           </div>
         </div>
