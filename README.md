@@ -58,6 +58,13 @@ Visit:
 # ... (các modules khác)
 \`\`\`
 
+### Seed Templates (ảnh mẫu ngành)
+
+```bash
+# Sau khi thêm ảnh vào public/seed_mau/<industry-key>/..., chạy:
+python scripts/generate_seed_templates.py
+```
+
 ## Project Structure
 
 \`\`\`
