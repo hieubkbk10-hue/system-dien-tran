@@ -13,8 +13,9 @@ import {
   ArrowRight, ArrowUpRight, Briefcase, 
   Building2, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Cpu, Facebook, Globe,
   HelpCircle, Image as ImageIcon, Instagram, Layers, LayoutTemplate, Linkedin, Mail, MapPin, Maximize2, MessageCircle, Package, Phone, Plus, Rocket,
-  Settings, Shield, Star, Target, Twitter, Users, X, Youtube, Zap, ZoomIn
+  Settings, Shield, Star, Tag, Target, Twitter, Users, X, Youtube, Zap, ZoomIn
 } from 'lucide-react';
+import { formatVoucherExpiry, normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 
 type SiteImageProps = Omit<React.ComponentProps<typeof Image>, 'width' | 'height' | 'src'> & {
   src?: React.ComponentProps<typeof Image>['src'];
@@ -8967,176 +8968,152 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
 }
 
 // ============ VOUCHER PROMOTIONS SECTION ============
-// 6 Styles: grid, split, strip, highlight, minimal, compact
-type VoucherPromotionsStyle = 'grid' | 'split' | 'strip' | 'highlight' | 'minimal' | 'compact';
-
-const voucherSamples = [
-  { code: 'EGA50', title: 'Giảm 15% cho đơn từ 500K', max: 'Tối đa 250K', expiry: '28/12/2026' },
-  { code: 'EGAT10', title: 'Giảm 10% cho đơn từ 1 triệu', max: 'Tối đa 300K', expiry: '30/12/2026' },
-  { code: 'FREESHIP', title: 'Miễn phí vận chuyển nội thành', max: 'Đơn từ 500K', expiry: '31/12/2026' },
-  { code: 'EGA500K', title: 'Giảm 90K cho đơn từ 1 triệu', max: 'Tối đa 1 mã/đơn', expiry: '31/12/2026' },
-];
+interface VoucherItem {
+  code: string;
+  description?: string;
+  discountType: 'percent' | 'fixed' | 'buy_x_get_y' | 'buy_a_get_b' | 'tiered' | 'free_shipping' | 'gift';
+  discountValue?: number;
+  endDate?: number;
+  maxDiscountAmount?: number;
+  name: string;
+  thumbnail?: string;
+}
 
 function VoucherPromotionsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
   const heading = (config.heading as string) || title || 'Voucher khuyến mãi';
   const description = (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
-  const ctaLabel = (config.ctaLabel as string) || 'Xem tất cả ưu đãi';
-  const ctaUrl = (config.ctaUrl as string) || '/promotions';
-  const style = (config.style as VoucherPromotionsStyle) || 'grid';
+  const ctaLabel = (config.ctaLabel as string) || '';
+  const ctaUrl = (config.ctaUrl as string) || '';
+  const limit = normalizeVoucherLimit(config.limit as number | undefined);
+  const style = normalizeVoucherStyle(config.style as string | undefined);
+  const vouchers = useQuery(api.promotions.listPublicVouchers, { limit }) as VoucherItem[] | undefined;
+  const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
 
-  const renderVoucherCard = (item: typeof voucherSamples[number], compact = false) => (
-    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${compact ? 'px-3 py-2' : 'p-4'}`}>
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Voucher</span>
-        {!compact && <span className="text-xs text-slate-400">{item.expiry}</span>}
-      </div>
-      <div className={`font-bold text-slate-900 ${compact ? 'text-sm mt-2' : 'text-lg mt-3'}`}>{item.code}</div>
-      {!compact && (
-        <>
-          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.title}</p>
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-slate-400">{item.max}</span>
-            <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+  if (!vouchers || vouchers.length === 0) {
+    return null;
+  }
+
+  const handleCopy = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      setTimeout(() =>{  setCopiedCode(null); }, 2000);
+    } catch {
+      setCopiedCode(null);
+    }
+  };
+
+  const formatDiscount = (voucher: VoucherItem) => {
+    if (voucher.discountType === 'percent' && voucher.discountValue) {
+      return `Giảm ${voucher.discountValue}%`;
+    }
+    if (voucher.discountType === 'fixed' && voucher.discountValue) {
+      return `Giảm ${voucher.discountValue.toLocaleString()}đ`;
+    }
+    if (voucher.discountType === 'free_shipping') {
+      return 'Miễn phí vận chuyển';
+    }
+    return 'Ưu đãi đặc biệt';
+  };
+
+  const formatMaxDiscount = (voucher: VoucherItem) => {
+    if (!voucher.maxDiscountAmount) {
+      return '';
+    }
+    return `Tối đa ${voucher.maxDiscountAmount.toLocaleString()}đ`;
+  };
 
   const renderHeader = (align: 'center' | 'left' = 'center') => (
     <div className={`space-y-2 ${align === 'center' ? 'text-center' : 'text-left'}`}>
       <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{heading}</h2>
       <p className="text-slate-500">{description}</p>
-      <a href={ctaUrl} className="inline-flex items-center gap-2 font-medium" style={{ color: brandColor }}>
-        {ctaLabel}
-        <ArrowRight size={16} />
-      </a>
+      {ctaLabel && ctaUrl && (
+        <a href={ctaUrl} className="inline-flex items-center gap-2 font-medium" style={{ color: brandColor }}>
+          {ctaLabel}
+          <ArrowRight size={16} />
+        </a>
+      )}
     </div>
   );
 
-  if (style === 'split') {
-    return (
-      <section className="py-10 px-4">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div className="md:col-span-2">
-            {renderHeader('left')}
-          </div>
-          <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {voucherSamples.map((item) => (
-              <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (style === 'strip') {
-    return (
-      <section className="py-8 px-4">
-        <div className="max-w-6xl mx-auto rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">{heading}</h3>
-              <p className="text-sm text-slate-500">{description}</p>
-            </div>
-            <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>
-              {ctaLabel}
-              <ArrowRight size={14} />
-            </a>
-          </div>
-          <div className="flex gap-3 overflow-x-auto">
-            {voucherSamples.map((item) => (
-              <div key={item.code} className="min-w-[220px]">
-                {renderVoucherCard(item)}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (style === 'highlight') {
-    return (
-      <section className="py-10 px-4">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="rounded-2xl p-6 md:p-8 text-white" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)` }}>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <h3 className="text-2xl font-bold">{heading}</h3>
-                <p className="text-white/80 mt-2">{description}</p>
-              </div>
-              <a href={ctaUrl} className="inline-flex items-center gap-2 bg-white text-slate-900 font-semibold rounded-lg px-5 py-2.5">
-                {ctaLabel}
-                <ArrowUpRight size={16} />
-              </a>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {voucherSamples.map((item) => (
-              <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (style === 'minimal') {
-    return (
-      <section className="py-10 px-4">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {renderHeader()}
-          <div className="space-y-3">
-            {voucherSamples.map((item) => (
-              <div key={item.code} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <div className="space-y-1">
-                  <div className="text-sm font-semibold text-slate-900">{item.code}</div>
-                  <div className="text-xs text-slate-500">{item.title}</div>
-                </div>
-                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (style === 'compact') {
-    return (
-      <section className="py-8 px-4">
-        <div className="max-w-6xl mx-auto space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">{heading}</h3>
-              <p className="text-sm text-slate-500">{description}</p>
-            </div>
-            <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>{ctaLabel}<ArrowRight size={14} /></a>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {voucherSamples.map((item) => (
-              <React.Fragment key={item.code}>{renderVoucherCard(item, true)}</React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return (
+  const renderEnterpriseCards = () => (
     <section className="py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {renderHeader()}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {voucherSamples.map((item) => (
-            <React.Fragment key={item.code}>{renderVoucherCard(item)}</React.Fragment>
+          {vouchers.map((voucher) => (
+            <div key={voucher.code} className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+                    {voucher.thumbnail ? (
+                      <SiteImage src={voucher.thumbnail} alt={voucher.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Tag size={18} style={{ color: brandColor }} />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                    <div className="text-lg font-bold text-slate-900">{voucher.code}</div>
+                    <div className="text-xs text-slate-500">{voucher.name}</div>
+                  </div>
+                </div>
+                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                  {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>{formatDiscount(voucher)}</span>
+                {formatMaxDiscount(voucher) && <span>• {formatMaxDiscount(voucher)}</span>}
+                {voucher.endDate && <span>• Hết hạn {formatVoucherExpiry(voucher.endDate)}</span>}
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
   );
+
+  const renderTicketHorizontal = () => (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {renderHeader('left')}
+        <div className="space-y-4">
+          {vouchers.map((voucher) => (
+            <div key={voucher.code} className="relative rounded-2xl border border-slate-200 bg-white overflow-hidden">
+              <div className="absolute left-24 top-3 bottom-3 w-px border-l border-dashed border-slate-200" />
+              <div className="flex">
+                <div className="w-24 shrink-0 bg-slate-900 text-white flex flex-col items-center justify-center py-4">
+                  <span className="text-[10px] uppercase tracking-wider">Mã</span>
+                  <span className="text-base font-bold">{voucher.code}</span>
+                </div>
+                <div className="flex-1 p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">{voucher.name}</div>
+                    {voucher.description && <p className="text-xs text-slate-500 mt-1">{voucher.description}</p>}
+                    <div className="text-xs text-slate-400 mt-2">
+                      {formatDiscount(voucher)}
+                      {formatMaxDiscount(voucher) && ` • ${formatMaxDiscount(voucher)}`}
+                      {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
+                    </div>
+                  </div>
+                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                    {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  if (style === 'ticketHorizontal') {
+    return renderTicketHorizontal();
+  }
+
+  return renderEnterpriseCards();
 }
 
 // ============ FOOTER SECTION ============

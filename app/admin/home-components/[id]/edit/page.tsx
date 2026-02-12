@@ -18,7 +18,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, HeroContent, HeroStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle, VoucherPromotionsStyle
+import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, HeroContent, HeroStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
 } from '../../previews';
 import { 
   AboutPreview,
@@ -52,6 +52,7 @@ import {
 } from '../../previews';
 import { useBrandColor } from '../../create/shared';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
+import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 const COMPONENT_TYPES = [
   { icon: LayoutTemplate, label: 'Hero Banner', value: 'Hero' },
@@ -229,7 +230,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     description: 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
     heading: 'Voucher khuyến mãi'
   });
-  const [voucherStyle, setVoucherStyle] = useState<VoucherPromotionsStyle>('grid');
+  const [voucherStyle, setVoucherStyle] = useState<VoucherPromotionsStyle>(DEFAULT_VOUCHER_STYLE);
+  const [voucherLimit, setVoucherLimit] = useState(4);
   const [contactConfig, setContactConfig] = useState({ address: '', email: '', formDescription: '', formFields: ['name', 'email', 'phone', 'message'], formTitle: '', mapEmbed: '', phone: '', responseTimeText: '', showMap: true, socialLinks: [] as { id: number; platform: string; url: string }[], submitButtonText: '', workingHours: '' });
   const [contactStyle, setContactStyle] = useState<ContactStyle>('modern');
   const [productListConfig, setProductListConfig] = useState({ itemCount: 8, sortBy: 'newest' });
@@ -566,7 +568,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             description: (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
             heading: (config.heading as string) || 'Voucher khuyến mãi',
           });
-          setVoucherStyle((config.style as VoucherPromotionsStyle) || 'grid');
+          setVoucherStyle(normalizeVoucherStyle(config.style as string | undefined));
+          setVoucherLimit(normalizeVoucherLimit(config.limit as number | undefined));
           break;
         }
       }
@@ -764,6 +767,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       case 'VoucherPromotions': {
         return {
           ...voucherConfig,
+          limit: normalizeVoucherLimit(voucherLimit),
           style: voucherStyle,
         };
       }
@@ -3694,11 +3698,26 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Giới hạn voucher (1-8)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={8}
+                      value={voucherLimit}
+                      onChange={(e) =>{  setVoucherLimit(Number(e.target.value)); }}
+                      placeholder="4"
+                    />
+                    <p className="text-xs text-slate-500">Dữ liệu tự động từ Promotions (chỉ voucher có mã).</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             <VoucherPromotionsPreview
               config={voucherConfig}
+              limit={normalizeVoucherLimit(voucherLimit)}
               brandColor={brandColor}
               selectedStyle={voucherStyle}
               onStyleChange={setVoucherStyle}

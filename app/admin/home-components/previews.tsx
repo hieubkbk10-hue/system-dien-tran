@@ -10,6 +10,7 @@ import {
   Twitter, Users, X, Youtube, Zap, ZoomIn
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, cn } from '../components/ui';
+import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
@@ -13524,7 +13525,6 @@ export const CountdownPreview = ({
 };
 
 // ============ VOUCHER PROMOTIONS PREVIEW ============
-export type VoucherPromotionsStyle = 'grid' | 'split' | 'strip' | 'highlight' | 'minimal' | 'compact';
 interface VoucherPromotionsConfig {
   heading?: string;
   description?: string;
@@ -13533,118 +13533,79 @@ interface VoucherPromotionsConfig {
 }
 
 const voucherSamples = [
-  { code: 'EGA50', title: 'Giảm 15% cho đơn từ 500K', max: 'Tối đa 250K', expiry: '28/12/2026' },
-  { code: 'EGAT10', title: 'Giảm 10% cho đơn từ 1 triệu', max: 'Tối đa 300K', expiry: '30/12/2026' },
-  { code: 'FREESHIP', title: 'Miễn phí vận chuyển nội thành', max: 'Đơn từ 500K', expiry: '31/12/2026' },
-  { code: 'EGA500K', title: 'Giảm 90K cho đơn từ 1 triệu', max: 'Tối đa 1 mã/đơn', expiry: '31/12/2026' },
+  { code: 'EGA50', name: 'Giảm 15% đơn từ 500K', description: 'Áp dụng cho tất cả sản phẩm', max: 'Tối đa 250K', expiry: '28/12/2026' },
+  { code: 'EGAT10', name: 'Giảm 10% cho đơn 1 triệu', description: 'Không áp dụng combo', max: 'Tối đa 300K', expiry: '30/12/2026' },
+  { code: 'FREESHIP', name: 'Miễn phí vận chuyển nội thành', description: 'Áp dụng đơn từ 500K', max: 'Tối đa 50K', expiry: '31/12/2026' },
+  { code: 'EGA500K', name: 'Giảm 90K cho đơn 1 triệu', description: 'Tối đa 1 mã/đơn', max: 'Tối đa 1 mã', expiry: '31/12/2026' },
+  { code: 'VIP150', name: 'Ưu đãi khách VIP', description: 'Chỉ áp dụng khách VIP', max: 'Tối đa 150K', expiry: '05/01/2027' },
+  { code: 'NEW100', name: 'Ưu đãi khách mới', description: 'Áp dụng khách đăng ký mới', max: 'Tối đa 100K', expiry: '10/01/2027' },
 ];
 
 export const VoucherPromotionsPreview = ({ 
   config, 
   brandColor, 
-  selectedStyle, 
+  selectedStyle,
+  limit,
   onStyleChange 
 }: { 
   config: VoucherPromotionsConfig; 
   brandColor: string; 
-  selectedStyle?: VoucherPromotionsStyle; 
+  selectedStyle?: VoucherPromotionsStyle;
+  limit?: number;
   onStyleChange?: (style: VoucherPromotionsStyle) => void;
 }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
-  const previewStyle = selectedStyle ?? 'grid';
+  const previewStyle = normalizeVoucherStyle(selectedStyle ?? DEFAULT_VOUCHER_STYLE);
+  const previewLimit = normalizeVoucherLimit(limit);
   const setPreviewStyle = (s: string) => onStyleChange?.(s as VoucherPromotionsStyle);
   const styles = [
-    { id: 'grid', label: 'Grid' },
-    { id: 'split', label: 'Split' },
-    { id: 'strip', label: 'Strip' },
-    { id: 'highlight', label: 'Highlight' },
-    { id: 'minimal', label: 'Minimal' },
-    { id: 'compact', label: 'Compact' },
+    { id: 'enterpriseCards', label: 'Enterprise Cards' },
+    { id: 'ticketHorizontal', label: 'Ticket Ngang' },
   ];
 
   const heading = config.heading ?? 'Voucher khuyến mãi';
   const description = config.description ?? 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
   const ctaLabel = config.ctaLabel ?? 'Xem tất cả ưu đãi';
   const ctaUrl = config.ctaUrl ?? '/promotions';
-
-  const VoucherCard = ({ item, compact = false }: { item: typeof voucherSamples[number]; compact?: boolean }) => (
-    <div className={cn(
-      'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm',
-      compact ? 'px-3 py-2' : 'p-4'
-    )}>
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Voucher</span>
-        {!compact && <span className="text-xs text-slate-400">{item.expiry}</span>}
-      </div>
-      <div className={cn('font-bold text-slate-900 dark:text-slate-100', compact ? 'text-sm mt-2' : 'text-lg mt-3')}>{item.code}</div>
-      {!compact && (
-        <>
-          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.title}</p>
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-slate-400">{item.max}</span>
-            <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+  const items = voucherSamples.slice(0, previewLimit);
 
   const Header = ({ align = 'center' }: { align?: 'center' | 'left' }) => (
     <div className={cn('space-y-2', align === 'center' ? 'text-center' : 'text-left')}>
       <h2 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>{heading}</h2>
       <p className={cn('text-slate-500', device === 'mobile' ? 'text-sm' : 'text-base')}>{description}</p>
-      <a href={ctaUrl} className={cn('inline-flex items-center gap-2 font-medium', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: brandColor }}>
-        {ctaLabel}
-        <ArrowRight size={16} />
-      </a>
+      {ctaLabel && ctaUrl && (
+        <a href={ctaUrl} className={cn('inline-flex items-center gap-2 font-medium', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: brandColor }}>
+          {ctaLabel}
+          <ArrowRight size={16} />
+        </a>
+      )}
     </div>
   );
 
-  const renderGridStyle = () => (
+  const renderEnterpriseCards = () => (
     <section className="py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <Header />
         <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-4'))}>
-          {voucherSamples.map((item) => (
-            <VoucherCard key={item.code} item={item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const renderSplitStyle = () => (
-    <section className="py-8 px-4">
-      <div className={cn('max-w-6xl mx-auto gap-6', device === 'mobile' ? 'space-y-6' : 'grid grid-cols-5')}>
-        <div className={cn(device === 'mobile' ? '' : 'col-span-2')}>
-          <Header align="left" />
-        </div>
-        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : 'col-span-3 grid-cols-2')}>
-          {voucherSamples.slice(0, 4).map((item) => (
-            <VoucherCard key={item.code} item={item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const renderStripStyle = () => (
-    <section className="py-6 px-4">
-      <div className="max-w-6xl mx-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-5">
-        <div className={cn('flex items-center justify-between gap-4 mb-4', device === 'mobile' && 'flex-col items-start')}> 
-          <div className="space-y-1">
-            <h3 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-lg' : 'text-xl')}>{heading}</h3>
-            <p className="text-sm text-slate-500">{description}</p>
-          </div>
-          <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>
-            {ctaLabel}
-            <ArrowRight size={14} />
-          </a>
-        </div>
-        <div className="flex gap-3 overflow-x-auto">
-          {voucherSamples.map((item) => (
-            <div key={item.code} className="min-w-[220px]">
-              <VoucherCard item={item} />
+          {items.map((item) => (
+            <div key={item.code} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                    <Tag size={18} style={{ color: brandColor }} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                    <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
+                    <div className="text-xs text-slate-500">{item.name}</div>
+                  </div>
+                </div>
+                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                <span>{item.expiry}</span>
+                <span>{item.max}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -13652,62 +13613,29 @@ export const VoucherPromotionsPreview = ({
     </section>
   );
 
-  const renderHighlightStyle = () => (
+  const renderTicketHorizontal = () => (
     <section className="py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="rounded-2xl p-6 md:p-8 text-white" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)` }}>
-          <div className={cn('flex items-center justify-between gap-6', device === 'mobile' && 'flex-col items-start')}> 
-            <div>
-              <h3 className={cn('font-bold', device === 'mobile' ? 'text-xl' : 'text-2xl')}>{heading}</h3>
-              <p className="text-white/80 mt-2">{description}</p>
-            </div>
-            <a href={ctaUrl} className="inline-flex items-center gap-2 bg-white text-slate-900 font-semibold rounded-lg px-5 py-2.5">
-              {ctaLabel}
-              <ArrowUpRight size={16} />
-            </a>
-          </div>
-        </div>
-        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : 'grid-cols-4')}>
-          {voucherSamples.map((item) => (
-            <VoucherCard key={item.code} item={item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const renderMinimalStyle = () => (
-    <section className="py-8 px-4">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <Header />
-        <div className="space-y-3">
-          {voucherSamples.map((item) => (
-            <div key={item.code} className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3">
-              <div className="space-y-1">
-                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.code}</div>
-                <div className="text-xs text-slate-500">{item.title}</div>
+        <Header align="left" />
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div key={item.code} className="relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
+              <div className="absolute left-24 top-3 bottom-3 w-px border-l border-dashed border-slate-200 dark:border-slate-700" />
+              <div className="flex">
+                <div className="w-24 shrink-0 bg-slate-900 text-white flex flex-col items-center justify-center py-4">
+                  <span className="text-[10px] uppercase tracking-wider">Mã</span>
+                  <span className="text-base font-bold">{item.code}</span>
+                </div>
+                <div className="flex-1 p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</div>
+                    <p className="text-xs text-slate-500 mt-1">{item.description}</p>
+                    <div className="text-xs text-slate-400 mt-2">{item.expiry} • {item.max}</div>
+                  </div>
+                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                </div>
               </div>
-              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép</button>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-
-  const renderCompactStyle = () => (
-    <section className="py-6 px-4">
-      <div className="max-w-6xl mx-auto space-y-4">
-        <div className={cn('flex items-center justify-between gap-3', device === 'mobile' && 'flex-col items-start')}> 
-          <div>
-            <h3 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-lg' : 'text-xl')}>{heading}</h3>
-            <p className="text-sm text-slate-500">{description}</p>
-          </div>
-          <a href={ctaUrl} className="inline-flex items-center gap-2 text-sm font-medium" style={{ color: brandColor }}>{ctaLabel}<ArrowRight size={14} /></a>
-        </div>
-        <div className={cn('grid gap-3', device === 'mobile' ? 'grid-cols-2' : 'grid-cols-4')}> 
-          {voucherSamples.map((item) => (
-            <VoucherCard key={item.code} item={item} compact />
           ))}
         </div>
       </div>
@@ -13722,15 +13650,11 @@ export const VoucherPromotionsPreview = ({
       previewStyle={previewStyle}
       setPreviewStyle={setPreviewStyle}
       styles={styles}
-      info="4 voucher mẫu"
+      info={`${items.length} voucher mẫu`}
     >
       <BrowserFrame>
-        {previewStyle === 'grid' && renderGridStyle()}
-        {previewStyle === 'split' && renderSplitStyle()}
-        {previewStyle === 'strip' && renderStripStyle()}
-        {previewStyle === 'highlight' && renderHighlightStyle()}
-        {previewStyle === 'minimal' && renderMinimalStyle()}
-        {previewStyle === 'compact' && renderCompactStyle()}
+        {previewStyle === 'enterpriseCards' && renderEnterpriseCards()}
+        {previewStyle === 'ticketHorizontal' && renderTicketHorizontal()}
       </BrowserFrame>
     </PreviewWrapper>
   );

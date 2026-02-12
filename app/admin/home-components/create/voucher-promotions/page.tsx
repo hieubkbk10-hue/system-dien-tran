@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
-import { VoucherPromotionsPreview, type VoucherPromotionsStyle } from '../../previews';
+import { VoucherPromotionsPreview } from '../../previews';
+import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 export default function VoucherPromotionsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
   const brandColor = useBrandColor();
-  const [style, setStyle] = useState<VoucherPromotionsStyle>('grid');
+  const [style, setStyle] = useState<VoucherPromotionsStyle>(DEFAULT_VOUCHER_STYLE);
+  const [limit, setLimit] = useState(4);
   const [voucherConfig, setVoucherConfig] = useState({
     ctaLabel: 'Xem tất cả ưu đãi',
     ctaUrl: '/promotions',
@@ -17,7 +19,7 @@ export default function VoucherPromotionsCreatePage() {
   });
 
   const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { ...voucherConfig, style });
+    void handleSubmit(e, { ...voucherConfig, limit: normalizeVoucherLimit(limit), style });
   };
 
   return (
@@ -70,11 +72,26 @@ export default function VoucherPromotionsCreatePage() {
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Giới hạn voucher (1-8)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={8}
+                value={limit}
+                onChange={(e) =>{  setLimit(Number(e.target.value)); }}
+                placeholder="4"
+              />
+              <p className="text-xs text-slate-500">Dữ liệu tự động từ Promotions (chỉ voucher có mã).</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <VoucherPromotionsPreview
         config={voucherConfig}
+        limit={normalizeVoucherLimit(limit)}
         brandColor={brandColor}
         selectedStyle={style}
         onStyleChange={setStyle}

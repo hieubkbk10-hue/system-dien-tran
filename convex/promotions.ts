@@ -725,6 +725,26 @@ export const getStats = query({
   }),
 });
 
+const publicVoucherDoc = v.object({
+  code: v.string(),
+  description: v.optional(v.string()),
+  discountType: discountType,
+  discountValue: v.optional(v.number()),
+  endDate: v.optional(v.number()),
+  maxDiscountAmount: v.optional(v.number()),
+  name: v.string(),
+  thumbnail: v.optional(v.string()),
+});
+
+const isPublicPromotion = (promo: Doc<"promotions">, now: number) => {
+  if (promo.displayOnPage === false) {return false;}
+  if (promo.startDate && now < promo.startDate) {return false;}
+  if (promo.endDate && now > promo.endDate) {return false;}
+  if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {return false;}
+  if (promo.budget !== undefined && promo.budgetUsed !== undefined && promo.budgetUsed >= promo.budget) {return false;}
+  return true;
+};
+
 export const listPublicPromotions = query({
   args: {},
   handler: async (ctx) => {
@@ -734,16 +754,37 @@ export const listPublicPromotions = query({
       .withIndex("by_status", (q) => q.eq("status", "Active"))
       .take(200);
 
-    return promotions.filter((promo) => {
-      if (promo.displayOnPage === false) {return false;}
-      if (promo.startDate && now < promo.startDate) {return false;}
-      if (promo.endDate && now > promo.endDate) {return false;}
-      if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {return false;}
-      if (promo.budget !== undefined && promo.budgetUsed !== undefined && promo.budgetUsed >= promo.budget) {return false;}
-      return true;
-    });
+    return promotions.filter((promo) => isPublicPromotion(promo, now));
   },
   returns: v.array(promotionDoc),
+});
+
+export const listPublicVouchers = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = Math.max(1, Math.min(args.limit ?? 4, 8));
+    const now = Date.now();
+    const promotions = await ctx.db
+      .query("promotions")
+      .withIndex("by_status", (q) => q.eq("status", "Active"))
+      .take(200);
+
+    return promotions
+      .filter((promo) => isPublicPromotion(promo, now))
+      .filter((promo) => Boolean(promo.code))
+      .slice(0, limit)
+      .map((promo) => ({
+        code: promo.code!,
+        description: promo.description,
+        discountType: promo.discountType,
+        discountValue: promo.discountValue,
+        endDate: promo.endDate,
+        maxDiscountAmount: promo.maxDiscountAmount,
+        name: promo.name,
+        thumbnail: promo.thumbnail,
+      }));
+  },
+  returns: v.array(publicVoucherDoc),
 });
 
 // Migration: bổ sung promotionType cho data cũ
