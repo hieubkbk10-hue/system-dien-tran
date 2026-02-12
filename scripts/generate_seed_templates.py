@@ -721,14 +721,33 @@ def pick_color(index: int) -> str:
     return primary_colors[index % len(primary_colors)]
 
 
+IMAGE_EXTS = {".webp", ".png", ".jpg", ".jpeg", ".gif", ".avif"}
+
+
+def list_assets(key: str, folder: str, fallback: list[str]) -> list[str]:
+    path = public_dir / key / folder
+    if not path.exists():
+        return fallback
+
+    files = [
+        file
+        for file in sorted(path.iterdir())
+        if file.is_file() and not file.name.startswith('.') and file.suffix.lower() in IMAGE_EXTS
+    ]
+    if not files:
+        return fallback
+
+    return [f"/seed_mau/{key}/{folder}/{file.name}" for file in files]
+
+
 def build_assets(key: str) -> dict:
     base = f"/seed_mau/{key}"
     return {
-        "hero": [f"{base}/hero/hero-1.webp", f"{base}/hero/hero-2.webp"],
-        "products": [f"{base}/products/product-{i}.webp" for i in range(1, 5)],
-        "posts": [f"{base}/posts/post-{i}.webp" for i in range(1, 4)],
-        "logos": [f"{base}/logos/logo-{i}.webp" for i in range(1, 4)],
-        "gallery": [f"{base}/gallery/gallery-{i}.webp" for i in range(1, 5)],
+        "hero": list_assets(key, "hero", [f"{base}/hero/hero-1.webp", f"{base}/hero/hero-2.webp"]),
+        "products": list_assets(key, "products", [f"{base}/products/product-{i}.webp" for i in range(1, 5)]),
+        "posts": list_assets(key, "posts", [f"{base}/posts/post-{i}.webp" for i in range(1, 4)]),
+        "logos": list_assets(key, "logos", [f"{base}/logos/logo-{i}.webp" for i in range(1, 4)]),
+        "gallery": list_assets(key, "gallery", [f"{base}/gallery/gallery-{i}.webp" for i in range(1, 5)]),
     }
 
 
