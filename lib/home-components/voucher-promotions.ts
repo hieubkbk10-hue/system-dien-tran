@@ -1,4 +1,4 @@
-export type VoucherPromotionsStyle = 'enterpriseCards' | 'ticketHorizontal';
+export type VoucherPromotionsStyle = 'enterpriseCards' | 'ticketHorizontal' | 'couponGrid' | 'stackedBanner' | 'carousel' | 'minimal';
 
 export const DEFAULT_VOUCHER_STYLE: VoucherPromotionsStyle = 'enterpriseCards';
 
@@ -12,7 +12,14 @@ const LEGACY_STYLES = new Set([
 ]);
 
 export const normalizeVoucherStyle = (value?: string): VoucherPromotionsStyle => {
-  if (value === 'enterpriseCards' || value === 'ticketHorizontal') {
+  if (
+    value === 'enterpriseCards'
+    || value === 'ticketHorizontal'
+    || value === 'couponGrid'
+    || value === 'stackedBanner'
+    || value === 'carousel'
+    || value === 'minimal'
+  ) {
     return value;
   }
   if (value && LEGACY_STYLES.has(value)) {

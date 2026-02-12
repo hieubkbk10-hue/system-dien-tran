@@ -8988,6 +8988,8 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
   const style = normalizeVoucherStyle(config.style as string | undefined);
   const vouchers = useQuery(api.promotions.listPublicVouchers, { limit }) as VoucherItem[] | undefined;
   const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
 
   if (!vouchers || vouchers.length === 0) {
     return null;
@@ -9109,8 +9111,210 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
     </section>
   );
 
+  const renderCouponGrid = () => (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {renderHeader()}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {vouchers.map((voucher) => (
+            <div key={voucher.code} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="flex h-full">
+                <div className="w-1" style={{ backgroundColor: brandColor }} />
+                <div className="flex-1 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                      <div className="text-xl font-bold text-slate-900">{voucher.code}</div>
+                      <div className="text-sm font-medium text-slate-700">{voucher.name}</div>
+                    </div>
+                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                      {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+                    </button>
+                  </div>
+                  {voucher.description && <p className="text-xs text-slate-500 mt-2">{voucher.description}</p>}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                    <span>{formatDiscount(voucher)}</span>
+                    {formatMaxDiscount(voucher) && <span>• {formatMaxDiscount(voucher)}</span>}
+                    {voucher.endDate && <span>• Hết hạn {formatVoucherExpiry(voucher.endDate)}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderStackedBanner = () => (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {renderHeader('left')}
+        <div className="rounded-2xl border border-slate-200 overflow-hidden" style={{ background: `linear-gradient(135deg, ${brandColor}10, ${brandColor}05)` }}>
+          {vouchers.map((voucher, index) => (
+            <div key={voucher.code} className={`flex items-center justify-between gap-4 px-4 py-4 ${index < vouchers.length - 1 ? 'border-b border-dashed border-slate-200' : ''}`}>
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                  <Tag size={18} style={{ color: brandColor }} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                  <div className="text-sm font-semibold text-slate-900">{voucher.code} • {voucher.name}</div>
+                  {voucher.description && <div className="text-xs text-slate-500 mt-1">{voucher.description}</div>}
+                  <div className="text-xs text-slate-400 mt-2">
+                    {formatDiscount(voucher)}
+                    {formatMaxDiscount(voucher) && ` • ${formatMaxDiscount(voucher)}`}
+                    {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
+                  </div>
+                </div>
+              </div>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const scrollToIndex = (index: number) => {
+    const container = carouselRef.current;
+    if (!container) {
+      return;
+    }
+    const cards = container.querySelectorAll('[data-voucher-card]');
+    const target = cards[index] as HTMLElement | undefined;
+    if (!target) {
+      return;
+    }
+    container.scrollTo({ left: target.offsetLeft - 12, behavior: 'smooth' });
+  };
+
+  const handlePrev = () => {
+    if (vouchers.length === 0) {
+      return;
+    }
+    const nextIndex = (currentIndex - 1 + vouchers.length) % vouchers.length;
+    setCurrentIndex(nextIndex);
+    scrollToIndex(nextIndex);
+  };
+
+  const handleNext = () => {
+    if (vouchers.length === 0) {
+      return;
+    }
+    const nextIndex = (currentIndex + 1) % vouchers.length;
+    setCurrentIndex(nextIndex);
+    scrollToIndex(nextIndex);
+  };
+
+  const renderCarousel = () => (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {renderHeader('left')}
+        <div className="relative">
+          <div ref={carouselRef} className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth">
+            {vouchers.map((voucher, index) => (
+              <div
+                key={voucher.code}
+                data-voucher-card
+                className={`min-w-[260px] max-w-[260px] snap-start rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${index === currentIndex ? 'ring-2' : ''}`}
+                style={index === currentIndex ? { '--tw-ring-color': `${brandColor}40` } as React.CSSProperties : undefined}
+              >
+                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                <div className="text-xl font-bold text-slate-900">{voucher.code}</div>
+                <div className="text-sm font-medium text-slate-700 mt-1">{voucher.name}</div>
+                {voucher.description && <p className="text-xs text-slate-500 mt-2">{voucher.description}</p>}
+                <div className="text-xs text-slate-400 mt-3">
+                  {formatDiscount(voucher)}
+                  {formatMaxDiscount(voucher) && ` • ${formatMaxDiscount(voucher)}`}
+                  {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
+                </div>
+                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                  {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-2">
+              {vouchers.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    scrollToIndex(index);
+                  }}
+                  className={`h-2 rounded-full transition-all ${index === currentIndex ? 'w-6' : 'w-2 bg-slate-300'}`}
+                  style={index === currentIndex ? { backgroundColor: brandColor } : {}}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handlePrev} className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
+                <ChevronLeft size={14} />
+              </button>
+              <button type="button" onClick={handleNext} className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderMinimal = () => (
+    <section className="py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+        {renderHeader('left')}
+        <div className="space-y-3">
+          {vouchers.map((voucher, index) => (
+            <div key={voucher.code} className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <div className="flex items-center gap-4">
+                <div className="text-xs font-semibold text-slate-400">{String(index + 1).padStart(2, '0')}</div>
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">{voucher.code} • {voucher.name}</div>
+                  {voucher.description && <div className="text-xs text-slate-500 mt-1">{voucher.description}</div>}
+                  <div className="text-xs text-slate-400 mt-1">
+                    {formatDiscount(voucher)}
+                    {formatMaxDiscount(voucher) && ` • ${formatMaxDiscount(voucher)}`}
+                    {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
+                  </div>
+                </div>
+              </div>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   if (style === 'ticketHorizontal') {
     return renderTicketHorizontal();
+  }
+
+  if (style === 'couponGrid') {
+    return renderCouponGrid();
+  }
+
+  if (style === 'stackedBanner') {
+    return renderStackedBanner();
+  }
+
+  if (style === 'carousel') {
+    return renderCarousel();
+  }
+
+  if (style === 'minimal') {
+    return renderMinimal();
   }
 
   return renderEnterpriseCards();

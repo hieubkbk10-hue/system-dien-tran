@@ -13555,12 +13555,17 @@ export const VoucherPromotionsPreview = ({
   onStyleChange?: (style: VoucherPromotionsStyle) => void;
 }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
+  const [currentIndex, setCurrentIndex] = useState(0);
   const previewStyle = normalizeVoucherStyle(selectedStyle ?? DEFAULT_VOUCHER_STYLE);
   const previewLimit = normalizeVoucherLimit(limit);
   const setPreviewStyle = (s: string) => onStyleChange?.(s as VoucherPromotionsStyle);
   const styles = [
     { id: 'enterpriseCards', label: 'Enterprise Cards' },
     { id: 'ticketHorizontal', label: 'Ticket Ngang' },
+    { id: 'couponGrid', label: 'Coupon Grid' },
+    { id: 'stackedBanner', label: 'Stacked Banner' },
+    { id: 'carousel', label: 'Carousel' },
+    { id: 'minimal', label: 'Minimal' },
   ];
 
   const heading = config.heading ?? 'Voucher khuyến mãi';
@@ -13568,6 +13573,42 @@ export const VoucherPromotionsPreview = ({
   const ctaLabel = config.ctaLabel ?? 'Xem tất cả ưu đãi';
   const ctaUrl = config.ctaUrl ?? '/promotions';
   const items = voucherSamples.slice(0, previewLimit);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+  const normalizedIndex = items.length > 0 ? ((currentIndex % items.length) + items.length) % items.length : 0;
+
+  const scrollToIndex = (index: number) => {
+    if (items.length === 0) {
+      return;
+    }
+    const container = carouselRef.current;
+    if (!container) {
+      return;
+    }
+    const cards = container.querySelectorAll('[data-voucher-card]');
+    const target = cards[index] as HTMLElement | undefined;
+    if (!target) {
+      return;
+    }
+    container.scrollTo({ left: target.offsetLeft - 12, behavior: 'smooth' });
+  };
+
+  const handlePrev = () => {
+    if (items.length === 0) {
+      return;
+    }
+    const nextIndex = normalizedIndex - 1;
+    setCurrentIndex(nextIndex);
+    scrollToIndex(((nextIndex % items.length) + items.length) % items.length);
+  };
+
+  const handleNext = () => {
+    if (items.length === 0) {
+      return;
+    }
+    const nextIndex = normalizedIndex + 1;
+    setCurrentIndex(nextIndex);
+    scrollToIndex(((nextIndex % items.length) + items.length) % items.length);
+  };
 
   const Header = ({ align = 'center' }: { align?: 'center' | 'left' }) => (
     <div className={cn('space-y-2', align === 'center' ? 'text-center' : 'text-left')}>
@@ -13642,6 +13683,143 @@ export const VoucherPromotionsPreview = ({
     </section>
   );
 
+  const renderCouponGrid = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Header />
+        <div className={cn('grid gap-4', device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-2'))}>
+          {items.map((item) => (
+            <div key={item.code} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+              <div className="flex h-full">
+                <div className="w-1" style={{ backgroundColor: brandColor }} />
+                <div className="flex-1 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                      <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.name}</div>
+                    </div>
+                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">{item.description}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                    <span>{item.expiry}</span>
+                    <span>• {item.max}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderStackedBanner = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Header align="left" />
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" style={{ background: `linear-gradient(135deg, ${brandColor}10, ${brandColor}05)` }}>
+          {items.map((item, index) => (
+            <div key={item.code} className={cn('flex items-center justify-between gap-4 px-4 py-4', index < items.length - 1 && 'border-b border-dashed border-slate-200 dark:border-slate-700')}>
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
+                  <Tag size={18} style={{ color: brandColor }} />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.code} • {item.name}</div>
+                  <div className="text-xs text-slate-500 mt-1">{item.description}</div>
+                  <div className="text-xs text-slate-400 mt-2">{item.expiry} • {item.max}</div>
+                </div>
+              </div>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderCarousel = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Header align="left" />
+        <div className="relative">
+          <div ref={carouselRef} className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth">
+            {items.map((item, index) => (
+              <div
+                key={item.code}
+                data-voucher-card
+                className={cn(
+                  'min-w-[260px] max-w-[260px] snap-start rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm',
+                  index === normalizedIndex && 'ring-2'
+                )}
+                style={index === normalizedIndex ? { '--tw-ring-color': `${brandColor}40` } as React.CSSProperties : undefined}
+              >
+                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-1">{item.name}</div>
+                <p className="text-xs text-slate-500 mt-2">{item.description}</p>
+                <div className="text-xs text-slate-400 mt-3">{item.expiry} • {item.max}</div>
+                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-2">
+              {items.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    scrollToIndex(index);
+                  }}
+                  className={cn('h-2 rounded-full transition-all', index === normalizedIndex ? 'w-6' : 'w-2 bg-slate-300')}
+                  style={index === normalizedIndex ? { backgroundColor: brandColor } : {}}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handlePrev} className="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                <ChevronLeft size={14} />
+              </button>
+              <button type="button" onClick={handleNext} className="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderMinimal = () => (
+    <section className="py-8 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+        <Header align="left" />
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div key={item.code} className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3">
+              <div className="flex items-center gap-4">
+                <div className="text-xs font-semibold text-slate-400">{String(index + 1).padStart(2, '0')}</div>
+                <div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.code} • {item.name}</div>
+                  <div className="text-xs text-slate-500 mt-1">{item.description}</div>
+                  <div className="text-xs text-slate-400 mt-1">{item.expiry} • {item.max}</div>
+                </div>
+              </div>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <PreviewWrapper
       title="Preview Voucher khuyến mãi"
@@ -13655,6 +13833,10 @@ export const VoucherPromotionsPreview = ({
       <BrowserFrame>
         {previewStyle === 'enterpriseCards' && renderEnterpriseCards()}
         {previewStyle === 'ticketHorizontal' && renderTicketHorizontal()}
+        {previewStyle === 'couponGrid' && renderCouponGrid()}
+        {previewStyle === 'stackedBanner' && renderStackedBanner()}
+        {previewStyle === 'carousel' && renderCarousel()}
+        {previewStyle === 'minimal' && renderMinimal()}
       </BrowserFrame>
     </PreviewWrapper>
   );
