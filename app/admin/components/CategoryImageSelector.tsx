@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import {
@@ -17,7 +17,7 @@ import {
   Truck, Building2, Store, Briefcase, GraduationCap, Stethoscope
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Input, cn } from './ui';
+import { Button, Input, Label, cn } from './ui';
 
 // Available icons for categories
 const CATEGORY_ICONS = [
@@ -134,10 +134,11 @@ async function compressToWebP(file: File, quality: number = 0.85): Promise<Blob>
   });
 }
 
-type ImageMode = 'default' | 'icon' | 'upload' | 'url';
+type ImageMode = 'product-image' | 'default' | 'icon' | 'upload' | 'url';
 
 const resolveImageMode = (value: string): ImageMode => {
   if (!value) {return 'default';}
+  if (value.startsWith('product:')) {return 'product-image';}
   if (value.startsWith('icon:')) {return 'icon';}
   if (value.startsWith('http') || value.startsWith('/')) {return 'url';}
   if (value.startsWith('data:') || value.includes('convex')) {return 'upload';}
@@ -148,6 +149,7 @@ interface CategoryImageSelectorProps {
   value: string;
   onChange: (value: string, mode: ImageMode) => void;
   categoryImage?: string;
+  categoryId?: string;
   brandColor?: string;
   className?: string;
 }
@@ -156,6 +158,7 @@ export function CategoryImageSelector({
   value,
   onChange,
   categoryImage,
+  categoryId,
   brandColor = '#3b82f6',
   className,
 }: CategoryImageSelectorProps) {
@@ -165,6 +168,7 @@ export function CategoryImageSelector({
   const [selectedIcon, setSelectedIcon] = useState<string>(initialMode === 'icon' ? value.replace('icon:', '') : '');
   const [urlInput, setUrlInput] = useState<string>(initialMode === 'url' ? value : '');
   const [uploadedUrl, setUploadedUrl] = useState<string>(initialMode === 'upload' ? value : '');
+  const [selectedProductId, setSelectedProductId] = useState<string>(initialMode === 'product-image' ? value.replace('product:', '') : '');
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
@@ -172,12 +176,20 @@ export function CategoryImageSelector({
 
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
+  const productsByCategory = useQuery(
+    api.products.listByCategory,
+    categoryId ? { categoryId: categoryId as Id<"productCategories">, paginationOpts: { cursor: null, numItems: 50 }, status: 'Active' } : "skip"
+  );
+  const productsData = productsByCategory?.page ?? [];
+  const selectedProduct = selectedProductId ? productsData.find(p => p._id === selectedProductId) : undefined;
 
   // Sync with value prop
   useEffect(() => {
     const newMode = resolveImageMode(value);
     setMode(newMode);
-    if (newMode === 'icon') {
+    if (newMode === 'product-image') {
+      setSelectedProductId(value.replace('product:', ''));
+    } else if (newMode === 'icon') {
       setSelectedIcon(value.replace('icon:', ''));
     } else if (newMode === 'url') {
       setUrlInput(value);
@@ -191,12 +203,27 @@ export function CategoryImageSelector({
     setShowIconPicker(false);
     if (newMode === 'default') {
       onChange('', 'default');
+    } else if (newMode === 'product-image') {
+      if (selectedProductId) {
+        onChange(`product:${selectedProductId}`, 'product-image');
+      } else {
+        onChange('', 'product-image');
+      }
     } else if (newMode === 'icon' && selectedIcon) {
       onChange(`icon:${selectedIcon}`, 'icon');
     } else if (newMode === 'url' && urlInput) {
       onChange(urlInput, 'url');
     } else if (newMode === 'upload' && uploadedUrl) {
       onChange(uploadedUrl, 'upload');
+    }
+  };
+
+  const handleProductSelect = (productId: string) => {
+    setSelectedProductId(productId);
+    if (productId) {
+      onChange(`product:${productId}`, 'product-image');
+    } else {
+      onChange('', 'product-image');
     }
   };
 
@@ -291,6 +318,18 @@ export function CategoryImageSelector({
       <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
         <button
           type="button"
+          onClick={() =>{  handleModeChange('product-image'); }}
+          className={cn(
+            "flex-1 min-w-[90px] px-2 py-1.5 text-xs font-medium rounded-md transition-all",
+            mode === 'product-image' 
+              ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-slate-100" 
+              : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          Từ sản phẩm
+        </button>
+        <button
+          type="button"
           onClick={() =>{  handleModeChange('default'); }}
           className={cn(
             "flex-1 min-w-[70px] px-2 py-1.5 text-xs font-medium rounded-md transition-all",
@@ -364,6 +403,49 @@ export function CategoryImageSelector({
           <div className="flex-1">
             <p className="text-sm font-medium">Sử dụng ảnh danh mục</p>
             <p className="text-xs text-slate-500">Lấy từ cài đặt danh mục gốc</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mode: Product Image */}
+      {mode === 'product-image' && (
+        <div className="space-y-3">
+          {selectedProductId && (
+            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                {selectedProduct?.image ? (
+                  <Image src={selectedProduct.image} width={48} height={48} alt="" className="object-cover" />
+                ) : (
+                  <ImageIcon size={20} className="text-slate-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{selectedProduct?.name ?? 'Sản phẩm'}</p>
+                <p className="text-xs text-slate-500">Ảnh từ sản phẩm</p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-xs text-slate-500">Chọn sản phẩm</Label>
+            {categoryId && productsByCategory === undefined ? (
+              <div className="text-xs text-slate-500">Đang tải sản phẩm...</div>
+            ) : (productsData.length > 0 ? (
+              <select
+                value={selectedProductId}
+                onChange={(e) =>{  handleProductSelect(e.target.value); }}
+                className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+              >
+                <option value="">-- Chọn sản phẩm --</option>
+                {productsData.map(product => (
+                  <option key={product._id} value={product._id}>{product.name}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <p className="text-xs text-amber-700 dark:text-amber-400">Danh mục chưa có sản phẩm. Sẽ fallback về ảnh mặc định.</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -13,7 +13,7 @@ interface CategoryItem {
   id: number;
   categoryId: string;
   customImage?: string;
-  imageMode?: 'default' | 'icon' | 'upload' | 'url';
+  imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url';
 }
 
 export default function ProductCategoriesCreatePage() {
@@ -232,6 +232,7 @@ export default function ProductCategoriesCreatePage() {
                         value={item.customImage ?? ''}
                         onChange={(value, mode) =>{  updateCategory(item.id, { customImage: value, imageMode: mode }); }}
                         categoryImage={getCategoryImage(item.categoryId)}
+                        categoryId={item.categoryId}
                         brandColor={brandColor}
                       />
                     </div>
@@ -242,7 +243,7 @@ export default function ProductCategoriesCreatePage() {
           ))}
           
           <p className="text-xs text-slate-500">
-            Tối đa 12 danh mục. Kéo thả để sắp xếp thứ tự. Mỗi danh mục có thể: sử dụng ảnh gốc, chọn icon, upload ảnh, hoặc nhập URL.
+            Tối đa 12 danh mục. Kéo thả để sắp xếp thứ tự. Mỗi danh mục có thể: chọn ảnh từ sản phẩm, sử dụng ảnh gốc, chọn icon, upload ảnh, hoặc nhập URL.
           </p>
         </CardContent>
       </Card>

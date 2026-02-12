@@ -188,7 +188,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [speedDialPosition, setSpeedDialPosition] = useState<'bottom-right' | 'bottom-left'>('bottom-right');
   const [speedDialAlwaysOpen, setSpeedDialAlwaysOpen] = useState(true);
   // ProductCategories states
-  const [productCategoriesItems, setProductCategoriesItems] = useState<{id: number, categoryId: string, customImage: string, imageMode?: 'default' | 'icon' | 'upload' | 'url'}[]>([]);
+  const [productCategoriesItems, setProductCategoriesItems] = useState<{id: number, categoryId: string, customImage: string, imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url'}[]>([]);
   const [productCategoriesStyle, setProductCategoriesStyle] = useState<ProductCategoriesStyle>('grid');
   const [productCategoriesShowCount, setProductCategoriesShowCount] = useState(true);
   const [productCategoriesColsDesktop, setProductCategoriesColsDesktop] = useState(4);
@@ -482,7 +482,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           break;
         }
         case 'ProductCategories': {
-          setProductCategoriesItems(config.categories?.map((c: {categoryId: string, customImage?: string, imageMode?: string}, i: number) => ({ categoryId: c.categoryId, customImage: c.customImage ?? '', id: i, imageMode: (c.imageMode as 'default' | 'icon' | 'upload' | 'url') || 'default' })) ?? []);
+          setProductCategoriesItems(config.categories?.map((c: {categoryId: string, customImage?: string, imageMode?: string}, i: number) => ({ categoryId: c.categoryId, customImage: c.customImage ?? '', id: i, imageMode: (c.imageMode as 'product-image' | 'default' | 'icon' | 'upload' | 'url') || 'default' })) ?? []);
           setProductCategoriesStyle((config.style as ProductCategoriesStyle) || 'grid');
           setProductCategoriesShowCount(config.showProductCount ?? true);
           setProductCategoriesColsDesktop(config.columnsDesktop ?? 4);
@@ -2979,6 +2979,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                             <CategoryImageSelector
                               value={item.customImage || ''}
                               onChange={(value, mode) =>{  setProductCategoriesItems(productCategoriesItems.map(c => c.id === item.id ? {...c, customImage: value, imageMode: mode} : c)); }}
+                              categoryId={item.categoryId}
                               categoryImage={productCategoriesData?.find(cat => cat._id === item.categoryId)?.image}
                               brandColor={brandColor}
                             />

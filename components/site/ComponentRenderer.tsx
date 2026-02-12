@@ -5677,6 +5677,15 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
     }
     return map;
   }, [productsData]);
+  const productImageMap = React.useMemo(() => {
+    const map: Record<string, string | undefined> = {};
+    if (productsData) {
+      for (const product of productsData) {
+        map[product._id] = product.image;
+      }
+    }
+    return map;
+  }, [productsData]);
   
   const resolvedCategories = categoriesConfig
     .map(item => {
@@ -5690,6 +5699,9 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
       if (imageMode === 'icon' && item.customImage?.startsWith('icon:')) {
         displayIcon = item.customImage.replace('icon:', '');
         displayImage = undefined;
+      } else if (imageMode === 'product-image' && item.customImage?.startsWith('product:')) {
+        const productId = item.customImage.replace('product:', '');
+        displayImage = productImageMap[productId] ?? cat.image;
       } else if (imageMode === 'upload' || imageMode === 'url') {
         displayImage = item.customImage ?? cat.image;
       }

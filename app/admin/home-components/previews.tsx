@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useQuery } from 'convex/react';
 import { 
   ArrowRight, ArrowUpRight, Briefcase, Building2, Check, ChevronDown, ChevronLeft,
   ChevronRight, Clock, Cpu, Eye, Facebook, FileText,
@@ -10,6 +11,7 @@ import {
   Twitter, Users, X, Youtube, Zap, ZoomIn
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, cn } from '../components/ui';
+import { api } from '@/convex/_generated/api';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
@@ -9231,7 +9233,7 @@ export const SpeedDialPreview = ({
 // ============ PRODUCT CATEGORIES PREVIEW ============
 // Best Practices: Clear navigation, visual appeal, mobile optimization, hover effects
 // 6 styles: grid, carousel, cards, minimal, showcase, marquee
-interface CategoryConfigItem { id: number; categoryId: string; customImage?: string; imageMode?: 'default' | 'icon' | 'upload' | 'url' }
+interface CategoryConfigItem { id: number; categoryId: string; customImage?: string; imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url' }
 interface CategoryData { _id: string; name: string; slug: string; image?: string; description?: string }
 export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee';
 
@@ -9271,7 +9273,7 @@ export const ProductCategoriesPreview = ({
     { id: 'showcase', label: 'Showcase' },
     { id: 'marquee', label: 'Marquee' },
   ];
-
+  const productsData = useQuery(api.products.listAll, { limit: 100 });
   const categoryMap = React.useMemo(() => {
     const map: Record<string, CategoryData> = {};
     for (const cat of categoriesData) {
@@ -9279,6 +9281,15 @@ export const ProductCategoriesPreview = ({
     }
     return map;
   }, [categoriesData]);
+  const productImageMap = React.useMemo(() => {
+    const map: Record<string, { image?: string }> = {};
+    if (productsData) {
+      for (const product of productsData) {
+        map[product._id] = { image: product.image };
+      }
+    }
+    return map;
+  }, [productsData]);
 
   const resolvedCategories = config.categories
     .map((item, idx) => {
@@ -9291,6 +9302,9 @@ export const ProductCategoriesPreview = ({
       if (imageMode === 'icon' && item.customImage?.startsWith('icon:')) {
         displayIcon = item.customImage.replace('icon:', '');
         displayImage = undefined;
+      } else if (imageMode === 'product-image' && item.customImage?.startsWith('product:')) {
+        const productId = item.customImage.replace('product:', '');
+        displayImage = productImageMap[productId]?.image ?? cat.image;
       } else if (imageMode === 'upload' || imageMode === 'url') {
         displayImage = item.customImage ?? cat.image;
       }
