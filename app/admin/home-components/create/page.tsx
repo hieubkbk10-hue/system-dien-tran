@@ -16,6 +16,7 @@ export default function HomeComponentCreatePage() {
   }, [stats]);
 
   const recommendedTypes = COMPONENT_TYPES.filter((type) => type.recommended);
+  const otherTypes = COMPONENT_TYPES.filter((type) => !type.recommended);
 
   return (
     <TooltipProvider>
@@ -45,11 +46,11 @@ export default function HomeComponentCreatePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tất cả Components</CardTitle>
+            <CardTitle className="text-base">Các component còn lại</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {COMPONENT_TYPES.map((type) => (
+              {otherTypes.map((type) => (
                 <ComponentCard key={type.value} type={type} count={typeCounts[type.value] ?? 0} />
               ))}
             </div>
