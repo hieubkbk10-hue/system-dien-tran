@@ -1,5 +1,5 @@
 # Custome Rule
-Trả lời bằng Tiếng Việt
+Trả lời bằng Tiếng Việt , dĩ nhiên là tiếng Việt có dấu
 Tuân thủ nghiêm ngặc KISS, YAGNI, DRY
 Tuân thủ Rails Convention Over Configuration
 Khi user đưa URL localhost (ví dụ http://localhost:3000/...), hãy đọc route tương ứng trong Next.js để hiểu, không hỏi lại.
