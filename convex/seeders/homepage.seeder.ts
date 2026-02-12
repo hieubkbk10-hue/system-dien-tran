@@ -73,16 +73,55 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
 
     const template = getIndustryTemplate(this.config.industryKey);
     if (template) {
+      const maxHeroSlides = 3;
+      const maxGalleryImages = 6;
+      const pickRandom = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
+      const pickMany = <T,>(items: T[], count: number): T[] => {
+        if (items.length <= count) {
+          return items;
+        }
+        const pool = [...items];
+        const picked: T[] = [];
+        while (pool.length > 0 && picked.length < count) {
+          const index = Math.floor(Math.random() * pool.length);
+          picked.push(pool.splice(index, 1)[0]);
+        }
+        return picked;
+      };
       const productCategories = await this.ctx.db.query('productCategories').collect();
       const categoryItems = productCategories.slice(0, 6).map((category) => ({
         categoryId: category._id,
         imageMode: 'default',
       }));
+      const heroSlides = template.assets.hero.length > 0
+        ? pickMany(template.assets.hero, maxHeroSlides)
+        : [];
+      const galleryImages = template.assets.gallery.length > 0
+        ? pickMany(template.assets.gallery, maxGalleryImages)
+        : [];
+      const randomLogo = template.assets.logos.length > 0
+        ? pickRandom(template.assets.logos)
+        : undefined;
 
       const components = template.homeComponents.map((component) => {
         const config = { ...component.config } as Record<string, unknown>;
+        if (component.type === 'Hero' && heroSlides.length > 0) {
+          config.slides = heroSlides.map((image) => ({ image, link: '/products' }));
+        }
         if (component.type === 'ProductCategories') {
           config.categories = categoryItems;
+        }
+        if (component.type === 'About' && galleryImages.length > 0) {
+          config.image = pickRandom(galleryImages);
+        }
+        if (Array.isArray(config.logos) && randomLogo) {
+          config.logos = [randomLogo];
+        }
+        if (Array.isArray(config.images) && galleryImages.length > 0) {
+          config.images = galleryImages;
+        }
+        if (Array.isArray(config.gallery) && galleryImages.length > 0) {
+          config.gallery = galleryImages;
         }
 
         return {
