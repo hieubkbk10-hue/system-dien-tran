@@ -21,8 +21,28 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/healthcare/hero/hero-1.webp",
-      "/seed_mau/healthcare/hero/hero-2.webp"
+      "/seed_mau/healthcare/hero/1.webp",
+      "/seed_mau/healthcare/hero/10.webp",
+      "/seed_mau/healthcare/hero/11.webp",
+      "/seed_mau/healthcare/hero/12.webp",
+      "/seed_mau/healthcare/hero/13.webp",
+      "/seed_mau/healthcare/hero/14.webp",
+      "/seed_mau/healthcare/hero/15.webp",
+      "/seed_mau/healthcare/hero/16.webp",
+      "/seed_mau/healthcare/hero/17.webp",
+      "/seed_mau/healthcare/hero/18.webp",
+      "/seed_mau/healthcare/hero/19.webp",
+      "/seed_mau/healthcare/hero/2.webp",
+      "/seed_mau/healthcare/hero/20.webp",
+      "/seed_mau/healthcare/hero/21.webp",
+      "/seed_mau/healthcare/hero/22.webp",
+      "/seed_mau/healthcare/hero/3.webp",
+      "/seed_mau/healthcare/hero/4.webp",
+      "/seed_mau/healthcare/hero/5.webp",
+      "/seed_mau/healthcare/hero/6.webp",
+      "/seed_mau/healthcare/hero/7.webp",
+      "/seed_mau/healthcare/hero/8.webp",
+      "/seed_mau/healthcare/hero/9.webp"
     ],
     "products": [
       "/seed_mau/healthcare/products/product-1.webp",
@@ -135,11 +155,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/healthcare/hero/hero-1.webp",
+            "image": "/seed_mau/healthcare/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/healthcare/hero/hero-2.webp",
+            "image": "/seed_mau/healthcare/hero/10.webp",
             "link": "/products"
           }
         ],

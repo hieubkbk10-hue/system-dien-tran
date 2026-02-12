@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/multi-category/hero/hero-1.webp",
-      "/seed_mau/multi-category/hero/hero-2.webp"
+      "/seed_mau/multi-category/hero/1.webp",
+      "/seed_mau/multi-category/hero/10.webp",
+      "/seed_mau/multi-category/hero/11.webp",
+      "/seed_mau/multi-category/hero/12.webp",
+      "/seed_mau/multi-category/hero/13.webp",
+      "/seed_mau/multi-category/hero/14.webp",
+      "/seed_mau/multi-category/hero/15.webp",
+      "/seed_mau/multi-category/hero/16.webp",
+      "/seed_mau/multi-category/hero/17.webp",
+      "/seed_mau/multi-category/hero/18.webp",
+      "/seed_mau/multi-category/hero/19.webp",
+      "/seed_mau/multi-category/hero/2.webp",
+      "/seed_mau/multi-category/hero/20.webp",
+      "/seed_mau/multi-category/hero/21.webp",
+      "/seed_mau/multi-category/hero/22.webp",
+      "/seed_mau/multi-category/hero/23.webp",
+      "/seed_mau/multi-category/hero/24.webp",
+      "/seed_mau/multi-category/hero/25.webp",
+      "/seed_mau/multi-category/hero/3.webp",
+      "/seed_mau/multi-category/hero/4.webp",
+      "/seed_mau/multi-category/hero/5.webp",
+      "/seed_mau/multi-category/hero/6.webp",
+      "/seed_mau/multi-category/hero/7.webp",
+      "/seed_mau/multi-category/hero/8.webp",
+      "/seed_mau/multi-category/hero/9.webp"
     ],
     "products": [
       "/seed_mau/multi-category/products/product-1.webp",
@@ -135,11 +158,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/multi-category/hero/hero-1.webp",
+            "image": "/seed_mau/multi-category/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/multi-category/hero/hero-2.webp",
+            "image": "/seed_mau/multi-category/hero/10.webp",
             "link": "/products"
           }
         ],

@@ -21,8 +21,23 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/auto-parts/hero/hero-1.webp",
-      "/seed_mau/auto-parts/hero/hero-2.webp"
+      "/seed_mau/auto-parts/hero/1.webp",
+      "/seed_mau/auto-parts/hero/10.webp",
+      "/seed_mau/auto-parts/hero/11.webp",
+      "/seed_mau/auto-parts/hero/12.webp",
+      "/seed_mau/auto-parts/hero/13.webp",
+      "/seed_mau/auto-parts/hero/14.webp",
+      "/seed_mau/auto-parts/hero/15.webp",
+      "/seed_mau/auto-parts/hero/16.webp",
+      "/seed_mau/auto-parts/hero/17.webp",
+      "/seed_mau/auto-parts/hero/2.webp",
+      "/seed_mau/auto-parts/hero/3.webp",
+      "/seed_mau/auto-parts/hero/4.webp",
+      "/seed_mau/auto-parts/hero/5.webp",
+      "/seed_mau/auto-parts/hero/6.webp",
+      "/seed_mau/auto-parts/hero/7.webp",
+      "/seed_mau/auto-parts/hero/8.webp",
+      "/seed_mau/auto-parts/hero/9.webp"
     ],
     "products": [
       "/seed_mau/auto-parts/products/product-1.webp",
@@ -135,11 +150,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/auto-parts/hero/hero-1.webp",
+            "image": "/seed_mau/auto-parts/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/auto-parts/hero/hero-2.webp",
+            "image": "/seed_mau/auto-parts/hero/10.webp",
             "link": "/products"
           }
         ],

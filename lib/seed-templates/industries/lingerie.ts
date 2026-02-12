@@ -21,8 +21,41 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/lingerie/hero/hero-1.webp",
-      "/seed_mau/lingerie/hero/hero-2.webp"
+      "/seed_mau/lingerie/hero/1.webp",
+      "/seed_mau/lingerie/hero/10.webp",
+      "/seed_mau/lingerie/hero/11.webp",
+      "/seed_mau/lingerie/hero/12.webp",
+      "/seed_mau/lingerie/hero/13.webp",
+      "/seed_mau/lingerie/hero/14.webp",
+      "/seed_mau/lingerie/hero/15.webp",
+      "/seed_mau/lingerie/hero/16.webp",
+      "/seed_mau/lingerie/hero/17.webp",
+      "/seed_mau/lingerie/hero/18.webp",
+      "/seed_mau/lingerie/hero/19.webp",
+      "/seed_mau/lingerie/hero/2.webp",
+      "/seed_mau/lingerie/hero/20.webp",
+      "/seed_mau/lingerie/hero/21.webp",
+      "/seed_mau/lingerie/hero/22.webp",
+      "/seed_mau/lingerie/hero/23.webp",
+      "/seed_mau/lingerie/hero/24.webp",
+      "/seed_mau/lingerie/hero/25.webp",
+      "/seed_mau/lingerie/hero/26.webp",
+      "/seed_mau/lingerie/hero/27.webp",
+      "/seed_mau/lingerie/hero/28.webp",
+      "/seed_mau/lingerie/hero/29.webp",
+      "/seed_mau/lingerie/hero/3.webp",
+      "/seed_mau/lingerie/hero/30.webp",
+      "/seed_mau/lingerie/hero/31.webp",
+      "/seed_mau/lingerie/hero/32.webp",
+      "/seed_mau/lingerie/hero/33.webp",
+      "/seed_mau/lingerie/hero/34.webp",
+      "/seed_mau/lingerie/hero/35.webp",
+      "/seed_mau/lingerie/hero/4.webp",
+      "/seed_mau/lingerie/hero/5.webp",
+      "/seed_mau/lingerie/hero/6.webp",
+      "/seed_mau/lingerie/hero/7.webp",
+      "/seed_mau/lingerie/hero/8.webp",
+      "/seed_mau/lingerie/hero/9.webp"
     ],
     "products": [
       "/seed_mau/lingerie/products/product-1.webp",
@@ -135,11 +168,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/lingerie/hero/hero-1.webp",
+            "image": "/seed_mau/lingerie/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/lingerie/hero/hero-2.webp",
+            "image": "/seed_mau/lingerie/hero/10.webp",
             "link": "/products"
           }
         ],

@@ -21,8 +21,13 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/appliances/hero/hero-1.webp",
-      "/seed_mau/appliances/hero/hero-2.webp"
+      "/seed_mau/appliances/hero/1.webp",
+      "/seed_mau/appliances/hero/2.webp",
+      "/seed_mau/appliances/hero/3.webp",
+      "/seed_mau/appliances/hero/4.webp",
+      "/seed_mau/appliances/hero/5.webp",
+      "/seed_mau/appliances/hero/6.webp",
+      "/seed_mau/appliances/hero/7.webp"
     ],
     "products": [
       "/seed_mau/appliances/products/product-1.webp",
@@ -135,11 +140,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/appliances/hero/hero-1.webp",
+            "image": "/seed_mau/appliances/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/appliances/hero/hero-2.webp",
+            "image": "/seed_mau/appliances/hero/2.webp",
             "link": "/products"
           }
         ],

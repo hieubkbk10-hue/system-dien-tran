@@ -21,8 +21,33 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/electronics/hero/hero-1.webp",
-      "/seed_mau/electronics/hero/hero-2.webp"
+      "/seed_mau/electronics/hero/1.webp",
+      "/seed_mau/electronics/hero/10.webp",
+      "/seed_mau/electronics/hero/11.webp",
+      "/seed_mau/electronics/hero/12.webp",
+      "/seed_mau/electronics/hero/13.webp",
+      "/seed_mau/electronics/hero/14.webp",
+      "/seed_mau/electronics/hero/15.webp",
+      "/seed_mau/electronics/hero/16.webp",
+      "/seed_mau/electronics/hero/17.webp",
+      "/seed_mau/electronics/hero/18.webp",
+      "/seed_mau/electronics/hero/19.webp",
+      "/seed_mau/electronics/hero/2.webp",
+      "/seed_mau/electronics/hero/20.webp",
+      "/seed_mau/electronics/hero/21.webp",
+      "/seed_mau/electronics/hero/22.webp",
+      "/seed_mau/electronics/hero/23.webp",
+      "/seed_mau/electronics/hero/24.webp",
+      "/seed_mau/electronics/hero/25.webp",
+      "/seed_mau/electronics/hero/26.webp",
+      "/seed_mau/electronics/hero/27.webp",
+      "/seed_mau/electronics/hero/3.webp",
+      "/seed_mau/electronics/hero/4.webp",
+      "/seed_mau/electronics/hero/5.webp",
+      "/seed_mau/electronics/hero/6.webp",
+      "/seed_mau/electronics/hero/7.webp",
+      "/seed_mau/electronics/hero/8.webp",
+      "/seed_mau/electronics/hero/9.webp"
     ],
     "products": [
       "/seed_mau/electronics/products/product-1.webp",
@@ -136,11 +161,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/electronics/hero/hero-1.webp",
+            "image": "/seed_mau/electronics/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/electronics/hero/hero-2.webp",
+            "image": "/seed_mau/electronics/hero/10.webp",
             "link": "/products"
           }
         ],

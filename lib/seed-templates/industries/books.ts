@@ -21,8 +21,24 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/books/hero/hero-1.webp",
-      "/seed_mau/books/hero/hero-2.webp"
+      "/seed_mau/books/hero/1.webp",
+      "/seed_mau/books/hero/10.webp",
+      "/seed_mau/books/hero/11.webp",
+      "/seed_mau/books/hero/12.webp",
+      "/seed_mau/books/hero/13.webp",
+      "/seed_mau/books/hero/14.webp",
+      "/seed_mau/books/hero/15.webp",
+      "/seed_mau/books/hero/16.webp",
+      "/seed_mau/books/hero/17.webp",
+      "/seed_mau/books/hero/18.webp",
+      "/seed_mau/books/hero/2.webp",
+      "/seed_mau/books/hero/3.webp",
+      "/seed_mau/books/hero/4.webp",
+      "/seed_mau/books/hero/5.webp",
+      "/seed_mau/books/hero/6.webp",
+      "/seed_mau/books/hero/7.webp",
+      "/seed_mau/books/hero/8.webp",
+      "/seed_mau/books/hero/9.webp"
     ],
     "products": [
       "/seed_mau/books/products/product-1.webp",
@@ -135,11 +151,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/books/hero/hero-1.webp",
+            "image": "/seed_mau/books/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/books/hero/hero-2.webp",
+            "image": "/seed_mau/books/hero/10.webp",
             "link": "/products"
           }
         ],

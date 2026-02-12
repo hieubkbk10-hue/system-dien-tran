@@ -21,8 +21,32 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/cosmetics/hero/hero-1.webp",
-      "/seed_mau/cosmetics/hero/hero-2.webp"
+      "/seed_mau/cosmetics/hero/1.webp",
+      "/seed_mau/cosmetics/hero/10.webp",
+      "/seed_mau/cosmetics/hero/11.webp",
+      "/seed_mau/cosmetics/hero/12.webp",
+      "/seed_mau/cosmetics/hero/13.webp",
+      "/seed_mau/cosmetics/hero/14.webp",
+      "/seed_mau/cosmetics/hero/15.webp",
+      "/seed_mau/cosmetics/hero/16.webp",
+      "/seed_mau/cosmetics/hero/17.webp",
+      "/seed_mau/cosmetics/hero/18.webp",
+      "/seed_mau/cosmetics/hero/19.webp",
+      "/seed_mau/cosmetics/hero/2.webp",
+      "/seed_mau/cosmetics/hero/20.webp",
+      "/seed_mau/cosmetics/hero/21.webp",
+      "/seed_mau/cosmetics/hero/22.webp",
+      "/seed_mau/cosmetics/hero/23.webp",
+      "/seed_mau/cosmetics/hero/24.webp",
+      "/seed_mau/cosmetics/hero/25.webp",
+      "/seed_mau/cosmetics/hero/26.webp",
+      "/seed_mau/cosmetics/hero/3.webp",
+      "/seed_mau/cosmetics/hero/4.webp",
+      "/seed_mau/cosmetics/hero/5.webp",
+      "/seed_mau/cosmetics/hero/6.webp",
+      "/seed_mau/cosmetics/hero/7.webp",
+      "/seed_mau/cosmetics/hero/8.webp",
+      "/seed_mau/cosmetics/hero/9.webp"
     ],
     "products": [
       "/seed_mau/cosmetics/products/product-1.webp",
@@ -136,11 +160,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/cosmetics/hero/hero-1.webp",
+            "image": "/seed_mau/cosmetics/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/cosmetics/hero/hero-2.webp",
+            "image": "/seed_mau/cosmetics/hero/10.webp",
             "link": "/products"
           }
         ],

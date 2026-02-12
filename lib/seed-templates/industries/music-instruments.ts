@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/music-instruments/hero/hero-1.webp",
-      "/seed_mau/music-instruments/hero/hero-2.webp"
+      "/seed_mau/music-instruments/hero/1.webp",
+      "/seed_mau/music-instruments/hero/10.webp",
+      "/seed_mau/music-instruments/hero/11.webp",
+      "/seed_mau/music-instruments/hero/12.webp",
+      "/seed_mau/music-instruments/hero/13.webp",
+      "/seed_mau/music-instruments/hero/14.webp",
+      "/seed_mau/music-instruments/hero/15.webp",
+      "/seed_mau/music-instruments/hero/16.webp",
+      "/seed_mau/music-instruments/hero/17.webp",
+      "/seed_mau/music-instruments/hero/18.webp",
+      "/seed_mau/music-instruments/hero/19.webp",
+      "/seed_mau/music-instruments/hero/2.webp",
+      "/seed_mau/music-instruments/hero/20.webp",
+      "/seed_mau/music-instruments/hero/21.webp",
+      "/seed_mau/music-instruments/hero/22.webp",
+      "/seed_mau/music-instruments/hero/23.webp",
+      "/seed_mau/music-instruments/hero/24.webp",
+      "/seed_mau/music-instruments/hero/25.webp",
+      "/seed_mau/music-instruments/hero/3.webp",
+      "/seed_mau/music-instruments/hero/4.webp",
+      "/seed_mau/music-instruments/hero/5.webp",
+      "/seed_mau/music-instruments/hero/6.webp",
+      "/seed_mau/music-instruments/hero/7.webp",
+      "/seed_mau/music-instruments/hero/8.webp",
+      "/seed_mau/music-instruments/hero/9.webp"
     ],
     "products": [
       "/seed_mau/music-instruments/products/product-1.webp",
@@ -135,11 +158,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/music-instruments/hero/hero-1.webp",
+            "image": "/seed_mau/music-instruments/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/music-instruments/hero/hero-2.webp",
+            "image": "/seed_mau/music-instruments/hero/10.webp",
             "link": "/products"
           }
         ],

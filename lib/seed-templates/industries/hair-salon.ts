@@ -21,8 +21,36 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/hair-salon/hero/hero-1.webp",
-      "/seed_mau/hair-salon/hero/hero-2.webp"
+      "/seed_mau/hair-salon/hero/1.webp",
+      "/seed_mau/hair-salon/hero/10.webp",
+      "/seed_mau/hair-salon/hero/11.webp",
+      "/seed_mau/hair-salon/hero/12.webp",
+      "/seed_mau/hair-salon/hero/13.webp",
+      "/seed_mau/hair-salon/hero/14.webp",
+      "/seed_mau/hair-salon/hero/15.webp",
+      "/seed_mau/hair-salon/hero/16.webp",
+      "/seed_mau/hair-salon/hero/17.webp",
+      "/seed_mau/hair-salon/hero/18.webp",
+      "/seed_mau/hair-salon/hero/19.webp",
+      "/seed_mau/hair-salon/hero/2.webp",
+      "/seed_mau/hair-salon/hero/20.webp",
+      "/seed_mau/hair-salon/hero/21.webp",
+      "/seed_mau/hair-salon/hero/22.webp",
+      "/seed_mau/hair-salon/hero/23.webp",
+      "/seed_mau/hair-salon/hero/24.webp",
+      "/seed_mau/hair-salon/hero/25.webp",
+      "/seed_mau/hair-salon/hero/26.webp",
+      "/seed_mau/hair-salon/hero/27.webp",
+      "/seed_mau/hair-salon/hero/28.webp",
+      "/seed_mau/hair-salon/hero/29.webp",
+      "/seed_mau/hair-salon/hero/3.webp",
+      "/seed_mau/hair-salon/hero/30.webp",
+      "/seed_mau/hair-salon/hero/4.webp",
+      "/seed_mau/hair-salon/hero/5.webp",
+      "/seed_mau/hair-salon/hero/6.webp",
+      "/seed_mau/hair-salon/hero/7.webp",
+      "/seed_mau/hair-salon/hero/8.webp",
+      "/seed_mau/hair-salon/hero/9.webp"
     ],
     "products": [
       "/seed_mau/hair-salon/products/product-1.webp",
@@ -135,11 +163,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/hair-salon/hero/hero-1.webp",
+            "image": "/seed_mau/hair-salon/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/hair-salon/hero/hero-2.webp",
+            "image": "/seed_mau/hair-salon/hero/10.webp",
             "link": "/products"
           }
         ],

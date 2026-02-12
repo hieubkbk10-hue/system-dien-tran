@@ -21,8 +21,29 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/business/hero/hero-1.webp",
-      "/seed_mau/business/hero/hero-2.webp"
+      "/seed_mau/business/hero/1.webp",
+      "/seed_mau/business/hero/10.webp",
+      "/seed_mau/business/hero/11.webp",
+      "/seed_mau/business/hero/12.webp",
+      "/seed_mau/business/hero/13.webp",
+      "/seed_mau/business/hero/14.webp",
+      "/seed_mau/business/hero/15.webp",
+      "/seed_mau/business/hero/16.webp",
+      "/seed_mau/business/hero/17.webp",
+      "/seed_mau/business/hero/18.webp",
+      "/seed_mau/business/hero/19.webp",
+      "/seed_mau/business/hero/2.webp",
+      "/seed_mau/business/hero/20.webp",
+      "/seed_mau/business/hero/21.webp",
+      "/seed_mau/business/hero/22.webp",
+      "/seed_mau/business/hero/23.webp",
+      "/seed_mau/business/hero/3.webp",
+      "/seed_mau/business/hero/4.webp",
+      "/seed_mau/business/hero/5.webp",
+      "/seed_mau/business/hero/6.webp",
+      "/seed_mau/business/hero/7.webp",
+      "/seed_mau/business/hero/8.webp",
+      "/seed_mau/business/hero/9.webp"
     ],
     "products": [
       "/seed_mau/business/products/product-1.webp",
@@ -135,11 +156,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/business/hero/hero-1.webp",
+            "image": "/seed_mau/business/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/business/hero/hero-2.webp",
+            "image": "/seed_mau/business/hero/10.webp",
             "link": "/products"
           }
         ],

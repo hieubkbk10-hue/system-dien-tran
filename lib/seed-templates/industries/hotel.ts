@@ -21,8 +21,35 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/hotel/hero/hero-1.webp",
-      "/seed_mau/hotel/hero/hero-2.webp"
+      "/seed_mau/hotel/hero/1.webp",
+      "/seed_mau/hotel/hero/10.webp",
+      "/seed_mau/hotel/hero/11.webp",
+      "/seed_mau/hotel/hero/12.webp",
+      "/seed_mau/hotel/hero/13.webp",
+      "/seed_mau/hotel/hero/14.webp",
+      "/seed_mau/hotel/hero/15.webp",
+      "/seed_mau/hotel/hero/16.webp",
+      "/seed_mau/hotel/hero/17.webp",
+      "/seed_mau/hotel/hero/18.webp",
+      "/seed_mau/hotel/hero/19.webp",
+      "/seed_mau/hotel/hero/2.webp",
+      "/seed_mau/hotel/hero/20.webp",
+      "/seed_mau/hotel/hero/21.webp",
+      "/seed_mau/hotel/hero/22.webp",
+      "/seed_mau/hotel/hero/23.webp",
+      "/seed_mau/hotel/hero/24.webp",
+      "/seed_mau/hotel/hero/25.webp",
+      "/seed_mau/hotel/hero/26.webp",
+      "/seed_mau/hotel/hero/27.webp",
+      "/seed_mau/hotel/hero/28.webp",
+      "/seed_mau/hotel/hero/29.webp",
+      "/seed_mau/hotel/hero/3.webp",
+      "/seed_mau/hotel/hero/4.webp",
+      "/seed_mau/hotel/hero/5.webp",
+      "/seed_mau/hotel/hero/6.webp",
+      "/seed_mau/hotel/hero/7.webp",
+      "/seed_mau/hotel/hero/8.webp",
+      "/seed_mau/hotel/hero/9.webp"
     ],
     "products": [
       "/seed_mau/hotel/products/product-1.webp",
@@ -135,11 +162,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/hotel/hero/hero-1.webp",
+            "image": "/seed_mau/hotel/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/hotel/hero/hero-2.webp",
+            "image": "/seed_mau/hotel/hero/10.webp",
             "link": "/products"
           }
         ],

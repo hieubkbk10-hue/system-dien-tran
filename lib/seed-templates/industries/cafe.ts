@@ -21,8 +21,25 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/cafe/hero/hero-1.webp",
-      "/seed_mau/cafe/hero/hero-2.webp"
+      "/seed_mau/cafe/hero/1.webp",
+      "/seed_mau/cafe/hero/10.webp",
+      "/seed_mau/cafe/hero/11.webp",
+      "/seed_mau/cafe/hero/12.webp",
+      "/seed_mau/cafe/hero/13.webp",
+      "/seed_mau/cafe/hero/14.webp",
+      "/seed_mau/cafe/hero/15.webp",
+      "/seed_mau/cafe/hero/16.webp",
+      "/seed_mau/cafe/hero/17.webp",
+      "/seed_mau/cafe/hero/18.webp",
+      "/seed_mau/cafe/hero/19.webp",
+      "/seed_mau/cafe/hero/2.webp",
+      "/seed_mau/cafe/hero/3.webp",
+      "/seed_mau/cafe/hero/4.webp",
+      "/seed_mau/cafe/hero/5.webp",
+      "/seed_mau/cafe/hero/6.webp",
+      "/seed_mau/cafe/hero/7.webp",
+      "/seed_mau/cafe/hero/8.webp",
+      "/seed_mau/cafe/hero/9.webp"
     ],
     "products": [
       "/seed_mau/cafe/products/product-1.webp",
@@ -135,11 +152,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/cafe/hero/hero-1.webp",
+            "image": "/seed_mau/cafe/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/cafe/hero/hero-2.webp",
+            "image": "/seed_mau/cafe/hero/10.webp",
             "link": "/products"
           }
         ],

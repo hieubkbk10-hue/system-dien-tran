@@ -21,8 +21,29 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/home-furniture/hero/hero-1.webp",
-      "/seed_mau/home-furniture/hero/hero-2.webp"
+      "/seed_mau/home-furniture/hero/1.webp",
+      "/seed_mau/home-furniture/hero/10.webp",
+      "/seed_mau/home-furniture/hero/11.webp",
+      "/seed_mau/home-furniture/hero/12.webp",
+      "/seed_mau/home-furniture/hero/13.webp",
+      "/seed_mau/home-furniture/hero/14.webp",
+      "/seed_mau/home-furniture/hero/15.webp",
+      "/seed_mau/home-furniture/hero/16.webp",
+      "/seed_mau/home-furniture/hero/17.webp",
+      "/seed_mau/home-furniture/hero/18.webp",
+      "/seed_mau/home-furniture/hero/19.webp",
+      "/seed_mau/home-furniture/hero/2.webp",
+      "/seed_mau/home-furniture/hero/20.webp",
+      "/seed_mau/home-furniture/hero/21.webp",
+      "/seed_mau/home-furniture/hero/22.webp",
+      "/seed_mau/home-furniture/hero/23.webp",
+      "/seed_mau/home-furniture/hero/3.webp",
+      "/seed_mau/home-furniture/hero/4.webp",
+      "/seed_mau/home-furniture/hero/5.webp",
+      "/seed_mau/home-furniture/hero/6.webp",
+      "/seed_mau/home-furniture/hero/7.webp",
+      "/seed_mau/home-furniture/hero/8.webp",
+      "/seed_mau/home-furniture/hero/9.webp"
     ],
     "products": [
       "/seed_mau/home-furniture/products/product-1.webp",
@@ -135,11 +156,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/home-furniture/hero/hero-1.webp",
+            "image": "/seed_mau/home-furniture/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/home-furniture/hero/hero-2.webp",
+            "image": "/seed_mau/home-furniture/hero/10.webp",
             "link": "/products"
           }
         ],

@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/jewelry/hero/hero-1.webp",
-      "/seed_mau/jewelry/hero/hero-2.webp"
+      "/seed_mau/jewelry/hero/1.webp",
+      "/seed_mau/jewelry/hero/10.webp",
+      "/seed_mau/jewelry/hero/11.webp",
+      "/seed_mau/jewelry/hero/12.webp",
+      "/seed_mau/jewelry/hero/13.webp",
+      "/seed_mau/jewelry/hero/14.webp",
+      "/seed_mau/jewelry/hero/15.webp",
+      "/seed_mau/jewelry/hero/16.webp",
+      "/seed_mau/jewelry/hero/17.webp",
+      "/seed_mau/jewelry/hero/18.webp",
+      "/seed_mau/jewelry/hero/19.webp",
+      "/seed_mau/jewelry/hero/2.webp",
+      "/seed_mau/jewelry/hero/20.webp",
+      "/seed_mau/jewelry/hero/21.webp",
+      "/seed_mau/jewelry/hero/22.webp",
+      "/seed_mau/jewelry/hero/23.webp",
+      "/seed_mau/jewelry/hero/24.webp",
+      "/seed_mau/jewelry/hero/25.webp",
+      "/seed_mau/jewelry/hero/3.webp",
+      "/seed_mau/jewelry/hero/4.webp",
+      "/seed_mau/jewelry/hero/5.webp",
+      "/seed_mau/jewelry/hero/6.webp",
+      "/seed_mau/jewelry/hero/7.webp",
+      "/seed_mau/jewelry/hero/8.webp",
+      "/seed_mau/jewelry/hero/9.webp"
     ],
     "products": [
       "/seed_mau/jewelry/products/product-1.webp",
@@ -136,11 +159,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/jewelry/hero/hero-1.webp",
+            "image": "/seed_mau/jewelry/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/jewelry/hero/hero-2.webp",
+            "image": "/seed_mau/jewelry/hero/10.webp",
             "link": "/products"
           }
         ],

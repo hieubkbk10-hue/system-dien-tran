@@ -21,8 +21,17 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/auto/hero/hero-1.webp",
-      "/seed_mau/auto/hero/hero-2.webp"
+      "/seed_mau/auto/hero/1.webp",
+      "/seed_mau/auto/hero/10.webp",
+      "/seed_mau/auto/hero/11.webp",
+      "/seed_mau/auto/hero/2.webp",
+      "/seed_mau/auto/hero/3.webp",
+      "/seed_mau/auto/hero/4.webp",
+      "/seed_mau/auto/hero/5.webp",
+      "/seed_mau/auto/hero/6.webp",
+      "/seed_mau/auto/hero/7.webp",
+      "/seed_mau/auto/hero/8.webp",
+      "/seed_mau/auto/hero/9.webp"
     ],
     "products": [
       "/seed_mau/auto/products/product-1.webp",
@@ -135,11 +144,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/auto/hero/hero-1.webp",
+            "image": "/seed_mau/auto/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/auto/hero/hero-2.webp",
+            "image": "/seed_mau/auto/hero/10.webp",
             "link": "/products"
           }
         ],

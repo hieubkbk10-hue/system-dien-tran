@@ -21,8 +21,28 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/fitness/hero/hero-1.webp",
-      "/seed_mau/fitness/hero/hero-2.webp"
+      "/seed_mau/fitness/hero/1.webp",
+      "/seed_mau/fitness/hero/10.webp",
+      "/seed_mau/fitness/hero/11.webp",
+      "/seed_mau/fitness/hero/12.webp",
+      "/seed_mau/fitness/hero/13.webp",
+      "/seed_mau/fitness/hero/14.webp",
+      "/seed_mau/fitness/hero/15.webp",
+      "/seed_mau/fitness/hero/16.webp",
+      "/seed_mau/fitness/hero/17.webp",
+      "/seed_mau/fitness/hero/18.webp",
+      "/seed_mau/fitness/hero/19.webp",
+      "/seed_mau/fitness/hero/2.webp",
+      "/seed_mau/fitness/hero/20.webp",
+      "/seed_mau/fitness/hero/21.webp",
+      "/seed_mau/fitness/hero/22.webp",
+      "/seed_mau/fitness/hero/3.webp",
+      "/seed_mau/fitness/hero/4.webp",
+      "/seed_mau/fitness/hero/5.webp",
+      "/seed_mau/fitness/hero/6.webp",
+      "/seed_mau/fitness/hero/7.webp",
+      "/seed_mau/fitness/hero/8.webp",
+      "/seed_mau/fitness/hero/9.webp"
     ],
     "products": [
       "/seed_mau/fitness/products/product-1.webp",
@@ -135,11 +155,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/fitness/hero/hero-1.webp",
+            "image": "/seed_mau/fitness/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/fitness/hero/hero-2.webp",
+            "image": "/seed_mau/fitness/hero/10.webp",
             "link": "/products"
           }
         ],

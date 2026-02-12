@@ -21,8 +21,34 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/massage/hero/hero-1.webp",
-      "/seed_mau/massage/hero/hero-2.webp"
+      "/seed_mau/massage/hero/1.webp",
+      "/seed_mau/massage/hero/10.webp",
+      "/seed_mau/massage/hero/11.webp",
+      "/seed_mau/massage/hero/12.webp",
+      "/seed_mau/massage/hero/13.webp",
+      "/seed_mau/massage/hero/14.webp",
+      "/seed_mau/massage/hero/15.webp",
+      "/seed_mau/massage/hero/16.webp",
+      "/seed_mau/massage/hero/17.webp",
+      "/seed_mau/massage/hero/18.webp",
+      "/seed_mau/massage/hero/19.webp",
+      "/seed_mau/massage/hero/2.webp",
+      "/seed_mau/massage/hero/20.webp",
+      "/seed_mau/massage/hero/21.webp",
+      "/seed_mau/massage/hero/22.webp",
+      "/seed_mau/massage/hero/23.webp",
+      "/seed_mau/massage/hero/24.webp",
+      "/seed_mau/massage/hero/25.webp",
+      "/seed_mau/massage/hero/26.webp",
+      "/seed_mau/massage/hero/27.webp",
+      "/seed_mau/massage/hero/28.webp",
+      "/seed_mau/massage/hero/3.webp",
+      "/seed_mau/massage/hero/4.webp",
+      "/seed_mau/massage/hero/5.webp",
+      "/seed_mau/massage/hero/6.webp",
+      "/seed_mau/massage/hero/7.webp",
+      "/seed_mau/massage/hero/8.webp",
+      "/seed_mau/massage/hero/9.webp"
     ],
     "products": [
       "/seed_mau/massage/products/product-1.webp",
@@ -135,11 +161,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/massage/hero/hero-1.webp",
+            "image": "/seed_mau/massage/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/massage/hero/hero-2.webp",
+            "image": "/seed_mau/massage/hero/10.webp",
             "link": "/products"
           }
         ],

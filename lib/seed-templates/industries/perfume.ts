@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/perfume/hero/hero-1.webp",
-      "/seed_mau/perfume/hero/hero-2.webp"
+      "/seed_mau/perfume/hero/1.webp",
+      "/seed_mau/perfume/hero/10.webp",
+      "/seed_mau/perfume/hero/11.webp",
+      "/seed_mau/perfume/hero/12.webp",
+      "/seed_mau/perfume/hero/13.webp",
+      "/seed_mau/perfume/hero/14.webp",
+      "/seed_mau/perfume/hero/15.webp",
+      "/seed_mau/perfume/hero/16.webp",
+      "/seed_mau/perfume/hero/17.webp",
+      "/seed_mau/perfume/hero/18.webp",
+      "/seed_mau/perfume/hero/19.webp",
+      "/seed_mau/perfume/hero/2.webp",
+      "/seed_mau/perfume/hero/20.webp",
+      "/seed_mau/perfume/hero/21.webp",
+      "/seed_mau/perfume/hero/22.webp",
+      "/seed_mau/perfume/hero/23.webp",
+      "/seed_mau/perfume/hero/24.webp",
+      "/seed_mau/perfume/hero/25.webp",
+      "/seed_mau/perfume/hero/3.webp",
+      "/seed_mau/perfume/hero/4.webp",
+      "/seed_mau/perfume/hero/5.webp",
+      "/seed_mau/perfume/hero/6.webp",
+      "/seed_mau/perfume/hero/7.webp",
+      "/seed_mau/perfume/hero/8.webp",
+      "/seed_mau/perfume/hero/9.webp"
     ],
     "products": [
       "/seed_mau/perfume/products/product-1.webp",
@@ -135,11 +158,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/perfume/hero/hero-1.webp",
+            "image": "/seed_mau/perfume/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/perfume/hero/hero-2.webp",
+            "image": "/seed_mau/perfume/hero/10.webp",
             "link": "/products"
           }
         ],

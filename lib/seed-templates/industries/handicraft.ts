@@ -21,8 +21,39 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/handicraft/hero/hero-1.webp",
-      "/seed_mau/handicraft/hero/hero-2.webp"
+      "/seed_mau/handicraft/hero/1.webp",
+      "/seed_mau/handicraft/hero/10.webp",
+      "/seed_mau/handicraft/hero/11.webp",
+      "/seed_mau/handicraft/hero/12.webp",
+      "/seed_mau/handicraft/hero/13.webp",
+      "/seed_mau/handicraft/hero/14.webp",
+      "/seed_mau/handicraft/hero/15.webp",
+      "/seed_mau/handicraft/hero/16.webp",
+      "/seed_mau/handicraft/hero/17.webp",
+      "/seed_mau/handicraft/hero/18.webp",
+      "/seed_mau/handicraft/hero/19.webp",
+      "/seed_mau/handicraft/hero/2.webp",
+      "/seed_mau/handicraft/hero/20.webp",
+      "/seed_mau/handicraft/hero/21.webp",
+      "/seed_mau/handicraft/hero/22.webp",
+      "/seed_mau/handicraft/hero/23.webp",
+      "/seed_mau/handicraft/hero/24.webp",
+      "/seed_mau/handicraft/hero/25.webp",
+      "/seed_mau/handicraft/hero/26.webp",
+      "/seed_mau/handicraft/hero/27.webp",
+      "/seed_mau/handicraft/hero/28.webp",
+      "/seed_mau/handicraft/hero/29.webp",
+      "/seed_mau/handicraft/hero/3.webp",
+      "/seed_mau/handicraft/hero/30.webp",
+      "/seed_mau/handicraft/hero/31.webp",
+      "/seed_mau/handicraft/hero/32.webp",
+      "/seed_mau/handicraft/hero/33.webp",
+      "/seed_mau/handicraft/hero/4.webp",
+      "/seed_mau/handicraft/hero/5.webp",
+      "/seed_mau/handicraft/hero/6.webp",
+      "/seed_mau/handicraft/hero/7.webp",
+      "/seed_mau/handicraft/hero/8.webp",
+      "/seed_mau/handicraft/hero/9.webp"
     ],
     "products": [
       "/seed_mau/handicraft/products/product-1.webp",
@@ -135,11 +166,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/handicraft/hero/hero-1.webp",
+            "image": "/seed_mau/handicraft/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/handicraft/hero/hero-2.webp",
+            "image": "/seed_mau/handicraft/hero/10.webp",
             "link": "/products"
           }
         ],

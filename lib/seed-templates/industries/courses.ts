@@ -21,8 +21,26 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/courses/hero/hero-1.webp",
-      "/seed_mau/courses/hero/hero-2.webp"
+      "/seed_mau/courses/hero/1.webp",
+      "/seed_mau/courses/hero/10.webp",
+      "/seed_mau/courses/hero/11.webp",
+      "/seed_mau/courses/hero/12.webp",
+      "/seed_mau/courses/hero/13.webp",
+      "/seed_mau/courses/hero/14.webp",
+      "/seed_mau/courses/hero/15.webp",
+      "/seed_mau/courses/hero/16.webp",
+      "/seed_mau/courses/hero/17.webp",
+      "/seed_mau/courses/hero/18.webp",
+      "/seed_mau/courses/hero/19.webp",
+      "/seed_mau/courses/hero/2.webp",
+      "/seed_mau/courses/hero/20.webp",
+      "/seed_mau/courses/hero/3.webp",
+      "/seed_mau/courses/hero/4.webp",
+      "/seed_mau/courses/hero/5.webp",
+      "/seed_mau/courses/hero/6.webp",
+      "/seed_mau/courses/hero/7.webp",
+      "/seed_mau/courses/hero/8.webp",
+      "/seed_mau/courses/hero/9.webp"
     ],
     "products": [
       "/seed_mau/courses/products/product-1.webp",
@@ -135,11 +153,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/courses/hero/hero-1.webp",
+            "image": "/seed_mau/courses/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/courses/hero/hero-2.webp",
+            "image": "/seed_mau/courses/hero/10.webp",
             "link": "/products"
           }
         ],

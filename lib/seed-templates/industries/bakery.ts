@@ -21,8 +21,20 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/bakery/hero/hero-1.webp",
-      "/seed_mau/bakery/hero/hero-2.webp"
+      "/seed_mau/bakery/hero/1.webp",
+      "/seed_mau/bakery/hero/10.webp",
+      "/seed_mau/bakery/hero/11.webp",
+      "/seed_mau/bakery/hero/12.webp",
+      "/seed_mau/bakery/hero/13.webp",
+      "/seed_mau/bakery/hero/14.webp",
+      "/seed_mau/bakery/hero/2.webp",
+      "/seed_mau/bakery/hero/3.webp",
+      "/seed_mau/bakery/hero/4.webp",
+      "/seed_mau/bakery/hero/5.webp",
+      "/seed_mau/bakery/hero/6.webp",
+      "/seed_mau/bakery/hero/7.webp",
+      "/seed_mau/bakery/hero/8.webp",
+      "/seed_mau/bakery/hero/9.webp"
     ],
     "products": [
       "/seed_mau/bakery/products/product-1.webp",
@@ -135,11 +147,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/bakery/hero/hero-1.webp",
+            "image": "/seed_mau/bakery/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/bakery/hero/hero-2.webp",
+            "image": "/seed_mau/bakery/hero/10.webp",
             "link": "/products"
           }
         ],

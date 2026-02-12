@@ -21,8 +21,21 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/baby-care/hero/hero-1.webp",
-      "/seed_mau/baby-care/hero/hero-2.webp"
+      "/seed_mau/baby-care/hero/1.webp",
+      "/seed_mau/baby-care/hero/10.webp",
+      "/seed_mau/baby-care/hero/11.webp",
+      "/seed_mau/baby-care/hero/12.webp",
+      "/seed_mau/baby-care/hero/13.webp",
+      "/seed_mau/baby-care/hero/14.webp",
+      "/seed_mau/baby-care/hero/15.webp",
+      "/seed_mau/baby-care/hero/2.webp",
+      "/seed_mau/baby-care/hero/3.webp",
+      "/seed_mau/baby-care/hero/4.webp",
+      "/seed_mau/baby-care/hero/5.webp",
+      "/seed_mau/baby-care/hero/6.webp",
+      "/seed_mau/baby-care/hero/7.webp",
+      "/seed_mau/baby-care/hero/8.webp",
+      "/seed_mau/baby-care/hero/9.webp"
     ],
     "products": [
       "/seed_mau/baby-care/products/product-1.webp",
@@ -135,11 +148,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/baby-care/hero/hero-1.webp",
+            "image": "/seed_mau/baby-care/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/baby-care/hero/hero-2.webp",
+            "image": "/seed_mau/baby-care/hero/10.webp",
             "link": "/products"
           }
         ],
