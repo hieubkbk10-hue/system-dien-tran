@@ -19,6 +19,7 @@
     "@lexical/react": "^0.39.0",
     "@lexical/rich-text": "^0.39.0",
     "@lexical/selection": "^0.39.0",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "convex": "^1.31.2",
