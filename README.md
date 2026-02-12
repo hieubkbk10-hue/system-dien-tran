@@ -72,12 +72,12 @@ Gợi ý ảnh mẫu (không giới hạn số lượng, seed sẽ lấy toàn b
 - gallery: 1200x900 (4:3) hoặc 1600x1200
 - logos: 600x300 (2:1) hoặc 512x256, nền trong suốt nếu có
 
-Số lượng ảnh tối ưu mỗi ngành (đủ đa dạng, không quá nặng):
-- hero: 3 ảnh
-- products: 12 ảnh
-- posts: 6 ảnh
-- gallery: 8 ảnh
-- logos: 4 ảnh
+Số lượng ảnh tối ưu mỗi ngành (đa dạng hơn, vẫn gọn):
+- hero: 5 ảnh
+- products: 24 ảnh
+- posts: 12 ảnh
+- gallery: 16 ảnh
+- logos: 8 ảnh
 
 ## Project Structure
 
