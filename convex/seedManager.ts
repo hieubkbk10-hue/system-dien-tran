@@ -35,6 +35,7 @@ const seedConfigValidator = v.object({
   batchSize: v.optional(v.number()),
   dependencies: v.optional(v.boolean()),
   force: v.optional(v.boolean()),
+  industryKey: v.optional(v.string()),
   locale: v.optional(v.string()),
   module: v.string(),
   quantity: v.number(),
@@ -95,6 +96,7 @@ export const seedModule = mutation({
     batchSize: v.optional(v.number()),
     dependencies: v.optional(v.boolean()),
     force: v.optional(v.boolean()),
+    industryKey: v.optional(v.string()),
     locale: v.optional(v.string()),
     module: v.string(),
     quantity: v.number(),
@@ -126,6 +128,7 @@ export const seedModule = mutation({
               const depSeeder = new DepSeederClass(ctx);
               await depSeeder.seed({
                 force: false,
+                industryKey: args.industryKey,
                 locale: args.locale || 'vi',
                 quantity: getDefaultQuantity(dep),
               });
@@ -139,6 +142,7 @@ export const seedModule = mutation({
       const result = await seeder.seed({
         batchSize: args.batchSize,
         force: args.force,
+        industryKey: args.industryKey,
         locale: args.locale || 'vi',
         quantity: args.quantity,
         variantPresetKey: args.variantPresetKey,
@@ -225,6 +229,7 @@ export const seedBulk = mutation({
           const result = await seeder.seed({
             batchSize: config.batchSize,
             force: config.force,
+            industryKey: config.industryKey,
             locale: config.locale || 'vi',
             quantity: config.quantity,
             variantPresetKey: config.variantPresetKey,

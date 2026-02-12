@@ -5,6 +5,7 @@
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
+import { getIndustryTemplate } from '../../lib/seed-templates';
 
 type HomeComponentData = Omit<Doc<'homeComponents'>, '_creationTime' | '_id'>;
 
@@ -68,6 +69,33 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
     const existing = await this.ctx.db.query('homeComponents').first();
     if (existing) {
       return 0;
+    }
+
+    const template = getIndustryTemplate(this.config.industryKey);
+    if (template) {
+      const productCategories = await this.ctx.db.query('productCategories').collect();
+      const categoryItems = productCategories.slice(0, 6).map((category) => ({
+        categoryId: category._id,
+        imageMode: 'default',
+      }));
+
+      const components = template.homeComponents.map((component) => {
+        const config = { ...component.config } as Record<string, unknown>;
+        if (component.type === 'ProductCategories') {
+          config.categories = categoryItems;
+        }
+
+        return {
+          active: component.active,
+          config,
+          order: component.order,
+          title: component.title,
+          type: component.type,
+        };
+      });
+
+      await Promise.all(components.map((component) => this.ctx.db.insert('homeComponents', component)));
+      return components.length;
     }
 
     const components: HomeComponentData[] = [

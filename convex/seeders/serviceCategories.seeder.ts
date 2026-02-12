@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedDependency } from './base';
+import { getIndustryTemplate } from '../../lib/seed-templates';
 import type { Doc } from '../_generated/dataModel';
 
 type ServiceCategoryData = Omit<Doc<'serviceCategories'>, '_creationTime' | '_id'>;
@@ -23,13 +24,18 @@ export class ServiceCategorySeeder extends BaseSeeder<ServiceCategoryData> {
   private categoryIndex = 0;
 
   generateFake(): ServiceCategoryData {
-    const cat = CATEGORIES[this.categoryIndex % CATEGORIES.length];
-    const slug = this.slugify(cat.name);
+    const template = getIndustryTemplate(this.config.industryKey);
+    const templateCategories = template?.fakerTemplates.serviceCategoryNames?.length
+      ? template.fakerTemplates.serviceCategoryNames
+      : CATEGORIES.map((item) => item.name);
+    const name = templateCategories[this.categoryIndex % templateCategories.length];
+    const fallback = CATEGORIES.find((item) => item.name === name);
+    const slug = this.slugify(name);
 
     const data: ServiceCategoryData = {
       active: this.randomBoolean(0.9),
-      description: cat.description,
-      name: cat.name,
+      description: fallback?.description ?? `Nhóm dịch vụ ${name.toLowerCase()}`,
+      name,
       order: this.categoryIndex,
       slug: this.categoryIndex > 0 ? `${slug}-${this.categoryIndex}` : slug,
       thumbnail: this.randomBoolean(0.3)

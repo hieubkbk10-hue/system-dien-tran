@@ -8,6 +8,12 @@ import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
 import { createVietnameseFaker } from './fakerVi';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
+import {
+  buildFromPatterns,
+  getIndustryTemplate,
+  mergeTemplateFields,
+  pickRandom,
+} from '../../lib/seed-templates';
 
 type ServiceData = Omit<Doc<'services'>, '_id' | '_creationTime'>;
 
@@ -39,8 +45,19 @@ export class ServiceSeeder extends BaseSeeder<ServiceData> {
   
   generateFake(): ServiceData {
     const category = this.randomElement(this.categories);
-    const title = this.viFaker.serviceName();
+    const template = getIndustryTemplate(this.config.industryKey);
+    const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
+    const fields = mergeTemplateFields(template?.fakerTemplates);
+    const title = template?.fakerTemplates.serviceNamePatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.serviceNamePatterns, fields, randomFn)
+      : this.viFaker.serviceName();
     const slug = this.slugify(title) + '-' + this.serviceCount++;
+    const description = template?.fakerTemplates.descriptionPatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.descriptionPatterns, fields, randomFn)
+      : this.faker.lorem.paragraph();
+    const thumbnail = template?.assets.gallery?.length
+      ? pickRandom(template.assets.gallery, randomFn)
+      : `https://picsum.photos/seed/${slug}/600/400`;
     
     const hasPrice = this.randomBoolean(0.7); // 70% có giá
     const price = hasPrice ? this.randomInt(500_000, 20_000_000) : undefined;
@@ -53,12 +70,12 @@ export class ServiceSeeder extends BaseSeeder<ServiceData> {
     
     return {
       categoryId: category._id,
-      content: `<p>${this.faker.lorem.paragraphs(3, '</p><p>')}</p>`,
+      content: `<p>${description}</p>`,
       order: this.serviceCount,
       price,
       slug,
       status,
-      thumbnail: `https://picsum.photos/seed/${slug}/600/400`,
+      thumbnail,
       title,
       views: status === 'Published' ? this.randomInt(0, 1000) : 0,
     };

@@ -8,6 +8,12 @@ import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
 import { createVietnameseFaker } from './fakerVi';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
+import {
+  buildFromPatterns,
+  getIndustryTemplate,
+  mergeTemplateFields,
+  pickRandom,
+} from '../../lib/seed-templates';
 
 type PostData = Omit<Doc<'posts'>, '_id' | '_creationTime'>;
 
@@ -47,8 +53,19 @@ export class PostSeeder extends BaseSeeder<PostData> {
   
   generateFake(): PostData {
     const category = this.randomElement(this.categories);
-    const title = this.viFaker.postTitle();
+    const template = getIndustryTemplate(this.config.industryKey);
+    const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
+    const fields = mergeTemplateFields(template?.fakerTemplates);
+    const title = template?.fakerTemplates.postTitlePatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.postTitlePatterns, fields, randomFn)
+      : this.viFaker.postTitle();
     const slug = this.slugify(title) + '-' + this.postCount++;
+    const excerpt = template?.fakerTemplates.postExcerptPatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.postExcerptPatterns, fields, randomFn)
+      : this.viFaker.postExcerpt();
+    const thumbnail = template?.assets.posts?.length
+      ? pickRandom(template.assets.posts, randomFn)
+      : `https://picsum.photos/seed/${slug}/800/600`;
     
     const status = this.faker.helpers.weightedArrayElement([
       { value: 'Published' as const, weight: 7 },
@@ -68,14 +85,14 @@ export class PostSeeder extends BaseSeeder<PostData> {
         : this.viFaker.fullName(),
       categoryId: category._id,
       content,
-      excerpt: this.viFaker.postExcerpt(),
+      excerpt,
       order: this.postCount,
       publishedAt: status === 'Published' 
         ? Date.now() - this.randomInt(0, 30 * 24 * 60 * 60 * 1000) // Last 30 days
         : undefined,
       slug,
       status,
-      thumbnail: `https://picsum.photos/seed/${slug}/800/600`,
+      thumbnail,
       title,
       views: status === 'Published' ? this.randomInt(0, 5000) : 0,
     };

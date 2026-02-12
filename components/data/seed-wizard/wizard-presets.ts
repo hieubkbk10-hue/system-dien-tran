@@ -261,11 +261,12 @@ export function buildModuleSelection(state: WizardState): string[] {
   return Array.from(modules);
 }
 
-export function buildSeedConfigs(selectedModules: string[], scale: DataScale) {
+export function buildSeedConfigs(selectedModules: string[], scale: DataScale, industryKey?: string | null) {
   const quantities = SCALE_QUANTITIES[scale];
   return selectedModules
     .filter((moduleKey) => quantities[moduleKey] !== undefined)
     .map((moduleKey) => ({
+      industryKey: industryKey ?? undefined,
       module: moduleKey,
       quantity: quantities[moduleKey],
     }));

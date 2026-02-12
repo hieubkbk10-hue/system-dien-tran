@@ -46,6 +46,7 @@ export type WizardState = {
   digitalDeliveryType: DigitalDeliveryType;
   experiencePresetKey: ExperiencePresetKey;
   extraFeatures: Set<string>;
+  industryKey: string | null;
   productType: ProductType;
   quickConfig: QuickConfig;
   quickConfigSkipped: boolean;

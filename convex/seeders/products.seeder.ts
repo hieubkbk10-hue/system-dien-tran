@@ -9,6 +9,12 @@ import { createVietnameseFaker } from './fakerVi';
 import { seedProductVariants } from './variants.seeder';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
+import {
+  buildFromPatterns,
+  getIndustryTemplate,
+  mergeTemplateFields,
+  pickRandom,
+} from '../../lib/seed-templates';
 
 type ProductData = Omit<Doc<'products'>, '_id' | '_creationTime'>;
 
@@ -43,8 +49,19 @@ export class ProductSeeder extends BaseSeeder<ProductData> {
   
   generateFake(): ProductData {
     const category = this.randomElement(this.categories);
-    const name = this.viFaker.productName();
+    const template = getIndustryTemplate(this.config.industryKey);
+    const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
+    const fields = mergeTemplateFields(template?.fakerTemplates);
+    const name = template?.fakerTemplates.namePatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.namePatterns, fields, randomFn)
+      : this.viFaker.productName();
     const slug = this.slugify(name) + '-' + this.productCount++;
+    const description = template?.fakerTemplates.descriptionPatterns?.length
+      ? buildFromPatterns(template.fakerTemplates.descriptionPatterns, fields, randomFn)
+      : this.viFaker.productDescription();
+    const image = template?.assets.products?.length
+      ? pickRandom(template.assets.products, randomFn)
+      : `https://picsum.photos/seed/${slug}/400/400`;
     
     const basePrice = this.randomInt(100_000, 50_000_000);
     const hasSale = this.randomBoolean(0.3); // 30% có sale
@@ -57,8 +74,8 @@ export class ProductSeeder extends BaseSeeder<ProductData> {
     
     return {
       categoryId: category._id,
-      description: this.viFaker.productDescription(),
-      image: `https://picsum.photos/seed/${slug}/400/400`,
+      description,
+      image,
       name,
       order: this.productCount,
       price: basePrice,

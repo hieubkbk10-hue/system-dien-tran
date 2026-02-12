@@ -17,6 +17,7 @@ import {
 import { DEFAULT_VARIANT_PRESET_KEY } from '@/lib/modules/variant-presets';
 import { WizardProgress } from './seed-wizard/WizardProgress';
 import { WebsiteTypeStep } from './seed-wizard/steps/WebsiteTypeStep';
+import { IndustrySelectionStep } from './seed-wizard/steps/IndustrySelectionStep';
 import { ExtraFeaturesStep } from './seed-wizard/steps/ExtraFeaturesStep';
 import { SaleModeStep } from './seed-wizard/steps/SaleModeStep';
 import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
@@ -32,6 +33,7 @@ import {
   getBaseModules,
   getScaleSummary,
 } from './seed-wizard/wizard-presets';
+import { getIndustryTemplate } from '@/lib/seed-templates';
 import {
   getDefaultExperiencePresetKey,
   getExperiencePreset,
@@ -84,6 +86,7 @@ const DEFAULT_STATE: WizardState = {
   digitalDeliveryType: 'account',
   experiencePresetKey: getDefaultExperiencePresetKey('landing') as ExperiencePresetKey,
   extraFeatures: new Set(),
+  industryKey: null,
   productType: 'physical',
   quickConfig: DEFAULT_QUICK_CONFIG,
   quickConfigSkipped: false,
@@ -107,6 +110,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const [state, setState] = useState<WizardState>(DEFAULT_STATE);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
+  const industryTemplate = useMemo(() => getIndustryTemplate(state.industryKey), [state.industryKey]);
 
   const modules = useQuery(api.admin.modules.listModules);
   const productsList = useQuery(api.products.listAll, { limit: 200 });
@@ -136,7 +140,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const hasComments = selectedModules.includes('comments');
 
   const steps = useMemo(() => {
-    const list = ['website', 'extras'];
+    const list = ['website', 'industry', 'extras'];
     if (hasProducts) {
       list.push('saleMode', 'productType', 'variants');
     }
@@ -150,9 +154,10 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
   useEffect(() => {
     setCurrentStep(0);
-    const presetKey = getDefaultExperiencePresetKey(state.websiteType) as ExperiencePresetKey;
+    const presetKey = industryTemplate?.experiencePresetKey
+      ?? (getDefaultExperiencePresetKey(state.websiteType) as ExperiencePresetKey);
     setState((prev) => ({ ...prev, experiencePresetKey: presetKey }));
-  }, [state.websiteType, hasProducts]);
+  }, [industryTemplate, state.websiteType, hasProducts]);
 
   useEffect(() => {
     setState((prev) => {
@@ -180,6 +185,35 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         next.delete(featureKey);
       }
       return { ...prev, extraFeatures: next };
+    });
+  };
+
+  const handleIndustryChange = (industryKey: string) => {
+    const template = getIndustryTemplate(industryKey);
+    if (!template) {
+      setState((prev) => ({ ...prev, industryKey }));
+      return;
+    }
+
+    setState((prev) => {
+      const nextWebsiteType = template.websiteTypes.includes(prev.websiteType)
+        ? prev.websiteType
+        : template.websiteTypes[0];
+      return {
+        ...prev,
+        businessInfo: {
+          ...prev.businessInfo,
+          brandColor: template.brandColor,
+          businessType: template.businessType,
+          siteName: template.name,
+          tagline: template.description,
+        },
+        experiencePresetKey: template.experiencePresetKey,
+        industryKey,
+        productType: template.productType,
+        saleMode: template.saleMode,
+        websiteType: nextWebsiteType,
+      };
     });
   };
 
@@ -248,9 +282,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         ? 'Vừa (dev)'
         : 'Nhiều (demo)';
 
-    const items = [
-      { label: 'Website', value: websiteLabel },
-    ];
+    const items: Array<{ label: string; value: string }> = [];
+    if (industryTemplate) {
+      items.push({ label: 'Ngành hàng', value: industryTemplate.name });
+    }
+    items.push({ label: 'Website', value: websiteLabel });
 
     if (hasProducts) {
       items.push(
@@ -368,7 +404,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await syncModules(selectedModules);
 
-      const seedConfigs = buildSeedConfigs(selectedModules, state.dataScale).map((config) => ({
+      const seedConfigs = buildSeedConfigs(selectedModules, state.dataScale, state.industryKey).map((config) => ({
         ...config,
         force: false,
         variantPresetKey: config.module === 'products' && state.variantEnabled
@@ -591,6 +627,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
             <WebsiteTypeStep
               value={state.websiteType}
               onChange={(websiteType) => setState((prev) => ({ ...prev, websiteType }))}
+            />
+          )}
+
+          {stepKey === 'industry' && (
+            <IndustrySelectionStep
+              value={state.industryKey}
+              onChange={handleIndustryChange}
             />
           )}
 
