@@ -15,6 +15,7 @@ export default function AdminProfilePage() {
   const router = useRouter();
   const { isLoading, logout, token, user } = useAdminAuth();
   const role = useQuery(api.roles.getById, user ? { id: user.roleId as Id<'roles'> } : 'skip');
+  const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: 'users' });
   const changeMyPassword = useMutation(api.auth.changeMyPassword);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -22,9 +23,17 @@ export default function AdminProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const enabledFeatures = React.useMemo(() => {
+    const features: Record<string, boolean> = {};
+    featuresData?.forEach(feature => { features[feature.featureKey] = feature.enabled; });
+    return features;
+  }, [featuresData]);
+
+  const showAvatar = enabledFeatures.enableAvatar ?? true;
+
   const displayName = user?.name ?? 'Admin';
   const displayEmail = user?.email ?? '';
-  const avatarUrl = user?.avatar;
+  const avatarUrl = showAvatar ? user?.avatar : undefined;
   const initials = displayName
     .split(' ')
     .filter(Boolean)

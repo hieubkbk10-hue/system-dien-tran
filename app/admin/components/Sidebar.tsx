@@ -139,6 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const { isModuleEnabled, isLoading } = useAdminModules();
   const { logout, user } = useAdminAuth();
   const productSettings = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'products' });
+  const userFeatures = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: 'users' });
 
   const isActive = (route: string) => pathname.startsWith(route);
 
@@ -196,9 +197,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showPromotionsSection = isModuleEnabled('promotions');
   const variantEnabled = Boolean(productSettings?.find(setting => setting.settingKey === 'variantEnabled')?.value);
 
+  const enabledFeatures = useMemo(() => {
+    const features: Record<string, boolean> = {};
+    userFeatures?.forEach(feature => { features[feature.featureKey] = feature.enabled; });
+    return features;
+  }, [userFeatures]);
+
+  const showAvatar = enabledFeatures.enableAvatar ?? true;
+
   const displayName = user?.name ?? 'Admin';
   const displayEmail = user?.email ?? '';
-  const avatarUrl = user?.avatar;
+  const avatarUrl = showAvatar ? user?.avatar : undefined;
   const initials = displayName
     .split(' ')
     .filter(Boolean)
