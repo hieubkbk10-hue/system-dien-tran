@@ -21,30 +21,30 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/affiliate-shop/hero/hero-1.jpg",
-      "/seed_mau/affiliate-shop/hero/hero-2.jpg"
+      "/seed_mau/affiliate-shop/hero/hero-1.webp",
+      "/seed_mau/affiliate-shop/hero/hero-2.webp"
     ],
     "products": [
-      "/seed_mau/affiliate-shop/products/product-1.jpg",
-      "/seed_mau/affiliate-shop/products/product-2.jpg",
-      "/seed_mau/affiliate-shop/products/product-3.jpg",
-      "/seed_mau/affiliate-shop/products/product-4.jpg"
+      "/seed_mau/affiliate-shop/products/product-1.webp",
+      "/seed_mau/affiliate-shop/products/product-2.webp",
+      "/seed_mau/affiliate-shop/products/product-3.webp",
+      "/seed_mau/affiliate-shop/products/product-4.webp"
     ],
     "posts": [
-      "/seed_mau/affiliate-shop/posts/post-1.jpg",
-      "/seed_mau/affiliate-shop/posts/post-2.jpg",
-      "/seed_mau/affiliate-shop/posts/post-3.jpg"
+      "/seed_mau/affiliate-shop/posts/post-1.webp",
+      "/seed_mau/affiliate-shop/posts/post-2.webp",
+      "/seed_mau/affiliate-shop/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/affiliate-shop/logos/logo-1.png",
-      "/seed_mau/affiliate-shop/logos/logo-2.png",
-      "/seed_mau/affiliate-shop/logos/logo-3.png"
+      "/seed_mau/affiliate-shop/logos/logo-1.webp",
+      "/seed_mau/affiliate-shop/logos/logo-2.webp",
+      "/seed_mau/affiliate-shop/logos/logo-3.webp"
     ],
     "gallery": [
-      "/seed_mau/affiliate-shop/gallery/gallery-1.jpg",
-      "/seed_mau/affiliate-shop/gallery/gallery-2.jpg",
-      "/seed_mau/affiliate-shop/gallery/gallery-3.jpg",
-      "/seed_mau/affiliate-shop/gallery/gallery-4.jpg"
+      "/seed_mau/affiliate-shop/gallery/gallery-1.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-2.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-3.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-4.webp"
     ]
   },
   "fakerTemplates": {
@@ -135,11 +135,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/affiliate-shop/hero/hero-1.jpg",
+            "image": "/seed_mau/affiliate-shop/hero/hero-1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/affiliate-shop/hero/hero-2.jpg",
+            "image": "/seed_mau/affiliate-shop/hero/hero-2.webp",
             "link": "/products"
           }
         ],
@@ -186,7 +186,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Affiliate Shop",
         "content": "Danh mục sản phẩm tiếp thị liên kết.",
-        "image": "/seed_mau/affiliate-shop/gallery/gallery-1.jpg"
+        "image": "/seed_mau/affiliate-shop/gallery/gallery-1.webp"
       }
     },
     {

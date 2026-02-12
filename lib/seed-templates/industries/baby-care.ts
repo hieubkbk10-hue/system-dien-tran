@@ -21,30 +21,30 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/baby-care/hero/hero-1.jpg",
-      "/seed_mau/baby-care/hero/hero-2.jpg"
+      "/seed_mau/baby-care/hero/hero-1.webp",
+      "/seed_mau/baby-care/hero/hero-2.webp"
     ],
     "products": [
-      "/seed_mau/baby-care/products/product-1.jpg",
-      "/seed_mau/baby-care/products/product-2.jpg",
-      "/seed_mau/baby-care/products/product-3.jpg",
-      "/seed_mau/baby-care/products/product-4.jpg"
+      "/seed_mau/baby-care/products/product-1.webp",
+      "/seed_mau/baby-care/products/product-2.webp",
+      "/seed_mau/baby-care/products/product-3.webp",
+      "/seed_mau/baby-care/products/product-4.webp"
     ],
     "posts": [
-      "/seed_mau/baby-care/posts/post-1.jpg",
-      "/seed_mau/baby-care/posts/post-2.jpg",
-      "/seed_mau/baby-care/posts/post-3.jpg"
+      "/seed_mau/baby-care/posts/post-1.webp",
+      "/seed_mau/baby-care/posts/post-2.webp",
+      "/seed_mau/baby-care/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/baby-care/logos/logo-1.png",
-      "/seed_mau/baby-care/logos/logo-2.png",
-      "/seed_mau/baby-care/logos/logo-3.png"
+      "/seed_mau/baby-care/logos/logo-1.webp",
+      "/seed_mau/baby-care/logos/logo-2.webp",
+      "/seed_mau/baby-care/logos/logo-3.webp"
     ],
     "gallery": [
-      "/seed_mau/baby-care/gallery/gallery-1.jpg",
-      "/seed_mau/baby-care/gallery/gallery-2.jpg",
-      "/seed_mau/baby-care/gallery/gallery-3.jpg",
-      "/seed_mau/baby-care/gallery/gallery-4.jpg"
+      "/seed_mau/baby-care/gallery/gallery-1.webp",
+      "/seed_mau/baby-care/gallery/gallery-2.webp",
+      "/seed_mau/baby-care/gallery/gallery-3.webp",
+      "/seed_mau/baby-care/gallery/gallery-4.webp"
     ]
   },
   "fakerTemplates": {
@@ -135,11 +135,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/baby-care/hero/hero-1.jpg",
+            "image": "/seed_mau/baby-care/hero/hero-1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/baby-care/hero/hero-2.jpg",
+            "image": "/seed_mau/baby-care/hero/hero-2.webp",
             "link": "/products"
           }
         ],
@@ -186,7 +186,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Mẹ & Bé",
         "content": "Sản phẩm chăm sóc mẹ và bé an toàn.",
-        "image": "/seed_mau/baby-care/gallery/gallery-1.jpg"
+        "image": "/seed_mau/baby-care/gallery/gallery-1.webp"
       }
     },
     {

@@ -21,30 +21,30 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/tech/hero/hero-1.jpg",
-      "/seed_mau/tech/hero/hero-2.jpg"
+      "/seed_mau/tech/hero/hero-1.webp",
+      "/seed_mau/tech/hero/hero-2.webp"
     ],
     "products": [
-      "/seed_mau/tech/products/product-1.jpg",
-      "/seed_mau/tech/products/product-2.jpg",
-      "/seed_mau/tech/products/product-3.jpg",
-      "/seed_mau/tech/products/product-4.jpg"
+      "/seed_mau/tech/products/product-1.webp",
+      "/seed_mau/tech/products/product-2.webp",
+      "/seed_mau/tech/products/product-3.webp",
+      "/seed_mau/tech/products/product-4.webp"
     ],
     "posts": [
-      "/seed_mau/tech/posts/post-1.jpg",
-      "/seed_mau/tech/posts/post-2.jpg",
-      "/seed_mau/tech/posts/post-3.jpg"
+      "/seed_mau/tech/posts/post-1.webp",
+      "/seed_mau/tech/posts/post-2.webp",
+      "/seed_mau/tech/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/tech/logos/logo-1.png",
-      "/seed_mau/tech/logos/logo-2.png",
-      "/seed_mau/tech/logos/logo-3.png"
+      "/seed_mau/tech/logos/logo-1.webp",
+      "/seed_mau/tech/logos/logo-2.webp",
+      "/seed_mau/tech/logos/logo-3.webp"
     ],
     "gallery": [
-      "/seed_mau/tech/gallery/gallery-1.jpg",
-      "/seed_mau/tech/gallery/gallery-2.jpg",
-      "/seed_mau/tech/gallery/gallery-3.jpg",
-      "/seed_mau/tech/gallery/gallery-4.jpg"
+      "/seed_mau/tech/gallery/gallery-1.webp",
+      "/seed_mau/tech/gallery/gallery-2.webp",
+      "/seed_mau/tech/gallery/gallery-3.webp",
+      "/seed_mau/tech/gallery/gallery-4.webp"
     ]
   },
   "fakerTemplates": {
@@ -136,11 +136,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/tech/hero/hero-1.jpg",
+            "image": "/seed_mau/tech/hero/hero-1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/tech/hero/hero-2.jpg",
+            "image": "/seed_mau/tech/hero/hero-2.webp",
             "link": "/products"
           }
         ],
@@ -187,7 +187,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Thiết bị công nghệ",
         "content": "Thiết bị công nghệ, laptop, phụ kiện hiện đại.",
-        "image": "/seed_mau/tech/gallery/gallery-1.jpg"
+        "image": "/seed_mau/tech/gallery/gallery-1.webp"
       }
     },
     {

@@ -724,11 +724,11 @@ def pick_color(index: int) -> str:
 def build_assets(key: str) -> dict:
     base = f"/seed_mau/{key}"
     return {
-        "hero": [f"{base}/hero/hero-1.jpg", f"{base}/hero/hero-2.jpg"],
-        "products": [f"{base}/products/product-{i}.jpg" for i in range(1, 5)],
-        "posts": [f"{base}/posts/post-{i}.jpg" for i in range(1, 4)],
-        "logos": [f"{base}/logos/logo-{i}.png" for i in range(1, 4)],
-        "gallery": [f"{base}/gallery/gallery-{i}.jpg" for i in range(1, 5)],
+        "hero": [f"{base}/hero/hero-1.webp", f"{base}/hero/hero-2.webp"],
+        "products": [f"{base}/products/product-{i}.webp" for i in range(1, 5)],
+        "posts": [f"{base}/posts/post-{i}.webp" for i in range(1, 4)],
+        "logos": [f"{base}/logos/logo-{i}.webp" for i in range(1, 4)],
+        "gallery": [f"{base}/gallery/gallery-{i}.webp" for i in range(1, 5)],
     }
 
 

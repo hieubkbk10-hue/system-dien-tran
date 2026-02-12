@@ -21,30 +21,30 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/manufacturing/hero/hero-1.jpg",
-      "/seed_mau/manufacturing/hero/hero-2.jpg"
+      "/seed_mau/manufacturing/hero/hero-1.webp",
+      "/seed_mau/manufacturing/hero/hero-2.webp"
     ],
     "products": [
-      "/seed_mau/manufacturing/products/product-1.jpg",
-      "/seed_mau/manufacturing/products/product-2.jpg",
-      "/seed_mau/manufacturing/products/product-3.jpg",
-      "/seed_mau/manufacturing/products/product-4.jpg"
+      "/seed_mau/manufacturing/products/product-1.webp",
+      "/seed_mau/manufacturing/products/product-2.webp",
+      "/seed_mau/manufacturing/products/product-3.webp",
+      "/seed_mau/manufacturing/products/product-4.webp"
     ],
     "posts": [
-      "/seed_mau/manufacturing/posts/post-1.jpg",
-      "/seed_mau/manufacturing/posts/post-2.jpg",
-      "/seed_mau/manufacturing/posts/post-3.jpg"
+      "/seed_mau/manufacturing/posts/post-1.webp",
+      "/seed_mau/manufacturing/posts/post-2.webp",
+      "/seed_mau/manufacturing/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/manufacturing/logos/logo-1.png",
-      "/seed_mau/manufacturing/logos/logo-2.png",
-      "/seed_mau/manufacturing/logos/logo-3.png"
+      "/seed_mau/manufacturing/logos/logo-1.webp",
+      "/seed_mau/manufacturing/logos/logo-2.webp",
+      "/seed_mau/manufacturing/logos/logo-3.webp"
     ],
     "gallery": [
-      "/seed_mau/manufacturing/gallery/gallery-1.jpg",
-      "/seed_mau/manufacturing/gallery/gallery-2.jpg",
-      "/seed_mau/manufacturing/gallery/gallery-3.jpg",
-      "/seed_mau/manufacturing/gallery/gallery-4.jpg"
+      "/seed_mau/manufacturing/gallery/gallery-1.webp",
+      "/seed_mau/manufacturing/gallery/gallery-2.webp",
+      "/seed_mau/manufacturing/gallery/gallery-3.webp",
+      "/seed_mau/manufacturing/gallery/gallery-4.webp"
     ]
   },
   "fakerTemplates": {
@@ -134,11 +134,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/manufacturing/hero/hero-1.jpg",
+            "image": "/seed_mau/manufacturing/hero/hero-1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/manufacturing/hero/hero-2.jpg",
+            "image": "/seed_mau/manufacturing/hero/hero-2.webp",
             "link": "/products"
           }
         ],
@@ -171,7 +171,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Sản xuất",
         "content": "Giải pháp sản xuất, tối ưu dây chuyền.",
-        "image": "/seed_mau/manufacturing/gallery/gallery-1.jpg"
+        "image": "/seed_mau/manufacturing/gallery/gallery-1.webp"
       }
     },
     {

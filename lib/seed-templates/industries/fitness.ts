@@ -21,30 +21,30 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/fitness/hero/hero-1.jpg",
-      "/seed_mau/fitness/hero/hero-2.jpg"
+      "/seed_mau/fitness/hero/hero-1.webp",
+      "/seed_mau/fitness/hero/hero-2.webp"
     ],
     "products": [
-      "/seed_mau/fitness/products/product-1.jpg",
-      "/seed_mau/fitness/products/product-2.jpg",
-      "/seed_mau/fitness/products/product-3.jpg",
-      "/seed_mau/fitness/products/product-4.jpg"
+      "/seed_mau/fitness/products/product-1.webp",
+      "/seed_mau/fitness/products/product-2.webp",
+      "/seed_mau/fitness/products/product-3.webp",
+      "/seed_mau/fitness/products/product-4.webp"
     ],
     "posts": [
-      "/seed_mau/fitness/posts/post-1.jpg",
-      "/seed_mau/fitness/posts/post-2.jpg",
-      "/seed_mau/fitness/posts/post-3.jpg"
+      "/seed_mau/fitness/posts/post-1.webp",
+      "/seed_mau/fitness/posts/post-2.webp",
+      "/seed_mau/fitness/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/fitness/logos/logo-1.png",
-      "/seed_mau/fitness/logos/logo-2.png",
-      "/seed_mau/fitness/logos/logo-3.png"
+      "/seed_mau/fitness/logos/logo-1.webp",
+      "/seed_mau/fitness/logos/logo-2.webp",
+      "/seed_mau/fitness/logos/logo-3.webp"
     ],
     "gallery": [
-      "/seed_mau/fitness/gallery/gallery-1.jpg",
-      "/seed_mau/fitness/gallery/gallery-2.jpg",
-      "/seed_mau/fitness/gallery/gallery-3.jpg",
-      "/seed_mau/fitness/gallery/gallery-4.jpg"
+      "/seed_mau/fitness/gallery/gallery-1.webp",
+      "/seed_mau/fitness/gallery/gallery-2.webp",
+      "/seed_mau/fitness/gallery/gallery-3.webp",
+      "/seed_mau/fitness/gallery/gallery-4.webp"
     ]
   },
   "fakerTemplates": {
@@ -135,11 +135,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/fitness/hero/hero-1.jpg",
+            "image": "/seed_mau/fitness/hero/hero-1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/fitness/hero/hero-2.jpg",
+            "image": "/seed_mau/fitness/hero/hero-2.webp",
             "link": "/products"
           }
         ],
@@ -172,7 +172,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Fitness",
         "content": "Luyện tập fitness, PT cá nhân.",
-        "image": "/seed_mau/fitness/gallery/gallery-1.jpg"
+        "image": "/seed_mau/fitness/gallery/gallery-1.webp"
       }
     },
     {
