@@ -45,15 +45,28 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/affiliate-shop/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/affiliate-shop/logos/logo-1.webp",
-      "/seed_mau/affiliate-shop/logos/logo-2.webp",
-      "/seed_mau/affiliate-shop/logos/logo-3.webp"
+      "/seed_mau/affiliate-shop/logos/1.webp",
+      "/seed_mau/affiliate-shop/logos/10.webp",
+      "/seed_mau/affiliate-shop/logos/11.webp",
+      "/seed_mau/affiliate-shop/logos/12.webp",
+      "/seed_mau/affiliate-shop/logos/13.webp",
+      "/seed_mau/affiliate-shop/logos/14.webp",
+      "/seed_mau/affiliate-shop/logos/15.webp",
+      "/seed_mau/affiliate-shop/logos/2.webp",
+      "/seed_mau/affiliate-shop/logos/3.webp",
+      "/seed_mau/affiliate-shop/logos/4.webp",
+      "/seed_mau/affiliate-shop/logos/5.webp",
+      "/seed_mau/affiliate-shop/logos/6.webp",
+      "/seed_mau/affiliate-shop/logos/7.webp",
+      "/seed_mau/affiliate-shop/logos/8.webp",
+      "/seed_mau/affiliate-shop/logos/9.webp"
     ],
     "gallery": [
-      "/seed_mau/affiliate-shop/gallery/gallery-1.webp",
-      "/seed_mau/affiliate-shop/gallery/gallery-2.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-12.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-15.webp",
       "/seed_mau/affiliate-shop/gallery/gallery-3.webp",
-      "/seed_mau/affiliate-shop/gallery/gallery-4.webp"
+      "/seed_mau/affiliate-shop/gallery/gallery-6.webp",
+      "/seed_mau/affiliate-shop/gallery/gallery-9.webp"
     ]
   },
   "fakerTemplates": {
@@ -195,7 +208,7 @@ export const industryTemplate: IndustryTemplate = {
       "config": {
         "heading": "Về Affiliate Shop",
         "content": "Danh mục sản phẩm tiếp thị liên kết.",
-        "image": "/seed_mau/affiliate-shop/gallery/gallery-1.webp"
+        "image": "/seed_mau/affiliate-shop/gallery/gallery-12.webp"
       }
     },
     {

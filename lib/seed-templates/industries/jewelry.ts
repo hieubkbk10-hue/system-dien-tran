@@ -59,9 +59,26 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/jewelry/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/jewelry/logos/logo-1.webp",
-      "/seed_mau/jewelry/logos/logo-2.webp",
-      "/seed_mau/jewelry/logos/logo-3.webp"
+      "/seed_mau/jewelry/logos/1.webp",
+      "/seed_mau/jewelry/logos/109.webp",
+      "/seed_mau/jewelry/logos/11.webp",
+      "/seed_mau/jewelry/logos/12.webp",
+      "/seed_mau/jewelry/logos/13.webp",
+      "/seed_mau/jewelry/logos/14.webp",
+      "/seed_mau/jewelry/logos/15.webp",
+      "/seed_mau/jewelry/logos/16.webp",
+      "/seed_mau/jewelry/logos/17.webp",
+      "/seed_mau/jewelry/logos/18.webp",
+      "/seed_mau/jewelry/logos/19.webp",
+      "/seed_mau/jewelry/logos/2.webp",
+      "/seed_mau/jewelry/logos/20.webp",
+      "/seed_mau/jewelry/logos/3.webp",
+      "/seed_mau/jewelry/logos/4.webp",
+      "/seed_mau/jewelry/logos/5.webp",
+      "/seed_mau/jewelry/logos/6.webp",
+      "/seed_mau/jewelry/logos/7.webp",
+      "/seed_mau/jewelry/logos/88.webp",
+      "/seed_mau/jewelry/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/jewelry/gallery/gallery-1.webp",

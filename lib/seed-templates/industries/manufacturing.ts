@@ -54,9 +54,29 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/manufacturing/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/manufacturing/logos/logo-1.webp",
-      "/seed_mau/manufacturing/logos/logo-2.webp",
-      "/seed_mau/manufacturing/logos/logo-3.webp"
+      "/seed_mau/manufacturing/logos/1.webp",
+      "/seed_mau/manufacturing/logos/10.webp",
+      "/seed_mau/manufacturing/logos/11.webp",
+      "/seed_mau/manufacturing/logos/12.webp",
+      "/seed_mau/manufacturing/logos/13.webp",
+      "/seed_mau/manufacturing/logos/14.webp",
+      "/seed_mau/manufacturing/logos/15.webp",
+      "/seed_mau/manufacturing/logos/16.webp",
+      "/seed_mau/manufacturing/logos/17.webp",
+      "/seed_mau/manufacturing/logos/18.webp",
+      "/seed_mau/manufacturing/logos/19.webp",
+      "/seed_mau/manufacturing/logos/2.webp",
+      "/seed_mau/manufacturing/logos/20.webp",
+      "/seed_mau/manufacturing/logos/21.webp",
+      "/seed_mau/manufacturing/logos/22.webp",
+      "/seed_mau/manufacturing/logos/223.webp",
+      "/seed_mau/manufacturing/logos/3.webp",
+      "/seed_mau/manufacturing/logos/4.webp",
+      "/seed_mau/manufacturing/logos/5.webp",
+      "/seed_mau/manufacturing/logos/6.webp",
+      "/seed_mau/manufacturing/logos/7.webp",
+      "/seed_mau/manufacturing/logos/8.webp",
+      "/seed_mau/manufacturing/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/manufacturing/gallery/gallery-1.webp",

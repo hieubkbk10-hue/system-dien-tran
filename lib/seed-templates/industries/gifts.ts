@@ -51,9 +51,29 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/gifts/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/gifts/logos/logo-1.webp",
-      "/seed_mau/gifts/logos/logo-2.webp",
-      "/seed_mau/gifts/logos/logo-3.webp"
+      "/seed_mau/gifts/logos/1.webp",
+      "/seed_mau/gifts/logos/10.webp",
+      "/seed_mau/gifts/logos/11.webp",
+      "/seed_mau/gifts/logos/12.webp",
+      "/seed_mau/gifts/logos/13.webp",
+      "/seed_mau/gifts/logos/14.webp",
+      "/seed_mau/gifts/logos/15.webp",
+      "/seed_mau/gifts/logos/16.webp",
+      "/seed_mau/gifts/logos/17.webp",
+      "/seed_mau/gifts/logos/18.webp",
+      "/seed_mau/gifts/logos/19.webp",
+      "/seed_mau/gifts/logos/2.webp",
+      "/seed_mau/gifts/logos/20.webp",
+      "/seed_mau/gifts/logos/21.webp",
+      "/seed_mau/gifts/logos/22.webp",
+      "/seed_mau/gifts/logos/23.webp",
+      "/seed_mau/gifts/logos/3.webp",
+      "/seed_mau/gifts/logos/4.webp",
+      "/seed_mau/gifts/logos/5.webp",
+      "/seed_mau/gifts/logos/6.webp",
+      "/seed_mau/gifts/logos/7.webp",
+      "/seed_mau/gifts/logos/8.webp",
+      "/seed_mau/gifts/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/gifts/gallery/gallery-1.webp",

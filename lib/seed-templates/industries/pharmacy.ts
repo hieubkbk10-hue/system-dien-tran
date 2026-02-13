@@ -64,9 +64,20 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/pharmacy/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/pharmacy/logos/logo-1.webp",
-      "/seed_mau/pharmacy/logos/logo-2.webp",
-      "/seed_mau/pharmacy/logos/logo-3.webp"
+      "/seed_mau/pharmacy/logos/1.webp",
+      "/seed_mau/pharmacy/logos/10.webp",
+      "/seed_mau/pharmacy/logos/11.webp",
+      "/seed_mau/pharmacy/logos/12.webp",
+      "/seed_mau/pharmacy/logos/133.webp",
+      "/seed_mau/pharmacy/logos/14.webp",
+      "/seed_mau/pharmacy/logos/2.webp",
+      "/seed_mau/pharmacy/logos/3.webp",
+      "/seed_mau/pharmacy/logos/4.webp",
+      "/seed_mau/pharmacy/logos/5.webp",
+      "/seed_mau/pharmacy/logos/6.webp",
+      "/seed_mau/pharmacy/logos/7.webp",
+      "/seed_mau/pharmacy/logos/8.webp",
+      "/seed_mau/pharmacy/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/pharmacy/gallery/gallery-1.webp",

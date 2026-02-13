@@ -69,9 +69,26 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/lingerie/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/lingerie/logos/logo-1.webp",
-      "/seed_mau/lingerie/logos/logo-2.webp",
-      "/seed_mau/lingerie/logos/logo-3.webp"
+      "/seed_mau/lingerie/logos/1.webp",
+      "/seed_mau/lingerie/logos/10.webp",
+      "/seed_mau/lingerie/logos/11.webp",
+      "/seed_mau/lingerie/logos/12.webp",
+      "/seed_mau/lingerie/logos/13.webp",
+      "/seed_mau/lingerie/logos/14.webp",
+      "/seed_mau/lingerie/logos/15.webp",
+      "/seed_mau/lingerie/logos/16.webp",
+      "/seed_mau/lingerie/logos/17.webp",
+      "/seed_mau/lingerie/logos/18.webp",
+      "/seed_mau/lingerie/logos/19.webp",
+      "/seed_mau/lingerie/logos/2.webp",
+      "/seed_mau/lingerie/logos/20.webp",
+      "/seed_mau/lingerie/logos/3.webp",
+      "/seed_mau/lingerie/logos/4.webp",
+      "/seed_mau/lingerie/logos/5.webp",
+      "/seed_mau/lingerie/logos/6.webp",
+      "/seed_mau/lingerie/logos/7.webp",
+      "/seed_mau/lingerie/logos/88.webp",
+      "/seed_mau/lingerie/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/lingerie/gallery/gallery-1.webp",

@@ -59,9 +59,28 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/perfume/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/perfume/logos/logo-1.webp",
-      "/seed_mau/perfume/logos/logo-2.webp",
-      "/seed_mau/perfume/logos/logo-3.webp"
+      "/seed_mau/perfume/logos/1.webp",
+      "/seed_mau/perfume/logos/10.webp",
+      "/seed_mau/perfume/logos/11.webp",
+      "/seed_mau/perfume/logos/12.webp",
+      "/seed_mau/perfume/logos/13.webp",
+      "/seed_mau/perfume/logos/14.webp",
+      "/seed_mau/perfume/logos/15.webp",
+      "/seed_mau/perfume/logos/16.webp",
+      "/seed_mau/perfume/logos/17.webp",
+      "/seed_mau/perfume/logos/18.webp",
+      "/seed_mau/perfume/logos/19.webp",
+      "/seed_mau/perfume/logos/2.webp",
+      "/seed_mau/perfume/logos/20.webp",
+      "/seed_mau/perfume/logos/21.webp",
+      "/seed_mau/perfume/logos/22.webp",
+      "/seed_mau/perfume/logos/3.webp",
+      "/seed_mau/perfume/logos/4.webp",
+      "/seed_mau/perfume/logos/5.webp",
+      "/seed_mau/perfume/logos/6.webp",
+      "/seed_mau/perfume/logos/7.webp",
+      "/seed_mau/perfume/logos/8.webp",
+      "/seed_mau/perfume/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/perfume/gallery/gallery-1.webp",

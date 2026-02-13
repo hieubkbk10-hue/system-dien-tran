@@ -55,9 +55,30 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/gym/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/gym/logos/logo-1.webp",
-      "/seed_mau/gym/logos/logo-2.webp",
-      "/seed_mau/gym/logos/logo-3.webp"
+      "/seed_mau/gym/logos/1.webp",
+      "/seed_mau/gym/logos/10.webp",
+      "/seed_mau/gym/logos/11.webp",
+      "/seed_mau/gym/logos/12.webp",
+      "/seed_mau/gym/logos/13.webp",
+      "/seed_mau/gym/logos/14.webp",
+      "/seed_mau/gym/logos/15.webp",
+      "/seed_mau/gym/logos/16.webp",
+      "/seed_mau/gym/logos/17.webp",
+      "/seed_mau/gym/logos/18.webp",
+      "/seed_mau/gym/logos/19.webp",
+      "/seed_mau/gym/logos/2.webp",
+      "/seed_mau/gym/logos/20.webp",
+      "/seed_mau/gym/logos/21.webp",
+      "/seed_mau/gym/logos/22.webp",
+      "/seed_mau/gym/logos/23.webp",
+      "/seed_mau/gym/logos/24.webp",
+      "/seed_mau/gym/logos/3.webp",
+      "/seed_mau/gym/logos/4.webp",
+      "/seed_mau/gym/logos/5.webp",
+      "/seed_mau/gym/logos/6.webp",
+      "/seed_mau/gym/logos/7.webp",
+      "/seed_mau/gym/logos/8.webp",
+      "/seed_mau/gym/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/gym/gallery/gallery-1.webp",

@@ -63,9 +63,28 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/hotel/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/hotel/logos/logo-1.webp",
-      "/seed_mau/hotel/logos/logo-2.webp",
-      "/seed_mau/hotel/logos/logo-3.webp"
+      "/seed_mau/hotel/logos/1.webp",
+      "/seed_mau/hotel/logos/10.webp",
+      "/seed_mau/hotel/logos/11.webp",
+      "/seed_mau/hotel/logos/12.webp",
+      "/seed_mau/hotel/logos/13.webp",
+      "/seed_mau/hotel/logos/14.webp",
+      "/seed_mau/hotel/logos/15.webp",
+      "/seed_mau/hotel/logos/16.webp",
+      "/seed_mau/hotel/logos/17.webp",
+      "/seed_mau/hotel/logos/18.webp",
+      "/seed_mau/hotel/logos/19.webp",
+      "/seed_mau/hotel/logos/2.webp",
+      "/seed_mau/hotel/logos/20.webp",
+      "/seed_mau/hotel/logos/21.webp",
+      "/seed_mau/hotel/logos/22.webp",
+      "/seed_mau/hotel/logos/3.webp",
+      "/seed_mau/hotel/logos/4.webp",
+      "/seed_mau/hotel/logos/5.webp",
+      "/seed_mau/hotel/logos/6.webp",
+      "/seed_mau/hotel/logos/7.webp",
+      "/seed_mau/hotel/logos/8.webp",
+      "/seed_mau/hotel/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/hotel/gallery/gallery-1.webp",

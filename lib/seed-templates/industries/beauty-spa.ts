@@ -51,9 +51,25 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/beauty-spa/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/beauty-spa/logos/logo-1.webp",
-      "/seed_mau/beauty-spa/logos/logo-2.webp",
-      "/seed_mau/beauty-spa/logos/logo-3.webp"
+      "/seed_mau/beauty-spa/logos/1.webp",
+      "/seed_mau/beauty-spa/logos/10.webp",
+      "/seed_mau/beauty-spa/logos/11.webp",
+      "/seed_mau/beauty-spa/logos/12.webp",
+      "/seed_mau/beauty-spa/logos/13.webp",
+      "/seed_mau/beauty-spa/logos/14.webp",
+      "/seed_mau/beauty-spa/logos/15.webp",
+      "/seed_mau/beauty-spa/logos/16.webp",
+      "/seed_mau/beauty-spa/logos/17.webp",
+      "/seed_mau/beauty-spa/logos/18.webp",
+      "/seed_mau/beauty-spa/logos/19.webp",
+      "/seed_mau/beauty-spa/logos/2.webp",
+      "/seed_mau/beauty-spa/logos/3.webp",
+      "/seed_mau/beauty-spa/logos/4.webp",
+      "/seed_mau/beauty-spa/logos/5.webp",
+      "/seed_mau/beauty-spa/logos/6.webp",
+      "/seed_mau/beauty-spa/logos/7.webp",
+      "/seed_mau/beauty-spa/logos/8.webp",
+      "/seed_mau/beauty-spa/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/beauty-spa/gallery/gallery-1.webp",

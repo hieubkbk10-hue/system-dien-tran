@@ -67,9 +67,28 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/handicraft/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/handicraft/logos/logo-1.webp",
-      "/seed_mau/handicraft/logos/logo-2.webp",
-      "/seed_mau/handicraft/logos/logo-3.webp"
+      "/seed_mau/handicraft/logos/1.webp",
+      "/seed_mau/handicraft/logos/10.webp",
+      "/seed_mau/handicraft/logos/11.webp",
+      "/seed_mau/handicraft/logos/12.webp",
+      "/seed_mau/handicraft/logos/13.webp",
+      "/seed_mau/handicraft/logos/14.webp",
+      "/seed_mau/handicraft/logos/15.webp",
+      "/seed_mau/handicraft/logos/16.webp",
+      "/seed_mau/handicraft/logos/17.webp",
+      "/seed_mau/handicraft/logos/18.webp",
+      "/seed_mau/handicraft/logos/19.webp",
+      "/seed_mau/handicraft/logos/2.webp",
+      "/seed_mau/handicraft/logos/20.webp",
+      "/seed_mau/handicraft/logos/21.webp",
+      "/seed_mau/handicraft/logos/22.webp",
+      "/seed_mau/handicraft/logos/3.webp",
+      "/seed_mau/handicraft/logos/4.webp",
+      "/seed_mau/handicraft/logos/5.webp",
+      "/seed_mau/handicraft/logos/6.webp",
+      "/seed_mau/handicraft/logos/7.webp",
+      "/seed_mau/handicraft/logos/8.webp",
+      "/seed_mau/handicraft/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/handicraft/gallery/gallery-1.webp",

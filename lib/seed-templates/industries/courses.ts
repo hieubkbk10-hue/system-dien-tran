@@ -54,9 +54,26 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/courses/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/courses/logos/logo-1.webp",
-      "/seed_mau/courses/logos/logo-2.webp",
-      "/seed_mau/courses/logos/logo-3.webp"
+      "/seed_mau/courses/logos/1.webp",
+      "/seed_mau/courses/logos/10.webp",
+      "/seed_mau/courses/logos/11.webp",
+      "/seed_mau/courses/logos/12.webp",
+      "/seed_mau/courses/logos/13.webp",
+      "/seed_mau/courses/logos/14.webp",
+      "/seed_mau/courses/logos/15.webp",
+      "/seed_mau/courses/logos/16.webp",
+      "/seed_mau/courses/logos/17.webp",
+      "/seed_mau/courses/logos/18.webp",
+      "/seed_mau/courses/logos/19.webp",
+      "/seed_mau/courses/logos/2.webp",
+      "/seed_mau/courses/logos/20.webp",
+      "/seed_mau/courses/logos/3.webp",
+      "/seed_mau/courses/logos/4.webp",
+      "/seed_mau/courses/logos/5.webp",
+      "/seed_mau/courses/logos/6.webp",
+      "/seed_mau/courses/logos/7.webp",
+      "/seed_mau/courses/logos/8.webp",
+      "/seed_mau/courses/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/courses/gallery/gallery-1.webp",

@@ -56,9 +56,29 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/yoga/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/yoga/logos/logo-1.webp",
-      "/seed_mau/yoga/logos/logo-2.webp",
-      "/seed_mau/yoga/logos/logo-3.webp"
+      "/seed_mau/yoga/logos/1.webp",
+      "/seed_mau/yoga/logos/10.webp",
+      "/seed_mau/yoga/logos/11.webp",
+      "/seed_mau/yoga/logos/12.webp",
+      "/seed_mau/yoga/logos/13.webp",
+      "/seed_mau/yoga/logos/14.webp",
+      "/seed_mau/yoga/logos/15.webp",
+      "/seed_mau/yoga/logos/16.webp",
+      "/seed_mau/yoga/logos/17.webp",
+      "/seed_mau/yoga/logos/18.webp",
+      "/seed_mau/yoga/logos/19.webp",
+      "/seed_mau/yoga/logos/2.webp",
+      "/seed_mau/yoga/logos/20.webp",
+      "/seed_mau/yoga/logos/21.webp",
+      "/seed_mau/yoga/logos/22.webp",
+      "/seed_mau/yoga/logos/23.webp",
+      "/seed_mau/yoga/logos/3.webp",
+      "/seed_mau/yoga/logos/4.webp",
+      "/seed_mau/yoga/logos/5.webp",
+      "/seed_mau/yoga/logos/6.webp",
+      "/seed_mau/yoga/logos/7.webp",
+      "/seed_mau/yoga/logos/8.webp",
+      "/seed_mau/yoga/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/yoga/gallery/gallery-1.webp",

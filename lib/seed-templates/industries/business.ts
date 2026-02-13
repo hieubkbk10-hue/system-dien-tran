@@ -57,9 +57,21 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/business/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/business/logos/logo-1.webp",
-      "/seed_mau/business/logos/logo-2.webp",
-      "/seed_mau/business/logos/logo-3.webp"
+      "/seed_mau/business/logos/1.webp",
+      "/seed_mau/business/logos/10.webp",
+      "/seed_mau/business/logos/11.webp",
+      "/seed_mau/business/logos/12.webp",
+      "/seed_mau/business/logos/13.webp",
+      "/seed_mau/business/logos/14.webp",
+      "/seed_mau/business/logos/15.webp",
+      "/seed_mau/business/logos/2.webp",
+      "/seed_mau/business/logos/3.webp",
+      "/seed_mau/business/logos/4.webp",
+      "/seed_mau/business/logos/5.webp",
+      "/seed_mau/business/logos/6.webp",
+      "/seed_mau/business/logos/7.webp",
+      "/seed_mau/business/logos/8.webp",
+      "/seed_mau/business/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/business/gallery/gallery-1.webp",

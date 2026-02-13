@@ -57,9 +57,20 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/construction/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/construction/logos/logo-1.webp",
-      "/seed_mau/construction/logos/logo-2.webp",
-      "/seed_mau/construction/logos/logo-3.webp"
+      "/seed_mau/construction/logos/1.webp",
+      "/seed_mau/construction/logos/10.webp",
+      "/seed_mau/construction/logos/11.webp",
+      "/seed_mau/construction/logos/12.webp",
+      "/seed_mau/construction/logos/13.webp",
+      "/seed_mau/construction/logos/14.webp",
+      "/seed_mau/construction/logos/2.webp",
+      "/seed_mau/construction/logos/3.webp",
+      "/seed_mau/construction/logos/4.webp",
+      "/seed_mau/construction/logos/5.webp",
+      "/seed_mau/construction/logos/6.webp",
+      "/seed_mau/construction/logos/7.webp",
+      "/seed_mau/construction/logos/8.webp",
+      "/seed_mau/construction/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/construction/gallery/gallery-1.webp",

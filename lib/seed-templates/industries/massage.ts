@@ -62,9 +62,30 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/massage/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/massage/logos/logo-1.webp",
-      "/seed_mau/massage/logos/logo-2.webp",
-      "/seed_mau/massage/logos/logo-3.webp"
+      "/seed_mau/massage/logos/1.webp",
+      "/seed_mau/massage/logos/10.webp",
+      "/seed_mau/massage/logos/11.webp",
+      "/seed_mau/massage/logos/12.webp",
+      "/seed_mau/massage/logos/13.webp",
+      "/seed_mau/massage/logos/14.webp",
+      "/seed_mau/massage/logos/15.webp",
+      "/seed_mau/massage/logos/16.webp",
+      "/seed_mau/massage/logos/17.webp",
+      "/seed_mau/massage/logos/18.webp",
+      "/seed_mau/massage/logos/19.webp",
+      "/seed_mau/massage/logos/2.webp",
+      "/seed_mau/massage/logos/20.webp",
+      "/seed_mau/massage/logos/21.webp",
+      "/seed_mau/massage/logos/22.webp",
+      "/seed_mau/massage/logos/233.webp",
+      "/seed_mau/massage/logos/24.webp",
+      "/seed_mau/massage/logos/3.webp",
+      "/seed_mau/massage/logos/4.webp",
+      "/seed_mau/massage/logos/5.webp",
+      "/seed_mau/massage/logos/6.webp",
+      "/seed_mau/massage/logos/7.webp",
+      "/seed_mau/massage/logos/8.webp",
+      "/seed_mau/massage/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/massage/gallery/gallery-1.webp",

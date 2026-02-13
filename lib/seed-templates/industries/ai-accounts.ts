@@ -56,9 +56,28 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/ai-accounts/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/ai-accounts/logos/logo-1.webp",
-      "/seed_mau/ai-accounts/logos/logo-2.webp",
-      "/seed_mau/ai-accounts/logos/logo-3.webp"
+      "/seed_mau/ai-accounts/logos/10.webp",
+      "/seed_mau/ai-accounts/logos/11.webp",
+      "/seed_mau/ai-accounts/logos/12.webp",
+      "/seed_mau/ai-accounts/logos/13.webp",
+      "/seed_mau/ai-accounts/logos/14.webp",
+      "/seed_mau/ai-accounts/logos/15.webp",
+      "/seed_mau/ai-accounts/logos/16.webp",
+      "/seed_mau/ai-accounts/logos/17.webp",
+      "/seed_mau/ai-accounts/logos/18.webp",
+      "/seed_mau/ai-accounts/logos/19.webp",
+      "/seed_mau/ai-accounts/logos/20.webp",
+      "/seed_mau/ai-accounts/logos/21.webp",
+      "/seed_mau/ai-accounts/logos/22.webp",
+      "/seed_mau/ai-accounts/logos/23.webp",
+      "/seed_mau/ai-accounts/logos/244.webp",
+      "/seed_mau/ai-accounts/logos/4.webp",
+      "/seed_mau/ai-accounts/logos/5.webp",
+      "/seed_mau/ai-accounts/logos/6.webp",
+      "/seed_mau/ai-accounts/logos/7.webp",
+      "/seed_mau/ai-accounts/logos/8.webp",
+      "/seed_mau/ai-accounts/logos/9.webp",
+      "/seed_mau/ai-accounts/logos/download.webp"
     ],
     "gallery": [
       "/seed_mau/ai-accounts/gallery/gallery-1.webp",

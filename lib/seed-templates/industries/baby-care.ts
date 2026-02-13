@@ -49,9 +49,17 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/baby-care/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/baby-care/logos/logo-1.webp",
-      "/seed_mau/baby-care/logos/logo-2.webp",
-      "/seed_mau/baby-care/logos/logo-3.webp"
+      "/seed_mau/baby-care/logos/1.webp",
+      "/seed_mau/baby-care/logos/10.webp",
+      "/seed_mau/baby-care/logos/11.webp",
+      "/seed_mau/baby-care/logos/2.webp",
+      "/seed_mau/baby-care/logos/3.webp",
+      "/seed_mau/baby-care/logos/4.webp",
+      "/seed_mau/baby-care/logos/5.webp",
+      "/seed_mau/baby-care/logos/6.webp",
+      "/seed_mau/baby-care/logos/7.webp",
+      "/seed_mau/baby-care/logos/8.webp",
+      "/seed_mau/baby-care/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/baby-care/gallery/gallery-1.webp",

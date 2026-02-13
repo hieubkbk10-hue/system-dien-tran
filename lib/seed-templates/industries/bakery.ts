@@ -48,9 +48,18 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/bakery/posts/post-3.webp"
     ],
     "logos": [
-      "/seed_mau/bakery/logos/logo-1.webp",
-      "/seed_mau/bakery/logos/logo-2.webp",
-      "/seed_mau/bakery/logos/logo-3.webp"
+      "/seed_mau/bakery/logos/1.webp",
+      "/seed_mau/bakery/logos/10.webp",
+      "/seed_mau/bakery/logos/11.webp",
+      "/seed_mau/bakery/logos/12.webp",
+      "/seed_mau/bakery/logos/2.webp",
+      "/seed_mau/bakery/logos/3.webp",
+      "/seed_mau/bakery/logos/4.webp",
+      "/seed_mau/bakery/logos/5.webp",
+      "/seed_mau/bakery/logos/6.webp",
+      "/seed_mau/bakery/logos/7.webp",
+      "/seed_mau/bakery/logos/8.webp",
+      "/seed_mau/bakery/logos/9.webp"
     ],
     "gallery": [
       "/seed_mau/bakery/gallery/gallery-1.webp",
