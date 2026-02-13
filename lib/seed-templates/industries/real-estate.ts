@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/real-estate/hero/hero-1.webp",
-      "/seed_mau/real-estate/hero/hero-2.webp"
+      "/seed_mau/real-estate/hero/1.webp",
+      "/seed_mau/real-estate/hero/10.webp",
+      "/seed_mau/real-estate/hero/11.webp",
+      "/seed_mau/real-estate/hero/12.webp",
+      "/seed_mau/real-estate/hero/13.webp",
+      "/seed_mau/real-estate/hero/14.webp",
+      "/seed_mau/real-estate/hero/15.webp",
+      "/seed_mau/real-estate/hero/16.webp",
+      "/seed_mau/real-estate/hero/17.webp",
+      "/seed_mau/real-estate/hero/18.webp",
+      "/seed_mau/real-estate/hero/19.webp",
+      "/seed_mau/real-estate/hero/2.webp",
+      "/seed_mau/real-estate/hero/20.webp",
+      "/seed_mau/real-estate/hero/21.webp",
+      "/seed_mau/real-estate/hero/22.webp",
+      "/seed_mau/real-estate/hero/23.webp",
+      "/seed_mau/real-estate/hero/24.webp",
+      "/seed_mau/real-estate/hero/25.webp",
+      "/seed_mau/real-estate/hero/3.webp",
+      "/seed_mau/real-estate/hero/4.webp",
+      "/seed_mau/real-estate/hero/5.webp",
+      "/seed_mau/real-estate/hero/6.webp",
+      "/seed_mau/real-estate/hero/7.webp",
+      "/seed_mau/real-estate/hero/8.webp",
+      "/seed_mau/real-estate/hero/9.webp"
     ],
     "products": [
       "/seed_mau/real-estate/products/product-1.webp",
@@ -134,11 +157,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/real-estate/hero/hero-1.webp",
+            "image": "/seed_mau/real-estate/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/real-estate/hero/hero-2.webp",
+            "image": "/seed_mau/real-estate/hero/10.webp",
             "link": "/products"
           }
         ],

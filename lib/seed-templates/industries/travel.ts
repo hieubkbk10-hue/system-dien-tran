@@ -21,8 +21,27 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/travel/hero/hero-1.webp",
-      "/seed_mau/travel/hero/hero-2.webp"
+      "/seed_mau/travel/hero/1.webp",
+      "/seed_mau/travel/hero/10.webp",
+      "/seed_mau/travel/hero/11.webp",
+      "/seed_mau/travel/hero/12.webp",
+      "/seed_mau/travel/hero/13.webp",
+      "/seed_mau/travel/hero/14.webp",
+      "/seed_mau/travel/hero/15.webp",
+      "/seed_mau/travel/hero/16.webp",
+      "/seed_mau/travel/hero/17.webp",
+      "/seed_mau/travel/hero/18.webp",
+      "/seed_mau/travel/hero/19.webp",
+      "/seed_mau/travel/hero/2.webp",
+      "/seed_mau/travel/hero/20.webp",
+      "/seed_mau/travel/hero/21.webp",
+      "/seed_mau/travel/hero/3.webp",
+      "/seed_mau/travel/hero/4.webp",
+      "/seed_mau/travel/hero/5.webp",
+      "/seed_mau/travel/hero/6.webp",
+      "/seed_mau/travel/hero/7.webp",
+      "/seed_mau/travel/hero/8.webp",
+      "/seed_mau/travel/hero/9.webp"
     ],
     "products": [
       "/seed_mau/travel/products/product-1.webp",
@@ -135,11 +154,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/travel/hero/hero-1.webp",
+            "image": "/seed_mau/travel/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/travel/hero/hero-2.webp",
+            "image": "/seed_mau/travel/hero/10.webp",
             "link": "/products"
           }
         ],

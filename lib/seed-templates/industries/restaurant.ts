@@ -21,8 +21,31 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/restaurant/hero/hero-1.webp",
-      "/seed_mau/restaurant/hero/hero-2.webp"
+      "/seed_mau/restaurant/hero/1.webp",
+      "/seed_mau/restaurant/hero/10.webp",
+      "/seed_mau/restaurant/hero/11.webp",
+      "/seed_mau/restaurant/hero/12.webp",
+      "/seed_mau/restaurant/hero/13.webp",
+      "/seed_mau/restaurant/hero/14.webp",
+      "/seed_mau/restaurant/hero/15.webp",
+      "/seed_mau/restaurant/hero/16.webp",
+      "/seed_mau/restaurant/hero/17.webp",
+      "/seed_mau/restaurant/hero/18.webp",
+      "/seed_mau/restaurant/hero/19.webp",
+      "/seed_mau/restaurant/hero/2.webp",
+      "/seed_mau/restaurant/hero/20.webp",
+      "/seed_mau/restaurant/hero/21.webp",
+      "/seed_mau/restaurant/hero/22.webp",
+      "/seed_mau/restaurant/hero/23.webp",
+      "/seed_mau/restaurant/hero/24.webp",
+      "/seed_mau/restaurant/hero/255.webp",
+      "/seed_mau/restaurant/hero/3.webp",
+      "/seed_mau/restaurant/hero/4.webp",
+      "/seed_mau/restaurant/hero/5.webp",
+      "/seed_mau/restaurant/hero/6.webp",
+      "/seed_mau/restaurant/hero/7.webp",
+      "/seed_mau/restaurant/hero/8.webp",
+      "/seed_mau/restaurant/hero/9.webp"
     ],
     "products": [
       "/seed_mau/restaurant/products/product-1.webp",
@@ -135,11 +158,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/restaurant/hero/hero-1.webp",
+            "image": "/seed_mau/restaurant/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/restaurant/hero/hero-2.webp",
+            "image": "/seed_mau/restaurant/hero/10.webp",
             "link": "/products"
           }
         ],

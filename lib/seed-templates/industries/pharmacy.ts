@@ -22,10 +22,35 @@ export const industryTemplate: IndustryTemplate = {
   "assets": {
     "hero": [
       "/seed_mau/pharmacy/hero/1.webp",
+      "/seed_mau/pharmacy/hero/10.webp",
+      "/seed_mau/pharmacy/hero/11.webp",
+      "/seed_mau/pharmacy/hero/12.webp",
+      "/seed_mau/pharmacy/hero/13.webp",
+      "/seed_mau/pharmacy/hero/14.webp",
+      "/seed_mau/pharmacy/hero/15.webp",
+      "/seed_mau/pharmacy/hero/16.webp",
+      "/seed_mau/pharmacy/hero/17.webp",
+      "/seed_mau/pharmacy/hero/18.webp",
+      "/seed_mau/pharmacy/hero/19.webp",
       "/seed_mau/pharmacy/hero/2.webp",
+      "/seed_mau/pharmacy/hero/20.webp",
+      "/seed_mau/pharmacy/hero/21.webp",
+      "/seed_mau/pharmacy/hero/22.webp",
+      "/seed_mau/pharmacy/hero/23.webp",
+      "/seed_mau/pharmacy/hero/24.webp",
+      "/seed_mau/pharmacy/hero/25.webp",
+      "/seed_mau/pharmacy/hero/26.webp",
+      "/seed_mau/pharmacy/hero/27.webp",
+      "/seed_mau/pharmacy/hero/28.webp",
+      "/seed_mau/pharmacy/hero/29.webp",
       "/seed_mau/pharmacy/hero/3.webp",
+      "/seed_mau/pharmacy/hero/30.webp",
       "/seed_mau/pharmacy/hero/4.webp",
-      "/seed_mau/pharmacy/hero/5.webp"
+      "/seed_mau/pharmacy/hero/5.webp",
+      "/seed_mau/pharmacy/hero/6.webp",
+      "/seed_mau/pharmacy/hero/7.webp",
+      "/seed_mau/pharmacy/hero/8.webp",
+      "/seed_mau/pharmacy/hero/9.webp"
     ],
     "products": [
       "/seed_mau/pharmacy/products/product-1.webp",
@@ -142,7 +167,7 @@ export const industryTemplate: IndustryTemplate = {
             "link": "/products"
           },
           {
-            "image": "/seed_mau/pharmacy/hero/2.webp",
+            "image": "/seed_mau/pharmacy/hero/10.webp",
             "link": "/products"
           }
         ],

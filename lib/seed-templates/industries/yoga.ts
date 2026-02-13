@@ -21,8 +21,28 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/yoga/hero/hero-1.webp",
-      "/seed_mau/yoga/hero/hero-2.webp"
+      "/seed_mau/yoga/hero/1.webp",
+      "/seed_mau/yoga/hero/10.webp",
+      "/seed_mau/yoga/hero/11.webp",
+      "/seed_mau/yoga/hero/12.webp",
+      "/seed_mau/yoga/hero/13.webp",
+      "/seed_mau/yoga/hero/14.webp",
+      "/seed_mau/yoga/hero/15.webp",
+      "/seed_mau/yoga/hero/16.webp",
+      "/seed_mau/yoga/hero/17.webp",
+      "/seed_mau/yoga/hero/18.webp",
+      "/seed_mau/yoga/hero/19.webp",
+      "/seed_mau/yoga/hero/2.webp",
+      "/seed_mau/yoga/hero/20.webp",
+      "/seed_mau/yoga/hero/21.webp",
+      "/seed_mau/yoga/hero/22.webp",
+      "/seed_mau/yoga/hero/3.webp",
+      "/seed_mau/yoga/hero/4.webp",
+      "/seed_mau/yoga/hero/5.webp",
+      "/seed_mau/yoga/hero/6.webp",
+      "/seed_mau/yoga/hero/7.webp",
+      "/seed_mau/yoga/hero/8.webp",
+      "/seed_mau/yoga/hero/9.webp"
     ],
     "products": [
       "/seed_mau/yoga/products/product-1.webp",
@@ -135,11 +155,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/yoga/hero/hero-1.webp",
+            "image": "/seed_mau/yoga/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/yoga/hero/hero-2.webp",
+            "image": "/seed_mau/yoga/hero/10.webp",
             "link": "/products"
           }
         ],

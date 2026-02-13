@@ -21,8 +21,36 @@ export const industryTemplate: IndustryTemplate = {
   ],
   "assets": {
     "hero": [
-      "/seed_mau/stationery/hero/hero-1.webp",
-      "/seed_mau/stationery/hero/hero-2.webp"
+      "/seed_mau/stationery/hero/1.webp",
+      "/seed_mau/stationery/hero/10.webp",
+      "/seed_mau/stationery/hero/11.webp",
+      "/seed_mau/stationery/hero/12.webp",
+      "/seed_mau/stationery/hero/13.webp",
+      "/seed_mau/stationery/hero/14.webp",
+      "/seed_mau/stationery/hero/15.webp",
+      "/seed_mau/stationery/hero/16.webp",
+      "/seed_mau/stationery/hero/17.webp",
+      "/seed_mau/stationery/hero/18.webp",
+      "/seed_mau/stationery/hero/19.webp",
+      "/seed_mau/stationery/hero/2.webp",
+      "/seed_mau/stationery/hero/20.webp",
+      "/seed_mau/stationery/hero/21.webp",
+      "/seed_mau/stationery/hero/22.webp",
+      "/seed_mau/stationery/hero/23.webp",
+      "/seed_mau/stationery/hero/24.webp",
+      "/seed_mau/stationery/hero/25.webp",
+      "/seed_mau/stationery/hero/26.webp",
+      "/seed_mau/stationery/hero/27.webp",
+      "/seed_mau/stationery/hero/28.webp",
+      "/seed_mau/stationery/hero/29.webp",
+      "/seed_mau/stationery/hero/3.webp",
+      "/seed_mau/stationery/hero/30.webp",
+      "/seed_mau/stationery/hero/4.webp",
+      "/seed_mau/stationery/hero/5.webp",
+      "/seed_mau/stationery/hero/6.webp",
+      "/seed_mau/stationery/hero/7.webp",
+      "/seed_mau/stationery/hero/8.webp",
+      "/seed_mau/stationery/hero/9.webp"
     ],
     "products": [
       "/seed_mau/stationery/products/product-1.webp",
@@ -135,11 +163,11 @@ export const industryTemplate: IndustryTemplate = {
         "style": "slider",
         "slides": [
           {
-            "image": "/seed_mau/stationery/hero/hero-1.webp",
+            "image": "/seed_mau/stationery/hero/1.webp",
             "link": "/products"
           },
           {
-            "image": "/seed_mau/stationery/hero/hero-2.webp",
+            "image": "/seed_mau/stationery/hero/10.webp",
             "link": "/products"
           }
         ],
