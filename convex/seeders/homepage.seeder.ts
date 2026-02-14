@@ -97,8 +97,9 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
         ? pickMany(template.assets.hero, maxHeroSlides)
         : [];
       const galleryImages = getGalleryImages(template, maxGalleryImages, { heroWeight: 0.5, productWeight: 0.5 });
-      const randomLogo = template.assets.logos.length > 0
-        ? pickRandom(template.assets.logos)
+      const { selectedLogo, useSeedMauImages } = this.config;
+      const randomLogo = useSeedMauImages && template.assets.logos.length > 0
+        ? (selectedLogo ?? pickRandom(template.assets.logos))
         : undefined;
 
       const components = template.homeComponents.map((component) => {

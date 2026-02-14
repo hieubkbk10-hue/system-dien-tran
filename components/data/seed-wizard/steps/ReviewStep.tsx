@@ -7,9 +7,13 @@ type ReviewStepProps = {
   clearBeforeSeed: boolean;
   dataScaleLabel: string;
   experienceSummary: string;
+  industryKey: string | null;
+  logoCustomized: boolean;
   moduleConfigs: { label: string; value: string }[];
   modules: string[];
+  selectedLogo: string | null;
   summary: { label: string; value: string }[];
+  useSeedMauImages: boolean;
   onClearChange: (value: boolean) => void;
 };
 
@@ -17,9 +21,13 @@ export function ReviewStep({
   clearBeforeSeed,
   dataScaleLabel,
   experienceSummary,
+  industryKey,
+  logoCustomized,
   moduleConfigs,
   modules,
+  selectedLogo,
   summary,
+  useSeedMauImages,
   onClearChange,
 }: ReviewStepProps) {
   return (
@@ -72,6 +80,30 @@ export function ReviewStep({
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
         <div className="text-xs text-slate-500">Quy mô dữ liệu</div>
         <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{dataScaleLabel}</div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+        <div className="text-xs text-slate-500">Ảnh mẫu</div>
+        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          {useSeedMauImages ? 'Đang bật' : 'Đang tắt'}
+        </div>
+        {useSeedMauImages && selectedLogo && (
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <img
+              src={selectedLogo}
+              alt="Logo"
+              className="h-8 object-contain border rounded px-2 bg-white dark:bg-slate-900"
+            />
+            <div>
+              <div className="text-slate-700 dark:text-slate-200 font-medium">
+                {logoCustomized ? 'Logo đã chọn' : 'Logo ngẫu nhiên'}
+              </div>
+              {industryKey && (
+                <div className="text-[11px] text-slate-500">seed_mau/{industryKey}/logos</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <label className="flex items-center gap-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-3 cursor-pointer">

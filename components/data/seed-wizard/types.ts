@@ -47,10 +47,13 @@ export type WizardState = {
   experiencePresetKey: ExperiencePresetKey;
   extraFeatures: Set<string>;
   industryKey: string | null;
+  logoCustomized: boolean;
   productType: ProductType;
   quickConfig: QuickConfig;
   quickConfigSkipped: boolean;
   saleMode: SaleMode;
+  selectedLogo: string | null;
+  useSeedMauImages: boolean;
   variantEnabled: boolean;
   variantImages: VariantImages;
   variantPresetKey: VariantPresetKey;

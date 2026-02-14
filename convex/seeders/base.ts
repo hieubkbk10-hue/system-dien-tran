@@ -25,6 +25,8 @@ export interface SeedConfig {
   dependencies?: boolean;    // Auto-seed dependencies (default: true)
   onProgress?: (current: number, total: number) => void; // Progress callback
   industryKey?: string;       // Industry template key
+  selectedLogo?: string | null;
+  useSeedMauImages?: boolean;
   variantPresetKey?: string; // Optional preset key for product variants
 }
 
@@ -180,7 +182,14 @@ export abstract class BaseSeeder<T = unknown> {
   }
 
   async clearData(): Promise<void> {
-    await this.clear();
+    try {
+      console.log(`[${this.moduleName}] Starting clearData...`);
+      await this.clear();
+      console.log(`[${this.moduleName}] ✅ clearData completed`);
+    } catch (error) {
+      console.error(`[${this.moduleName}] ❌ clearData failed:`, error);
+      throw error;
+    }
   }
   
   // ============================================================

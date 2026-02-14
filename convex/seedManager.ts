@@ -39,6 +39,8 @@ const seedConfigValidator = v.object({
   locale: v.optional(v.string()),
   module: v.string(),
   quantity: v.number(),
+  selectedLogo: v.optional(v.string()),
+  useSeedMauImages: v.optional(v.boolean()),
   variantPresetKey: v.optional(v.string()),
 });
 
@@ -232,6 +234,8 @@ export const seedBulk = mutation({
             industryKey: config.industryKey,
             locale: config.locale || 'vi',
             quantity: config.quantity,
+            selectedLogo: config.selectedLogo,
+            useSeedMauImages: config.useSeedMauImages,
             variantPresetKey: config.variantPresetKey,
           });
           
@@ -499,19 +503,29 @@ export const clearAll = mutation({
     const orderedModules = getClearOrder().filter((moduleKey) => moduleKeys.includes(moduleKey));
     console.log(`[SeedManager] Clear order: ${orderedModules.join(' → ')}`);
 
+    const errors: string[] = [];
+
     for (const moduleKey of orderedModules) {
-      const SeederClass = SEEDERS[moduleKey];
-      if (!SeederClass) {
-        continue;
+      try {
+        const SeederClass = SEEDERS[moduleKey];
+        if (!SeederClass) {
+          continue;
+        }
+        const seeder = new SeederClass(ctx);
+        await seeder.clearData();
+        console.log(`[SeedManager] ✅ Cleared ${moduleKey}`);
+      } catch (error) {
+        const message = `Failed to clear ${moduleKey}: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(`[SeedManager] ❌ ${message}`);
+        errors.push(message);
       }
-      const seeder = new SeederClass(ctx);
-      await seeder.clearData();
     }
 
-    return { success: true };
+    return { success: errors.length === 0, errors };
   },
   returns: v.object({
     success: v.boolean(),
+    errors: v.array(v.string()),
   }),
 });
 
@@ -590,6 +604,19 @@ export const factoryResetStep = mutation({
 
     const table = orderedTables[index];
     const records = await ctx.db.query(table).take(batchSize);
+    let storageDeleted = 0;
+    if (table === 'images') {
+      const imageRecords = records as Array<{ storageId: string }>;
+      for (const record of imageRecords) {
+        try {
+          await ctx.storage.delete(record.storageId);
+          storageDeleted += 1;
+        } catch (error) {
+          console.warn(`[SeedManager] Failed to delete storage ${record.storageId}:`, error);
+        }
+      }
+    }
+
     await Promise.all(records.map((record) => ctx.db.delete(record._id)));
 
     if (records.length === batchSize) {
@@ -599,6 +626,7 @@ export const factoryResetStep = mutation({
         deleted: records.length,
         nextIndex: index,
         table,
+        storageDeleted: table === 'images' ? storageDeleted : undefined,
         totalTables,
       };
     }
@@ -609,6 +637,7 @@ export const factoryResetStep = mutation({
       deleted: records.length,
       nextIndex: index + 1,
       table,
+      storageDeleted: table === 'images' ? storageDeleted : undefined,
       totalTables,
     };
   },
@@ -618,6 +647,7 @@ export const factoryResetStep = mutation({
     deleted: v.number(),
     nextIndex: v.union(v.number(), v.null()),
     table: v.union(v.string(), v.null()),
+    storageDeleted: v.optional(v.number()),
     totalTables: v.number(),
   }),
 });

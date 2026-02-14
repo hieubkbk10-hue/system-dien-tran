@@ -18,6 +18,7 @@ import { DEFAULT_VARIANT_PRESET_KEY } from '@/lib/modules/variant-presets';
 import { WizardProgress } from './seed-wizard/WizardProgress';
 import { WebsiteTypeStep } from './seed-wizard/steps/WebsiteTypeStep';
 import { IndustrySelectionStep } from './seed-wizard/steps/IndustrySelectionStep';
+import { LogoSelectionStep } from './seed-wizard/steps/LogoSelectionStep';
 import { ExtraFeaturesStep } from './seed-wizard/steps/ExtraFeaturesStep';
 import { SaleModeStep } from './seed-wizard/steps/SaleModeStep';
 import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
@@ -87,10 +88,13 @@ const DEFAULT_STATE: WizardState = {
   experiencePresetKey: getDefaultExperiencePresetKey('landing') as ExperiencePresetKey,
   extraFeatures: new Set(),
   industryKey: null,
+  logoCustomized: false,
   productType: 'physical',
   quickConfig: DEFAULT_QUICK_CONFIG,
   quickConfigSkipped: false,
   saleMode: 'cart',
+  selectedLogo: null,
+  useSeedMauImages: true,
   variantEnabled: false,
   variantImages: 'inherit',
   variantPresetKey: DEFAULT_VARIANT_PRESET_KEY,
@@ -140,7 +144,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const hasComments = selectedModules.includes('comments');
 
   const steps = useMemo(() => {
-    const list = ['website', 'industry', 'extras'];
+    const list = ['website', 'industry'];
+    if (state.industryKey && state.useSeedMauImages) {
+      list.push('logo');
+    }
+    list.push('extras');
     if (hasProducts) {
       list.push('saleMode', 'productType', 'variants');
     }
@@ -150,7 +158,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
     list.push('dataScale', 'review');
     return list;
-  }, [hasComments, hasOrders, hasPosts, hasProducts]);
+  }, [hasComments, hasOrders, hasPosts, hasProducts, state.industryKey, state.useSeedMauImages]);
 
   useEffect(() => {
     setCurrentStep(0);
@@ -191,9 +199,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const handleIndustryChange = (industryKey: string) => {
     const template = getIndustryTemplate(industryKey);
     if (!template) {
-      setState((prev) => ({ ...prev, industryKey }));
+      setState((prev) => ({ ...prev, industryKey, selectedLogo: null, logoCustomized: false }));
       return;
     }
+
+    const randomLogo = state.useSeedMauImages && template.assets.logos.length > 0
+      ? template.assets.logos[Math.floor(Math.random() * template.assets.logos.length)]
+      : null;
 
     setState((prev) => {
       const nextWebsiteType = template.websiteTypes.includes(prev.websiteType)
@@ -210,11 +222,30 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         },
         experiencePresetKey: template.experiencePresetKey,
         industryKey,
+        logoCustomized: false,
         productType: template.productType,
         saleMode: template.saleMode,
+        selectedLogo: randomLogo,
         websiteType: nextWebsiteType,
       };
     });
+  };
+
+  const handleToggleSeedMau = (value: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      useSeedMauImages: value,
+      selectedLogo: value
+        ? (prev.selectedLogo ?? (() => {
+          const template = getIndustryTemplate(prev.industryKey);
+          if (template && template.assets.logos.length > 0) {
+            return template.assets.logos[Math.floor(Math.random() * template.assets.logos.length)];
+          }
+          return null;
+        })())
+        : null,
+      logoCustomized: value ? prev.logoCustomized : false,
+    }));
   };
 
   const handleSaleModeChange = (saleMode: SaleMode) => {
@@ -287,6 +318,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       items.push({ label: 'Ngành hàng', value: industryTemplate.name });
     }
     items.push({ label: 'Website', value: websiteLabel });
+    items.push({ label: 'Ảnh mẫu', value: state.useSeedMauImages ? 'Bật' : 'Tắt' });
 
     if (hasProducts) {
       items.push(
@@ -404,7 +436,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await syncModules(selectedModules);
 
-      const seedConfigs = buildSeedConfigs(selectedModules, state.dataScale, state.industryKey).map((config) => ({
+      const seedConfigs = buildSeedConfigs(
+        selectedModules,
+        state.dataScale,
+        state.industryKey,
+        state.selectedLogo,
+        state.useSeedMauImages
+      ).map((config) => ({
         ...config,
         force: false,
         variantPresetKey: config.module === 'products' && state.variantEnabled
@@ -627,6 +665,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
             <WebsiteTypeStep
               value={state.websiteType}
               onChange={(websiteType) => setState((prev) => ({ ...prev, websiteType }))}
+              useSeedMauImages={state.useSeedMauImages}
+              onToggleSeedMau={handleToggleSeedMau}
             />
           )}
 
@@ -634,6 +674,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
             <IndustrySelectionStep
               value={state.industryKey}
               onChange={handleIndustryChange}
+            />
+          )}
+
+          {stepKey === 'logo' && (
+            <LogoSelectionStep
+              industryKey={state.industryKey}
+              useSeedMauImages={state.useSeedMauImages}
+              selectedLogo={state.selectedLogo}
+              logoCustomized={state.logoCustomized}
+              onChange={(logo, customized) =>
+                setState((prev) => ({ ...prev, selectedLogo: logo, logoCustomized: customized }))
+              }
             />
           )}
 
@@ -718,9 +770,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               clearBeforeSeed={state.clearBeforeSeed}
               dataScaleLabel={dataScaleLabel}
               experienceSummary={experiencePreset.summary}
+              industryKey={state.industryKey}
+              logoCustomized={state.logoCustomized}
               moduleConfigs={moduleConfigs}
               modules={selectedModules}
+              selectedLogo={state.selectedLogo}
               summary={summary}
+              useSeedMauImages={state.useSeedMauImages}
               onClearChange={(value) => setState((prev) => ({ ...prev, clearBeforeSeed: value }))}
             />
           )}

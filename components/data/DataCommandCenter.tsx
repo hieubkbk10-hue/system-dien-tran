@@ -108,8 +108,12 @@ export function DataCommandCenter() {
           nextIndex: number | null;
           table: string | null;
           totalTables: number;
+          storageDeleted?: number;
         } = await factoryResetStep({ tableIndex: nextIndex });
-        const progressLabel = result.table ? `Đang xóa: ${result.table}` : 'Đang hoàn tất';
+        const storageInfo = result.storageDeleted ? ` (storage +${result.storageDeleted})` : '';
+        const progressLabel = result.table
+          ? `Đang xóa: ${result.table}${storageInfo}`
+          : 'Đang hoàn tất';
         setResetProgress({
           current: Math.min(result.currentIndex, result.totalTables),
           label: progressLabel,

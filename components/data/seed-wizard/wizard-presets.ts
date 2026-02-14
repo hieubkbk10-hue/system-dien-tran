@@ -261,7 +261,13 @@ export function buildModuleSelection(state: WizardState): string[] {
   return Array.from(modules);
 }
 
-export function buildSeedConfigs(selectedModules: string[], scale: DataScale, industryKey?: string | null) {
+export function buildSeedConfigs(
+  selectedModules: string[],
+  scale: DataScale,
+  industryKey?: string | null,
+  selectedLogo?: string | null,
+  useSeedMauImages?: boolean
+) {
   const quantities = SCALE_QUANTITIES[scale];
   return selectedModules
     .filter((moduleKey) => quantities[moduleKey] !== undefined)
@@ -269,6 +275,8 @@ export function buildSeedConfigs(selectedModules: string[], scale: DataScale, in
       industryKey: industryKey ?? undefined,
       module: moduleKey,
       quantity: quantities[moduleKey],
+      selectedLogo: moduleKey === 'homepage' ? selectedLogo ?? undefined : undefined,
+      useSeedMauImages,
     }));
 }
 
