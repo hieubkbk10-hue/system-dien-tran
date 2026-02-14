@@ -359,7 +359,7 @@ function HeroSection({ config, brandColor, secondary }: { config: Record<string,
           <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 md:px-8 lg:px-16">
             <div className="max-w-xl space-y-4 md:space-y-6">
               {content.badge && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `30`, color: secondary }}>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${secondary}30`, color: secondary }}>
                   <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
                   {content.badge}
                 </div>
@@ -407,7 +407,7 @@ function HeroSection({ config, brandColor, secondary }: { config: Record<string,
           {/* Content Side */}
           <div className="w-full md:w-1/2 flex flex-col justify-center bg-slate-50 p-6 md:p-10 lg:p-16 order-2 md:order-1">
             <div className="max-w-md space-y-4">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: `15`, color: secondary }}>
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
                 {content.badge ?? `Banner ${currentSlide + 1}/${slides.length}`}
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
