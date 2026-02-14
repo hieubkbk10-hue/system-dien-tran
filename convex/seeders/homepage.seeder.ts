@@ -5,7 +5,7 @@
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
-import { getIndustryTemplate } from '../../lib/seed-templates';
+import { getGalleryImages, getIndustryTemplate } from '../../lib/seed-templates';
 
 type HomeComponentData = Omit<Doc<'homeComponents'>, '_creationTime' | '_id'>;
 
@@ -96,9 +96,7 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
       const heroSlides = template.assets.hero.length > 0
         ? pickMany(template.assets.hero, maxHeroSlides)
         : [];
-      const galleryImages = template.assets.gallery.length > 0
-        ? pickMany(template.assets.gallery, maxGalleryImages)
-        : [];
+      const galleryImages = getGalleryImages(template, maxGalleryImages, { heroWeight: 0.5, productWeight: 0.5 });
       const randomLogo = template.assets.logos.length > 0
         ? pickRandom(template.assets.logos)
         : undefined;

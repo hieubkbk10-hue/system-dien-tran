@@ -23,6 +23,65 @@ export function pickRandom<T>(values: T[], randomFn: Randomizer = Math.random): 
   return values[Math.floor(randomFn() * values.length)];
 }
 
+export function shuffleArray<T>(values: T[], randomFn: Randomizer = Math.random): T[] {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(randomFn() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
+}
+
+export function getGalleryImages(
+  template: IndustryTemplate | null,
+  count = 16,
+  options?: {
+    heroWeight?: number;
+    productWeight?: number;
+  }
+): string[] {
+  if (!template) {
+    return [];
+  }
+
+  const randomFn = Math.random;
+  const heroWeight = options?.heroWeight ?? 0.6;
+  const productWeight = options?.productWeight ?? 0.4;
+
+  const galleryImages = template.assets.gallery ?? [];
+  const heroImages = template.assets.hero ?? [];
+  const productImages = template.assets.products ?? [];
+
+  let result = shuffleArray(galleryImages, randomFn).slice(0, count);
+  let remaining = count - result.length;
+
+  if (remaining <= 0) {
+    return result;
+  }
+
+  const heroTarget = Math.min(heroImages.length, Math.round(remaining * heroWeight));
+  let productTarget = Math.min(productImages.length, Math.round(remaining * productWeight));
+  if (heroTarget + productTarget > remaining) {
+    productTarget = Math.max(0, remaining - heroTarget);
+  }
+
+  result = result.concat(
+    shuffleArray(heroImages, randomFn).slice(0, heroTarget),
+    shuffleArray(productImages, randomFn).slice(0, productTarget)
+  );
+
+  remaining = count - result.length;
+  if (remaining > 0) {
+    const fallbackPool = shuffleArray(
+      [...heroImages, ...productImages].filter((image) => !result.includes(image)),
+      randomFn
+    );
+    result = result.concat(fallbackPool.slice(0, remaining));
+  }
+
+  return shuffleArray(result, randomFn);
+}
+
 export function mergeTemplateFields(template?: FakerTemplate): Record<string, string[]> {
   if (!template) {
     return { ...DEFAULT_FIELDS };

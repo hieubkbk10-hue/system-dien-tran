@@ -14,6 +14,7 @@ import {
   mergeTemplateFields,
   pickRandom,
 } from '../../lib/seed-templates';
+import type { IndustryTemplate } from '../../lib/seed-templates';
 
 type PostData = Omit<Doc<'posts'>, '_id' | '_creationTime'>;
 
@@ -63,9 +64,7 @@ export class PostSeeder extends BaseSeeder<PostData> {
     const excerpt = template?.fakerTemplates.postExcerptPatterns?.length
       ? buildFromPatterns(template.fakerTemplates.postExcerptPatterns, fields, randomFn)
       : this.viFaker.postExcerpt();
-    const thumbnail = template?.assets.posts?.length
-      ? pickRandom(template.assets.posts, randomFn)
-      : `https://picsum.photos/seed/${slug}/800/600`;
+    const thumbnail = this.getPostThumbnail(template, slug);
     
     const status = this.faker.helpers.weightedArrayElement([
       { value: 'Published' as const, weight: 7 },
@@ -96,6 +95,24 @@ export class PostSeeder extends BaseSeeder<PostData> {
       title,
       views: status === 'Published' ? this.randomInt(0, 5000) : 0,
     };
+  }
+
+  private getPostThumbnail(template: IndustryTemplate | null, slug: string): string {
+    const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
+
+    if (template?.assets.posts?.length) {
+      return pickRandom(template.assets.posts, randomFn);
+    }
+
+    if (template?.assets.hero?.length && this.randomBoolean(0.7)) {
+      return pickRandom(template.assets.hero, randomFn);
+    }
+
+    if (template?.assets.products?.length) {
+      return pickRandom(template.assets.products, randomFn);
+    }
+
+    return `https://picsum.photos/seed/${slug}/800/600`;
   }
   
   validateRecord(record: PostData): boolean {

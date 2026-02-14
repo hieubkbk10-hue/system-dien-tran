@@ -7,8 +7,6 @@ import sys
 REQUIRED_COUNTS = {
     "hero": 5,
     "products": 24,
-    "posts": 12,
-    "gallery": 16,
     "logos": 8,
 }
 
@@ -24,8 +22,8 @@ def main() -> int:
     seed_root = root / "public" / "seed_mau"
     industries = sorted([p for p in seed_root.iterdir() if p.is_dir()])
 
-    print("Industry | Hero | Products | Posts | Gallery | Logos | Status")
-    print("-" * 78)
+    print("Industry | Hero | Products | Logos | Status")
+    print("-" * 62)
 
     has_missing = False
 
@@ -40,7 +38,7 @@ def main() -> int:
 
         print(
             f"{industry.name:20} | {counts['hero']:4} | {counts['products']:8} | "
-            f"{counts['posts']:5} | {counts['gallery']:7} | {counts['logos']:5} | {status}"
+            f"{counts['logos']:5} | {status}"
         )
 
     if has_missing:
