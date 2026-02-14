@@ -227,11 +227,11 @@ export const HeroBannerPreview = ({
             ))}
             {slides.length > 1 && (
               <>
-                <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: `${brandColor}40` }}>
-                  <ChevronLeft size={14} style={{ color: brandColor }} />
+                <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: `${secondary}40` }}>
+                  <ChevronLeft size={14} style={{ color: secondary }} />
                 </button>
-                <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: `${brandColor}40` }}>
-                  <ChevronRight size={14} style={{ color: brandColor }} />
+                <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: `${secondary}40` }}>
+                  <ChevronRight size={14} style={{ color: secondary }} />
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                   {slides.map((_, idx) => (
@@ -267,7 +267,7 @@ export const HeroBannerPreview = ({
                 {slides.map((slide, idx) => (
                   <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }}
                     className={cn("rounded overflow-hidden transition-all border-2", idx === currentSlide ? "scale-105" : "border-transparent opacity-70 hover:opacity-100", device === 'mobile' ? 'w-10 h-7' : 'w-14 h-9')}
-                    style={idx === currentSlide ? { borderColor: brandColor } : {}}>
+                    style={idx === currentSlide ? { borderColor: secondary } : {}}>
                     {slide.image ? <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: brandColor }}></div>}
                   </button>
                 ))}
@@ -308,7 +308,7 @@ export const HeroBannerPreview = ({
             </div>
           ) : (
             <div className="grid grid-cols-4 grid-rows-2 gap-2 h-full" style={{ height: device === 'desktop' ? '280px' : '260px' }}>
-              <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden ring-2 ring-offset-1 ring-offset-slate-900" style={{ '--tw-ring-color': `${brandColor}60` } as React.CSSProperties}>
+              <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden ring-2 ring-offset-1 ring-offset-slate-900" style={{ '--tw-ring-color': `${secondary}60` } as React.CSSProperties}>
                 {bentoSlides[0]?.image ? (
                   <div className="w-full h-full relative">
                     <div className="absolute inset-0 scale-110" style={{ backgroundImage: `url(${bentoSlides[0].image})`, backgroundPosition: 'center', backgroundSize: 'cover', filter: 'blur(25px)' }} />
@@ -561,7 +561,7 @@ export const HeroBannerPreview = ({
                   {c.badge && (
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: secondary }}>{c.badge}</span>
+                      <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}15`, color: secondary }}>{c.badge}</span>
                     </div>
                   )}
                   <h3 className={cn("font-bold text-slate-900 dark:text-white", device === 'mobile' ? 'text-base' : 'text-xl')}>
