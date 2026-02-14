@@ -721,27 +721,27 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
 
   // Style 1: Thanh ngang - Full width bar với dividers
   const renderHorizontalStyle = () => (
-    <section className="w-full rounded-lg shadow-md overflow-hidden" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px ${brandColor}20` }}>
+    <section className="w-full rounded-lg shadow-md overflow-hidden border" style={{ backgroundColor: 'white', borderColor: `${secondary}20`, boxShadow: `0 4px 6px -1px ${secondary}15` }}>
       <div className={cn(
         "flex items-center justify-between",
         device === 'mobile' ? 'flex-col divide-y' : 'flex-row divide-x',
-        "divide-white/10"
+        "divide-slate-200"
       )}>
         {items.slice(0, device === 'mobile' ? 2 : 4).map((item, idx) => (
           <div 
             key={idx} 
             className={cn(
-              "flex-1 w-full flex flex-col items-center justify-center text-center text-white hover:bg-white/5 transition-colors duration-200 cursor-default",
+              "flex-1 w-full flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors duration-200 cursor-default",
               device === 'mobile' ? 'py-5 px-4' : 'py-6 px-4'
             )}
           >
             <span className={cn(
               "font-bold tracking-tight tabular-nums leading-none mb-1",
               device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl'
-            )}>
+            )} style={{ color: brandColor }}>
               {item.value || '0'}
             </span>
-            <h3 className="text-xs font-medium uppercase tracking-wider opacity-85">
+            <h3 className="text-xs font-medium uppercase tracking-wider text-slate-600">
               {item.label || 'Label'}
             </h3>
           </div>
@@ -757,8 +757,8 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
         {items.slice(0, 4).map((item, idx) => (
           <div 
             key={idx}
-            className="group bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
-            style={{ '--hover-border-color': `${brandColor}30` } as React.CSSProperties}
+            className="group bg-white dark:bg-slate-800 border rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
+            style={{ borderColor: `${secondary}20` }}
           >
             <span 
               className={cn(
@@ -773,7 +773,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
               {item.label || 'Label'}
             </h3>
             {/* Minimal accent line */}
-            <div className="w-8 h-0.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-3 group-hover:bg-opacity-50 transition-colors duration-200" style={{ '--hover-bg': `${brandColor}50` } as React.CSSProperties} />
+            <div className="w-8 h-0.5 rounded-full mt-3 group-hover:opacity-70 transition-opacity duration-200" style={{ backgroundColor: secondary }} />
           </div>
         ))}
       </div>
@@ -809,7 +809,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
                 "font-semibold text-slate-800 dark:text-slate-200 group-hover:transition-colors",
                 device === 'mobile' ? 'text-sm' : 'text-base'
               )}
-              style={{ '--hover-color': brandColor } as React.CSSProperties}
+              style={{ color: secondary }}
             >
               {item.label || 'Label'}
             </h3>
@@ -823,9 +823,10 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
   const renderGradientStyle = () => (
     <section className={cn("w-full", device === 'mobile' ? 'p-3' : 'p-6')}>
       <div 
-        className="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-hidden border"
         style={{ 
-          background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 50%, ${brandColor}bb 100%)`,
+          background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 100%)`,
+          borderColor: `${secondary}20`
         }}
       >
         <div className={cn(
@@ -846,7 +847,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
                 className="absolute top-2 right-2 w-16 h-16 rounded-full bg-white/5 blur-xl"
               />
               <span className={cn(
-                "font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10",
+                "font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg",
                 device === 'mobile' ? 'text-3xl' : 'text-4xl md:text-5xl'
               )}>
                 {item.value || '0'}
@@ -879,13 +880,14 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
             {/* Accent line */}
             <div 
               className="w-12 h-1 rounded-full mb-4"
-              style={{ backgroundColor: brandColor }}
+              style={{ backgroundColor: secondary }}
             />
             <span 
               className={cn(
                 "font-bold tracking-tight tabular-nums leading-none text-slate-900 dark:text-white",
                 device === 'mobile' ? 'text-3xl' : 'text-4xl md:text-5xl'
               )}
+              style={{ color: brandColor }}
             >
               {item.value || '0'}
             </span>
@@ -911,7 +913,8 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
         {items.slice(0, 4).map((item, idx) => (
           <div 
             key={idx}
-            className="relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden group"
+            className="relative bg-white dark:bg-slate-800 rounded-2xl border overflow-hidden group"
+            style={{ borderColor: `${secondary}15` }}
           >
             {/* Top progress bar */}
             <div className="h-1 w-full bg-slate-100 dark:bg-slate-700">
@@ -933,7 +936,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
                   "font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300",
                   device === 'mobile' ? 'text-4xl' : 'text-5xl md:text-6xl'
                 )}
-                style={{ color: brandColor }}
+                style={{ color: secondary }}
               >
                 {item.value || '0'}
               </span>
@@ -948,7 +951,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
             {/* Decorative watermark */}
             <div 
               className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-              style={{ color: brandColor }}
+              style={{ color: secondary }}
             >
               {idx + 1}
             </div>

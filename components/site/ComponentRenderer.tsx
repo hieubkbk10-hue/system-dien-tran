@@ -544,19 +544,19 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div 
-            className="w-full rounded-lg shadow-md overflow-hidden"
-            style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px 20` }}
+            className="w-full rounded-lg shadow-md overflow-hidden border"
+            style={{ backgroundColor: 'white', borderColor: `${secondary}20`, boxShadow: `0 4px 6px -1px ${secondary}15` }}
           >
-            <div className="flex flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x divide-white/10">
+            <div className="flex flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x divide-slate-200">
               {items.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className="flex-1 w-full py-6 px-4 flex flex-col items-center justify-center text-center text-white hover:bg-white/5 transition-colors duration-200 cursor-default"
+                  className="flex-1 w-full py-6 px-4 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors duration-200 cursor-default"
                 >
-                  <span className="text-3xl md:text-4xl font-bold tracking-tight tabular-nums leading-none mb-1">
+                  <span className="text-3xl md:text-4xl font-bold tracking-tight tabular-nums leading-none mb-1" style={{ color: brandColor }}>
                     {item.value}
                   </span>
-                  <h3 className="text-xs font-medium uppercase tracking-wider opacity-85">
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-slate-600">
                     {item.label}
                   </h3>
                 </div>
@@ -577,11 +577,12 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
             {items.map((item, idx) => (
               <div 
                 key={idx}
-                className="group bg-white border border-slate-100 rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200"
+                className="group bg-white border rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
+                style={{ borderColor: `${secondary}20` }}
               >
                 <span 
                   className="text-3xl font-bold mb-1 tracking-tight tabular-nums group-hover:scale-105 transition-transform duration-200"
-                  style={{ color: secondary }}
+                  style={{ color: brandColor }}
                 >
                   {item.value}
                 </span>
@@ -590,8 +591,8 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 </h3>
                 {/* Minimal accent line */}
                 <div 
-                  className="w-8 h-0.5 bg-slate-100 rounded-full mt-3 group-hover:opacity-50 transition-colors duration-200"
-                  style={{ backgroundColor: brandColor + '30' }}
+                  className="w-8 h-0.5 rounded-full mt-3 group-hover:opacity-70 transition-opacity duration-200"
+                  style={{ backgroundColor: secondary }}
                 />
               </div>
             ))}
@@ -621,7 +622,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                     {item.value}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-slate-800 group-hover:text-opacity-80 transition-colors">
+                <h3 className="text-base font-semibold text-slate-800 group-hover:text-opacity-80 transition-colors" style={{ color: secondary }}>
                   {item.label}
                 </h3>
               </div>
@@ -638,9 +639,10 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div 
-            className="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden border"
             style={{ 
-              background: `linear-gradient(135deg,  0%, dd 50%, bb 100%)`,
+              background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 100%)`,
+              borderColor: `${secondary}20`
             }}
           >
             <div className="grid grid-cols-2 md:grid-cols-4 backdrop-blur-sm">
@@ -653,7 +655,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 >
                   {/* Decorative circle */}
                   <div className="absolute top-2 right-2 w-16 h-16 rounded-full bg-white/5 blur-xl" />
-                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10">
+                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg">
                     {item.value}
                   </span>
                   <h3 className="text-sm font-medium opacity-90 relative z-10">
@@ -679,9 +681,9 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 {/* Accent line */}
                 <div 
                   className="w-12 h-1 rounded-full mb-4"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 />
-                <span className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums leading-none text-slate-900">
+                <span className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums leading-none" style={{ color: brandColor }}>
                   {item.value}
                 </span>
                 <h3 className="text-base font-medium text-slate-500 mt-2">
@@ -703,7 +705,8 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
           {items.map((item, idx) => (
             <div 
               key={idx}
-              className="relative bg-white rounded-2xl border border-slate-100 overflow-hidden group"
+              className="relative bg-white rounded-2xl border overflow-hidden group"
+              style={{ borderColor: `${secondary}15` }}
             >
               {/* Top progress bar */}
               <div className="h-1 w-full bg-slate-100">
@@ -719,7 +722,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               <div className="flex flex-col items-center justify-center text-center p-6">
                 <span 
                   className="text-5xl md:text-6xl font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300"
-                  style={{ color: secondary }}
+                style={{ color: secondary }}
                 >
                   {item.value}
                 </span>
@@ -731,7 +734,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               {/* Decorative watermark */}
               <div 
                 className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-                style={{ color: secondary }}
+              style={{ color: secondary }}
               >
                 {idx + 1}
               </div>
