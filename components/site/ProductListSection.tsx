@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Package } from 'lucide-react';
+import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
 
 // 6 Styles theo mẫu previews.tsx
 // 'minimal' = Luxury Minimal, 'commerce' = Commerce Card, 'bento' = Bento Grid
@@ -28,12 +29,12 @@ interface SectionHeaderProps {
   showViewAll: boolean;
 }
 
-const SectionHeader = ({ brandColor, secondary, subTitle, sectionTitle, showViewAll }: SectionHeaderProps) => (
+const SectionHeader = ({ brandColor: _brandColor, secondary, subTitle, sectionTitle, showViewAll }: SectionHeaderProps) => (
   <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-10">
     <div className="flex items-end justify-between w-full md:w-auto">
       <div className="space-y-1 md:space-y-2">
         <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
-          <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+          <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
           {subTitle}
         </div>
         <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-slate-900">
@@ -154,9 +155,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     {/* Discount / New Badge */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {discount && (
-                        <span className="px-2 py-1 text-[10px] font-bold text-white rounded shadow-sm" style={{ backgroundColor: brandColor, boxShadow: `0 2px 4px ${brandColor}20` }}>
-                          {discount}
-                        </span>
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                       )}
                     </div>
 
@@ -224,8 +223,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       </div>
                     )}
                     {discount && (
-                      <div className="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded text-white shadow-sm" style={{ backgroundColor: brandColor, boxShadow: `0 2px 4px ${brandColor}20` }}>
-                        {discount}
+                      <div className="absolute top-2 right-2">
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                       </div>
                     )}
                   </div>
@@ -247,7 +246,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
                     <span 
                       className="w-full gap-1.5 md:gap-2 border-2 py-1.5 md:py-2 px-2 md:px-4 rounded-lg font-medium flex items-center justify-center transition-colors hover:bg-opacity-10 whitespace-nowrap text-xs md:text-sm"
-                      style={{ borderColor: `${brandColor}30`, color: brandColor }}
+                      style={{ borderColor: `${secondary}30`, color: secondary }}
                     >
                       Xem chi tiết
                       <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
@@ -279,7 +278,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             <div className="flex items-end justify-between w-full md:w-auto">
               <div className="space-y-1 md:space-y-2">
                 <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
-                  <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+                      <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
                   {subTitle}
                 </div>
                 <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-slate-900">
@@ -297,7 +296,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     }}
                     className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
                   >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={16} style={{ color: secondary }} />
                   </button>
                   <button
                     type="button"
@@ -307,7 +306,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     }}
                     className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
                   >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={16} style={{ color: secondary }} />
                   </button>
                 </div>
               )}
@@ -323,7 +322,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   }}
                   className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={18} style={{ color: secondary }} />
                 </button>
                 <button
                   type="button"
@@ -332,7 +331,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -402,7 +401,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                         <div className="h-full w-full flex items-center justify-center"><Package size={40} className="text-slate-300" /></div>
                       )}
                       {discount && (
-                        <span className="absolute top-2 left-2 px-2 py-1 text-[10px] font-bold text-white rounded" style={{ backgroundColor: brandColor }}>{discount}</span>
+                        <div className="absolute top-2 left-2">
+                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                        </div>
                       )}
                     </div>
                     <h3 className="font-medium text-slate-900 text-sm truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
@@ -457,7 +458,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                     )}
                     {discount && (
-                      <span className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-bold text-white rounded" style={{ backgroundColor: brandColor }}>{discount}</span>
+                      <div className="absolute top-1 left-1">
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[9px] px-1.5 py-0.5" />
+                      </div>
                     )}
                   </div>
                   <h3 className="font-medium text-xs text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
@@ -494,7 +497,11 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     ) : (
                       <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                     )}
-                    {discount && <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>{discount}</span>}
+                    {discount && (
+                      <div className="absolute top-2 left-2">
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      </div>
+                    )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 truncate">{product.name}</h4>
                   <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
@@ -509,7 +516,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             <Link 
               href={`/products/${showcaseFeatured?.slug}`}
               className="relative group rounded-2xl overflow-hidden cursor-pointer h-[400px] border border-slate-200 hover:border-slate-300 transition-colors"
-              style={{ backgroundColor: `${brandColor}05` }}
+              style={{ backgroundColor: `${secondary}05` }}
             >
               {showcaseFeatured?.image ? (
                 <Image
@@ -524,14 +531,16 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               {showcaseDiscount && (
-                <div className="absolute top-4 left-4 font-bold px-3 py-1 rounded-full text-sm shadow-lg text-white" style={{ backgroundColor: brandColor }}>{showcaseDiscount}</div>
+                <div className="absolute top-4 left-4">
+                  <BrandBadge text={showcaseDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                </div>
               )}
               <div className="absolute bottom-0 left-0 p-6 w-full">
-                <span className="inline-block px-2 py-1 rounded text-xs font-medium text-white/90 mb-2" style={{ backgroundColor: `${brandColor}80` }}>Nổi bật</span>
+                <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-white">{formatPrice(showcaseFeatured?.salePrice ?? showcaseFeatured?.price)}</span>
-                  <span className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</span>
+                  <span className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondary }}>Xem chi tiết</span>
                 </div>
               </div>
             </Link>
@@ -548,7 +557,11 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       ) : (
                         <div className="h-full w-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>
                       )}
-                      {discount && <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>{discount}</span>}
+                      {discount && (
+                        <div className="absolute top-2 left-2">
+                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        </div>
+                      )}
                     </div>
                     <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
@@ -583,7 +596,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <Link 
             href={`/products/${featured?.slug}`}
             className="col-span-2 row-span-2 relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-transparent hover:border-slate-300 transition-colors"
-            style={{ backgroundColor: `${brandColor}10` }}
+            style={{ backgroundColor: `${secondary}10` }}
           >
             {featured?.image ? (
               <Image
@@ -603,8 +616,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             
             {/* Discount Badge */}
             {featuredDiscount && (
-              <div className="absolute top-4 right-4 font-bold px-3 py-1 rounded-full text-sm shadow-lg text-white" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}30` }}>
-                {featuredDiscount}
+              <div className="absolute top-4 right-4">
+                <BrandBadge text={featuredDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
               </div>
             )}
 
@@ -614,7 +627,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               <div className="flex flex-row items-center justify-between gap-4 mt-2">
                 <span className="text-2xl font-bold text-white">{formatPrice(featured?.salePrice ?? featured?.price)}</span>
                 
-                <span className="rounded-full px-6 py-2 text-white border-0 shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}20` }}>
+                <span className="rounded-full px-6 py-2 text-white border-0 shadow-lg" style={{ backgroundColor: secondary, boxShadow: `0 4px 6px ${secondary}20` }}>
                   Xem chi tiết
                 </span>
               </div>
@@ -631,7 +644,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 className="col-span-1 row-span-1 bg-white border border-slate-200 rounded-2xl p-3 flex flex-col group hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden"
               >
                 {/* Image Area */}
-                <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${brandColor}08` }}>
+                <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${secondary}08` }}>
                   {product.image ? (
                     <Image
                       src={product.image}
@@ -648,14 +661,14 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   
                   {/* Discount Badge */}
                   {discount && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>
-                      {discount}
-                    </span>
+                    <div className="absolute top-2 left-2">
+                      <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                    </div>
                   )}
 
                   {/* Hover Action Button */}
                   <div className="absolute bottom-2 right-2 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                    <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: brandColor }}>
+                    <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: secondary }}>
                       <ArrowRight size={16} />
                     </div>
                   </div>
@@ -695,9 +708,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                   )}
                   {discount && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>
-                      {discount}
-                    </span>
+                    <div className="absolute top-2 left-2">
+                      <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                    </div>
                   )}
                 </div>
                 <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>

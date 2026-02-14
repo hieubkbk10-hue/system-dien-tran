@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
-import { BrandBadge, StatBox } from '@/components/site/shared/BrandColorHelpers';
+import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from '@/components/site/shared/BrandColorHelpers';
 import { 
   ArrowRight, ArrowUpRight, Briefcase, Building2, Check, ChevronDown, ChevronLeft,
   ChevronRight, Clock, Cpu, Eye, Facebook, FileText,
@@ -980,7 +980,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
 interface FaqItem { id: number; question: string; answer: string }
 export type FaqStyle = 'accordion' | 'cards' | 'two-column' | 'minimal' | 'timeline' | 'tabbed';
 export interface FaqConfig { description?: string; buttonText?: string; buttonLink?: string }
-export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: FaqItem[]; brandColor: string;
+export const FaqPreview = ({ items, brandColor, secondary, selectedStyle, onStyleChange, config }: { items: FaqItem[]; brandColor: string;
   secondary: string; selectedStyle?: FaqStyle; onStyleChange?: (style: FaqStyle) => void; config?: FaqConfig }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'accordion';
@@ -1006,8 +1006,8 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
       <PreviewWrapper title="Preview FAQ" device={device} setDevice={setDevice} previewStyle={previewStyle} setPreviewStyle={setPreviewStyle} styles={styles} info="0 câu hỏi">
         <BrowserFrame url="yoursite.com/faq">
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-              <HelpCircle size={32} style={{ color: brandColor }} />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+              <HelpCircle size={32} style={{ color: secondary }} />
             </div>
             <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có câu hỏi nào</h3>
             <p className="text-sm text-slate-500">Thêm câu hỏi đầu tiên để bắt đầu</p>
@@ -1031,8 +1031,8 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
               key={item.id} 
               className="rounded-xl overflow-hidden transition-all"
               style={{ 
-                border: `1px solid ${isOpen ? brandColor + '40' : brandColor + '15'}`,
-                boxShadow: isOpen ? `0 4px 12px ${brandColor}10` : 'none'
+                border: `1px solid ${isOpen ? secondary + '40' : secondary + '15'}`,
+                boxShadow: isOpen ? `0 4px 12px ${secondary}10` : 'none'
               }}
             >
               <button 
@@ -1055,7 +1055,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
                 <ChevronDown 
                   size={device === 'mobile' ? 16 : 18} 
                   className={cn("flex-shrink-0 transition-transform duration-200", isOpen && "rotate-180")} 
-                  style={{ color: brandColor }} 
+                  style={{ color: secondary }} 
                 />
               </button>
               <div 
@@ -1070,7 +1070,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
                 <div className={cn(
                   "bg-slate-50 dark:bg-slate-800/50 border-t text-slate-600 dark:text-slate-300 leading-relaxed",
                   device === 'mobile' ? 'px-4 py-3 text-sm' : 'px-5 py-4'
-                )} style={{ borderColor: `${brandColor}15` }}>
+                )} style={{ borderColor: `${secondary}15` }}>
                   {item.answer || 'Câu trả lời...'}
                 </div>
               </div>
@@ -1079,7 +1079,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
         })}
         {remainingCount > 0 && (
           <div className="flex items-center justify-center py-4">
-            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>
               +{remainingCount} câu hỏi khác
             </span>
           </div>
@@ -1098,22 +1098,22 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
             key={item.id} 
             className="bg-white dark:bg-slate-800 rounded-xl transition-all cursor-pointer group"
             style={{ 
-              border: `1px solid ${brandColor}15`,
+              border: `1px solid ${secondary}15`,
               padding: device === 'mobile' ? '14px' : '20px',
             }}
             onMouseEnter={(e) => { 
-              e.currentTarget.style.borderColor = `${brandColor}40`; 
-              e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; 
+              e.currentTarget.style.borderColor = `${secondary}40`; 
+              e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; 
             }}
             onMouseLeave={(e) => { 
-              e.currentTarget.style.borderColor = `${brandColor}15`; 
+              e.currentTarget.style.borderColor = `${secondary}15`; 
               e.currentTarget.style.boxShadow = 'none'; 
             }}
           >
             <div className="flex items-start gap-3">
               <div 
                 className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: secondary }}
               >
                 ?
               </div>
@@ -1131,7 +1131,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
       </div>
       {remainingCount > 0 && (
         <div className="flex items-center justify-center mt-6">
-          <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+          <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>
             +{remainingCount} câu hỏi khác
           </span>
         </div>
@@ -1144,7 +1144,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
     <div className={cn("py-10 px-4", device === 'mobile' && 'py-6 px-3')}>
       <div className={cn("max-w-5xl mx-auto", device === 'mobile' ? 'space-y-6' : 'grid grid-cols-5 gap-10')}>
         <div className={cn(device === 'mobile' ? '' : 'col-span-2')}>
-          <h3 className={cn("font-bold mb-3 text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-lg' : 'text-2xl')} style={{ color: brandColor }}>
+          <h3 className={cn("font-bold mb-3 text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-lg' : 'text-2xl')} style={{ color: secondary }}>
             Câu hỏi thường gặp
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
@@ -1154,7 +1154,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
             <a 
               href={config?.buttonLink ?? '#'}
               className={cn("inline-block rounded-lg text-white font-medium transition-all", device === 'mobile' ? 'px-4 py-2.5 text-sm min-h-[44px]' : 'px-5 py-2.5')}
-              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}30` }}
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}30` }}
             >
               {config.buttonText}
             </a>
@@ -1162,7 +1162,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
         </div>
         <div className={cn("space-y-4", device === 'mobile' ? '' : 'col-span-3')}>
           {visibleItems.slice(0, device === 'mobile' ? 3 : 5).map((item, idx) => (
-            <div key={item.id} className="pb-4" style={{ borderBottom: `1px solid ${brandColor}15` }}>
+            <div key={item.id} className="pb-4" style={{ borderBottom: `1px solid ${secondary}15` }}>
               <h4 className={cn("font-semibold mb-2 text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-sm' : '')}>
                 {item.question || `Câu hỏi ${idx + 1}`}
               </h4>
@@ -1188,7 +1188,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
             <div key={item.id} className="flex gap-4">
               <span 
                 className={cn("font-bold flex-shrink-0", device === 'mobile' ? 'text-lg' : 'text-xl')}
-                style={{ color: brandColor }}
+                style={{ color: secondary }}
               >
                 {String(idx + 1).padStart(2, '0')}
               </span>
@@ -1204,8 +1204,8 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
           ))}
         </div>
         {remainingCount > 0 && (
-          <div className="mt-6 pt-4" style={{ borderTop: `1px solid ${brandColor}15` }}>
-            <span className="text-sm" style={{ color: brandColor }}>+{remainingCount} câu hỏi khác</span>
+          <div className="mt-6 pt-4" style={{ borderTop: `1px solid ${secondary}15` }}>
+            <span className="text-sm" style={{ color: secondary }}>+{remainingCount} câu hỏi khác</span>
           </div>
         )}
       </div>
@@ -1222,7 +1222,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
         {/* Vertical line */}
         <div 
           className="absolute left-4 top-0 bottom-0 w-0.5"
-          style={{ backgroundColor: `${brandColor}20` }}
+          style={{ backgroundColor: `${secondary}20` }}
         />
         <div className="space-y-6">
           {visibleItems.map((item, idx) => (
@@ -1230,9 +1230,9 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
               {/* Dot */}
               <div 
                 className="absolute left-2 top-1.5 w-5 h-5 rounded-full border-4 bg-white dark:bg-slate-900"
-                style={{ borderColor: brandColor }}
+                style={{ borderColor: secondary }}
               />
-              <div className={cn("rounded-xl p-4", device === 'mobile' && 'p-3')} style={{ backgroundColor: `${brandColor}05` }}>
+              <div className={cn("rounded-xl p-4", device === 'mobile' && 'p-3')} style={{ backgroundColor: `${secondary}05` }}>
                 <h4 className={cn("font-semibold mb-2 text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-sm' : '')}>
                   {item.question || `Câu hỏi ${idx + 1}`}
                 </h4>
@@ -1247,11 +1247,11 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
           <div className="relative pl-12 mt-6">
             <div 
               className="absolute left-2 top-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${brandColor}20` }}
+              style={{ backgroundColor: `${secondary}20` }}
             >
-              <Plus size={12} style={{ color: brandColor }} />
+              <Plus size={12} style={{ color: secondary }} />
             </div>
-            <span className="text-sm font-medium" style={{ color: brandColor }}>+{remainingCount} câu hỏi khác</span>
+            <span className="text-sm font-medium" style={{ color: secondary }}>+{remainingCount} câu hỏi khác</span>
           </div>
         )}
       </div>
@@ -1276,7 +1276,7 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
                 device === 'mobile' && 'px-3 py-1.5 text-xs min-h-[36px]',
                 activeTab === idx ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               )}
-              style={activeTab === idx ? { backgroundColor: brandColor } : {}}
+              style={activeTab === idx ? { backgroundColor: secondary } : {}}
             >
               Q{idx + 1}
             </button>
@@ -1289,8 +1289,8 @@ export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, co
         <div 
           className="rounded-xl p-6"
           style={{ 
-            backgroundColor: `${brandColor}05`,
-            border: `1px solid ${brandColor}15`
+            backgroundColor: `${secondary}05`,
+            border: `1px solid ${secondary}15`
           }}
         >
           {visibleItems[activeTab] && (
@@ -1331,7 +1331,7 @@ interface TestimonialItem { id: number; name: string; role: string; content: str
 // - Diverse formats: Cards, Slider, Masonry, Quote, Carousel, Minimal
 // - Mobile responsive with proper touch targets
 export type TestimonialsStyle = 'cards' | 'slider' | 'masonry' | 'quote' | 'carousel' | 'minimal';
-export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: TestimonialItem[]; brandColor: string;
+export const TestimonialsPreview = ({ items, brandColor, secondary, selectedStyle, onStyleChange }: { items: TestimonialItem[]; brandColor: string;
   secondary: string; selectedStyle?: TestimonialsStyle; onStyleChange?: (style: TestimonialsStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'cards';
@@ -1362,8 +1362,8 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
   // Empty State
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <Star size={32} style={{ color: brandColor }} />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+        <Star size={32} style={{ color: secondary }} />
       </div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có đánh giá nào</h3>
       <p className="text-sm text-slate-500">Thêm đánh giá đầu tiên để bắt đầu</p>
@@ -1403,7 +1403,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
           {remaining > 0 && (
             <div className="flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl aspect-square border-2 border-dashed border-slate-300 dark:border-slate-600">
               <div className="text-center">
-                <div className="text-2xl font-bold" style={{ color: brandColor }}>+{remaining}</div>
+                <div className="text-2xl font-bold" style={{ color: secondary }}>+{remaining}</div>
                 <p className="text-xs text-slate-500 mt-1">đánh giá khác</p>
               </div>
             </div>
@@ -1419,9 +1419,9 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
     const current = items[currentSlide] || items[0];
     return (
       <div className={cn("py-12 px-4 relative overflow-hidden", device === 'mobile' ? 'py-8' : '')}>
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[120px] leading-none font-serif opacity-5 pointer-events-none select-none" style={{ color: brandColor }}>“</div>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[120px] leading-none font-serif opacity-5 pointer-events-none select-none" style={{ color: secondary }}>“</div>
         <div className="max-w-6xl mx-auto relative">
-          <div className={cn("bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center relative", device === 'mobile' ? 'p-5' : '')} style={{ borderTop: `4px solid ${brandColor}` }}>
+          <div className={cn("bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center relative", device === 'mobile' ? 'p-5' : '')} style={{ borderTop: `4px solid ${secondary}` }}>
             <div className="flex justify-center mb-4">{renderStars(current?.rating || 5, 16)}</div>
             <p className={cn("text-slate-700 dark:text-slate-200 leading-relaxed mb-6", device === 'mobile' ? 'text-base' : 'text-lg')}>“{current?.content || 'Nội dung đánh giá...'}”</p>
             <div className="flex items-center justify-center gap-4">
@@ -1436,7 +1436,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
             <div className="flex items-center justify-center gap-4 mt-6">
               <button type="button" onClick={() =>{  setCurrentSlide(prev => prev === 0 ? items.length - 1 : prev - 1); }} className="w-10 h-10 min-h-[44px] rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center hover:scale-105 transition-transform"><ChevronLeft size={18} /></button>
               <div className="flex gap-2">
-                {items.map((_, idx) => (<button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} className={cn("w-2.5 h-2.5 rounded-full transition-all", idx === currentSlide ? "w-8" : "bg-slate-300")} style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />))}
+                {items.map((_, idx) => (<button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} className={cn("w-2.5 h-2.5 rounded-full transition-all", idx === currentSlide ? "w-8" : "bg-slate-300")} style={idx === currentSlide ? { backgroundColor: secondary } : {}} />))}
               </div>
               <button type="button" onClick={() =>{  setCurrentSlide(prev => (prev + 1) % items.length); }} className="w-10 h-10 min-h-[44px] rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center hover:scale-105 transition-transform"><ChevronRight size={18} /></button>
             </div>
@@ -1472,7 +1472,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
         </div>
         {remaining > 0 && (
           <div className="text-center mt-4">
-            <span className="text-sm font-medium" style={{ color: brandColor }}>+{remaining} đánh giá khác</span>
+            <span className="text-sm font-medium" style={{ color: secondary }}>+{remaining} đánh giá khác</span>
           </div>
         )}
       </div>
@@ -1485,10 +1485,10 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
     const current = items[currentSlide] || items[0];
     
     return (
-      <div className={cn("py-12 px-4", device === 'mobile' ? 'py-8' : '')} style={{ backgroundColor: `${brandColor}05` }}>
+      <div className={cn("py-12 px-4", device === 'mobile' ? 'py-8' : '')} style={{ backgroundColor: `${secondary}05` }}>
         <div className="max-w-4xl mx-auto text-center">
           {/* Large quote mark */}
-          <div className="text-[80px] md:text-[120px] leading-none font-serif mb-[-30px] md:mb-[-50px] select-none" style={{ color: brandColor }}>“</div>
+          <div className="text-[80px] md:text-[120px] leading-none font-serif mb-[-30px] md:mb-[-50px] select-none" style={{ color: secondary }}>“</div>
           
           <blockquote className={cn("text-slate-800 dark:text-slate-200 leading-relaxed font-medium italic", device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl')}>
             {current?.content || 'Nội dung đánh giá...'}
@@ -1515,7 +1515,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
                   type="button" 
                   onClick={() =>{  setCurrentSlide(idx); }} 
                   className={cn("w-3 h-3 rounded-full transition-all", idx === currentSlide ? "" : "bg-slate-300 hover:bg-slate-400")}
-                  style={idx === currentSlide ? { backgroundColor: brandColor } : {}}
+                  style={idx === currentSlide ? { backgroundColor: secondary } : {}}
                 />
               ))}
             </div>
@@ -1543,7 +1543,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
                   "flex-shrink-0 snap-center bg-white dark:bg-slate-800 rounded-xl p-5 shadow-md border flex flex-col",
                   device === 'mobile' ? 'w-[280px]' : 'w-[320px]'
                 )}
-                style={{ borderColor: `${brandColor}15` }}
+                style={{ borderColor: `${secondary}15` }}
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
@@ -1567,7 +1567,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
                 <div 
                   key={idx} 
                   className="w-1.5 h-1.5 rounded-full bg-slate-300"
-                  style={idx === 0 ? { backgroundColor: brandColor } : {}}
+                  style={idx === 0 ? { backgroundColor: secondary } : {}}
                 />
               ))}
             </div>
@@ -1591,7 +1591,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
             <div 
               key={item.id} 
               className="flex gap-4 p-4 rounded-lg bg-white dark:bg-slate-800 border-l-4 shadow-sm"
-              style={{ borderLeftColor: brandColor }}
+              style={{ borderLeftColor: secondary }}
             >
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
                 {(item.name || 'U')[0]}
@@ -1609,7 +1609,7 @@ export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleC
           ))}
           {remaining > 0 && (
             <div className="text-center pt-2">
-              <button type="button" className="text-sm font-medium px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+              <button type="button" className="text-sm font-medium px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: `${secondary}10`, color: secondary }}>
                 Xem thêm {remaining} đánh giá
               </button>
             </div>
@@ -1702,8 +1702,8 @@ export const PricingPreview = ({
   // Empty state
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <Tag size={32} style={{ color: brandColor }} />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+        <Tag size={32} style={{ color: secondary }} />
       </div>
       <p className="text-sm font-medium">Chưa có gói nào</p>
       <p className="text-xs mt-1">Thêm gói để xem preview</p>
@@ -1736,9 +1736,7 @@ export const PricingPreview = ({
         {yearlyLabel}
       </span>
       {isYearly && yearlySavingText && (
-        <span className="px-2 py-0.5 text-xs font-medium rounded-full text-white" style={{ backgroundColor: brandColor }}>
-          {yearlySavingText}
-        </span>
+        <BrandBadge text={yearlySavingText} variant="solid" brandColor={brandColor} secondary={secondary} />
       )}
     </div>
   ) : null;
@@ -1776,13 +1774,13 @@ export const PricingPreview = ({
               }}
             >
               {plan.isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style={{ backgroundColor: brandColor }}>
-                  Phổ biến
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <BrandBadge text="Phổ biến" variant="solid" brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
               <h4 className="font-semibold text-center line-clamp-1">{plan.name || 'Tên gói'}</h4>
               <div className="text-center my-4">
-                <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-2xl' : 'text-3xl')} style={{ color: brandColor }}>
+                <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-2xl' : 'text-3xl')} style={{ color: secondary }}>
                   {getPrice(plan)}đ
                 </span>
                 <span className="text-sm text-slate-500">{getPeriod()}</span>
@@ -1790,14 +1788,14 @@ export const PricingPreview = ({
               <ul className="space-y-2 mb-4 flex-1 min-h-[80px]">
                 {(plan.features.length > 0 ? plan.features : ['Tính năng 1', 'Tính năng 2']).slice(0, 5).map((f, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-sm">
-                    <Check size={14} className="flex-shrink-0 mt-0.5" style={{ color: brandColor }} />
+                    <CheckIcon secondary={secondary} brandColor={brandColor} variant="minimal" size={14} className="mt-0.5" />
                     <span className="line-clamp-1">{f}</span>
                   </li>
                 ))}
               </ul>
               <button 
                 className={cn("w-full py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-90", plan.isPopular ? "text-white" : "border-2")} 
-                style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: brandColor, color: brandColor }}
+                style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: secondary, color: secondary }}
               >
                 {plan.buttonText || 'Chọn gói'}
               </button>
@@ -1829,16 +1827,14 @@ export const PricingPreview = ({
               <div className={cn(device === 'mobile' ? '' : 'flex items-center gap-3 min-w-0 flex-1')}>
                 <h4 className="font-semibold truncate">{plan.name || 'Tên gói'}</h4>
                 {plan.isPopular && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white flex-shrink-0" style={{ backgroundColor: brandColor }}>
-                    Hot
-                  </span>
+                  <BrandBadge text="Hot" variant="solid" brandColor={brandColor} secondary={secondary} />
                 )}
               </div>
               <div className={cn("text-sm text-slate-500 truncate", device === 'mobile' ? '' : 'flex-1 text-center')}>
                 {(plan.features.length > 0 ? plan.features : ['Tính năng']).slice(0, 2).join(' • ')}
               </div>
               <div className={cn("flex items-center gap-4", device === 'mobile' ? 'flex-col gap-2' : 'flex-shrink-0')}>
-                <span className="font-bold text-lg tabular-nums whitespace-nowrap" style={{ color: brandColor }}>
+                <span className="font-bold text-lg tabular-nums whitespace-nowrap" style={{ color: secondary }}>
                   {getPrice(plan)}đ<span className="text-sm font-normal text-slate-500">{getPeriod()}</span>
                 </span>
                 <button className="px-4 py-2 rounded-lg text-sm text-white font-medium whitespace-nowrap" style={{ backgroundColor: brandColor }}>
@@ -1869,17 +1865,16 @@ export const PricingPreview = ({
                 device === 'mobile' ? 'flex-col text-center rounded-xl border mb-3' : '',
                 device !== 'mobile' && idx !== Math.min(plans.length, 5) - 1 && 'border-b'
               )} 
-              style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}
+              style={plan.isPopular ? { backgroundColor: `${secondary}08` } : {}}
             >
               {plan.isPopular && (
                 <div 
                   className={cn(
-                    "absolute px-3 py-1 rounded-full text-xs font-medium text-white",
+                    "absolute",
                     device === 'mobile' ? '-top-2 left-1/2 -translate-x-1/2' : 'top-3 right-4'
                   )} 
-                  style={{ backgroundColor: brandColor }}
                 >
-                  Phổ biến
+                  <BrandBadge text="Phổ biến" variant="solid" brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
               <div className={cn("flex-1 min-w-0", device === 'mobile' ? 'pt-2' : '')}>
@@ -1889,12 +1884,12 @@ export const PricingPreview = ({
                 </div>
               </div>
               <div className={cn("flex items-center gap-4", device === 'mobile' ? 'flex-col gap-3 mt-3' : '')}>
-                <span className="text-2xl font-bold tabular-nums whitespace-nowrap" style={{ color: brandColor }}>
+                <span className="text-2xl font-bold tabular-nums whitespace-nowrap" style={{ color: secondary }}>
                   {getPrice(plan)}đ<span className="text-sm text-slate-500">{getPeriod()}</span>
                 </span>
                 <button 
                   className={cn("px-5 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap", plan.isPopular ? "text-white shadow-md" : "border-2")} 
-                  style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: brandColor, color: brandColor }}
+                  style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: secondary, color: secondary }}
                 >
                   {plan.buttonText || 'Chọn gói'}
                 </button>
@@ -1926,16 +1921,16 @@ export const PricingPreview = ({
                   <th 
                     key={plan.id} 
                     className={cn("p-3 text-center border-b min-w-[120px]", device === 'mobile' ? 'text-xs' : 'text-sm')}
-                    style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}
+                    style={plan.isPopular ? { backgroundColor: `${secondary}08` } : {}}
                   >
                     <div className="font-semibold">{plan.name || 'Gói'}</div>
-                    <div className="font-bold mt-1" style={{ color: brandColor }}>
+                    <div className="font-bold mt-1" style={{ color: secondary }}>
                       {getPrice(plan)}đ
                     </div>
                     {plan.isPopular && (
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: brandColor }}>
-                        Khuyên dùng
-                      </span>
+                      <div className="flex justify-center mt-1">
+                        <BrandBadge text="Khuyên dùng" variant="solid" brandColor={brandColor} secondary={secondary} />
+                      </div>
                     )}
                   </th>
                 ))}
@@ -1949,10 +1944,10 @@ export const PricingPreview = ({
                     <td 
                       key={plan.id} 
                       className="p-3 text-center border-b"
-                      style={plan.isPopular ? { backgroundColor: `${brandColor}05` } : {}}
+                      style={plan.isPopular ? { backgroundColor: `${secondary}05` } : {}}
                     >
                       {plan.features.includes(feature) ? (
-                        <Check size={18} className="mx-auto" style={{ color: brandColor }} />
+                        <CheckIcon secondary={secondary} brandColor={brandColor} variant="minimal" size={16} className="mx-auto" />
                       ) : (
                         <X size={18} className="mx-auto text-slate-300" />
                       )}
@@ -1965,10 +1960,10 @@ export const PricingPreview = ({
               <tr>
                 <td className="p-3"></td>
                 {displayPlans.map((plan) => (
-                  <td key={plan.id} className="p-3 text-center" style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}>
+                  <td key={plan.id} className="p-3 text-center" style={plan.isPopular ? { backgroundColor: `${secondary}08` } : {}}>
                     <button 
                       className={cn("px-4 py-2 rounded-lg text-sm font-medium w-full", plan.isPopular ? "text-white" : "border-2")} 
-                      style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: brandColor, color: brandColor }}
+                      style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: secondary, color: secondary }}
                     >
                       {plan.buttonText || 'Chọn'}
                     </button>
@@ -2007,16 +2002,15 @@ export const PricingPreview = ({
             }}
           >
             <div 
-              className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white"
-              style={{ backgroundColor: brandColor }}
+              className="absolute -top-3 left-1/2 -translate-x-1/2"
             >
-              ★ Phổ biến nhất
+              <BrandBadge text="★ Phổ biến nhất" variant="solid" brandColor={brandColor} secondary={secondary} />
             </div>
             <h4 className={cn("font-bold text-center", device === 'mobile' ? 'text-lg mt-2' : 'text-xl mt-4')}>
               {popularPlan.name || 'Gói phổ biến'}
             </h4>
             <div className="text-center my-6">
-              <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-3xl' : 'text-4xl')} style={{ color: brandColor }}>
+              <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-3xl' : 'text-4xl')} style={{ color: secondary }}>
                 {getPrice(popularPlan)}đ
               </span>
               <span className="text-slate-500">{getPeriod()}</span>
@@ -2024,14 +2018,14 @@ export const PricingPreview = ({
             <ul className="space-y-3 mb-6 flex-1">
               {(popularPlan.features.length > 0 ? popularPlan.features : ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).slice(0, 6).map((f, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <Check size={18} className="flex-shrink-0 mt-0.5" style={{ color: brandColor }} />
+                  <CheckIcon secondary={secondary} brandColor={brandColor} variant="minimal" size={16} className="mt-0.5" />
                   <span className="line-clamp-1">{f}</span>
                 </li>
               ))}
             </ul>
             <button 
               className="w-full py-3 rounded-xl font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
             >
               {popularPlan.buttonText || 'Bắt đầu ngay'}
             </button>
@@ -2044,11 +2038,11 @@ export const PricingPreview = ({
                 <div 
                   key={plan.id}
                   className="bg-white dark:bg-slate-800 rounded-xl border p-4 flex flex-col"
-                  style={{ borderColor: `${brandColor}20` }}
+                  style={{ borderColor: `${secondary}20` }}
                 >
                   <h5 className="font-semibold text-sm">{plan.name || 'Gói'}</h5>
                   <div className="my-2">
-                    <span className="font-bold text-lg tabular-nums" style={{ color: brandColor }}>
+                    <span className="font-bold text-lg tabular-nums" style={{ color: secondary }}>
                       {getPrice(plan)}đ
                     </span>
                     <span className="text-xs text-slate-500">{getPeriod()}</span>
@@ -2058,7 +2052,7 @@ export const PricingPreview = ({
                   </p>
                   <button 
                     className="w-full py-2 rounded-lg text-sm font-medium border-2"
-                    style={{ borderColor: brandColor, color: brandColor }}
+                    style={{ borderColor: secondary, color: secondary }}
                   >
                     {plan.buttonText || 'Chọn'}
                   </button>
@@ -2095,20 +2089,17 @@ export const PricingPreview = ({
               )}
               style={{ 
                 borderColor: plan.isPopular ? brandColor : '#e2e8f0',
-                ...(plan.isPopular && { ringColor: brandColor })
+                ...(plan.isPopular && { ringColor: secondary })
               }}
             >
               {plan.isPopular && (
-                <div 
-                  className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold text-white"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  HOT
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+                  <BrandBadge text="HOT" variant="solid" brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
               <h5 className="font-semibold text-sm truncate mt-1">{plan.name || 'Gói'}</h5>
               <div className="my-2">
-                <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-lg' : 'text-xl')} style={{ color: brandColor }}>
+                <span className={cn("font-bold tabular-nums", device === 'mobile' ? 'text-lg' : 'text-xl')} style={{ color: secondary }}>
                   {getPrice(plan)}đ
                 </span>
                 <span className="text-[10px] text-slate-500 block">{getPeriod()}</span>
@@ -2121,7 +2112,7 @@ export const PricingPreview = ({
                   "w-full py-1.5 rounded text-xs font-medium mt-auto",
                   plan.isPopular ? "text-white" : "border"
                 )}
-                style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: brandColor, color: brandColor }}
+                style={plan.isPopular ? { backgroundColor: brandColor } : { borderColor: secondary, color: secondary }}
               >
                 {plan.buttonText || 'Chọn'}
               </button>
@@ -2305,7 +2296,7 @@ const GalleryLightbox = ({
   );
 };
 
-export const GalleryPreview = ({ items, brandColor, componentType, selectedStyle, onStyleChange }: { 
+export const GalleryPreview = ({ items, brandColor, secondary: _secondary, componentType, selectedStyle, onStyleChange }: { 
   items: GalleryItem[]; 
   brandColor: string;
   secondary: string; 
@@ -3136,7 +3127,7 @@ const ServiceIcon = ({ name, size = 24, className, style }: { name: string; size
   return <IconComponent size={size} className={className} style={style} />;
 };
 
-export const ServicesPreview = ({ items, brandColor, componentType, selectedStyle, onStyleChange }: { items: ServiceItem[]; brandColor: string;
+export const ServicesPreview = ({ items, brandColor, secondary, componentType, selectedStyle, onStyleChange }: { items: ServiceItem[]; brandColor: string;
   secondary: string; componentType: 'Services' | 'Benefits'; selectedStyle?: ServicesStyle; onStyleChange?: (style: ServicesStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -3155,8 +3146,8 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
   // Empty State
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <Briefcase size={32} style={{ color: brandColor }} />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+        <Briefcase size={32} style={{ color: secondary }} />
       </div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có {componentType === 'Services' ? 'dịch vụ' : 'lợi ích'} nào</h3>
       <p className="text-sm text-slate-500">Thêm mục đầu tiên để bắt đầu</p>
@@ -3194,7 +3185,7 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
             {/* Top Accent Line with gradient */}
             <div 
               className="absolute top-0 left-0 right-0 h-1.5 w-full group-hover:h-2 transition-all"
-              style={{ background: `linear-gradient(to right, ${brandColor}66, ${brandColor})` }}
+              style={{ background: `linear-gradient(to right, ${brandColor}, ${secondary})` }}
             />
             
             <h3 className={cn(
@@ -3238,7 +3229,7 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
                 "font-bold tabular-nums flex-shrink-0",
                 device === 'mobile' ? 'text-xl w-8' : 'text-2xl w-10'
               )}
-              style={{ color: brandColor }}
+              style={{ color: secondary }}
             >
               {String(index + 1).padStart(2, '0')}
             </span>
@@ -3309,7 +3300,7 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
                 {/* Accent bar */}
                 <div 
                   className="w-6 h-1 mb-3 opacity-50 rounded-full"
-                  style={{ backgroundColor: isHighlighted ? 'white' : brandColor }}
+                  style={{ backgroundColor: isHighlighted ? 'white' : secondary }}
                 />
                 <h3 className={cn(
                   "font-bold tracking-tight",
@@ -3340,7 +3331,7 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center", device === 'mobile' ? 'text-2xl' : 'text-3xl')}>{titles[componentType]}</h2>
           <div className={cn("mx-auto flex justify-center gap-6", items.length === 1 ? 'max-w-sm' : 'max-w-2xl')}>
             {items.map((item) => (
-              <div key={item.id} className="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 border shadow-sm" style={{ borderColor: `${brandColor}15` }}>
+              <div key={item.id} className="flex-1 bg-white dark:bg-slate-800 rounded-2xl p-6 border shadow-sm" style={{ borderColor: `${secondary}15` }}>
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
                   <ServiceIcon name={item.icon} size={28} style={{ color: brandColor }} />
                 </div>
@@ -3355,14 +3346,16 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
     return (
       <div className="w-full max-w-6xl mx-auto space-y-8 py-8 px-4">
         <div className="text-center space-y-2">
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{componentType === 'Services' ? 'Dịch vụ' : 'Lợi ích'}</span>
+          <div className="flex justify-center">
+            <BrandBadge text={componentType === 'Services' ? 'Dịch vụ' : 'Lợi ích'} variant="default" brandColor={brandColor} secondary={secondary} />
+          </div>
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{titles[componentType]}</h2>
         </div>
         <div className={cn("grid gap-5", device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'))}>
           {visibleItems.map((item) => (
-            <div key={item.id} className="group bg-white dark:bg-slate-800 rounded-2xl p-6 border transition-all hover:shadow-lg" style={{ borderColor: `${brandColor}15` }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 8px 30px ${brandColor}15`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}>
+            <div key={item.id} className="group bg-white dark:bg-slate-800 rounded-2xl p-6 border transition-all hover:shadow-lg" style={{ borderColor: `${secondary}15` }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; e.currentTarget.style.boxShadow = `0 8px 30px ${secondary}15`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; e.currentTarget.style.boxShadow = 'none'; }}>
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ backgroundColor: `${brandColor}10` }}>
                 <ServiceIcon name={item.icon} size={28} style={{ color: brandColor }} />
               </div>
@@ -3371,9 +3364,9 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
             </div>
           ))}
           {remainingCount > 0 && (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6" style={{ borderColor: `${brandColor}30` }}>
-              <Plus size={28} style={{ color: brandColor }} className="mb-2" />
-              <span className="text-lg font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6" style={{ borderColor: `${secondary}30` }}>
+              <Plus size={28} style={{ color: secondary }} className="mb-2" />
+              <span className="text-lg font-bold" style={{ color: secondary }}>+{remainingCount}</span>
               <span className="text-xs text-slate-500">mục khác</span>
             </div>
           )}
@@ -3403,8 +3396,8 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
         </div>
         <div className={cn("grid gap-5", device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'))}>
           {pageItems.map((item) => (
-            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: `${brandColor}15` }}>
-              <div className="h-2 w-full" style={{ background: `linear-gradient(to right, ${brandColor}66, ${brandColor})` }} />
+            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: `${secondary}15` }}>
+              <div className="h-2 w-full" style={{ background: `linear-gradient(to right, ${brandColor}, ${secondary})` }} />
               <div className="p-5">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}10` }}>
@@ -3439,16 +3432,16 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{titles[componentType]}</h2>
         </div>
         <div className="relative">
-          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
+          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${secondary}20` }} />
           <div className="space-y-6">
             {visibleItems.map((item, idx) => (
               <div key={item.id} className={cn("relative flex", device !== 'mobile' && idx % 2 === 0 ? 'md:flex-row-reverse' : '')}>
-                <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-4 bg-white dark:bg-slate-800 flex items-center justify-center z-10" style={{ borderColor: brandColor }}>
-                  <ServiceIcon name={item.icon} size={18} style={{ color: brandColor }} />
+                <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-4 bg-white dark:bg-slate-800 flex items-center justify-center z-10" style={{ borderColor: secondary }}>
+                  <ServiceIcon name={item.icon} size={18} style={{ color: secondary }} />
                 </div>
-                <div className={cn("ml-20 md:ml-0 md:w-5/12 bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm", device !== 'mobile' && idx % 2 === 0 ? 'md:mr-auto md:ml-8' : 'md:ml-auto md:mr-8')} style={{ borderColor: `${brandColor}15` }}>
+                <div className={cn("ml-20 md:ml-0 md:w-5/12 bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm", device !== 'mobile' && idx % 2 === 0 ? 'md:mr-auto md:ml-8' : 'md:ml-auto md:mr-8')} style={{ borderColor: `${secondary}15` }}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold tabular-nums" style={{ color: brandColor }}>{String(idx + 1).padStart(2, '0')}</span>
+                    <span className="text-sm font-bold tabular-nums" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
                     <h3 className="font-bold text-slate-900 dark:text-slate-100">{item.title || 'Tiêu đề'}</h3>
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description || 'Mô tả...'}</p>
@@ -3457,10 +3450,10 @@ export const ServicesPreview = ({ items, brandColor, componentType, selectedStyl
             ))}
             {remainingCount > 0 && (
               <div className="relative flex">
-                <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed bg-white dark:bg-slate-800 flex items-center justify-center z-10" style={{ borderColor: `${brandColor}40` }}>
-                  <Plus size={18} style={{ color: brandColor }} />
+                <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed bg-white dark:bg-slate-800 flex items-center justify-center z-10" style={{ borderColor: `${secondary}40` }}>
+                  <Plus size={18} style={{ color: secondary }} />
                 </div>
-                <div className="ml-20 md:ml-auto md:mr-8 md:w-5/12 text-sm font-medium" style={{ color: brandColor }}>+{remainingCount} mục khác</div>
+                <div className="ml-20 md:ml-auto md:mr-8 md:w-5/12 text-sm font-medium" style={{ color: secondary }}>+{remainingCount} mục khác</div>
               </div>
             )}
           </div>
@@ -3503,7 +3496,7 @@ export interface ProductListPreviewItem {
 }
 
 // Helper to strip HTML tags from description
-export const ProductListPreview = ({ brandColor, itemCount, componentType, selectedStyle, onStyleChange, items, subTitle = 'Bộ sưu tập', sectionTitle }: { 
+export const ProductListPreview = ({ brandColor, secondary, itemCount, componentType, selectedStyle, onStyleChange, items, subTitle = 'Bộ sưu tập', sectionTitle }: { 
   brandColor: string;
   secondary: string; 
   itemCount: number; 
@@ -3560,8 +3553,8 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
       <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-10">
         <div className="flex items-end justify-between w-full md:w-auto">
           <div className="space-y-1 md:space-y-2">
-            <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-              <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+            <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+              <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
               {subTitle}
             </div>
             <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
@@ -3569,7 +3562,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
             </h2>
           </div>
           {/* Mobile View All */}
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
@@ -3589,7 +3582,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
           return (
             <div key={item.id} className="group cursor-pointer">
               {/* Image Container */}
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4 border border-transparent transition-all" style={{ '--hover-border': `${brandColor}20` } as React.CSSProperties}>
+              <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4 border border-transparent transition-all" style={{ '--hover-border': `${secondary}20` } as React.CSSProperties}>
                 {item.image ? (
                   <PreviewImage 
                     src={item.image} 
@@ -3605,20 +3598,16 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                 {/* Discount / New Badge */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1">
                   {discount && (
-                    <span className="px-2 py-1 text-[10px] font-bold text-white rounded shadow-sm" style={{ backgroundColor: brandColor, boxShadow: `0 2px 4px ${brandColor}20` }}>
-                      {discount}
-                    </span>
+                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                   )}
                   {item.tag === 'new' && !discount && (
-                    <span className="px-2 py-1 text-[10px] font-bold bg-white/90 backdrop-blur-sm rounded shadow-sm" style={{ color: brandColor }}>
-                      NEW
-                    </span>
+                    <BrandBadge text="NEW" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                   )}
                 </div>
 
                 {/* View Details Button (Hover) */}
                 <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                  <button className="w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg border-0 font-bold py-2 px-4 rounded-lg text-sm" style={{ color: brandColor }}>
+                  <button className="w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg border-0 font-bold py-2 px-4 rounded-lg text-sm" style={{ color: secondary }}>
                     Xem chi tiết
                   </button>
                 </div>
@@ -3652,15 +3641,15 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
       <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-10">
         <div className="flex items-end justify-between w-full md:w-auto">
           <div className="space-y-1 md:space-y-2">
-            <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-              <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+            <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+              <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
               {subTitle}
             </div>
             <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
               {displayTitle}
             </h2>
           </div>
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
@@ -3680,7 +3669,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
             <div 
               key={item.id} 
               className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
-              style={{ '--hover-border': `${brandColor}30`, '--hover-shadow': `0 10px 15px -3px ${brandColor}10` } as React.CSSProperties}
+              style={{ '--hover-border': `${secondary}30`, '--hover-shadow': `0 10px 15px -3px ${secondary}10` } as React.CSSProperties}
             >
               {/* Image */}
               <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-700 overflow-hidden">
@@ -3696,8 +3685,8 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                   </div>
                 )}
                 {discount && (
-                  <div className="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded text-white shadow-sm" style={{ backgroundColor: brandColor, boxShadow: `0 2px 4px ${brandColor}20` }}>
-                    {discount}
+                  <div className="absolute top-2 right-2">
+                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                   </div>
                 )}
               </div>
@@ -3719,9 +3708,9 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
 
                 <button 
                   className="w-full gap-1.5 md:gap-2 border-2 py-1.5 md:py-2 px-2 md:px-4 rounded-lg font-medium flex items-center justify-center transition-colors whitespace-nowrap text-xs md:text-sm"
-                  style={{ borderColor: `${brandColor}20`, color: brandColor }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = brandColor; e.currentTarget.style.backgroundColor = `${brandColor}08`; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}20`; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  style={{ borderColor: `${secondary}20`, color: secondary }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = secondary; e.currentTarget.style.backgroundColor = `${secondary}08`; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}20`; e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   Xem chi tiết
                   <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
@@ -3746,15 +3735,15 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-10">
           <div className="flex items-end justify-between w-full md:w-auto">
             <div className="space-y-1 md:space-y-2">
-              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
                 {subTitle}
               </div>
               <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
                 {displayTitle}
               </h2>
             </div>
-            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
+            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
               {buttonText} <ArrowRight size={16} />
             </button>
           </div>
@@ -3778,13 +3767,13 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                       <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                     )}
                     {itemDiscount && (
-                      <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>
-                        {itemDiscount}
-                      </span>
+                      <div className="absolute top-2 left-2">
+                        <BrandBadge text={itemDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      </div>
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{item.price}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{item.price}</span>
                 </div>
               );
             })}
@@ -3796,7 +3785,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
             device === 'tablet' ? 'grid-cols-3 grid-rows-2' : 'grid-cols-4 grid-rows-2'
           )}>
             {/* Hero Item (Span 2x2) */}
-            <div className="col-span-2 row-span-2 relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-transparent transition-colors" style={{ '--hover-border': `${brandColor}50`, backgroundColor: `${brandColor}10` } as React.CSSProperties}>
+            <div className="col-span-2 row-span-2 relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-transparent transition-colors" style={{ '--hover-border': `${secondary}50`, backgroundColor: `${secondary}10` } as React.CSSProperties}>
               {featured?.image ? (
                 <PreviewImage 
                   src={featured.image} 
@@ -3813,8 +3802,8 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
               
               {/* Discount Badge */}
               {discount && (
-                <div className="absolute top-4 right-4 font-bold px-3 py-1 rounded-full text-sm shadow-lg text-white" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}30` }}>
-                  {discount}
+                <div className="absolute top-4 right-4">
+                  <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
                 </div>
               )}
 
@@ -3824,7 +3813,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                 <div className="flex flex-row items-center justify-between gap-4 mt-2">
                   <span className="text-2xl font-bold text-white">{featured?.price}</span>
                   
-                  <button className="rounded-full px-6 py-2 text-white border-0 shadow-lg transition-all hover:scale-105" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}20` }}>
+                  <button className="rounded-full px-6 py-2 text-white border-0 shadow-lg transition-all hover:scale-105" style={{ backgroundColor: secondary, boxShadow: `0 4px 6px ${secondary}20` }}>
                     Xem chi tiết
                   </button>
                 </div>
@@ -3838,10 +3827,10 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                 <div 
                   key={item.id} 
                   className="col-span-1 row-span-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 flex flex-col group hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
-                  style={{ '--hover-border': `${brandColor}40` } as React.CSSProperties}
+                  style={{ '--hover-border': `${secondary}40` } as React.CSSProperties}
                 >
                   {/* Image Area */}
-                  <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${brandColor}08` }}>
+                  <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${secondary}08` }}>
                     {item.image ? (
                       <PreviewImage 
                         src={item.image} 
@@ -3856,14 +3845,14 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                     
                     {/* Discount Badge */}
                     {itemDiscount && (
-                      <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>
-                        {itemDiscount}
-                      </span>
+                      <div className="absolute top-2 left-2">
+                        <BrandBadge text={itemDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      </div>
                     )}
 
                     {/* Hover Action Button */}
                     <div className="absolute bottom-2 right-2 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: brandColor }}>
+                      <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: secondary }}>
                         <ArrowRight size={16} />
                       </div>
                     </div>
@@ -3875,7 +3864,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                       {item.name}
                     </h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: brandColor }}>
+                      <span className="text-sm font-bold" style={{ color: secondary }}>
                         {item.price}
                       </span>
                       {item.originalPrice && (
@@ -3901,8 +3890,8 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-8">
           <div className="flex items-end justify-between w-full md:w-auto">
             <div className="space-y-1 md:space-y-2">
-              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
                 {subTitle}
               </div>
               <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
@@ -3911,18 +3900,18 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
             </div>
             <div className="flex gap-2 md:hidden">
               <button className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ChevronLeft size={16} />
+                <ChevronLeft size={16} style={{ color: secondary }} />
               </button>
               <button className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ChevronRight size={16} />
+                <ChevronRight size={16} style={{ color: secondary }} />
               </button>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-3">
             <button className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <ChevronLeft size={18} />
+              <ChevronLeft size={18} style={{ color: secondary }} />
             </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors" style={{ backgroundColor: brandColor }}>
+            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors" style={{ backgroundColor: secondary }}>
               <ChevronRight size={18} />
             </button>
           </div>
@@ -3948,12 +3937,14 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                       <div className="h-full w-full flex items-center justify-center"><Package size={40} className="text-slate-300" /></div>
                     )}
                     {discount && (
-                      <span className="absolute top-2 left-2 px-2 py-1 text-[10px] font-bold text-white rounded" style={{ backgroundColor: brandColor }}>{discount}</span>
+                      <div className="absolute top-2 left-2">
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                      </div>
                     )}
                   </div>
                   <h3 className="font-medium text-slate-900 dark:text-slate-100 text-sm truncate group-hover:opacity-80 transition-colors">{item.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="font-bold text-sm" style={{ color: brandColor }}>{item.price}</span>
+                    <span className="font-bold text-sm" style={{ color: secondary }}>{item.price}</span>
                     {item.originalPrice && <span className="text-xs text-slate-400 line-through">{item.originalPrice}</span>}
                   </div>
                 </div>
@@ -3965,7 +3956,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
         {/* Dots indicator */}
         <div className="flex justify-center gap-2 mt-6">
           {[0, 1, 2].map((i) => (
-            <button key={i} className={cn("h-2 rounded-full transition-all", i === 0 ? "w-6" : "w-2 bg-slate-200 dark:bg-slate-700")} style={i === 0 ? { backgroundColor: brandColor } : {}} />
+            <button key={i} className={cn("h-2 rounded-full transition-all", i === 0 ? "w-6" : "w-2 bg-slate-200 dark:bg-slate-700")} style={i === 0 ? { backgroundColor: secondary } : {}} />
           ))}
         </div>
       </section>
@@ -3978,15 +3969,15 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
       <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-8">
         <div className="flex items-end justify-between w-full md:w-auto">
           <div className="space-y-1 md:space-y-2">
-            <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-              <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
               {subTitle}
             </div>
             <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
               {displayTitle}
             </h2>
           </div>
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
+            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
@@ -4011,11 +4002,13 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                   <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                 )}
                 {discount && (
-                  <span className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-bold text-white rounded" style={{ backgroundColor: brandColor }}>{discount}</span>
+                  <div className="absolute top-1 left-1">
+                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[9px] px-1.5 py-0.5" />
+                  </div>
                 )}
               </div>
               <h3 className="font-medium text-xs text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h3>
-              <span className="font-bold text-xs mt-0.5 block" style={{ color: brandColor }}>{item.price}</span>
+              <span className="font-bold text-xs mt-0.5 block" style={{ color: secondary }}>{item.price}</span>
             </div>
           );
         })}
@@ -4035,15 +4028,15 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between md:mb-8">
           <div className="flex items-end justify-between w-full md:w-auto">
             <div className="space-y-1 md:space-y-2">
-              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: brandColor }}>
-                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: brandColor }}></span>
+              <div className="flex items-center gap-2 font-bold text-xs md:text-sm uppercase tracking-widest" style={{ color: secondary }}>
+                <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
                 {subTitle}
               </div>
               <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
                 {displayTitle}
               </h2>
             </div>
-            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
               {buttonText} <ArrowRight size={16} />
             </button>
           </div>
@@ -4061,10 +4054,14 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                 <div key={item.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
                   <div className="relative aspect-square w-full rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden mb-2">
                     {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>}
-                    {discount && <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>{discount}</span>}
+                    {discount && (
+                      <div className="absolute top-2 left-2">
+                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      </div>
+                    )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{item.price}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{item.price}</span>
                 </div>
               );
             })}
@@ -4072,7 +4069,7 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
         ) : (
           <div className={cn("grid gap-4", device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3')}>
             {/* Featured Large Item */}
-            <div className="relative group rounded-2xl overflow-hidden cursor-pointer h-[400px] border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors" style={{ backgroundColor: `${brandColor}05` }}>
+            <div className="relative group rounded-2xl overflow-hidden cursor-pointer h-[400px] border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors" style={{ backgroundColor: `${secondary}05` }}>
               {showcaseFeatured?.image ? (
                 <PreviewImage src={showcaseFeatured.image} alt={showcaseFeatured.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               ) : (
@@ -4080,14 +4077,16 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               {featuredDiscount && (
-                <div className="absolute top-4 left-4 font-bold px-3 py-1 rounded-full text-sm shadow-lg text-white" style={{ backgroundColor: brandColor }}>{featuredDiscount}</div>
+                <div className="absolute top-4 left-4">
+                  <BrandBadge text={featuredDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                </div>
               )}
               <div className="absolute bottom-0 left-0 p-6 w-full">
-                <span className="inline-block px-2 py-1 rounded text-xs font-medium text-white/90 mb-2" style={{ backgroundColor: `${brandColor}80` }}>Nổi bật</span>
+                <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-white">{showcaseFeatured?.price}</span>
-                  <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</button>
+                  <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondary }}>Xem chi tiết</button>
                 </div>
               </div>
             </div>
@@ -4100,11 +4099,15 @@ export const ProductListPreview = ({ brandColor, itemCount, componentType, selec
                   <div key={item.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all">
                     <div className="relative aspect-square w-full rounded-lg bg-slate-50 dark:bg-slate-700 overflow-hidden mb-3">
                       {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>}
-                      {discount && <span className="absolute top-2 left-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded" style={{ backgroundColor: brandColor }}>{discount}</span>}
+                      {discount && (
+                        <div className="absolute top-2 left-2">
+                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        </div>
+                      )}
                     </div>
                     <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: brandColor }}>{item.price}</span>
+                      <span className="text-sm font-bold" style={{ color: secondary }}>{item.price}</span>
                       {item.originalPrice && <span className="text-[10px] text-slate-400 line-through">{item.originalPrice}</span>}
                     </div>
                   </div>
@@ -4143,29 +4146,13 @@ export interface ServiceListPreviewItem {
   tag?: 'new' | 'hot';
 }
 
-// Badge component for service tags (uses brandColor for hot)
-const ServiceBadge = ({ tag, brandColor }: { tag?: 'new' | 'hot'; brandColor?: string }) => {
+// Badge component for service tags
+const ServiceBadge = ({ tag, brandColor, secondary }: { tag?: 'new' | 'hot'; brandColor: string; secondary: string }) => {
   if (!tag) {return null;}
-  if (tag === 'hot' && brandColor) {
-    return (
-      <span 
-        className="inline-flex items-center rounded-sm px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-white"
-        style={{ backgroundColor: brandColor }}
-      >
-        Hot
-      </span>
-    );
+  if (tag === 'hot') {
+    return <BrandBadge text="Hot" variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />;
   }
-  return (
-    <span className={cn(
-      "inline-flex items-center rounded-sm px-2 py-1 text-[10px] font-medium uppercase tracking-widest transition-colors",
-      tag === 'hot' 
-        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
-        : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
-    )}>
-      {tag === 'hot' ? 'Hot' : 'New'}
-    </span>
-  );
+  return <BrandBadge text="New" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />;
 };
 
 // Format price helper
@@ -4180,7 +4167,7 @@ const formatServicePrice = (price?: string | number) => {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', maximumFractionDigits: 0, style: 'currency' }).format(price);
 };
 
-export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onStyleChange, items, title: propTitle }: { 
+export const ServiceListPreview = ({ brandColor, secondary, itemCount, selectedStyle, onStyleChange, items, title: propTitle }: { 
   brandColor: string;
   secondary: string; 
   itemCount: number; 
@@ -4241,14 +4228,14 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
           <div 
             key={item.id} 
             className="group cursor-pointer relative bg-white dark:bg-slate-800 border rounded-lg flex flex-col hover:-translate-y-1 transition-all duration-300 h-full p-3"
-            style={{ borderColor: `${brandColor}10` }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}30`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}10`; e.currentTarget.style.boxShadow = 'none'; }}
+            style={{ borderColor: `${secondary}10` }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}30`; e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}10`; e.currentTarget.style.boxShadow = 'none'; }}
           >
             {/* Badge */}
             {item.tag && (
               <div className="absolute z-20 top-5 left-5">
-                <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
               </div>
             )}
 
@@ -4274,10 +4261,10 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
               </h3>
 
               <div className="flex items-end justify-between mt-3">
-                <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                   {formatServicePrice(item.price)}
                 </span>
-                <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
               </div>
             </div>
           </div>
@@ -4311,13 +4298,13 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
               <div key={item.id} className="group cursor-pointer h-[160px] relative">
                 <div 
                   className="h-full border rounded-xl p-3 transition-all flex flex-col"
-                  style={{ borderColor: `${brandColor}15` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
+                  style={{ borderColor: `${secondary}15` }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; e.currentTarget.style.boxShadow = 'none'; }}
                 >
                   {item.tag && (
                     <div className="absolute z-20 top-4 left-4">
-                      <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                      <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
                     </div>
                   )}
                   <div className="flex-1 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-700 min-h-[80px] mb-2">
@@ -4330,7 +4317,7 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                     )}
                   </div>
                   <h3 className="text-sm font-medium leading-tight line-clamp-1">{item.name}</h3>
-                  <span className="text-xs font-semibold mt-1" style={{ color: brandColor }}>{formatServicePrice(item.price)}</span>
+                  <span className="text-xs font-semibold mt-1" style={{ color: secondary }}>{formatServicePrice(item.price)}</span>
                 </div>
               </div>
             ))}
@@ -4354,13 +4341,13 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                 >
                   <div 
                     className="h-full border rounded-xl p-4 transition-all flex flex-col cursor-pointer"
-                    style={{ borderColor: `${brandColor}15`, boxShadow: i === 0 ? `0 4px 20px ${brandColor}08` : 'none' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}12`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = i === 0 ? `0 4px 20px ${brandColor}08` : 'none'; }}
+                    style={{ borderColor: `${secondary}15`, boxShadow: i === 0 ? `0 4px 20px ${secondary}08` : 'none' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}12`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; e.currentTarget.style.boxShadow = i === 0 ? `0 4px 20px ${secondary}08` : 'none'; }}
                   >
                     {item.tag && (
                       <div className="absolute z-20 top-6 left-6">
-                        <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                        <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
                       </div>
                     )}
                     
@@ -4393,10 +4380,10 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                         </p>
                       )}
                       <div className="flex items-end justify-between mt-2">
-                        <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                        <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                           {formatServicePrice(item.price)}
                         </span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/bento:opacity-100 group-hover/bento:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/bento:opacity-100 group-hover/bento:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                       </div>
                     </div>
                   </div>
@@ -4441,9 +4428,9 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
           <div 
             key={item.id}
             className="group cursor-pointer flex flex-row items-center gap-4 md:gap-6 py-4 border-b px-2 rounded-lg transition-all"
-            style={{ borderColor: `${brandColor}10` }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${brandColor}05`; e.currentTarget.style.borderColor = `${brandColor}20`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = `${brandColor}10`; }}
+            style={{ borderColor: `${secondary}10` }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${secondary}05`; e.currentTarget.style.borderColor = `${secondary}20`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = `${secondary}10`; }}
           >
             {/* Image */}
             <div className={cn(
@@ -4467,17 +4454,17 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
             <div className="py-1 flex-1">
               {item.tag && (
                 <div className="mb-1">
-                  <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                  <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
               <h3 className="font-medium text-base md:text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:opacity-70 transition-colors">
                 {item.name}
               </h3>
               <div className="flex items-end justify-between mt-2">
-                <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                   {formatServicePrice(item.price)}
                 </span>
-                <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
               </div>
             </div>
           </div>
@@ -4515,14 +4502,14 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
           >
             <div 
               className="group cursor-pointer relative bg-white dark:bg-slate-800 border rounded-xl p-3 flex flex-col hover:-translate-y-1 transition-all duration-300 h-full"
-              style={{ borderColor: `${brandColor}10` }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}30`; e.currentTarget.style.boxShadow = `0 8px 20px ${brandColor}12`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}10`; e.currentTarget.style.boxShadow = 'none'; }}
+              style={{ borderColor: `${secondary}10` }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}30`; e.currentTarget.style.boxShadow = `0 8px 20px ${secondary}12`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}10`; e.currentTarget.style.boxShadow = 'none'; }}
             >
               {/* Badge */}
               {item.tag && (
                 <div className="absolute z-20 top-5 left-5">
-                  <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                  <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
 
@@ -4549,10 +4536,10 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                 </h3>
 
                 <div className="flex items-end justify-between mt-3">
-                  <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                  <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                     {formatServicePrice(item.price)}
                   </span>
-                  <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                  <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                 </div>
               </div>
             </div>
@@ -4586,7 +4573,7 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
           <div 
             key={item.id} 
             className="group cursor-pointer"
-            onMouseEnter={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = `0 8px 24px ${brandColor}15`;} }}
+            onMouseEnter={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = `0 8px 24px ${secondary}15`;} }}
             onMouseLeave={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = 'none';} }}
           >
             {/* Image - More minimal, rounded corners */}
@@ -4600,7 +4587,7 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
               )}
               {item.tag && (
                 <div className="absolute top-3 left-3">
-                  <ServiceBadge tag={item.tag} brandColor={brandColor} />
+                  <ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
             </div>
@@ -4613,9 +4600,9 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                 <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description}</p>
               )}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-base font-semibold" style={{ color: brandColor }}>{formatServicePrice(item.price)}</span>
-                <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${brandColor}80` }}>
-                  Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: brandColor }} />
+                <span className="text-base font-semibold" style={{ color: secondary }}>{formatServicePrice(item.price)}</span>
+                <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${secondary}80` }}>
+                  Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: secondary }} />
                 </span>
               </div>
             </div>
@@ -4642,16 +4629,16 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
         {device === 'mobile' ? (
           <div className="space-y-4">
             {featuredItem && (
-              <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/3]" style={{ boxShadow: `0 4px 20px ${brandColor}15` }}>
+              <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/3]" style={{ boxShadow: `0 4px 20px ${secondary}15` }}>
                 {featuredItem.image ? (
                   <PreviewImage src={featuredItem.image} alt={featuredItem.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><Briefcase size={48} className="text-slate-300" /></div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                {featuredItem.tag && <div className="absolute top-3 left-3"><ServiceBadge tag={featuredItem.tag} brandColor={brandColor} /></div>}
+                {featuredItem.tag && <div className="absolute top-3 left-3"><ServiceBadge tag={featuredItem.tag} brandColor={brandColor} secondary={secondary} /></div>}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${brandColor}cc` }}>Nổi bật</span>
+                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${secondary}cc` }}>Nổi bật</span>
                   <h3 className="text-lg font-semibold text-white mt-1">{featuredItem.name}</h3>
                   <span className="text-sm font-medium text-white/90 mt-1 block">{formatServicePrice(featuredItem.price)}</span>
                 </div>
@@ -4659,12 +4646,12 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
             )}
             <div className="grid grid-cols-2 gap-3">
               {otherItems.map((item) => (
-                <div key={item.id} className="group cursor-pointer rounded-xl p-2 transition-all" style={{ backgroundColor: 'transparent' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${brandColor}05`; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                <div key={item.id} className="group cursor-pointer rounded-xl p-2 transition-all" style={{ backgroundColor: 'transparent' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = `${secondary}05`; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
                   <div className="relative overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-xl aspect-square mb-2">
                     {item.image ? <PreviewImage src={item.image} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Briefcase size={24} className="text-slate-300" /></div>}
                   </div>
                   <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100 line-clamp-1">{item.name}</h4>
-                  <span className="text-xs font-semibold" style={{ color: brandColor }}>{formatServicePrice(item.price)}</span>
+                  <span className="text-xs font-semibold" style={{ color: secondary }}>{formatServicePrice(item.price)}</span>
                 </div>
               ))}
             </div>
@@ -4672,7 +4659,7 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
         ) : (
           <div className={cn("grid gap-4", device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3')}>
             {featuredItem && (
-              <div className={cn("group cursor-pointer relative rounded-2xl overflow-hidden", device === 'desktop' ? 'row-span-2' : 'col-span-1')} style={{ boxShadow: `0 8px 30px ${brandColor}20` }}>
+              <div className={cn("group cursor-pointer relative rounded-2xl overflow-hidden", device === 'desktop' ? 'row-span-2' : 'col-span-1')} style={{ boxShadow: `0 8px 30px ${secondary}20` }}>
                 <div className="h-full min-h-[400px]">
                   {featuredItem.image ? (
                     <PreviewImage src={featuredItem.image} alt={featuredItem.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -4681,14 +4668,14 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                   )}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                {featuredItem.tag && <div className="absolute top-4 left-4"><ServiceBadge tag={featuredItem.tag} brandColor={brandColor} /></div>}
+                {featuredItem.tag && <div className="absolute top-4 left-4"><ServiceBadge tag={featuredItem.tag} brandColor={brandColor} secondary={secondary} /></div>}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${brandColor}cc` }}>Dịch vụ nổi bật</span>
+                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${secondary}cc` }}>Dịch vụ nổi bật</span>
                   <h3 className="text-xl md:text-2xl font-semibold text-white mt-2 leading-tight">{featuredItem.name}</h3>
                   {featuredItem.description && <p className="text-sm text-white/80 mt-2 line-clamp-2">{featuredItem.description}</p>}
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-lg font-semibold text-white">{formatServicePrice(featuredItem.price)}</span>
-                    <button className="px-5 py-2.5 text-white text-sm font-medium rounded-lg transition-all hover:opacity-90 whitespace-nowrap" style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}>Xem chi tiết</button>
+                    <button className="px-5 py-2.5 text-white text-sm font-medium rounded-lg transition-all hover:opacity-90 whitespace-nowrap" style={{ backgroundColor: secondary, boxShadow: `0 4px 12px ${secondary}40` }}>Xem chi tiết</button>
                   </div>
                 </div>
               </div>
@@ -4698,18 +4685,18 @@ export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onSty
                 <div 
                   key={item.id} 
                   className="group cursor-pointer bg-white dark:bg-slate-800 border rounded-xl p-3 transition-all" 
-                  style={{ borderColor: `${brandColor}15` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
+                  style={{ borderColor: `${secondary}15` }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; e.currentTarget.style.boxShadow = 'none'; }}
                 >
                   <div className="relative overflow-hidden bg-slate-100 dark:bg-slate-700 rounded-lg aspect-[4/3] mb-3">
                     {item.image ? <PreviewImage src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center"><Briefcase size={28} className="text-slate-300" /></div>}
-                    {item.tag && <div className="absolute top-2 left-2"><ServiceBadge tag={item.tag} brandColor={brandColor} /></div>}
+                    {item.tag && <div className="absolute top-2 left-2"><ServiceBadge tag={item.tag} brandColor={brandColor} secondary={secondary} /></div>}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">{item.name}</h4>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm font-semibold" style={{ color: brandColor }}>{formatServicePrice(item.price)}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: brandColor }} />
+                    <span className="text-sm font-semibold" style={{ color: secondary }}>{formatServicePrice(item.price)}</span>
+                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
                   </div>
                 </div>
               ))}
@@ -4752,6 +4739,7 @@ export interface BlogPreviewItem {
 
 export const BlogPreview = ({ 
   brandColor, 
+  secondary: _secondary,
   postCount, 
   selectedStyle, 
   onStyleChange,
@@ -5190,7 +5178,7 @@ interface FooterConfig {
   showSocialLinks: boolean 
 }
 export type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
-export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string;
+export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string;
   secondary: string; selectedStyle?: FooterStyle; onStyleChange?: (style: FooterStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'classic';
@@ -5323,7 +5311,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
                 {config.logo ? (
                   <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" />
                 ) : (
-                  <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: brandColor }}>V</div>
+                  <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>
                 )}
               </div>
               <span className="text-base font-bold tracking-tight text-white">VietAdmin</span>
@@ -5382,7 +5370,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain drop-shadow-md" />
             ) : (
-              <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: brandColor }}>V</div>
+              <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: secondary }}>V</div>
             )}
           </div>
           <h2 className="text-base font-bold text-white tracking-tight">VietAdmin</h2>
@@ -5394,7 +5382,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
         {/* Navigation (Flat) */}
         <div className={cn("flex flex-wrap justify-center gap-x-4 gap-y-1.5", device === 'mobile' ? 'gap-x-3' : '')}>
           {getColumns().flatMap(col => col.links).slice(0, device === 'mobile' ? 4 : 8).map((link, i) => (
-            <a key={i} href={link.url} className="text-xs font-medium hover:text-white hover:underline underline-offset-4 transition-all text-white/70" style={{ textDecorationColor: brandColor }}>
+            <a key={i} href={link.url} className="text-xs font-medium hover:text-white hover:underline underline-offset-4 transition-all text-white/70" style={{ textDecorationColor: secondary }}>
               {link.label}
             </a>
           ))}
@@ -5435,7 +5423,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain" />
             ) : (
-              <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: brandColor }}>V</div>
+              <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>
             )}
             <span className="text-sm font-bold text-white">VietAdmin</span>
           </div>
@@ -5498,7 +5486,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-4 w-4 opacity-80" />
             ) : (
-              <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: brandColor }}>V</div>
+              <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: secondary }}>V</div>
             )}
             <span className="text-[10px] font-medium text-white/60">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</span>
           </div>
@@ -5527,12 +5515,12 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
         <div className="flex flex-col items-center gap-3 mb-6">
           <div 
             className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: `${brandColor}20`, border: `2px solid ${brandColor}40` }}
+            style={{ backgroundColor: `${secondary}20`, border: `2px solid ${secondary}40` }}
           >
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-7 w-7 object-contain" />
             ) : (
-              <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: brandColor }}>V</div>
+              <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: secondary }}>V</div>
             )}
           </div>
           <h2 className="text-lg font-bold text-white tracking-tight">VietAdmin</h2>
@@ -5555,7 +5543,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
                     <a 
                       href={link.url} 
                       className="text-xs hover:text-white transition-colors inline-block text-white/60"
-                      onMouseEnter={(e) => e.currentTarget.style.color = brandColor}
+                      onMouseEnter={(e) => e.currentTarget.style.color = secondary}
                       onMouseLeave={(e) => e.currentTarget.style.color = ''}
                     >
                       {link.label}
@@ -5568,7 +5556,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
         </div>
 
         {/* Divider */}
-        <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${brandColor}, transparent)` }}></div>
+        <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${secondary}, transparent)` }}></div>
 
         {/* Socials Center */}
         {config.showSocialLinks && (
@@ -5578,14 +5566,14 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
                 key={s.id} 
                 href={s.url} 
                 className="h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
-                style={{ backgroundColor: `${brandColor}20`, border: `1px solid ${brandColor}30`, color: '#fff' }}
+                style={{ backgroundColor: `${secondary}20`, border: `1px solid ${secondary}30`, color: '#fff' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = brandColor;
-                  e.currentTarget.style.borderColor = brandColor;
+                  e.currentTarget.style.backgroundColor = secondary;
+                  e.currentTarget.style.borderColor = secondary;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = `${brandColor}20`;
-                  e.currentTarget.style.borderColor = `${brandColor}30`;
+                  e.currentTarget.style.backgroundColor = `${secondary}20`;
+                  e.currentTarget.style.borderColor = `${secondary}30`;
                 }}
               >
                 {renderSocialIcon(s.platform, 16)}
@@ -5602,14 +5590,14 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
 
   // Style 6: Stacked - Tất cả elements xếp chồng vertical, mobile-first compact
   const renderStackedStyle = () => (
-    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${brandColor}` }}>
+    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${secondary}` }}>
       <div className={cn("container max-w-4xl mx-auto", device === 'mobile' ? 'px-4' : 'px-6')}>
         
         {/* Logo + Description */}
         <div className={cn("flex items-start gap-3 mb-5", device === 'mobile' ? 'flex-col items-center text-center' : '')}>
           <div 
             className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: brandColor }}
+            style={{ backgroundColor: secondary }}
           >
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" />
@@ -5636,7 +5624,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
                 key={i} 
                 href={link.url} 
                 className="text-xs font-medium text-white/60 hover:text-white transition-colors"
-                onMouseEnter={(e) => e.currentTarget.style.color = brandColor}
+                onMouseEnter={(e) => e.currentTarget.style.color = secondary}
                 onMouseLeave={(e) => e.currentTarget.style.color = ''}
               >
                 {link.label}
@@ -5657,12 +5645,12 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
                   key={s.id} 
                   href={s.url} 
                   className="h-7 w-7 flex items-center justify-center rounded-lg transition-all duration-300"
-                  style={{ backgroundColor: `${brandColor}15`, color: '#fff' }}
+                  style={{ backgroundColor: `${secondary}15`, color: '#fff' }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = brandColor;
+                    e.currentTarget.style.backgroundColor = secondary;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}15`;
+                    e.currentTarget.style.backgroundColor = `${secondary}15`;
                   }}
                 >
                   {renderSocialIcon(s.platform, 14)}
@@ -5683,7 +5671,7 @@ export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange
     corporate: '40×40px - Logo inline với brand name',
     minimal: '32×32px - Logo compact',
     modern: '48×48px - Logo trong gradient box',
-    stacked: '40×40px - Logo với brandColor background'
+    stacked: '40×40px - Logo với secondary background'
   };
 
   return (
@@ -5723,7 +5711,7 @@ interface CTAConfig {
   backgroundImage?: string;
 }
 export type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';
-export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: CTAConfig; brandColor: string;
+export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: CTAConfig; brandColor: string;
   secondary: string; selectedStyle?: CTAStyle; onStyleChange?: (style: CTAStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'banner';
@@ -5749,9 +5737,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
       )}>
         <div className={cn("flex-1", device === 'mobile' ? '' : 'max-w-lg')}>
           {config.badge && (
-            <span className="inline-block px-3 py-1 mb-3 rounded-full text-xs font-semibold bg-white/20 text-white">
-              {config.badge}
-            </span>
+            <BrandBadge text={config.badge} variant="solid" brandColor={brandColor} secondary={secondary} />
           )}
           <h3 className={cn(
             "font-bold text-white line-clamp-2",
@@ -5772,7 +5758,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
               "bg-white rounded-lg font-medium whitespace-nowrap transition-all hover:shadow-lg hover:scale-105",
               device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-6 py-3'
             )} 
-            style={{ boxShadow: `0 4px 12px ${brandColor}40`, color: brandColor }}
+            style={{ boxShadow: `0 4px 12px ${secondary}40`, color: secondary }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
@@ -5793,20 +5779,15 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
   const renderCenteredStyle = () => (
     <section 
       className={cn("w-full text-center", device === 'mobile' ? 'py-10 px-4' : 'py-16 px-6')} 
-      style={{ backgroundColor: `${brandColor}10` }}
+      style={{ backgroundColor: `${secondary}10` }}
     >
       <div className="max-w-2xl mx-auto">
         {config.badge && (
-          <span 
-            className="inline-block px-3 py-1 mb-4 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: `${brandColor}20`, color: brandColor }}
-          >
-            {config.badge}
-          </span>
+          <BrandBadge text={config.badge} variant="default" brandColor={brandColor} secondary={secondary} />
         )}
         <h3 
           className={cn("font-bold line-clamp-2", device === 'mobile' ? 'text-xl' : 'text-3xl')} 
-          style={{ color: brandColor }}
+          style={{ color: secondary }}
         >
           {config.title || 'Sẵn sàng bắt đầu?'}
         </h3>
@@ -5822,7 +5803,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
               "rounded-lg font-medium text-white whitespace-nowrap transition-all hover:scale-105",
               device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-3'
             )} 
-            style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+            style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
@@ -5832,7 +5813,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
                 "border-2 rounded-lg font-medium whitespace-nowrap hover:bg-opacity-10 transition-all",
                 device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-3'
               )} 
-              style={{ borderColor: brandColor, color: brandColor }}
+              style={{ borderColor: brandColor, color: secondary }}
             >
               {config.secondaryButtonText}
             </button>
@@ -5862,7 +5843,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
               "rounded-xl flex items-center justify-center flex-shrink-0",
               device === 'mobile' ? 'w-12 h-12' : 'w-14 h-14'
             )}
-            style={{ backgroundColor: `${brandColor}15` }}
+            style={{ backgroundColor: `${brandColor}10` }}
           >
             <Rocket size={device === 'mobile' ? 24 : 28} style={{ color: brandColor }} />
           </div>
@@ -5870,12 +5851,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
           {/* Content */}
           <div className="flex-1">
             {config.badge && (
-              <span 
-                className="inline-block px-2.5 py-0.5 mb-2 rounded text-xs font-semibold"
-                style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
-              >
-                {config.badge}
-              </span>
+              <BrandBadge text={config.badge} variant="minimal" brandColor={brandColor} secondary={secondary} />
             )}
             <h3 className={cn(
               "font-bold text-slate-900 dark:text-white line-clamp-2",
@@ -5907,7 +5883,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
                     "border rounded-lg font-medium whitespace-nowrap transition-all hover:bg-slate-50 dark:hover:bg-slate-700",
                     device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-5 py-2.5'
                   )}
-                  style={{ borderColor: `${brandColor}30`, color: brandColor }}
+                  style={{ borderColor: `${secondary}30`, color: secondary }}
                 >
                   {config.secondaryButtonText}
                 </button>
@@ -5928,8 +5904,8 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
           device === 'mobile' ? 'p-5' : 'p-8'
         )}
         style={{ 
-          borderColor: `${brandColor}20`,
-          boxShadow: `0 20px 40px ${brandColor}15`
+          borderColor: `${secondary}20`,
+          boxShadow: `0 20px 40px ${secondary}15`
         }}
       >
         <div className={cn(
@@ -5938,13 +5914,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
         )}>
           <div className={cn("flex-1", device === 'mobile' ? '' : 'max-w-md')}>
             {config.badge && (
-              <span 
-                className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full text-xs font-semibold"
-                style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
-              >
-                <Zap size={12} />
-                {config.badge}
-              </span>
+              <BrandBadge text={`⚡ ${config.badge}`} variant="default" brandColor={brandColor} secondary={secondary} />
             )}
             <h3 className={cn(
               "font-bold text-slate-900 dark:text-white line-clamp-2",
@@ -5965,7 +5935,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
                 "rounded-xl font-medium text-white whitespace-nowrap transition-all hover:scale-105",
                 device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-6 py-3'
               )} 
-              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
             >
               {config.buttonText || 'Bắt đầu ngay'}
             </button>
@@ -5975,7 +5945,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
                   "rounded-xl font-medium whitespace-nowrap transition-all hover:bg-slate-100 dark:hover:bg-slate-700",
                   device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-6 py-3'
                 )}
-                style={{ color: brandColor }}
+              style={{ color: secondary }}
               >
                 {config.secondaryButtonText}
               </button>
@@ -5991,7 +5961,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
     <section 
       className={cn("w-full relative overflow-hidden", device === 'mobile' ? 'py-10 px-4' : 'py-16 px-6')}
       style={{ 
-        background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 50%, ${brandColor}99 100%)`
+        background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 50%, ${brandColor} 100%)`
       }}
     >
       {/* Decorative circles */}
@@ -6006,10 +5976,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
       
       <div className="max-w-3xl mx-auto text-center relative z-10">
         {config.badge && (
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
-            <Star size={12} className="fill-white" />
-            {config.badge}
-          </span>
+          <BrandBadge text={`★ ${config.badge}`} variant="solid" brandColor={brandColor} secondary={secondary} />
         )}
         <h3 className={cn(
           "font-bold text-white line-clamp-2",
@@ -6029,7 +5996,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
               "bg-white rounded-full font-semibold whitespace-nowrap transition-all hover:scale-105 hover:shadow-xl",
               device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-4'
             )} 
-            style={{ boxShadow: `0 8px 24px rgba(0,0,0,0.2)`, color: brandColor }}
+            style={{ boxShadow: `0 8px 24px rgba(0,0,0,0.2)`, color: secondary }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
@@ -6051,17 +6018,14 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
     <section className={cn(
       "w-full border-y",
       device === 'mobile' ? 'py-8 px-4' : 'py-12 px-6'
-    )} style={{ borderColor: `${brandColor}20` }}>
+    )} style={{ borderColor: `${secondary}20` }}>
       <div className={cn(
         "max-w-4xl mx-auto flex items-center",
         device === 'mobile' ? 'flex-col text-center gap-5' : 'justify-between gap-8'
       )}>
         <div className="flex items-center gap-4">
           {/* Accent line */}
-          <div 
-            className={cn("w-1 rounded-full flex-shrink-0", device === 'mobile' ? 'hidden' : 'h-16')}
-            style={{ backgroundColor: brandColor }}
-          />
+          <AccentLine orientation="vertical" thickness="thick" className={cn(device === 'mobile' ? 'hidden' : 'h-16')} brandColor={brandColor} secondary={secondary} />
           <div>
             <h3 className={cn(
               "font-bold text-slate-900 dark:text-white line-clamp-1",
@@ -6083,7 +6047,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
               "rounded-lg font-medium text-white whitespace-nowrap transition-all hover:scale-105",
               device === 'mobile' ? 'flex-1 px-4 py-3 min-h-[44px] text-sm' : 'px-6 py-2.5'
             )} 
-            style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}30` }}
+            style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}30` }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
@@ -6093,7 +6057,7 @@ export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }:
                 "border rounded-lg font-medium whitespace-nowrap transition-all hover:bg-slate-50 dark:hover:bg-slate-800",
                 device === 'mobile' ? 'flex-1 px-4 py-3 min-h-[44px] text-sm' : 'px-6 py-2.5'
               )}
-              style={{ borderColor: `${brandColor}30`, color: brandColor }}
+              style={{ borderColor: `${secondary}30`, color: secondary }}
             >
               {config.secondaryButtonText}
             </button>
@@ -6637,7 +6601,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
 interface BenefitItem { id: number; icon: string; title: string; description: string }
 export type BenefitsStyle = 'cards' | 'list' | 'bento' | 'row' | 'carousel' | 'timeline';
 export interface BenefitsConfig { subHeading?: string; heading?: string; buttonText?: string; buttonLink?: string }
-export const BenefitsPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: BenefitItem[]; brandColor: string;
+export const BenefitsPreview = ({ items, brandColor, secondary: _secondary, selectedStyle, onStyleChange, config }: { items: BenefitItem[]; brandColor: string;
   secondary: string; selectedStyle?: BenefitsStyle; onStyleChange?: (style: BenefitsStyle) => void; config?: BenefitsConfig }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'cards';
@@ -6953,7 +6917,7 @@ export const BenefitsPreview = ({ items, brandColor, selectedStyle, onStyleChang
 // ============ CASE STUDY / PROJECTS PREVIEW ============
 interface ProjectItem { id: number; title: string; category: string; image: string; description: string; link: string }
 export type CaseStudyStyle = 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
-export const CaseStudyPreview = ({ projects, brandColor, selectedStyle, onStyleChange }: { projects: ProjectItem[]; brandColor: string;
+export const CaseStudyPreview = ({ projects, brandColor, secondary: _secondary, selectedStyle, onStyleChange }: { projects: ProjectItem[]; brandColor: string;
   secondary: string; selectedStyle?: CaseStudyStyle; onStyleChange?: (style: CaseStudyStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -8016,7 +7980,7 @@ const getSocialIcon = (platform: string) => {
   }
 };
 
-export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: ContactConfig; brandColor: string;
+export const ContactPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: ContactConfig; brandColor: string;
   secondary: string; selectedStyle?: ContactStyle; onStyleChange?: (style: ContactStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'modern';
@@ -8074,18 +8038,14 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
         {/* Left Content */}
         <div className={cn("p-6 lg:p-10 flex flex-col justify-center bg-white dark:bg-slate-800", device === 'mobile' ? 'w-full' : 'lg:w-1/2')}>
           <div className="max-w-md mx-auto w-full">
-            <span className="inline-block py-1 px-3 rounded-full text-xs font-semibold tracking-wide uppercase mb-4" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-              Thông tin liên hệ
-            </span>
+            <BrandBadge text="Thông tin liên hệ" variant="default" brandColor={brandColor} secondary={secondary} />
             <h2 className={cn("font-bold tracking-tight mb-6 text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
               Kết nối với chúng tôi
             </h2>
 
             <div className="space-y-5">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 mt-0.5">
-                  <MapPin size={16} />
-                </div>
+                <IconContainer icon={<MapPin size={16} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm mb-0.5">Địa chỉ văn phòng</h4>
                   <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{config.address || '123 Nguyễn Huệ, Q1, TP.HCM'}</p>
@@ -8093,9 +8053,7 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 mt-0.5">
-                  <Mail size={16} />
-                </div>
+                <IconContainer icon={<Mail size={16} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm mb-0.5">Email & Điện thoại</h4>
                   <p className="text-slate-500 dark:text-slate-400 text-sm">{config.email || 'contact@example.com'}</p>
@@ -8104,9 +8062,7 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 mt-0.5">
-                  <Clock size={16} />
-                </div>
+                <IconContainer icon={<Clock size={16} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm mb-0.5">Giờ làm việc</h4>
                   <p className="text-slate-500 dark:text-slate-400 text-sm">{config.workingHours || 'Thứ 2 - Thứ 6: 8:00 - 17:00'}</p>
@@ -8189,27 +8145,21 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
       <div className={cn("grid gap-3 mb-6", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
         {/* Card 1: Phone */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col items-center text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            <Phone size={18} />
-          </div>
+          <IconContainer icon={<Phone size={18} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="mb-3" />
           <h3 className="font-medium text-sm text-slate-500 dark:text-slate-400 mb-1">Điện thoại</h3>
           <p className="font-semibold text-slate-900 dark:text-slate-100">{config.phone || '1900 1234'}</p>
         </div>
 
         {/* Card 2: Email */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col items-center text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            <Mail size={18} />
-          </div>
+          <IconContainer icon={<Mail size={18} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="mb-3" />
           <h3 className="font-medium text-sm text-slate-500 dark:text-slate-400 mb-1">Email</h3>
           <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{config.email || 'contact@example.com'}</p>
         </div>
 
         {/* Card 3: Working Hours */}
         <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col items-center text-center">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            <Clock size={18} />
-          </div>
+          <IconContainer icon={<Clock size={18} />} variant="tint" size="sm" brandColor={brandColor} secondary={secondary} className="mb-3" />
           <h3 className="font-medium text-sm text-slate-500 dark:text-slate-400 mb-1">Giờ làm việc</h3>
           <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{config.workingHours || 'T2-T6: 8:00-17:00'}</p>
         </div>
@@ -8240,8 +8190,8 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
     <div className="w-full bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-700/40 rounded-xl shadow-sm overflow-hidden">
       {/* Top Header Section */}
       <div className="bg-slate-50 dark:bg-slate-800/50 p-6 border-b border-slate-200 dark:border-slate-700 text-center">
-        <div className="inline-flex items-center justify-center w-11 h-11 rounded-full mb-3" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
-          <Building2 size={22} />
+        <div className="flex justify-center mb-3">
+          <IconContainer icon={<Building2 size={22} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} />
         </div>
         <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-lg' : 'text-xl')}>Văn phòng của chúng tôi</h2>
         <p className="text-slate-500 dark:text-slate-400 mt-1.5 max-w-lg mx-auto text-sm">
@@ -8255,7 +8205,7 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
           <div className="py-4 first:pt-0">
             <p className="text-[10px] font-semibold uppercase text-slate-500 mb-1.5">Địa chỉ</p>
             <div className="flex items-start gap-2.5">
-              <MapPin size={16} className="text-slate-600 dark:text-slate-400 shrink-0 mt-0.5" />
+              <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: brandColor }} />
               <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{config.address || '123 Nguyễn Huệ, Q1, TP.HCM'}</span>
             </div>
           </div>
@@ -8264,11 +8214,11 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
             <p className="text-[10px] font-semibold uppercase text-slate-500 mb-1.5">Liên lạc</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2.5">
-                <Phone size={16} className="text-slate-600 dark:text-slate-400 shrink-0" />
+                <Phone size={16} className="shrink-0" style={{ color: brandColor }} />
                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{config.phone || '1900 1234'}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail size={16} className="text-slate-600 dark:text-slate-400 shrink-0" />
+                <Mail size={16} className="shrink-0" style={{ color: brandColor }} />
                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{config.email || 'contact@example.com'}</span>
               </div>
             </div>
@@ -8277,7 +8227,7 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
           <div className="py-4 last:pb-0">
             <p className="text-[10px] font-semibold uppercase text-slate-500 mb-1.5">Thời gian</p>
             <div className="flex items-center gap-2.5">
-              <Clock size={16} className="text-slate-600 dark:text-slate-400 shrink-0" />
+              <Clock size={16} className="shrink-0" style={{ color: brandColor }} />
               <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{config.workingHours || 'T2-T6: 8:00-17:00'}</span>
             </div>
           </div>
@@ -8303,22 +8253,22 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
         </div>
         <div className={cn("grid gap-4", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4')}>
           <a href={`tel:${config.phone}`} className="flex flex-col items-center p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all text-center group">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Phone size={20} /></div>
+            <IconContainer icon={<Phone size={20} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="mb-3" />
             <span className="text-xs text-slate-500 mb-1">Điện thoại</span>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{config.phone || '1900 1234'}</span>
           </a>
           <a href={`mailto:${config.email}`} className="flex flex-col items-center p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all text-center group">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Mail size={20} /></div>
+            <IconContainer icon={<Mail size={20} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="mb-3" />
             <span className="text-xs text-slate-500 mb-1">Email</span>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate max-w-full">{config.email || 'contact@example.com'}</span>
           </a>
           <div className="flex flex-col items-center p-5 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><MapPin size={20} /></div>
+            <IconContainer icon={<MapPin size={20} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="mb-3" />
             <span className="text-xs text-slate-500 mb-1">Địa chỉ</span>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">{config.address || '123 Nguyễn Huệ, Q1, TP.HCM'}</span>
           </div>
           <div className="flex flex-col items-center p-5 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Clock size={20} /></div>
+            <IconContainer icon={<Clock size={20} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="mb-3" />
             <span className="text-xs text-slate-500 mb-1">Giờ làm việc</span>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{config.workingHours || 'T2-T6: 8:00-17:00'}</span>
           </div>
@@ -8337,28 +8287,30 @@ export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChang
   const renderCenteredStyle = () => (
     <div className="w-full bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-700/40 rounded-xl overflow-hidden shadow-sm">
       <div className="text-center p-6 lg:p-10" style={{ backgroundColor: `${brandColor}05` }}>
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Phone size={28} /></div>
+        <div className="flex justify-center mb-5">
+          <IconContainer icon={<Phone size={28} />} variant="tint" size="lg" brandColor={brandColor} secondary={secondary} />
+        </div>
         <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-2", device === 'mobile' ? 'text-xl' : 'text-2xl')}>Hãy kết nối với chúng tôi</h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto">Đội ngũ của chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn</p>
       </div>
       <div className="p-6 lg:p-8">
         <div className={cn("grid gap-6", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
           <a href={`tel:${config.phone}`} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Phone size={18} /></div>
+            <IconContainer icon={<Phone size={18} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="shrink-0" />
             <div><p className="text-xs text-slate-500 mb-0.5">Hotline</p><p className="text-sm font-bold text-slate-900 dark:text-slate-100">{config.phone || '1900 1234'}</p></div>
           </a>
           <a href={`mailto:${config.email}`} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Mail size={18} /></div>
+            <IconContainer icon={<Mail size={18} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="shrink-0" />
             <div><p className="text-xs text-slate-500 mb-0.5">Email</p><p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{config.email || 'contact@example.com'}</p></div>
           </a>
           <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Clock size={18} /></div>
+            <IconContainer icon={<Clock size={18} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="shrink-0" />
             <div><p className="text-xs text-slate-500 mb-0.5">Giờ làm việc</p><p className="text-sm font-bold text-slate-900 dark:text-slate-100">{config.workingHours || 'T2-T6: 8:00-17:00'}</p></div>
           </div>
         </div>
         <div className={cn("mt-6 p-5 rounded-xl bg-slate-50 dark:bg-slate-800/50", device === 'mobile' ? '' : 'flex items-start gap-6')}>
           <div className="flex items-start gap-3 flex-1">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><MapPin size={18} /></div>
+            <IconContainer icon={<MapPin size={18} />} variant="tint" size="md" brandColor={brandColor} secondary={secondary} className="shrink-0" />
             <div><p className="text-xs text-slate-500 mb-0.5">Địa chỉ văn phòng</p><p className="text-sm font-medium text-slate-900 dark:text-slate-100">{config.address || '123 Nguyễn Huệ, Q1, TP.HCM'}</p></div>
           </div>
           {config.showMap && (<div className={cn("rounded-lg overflow-hidden shrink-0", device === 'mobile' ? 'w-full h-40 mt-4' : 'w-64 h-28')}>{renderMapOrPlaceholder()}</div>)}
@@ -8435,6 +8387,7 @@ const TrustBadgesAutoScroll = ({ children, speed = 0.6, isPaused }: { children: 
 export const TrustBadgesPreview = ({ 
   items, 
   brandColor, 
+  secondary,
   selectedStyle, 
   onStyleChange,
   config
@@ -8473,8 +8426,8 @@ export const TrustBadgesPreview = ({
   // Empty State Component
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <Shield size={36} style={{ color: brandColor }} />
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+        <Shield size={36} style={{ color: secondary }} />
       </div>
       <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Chưa có chứng nhận</h3>
       <p className="text-sm text-slate-500 max-w-xs">Thêm chứng nhận, giải thưởng hoặc badge để tăng độ tin cậy</p>
@@ -8485,10 +8438,9 @@ export const TrustBadgesPreview = ({
   const SectionHeader = ({ centered = true }: { centered?: boolean }) => (
     <div className={cn("mb-8 md:mb-10", centered && "text-center")}>
       {subHeading && (
-        <span className="inline-block px-3 py-1 mb-3 rounded-full text-xs font-semibold uppercase tracking-wider" 
-          style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-          {subHeading}
-        </span>
+        <div className="mb-3">
+          <BrandBadge text={subHeading} variant="default" brandColor={brandColor} secondary={secondary} />
+        </div>
       )}
       <h2 className={cn(
         "font-bold text-slate-900 dark:text-slate-100",
@@ -8502,7 +8454,7 @@ export const TrustBadgesPreview = ({
   // +N More Items Badge
   const MoreItemsBadge = ({ count }: { count: number }) => count > 0 ? (
     <div className="flex items-center justify-center py-4 mt-4">
-      <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+      <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>
         +{count} chứng nhận khác
       </span>
     </div>
@@ -8524,16 +8476,16 @@ export const TrustBadgesPreview = ({
                   key={item.id} 
                   className="group relative aspect-square bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300"
                   style={{ 
-                    border: `1px solid ${brandColor}15`,
+                    border: `1px solid ${secondary}15`,
                     padding: device === 'mobile' ? '16px' : '20px'
                   }}
                   onMouseEnter={(e) => { 
-                    e.currentTarget.style.borderColor = `${brandColor}40`; 
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}15`; 
+                    e.currentTarget.style.borderColor = `${secondary}40`; 
+                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}15`; 
                     e.currentTarget.style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={(e) => { 
-                    e.currentTarget.style.borderColor = `${brandColor}15`; 
+                    e.currentTarget.style.borderColor = `${secondary}15`; 
                     e.currentTarget.style.boxShadow = 'none';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
@@ -8544,8 +8496,8 @@ export const TrustBadgesPreview = ({
                     <ImageIcon size={device === 'mobile' ? 32 : 40} className="text-slate-300" />
                   )}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-                      <Maximize2 size={14} style={{ color: brandColor }} />
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}>
+                      <Maximize2 size={14} style={{ color: secondary }} />
                     </div>
                   </div>
                   {item.name && (
@@ -8558,10 +8510,10 @@ export const TrustBadgesPreview = ({
               {remainingCount > 0 && (
                 <div 
                   className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all"
-                  style={{ backgroundColor: `${brandColor}05`, border: `2px dashed ${brandColor}30` }}
+                  style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}30` }}
                 >
-                  <Plus size={28} style={{ color: brandColor }} className="mb-1" />
-                  <span className="text-lg font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+                  <Plus size={28} style={{ color: secondary }} className="mb-1" />
+                  <span className="text-lg font-bold" style={{ color: secondary }}>+{remainingCount}</span>
                   <span className="text-[10px] text-slate-400">xem thêm</span>
                 </div>
               )}
@@ -8590,34 +8542,34 @@ export const TrustBadgesPreview = ({
                   <div 
                     key={item.id} 
                     className="group relative flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm cursor-pointer h-full transition-all duration-300"
-                    style={{ border: `1px solid ${brandColor}15` }}
+                    style={{ border: `1px solid ${secondary}15` }}
                     onMouseEnter={(e) => { 
-                      e.currentTarget.style.borderColor = `${brandColor}30`; 
-                      e.currentTarget.style.boxShadow = `0 12px 32px ${brandColor}15`; 
+                      e.currentTarget.style.borderColor = `${secondary}30`; 
+                      e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
                     }}
                     onMouseLeave={(e) => { 
-                      e.currentTarget.style.borderColor = `${brandColor}15`; 
+                      e.currentTarget.style.borderColor = `${secondary}15`; 
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                     }}
                   >
                     <div className={cn("bg-slate-50 dark:bg-slate-700/30 flex items-center justify-center relative overflow-hidden", device === 'mobile' ? 'aspect-[4/3] p-6' : 'aspect-[5/4] p-10')}>
-                      <div className="absolute inset-0 bg-blue-50/0 group-hover:bg-blue-50/30 dark:group-hover:bg-blue-900/20 transition-colors duration-300" />
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-colors duration-300" style={{ backgroundColor: `${secondary}08` }} />
                       {item.url ? (
                         <PreviewImage src={item.url} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 z-10" alt={item.name ?? 'Chứng nhận'} />
                       ) : (
                         <ImageIcon size={48} className="text-slate-300" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                        <span className="bg-white/90 dark:bg-slate-800/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: brandColor }}>
+                        <span className="bg-white/90 dark:bg-slate-800/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: secondary }}>
                           <ZoomIn size={16} /> Xem chi tiết
                         </span>
                       </div>
                     </div>
-                    <div className={cn("bg-white dark:bg-slate-800 border-t flex items-center justify-between group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 transition-colors", device === 'mobile' ? 'py-3 px-4 min-h-[48px]' : 'py-4 px-5')} style={{ borderColor: `${brandColor}10` }}>
-                      <span className="font-semibold truncate text-sm" style={{ color: brandColor }}>
+                    <div className={cn("bg-white dark:bg-slate-800 border-t flex items-center justify-between group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 transition-colors", device === 'mobile' ? 'py-3 px-4 min-h-[48px]' : 'py-4 px-5')} style={{ borderColor: `${secondary}10` }}>
+                      <span className="font-semibold truncate text-sm" style={{ color: secondary }}>
                         {item.name ?? 'Chứng nhận'}
                       </span>
-                      <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: brandColor }} />
+                      <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
                     </div>
                   </div>
                 ))}
@@ -8634,7 +8586,7 @@ export const TrustBadgesPreview = ({
   const renderMarqueeStyle = () => (
     <section 
       className={cn("w-full border-y", device === 'mobile' ? 'py-10' : 'py-14')}
-      style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}15` }}
+      style={{ backgroundColor: `${secondary}05`, borderColor: `${secondary}15` }}
       onMouseEnter={() =>{  setIsPaused(true); }}
       onMouseLeave={() =>{  setIsPaused(false); }}
     >
@@ -8656,8 +8608,8 @@ export const TrustBadgesPreview = ({
                 </div>
               )}
               {item.name && (
-                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded text-xs font-medium opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none" style={{ backgroundColor: brandColor, color: 'white' }}>
-                  {item.name}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <BrandBadge text={item.name} variant="solid" brandColor={brandColor} secondary={secondary} />
                 </div>
               )}
             </div>
@@ -8672,7 +8624,7 @@ export const TrustBadgesPreview = ({
     const wallItems = items.slice(0, device === 'mobile' ? 4 : 6);
     const wallRemaining = items.length - wallItems.length;
     return (
-      <section className={cn("w-full", device === 'mobile' ? 'py-10 px-3' : 'py-12 px-6')} style={{ backgroundColor: `${brandColor}05` }}>
+      <section className={cn("w-full", device === 'mobile' ? 'py-10 px-3' : 'py-12 px-6')} style={{ backgroundColor: `${secondary}05` }}>
         <div className="container max-w-7xl mx-auto">
           <SectionHeader />
           {items.length === 0 ? <EmptyState /> : (
@@ -8688,9 +8640,9 @@ export const TrustBadgesPreview = ({
                       "group relative bg-white dark:bg-slate-800 shadow-md rounded-sm flex flex-col cursor-pointer transition-all duration-300",
                       device === 'mobile' ? 'w-[140px] h-[180px] p-2' : 'w-[160px] h-[210px] p-3'
                     )}
-                    style={{ border: `1px solid ${brandColor}15` }}
+                    style={{ border: `1px solid ${secondary}15` }}
                     onMouseEnter={(e) => { 
-                      e.currentTarget.style.boxShadow = `0 12px 24px ${brandColor}20`; 
+                      e.currentTarget.style.boxShadow = `0 12px 24px ${secondary}20`; 
                       e.currentTarget.style.transform = 'translateY(-8px)';
                     }}
                     onMouseLeave={(e) => { 
@@ -8699,8 +8651,8 @@ export const TrustBadgesPreview = ({
                     }}
                   >
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-gradient-to-b from-slate-400 to-transparent opacity-40"></div>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `${brandColor}60` }}></div>
-                    <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}10` }}>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `${secondary}60` }}></div>
+                    <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}10` }}>
                       {item.url ? (
                         <PreviewImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? 'Chứng nhận'} />
                       ) : (
@@ -8708,7 +8660,7 @@ export const TrustBadgesPreview = ({
                       )}
                     </div>
                     <div className={cn("flex items-center justify-center", device === 'mobile' ? 'h-7 mt-1' : 'h-8 mt-1')}>
-                      <span className={cn("font-semibold uppercase tracking-wider text-center truncate px-1", device === 'mobile' ? 'text-[8px]' : 'text-[9px]')} style={{ color: `${brandColor}cc` }}>
+                      <span className={cn("font-semibold uppercase tracking-wider text-center truncate px-1", device === 'mobile' ? 'text-[8px]' : 'text-[9px]')} style={{ color: secondary }}>
                         {item.name ? (item.name.length > 18 ? item.name.slice(0, 16) + '...' : item.name) : 'Certificate'}
                       </span>
                     </div>
@@ -8739,17 +8691,17 @@ export const TrustBadgesPreview = ({
                     onClick={() =>{  setCarouselIndex(Math.max(0, carouselIndex - 1)); }}
                     disabled={carouselIndex === 0}
                     className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all", carouselIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110')}
-                    style={{ border: `1px solid ${brandColor}20`, left: device === 'mobile' ? '-4px' : '-16px' }}
+                    style={{ border: `1px solid ${secondary}20`, left: device === 'mobile' ? '-4px' : '-16px' }}
                   >
-                    <ChevronLeft size={20} style={{ color: brandColor }} />
+                    <ChevronLeft size={20} style={{ color: secondary }} />
                   </button>
                   <button
                     onClick={() =>{  setCarouselIndex(Math.min(maxIndex, carouselIndex + 1)); }}
                     disabled={carouselIndex >= maxIndex}
                     className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all", carouselIndex >= maxIndex ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110')}
-                    style={{ border: `1px solid ${brandColor}20`, right: device === 'mobile' ? '-4px' : '-16px' }}
+                    style={{ border: `1px solid ${secondary}20`, right: device === 'mobile' ? '-4px' : '-16px' }}
                   >
-                    <ChevronRight size={20} style={{ color: brandColor }} />
+                    <ChevronRight size={20} style={{ color: secondary }} />
                   </button>
                 </>
               )}
@@ -8763,14 +8715,14 @@ export const TrustBadgesPreview = ({
                     >
                       <div 
                         className="aspect-square rounded-xl flex items-center justify-center transition-all duration-300"
-                        style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}15`, padding: device === 'mobile' ? '12px' : '16px' }}
+                        style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15`, padding: device === 'mobile' ? '12px' : '16px' }}
                         onMouseEnter={(e) => { 
-                          e.currentTarget.style.borderColor = `${brandColor}40`; 
-                          e.currentTarget.style.boxShadow = `0 8px 20px ${brandColor}15`; 
+                          e.currentTarget.style.borderColor = `${secondary}40`; 
+                          e.currentTarget.style.boxShadow = `0 8px 20px ${secondary}15`; 
                           e.currentTarget.style.transform = 'translateY(-4px)';
                         }}
                         onMouseLeave={(e) => { 
-                          e.currentTarget.style.borderColor = `${brandColor}15`; 
+                          e.currentTarget.style.borderColor = `${secondary}15`; 
                           e.currentTarget.style.boxShadow = 'none';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
@@ -8791,7 +8743,7 @@ export const TrustBadgesPreview = ({
               {items.length > itemsPerView && (
                 <div className="flex justify-center gap-2 mt-6">
                   {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? brandColor : `${brandColor}30` }} />
+                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? secondary : `${secondary}30` }} />
                   ))}
                 </div>
               )}
@@ -8816,13 +8768,13 @@ export const TrustBadgesPreview = ({
               {featuredItem && (
                 <div 
                   className="group cursor-pointer rounded-2xl overflow-hidden transition-all duration-300"
-                  style={{ backgroundColor: `${brandColor}08`, border: `2px solid ${brandColor}20` }}
+                  style={{ backgroundColor: `${secondary}08`, border: `2px solid ${secondary}20` }}
                   onMouseEnter={(e) => { 
-                    e.currentTarget.style.borderColor = `${brandColor}40`; 
-                    e.currentTarget.style.boxShadow = `0 12px 32px ${brandColor}15`; 
+                    e.currentTarget.style.borderColor = `${secondary}40`; 
+                    e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
                   }}
                   onMouseLeave={(e) => { 
-                    e.currentTarget.style.borderColor = `${brandColor}20`; 
+                    e.currentTarget.style.borderColor = `${secondary}20`; 
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -8833,18 +8785,16 @@ export const TrustBadgesPreview = ({
                       <ImageIcon size={64} className="text-slate-300" />
                     )}
                     <div className="absolute top-3 left-3">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: brandColor }}>
-                        NỔI BẬT
-                      </span>
+                      <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} />
                     </div>
                     <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: brandColor }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: secondary }}>
                         <ZoomIn size={20} />
                       </div>
                     </div>
                   </div>
-                  <div className={cn("border-t flex items-center justify-center", device === 'mobile' ? 'py-3 min-h-[48px]' : 'py-4')} style={{ borderColor: `${brandColor}15` }}>
-                    <span className="font-bold text-base" style={{ color: brandColor }}>
+                  <div className={cn("border-t flex items-center justify-center", device === 'mobile' ? 'py-3 min-h-[48px]' : 'py-4')} style={{ borderColor: `${secondary}15` }}>
+                    <span className="font-bold text-base" style={{ color: secondary }}>
                       {featuredItem.name ?? 'Chứng nhận nổi bật'}
                     </span>
                   </div>
@@ -8855,13 +8805,13 @@ export const TrustBadgesPreview = ({
                   <div 
                     key={item.id} 
                     className="group aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300"
-                    style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}15`, padding: device === 'mobile' ? '10px' : '12px' }}
+                    style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15`, padding: device === 'mobile' ? '10px' : '12px' }}
                     onMouseEnter={(e) => { 
-                      e.currentTarget.style.borderColor = `${brandColor}40`; 
-                      e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; 
+                      e.currentTarget.style.borderColor = `${secondary}40`; 
+                      e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; 
                     }}
                     onMouseLeave={(e) => { 
-                      e.currentTarget.style.borderColor = `${brandColor}15`; 
+                      e.currentTarget.style.borderColor = `${secondary}15`; 
                       e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
@@ -8875,10 +8825,10 @@ export const TrustBadgesPreview = ({
                 {featuredRemaining > 0 && (
                   <div 
                     className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer"
-                    style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
+                    style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
                   >
-                    <Plus size={24} style={{ color: brandColor }} />
-                    <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>+{featuredRemaining}</span>
+                    <Plus size={24} style={{ color: secondary }} />
+                    <span className="text-sm font-bold mt-1" style={{ color: secondary }}>+{featuredRemaining}</span>
                   </div>
                 )}
               </div>
@@ -8968,6 +8918,7 @@ const SpeedDialIcon = ({ name, size = 20 }: { name: string; size?: number }) => 
 export const SpeedDialPreview = ({ 
   config, 
   brandColor, 
+  secondary: _secondary,
   selectedStyle, 
   onStyleChange 
 }: { 
@@ -9298,9 +9249,9 @@ export const ProductCategoriesPreview = ({
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <div 
         className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-        style={{ backgroundColor: `${brandColor}10` }}
+        style={{ backgroundColor: `${secondary}10` }}
       >
-        <Package size={32} style={{ color: brandColor }} />
+        <Package size={32} style={{ color: secondary }} />
       </div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có danh mục nào</h3>
       <p className="text-sm text-slate-500">Thêm danh mục để bắt đầu hiển thị</p>
@@ -9345,7 +9296,7 @@ export const ProductCategoriesPreview = ({
     return (
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
         <div className="max-w-7xl mx-auto">
-          <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')} style={{ color: brandColor }}>
+          <h2 className={cn("font-bold mb-6 text-center text-slate-900 dark:text-slate-100", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
             Danh mục sản phẩm
           </h2>
           
@@ -9356,14 +9307,14 @@ export const ProductCategoriesPreview = ({
                   key={cat.itemId} 
                   className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                   style={{ 
-                    boxShadow: `0 2px 8px ${brandColor}10`,
+                    boxShadow: `0 2px 8px ${secondary}10`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
+                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}25`;
                     e.currentTarget.style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = `0 2px 8px ${brandColor}10`;
+                    e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}10`;
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
@@ -9382,10 +9333,10 @@ export const ProductCategoriesPreview = ({
               {remainingCount > 0 && resolvedCategories.length > 2 && (
                 <div 
                   className="flex flex-col items-center justify-center aspect-square rounded-xl cursor-pointer transition-all"
-                  style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
+                  style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
                 >
-                  <Plus size={isMobile ? 24 : 32} style={{ color: brandColor }} className="mb-2" />
-                  <span className={cn("font-bold", isMobile ? 'text-base' : 'text-lg')} style={{ color: brandColor }}>
+                  <Plus size={isMobile ? 24 : 32} style={{ color: secondary }} className="mb-2" />
+                  <span className={cn("font-bold", isMobile ? 'text-base' : 'text-lg')} style={{ color: secondary }}>
                     +{remainingCount}
                   </span>
                   <p className="text-xs text-slate-500 mt-1">danh mục khác</p>
@@ -9424,9 +9375,9 @@ export const ProductCategoriesPreview = ({
                 >
                   <div 
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
-                    style={{ border: `2px solid ${brandColor}15` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; }}
+                    style={{ border: `2px solid ${secondary}15` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; }}
                   >
                     {renderCategoryVisual(cat, 'md')}
                   </div>
@@ -9450,7 +9401,7 @@ export const ProductCategoriesPreview = ({
     const displayItems = isMobile ? resolvedCategories.slice(0, 3) : resolvedCategories.slice(0, 6);
     
     return (
-      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: `${brandColor}05` }}>
+      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: `${secondary}05` }}>
         <div className="max-w-7xl mx-auto">
           <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
             Khám phá theo danh mục
@@ -9462,13 +9413,13 @@ export const ProductCategoriesPreview = ({
                 <div 
                   key={cat.itemId} 
                   className="group bg-white dark:bg-slate-800 rounded-xl overflow-hidden flex cursor-pointer transition-all"
-                  style={{ border: `1px solid ${brandColor}15` }}
+                  style={{ border: `1px solid ${secondary}15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}15`;
+                    e.currentTarget.style.borderColor = `${secondary}40`;
+                    e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}15`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `${secondary}15`;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -9516,16 +9467,16 @@ export const ProductCategoriesPreview = ({
                     isMobile ? 'px-3 py-2' : 'px-4 py-2.5'
                   )}
                   style={{ 
-                    backgroundColor: `${brandColor}08`,
-                    border: `1px solid ${brandColor}20`
+                    backgroundColor: `${secondary}08`,
+                    border: `1px solid ${secondary}20`
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}15`;
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.backgroundColor = `${secondary}15`;
+                    e.currentTarget.style.borderColor = `${secondary}40`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}08`;
-                    e.currentTarget.style.borderColor = `${brandColor}20`;
+                    e.currentTarget.style.backgroundColor = `${secondary}08`;
+                    e.currentTarget.style.borderColor = `${secondary}20`;
                   }}
                 >
                   {cat.displayIcon && iconData ? (
@@ -9575,17 +9526,12 @@ export const ProductCategoriesPreview = ({
                 "relative rounded-2xl overflow-hidden cursor-pointer group",
                 isMobile ? 'aspect-[4/3]' : 'row-span-2 aspect-auto'
               )}
-              style={{ boxShadow: `0 8px 30px ${brandColor}20` }}
+              style={{ boxShadow: `0 8px 30px ${secondary}20` }}
             >
               {renderCategoryVisual(featured, 'lg')}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-4' : 'p-6')}>
-                <span 
-                  className="inline-block px-2 py-1 text-xs font-bold rounded mb-2"
-                  style={{ backgroundColor: secondary }}
-                >
-                  NỔI BẬT
-                </span>
+                <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                 <h3 className={cn("font-bold line-clamp-1", isMobile ? 'text-lg' : 'text-xl')}>{featured.name}</h3>
                 {featured.description && (
                   <p className="text-sm opacity-80 line-clamp-2 mt-1">{featured.description}</p>
@@ -9602,13 +9548,13 @@ export const ProductCategoriesPreview = ({
                 <div 
                   key={cat.itemId} 
                   className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
-                  style={{ border: `2px solid ${brandColor}15` }}
+                  style={{ border: `2px solid ${secondary}15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.borderColor = `${secondary}40`;
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `${secondary}15`;
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
@@ -9624,9 +9570,9 @@ export const ProductCategoriesPreview = ({
               {others.length > displayOthers.length && (
                 <div 
                   className="flex flex-col items-center justify-center aspect-[4/3] rounded-xl cursor-pointer"
-                  style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
+                  style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
                 >
-                  <Plus size={20} style={{ color: brandColor }} />
+                  <Plus size={20} style={{ color: secondary }} />
                   <span className="font-bold text-sm mt-1" style={{ color: secondary }}>
                     +{others.length - displayOthers.length}
                   </span>
@@ -9666,8 +9612,8 @@ export const ProductCategoriesPreview = ({
                   )}
                   style={{ 
                     backgroundColor: 'white',
-                    border: `2px solid ${brandColor}20`,
-                    boxShadow: `0 2px 8px ${brandColor}10`
+                    border: `2px solid ${secondary}20`,
+                    boxShadow: `0 2px 8px ${secondary}10`
                   }}
                 >
                   <div className={cn("rounded-full overflow-hidden flex-shrink-0", isMobile ? 'w-8 h-8' : 'w-10 h-10')}>
@@ -9804,12 +9750,12 @@ export const ProductCategoriesPreview = ({
                   <div
                     className="rounded-full overflow-hidden transition-all duration-300"
                     style={{
-                      border: `1px solid ${brandColor}15`,
+                      border: `1px solid ${secondary}15`,
                       padding: isMobile ? '15px' : '20px',
-                      backgroundColor: `${brandColor}05`
+                      backgroundColor: `${secondary}05`
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = `0 2px 8px ${brandColor}15`;
+                      e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}15`;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.boxShadow = 'none';
@@ -9833,7 +9779,7 @@ export const ProductCategoriesPreview = ({
                       </span>
                       <span
                         className={cn("block w-full underline absolute top-0 left-0 transition-transform duration-300 -translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100", isMobile ? 'text-xs' : 'text-sm')}
-                        style={{ color: brandColor }}
+                        style={{ color: secondary }}
                       >
                         Xem chi tiết
                       </span>
@@ -9856,8 +9802,8 @@ export const ProductCategoriesPreview = ({
                     )}
                     style={
                       circularScrollPosition === index
-                        ? { backgroundColor: brandColor }
-                        : { borderColor: brandColor, backgroundColor: 'transparent' }
+                        ? { backgroundColor: secondary }
+                        : { borderColor: secondary, backgroundColor: 'transparent' }
                     }
                     aria-label={`Go to page ${index + 1}`}
                   />
@@ -9981,7 +9927,8 @@ interface CategoryProductsPreviewProps {
 
 export const CategoryProductsPreview = ({ 
   config, 
-  brandColor, 
+  brandColor: _brandColor, 
+  secondary,
   selectedStyle, 
   onStyleChange, 
   categoriesData,
@@ -10082,16 +10029,16 @@ export const CategoryProductsPreview = ({
         "text-center rounded-xl flex flex-col items-center justify-center",
         size === 'small' ? 'py-6' : 'py-12'
       )}
-      style={{ backgroundColor: `${brandColor}05` }}
+      style={{ backgroundColor: `${secondary}05` }}
     >
       <div 
         className={cn(
           "rounded-full flex items-center justify-center mb-3",
           size === 'small' ? 'w-12 h-12' : 'w-16 h-16'
         )}
-        style={{ backgroundColor: `${brandColor}10` }}
+        style={{ backgroundColor: `${secondary}10` }}
       >
-        <Package size={size === 'small' ? 24 : 32} style={{ color: `${brandColor}50` }} />
+        <Package size={size === 'small' ? 24 : 32} style={{ color: `${secondary}50` }} />
       </div>
       <p className="text-sm text-slate-500">{message}</p>
     </div>
@@ -10100,7 +10047,7 @@ export const CategoryProductsPreview = ({
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: ProductData }) => (
     <div className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${brandColor}08` }}>
+      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${secondary}08` }}>
         {product.image ? (
           <PreviewImage 
             src={product.image} 
@@ -10109,7 +10056,7 @@ export const CategoryProductsPreview = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package size={24} style={{ color: `${brandColor}40` }} />
+            <Package size={24} style={{ color: `${secondary}40` }} />
           </div>
         )}
       </div>
@@ -10120,13 +10067,13 @@ export const CategoryProductsPreview = ({
       <div className="flex flex-col mt-auto">
         {product.salePrice && product.salePrice < (product.price ?? 0) ? (
           <>
-            <span className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: brandColor }}>
+            <span className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: secondary }}>
               {formatPrice(product.salePrice)}
             </span>
             <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
           </>
         ) : (
-          <span className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: brandColor }}>
+          <span className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: secondary }}>
             {formatPrice(product.price)}
           </span>
         )}
@@ -10153,7 +10100,7 @@ export const CategoryProductsPreview = ({
                 {config.showViewAll && (
                   <button 
                     className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg border transition-colors"
-                    style={{ borderColor: `${brandColor}30`, color: brandColor }}
+                    style={{ borderColor: `${secondary}30`, color: secondary }}
                   >
                     Xem danh mục <ArrowRight size={16} />
                   </button>
@@ -10195,7 +10142,7 @@ export const CategoryProductsPreview = ({
                 {config.showViewAll && (
                   <button 
                     className="text-sm font-medium flex items-center gap-1 hover:underline"
-                    style={{ color: brandColor }}
+                    style={{ color: secondary }}
                   >
                     Xem danh mục <ArrowRight size={16} />
                   </button>
@@ -10234,7 +10181,7 @@ export const CategoryProductsPreview = ({
                           "font-medium line-clamp-2 mb-1",
                           device === 'mobile' ? 'text-xs' : 'text-sm'
                         )}>{product.name}</h4>
-                        <span className={cn("font-bold", device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: brandColor }}>
+                        <span className={cn("font-bold", device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: secondary }}>
                           {formatPrice(product.salePrice ?? product.price)}
                         </span>
                       </div>
@@ -10262,12 +10209,12 @@ export const CategoryProductsPreview = ({
             <div className="max-w-7xl mx-auto">
               <div 
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${brandColor}20` }}
+                style={{ border: `1px solid ${secondary}20` }}
               >
                 {/* Category Header */}
                 <div 
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: `${brandColor}08` }}
+                  style={{ backgroundColor: `${secondary}08` }}
                 >
                   <div className="flex items-center gap-3">
                     {section.category.image && (
@@ -10287,7 +10234,7 @@ export const CategoryProductsPreview = ({
                   {config.showViewAll && (
                     <button 
                       className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                      style={{ backgroundColor: `${secondary}15`, color: secondary }}
                     >
                       Xem danh mục <ArrowRight size={14} />
                     </button>
@@ -10337,7 +10284,7 @@ export const CategoryProductsPreview = ({
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-1 h-8 rounded-full"
-                      style={{ backgroundColor: brandColor }}
+                        style={{ backgroundColor: secondary }}
                     />
                     <h2 className={cn(
                       "font-bold",
@@ -10347,7 +10294,7 @@ export const CategoryProductsPreview = ({
                   {config.showViewAll && (
                     <button 
                       className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full transition-all hover:shadow-md"
-                      style={{ backgroundColor: `${brandColor}10`, color: brandColor }}
+                      style={{ backgroundColor: `${secondary}10`, color: secondary }}
                     >
                       Xem danh mục <ArrowRight size={14} />
                     </button>
@@ -10389,7 +10336,7 @@ export const CategoryProductsPreview = ({
                         <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                           <span 
                             className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-2"
-                            style={{ backgroundColor: brandColor }}
+                            style={{ backgroundColor: secondary }}
                           >
                             Nổi bật
                           </span>
@@ -10455,11 +10402,11 @@ export const CategoryProductsPreview = ({
             <section key={section.id} className="px-4">
               <div className="max-w-7xl mx-auto">
                 {/* Editorial Header */}
-                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${brandColor}20` }}>
+                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${secondary}20` }}>
                   <div>
                     <span 
                       className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: brandColor }}
+                      style={{ color: secondary }}
                     >
                       Bộ sưu tập
                     </span>
@@ -10474,7 +10421,7 @@ export const CategoryProductsPreview = ({
                         "font-semibold flex items-center gap-2 transition-all hover:gap-3",
                         device === 'mobile' ? 'text-sm' : 'text-base'
                       )}
-                      style={{ color: brandColor }}
+                      style={{ color: secondary }}
                     >
                       Xem tất cả <ArrowRight size={device === 'mobile' ? 16 : 18} />
                     </button>
@@ -10495,7 +10442,7 @@ export const CategoryProductsPreview = ({
                   <div className="grid grid-cols-2 gap-6">
                     {/* Featured Item - Large */}
                     {featured && (
-                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]" style={{ backgroundColor: `${brandColor}08` }}>
+                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]" style={{ backgroundColor: `${secondary}08` }}>
                         {featured.image ? (
                           <PreviewImage 
                             src={featured.image} 
@@ -10504,7 +10451,7 @@ export const CategoryProductsPreview = ({
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Package size={48} style={{ color: `${brandColor}30` }} />
+                            <Package size={48} style={{ color: `${secondary}30` }} />
                           </div>
                         )}
                         {/* Gradient overlay */}
@@ -10513,7 +10460,7 @@ export const CategoryProductsPreview = ({
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                           <span 
                             className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3"
-                            style={{ backgroundColor: brandColor }}
+                            style={{ backgroundColor: secondary }}
                           >
                             Nổi bật
                           </span>
@@ -10538,7 +10485,7 @@ export const CategoryProductsPreview = ({
                         <div key={product._id} className="group cursor-pointer">
                           <div 
                             className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                            style={{ backgroundColor: `${brandColor}08` }}
+                          style={{ backgroundColor: `${secondary}08` }}
                           >
                             {product.image ? (
                               <PreviewImage 
@@ -10548,17 +10495,17 @@ export const CategoryProductsPreview = ({
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Package size={24} style={{ color: `${brandColor}30` }} />
+                                <Package size={24} style={{ color: `${secondary}30` }} />
                               </div>
                             )}
                             {/* Quick view overlay */}
                             <div 
                               className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              style={{ backgroundColor: `${brandColor}20` }}
+                              style={{ backgroundColor: `${secondary}20` }}
                             >
                               <span 
                                 className="px-4 py-2 rounded-full text-sm font-medium text-white"
-                                style={{ backgroundColor: brandColor }}
+                                style={{ backgroundColor: secondary }}
                               >
                                 Xem nhanh
                               </span>
@@ -10568,13 +10515,13 @@ export const CategoryProductsPreview = ({
                           <div className="flex items-baseline gap-2 mt-1">
                             {product.salePrice && product.salePrice < (product.price ?? 0) ? (
                               <>
-                                <span className="font-bold text-sm" style={{ color: brandColor }}>
+                                <span className="font-bold text-sm" style={{ color: secondary }}>
                                   {formatPrice(product.salePrice)}
                                 </span>
                                 <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
                               </>
                             ) : (
-                              <span className="font-bold text-sm" style={{ color: brandColor }}>
+                              <span className="font-bold text-sm" style={{ color: secondary }}>
                                 {formatPrice(product.price)}
                               </span>
                             )}
@@ -10587,9 +10534,9 @@ export const CategoryProductsPreview = ({
                         <div 
                           key={`empty-${i}`} 
                           className="aspect-square rounded-xl flex items-center justify-center"
-                          style={{ backgroundColor: `${brandColor}05`, border: `2px dashed ${brandColor}20` }}
+                          style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}20` }}
                         >
-                          <Package size={24} style={{ color: `${brandColor}20` }} />
+                          <Package size={24} style={{ color: `${secondary}20` }} />
                         </div>
                       ))}
                     </div>
@@ -10619,7 +10566,7 @@ export const CategoryProductsPreview = ({
                 <div>
                   <span 
                     className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: brandColor }}
+                    style={{ color: secondary }}
                   >
                     Bộ sưu tập
                   </span>
@@ -10629,18 +10576,18 @@ export const CategoryProductsPreview = ({
                   )}>{section.category.name}</h2>
                   <div 
                     className="h-1 w-16 rounded-full mt-2"
-                    style={{ background: `linear-gradient(to right, ${brandColor}, ${brandColor}40)` }}
+                    style={{ background: `linear-gradient(to right, ${secondary}, ${secondary}40)` }}
                   />
                 </div>
                 {config.showViewAll && (
                   <button 
                     className="group flex items-center gap-2 text-sm font-medium transition-colors"
-                    style={{ color: brandColor }}
+                    style={{ color: secondary }}
                   >
                     Xem tất cả 
                     <span 
                       className="w-8 h-8 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform"
-                      style={{ backgroundColor: `${brandColor}15` }}
+                      style={{ backgroundColor: `${secondary}15` }}
                     >
                       <ArrowRight size={14} />
                     </span>
@@ -10669,7 +10616,7 @@ export const CategoryProductsPreview = ({
                         <div 
                           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           style={{ 
-                            background: `linear-gradient(135deg, ${brandColor}20 0%, transparent 50%, ${brandColor}10 100%)` 
+                            background: `linear-gradient(135deg, ${secondary}20 0%, transparent 50%, ${secondary}10 100%)` 
                           }}
                         />
                         
@@ -10692,7 +10639,7 @@ export const CategoryProductsPreview = ({
                         <div className="absolute bottom-3 left-3 right-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                           <button 
                             className="w-full py-2.5 rounded-xl text-sm font-medium text-white backdrop-blur-sm transition-colors"
-                            style={{ backgroundColor: `${brandColor}dd` }}
+                            style={{ backgroundColor: `${secondary}dd` }}
                           >
                             Xem chi tiết
                           </button>
@@ -10720,7 +10667,7 @@ export const CategoryProductsPreview = ({
                             <>
                               <span 
                                 className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} 
-                                style={{ color: brandColor }}
+                              style={{ color: secondary }}
                               >
                                 {formatPrice(product.salePrice)}
                               </span>
@@ -10729,7 +10676,7 @@ export const CategoryProductsPreview = ({
                           ) : (
                             <span 
                               className={cn("font-bold", device === 'mobile' ? 'text-xs' : 'text-sm')} 
-                              style={{ color: brandColor }}
+                              style={{ color: secondary }}
                             >
                               {formatPrice(product.price)}
                             </span>
@@ -10774,7 +10721,7 @@ export const CategoryProductsPreview = ({
 interface TeamMember { id: number; name: string; role: string; avatar: string; bio: string; facebook: string; linkedin: string; twitter: string; email: string }
 export type TeamStyle = 'grid' | 'cards' | 'carousel' | 'hexagon' | 'timeline' | 'spotlight';
 
-export const TeamPreview = ({ members, brandColor, selectedStyle, onStyleChange }: { 
+export const TeamPreview = ({ members, brandColor, secondary: _secondary, selectedStyle, onStyleChange }: { 
   members: TeamMember[]; 
   brandColor: string;
   secondary: string; 
@@ -11511,7 +11458,7 @@ export type FeaturesStyle = 'iconGrid' | 'alternating' | 'compact' | 'cards' | '
 
 const featureIcons: Record<string, React.ElementType> = { Check, Cpu, Globe, Layers, Rocket, Settings, Shield, Star, Target, Zap };
 
-export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string;
+export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string;
   secondary: string; selectedStyle?: FeaturesStyle; onStyleChange?: (style: FeaturesStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -11527,7 +11474,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}><Zap size={32} style={{ color: brandColor }} /></div>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}><Zap size={32} style={{ color: secondary }} /></div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có tính năng nào</h3>
       <p className="text-sm text-slate-500">Thêm tính năng đầu tiên để bắt đầu</p>
     </div>
@@ -11541,7 +11488,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
     return (
       <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-12 md:px-6')}>
         <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>Tính năng nổi bật</h2>
           <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Khám phá những tính năng ưu việt giúp bạn đạt hiệu quả tối đa</p>
         </div>
@@ -11550,7 +11497,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             const IconComponent = getIcon(item.icon);
             return (
               <div key={item.id} className="group bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`, boxShadow: `0 8px 16px -4px ${brandColor}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
                 <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 min-h-[2.5rem]">{item.description || 'Mô tả tính năng...'}</p>
               </div>
@@ -11570,7 +11517,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
     return (
       <div className={cn("py-6 px-4", device === 'mobile' ? 'py-4 px-3' : 'md:py-10 md:px-6')}>
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>Tính năng nổi bật</h2>
         </div>
         <div className={cn("max-w-3xl mx-auto", device === 'mobile' ? 'space-y-2' : 'grid grid-cols-2 gap-3')}>
@@ -11579,8 +11526,8 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             return (
               <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
                 <div className="relative flex-shrink-0">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}><IconComponent size={18} style={{ color: brandColor }} strokeWidth={2} /></div>
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: brandColor }}>{idx + 1}</span>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: secondary }}>{idx + 1}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
@@ -11590,7 +11537,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             );
           })}
         </div>
-        {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: brandColor }}>+{remainingCount} tính năng khác</span></div>)}
+        {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
       </div>
     );
   };
@@ -11602,9 +11549,9 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
     const remainingCount = items.length - maxItems;
     return (
       <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-12 md:px-6')}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-6" style={{ borderColor: `${brandColor}20` }}>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-6" style={{ borderColor: `${secondary}20` }}>
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
             <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>Tính năng nổi bật</h2>
           </div>
           {remainingCount > 0 && <span className="text-sm text-slate-500">+{remainingCount} tính năng khác</span>}
@@ -11614,7 +11561,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             const IconComponent = getIcon(item.icon);
             return (
               <div key={item.id} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}15` }}><IconComponent size={18} style={{ color: brandColor }} strokeWidth={2} /></div>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
                 <div className="flex-1 min-w-0"><h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-0.5 truncate">{item.title || 'Tính năng'}</h3><p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[2rem]">{item.description || 'Mô tả...'}</p></div>
               </div>
             );
@@ -11631,7 +11578,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
     return (
       <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-12 md:px-6')}>
         <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>Tính năng nổi bật</h2>
         </div>
         <div className={cn("grid gap-5", items.length === 1 ? 'max-w-sm mx-auto' : items.length === 2 ? 'max-w-2xl mx-auto grid-cols-2' : device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3')}>
@@ -11639,15 +11586,15 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             const IconComponent = getIcon(item.icon);
             return (
               <div key={item.id} className="group relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col">
-                <div className="h-1" style={{ backgroundColor: brandColor }} />
+                <div className="h-1" style={{ backgroundColor: secondary }} />
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}><IconComponent size={22} style={{ color: brandColor }} strokeWidth={2} /></div>
-                    <span className="text-3xl font-bold opacity-20" style={{ color: brandColor }}>{String(idx + 1).padStart(2, '0')}</span>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={22} style={{ color: secondary }} strokeWidth={2} /></div>
+                    <span className="text-3xl font-bold opacity-20" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
                   </div>
                   <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3 min-h-[3.75rem] flex-1">{item.description || 'Mô tả tính năng...'}</p>
-                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700"><span className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all" style={{ color: brandColor }}>Tìm hiểu thêm <ArrowRight size={14} /></span></div>
+                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700"><span className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all" style={{ color: secondary }}>Tìm hiểu thêm <ArrowRight size={14} /></span></div>
                 </div>
               </div>
             );
@@ -11666,7 +11613,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
       <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-12 md:px-6')}>
         <div className="flex items-end justify-between mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
             <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>Tính năng nổi bật</h2>
           </div>
           {items.length > itemsPerView && (<div className="flex gap-2">
@@ -11681,7 +11628,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
               return (
                 <div key={item.id} className="flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 h-full flex flex-col">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`, boxShadow: `0 8px 16px -4px ${brandColor}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
                     <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3 min-h-[3.75rem]">{item.description || 'Mô tả tính năng...'}</p>
                   </div>
@@ -11690,7 +11637,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
             })}
           </div>
         </div>
-        {items.length > itemsPerView && (<div className="flex justify-center gap-2 mt-6">{Array.from({ length: maxIndex + 1 }).map((_, idx) => (<button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("w-2 h-2 rounded-full transition-all", idx === carouselIndex ? 'w-6' : 'bg-slate-300 dark:bg-slate-600')} style={idx === carouselIndex ? { backgroundColor: brandColor } : {}} />))}</div>)}
+        {items.length > itemsPerView && (<div className="flex justify-center gap-2 mt-6">{Array.from({ length: maxIndex + 1 }).map((_, idx) => (<button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("w-2 h-2 rounded-full transition-all", idx === carouselIndex ? 'w-6' : 'bg-slate-300 dark:bg-slate-600')} style={idx === carouselIndex ? { backgroundColor: secondary } : {}} />))}</div>)}
       </div>
     );
   };
@@ -11703,21 +11650,21 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
     return (
       <div className={cn("py-6 px-4", device === 'mobile' ? 'py-4 px-3' : 'md:py-10 md:px-6')}>
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
           <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>Tính năng nổi bật</h2>
         </div>
         <div className="max-w-2xl mx-auto relative">
-          <div className={cn("absolute top-0 bottom-0 w-px", device === 'mobile' ? 'left-3' : 'left-1/2')} style={{ backgroundColor: `${brandColor}30` }} />
+          <div className={cn("absolute top-0 bottom-0 w-px", device === 'mobile' ? 'left-3' : 'left-1/2')} style={{ backgroundColor: `${secondary}30` }} />
           <div className={cn("relative", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
             {visibleItems.map((item, idx) => {
               const IconComponent = getIcon(item.icon);
               const isEven = idx % 2 === 0;
               return (
                 <div key={item.id} className={cn("relative flex items-center", device === 'mobile' ? 'pl-8' : (isEven ? 'flex-row pr-[52%]' : 'flex-row-reverse pl-[52%]'))}>
-                  <div className={cn("absolute flex items-center justify-center w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 shadow z-10", device === 'mobile' ? 'left-0' : 'left-1/2 -translate-x-1/2')} style={{ backgroundColor: brandColor }}><IconComponent size={12} className="text-white" strokeWidth={2.5} /></div>
+                  <div className={cn("absolute flex items-center justify-center w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 shadow z-10", device === 'mobile' ? 'left-0' : 'left-1/2 -translate-x-1/2')} style={{ backgroundColor: secondary }}><IconComponent size={12} className="text-white" strokeWidth={2.5} /></div>
                   <div className="flex-1 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{idx + 1}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${secondary}15`, color: secondary }}>{idx + 1}</span>
                       <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 pl-6">{item.description || 'Mô tả tính năng...'}</p>
@@ -11726,7 +11673,7 @@ export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChang
               );
             })}
           </div>
-          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: brandColor }}>+{remainingCount} tính năng khác</span></div>)}
+          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
         </div>
       </div>
     );
@@ -11754,6 +11701,7 @@ export type ProcessStyle = 'horizontal' | 'stepper' | 'cards' | 'accordion' | 'm
 export const ProcessPreview = ({ 
   steps, 
   brandColor, 
+  secondary: _secondary,
   selectedStyle, 
   onStyleChange 
 }: { 
@@ -12179,6 +12127,7 @@ export type ClientsStyle = 'marquee' | 'dualRow' | 'wave' | 'grid' | 'carousel' 
 export const ClientsPreview = ({ 
   items, 
   brandColor, 
+  secondary: _secondary,
   selectedStyle, 
   onStyleChange 
 }: { 
@@ -12571,6 +12520,7 @@ const getYouTubeThumbnail = (videoId: string): string => `https://img.youtube.co
 export const VideoPreview = ({ 
   config, 
   brandColor, 
+  secondary: _secondary,
   selectedStyle, 
   onStyleChange 
 }: { 
@@ -13104,6 +13054,7 @@ const useCountdown = (endDate: string) => {
 export const CountdownPreview = ({ 
   config, 
   brandColor, 
+  secondary: _secondary,
   selectedStyle, 
   onStyleChange 
 }: { 
@@ -13689,7 +13640,8 @@ const voucherSamples = [
 
 export const VoucherPromotionsPreview = ({ 
   config, 
-  brandColor, 
+  brandColor: _brandColor, 
+  secondary,
   selectedStyle,
   limit,
   onStyleChange 
@@ -13762,7 +13714,7 @@ export const VoucherPromotionsPreview = ({
       <h2 className={cn('font-bold text-slate-900 dark:text-slate-100', device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>{heading}</h2>
       <p className={cn('text-slate-500', device === 'mobile' ? 'text-sm' : 'text-base')}>{description}</p>
       {ctaLabel && ctaUrl && (
-        <a href={ctaUrl} className={cn('inline-flex items-center gap-2 font-medium', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: brandColor }}>
+        <a href={ctaUrl} className={cn('inline-flex items-center gap-2 font-medium', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: secondary }}>
           {ctaLabel}
           <ArrowRight size={16} />
         </a>
@@ -13780,15 +13732,15 @@ export const VoucherPromotionsPreview = ({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-                    <Tag size={18} style={{ color: brandColor }} />
+                    <Tag size={18} style={{ color: secondary }} />
                   </div>
                   <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                     <div className="text-lg font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
                     <div className="text-xs text-slate-500">{item.name}</div>
                   </div>
                 </div>
-                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
               </div>
               <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
                 <span>{item.expiry}</span>
@@ -13820,7 +13772,7 @@ export const VoucherPromotionsPreview = ({
                     <p className="text-xs text-slate-500 mt-1">{item.description}</p>
                     <div className="text-xs text-slate-400 mt-2">{item.expiry} • {item.max}</div>
                   </div>
-                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
                 </div>
               </div>
             </div>
@@ -13838,15 +13790,15 @@ export const VoucherPromotionsPreview = ({
           {items.map((item) => (
             <div key={item.code} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
               <div className="flex h-full">
-                <div className="w-1" style={{ backgroundColor: brandColor }} />
+                <div className="w-1" style={{ backgroundColor: secondary }} />
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                      <div className="text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                       <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
                       <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.name}</div>
                     </div>
-                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
                   </div>
                   <p className="text-xs text-slate-500 mt-2">{item.description}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
@@ -13866,21 +13818,21 @@ export const VoucherPromotionsPreview = ({
     <section className="py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <Header align="left" />
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" style={{ background: `linear-gradient(135deg, ${brandColor}10, ${brandColor}05)` }}>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" style={{ background: `linear-gradient(135deg, ${secondary}10, ${secondary}05)` }}>
           {items.map((item, index) => (
             <div key={item.code} className={cn('flex items-center justify-between gap-4 px-4 py-4', index < items.length - 1 && 'border-b border-dashed border-slate-200 dark:border-slate-700')}>
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
-                  <Tag size={18} style={{ color: brandColor }} />
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${secondary}20` }}>
+                  <Tag size={18} style={{ color: secondary }} />
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                  <div className="text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.code} • {item.name}</div>
                   <div className="text-xs text-slate-500 mt-1">{item.description}</div>
                   <div className="text-xs text-slate-400 mt-2">{item.expiry} • {item.max}</div>
                 </div>
               </div>
-              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
             </div>
           ))}
         </div>
@@ -13902,15 +13854,15 @@ export const VoucherPromotionsPreview = ({
                   'min-w-[260px] max-w-[260px] snap-start rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm',
                   index === normalizedIndex && 'ring-2'
                 )}
-                style={index === normalizedIndex ? { '--tw-ring-color': `${brandColor}40` } as React.CSSProperties : undefined}
+                style={index === normalizedIndex ? { '--tw-ring-color': `${secondary}40` } as React.CSSProperties : undefined}
               >
-                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
-                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: secondary }} />
+                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                 <div className="text-xl font-bold text-slate-900 dark:text-slate-100">{item.code}</div>
                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-1">{item.name}</div>
                 <p className="text-xs text-slate-500 mt-2">{item.description}</p>
                 <div className="text-xs text-slate-400 mt-3">{item.expiry} • {item.max}</div>
-                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
               </div>
             ))}
           </div>
@@ -13925,7 +13877,7 @@ export const VoucherPromotionsPreview = ({
                     scrollToIndex(index);
                   }}
                   className={cn('h-2 rounded-full transition-all', index === normalizedIndex ? 'w-6' : 'w-2 bg-slate-300')}
-                  style={index === normalizedIndex ? { backgroundColor: brandColor } : {}}
+                  style={index === normalizedIndex ? { backgroundColor: secondary } : {}}
                 />
               ))}
             </div>
@@ -13946,7 +13898,7 @@ export const VoucherPromotionsPreview = ({
   const renderMinimal = () => (
     <section className="py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: secondary }} />
         <Header align="left" />
         <div className="space-y-3">
           {items.map((item, index) => (
@@ -13959,7 +13911,7 @@ export const VoucherPromotionsPreview = ({
                   <div className="text-xs text-slate-400 mt-1">{item.expiry} • {item.max}</div>
                 </div>
               </div>
-              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }}>Sao chép mã</button>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }}>Sao chép mã</button>
             </div>
           ))}
         </div>

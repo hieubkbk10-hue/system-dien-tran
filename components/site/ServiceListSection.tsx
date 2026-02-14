@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowRight, ArrowUpRight, Briefcase, ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react';
+import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
 
 // Luxury Services Gallery UI/UX - 6 Variants (added minimal & showcase)
 type ServiceListStyle = 'grid' | 'bento' | 'list' | 'carousel' | 'minimal' | 'showcase';
@@ -30,24 +31,15 @@ const formatServicePrice = (price?: number) => {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', maximumFractionDigits: 0, style: 'currency' }).format(price);
 };
 
-// Badge component for service status (uses brandColor for hot)
-const ServiceBadge = ({ isNew, isHot, brandColor }: { isNew?: boolean; isHot?: boolean; brandColor?: string }) => {
+// Badge component for service status
+const ServiceBadge = ({ isNew, isHot, brandColor, secondary }: { isNew?: boolean; isHot?: boolean; brandColor: string; secondary: string }) => {
   if (!isNew && !isHot) {return null;}
   if (isHot) {
     return (
-      <span 
-        className="inline-flex items-center rounded-sm px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-white"
-        style={{ backgroundColor: brandColor ?? '#1e293b' }}
-      >
-        Hot
-      </span>
+      <BrandBadge text="Hot" variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
     );
   }
-  return (
-    <span className="inline-flex items-center rounded-sm px-2 py-1 text-[10px] font-medium uppercase tracking-widest bg-slate-200 text-slate-700">
-      New
-    </span>
-  );
+  return <BrandBadge text="New" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />;
 };
 
 export function ServiceListSection({ config, brandColor, secondary, title }: ServiceListSectionProps) {
@@ -130,14 +122,14 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
               <Link key={service._id} href={`/services/${service.slug}`} className="group">
                 <article 
                   className="cursor-pointer relative bg-white border rounded-lg p-3 flex flex-col hover:-translate-y-1 transition-all duration-300 h-full"
-                  style={{ borderColor: `${brandColor}10` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+                  style={{ borderColor: `${secondary}10` }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${secondary}10`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
                 >
                   {/* Badge */}
                   {idx < 2 && (
                     <div className="absolute z-20 top-5 left-5">
-                      <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} />
+                      <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} />
                     </div>
                   )}
 
@@ -219,14 +211,14 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                 >
                   <article 
                     className="h-full border rounded-xl p-3 md:p-4 transition-all flex flex-col cursor-pointer"
-                    style={{ borderColor: `${brandColor}15`, boxShadow: i === 0 ? `0 4px 20px ${brandColor}08` : 'none' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${brandColor}12`; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}15`; (e.currentTarget as HTMLElement).style.boxShadow = i === 0 ? `0 4px 20px ${brandColor}08` : 'none'; }}
+                    style={{ borderColor: `${secondary}15`, boxShadow: i === 0 ? `0 4px 20px ${secondary}08` : 'none' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${secondary}12`; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}15`; (e.currentTarget as HTMLElement).style.boxShadow = i === 0 ? `0 4px 20px ${secondary}08` : 'none'; }}
                   >
                     {/* Badge */}
                     {i < 2 && (
                       <div className="absolute z-20 top-5 left-5 md:top-6 md:left-6">
-                        <ServiceBadge isHot={i === 0} isNew={i === 1} brandColor={brandColor} />
+                        <ServiceBadge isHot={i === 0} isNew={i === 1} brandColor={brandColor} secondary={secondary} />
                       </div>
                     )}
                     
@@ -315,9 +307,9 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
               <Link key={service._id} href={`/services/${service.slug}`} className="group block">
                 <article 
                   className="cursor-pointer flex flex-row items-center gap-4 md:gap-6 py-4 border-b px-2 rounded-lg transition-all"
-                  style={{ borderColor: `${brandColor}10` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = `${brandColor}05`; (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}20`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}10`; }}
+                  style={{ borderColor: `${secondary}10` }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = `${secondary}05`; (e.currentTarget as HTMLElement).style.borderColor = `${secondary}20`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; }}
                 >
                   {/* Image */}
                   <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-md overflow-hidden bg-slate-100 relative">
@@ -340,7 +332,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                   <div className="py-1 flex-1">
                     {idx < 2 && (
                       <div className="mb-1">
-                        <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} />
+                      <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} />
                       </div>
                     )}
                     <h3 className="font-medium text-base md:text-lg text-slate-900 leading-tight group-hover:opacity-70 transition-colors line-clamp-2">
@@ -421,7 +413,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                     }}
                     className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
                   >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft size={18} style={{ color: secondary }} />
                   </button>
                   <button
                     type="button"
@@ -430,7 +422,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                       if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                     }}
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: secondary }}
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -487,11 +479,11 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                 >
                   <article
                     className="cursor-pointer relative bg-white border rounded-xl p-3 flex flex-col hover:-translate-y-1 transition-all duration-300 h-full"
-                    style={{ borderColor: `${brandColor}10` }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 20px ${brandColor}12`; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+                  style={{ borderColor: `${secondary}10` }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 20px ${secondary}12`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
                   >
-                    {idx < 2 && <div className="absolute z-20 top-5 left-5"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} /></div>}
+                  {idx < 2 && <div className="absolute z-20 top-5 left-5"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} /></div>}
                     <div className="relative overflow-hidden bg-slate-100 mb-3 rounded-lg aspect-[4/3] w-full">
                       {service.thumbnail ? (
                         <Image
@@ -552,7 +544,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
               <Link key={service._id} href={`/services/${service.slug}`} className="group">
                 <article 
                   className="cursor-pointer"
-                  onMouseEnter={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = `0 8px 24px ${brandColor}15`;} }}
+                  onMouseEnter={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = `0 8px 24px ${secondary}15`;} }}
                   onMouseLeave={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = 'none';} }}
                 >
                   {/* Image - More minimal, rounded corners */}
@@ -568,7 +560,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><Briefcase size={40} className="text-slate-300" /></div>
                     )}
-                    {idx < 2 && <div className="absolute top-3 left-3"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} /></div>}
+                    {idx < 2 && <div className="absolute top-3 left-3"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} /></div>}
                   </div>
                   {/* Content - Typography focused */}
                   <div className="space-y-2">
@@ -576,7 +568,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                     {service.excerpt && <p className="text-sm text-slate-500 line-clamp-2">{stripHtml(service.excerpt)}</p>}
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-base font-semibold" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
-                      <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${brandColor}80` }}>
+                      <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${secondary}80` }}>
                         Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: secondary }} />
                       </span>
                     </div>
@@ -612,7 +604,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
           {/* Featured Large Item */}
           {featuredService && (
             <Link href={`/services/${featuredService.slug}`} className="lg:row-span-2 group">
-              <article className="cursor-pointer relative rounded-2xl overflow-hidden h-full min-h-[300px] lg:min-h-[500px]" style={{ boxShadow: `0 8px 30px ${brandColor}20` }}>
+              <article className="cursor-pointer relative rounded-2xl overflow-hidden h-full min-h-[300px] lg:min-h-[500px]" style={{ boxShadow: `0 8px 30px ${secondary}20` }}>
                 {featuredService.thumbnail ? (
                   <Image
                     src={featuredService.thumbnail}
@@ -625,14 +617,14 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                   <div className="absolute inset-0 w-full h-full bg-slate-100 flex items-center justify-center"><Briefcase size={64} className="text-slate-300" /></div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute top-4 left-4"><ServiceBadge isHot={true} brandColor={brandColor} /></div>
+                <div className="absolute top-4 left-4"><ServiceBadge isHot={true} brandColor={brandColor} secondary={secondary} /></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${brandColor}cc` }}>Dịch vụ nổi bật</span>
+                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${secondary}cc` }}>Dịch vụ nổi bật</span>
                   <h3 className="text-xl md:text-2xl font-semibold text-white mt-2 leading-tight line-clamp-2">{featuredService.title}</h3>
                   {featuredService.excerpt && <p className="text-sm text-white/80 mt-2 line-clamp-2">{stripHtml(featuredService.excerpt)}</p>}
                   <div className="flex items-center justify-between mt-4">
                     <span className="text-lg font-semibold text-white">{formatServicePrice(featuredService.price)}</span>
-                    <span className="px-5 py-2.5 text-white text-sm font-medium rounded-lg whitespace-nowrap transition-all hover:opacity-90" style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}>Xem chi tiết</span>
+                    <span className="px-5 py-2.5 text-white text-sm font-medium rounded-lg whitespace-nowrap transition-all hover:opacity-90" style={{ backgroundColor: secondary, boxShadow: `0 4px 12px ${secondary}40` }}>Xem chi tiết</span>
                   </div>
                 </div>
               </article>
@@ -645,9 +637,9 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
               <Link key={service._id} href={`/services/${service.slug}`} className="group">
                 <article 
                   className="cursor-pointer bg-white border rounded-xl p-3 transition-all h-full hover:shadow-md" 
-                  style={{ borderColor: `${brandColor}15` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${brandColor}15`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+                  style={{ borderColor: `${secondary}15` }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${secondary}10`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}15`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
                 >
                   <div className="relative overflow-hidden bg-slate-100 rounded-lg aspect-[4/3] mb-3">
                     {service.thumbnail ? (
@@ -661,7 +653,7 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><Briefcase size={28} className="text-slate-300" /></div>
                     )}
-                    {idx === 0 && <div className="absolute top-2 left-2"><ServiceBadge isNew={true} brandColor={brandColor} /></div>}
+                    {idx === 0 && <div className="absolute top-2 left-2"><ServiceBadge isNew={true} brandColor={brandColor} secondary={secondary} /></div>}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 line-clamp-1 group-hover:text-slate-600 transition-colors">{service.title}</h4>
                   <div className="flex items-center justify-between mt-2">
