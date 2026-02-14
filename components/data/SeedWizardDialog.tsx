@@ -161,11 +161,24 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   }, [hasComments, hasOrders, hasPosts, hasProducts, state.industryKey, state.useSeedMauImages]);
 
   useEffect(() => {
-    setCurrentStep(0);
     const presetKey = industryTemplate?.experiencePresetKey
       ?? (getDefaultExperiencePresetKey(state.websiteType) as ExperiencePresetKey);
-    setState((prev) => ({ ...prev, experiencePresetKey: presetKey }));
-  }, [industryTemplate, state.websiteType, hasProducts]);
+    setState((prev) => (prev.experiencePresetKey === presetKey
+      ? prev
+      : { ...prev, experiencePresetKey: presetKey }));
+  }, [industryTemplate?.experiencePresetKey, state.websiteType]);
+
+  const prevStepsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const prevSteps = prevStepsRef.current;
+    if (prevSteps.length > 0 && steps.join('|') !== prevSteps.join('|')) {
+      const previousStepKey = prevSteps[currentStep];
+      const nextIndex = previousStepKey ? steps.indexOf(previousStepKey) : -1;
+      setCurrentStep(nextIndex >= 0 ? nextIndex : 0);
+    }
+    prevStepsRef.current = steps;
+  }, [currentStep, steps]);
 
   useEffect(() => {
     setState((prev) => {
@@ -208,9 +221,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       : null;
 
     setState((prev) => {
-      const nextWebsiteType = template.websiteTypes.includes(prev.websiteType)
-        ? prev.websiteType
-        : template.websiteTypes[0];
       return {
         ...prev,
         businessInfo: {
@@ -226,7 +236,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         productType: template.productType,
         saleMode: template.saleMode,
         selectedLogo: randomLogo,
-        websiteType: nextWebsiteType,
       };
     });
   };
