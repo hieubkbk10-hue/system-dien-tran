@@ -1,10 +1,10 @@
 ---
 name: dual-brand-color-system
-description: Best practices cho dual brand color systems trong UI/UX dựa trên Material Design 3, 60-30-10 rule, WCAG 2.2/3.0 và semantic tokens. Dùng khi thiết kế/review hệ thống màu thương hiệu (primary + secondary), validate accessibility, hoặc chuẩn hóa design tokens.
-version: 2.0.0
+description: Playbook thực chiến cho dual brand color systems trong UI/UX dựa trên Material Design 3, 60-30-10 rule, WCAG 2.2/3.0 và semantic tokens. Dùng khi thiết kế/review hệ thống màu thương hiệu (primary + secondary), validate accessibility, hoặc chuẩn hóa design tokens.
+version: 3.0.0
 ---
 
-# Dual Brand Color System Best Practices v2.0
+# Dual Brand Color System Best Practices v3.0
 
 ## Quick Start Template
 
@@ -64,6 +64,115 @@ Skill này cung cấp hướng dẫn toàn diện về thiết kế hệ thống
 - WCAG 2.2 + APCA (WCAG 3.0): contrast và perceptual contrast
 - Semantic Tokens: tách primitive/semantic/component
 - Color Harmony Theory: analogous, split-complementary, triadic schemes
+
+---
+
+## Actionable Workflow (Step-by-step + Checklist)
+
+### Step 1: Chọn Primary Brand Color
+
+**Checklist:**
+- [ ] Contrast vs trắng ≥ 4.5:1 (WCAG 2.2 AA)
+- [ ] Contrast vs đen ≥ 4.5:1
+- [ ] Saturation ≤ 80 (tránh quá chói)
+- [ ] Phù hợp ngành & cảm xúc thương hiệu
+
+```typescript
+const validatePrimaryColor = (hex: string) => {
+  const checks = {
+    contrastVsWhite: getContrast(hex, '#ffffff') >= 4.5,
+    contrastVsBlack: getContrast(hex, '#000000') >= 4.5,
+    notTooSaturated: getSaturation(hex) <= 80,
+  };
+  return Object.values(checks).every(Boolean);
+};
+
+const brandColors = {
+  primary: '#2563eb',
+  secondary: '#8b5cf6',
+};
+```
+
+**Decision Tree (ngành):**
+```
+Start → Industry?
+  ├─ Tech/SaaS → Blue/Indigo
+  ├─ Creative → Orange/Purple
+  ├─ Finance → Blue/Green
+  └─ Health → Green/Teal
+```
+
+### Step 2: Chọn Secondary Brand Color
+
+**Ưu tiên:** Analogous (30–60°) → Split-Complementary → Monochromatic.
+
+**Checklist:**
+- [ ] Góc lệch màu 30–60° (analogous) hoặc 150° (split-complementary)
+- [ ] Không clash với primary
+- [ ] Dùng được cho CTA và highlight
+
+```typescript
+const brandSecondaryOptions = {
+  analogous: '#8b5cf6',
+  splitComplementary: '#f59e0b',
+  monochromatic: '#60a5fa',
+};
+```
+
+### Step 3: Tạo Tonal Palettes (50–950)
+
+**Checklist:**
+- [ ] Có đủ 10 shade
+- [ ] Đảm bảo contrast trong light/dark
+- [ ] 50–100 dùng làm surface, 600–700 dùng cho text/CTA
+
+```typescript
+const primary = {
+  50: '#eff6ff',
+  100: '#dbeafe',
+  200: '#bfdbfe',
+  300: '#93c5fd',
+  400: '#60a5fa',
+  500: '#3b82f6',
+  600: '#2563eb',
+  700: '#1d4ed8',
+  800: '#1e40af',
+  900: '#1e3a8a',
+  950: '#172554',
+};
+```
+
+### Step 4: Map Semantic Tokens
+
+**Checklist:**
+- [ ] Không dùng hex trực tiếp trong component
+- [ ] Có semantic tokens cho action/text/surface/border
+
+```typescript
+const primitive = { blue: { 600: '#2563eb' }, violet: { 600: '#7c3aed' } };
+const semantic = {
+  color: {
+    action: { primary: primitive.blue[600], secondary: primitive.violet[600] },
+    text: { heading: primitive.blue[600] },
+  },
+};
+```
+
+### Step 5: Áp dụng 60-30-10 & Validate
+
+**Checklist:**
+- [ ] Neutral 60% (background/surface)
+- [ ] Primary 30% (text/headings/sections)
+- [ ] Accent 10% (CTA/badges)
+- [ ] Validate contrast cho CTA
+
+```tsx
+<section className="bg-slate-50">
+  <h1 className="text-primary-600">Heading</h1>
+  <p className="text-slate-600">Description</p>
+  <button className="bg-secondary-500 text-white">CTA</button>
+</section>
+```
 
 ## Khi nào dùng skill này?
 
@@ -150,6 +259,25 @@ Ví dụ đúng:
 </section>
 ```
 
+#### Visual Weight Formula (cân bằng thị giác)
+
+```typescript
+// Visual Weight = Area × Saturation × Brightness
+function calculateVisualWeight(
+  areaPercent: number,
+  saturation: number,
+  brightness: number
+): number {
+  return (areaPercent / 100) * (saturation / 100) * (brightness / 100);
+}
+
+const weights = {
+  neutral: calculateVisualWeight(60, 0, 95),
+  primary: calculateVisualWeight(30, 70, 60),
+  accent: calculateVisualWeight(10, 90, 70),
+};
+```
+
 Real-world breakdown:
 - Facebook: white 60% + blue 30% + blue-dark 10%
 - Coca-Cola: white 60% + red 30% + black 10%
@@ -192,6 +320,38 @@ Nhược điểm:
 - Khó maintain accessibility
 
 Chỉ dùng cho small accents (duy nhất 5-10% UI).
+
+---
+
+### Conflict Resolution Patterns (khi 2 màu clash)
+
+**Pattern 1: Neutral Buffer**
+```tsx
+// ❌ Clash
+<div className="bg-blue-500">
+  <button className="bg-orange-500">CTA</button>
+</div>
+
+// ✅ Neutral buffer
+<div className="bg-blue-50">
+  <button className="bg-orange-500">CTA</button>
+</div>
+```
+
+**Pattern 2: Tint/Shadow Adjustment**
+```tsx
+<div className="bg-blue-500">
+  <button className="bg-orange-600 border-2 border-white">CTA</button>
+</div>
+```
+
+**Decision Matrix:**
+| Context | Primary Use | Secondary Use |
+|---------|-------------|---------------|
+| Headings | 70% primary | 30% secondary |
+| CTAs | 30% primary | 70% secondary |
+| Badges | 50/50 split | Contextual |
+| Backgrounds | Tints only | Avoid saturated |
 
 #### Monochromatic (tối giản)
 
@@ -263,6 +423,52 @@ Naming conventions:
 - ✅ `text-primary`, `action-primary`, `border-subtle`
 - ❌ `blue-500`, `color-1`, `main-color`
 
+#### Naming conventions (3-tier chi tiết)
+```typescript
+const primitive = {
+  'primitive-color-blue-50': '#eff6ff',
+  'primitive-color-blue-500': '#3b82f6',
+  'primitive-spacing-2': '0.5rem',
+};
+
+const semantic = {
+  'semantic-color-action-primary': primitive['primitive-color-blue-500'],
+  'semantic-color-text-heading': primitive['primitive-color-slate-900'],
+  'semantic-spacing-component-gap': primitive['primitive-spacing-2'],
+};
+
+const component = {
+  'component-button-bg': semantic['semantic-color-action-primary'],
+  'component-button-padding': semantic['semantic-spacing-component-gap'],
+};
+```
+
+#### Tailwind Integration
+```typescript
+// tailwind.config.ts
+import { semantic } from './tokens';
+
+export default {
+  theme: {
+    extend: {
+      colors: {
+        action: {
+          primary: semantic['semantic-color-action-primary'],
+          secondary: semantic['semantic-color-action-secondary'],
+        },
+      },
+    },
+  },
+};
+```
+
+#### Migration Checklist
+- [ ] Audit codebase: tìm hard-coded colors (`#[0-9a-f]{6}`)
+- [ ] Tạo primitive tokens từ unique colors
+- [ ] Map semantic meanings (action, text, border, surface)
+- [ ] Replace hard-coded → semantic tokens
+- [ ] Setup ESLint rule để prevent future hard-coding
+
 ---
 
 ### 5) WCAG Accessibility Standards
@@ -280,6 +486,30 @@ So sánh WCAG 2.2 vs 3.0 (APCA):
 |----------|--------|------|------|
 | WCAG 2.2 | Contrast ratio | Widely adopted | Không perceptually uniform |
 | WCAG 3.0 | APCA (Lc 60/75) | Chính xác hơn | Still evolving |
+
+#### APCA Quick Reference (thực chiến)
+| Font Size | Font Weight | Min Lc (APCA) | WCAG 2.2 Equiv |
+|-----------|-------------|---------------|----------------|
+| 12–14px | 400–500 | Lc 90 | ~7:1 |
+| 14–16px | 400–500 | Lc 75 | ~4.5:1 |
+| 16–18px | 400–500 | Lc 60 | ~3:1 |
+| 18px+ | 400–500 | Lc 60 | ~3:1 |
+| Any size | 700+ | Lc 60 | ~3:1 |
+
+#### APCA Calculator (JS snippet)
+```typescript
+function calculateAPCA(fgColor: string, bgColor: string): number {
+  const fgY = sRGBtoY(hexToRgb(fgColor));
+  const bgY = sRGBtoY(hexToRgb(bgColor));
+  const Lc = bgY > fgY
+    ? (bgY ** 0.56 - fgY ** 0.57) * 1.14
+    : (bgY ** 0.65 - fgY ** 0.62) * 1.14;
+  return Math.abs(Lc * 100);
+}
+
+const score = calculateAPCA('#2563eb', '#ffffff');
+const pass = score >= 75;
+```
 
 Tools:
 - WebAIM Contrast Checker: https://webaim.org/resources/contrastchecker/
@@ -475,6 +705,33 @@ Tools:
 
 ---
 
+## Anti-patterns Gallery
+
+```tsx
+// ❌ Brand color chiếm 60% UI
+<section className="bg-primary-600 min-h-screen" />
+
+// ✅ Neutral 60%, brand 30%, accent 10%
+<section className="bg-slate-50">
+  <h1 className="text-primary-600">Heading</h1>
+  <button className="bg-secondary-500 text-white">CTA</button>
+</section>
+
+// ❌ Hard-coded colors
+<button style={{ backgroundColor: '#3b82f6' }}>Click</button>
+
+// ✅ Semantic tokens
+<button className="bg-action-primary">Click</button>
+
+// ❌ Không có tonal palette
+const colors = { primary: '#3b82f6' };
+
+// ✅ Có đủ 10 shades
+const colors = { primary: { 50: '#eff6ff', /* ... */, 900: '#1e3a8a' } };
+```
+
+---
+
 ## Tools Reference
 
 ### Color Palette Generators
@@ -496,6 +753,37 @@ Tools:
 
 ### Color Space Tools
 - OKLCH Picker: https://oklch.com
+
+---
+
+## Tools Integration Pipeline
+
+```bash
+# Export từ Figma (Tokens Studio)
+figma-tokens export --format json
+
+# Transform sang CSS variables
+tokens-transformer tokens.json --output styles/tokens.css
+
+# Generate TypeScript types
+tokens-types tokens.json --output types/tokens.ts
+
+# Validate contrast
+npm run validate:contrast
+```
+
+```yaml
+name: Validate Design Tokens
+on: [pull_request]
+jobs:
+  contrast-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm install
+      - run: npm run validate:contrast
+      - run: npm run lint:no-hardcoded-colors
+```
 
 ---
 
@@ -531,3 +819,30 @@ const brands = {
   tech: { primary: '#10b981', secondary: '#06b6d4' },
 };
 ```
+
+---
+
+## Testing Checklist (Pre-launch)
+
+### Contrast Validation
+- [ ] All text vs backgrounds ≥ 4.5:1 (WCAG 2.2 AA)
+- [ ] Large text ≥ 3:1
+- [ ] APCA: body text ≥ Lc 75, headings ≥ Lc 60
+- [ ] UI components ≥ 3:1
+
+### Color Blindness
+- [ ] Test Deuteranopia
+- [ ] Test Protanopia
+- [ ] Test Tritanopia
+- [ ] Không rely solely on color (có icon/text)
+
+### Visual Weight
+- [ ] Neutral ~60%, primary ~30%, accent ~10%
+- [ ] Visual weight formula validated
+- [ ] Không có overwhelming brand color
+
+### Token Architecture
+- [ ] Không có hard-coded colors trong components
+- [ ] 3-tier structure implemented
+- [ ] Tailwind config references semantic tokens
+- [ ] Dark mode variants defined
