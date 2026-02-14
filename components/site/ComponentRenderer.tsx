@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from './hooks';
+import { BrandBadge, StatBox } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
 import { ServiceListSection } from './ServiceListSection';
@@ -750,84 +751,6 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 // Brand Story UI/UX - 6 Variants: classic, bento, minimal, split, timeline, showcase
 type AboutStyle = 'classic' | 'bento' | 'minimal' | 'split' | 'timeline' | 'showcase';
 
-// Badge Component for About - Monochromatic with brandColor
-const AboutBadge = ({ text, variant = 'default', secondary }: { text: string; variant?: 'default' | 'outline' | 'minimal'; brandColor: string; secondary: string }) => {
-  const baseStyles = "inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider w-fit";
-  
-  if (variant === 'outline') {
-    return (
-      <div 
-        className={`${baseStyles} bg-transparent font-medium`}
-        style={{ borderColor: `${secondary}40`, color: secondary }}
-      >
-        {text}
-      </div>
-    );
-  }
-  if (variant === 'minimal') {
-    return (
-      <div 
-        className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-xs font-medium w-fit border-transparent normal-case tracking-normal"
-        style={{ backgroundColor: `${secondary}15`, color: secondary }}
-      >
-        {text}
-      </div>
-    );
-  }
-  return (
-    <div 
-      className={baseStyles}
-      style={{ backgroundColor: `${secondary}10`, borderColor: `${secondary}20`, color: secondary }}
-    >
-      {text}
-    </div>
-  );
-};
-
-// StatBox Component for About - 3 variants
-const AboutStatBox = ({ stat, variant = 'classic', secondary }: { 
-  stat: { value: string; label: string }; 
-  variant?: 'classic' | 'bento' | 'minimal';
-  brandColor: string;
-  secondary: string;
-}) => {
-  if (variant === 'bento') {
-    return (
-      <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/50 shadow-sm flex flex-col items-start justify-end h-full hover:border-slate-300 transition-colors group">
-        <span 
-          className="text-4xl md:text-5xl font-bold tracking-tighter mb-2 group-hover:scale-105 transition-transform origin-left"
-          style={{ color: secondary }}
-        >
-          {stat.value || '0'}
-        </span>
-        <span className="text-sm font-medium text-slate-500 uppercase tracking-wide">
-          {stat.label || 'Label'}
-        </span>
-      </div>
-    );
-  }
-
-  if (variant === 'minimal') {
-    return (
-      <div 
-        className="flex flex-col border-l-2 pl-6 py-1"
-        style={{ borderColor: `${secondary}30` }}
-      >
-        <span className="text-3xl font-bold tracking-tight" style={{ color: secondary }}>{stat.value || '0'}</span>
-        <span className="text-sm text-slate-500 font-medium">{stat.label || 'Label'}</span>
-      </div>
-    );
-  }
-
-  // Classic variant
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-5xl font-extrabold tracking-tighter" style={{ color: secondary }}>{stat.value || '0'}</span>
-      <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">{stat.label || 'Label'}</span>
-    </div>
-  );
-};
-
 function AboutSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; title: string }) {
   const { subHeading, heading, description, image, imageCaption, buttonText, buttonLink, stats, style } = config as {
@@ -869,7 +792,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
             <div className="order-1 lg:order-2 flex flex-col justify-center space-y-8 md:space-y-10">
               <div className="space-y-4 md:space-y-6">
                 {subHeading && (
-                  <AboutBadge text={subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
+                  <BrandBadge text={subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
                 )}
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.1]">
                   {heading ?? title}
@@ -883,7 +806,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
               {stats && stats.length > 0 && (
                 <div className="flex flex-row gap-8 md:gap-12 border-t border-slate-200 pt-6 md:pt-8">
                   {stats.slice(0, 2).map((stat, idx) => (
-                    <AboutStatBox key={idx} stat={stat} variant="classic" brandColor={brandColor} secondary={secondary} />
+                    <StatBox key={idx} stat={stat} variant="default" brandColor={brandColor} secondary={secondary} />
                   ))}
                 </div>
               )}
@@ -953,7 +876,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
               {/* Cell 2 & 3: Stats Stacked */}
               <div className="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
                 {stats && stats.slice(0, 2).map((stat, idx) => (
-                  <AboutStatBox key={idx} stat={stat} variant="bento" brandColor={brandColor} secondary={secondary} />
+                  <StatBox key={idx} stat={stat} variant="card" brandColor={brandColor} secondary={secondary} />
                 ))}
               </div>
 
@@ -996,7 +919,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
               <div className="flex-1 p-6 md:p-10 lg:p-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-200">
                 <div className="max-w-xl space-y-6 md:space-y-8">
                   {subHeading && (
-                    <AboutBadge text={subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
+                    <BrandBadge text={subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
                   )}
                   
                   <div className="space-y-3 md:space-y-4">
@@ -1012,7 +935,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
                   {stats && stats.length > 0 && (
                     <div className="flex gap-6 md:gap-8 py-4">
                       {stats.slice(0, 2).map((stat, idx) => (
-                        <AboutStatBox key={idx} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
+                        <StatBox key={idx} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
                       ))}
                     </div>
                   )}
@@ -1061,7 +984,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
           <div className="w-full md:w-1/2 flex flex-col justify-center bg-slate-50 p-6 md:p-10 lg:p-16 order-2 md:order-1">
             <div className="max-w-md space-y-4">
               {subHeading && (
-                <AboutBadge text={subHeading || ''} variant="outline" brandColor={brandColor} secondary={secondary} />
+                <BrandBadge text={subHeading || ''} variant="outline" brandColor={brandColor} secondary={secondary} />
               )}
               <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
                 {heading ?? title}
@@ -1113,7 +1036,7 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
           <div className="text-center mb-12">
             {subHeading && (
               <div className="flex justify-center mb-3">
-                <AboutBadge text={subHeading || ''} variant="default" brandColor={brandColor} secondary={secondary} />
+                <BrandBadge text={subHeading || ''} variant="default" brandColor={brandColor} secondary={secondary} />
               </div>
             )}
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">

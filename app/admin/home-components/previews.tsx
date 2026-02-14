@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
+import { BrandBadge, StatBox } from '@/components/site/shared/BrandColorHelpers';
 import { 
   ArrowRight, ArrowUpRight, Briefcase, Building2, Check, ChevronDown, ChevronLeft,
   ChevronRight, Clock, Cpu, Eye, Facebook, FileText,
@@ -6132,88 +6133,6 @@ interface AboutConfig {
 }
 export type AboutStyle = 'classic' | 'bento' | 'minimal' | 'split' | 'timeline' | 'showcase';
 
-// Badge Component for About - Monochromatic with brandColor
-const AboutBadge = ({ text, variant = 'default', brandColor }: { text: string; variant?: 'default' | 'outline' | 'minimal'; brandColor: string }) => {
-  const baseStyles = "inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider w-fit";
-  
-  // Monochromatic variants using brandColor tints/shades
-  if (variant === 'outline') {
-    return (
-      <div 
-        className={cn(baseStyles, "bg-transparent font-medium")}
-        style={{ borderColor: `${brandColor}40`, color: brandColor }}
-      >
-        {text}
-      </div>
-    );
-  }
-  
-  if (variant === 'minimal') {
-    return (
-      <div 
-        className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-xs font-medium w-fit border-transparent normal-case tracking-normal"
-        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
-      >
-        {text}
-      </div>
-    );
-  }
-  
-  // Default variant
-  return (
-    <div 
-      className={cn(baseStyles)}
-      style={{ backgroundColor: `${brandColor}10`, borderColor: `${brandColor}20`, color: brandColor }}
-    >
-      {text}
-    </div>
-  );
-};
-
-// StatBox Component for About - 3 variants
-const AboutStatBox = ({ stat, variant = 'classic', brandColor }: { 
-  stat: { value: string; label: string }; 
-  variant?: 'classic' | 'bento' | 'minimal';
-  brandColor: string;
-  secondary: string;
-}) => {
-  if (variant === 'bento') {
-    return (
-      <div className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex flex-col items-start justify-end h-full hover:border-slate-300 dark:hover:border-slate-600 transition-colors group">
-        <span 
-          className="text-4xl md:text-5xl font-bold tracking-tighter mb-2 group-hover:scale-105 transition-transform origin-left"
-          style={{ color: brandColor }}
-        >
-          {stat.value || '0'}
-        </span>
-        <span className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-          {stat.label || 'Label'}
-        </span>
-      </div>
-    );
-  }
-
-  if (variant === 'minimal') {
-    return (
-      <div 
-        className="flex flex-col border-l-2 pl-6 py-1"
-        style={{ borderColor: `${brandColor}30` }}
-      >
-        <span className="text-3xl font-bold tracking-tight" style={{ color: brandColor }}>{stat.value || '0'}</span>
-        <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">{stat.label || 'Label'}</span>
-      </div>
-    );
-  }
-
-  // Classic variant
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-5xl font-extrabold tracking-tighter" style={{ color: brandColor }}>{stat.value || '0'}</span>
-      <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{stat.label || 'Label'}</span>
-    </div>
-  );
-};
-
 export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: AboutConfig; brandColor: string;
   secondary: string; selectedStyle?: AboutStyle; onStyleChange?: (style: AboutStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
@@ -6272,7 +6191,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
         <div className={cn("flex flex-col justify-center space-y-8 md:space-y-10", device === 'mobile' ? 'order-1' : 'order-2')}>
           <div className="space-y-4 md:space-y-6">
             {config.subHeading && (
-              <AboutBadge text={config.subHeading} variant="outline" brandColor={brandColor} />
+              <BrandBadge text={config.subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
             )}
             <h2 className={cn(
               "font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-[1.1]",
@@ -6295,7 +6214,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
               device === 'mobile' ? 'gap-6' : ''
             )}>
               {config.stats.slice(0, 2).map((stat) => (
-                <AboutStatBox key={stat.id} stat={stat} variant="classic" brandColor={brandColor} secondary={secondary} />
+                <StatBox key={stat.id} stat={stat} variant="default" brandColor={brandColor} secondary={secondary} />
               ))}
             </div>
           )}
@@ -6368,7 +6287,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
           device === 'mobile' ? 'grid-cols-2' : 'grid-cols-1'
         )}>
           {config.stats.slice(0, 2).map((stat) => (
-            <AboutStatBox key={stat.id} stat={stat} variant="bento" brandColor={brandColor} secondary={secondary} />
+            <StatBox key={stat.id} stat={stat} variant="card" brandColor={brandColor} secondary={secondary} />
           ))}
         </div>
 
@@ -6414,7 +6333,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
         )}>
           <div className="max-w-xl space-y-6 md:space-y-8">
             {config.subHeading && (
-              <AboutBadge text={config.subHeading} variant="minimal" brandColor={brandColor} />
+              <BrandBadge text={config.subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
             )}
             
             <div className="space-y-3 md:space-y-4">
@@ -6436,7 +6355,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
             {config.stats.length > 0 && (
               <div className={cn("flex gap-6 md:gap-8 py-4", device === 'mobile' ? 'gap-4' : '')}>
                 {config.stats.slice(0, 2).map((stat) => (
-                  <AboutStatBox key={stat.id} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
+                  <StatBox key={stat.id} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
                 ))}
               </div>
             )}
@@ -6489,7 +6408,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
         )}>
           <div className={cn("space-y-4", device === 'mobile' ? '' : 'max-w-md')}>
             {config.subHeading && (
-              <AboutBadge text={config.subHeading} variant="outline" brandColor={brandColor} />
+              <BrandBadge text={config.subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
             )}
             <h2 className={cn("font-bold text-slate-900 dark:text-white leading-tight", device === 'mobile' ? 'text-xl' : 'text-2xl lg:text-3xl')}>
               {config.heading || 'Câu chuyện của chúng tôi'}
@@ -6542,7 +6461,7 @@ export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onS
         <div className="text-center mb-10">
           {config.subHeading && (
             <div className="flex justify-center mb-3">
-              <AboutBadge text={config.subHeading} variant="default" brandColor={brandColor} />
+              <BrandBadge text={config.subHeading} variant="default" brandColor={brandColor} secondary={secondary} />
             </div>
           )}
           <h2 className={cn("font-bold text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>
