@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, FileText, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import {
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -65,7 +66,7 @@ const HINTS = [
 export default function PostsListExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const postsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'posts' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const exampleCategorySlug = useExamplePostCategorySlug();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   
@@ -101,8 +102,6 @@ export default function PostsListExperiencePage() {
   }, [experienceSetting?.value, legacyLayoutSetting?.value]);
 
   const isLoading = experienceSetting === undefined || postsModule === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#3b82f6';
-
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
   
   // Additional settings to sync with legacy keys

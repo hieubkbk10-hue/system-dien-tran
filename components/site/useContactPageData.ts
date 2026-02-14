@@ -9,6 +9,7 @@ import {
   parseContactExperienceConfig,
   type ContactExperienceConfig,
 } from '@/lib/experiences/contact/config';
+import { useBrandColor } from '@/components/site/hooks';
 import { TikTokIcon, ZaloIcon } from './SocialIcons';
 
 type SocialLinkItem = {
@@ -25,8 +26,6 @@ type ContactData = {
   hotline: string;
 };
 
-const DEFAULT_BRAND_COLOR = '#3b82f6';
-
 export function useContactPageData(): {
   isLoading: boolean;
   brandColor: string;
@@ -34,17 +33,14 @@ export function useContactPageData(): {
   contactData: ContactData;
   socialLinks: SocialLinkItem[];
 } {
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const experienceSetting = useQuery(api.settings.getByKey, { key: CONTACT_EXPERIENCE_KEY });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   const socialSettings = useQuery(api.settings.listByGroup, { group: 'social' });
 
-  const isLoading = brandColorSetting === undefined
-    || experienceSetting === undefined
+  const isLoading = experienceSetting === undefined
     || contactSettings === undefined
     || socialSettings === undefined;
-
-  const brandColor = typeof brandColorSetting?.value === 'string' ? brandColorSetting.value : DEFAULT_BRAND_COLOR;
 
   const config = useMemo(
     () => parseContactExperienceConfig(experienceSetting?.value),

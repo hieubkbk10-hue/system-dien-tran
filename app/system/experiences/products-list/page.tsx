@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, Heart, LayoutTemplate, Loader2, Package, Save, ShoppingCart, Tag } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -113,7 +114,7 @@ export default function ProductsListExperiencePage() {
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
   const promotionsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'promotions' });
   const variantsSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'variantEnabled' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<ProductsListExperienceConfig>(() => {
@@ -160,7 +161,6 @@ export default function ProductsListExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || productsModule === undefined || wishlistModule === undefined || cartModule === undefined || ordersModule === undefined || promotionsModule === undefined || variantsSetting === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#10b981';
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
   const { handleSave, isSaving } = useExperienceSave(

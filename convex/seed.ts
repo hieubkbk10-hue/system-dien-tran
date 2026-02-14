@@ -2042,6 +2042,8 @@ export const seedSettingsModule = mutation({
         { group: "site", key: "site_favicon", value: "" },
         { group: "site", key: "site_timezone", value: "Asia/Ho_Chi_Minh" },
         { group: "site", key: "site_language", value: "vi" },
+        { group: "site", key: "site_brand_primary", value: "#3b82f6" },
+        { group: "site", key: "site_brand_secondary", value: "" },
         { group: "site", key: "site_brand_color", value: "#3b82f6" },
         
         // Contact settings
@@ -2176,7 +2178,8 @@ export const seedSettingsModule = mutation({
         { enabled: true, fieldKey: "site_favicon", group: "site", isSystem: true, moduleKey: "settings", name: "Favicon", order: 4, required: false, type: "image" as const },
         { enabled: true, fieldKey: "site_timezone", group: "site", isSystem: false, moduleKey: "settings", name: "Múi giờ", order: 5, required: false, type: "select" as const },
         { enabled: true, fieldKey: "site_language", group: "site", isSystem: false, moduleKey: "settings", name: "Ngôn ngữ", order: 6, required: false, type: "select" as const },
-        { enabled: true, fieldKey: "site_brand_color", group: "site", isSystem: false, moduleKey: "settings", name: "Màu thương hiệu", order: 7, required: false, type: "color" as const },
+        { enabled: true, fieldKey: "site_brand_primary", group: "site", isSystem: false, moduleKey: "settings", name: "Màu thương hiệu (chính)", order: 7, required: false, type: "color" as const },
+        { enabled: true, fieldKey: "site_brand_secondary", group: "site", isSystem: false, moduleKey: "settings", name: "Màu thương hiệu (phụ)", order: 8, required: false, type: "color" as const },
         // Contact fields
         { enabled: true, fieldKey: "contact_email", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Email", order: 6, required: false, type: "email" as const },
         { enabled: true, fieldKey: "contact_phone", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Số điện thoại", order: 7, required: false, type: "phone" as const },

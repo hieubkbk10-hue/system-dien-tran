@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { FileText, LayoutTemplate, Loader2, Package, Save, ShoppingBag } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import {
   AccountOrdersPreview,
   ExampleLinks,
@@ -99,7 +100,7 @@ export default function AccountOrdersExperiencePage() {
   const paymentFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enablePayment', moduleKey: 'orders' });
   const shippingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableShipping', moduleKey: 'orders' });
   const trackingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableTracking', moduleKey: 'orders' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const { statuses: orderStatuses } = useOrderStatuses();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
@@ -129,7 +130,6 @@ export default function AccountOrdersExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || ordersModule === undefined || customersModule === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#4f46e5';
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
   const { handleSave, isSaving } = useExperienceSave(

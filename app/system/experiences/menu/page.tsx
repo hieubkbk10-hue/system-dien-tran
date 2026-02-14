@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { Briefcase, CreditCard, Eye, FileText, Heart, LayoutTemplate, Loader2, Mail, Package, Save, ShoppingCart, Users } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   ExperienceModuleLink,
@@ -82,7 +83,7 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function HeaderMenuExperiencePage() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const menuData = useQuery(api.menus.getFullMenu, { location: 'header' });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
 
@@ -124,7 +125,6 @@ export default function HeaderMenuExperiencePage() {
 
   const isLoading = headerStyleSetting === undefined
     || headerConfigSetting === undefined
-    || brandColorSetting === undefined
     || menuData === undefined
     || contactSettings === undefined
     || cartModule === undefined
@@ -136,7 +136,7 @@ export default function HeaderMenuExperiencePage() {
     || ordersModule === undefined
     || customerLoginFeature === undefined;
 
-  const brandColor = typeof brandColorSetting?.value === 'string' ? brandColorSetting.value : '#f97316';
+  const resolvedBrandColor = brandColor || '#f97316';
 
   const menuItems = menuData?.items ?? [];
   const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
@@ -229,7 +229,7 @@ export default function HeaderMenuExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
+            <LayoutTemplate className="w-5 h-5" style={{ color: resolvedBrandColor }} />
             <h1 className="text-2xl font-bold">Header Menu</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -241,7 +241,7 @@ export default function HeaderMenuExperiencePage() {
           onClick={handleSave}
           disabled={(!hasChanges && !hasStyleChanges) || isSaving}
           className="gap-1.5"
-          style={{ backgroundColor: brandColor }}
+          style={{ backgroundColor: resolvedBrandColor }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges || hasStyleChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -258,39 +258,39 @@ export default function HeaderMenuExperiencePage() {
               label="Topbar"
               checked={config.topbar.show}
               onChange={(v) => updateTopbar('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
             />
             <ToggleRow
               label="Search"
               checked={config.search.show}
               onChange={(v) => updateSearch('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
             />
             <ToggleRow
               label="Cart"
               checked={config.cart.show}
               onChange={(v) => updateCart('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
               disabled={!cartModule?.enabled}
             />
             <ToggleRow
               label="Wishlist"
               checked={config.wishlist.show}
               onChange={(v) => updateWishlist('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
               label="Login"
               checked={config.login.show}
               onChange={(v) => updateLogin('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
             />
             <ToggleRow
               label="CTA"
               checked={config.cta.show}
               onChange={(v) => updateCta('show', v)}
-              accentColor={brandColor}
+              accentColor={resolvedBrandColor}
             />
           </ControlCard>
           <ControlCard title="Topbar & Search">
@@ -299,7 +299,7 @@ export default function HeaderMenuExperiencePage() {
                 label="Dùng settings liên hệ"
                 checked={config.topbar.useSettingsData}
                 onChange={(v) => updateTopbar('useSettingsData', v)}
-                accentColor={brandColor}
+                accentColor={resolvedBrandColor}
               />
               <div className="space-y-1">
                 <Label className="text-xs">Hotline</Label>
@@ -323,13 +323,13 @@ export default function HeaderMenuExperiencePage() {
                 label="Theo dõi đơn"
                 checked={config.topbar.showTrackOrder}
                 onChange={(v) => updateTopbar('showTrackOrder', v)}
-                accentColor={brandColor}
+                accentColor={resolvedBrandColor}
               />
               <ToggleRow
                 label="Hệ thống cửa hàng"
                 checked={config.topbar.showStoreSystem}
                 onChange={(v) => updateTopbar('showStoreSystem', v)}
-                accentColor={brandColor}
+                accentColor={resolvedBrandColor}
               />
               {config.search.show && (
                 <div className="pt-2">
@@ -414,7 +414,7 @@ export default function HeaderMenuExperiencePage() {
                   label="Brand accent line"
                   checked={config.showBrandAccent}
                   onChange={updateShowBrandAccent}
-                  accentColor={brandColor}
+                  accentColor={resolvedBrandColor}
                 />
                 <div className="space-y-2">
                   <Label className="text-xs">Header separator</Label>
@@ -445,7 +445,7 @@ export default function HeaderMenuExperiencePage() {
                   label="Sticky header"
                   checked={config.headerSticky}
                   onChange={updateHeaderSticky}
-                  accentColor={brandColor}
+                  accentColor={resolvedBrandColor}
                 />
               </div>
             </ControlCard>
@@ -455,7 +455,7 @@ export default function HeaderMenuExperiencePage() {
             <div className="mb-2">
               <ExampleLinks
                 links={[{ label: 'Trang chủ', url: '/' }]}
-                color={brandColor}
+                color={resolvedBrandColor}
                 compact
               />
             </div>
@@ -571,7 +571,7 @@ export default function HeaderMenuExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={previewStyle}
                 onChange={setPreviewStyle}
-                accentColor={brandColor}
+                accentColor={resolvedBrandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -581,7 +581,7 @@ export default function HeaderMenuExperiencePage() {
           <div className={`mx-auto transition-all duration-300 ${deviceWidths[previewDevice]}`}>
             <BrowserFrame url="yoursite.com">
               <HeaderMenuPreview
-                brandColor={brandColor}
+                brandColor={resolvedBrandColor}
                 config={config}
                 device={previewDevice}
                 layoutStyle={previewStyle}

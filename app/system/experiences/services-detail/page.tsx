@@ -8,6 +8,7 @@ import { Briefcase, Eye, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
 import { SettingInput } from '@/components/modules/shared';
+import { useBrandColor } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -107,7 +108,7 @@ export default function ServiceDetailExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const servicesModule = useQuery(api.admin.modules.getModuleByKey, { key: 'services' });
   const serviceFields = useQuery(api.admin.modules.listModuleFields, { moduleKey: 'services' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const exampleServiceSlug = useExampleServiceSlug();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const [isSaving, setIsSaving] = useState(false);
@@ -119,7 +120,6 @@ export default function ServiceDetailExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || servicesModule === undefined || serviceFields === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#8b5cf6';
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
   const priceField = useMemo(() => serviceFields?.find(field => field.fieldKey === 'price'), [serviceFields]);

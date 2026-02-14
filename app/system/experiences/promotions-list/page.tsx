@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, LayoutTemplate, Save, Ticket } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   ExperienceModuleLink,
@@ -79,7 +80,7 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function PromotionsListExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const promotionsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'promotions' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<PromotionsExperienceConfig>(() => {
@@ -94,7 +95,6 @@ export default function PromotionsListExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || promotionsModule === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#f43f5e';
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
   const { handleSave, isSaving } = useExperienceSave(

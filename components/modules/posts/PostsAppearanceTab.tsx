@@ -1,11 +1,12 @@
  'use client';
  
 import React, { useCallback, useEffect, useState } from 'react';
- import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
  import { api } from '@/convex/_generated/api';
  import { toast } from 'sonner';
  import { ArrowLeft, Eye, FileText, Monitor, Smartphone, Tablet } from 'lucide-react';
  import { Card, CardContent, CardHeader, CardTitle, cn } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
  
  type PostsListStyle = 'fullwidth' | 'sidebar' | 'magazine';
  type PostsDetailStyle = 'classic' | 'modern' | 'minimal';
@@ -44,7 +45,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 export function PostsAppearanceTab({ onHasChanges, onSaveRef }: PostsAppearanceTabProps) {
    const listStyleSetting = useQuery(api.settings.getByKey, { key: 'posts_list_style' });
    const detailStyleSetting = useQuery(api.settings.getByKey, { key: 'posts_detail_style' });
-   const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+   const brandColor = useBrandColor();
    const setMultipleSettings = useMutation(api.settings.setMultiple);
    
    const [listStyle, setListStyle] = useState<PostsListStyle | null>(null);
@@ -52,8 +53,6 @@ export function PostsAppearanceTab({ onHasChanges, onSaveRef }: PostsAppearanceT
    const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
    const [activePreview, setActivePreview] = useState<'list' | 'detail'>('list');
    const [hasChanges, setHasChanges] = useState(false);
-   
-   const brandColor = (brandColorSetting?.value as string) || '#3b82f6';
    
    const resolvedListStyle = listStyle ?? (listStyleSetting?.value as PostsListStyle) ?? 'fullwidth';
    const resolvedDetailStyle = detailStyle ?? (detailStyleSetting?.value as PostsDetailStyle) ?? 'classic';

@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { AlertCircle, Eye, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColor } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   PostDetailPreview,
@@ -118,7 +119,7 @@ export default function PostDetailExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const postsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'posts' });
   const commentsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'comments' });
-  const brandColorSetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   const postFields = useQuery(api.admin.modules.listModuleFields, { moduleKey: 'posts' });
   const examplePostSlug = useExamplePostSlug();
   const legacyDetailStyleSetting = useQuery(api.settings.getByKey, { key: LEGACY_DETAIL_STYLE_KEY });
@@ -146,8 +147,6 @@ export default function PostDetailExperiencePage() {
   }, [experienceSetting?.value, legacyDetailStyleSetting?.value]);
 
   const isLoading = experienceSetting === undefined || postsModule === undefined || postFields === undefined;
-  const brandColor = (brandColorSetting?.value as string) || '#3b82f6';
-
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
   // Get current layout config for preview

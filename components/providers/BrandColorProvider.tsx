@@ -1,18 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-
-const DEFAULT_BRAND_COLOR = '#3b82f6';
+import { useBrandColor } from '@/components/site/hooks';
 
 export function BrandColorProvider() {
-  const setting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const brandColor = useBrandColor();
   
   useEffect(() => {
-    const brandColor = setting?.value as string || DEFAULT_BRAND_COLOR;
     document.documentElement.style.setProperty('--scrollbar-color', brandColor);
-  }, [setting]);
+  }, [brandColor]);
 
   return null;
 }

@@ -55,6 +55,11 @@ const generateTintsShades = (hex: string): string[] => {
   return lightnesses.map(newL => hslToHex(h, s, newL));
 };
 
+const generateComplementary = (hex: string): string => {
+  const { h, s, l } = hexToHSL(hex);
+  return hslToHex((h + 180) % 360, s, l);
+};
+
 const isValidHexColor = (color: string): boolean => /^#[0-9A-Fa-f]{6}$/.test(color);
 
 // Tab config với feature mapping
@@ -105,6 +110,7 @@ function SettingsContent() {
   const [initialForm, setInitialForm] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
+  const [isSecondaryAuto, setIsSecondaryAuto] = useState(true);
 
   // Hooks
   const { cleanupUnusedImages } = useSettingsCleanup();
@@ -131,11 +137,14 @@ function SettingsContent() {
       tab.feature === null ||  enabledFeatures[tab.feature]
     ), [enabledFeatures]);
 
+  const hasPrimaryField = useMemo(() => fieldsData?.some(field => field.fieldKey === 'site_brand_primary'), [fieldsData]);
+
   // Filter and group fields based on enabled status and feature
   const fieldsByGroup = useMemo(() => {
     const groups: Record<string, typeof fieldsData> = {};
     
     fieldsData?.forEach(field => {
+      if (hasPrimaryField && field.fieldKey === 'site_brand_color') {return;}
       // Skip disabled fields
       if (!field.enabled) {return;}
       
@@ -153,7 +162,7 @@ function SettingsContent() {
     });
 
     return groups;
-  }, [fieldsData, enabledFeatures]);
+  }, [fieldsData, enabledFeatures, hasPrimaryField]);
 
   // Sync form with settings data
   useEffect(() => {
@@ -162,6 +171,10 @@ function SettingsContent() {
       settingsData.forEach(s => {
         values[s.key] = typeof s.value === 'string' ? s.value : String(s.value ?? '');
       });
+      if (!values.site_brand_primary && values.site_brand_color) {
+        values.site_brand_primary = values.site_brand_color;
+      }
+      setIsSecondaryAuto(!values.site_brand_secondary);
       setForm(values);
       setInitialForm(values);
     }
@@ -212,12 +225,30 @@ function SettingsContent() {
     try {
       // Get all enabled fields and their groups
       const settingsToSave = fieldsData
-        ?.filter(f => f.enabled && (!f.linkedFeature ||  enabledFeatures[f.linkedFeature]))
-        .map(field => ({
-          group: field.group ?? 'site',
-          key: field.fieldKey,
-          value: form[field.fieldKey] ?? '',
-        })) ?? [];
+        ?.filter(f => {
+          if (!f.enabled) {return false;}
+          if (hasPrimaryField && f.fieldKey === 'site_brand_color') {return false;}
+          return !f.linkedFeature || enabledFeatures[f.linkedFeature];
+        })
+        .map(field => {
+          let value = form[field.fieldKey] ?? '';
+          if (field.fieldKey === 'site_brand_primary' && !value && form.site_brand_color) {
+            value = form.site_brand_color;
+          }
+          if (field.fieldKey === 'site_brand_secondary' && isSecondaryAuto) {
+            value = '';
+          }
+          return {
+            group: field.group ?? 'site',
+            key: field.fieldKey,
+            value,
+          };
+        }) ?? [];
+
+      const primaryValue = form.site_brand_primary || form.site_brand_color;
+      if (primaryValue && hasPrimaryField) {
+        settingsToSave.push({ group: 'site', key: 'site_brand_color', value: primaryValue });
+      }
 
       await setMultiple({ settings: settingsToSave });
       setInitialForm({ ...form });
@@ -256,6 +287,88 @@ function SettingsContent() {
 
     switch (field.type) {
       case 'color': {
+        if (key === 'site_brand_secondary') {
+          const primaryColor = form.site_brand_primary || form.site_brand_color || '#3b82f6';
+          const normalizedPrimary = isValidHexColor(primaryColor) ? primaryColor : '#3b82f6';
+          const derivedSecondary = generateComplementary(normalizedPrimary);
+          const displayColor = isSecondaryAuto ? derivedSecondary : value;
+
+          return (
+            <div className="space-y-2" key={key}>
+              <div className="flex items-center justify-between gap-3">
+                <Label>{field.name}</Label>
+                <label className="flex items-center gap-2 text-xs text-slate-500">
+                  <input
+                    type="checkbox"
+                    checked={isSecondaryAuto}
+                    onChange={(e) => {
+                      const auto = e.target.checked;
+                      setIsSecondaryAuto(auto);
+                      if (auto) {
+                        updateField(key, '');
+                      }
+                    }}
+                    className="rounded border-slate-300"
+                  />
+                  Tự động sinh từ màu chính
+                </label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={isValidHexColor(displayColor) ? displayColor : derivedSecondary}
+                  onChange={(e) => {
+                    if (!isSecondaryAuto) {
+                      updateField(key, e.target.value);
+                    }
+                  }}
+                  className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
+                  disabled={isSecondaryAuto}
+                />
+                <Input
+                  value={(displayColor || '').toUpperCase()}
+                  onChange={(e) => {
+                    if (!isSecondaryAuto) {
+                      updateField(key, e.target.value);
+                    }
+                  }}
+                  className="w-28 font-mono text-sm uppercase"
+                  maxLength={7}
+                  placeholder="#000000"
+                  disabled={isSecondaryAuto}
+                />
+                <Palette size={16} className="text-slate-400" />
+              </div>
+              {displayColor && isValidHexColor(displayColor) && (
+                <div className="flex rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                  {generateTintsShades(displayColor).map((shade, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() =>{
+                        if (!isSecondaryAuto) {
+                          updateField(key, shade);
+                        }
+                      }}
+                      className="flex-1 h-8 transition-all hover:scale-y-125 hover:z-10 relative group"
+                      style={{ backgroundColor: shade }}
+                      title={shade.toUpperCase()}
+                      disabled={isSecondaryAuto}
+                    >
+                      <span
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-[8px] font-mono font-bold"
+                        style={{ color: idx < 5 ? '#000' : '#fff' }}
+                      >
+                        {shade.toUpperCase().slice(1)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
         return (
           <div className="space-y-2" key={key}>
             <Label>{field.name}</Label>

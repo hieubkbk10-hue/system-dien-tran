@@ -48,16 +48,12 @@ export const COMPONENT_TYPES = [
 export const DEFAULT_BRAND_COLOR = '#3b82f6';
 
 // Hook lấy brandColor từ settings - dùng cho tất cả Preview components
-// Key trong settings table là 'site_brand_color' (theo moduleFields của settings module)
 export function useBrandColor() {
-  const setting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
-  // Setting === undefined: đang loading
-  // Setting === null: không có trong DB
-  // Setting.value: có data
-  if (setting === undefined || setting === null) {
-    return DEFAULT_BRAND_COLOR;
-  }
-  return (setting.value as string) || DEFAULT_BRAND_COLOR;
+  const primarySetting = useQuery(api.settings.getByKey, { key: 'site_brand_primary' });
+  const legacySetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
+  const primary = typeof primarySetting?.value === 'string' ? primarySetting.value : '';
+  const legacy = typeof legacySetting?.value === 'string' ? legacySetting.value : '';
+  return primary || legacy || DEFAULT_BRAND_COLOR;
 }
 
 // Legacy export - giữ để không breaking change
