@@ -9269,6 +9269,7 @@ import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 export const ProductCategoriesPreview = ({ 
   config, 
   brandColor, 
+  secondary,
   selectedStyle, 
   onStyleChange,
   categoriesData
@@ -9425,7 +9426,7 @@ export const ProductCategoriesPreview = ({
     return (
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
         <div className="max-w-7xl mx-auto">
-          <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
+          <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')} style={{ color: brandColor }}>
             Danh mục sản phẩm
           </h2>
           
@@ -9486,7 +9487,7 @@ export const ProductCategoriesPreview = ({
           <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>Danh mục sản phẩm</h2>
           <button 
             className="text-sm font-medium flex items-center gap-1 hover:underline whitespace-nowrap"
-            style={{ color: brandColor }}
+            style={{ color: secondary }}
           >
             Xem tất cả <ChevronRight size={16} />
           </button>
@@ -9560,7 +9561,7 @@ export const ProductCategoriesPreview = ({
                     {cat.description && (
                       <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                     )}
-                    <span className="text-xs font-medium flex items-center gap-1" style={{ color: brandColor }}>
+                    <span className="text-xs font-medium flex items-center gap-1" style={{ color: secondary }}>
                       Xem sản phẩm <ArrowRight size={12} />
                     </span>
                   </div>
@@ -9579,7 +9580,7 @@ export const ProductCategoriesPreview = ({
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl')}>Danh mục</h2>
-          <button className="text-sm font-medium hover:underline" style={{ color: brandColor }}>
+          <button className="text-sm font-medium hover:underline" style={{ color: secondary }}>
             Tất cả →
           </button>
         </div>
@@ -9609,11 +9610,11 @@ export const ProductCategoriesPreview = ({
                   }}
                 >
                   {cat.displayIcon && iconData ? (
-                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: brandColor } })
+                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: secondary } })
                   ) : (cat.displayImage ? (
                     <PreviewImage src={cat.displayImage} alt="" className={cn("rounded-full object-cover", isMobile ? 'w-5 h-5' : 'w-6 h-6')} />
                   ) : (
-                    <Package size={isMobile ? 14 : 16} style={{ color: brandColor }} />
+                    <Package size={isMobile ? 14 : 16} style={{ color: secondary }} />
                   ))}
                   <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')}>
                     {cat.name}
@@ -9662,7 +9663,7 @@ export const ProductCategoriesPreview = ({
               <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-4' : 'p-6')}>
                 <span 
                   className="inline-block px-2 py-1 text-xs font-bold rounded mb-2"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   NỔI BẬT
                 </span>
@@ -9707,7 +9708,7 @@ export const ProductCategoriesPreview = ({
                   style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
                 >
                   <Plus size={20} style={{ color: brandColor }} />
-                  <span className="font-bold text-sm mt-1" style={{ color: brandColor }}>
+                  <span className="font-bold text-sm mt-1" style={{ color: secondary }}>
                     +{others.length - displayOthers.length}
                   </span>
                 </div>
@@ -9761,7 +9762,7 @@ export const ProductCategoriesPreview = ({
                       <p className="text-xs text-slate-400 whitespace-nowrap">12 sản phẩm</p>
                     )}
                   </div>
-                  <ArrowUpRight size={14} style={{ color: brandColor }} className="flex-shrink-0" />
+                  <ArrowUpRight size={14} style={{ color: secondary }} className="flex-shrink-0" />
                 </div>
               ))}
             </div>

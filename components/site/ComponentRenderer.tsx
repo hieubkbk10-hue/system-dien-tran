@@ -5783,13 +5783,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
-                style={{ boxShadow: `0 2px 8px 10` }}
+                style={{ boxShadow: `0 2px 8px ${brandColor}10` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 8px 24px 25`;
+                  e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
                   e.currentTarget.style.transform = 'translateY(-4px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 2px 8px 10`;
+                  e.currentTarget.style.boxShadow = `0 2px 8px ${brandColor}10`;
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
@@ -5831,7 +5831,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                       if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `20` }}
+                    style={{ borderColor: `${brandColor}20` }}
                   >
                     <ChevronLeft size={18} style={{ color: secondary }} />
                   </button>
@@ -5842,7 +5842,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                       if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `20` }}
+                    style={{ borderColor: `${brandColor}20` }}
                   >
                     <ChevronRight size={18} style={{ color: secondary }} />
                   </button>
@@ -5890,9 +5890,9 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 >
                   <div
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
-                    style={{ border: `2px solid 15` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `40`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `15`; }}
+                    style={{ border: `2px solid ${brandColor}15` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; }}
                   >
                     {renderCategoryVisual(cat, 40)}
                   </div>
@@ -5917,7 +5917,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   // Style 3: Cards - Modern horizontal cards with description
   if (style === 'cards') {
     return (
-      <section className="py-10 md:py-16" style={{ backgroundColor: `05` }}>
+      <section className="py-10 md:py-16" style={{ backgroundColor: `${brandColor}05` }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -5926,13 +5926,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group bg-white rounded-xl overflow-hidden flex cursor-pointer transition-all"
-                style={{ border: `1px solid 15` }}
+                style={{ border: `1px solid ${brandColor}15` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px 15`;
+                  e.currentTarget.style.borderColor = `${brandColor}40`;
+                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}15`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `15`;
+                  e.currentTarget.style.borderColor = `${brandColor}15`;
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -5976,14 +5976,14 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full cursor-pointer transition-all"
-                  style={{ backgroundColor: `08`, border: `1px solid 20` }}
+                  style={{ backgroundColor: `${brandColor}08`, border: `1px solid ${brandColor}20` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `15`;
-                    e.currentTarget.style.borderColor = `40`;
+                    e.currentTarget.style.backgroundColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `${brandColor}40`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `08`;
-                    e.currentTarget.style.borderColor = `20`;
+                    e.currentTarget.style.backgroundColor = `${brandColor}08`;
+                    e.currentTarget.style.borderColor = `${brandColor}20`;
                   }}
                 >
                   {cat.displayIcon && iconData ? (
@@ -6020,7 +6020,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
             <a 
               href={`/products?category=${featured.slug}`}
               className="relative rounded-2xl overflow-hidden cursor-pointer group md:row-span-2"
-              style={{ boxShadow: `0 8px 30px 20` }}
+              style={{ boxShadow: `0 8px 30px ${brandColor}20` }}
             >
               <div className="aspect-[4/3] md:aspect-auto md:h-full">
                 {renderCategoryVisual(featured, 56)}
@@ -6029,7 +6029,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
               <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
                 <span 
                   className="inline-block px-2 py-1 text-xs font-bold rounded mb-2"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   NỔI BẬT
                 </span>
@@ -6050,13 +6050,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
-                  style={{ border: `2px solid 15` }}
+                  style={{ border: `2px solid ${brandColor}15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `40`;
+                    e.currentTarget.style.borderColor = `${brandColor}40`;
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `15`;
+                    e.currentTarget.style.borderColor = `${brandColor}15`;
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
@@ -6076,7 +6076,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 <Link 
                   href="/products"
                   className="flex flex-col items-center justify-center aspect-[4/3] rounded-xl cursor-pointer"
-                  style={{ backgroundColor: `08`, border: `2px dashed 30` }}
+                  style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
                 >
                   <span className="font-bold text-lg" style={{ color: secondary }}>+{others.length - 5}</span>
                   <span className="text-xs text-slate-500 mt-1">danh mục khác</span>
@@ -6166,7 +6166,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={`${cat.id}-${idx}`}
                 href={`/products?category=${cat.slug}`}
                 className="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-full cursor-pointer mx-2 bg-white"
-                style={{ border: `2px solid 20`, boxShadow: `0 2px 8px 10` }}
+                style={{ border: `2px solid ${brandColor}20`, boxShadow: `0 2px 8px ${brandColor}10` }}
               >
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {renderCategoryVisual(cat, 24)}
