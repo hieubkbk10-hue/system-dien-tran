@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from './hooks';
+import { useBrandColors } from './hooks';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
 import { ServiceListSection } from './ServiceListSection';
@@ -75,95 +75,96 @@ interface ComponentRendererProps {
 }
 
 export function ComponentRenderer({ component }: ComponentRendererProps) {
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
+  const brandColor = primary;
   const { type, title, config } = component;
 
   // Render component dựa vào type
   switch (type) {
     case 'Hero': {
-      return <HeroSection config={config} brandColor={brandColor} />;
+      return <HeroSection config={config} brandColor={brandColor} secondary={secondary} />;
     }
     case 'Stats': {
-      return <StatsSection config={config} brandColor={brandColor} title={title} />;
+      return <StatsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'About': {
-      return <AboutSection config={config} brandColor={brandColor} title={title} />;
+      return <AboutSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Services': {
-      return <ServicesSection config={config} brandColor={brandColor} title={title} />;
+      return <ServicesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Benefits': {
-      return <BenefitsSection config={config} brandColor={brandColor} title={title} />;
+      return <BenefitsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'FAQ': {
-      return <FAQSection config={config} brandColor={brandColor} title={title} />;
+      return <FAQSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'CTA': {
-      return <CTASection config={config} brandColor={brandColor} />;
+      return <CTASection config={config} brandColor={brandColor} secondary={secondary} />;
     }
     case 'Testimonials': {
-      return <TestimonialsSection config={config} brandColor={brandColor} title={title} />;
+      return <TestimonialsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Contact': {
-      return <ContactSection config={config} brandColor={brandColor} title={title} />;
+      return <ContactSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Gallery':
     case 'Partners': {
-      return <GallerySection config={config} brandColor={brandColor} title={title} type={type} />;
+      return <GallerySection config={config} brandColor={brandColor} secondary={secondary} title={title} type={type} />;
     }
     case 'TrustBadges': {
-      return <TrustBadgesSection config={config} brandColor={brandColor} title={title} />;
+      return <TrustBadgesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Pricing': {
-      return <PricingSection config={config} brandColor={brandColor} title={title} />;
+      return <PricingSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'ProductList': {
-      return <ProductListSection config={config} brandColor={brandColor} title={title} />;
+      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'ServiceList': {
-      return <ServiceListSection config={config} brandColor={brandColor} title={title} />;
+      return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Blog': {
-      return <BlogSection config={config} brandColor={brandColor} title={title} />;
+      return <BlogSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Career': {
-      return <CareerSection config={config} brandColor={brandColor} title={title} />;
+      return <CareerSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'CaseStudy': {
-      return <CaseStudySection config={config} brandColor={brandColor} title={title} />;
+      return <CaseStudySection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'SpeedDial': {
-      return <SpeedDialSection config={config} brandColor={brandColor} />;
+      return <SpeedDialSection config={config} brandColor={brandColor} secondary={secondary} />;
     }
     case 'ProductCategories': {
-      return <ProductCategoriesSection config={config} brandColor={brandColor} title={title} />;
+      return <ProductCategoriesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'CategoryProducts': {
-      return <CategoryProductsSection config={config} brandColor={brandColor} title={title} />;
+      return <CategoryProductsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Team': {
-      return <TeamSection config={config} brandColor={brandColor} title={title} />;
+      return <TeamSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Features': {
-      return <FeaturesSection config={config} brandColor={brandColor} title={title} />;
+      return <FeaturesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Process': {
-      return <ProcessSection config={config} brandColor={brandColor} title={title} />;
+      return <ProcessSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Clients': {
-      return <ClientsSection config={config} brandColor={brandColor} title={title} />;
+      return <ClientsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Video': {
-      return <VideoSection config={config} brandColor={brandColor} title={title} />;
+      return <VideoSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Countdown': {
-      return <CountdownSection config={config} brandColor={brandColor} title={title} />;
+      return <CountdownSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'VoucherPromotions': {
-      return <VoucherPromotionsSection config={config} brandColor={brandColor} title={title} />;
+      return <VoucherPromotionsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Footer': {
-      return <FooterSection config={config} brandColor={brandColor} />;
+      return <FooterSection config={config} brandColor={brandColor} secondary={secondary} />;
     }
     default: {
       return <PlaceholderSection type={type} title={title} />;
@@ -185,7 +186,7 @@ interface HeroContent {
   countdownText?: string;
 }
 
-function HeroSection({ config, brandColor }: { config: Record<string, unknown>; brandColor: string }) {
+function HeroSection({ config, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
   const slides = (config.slides as { image: string; link: string }[]) || [];
   const style = (config.style as HeroStyle) || 'slider';
   const content = (config.content as HeroContent) || {};
@@ -239,7 +240,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
               </button>
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                 {slides.map((_, idx) => (
-                  <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'bg-white/50'}`} style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
+                  <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'bg-white/50'}`} style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
                 ))}
               </div>
             </>
@@ -263,7 +264,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
             <div className="absolute bottom-0 left-0 right-0 p-3 flex justify-center gap-2 bg-gradient-to-t from-black/60 to-transparent z-20">
               {slides.map((slide, idx) => (
                 <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`rounded overflow-hidden transition-all border-2 w-16 h-10 md:w-20 md:h-12 ${idx === currentSlide ? 'border-white scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}>
-                  {slide.image ? <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: brandColor }} />}
+                  {slide.image ? <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: secondary }} />}
                 </button>
               ))}
             </div>
@@ -358,8 +359,8 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
           <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 md:px-8 lg:px-16">
             <div className="max-w-xl space-y-4 md:space-y-6">
               {content.badge && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${brandColor}30`, color: brandColor }}>
-                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `30`, color: secondary }}>
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
                   {content.badge}
                 </div>
               )}
@@ -373,7 +374,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
               )}
               <div className="flex flex-col sm:flex-row gap-3">
                 {content.primaryButtonText && (
-                  <a href={slides[currentSlide]?.link || '#'} className="px-6 py-3 font-medium rounded-lg text-white text-center" style={{ backgroundColor: brandColor }}>
+                  <a href={slides[currentSlide]?.link || '#'} className="px-6 py-3 font-medium rounded-lg text-white text-center" style={{ backgroundColor: secondary }}>
                     {content.primaryButtonText}
                   </a>
                 )}
@@ -389,7 +390,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
           {slides.length > 1 && (
             <div className="absolute bottom-6 right-6 flex gap-2 z-20">
               {slides.map((_, idx) => (
-                <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'bg-white/50'}`} style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
+                <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'bg-white/50'}`} style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
               ))}
             </div>
           )}
@@ -406,7 +407,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
           {/* Content Side */}
           <div className="w-full md:w-1/2 flex flex-col justify-center bg-slate-50 p-6 md:p-10 lg:p-16 order-2 md:order-1">
             <div className="max-w-md space-y-4">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: `15`, color: secondary }}>
                 {content.badge ?? `Banner ${currentSlide + 1}/${slides.length}`}
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
@@ -419,7 +420,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
               )}
               {content.primaryButtonText && (
                 <div className="pt-2">
-                  <a href={slides[currentSlide]?.link || '#'} className="inline-block px-6 py-3 font-medium rounded-lg text-white" style={{ backgroundColor: brandColor }}>
+                  <a href={slides[currentSlide]?.link || '#'} className="inline-block px-6 py-3 font-medium rounded-lg text-white" style={{ backgroundColor: secondary }}>
                     {content.primaryButtonText}
                   </a>
                 </div>
@@ -429,7 +430,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
             {slides.length > 1 && (
               <div className="flex gap-2 mt-8">
                 {slides.map((_, idx) => (
-                  <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`h-1.5 rounded-full transition-all ${idx === currentSlide ? 'w-10' : 'w-6 bg-slate-300'}`} style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
+                  <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`h-1.5 rounded-full transition-all ${idx === currentSlide ? 'w-10' : 'w-6 bg-slate-300'}`} style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
                 ))}
               </div>
             )}
@@ -451,10 +452,10 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
             {slides.length > 1 && (
               <>
                 <button onClick={() =>{  setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center z-10">
-                  <svg className="w-5 h-5" style={{ color: brandColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  <svg className="w-5 h-5" style={{ color: secondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <button onClick={() =>{  setCurrentSlide(prev => (prev + 1) % slides.length); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center z-10">
-                  <svg className="w-5 h-5" style={{ color: brandColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-5 h-5" style={{ color: secondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               </>
             )}
@@ -484,8 +485,8 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
             <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-4 md:p-6 max-w-lg">
               {content.badge && (
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: brandColor }}>{content.badge}</span>
+                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: secondary }}>{content.badge}</span>
                 </div>
               )}
               <h3 className="text-lg md:text-xl font-bold text-slate-900">
@@ -498,7 +499,7 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
               )}
               <div className="flex items-center gap-3 mt-4">
                 {content.primaryButtonText && (
-                  <a href={slides[currentSlide]?.link || '#'} className="px-5 py-2 font-medium rounded-lg text-white text-sm" style={{ backgroundColor: brandColor }}>
+                  <a href={slides[currentSlide]?.link || '#'} className="px-5 py-2 font-medium rounded-lg text-white text-sm" style={{ backgroundColor: secondary }}>
                     {content.primaryButtonText}
                   </a>
                 )}
@@ -531,7 +532,8 @@ function HeroSection({ config, brandColor }: { config: Record<string, unknown>; 
 // ============ STATS SECTION ============
 // Professional Stats UI/UX - 6 Variants
 type StatsStyle = 'horizontal' | 'cards' | 'icons' | 'gradient' | 'minimal' | 'counter';
-function StatsSection({ config, brandColor, title: _title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function StatsSection({ config, brandColor, secondary, title: _title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   void _title;
   const items = (config.items as { value: string; label: string }[]) || [];
   const style = (config.style as StatsStyle) || 'horizontal';
@@ -543,7 +545,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
         <div className="max-w-5xl mx-auto">
           <div 
             className="w-full rounded-lg shadow-md overflow-hidden"
-            style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px ${brandColor}20` }}
+            style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px 20` }}
           >
             <div className="flex flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x divide-white/10">
               {items.map((item, idx) => (
@@ -579,7 +581,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
               >
                 <span 
                   className="text-3xl font-bold mb-1 tracking-tight tabular-nums group-hover:scale-105 transition-transform duration-200"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   {item.value}
                 </span>
@@ -612,7 +614,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
                   className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 group-hover:scale-105 transition-all duration-300 ease-out border-[3px] border-white ring-1 ring-slate-100"
                   style={{ 
                     backgroundColor: brandColor,
-                    boxShadow: `0 10px 15px -3px ${brandColor}30, 0 4px 6px -4px ${brandColor}20`
+                    boxShadow: `0 10px 15px -3px ${secondary}30, 0 4px 6px -4px ${secondary}20`
                   }}
                 >
                   <span className="text-2xl md:text-3xl font-bold text-white tracking-tight z-10 tabular-nums">
@@ -638,7 +640,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
           <div 
             className="rounded-2xl overflow-hidden"
             style={{ 
-              background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 50%, ${brandColor}bb 100%)`,
+              background: `linear-gradient(135deg,  0%, dd 50%, bb 100%)`,
             }}
           >
             <div className="grid grid-cols-2 md:grid-cols-4 backdrop-blur-sm">
@@ -677,7 +679,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
                 {/* Accent line */}
                 <div 
                   className="w-12 h-1 rounded-full mb-4"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 />
                 <span className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums leading-none text-slate-900">
                   {item.value}
@@ -708,7 +710,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
                 <div 
                   className="h-full transition-all duration-500"
                   style={{ 
-                    backgroundColor: brandColor,
+                    backgroundColor: secondary,
                     width: `${Math.min(100, (idx + 1) * 25)}%`
                   }}
                 />
@@ -717,7 +719,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
               <div className="flex flex-col items-center justify-center text-center p-6">
                 <span 
                   className="text-5xl md:text-6xl font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   {item.value}
                 </span>
@@ -729,7 +731,7 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
               {/* Decorative watermark */}
               <div 
                 className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-                style={{ color: brandColor }}
+                style={{ color: secondary }}
               >
                 {idx + 1}
               </div>
@@ -746,14 +748,14 @@ function StatsSection({ config, brandColor, title: _title }: { config: Record<st
 type AboutStyle = 'classic' | 'bento' | 'minimal' | 'split' | 'timeline' | 'showcase';
 
 // Badge Component for About - Monochromatic with brandColor
-const AboutBadge = ({ text, variant = 'default', brandColor }: { text: string; variant?: 'default' | 'outline' | 'minimal'; brandColor: string }) => {
+const AboutBadge = ({ text, variant = 'default', secondary }: { text: string; variant?: 'default' | 'outline' | 'minimal'; brandColor: string; secondary: string }) => {
   const baseStyles = "inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider w-fit";
   
   if (variant === 'outline') {
     return (
       <div 
         className={`${baseStyles} bg-transparent font-medium`}
-        style={{ borderColor: `${brandColor}40`, color: brandColor }}
+        style={{ borderColor: `40`, color: secondary }}
       >
         {text}
       </div>
@@ -763,7 +765,7 @@ const AboutBadge = ({ text, variant = 'default', brandColor }: { text: string; v
     return (
       <div 
         className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-xs font-medium w-fit border-transparent normal-case tracking-normal"
-        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+        style={{ backgroundColor: `15`, color: secondary }}
       >
         {text}
       </div>
@@ -772,7 +774,7 @@ const AboutBadge = ({ text, variant = 'default', brandColor }: { text: string; v
   return (
     <div 
       className={baseStyles}
-      style={{ backgroundColor: `${brandColor}10`, borderColor: `${brandColor}20`, color: brandColor }}
+      style={{ backgroundColor: `10`, borderColor: `20`, color: secondary }}
     >
       {text}
     </div>
@@ -780,17 +782,18 @@ const AboutBadge = ({ text, variant = 'default', brandColor }: { text: string; v
 };
 
 // StatBox Component for About - 3 variants
-const AboutStatBox = ({ stat, variant = 'classic', brandColor }: { 
+const AboutStatBox = ({ stat, variant = 'classic', secondary }: { 
   stat: { value: string; label: string }; 
   variant?: 'classic' | 'bento' | 'minimal';
   brandColor: string;
+  secondary: string;
 }) => {
   if (variant === 'bento') {
     return (
       <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/50 shadow-sm flex flex-col items-start justify-end h-full hover:border-slate-300 transition-colors group">
         <span 
           className="text-4xl md:text-5xl font-bold tracking-tighter mb-2 group-hover:scale-105 transition-transform origin-left"
-          style={{ color: brandColor }}
+          style={{ color: secondary }}
         >
           {stat.value || '0'}
         </span>
@@ -805,9 +808,9 @@ const AboutStatBox = ({ stat, variant = 'classic', brandColor }: {
     return (
       <div 
         className="flex flex-col border-l-2 pl-6 py-1"
-        style={{ borderColor: `${brandColor}30` }}
+        style={{ borderColor: `30` }}
       >
-        <span className="text-3xl font-bold tracking-tight" style={{ color: brandColor }}>{stat.value || '0'}</span>
+        <span className="text-3xl font-bold tracking-tight" style={{ color: secondary }}>{stat.value || '0'}</span>
         <span className="text-sm text-slate-500 font-medium">{stat.label || 'Label'}</span>
       </div>
     );
@@ -816,13 +819,14 @@ const AboutStatBox = ({ stat, variant = 'classic', brandColor }: {
   // Classic variant
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-5xl font-extrabold tracking-tighter" style={{ color: brandColor }}>{stat.value || '0'}</span>
+      <span className="text-5xl font-extrabold tracking-tighter" style={{ color: secondary }}>{stat.value || '0'}</span>
       <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">{stat.label || 'Label'}</span>
     </div>
   );
 };
 
-function AboutSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function AboutSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const { subHeading, heading, description, image, imageCaption, buttonText, buttonLink, stats, style } = config as {
     subHeading?: string;
     heading?: string;
@@ -862,7 +866,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
             <div className="order-1 lg:order-2 flex flex-col justify-center space-y-8 md:space-y-10">
               <div className="space-y-4 md:space-y-6">
                 {subHeading && (
-                  <AboutBadge text={subHeading} variant="outline" brandColor={brandColor} />
+                  <AboutBadge text={subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
                 )}
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.1]">
                   {heading ?? title}
@@ -876,7 +880,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               {stats && stats.length > 0 && (
                 <div className="flex flex-row gap-8 md:gap-12 border-t border-slate-200 pt-6 md:pt-8">
                   {stats.slice(0, 2).map((stat, idx) => (
-                    <AboutStatBox key={idx} stat={stat} variant="classic" brandColor={brandColor} />
+                    <AboutStatBox key={idx} stat={stat} variant="classic" brandColor={brandColor} secondary={secondary} />
                   ))}
                 </div>
               )}
@@ -886,7 +890,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                   <a 
                     href={buttonLink ?? '#'}
                     className="inline-flex items-center gap-2 p-0 h-auto text-lg font-semibold hover:opacity-80 transition-opacity group"
-                    style={{ color: brandColor }}
+                    style={{ color: secondary }}
                   >
                     {buttonText} 
                     <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -913,8 +917,8 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               <div className="md:col-span-2 bg-white rounded-2xl p-6 md:p-8 lg:p-12 border border-slate-200/50 shadow-sm flex flex-col justify-center space-y-4 md:space-y-6">
                 <div className="space-y-3 md:space-y-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                    <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: brandColor }}>
+                    <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
+                    <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: secondary }}>
                       {subHeading ?? 'Câu chuyện thương hiệu'}
                     </span>
                   </div>
@@ -930,7 +934,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                     <a 
                       href={buttonLink ?? '#'}
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border-2 font-medium transition-colors hover:text-white"
-                      style={{ borderColor: brandColor, color: brandColor }}
+                      style={{ borderColor: brandColor, color: secondary }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = brandColor; (e.currentTarget as HTMLElement).style.color = 'white'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.color = brandColor; }}
                     >
@@ -946,7 +950,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               {/* Cell 2 & 3: Stats Stacked */}
               <div className="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
                 {stats && stats.slice(0, 2).map((stat, idx) => (
-                  <AboutStatBox key={idx} stat={stat} variant="bento" brandColor={brandColor} />
+                  <AboutStatBox key={idx} stat={stat} variant="bento" brandColor={brandColor} secondary={secondary} />
                 ))}
               </div>
 
@@ -989,7 +993,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               <div className="flex-1 p-6 md:p-10 lg:p-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-200">
                 <div className="max-w-xl space-y-6 md:space-y-8">
                   {subHeading && (
-                    <AboutBadge text={subHeading} variant="minimal" brandColor={brandColor} />
+                    <AboutBadge text={subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
                   )}
                   
                   <div className="space-y-3 md:space-y-4">
@@ -1005,7 +1009,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                   {stats && stats.length > 0 && (
                     <div className="flex gap-6 md:gap-8 py-4">
                       {stats.slice(0, 2).map((stat, idx) => (
-                        <AboutStatBox key={idx} stat={stat} variant="minimal" brandColor={brandColor} />
+                        <AboutStatBox key={idx} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
                       ))}
                     </div>
                   )}
@@ -1054,7 +1058,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
           <div className="w-full md:w-1/2 flex flex-col justify-center bg-slate-50 p-6 md:p-10 lg:p-16 order-2 md:order-1">
             <div className="max-w-md space-y-4">
               {subHeading && (
-                <AboutBadge text={subHeading || ''} variant="outline" brandColor={brandColor} />
+                <AboutBadge text={subHeading || ''} variant="outline" brandColor={brandColor} secondary={secondary} />
               )}
               <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
                 {heading ?? title}
@@ -1067,7 +1071,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                 <div className="flex gap-6 pt-4 border-t border-slate-200">
                   {(stats ?? []).slice(0, 2).map((stat, idx) => (
                     <div key={idx} className="flex flex-col">
-                      <span className="text-2xl font-bold" style={{ color: brandColor }}>{stat.value || '0'}</span>
+                      <span className="text-2xl font-bold" style={{ color: secondary }}>{stat.value || '0'}</span>
                       <span className="text-xs text-slate-500">{stat.label || ''}</span>
                     </div>
                   ))}
@@ -1075,7 +1079,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               )}
               {buttonText && (
                 <div className="pt-2">
-                  <a href={buttonLink ?? '#'} className="inline-block px-6 py-2.5 font-medium rounded-lg text-white" style={{ backgroundColor: brandColor }}>
+                  <a href={buttonLink ?? '#'} className="inline-block px-6 py-2.5 font-medium rounded-lg text-white" style={{ backgroundColor: secondary }}>
                     {buttonText}
                   </a>
                 </div>
@@ -1106,7 +1110,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
           <div className="text-center mb-12">
             {subHeading && (
               <div className="flex justify-center mb-3">
-                <AboutBadge text={subHeading || ''} variant="default" brandColor={brandColor} />
+                <AboutBadge text={subHeading || ''} variant="default" brandColor={brandColor} secondary={secondary} />
               </div>
             )}
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
@@ -1120,18 +1124,18 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
           {/* Timeline */}
           <div className="relative">
             {/* Vertical line */}
-            <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
+            <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `20` }} />
             
             <div className="space-y-8">
               {(stats ?? []).slice(0, 4).map((stat, idx) => (
                 <div key={idx} className={`relative flex ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
                   {/* Dot */}
-                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold" style={{ borderColor: brandColor, color: brandColor }}>
+                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold" style={{ borderColor: brandColor, color: secondary }}>
                     {idx + 1}
                   </div>
                   {/* Content card */}
-                  <div className="ml-16 md:ml-0 md:w-5/12 bg-white rounded-xl p-4 border shadow-sm" style={{ borderColor: `${brandColor}15` }}>
-                    <span className="text-2xl font-bold" style={{ color: brandColor }}>{stat.value || ''}</span>
+                  <div className="ml-16 md:ml-0 md:w-5/12 bg-white rounded-xl p-4 border shadow-sm" style={{ borderColor: `15` }}>
+                    <span className="text-2xl font-bold" style={{ color: secondary }}>{stat.value || ''}</span>
                     <p className="text-sm text-slate-600 mt-1">{stat.label || ''}</p>
                   </div>
                 </div>
@@ -1148,7 +1152,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
 
           {buttonText && (
             <div className="text-center mt-10">
-              <a href={buttonLink ?? '#'} className="inline-block px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: brandColor }}>
+              <a href={buttonLink ?? '#'} className="inline-block px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: secondary }}>
                 {buttonText}
               </a>
             </div>
@@ -1165,7 +1169,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
         {/* Header */}
         <div className="text-center mb-10">
           {subHeading && (
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-4" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-4" style={{ backgroundColor: `15`, color: secondary }}>
               {subHeading}
             </span>
           )}
@@ -1196,7 +1200,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                 <a 
                   href={buttonLink ?? '#'} 
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white backdrop-blur-sm transition-all hover:scale-105"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   {buttonText}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1214,11 +1218,11 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
                 key={idx} 
                 className="rounded-xl p-5 flex flex-col justify-center text-center transition-all hover:scale-[1.02]"
                 style={{ 
-                  backgroundColor: idx === 0 ? brandColor : `${brandColor}${10 + idx * 5}`,
+                  backgroundColor: idx === 0 ? brandColor : `${10 + idx * 5}`,
                   color: idx === 0 ? 'white' : 'inherit'
                 }}
               >
-                <span className={`text-3xl md:text-4xl font-bold mb-1 ${idx === 0 ? 'text-white' : ''}`} style={idx !== 0 ? { color: brandColor } : {}}>
+                <span className={`text-3xl md:text-4xl font-bold mb-1 ${idx === 0 ? 'text-white' : ''}`} style={idx !== 0 ? { color: secondary } : {}}>
                   {stat.value || '0'}
                 </span>
                 <span className={`text-sm font-medium ${idx === 0 ? 'text-white/80' : 'text-slate-600'}`}>
@@ -1231,7 +1235,7 @@ function AboutSection({ config, brandColor, title }: { config: Record<string, un
               <div 
                 key={`empty-${idx}`} 
                 className="rounded-xl p-5 flex items-center justify-center"
-                style={{ backgroundColor: `${brandColor}08` }}
+                style={{ backgroundColor: `08` }}
               >
                 <span className="text-slate-300 text-sm">+</span>
               </div>
@@ -1256,7 +1260,8 @@ const ServiceIconRenderer = ({ name, size = 24, style }: { name?: string; size?:
   return <IconComponent size={size} style={style} />;
 };
 
-function ServicesSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function ServicesSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
   const style = (config.style as ServicesStyle) || 'elegantGrid';
   const carouselId = useSafeId('services-carousel');
@@ -1266,8 +1271,8 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
     return (
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-            <Briefcase size={32} style={{ color: brandColor }} />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `10` }}>
+            <Briefcase size={32} style={{ color: secondary }} />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Dịch vụ'}</h2>
           <p className="text-slate-500">Chưa có dịch vụ nào</p>
@@ -1302,7 +1307,7 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
                 {/* Top Accent Line with gradient */}
                 <div 
                   className="absolute top-0 left-0 right-0 h-1.5 w-full"
-                  style={{ background: `linear-gradient(to right, ${brandColor}66, ${brandColor})` }}
+                  style={{ background: `linear-gradient(to right, 66, )` }}
                 />
                 
                 <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2 tracking-tight">
@@ -1341,7 +1346,7 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
                 {/* Number */}
                 <span 
                   className="text-2xl md:text-3xl font-bold tabular-nums flex-shrink-0 w-10 md:w-12"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   {String(idx + 1).padStart(2, '0')}
                 </span>
@@ -1376,10 +1381,10 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
               const isHighlighted = idx === 1;
               return (
                 <div key={idx} className={`relative overflow-hidden rounded-xl p-6 min-h-[180px] flex flex-col justify-end border ${isHighlighted ? 'text-white border-transparent' : 'bg-slate-100/50 text-slate-900 border-slate-200/50'}`}
-                  style={isHighlighted ? { backgroundColor: brandColor } : {}}>
+                  style={isHighlighted ? { backgroundColor: secondary } : {}}>
                   <span className={`absolute -top-6 -right-3 text-[8rem] font-black leading-none select-none pointer-events-none ${isHighlighted ? 'text-white opacity-[0.15]' : 'text-slate-900 opacity-[0.07]'}`}>{idx + 1}</span>
                   <div className="relative z-10 space-y-2">
-                    <div className="w-6 h-1 mb-3 opacity-50 rounded-full" style={{ backgroundColor: isHighlighted ? 'white' : brandColor }} />
+                    <div className="w-6 h-1 mb-3 opacity-50 rounded-full" style={{ backgroundColor: isHighlighted ? 'white' : secondary }} />
                     <h3 className="text-lg md:text-xl font-bold tracking-tight">{item.title || 'Tiêu đề'}</h3>
                     <p className={`text-sm leading-relaxed ${isHighlighted ? 'text-white/90' : 'text-slate-500'}`}>{item.description || 'Mô tả...'}</p>
                   </div>
@@ -1387,8 +1392,8 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
               );
             })}
             {remainingCount > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 min-h-[180px]" style={{ borderColor: `${brandColor}30` }}>
-                <span className="text-2xl font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 min-h-[180px]" style={{ borderColor: `30` }}>
+                <span className="text-2xl font-bold" style={{ color: secondary }}>+{remainingCount}</span>
                 <span className="text-sm text-slate-500">dịch vụ khác</span>
               </div>
             )}
@@ -1407,9 +1412,9 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 text-center">{title}</h2>
             <div className={`mx-auto flex justify-center gap-6 ${items.length === 1 ? 'max-w-sm' : 'max-w-2xl'}`}>
               {items.map((item, idx) => (
-                <div key={idx} className="flex-1 bg-white rounded-2xl p-6 border shadow-sm" style={{ borderColor: `${brandColor}15` }}>
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                    <ServiceIconRenderer name={item.icon} size={28} style={{ color: brandColor }} />
+                <div key={idx} className="flex-1 bg-white rounded-2xl p-6 border shadow-sm" style={{ borderColor: `15` }}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `10` }}>
+                    <ServiceIconRenderer name={item.icon} size={28} style={{ color: secondary }} />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title || 'Tiêu đề'}</h3>
                   <p className="text-sm text-slate-500 leading-relaxed">{item.description || 'Mô tả...'}</p>
@@ -1424,22 +1429,22 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto space-y-10">
           <div className="text-center space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Dịch vụ</span>
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider" style={{ backgroundColor: `15`, color: secondary }}>Dịch vụ</span>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {visibleItems.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 border shadow-sm transition-shadow hover:shadow-md" style={{ borderColor: `${brandColor}15` }}>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                  <ServiceIconRenderer name={item.icon} size={28} style={{ color: brandColor }} />
+              <div key={idx} className="bg-white rounded-2xl p-6 border shadow-sm transition-shadow hover:shadow-md" style={{ borderColor: `15` }}>
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `10` }}>
+                  <ServiceIconRenderer name={item.icon} size={28} style={{ color: secondary }} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title || 'Tiêu đề'}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{item.description || 'Mô tả...'}</p>
               </div>
             ))}
             {remainingCount > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6" style={{ borderColor: `${brandColor}30` }}>
-                <span className="text-2xl font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6" style={{ borderColor: `30` }}>
+                <span className="text-2xl font-bold" style={{ color: secondary }}>+{remainingCount}</span>
                 <span className="text-sm text-slate-500">dịch vụ khác</span>
               </div>
             )}
@@ -1481,7 +1486,7 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -1520,14 +1525,14 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
                 <div
                   key={idx}
                   className="snap-start flex-shrink-0 w-[280px] md:w-[300px] bg-white rounded-xl overflow-hidden border shadow-sm"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   draggable={false}
                 >
-                  <div className="h-2 w-full" style={{ background: `linear-gradient(to right, ${brandColor}66, ${brandColor})` }} />
+                  <div className="h-2 w-full" style={{ background: `linear-gradient(to right, 66, )` }} />
                   <div className="p-5">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}10` }}>
-                        <ServiceIconRenderer name={item.icon} size={24} style={{ color: brandColor }} />
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `10` }}>
+                        <ServiceIconRenderer name={item.icon} size={24} style={{ color: secondary }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-slate-900 mb-1">{item.title || 'Tiêu đề'}</h3>
@@ -1556,16 +1561,16 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
           </div>
           <div className="relative">
-            <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
+            <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `20` }} />
             <div className="space-y-8">
               {visibleItems.map((item, idx) => (
                 <div key={idx} className={`relative flex ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
-                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-4 bg-white flex items-center justify-center z-10" style={{ borderColor: brandColor }}>
-                    <ServiceIconRenderer name={item.icon} size={18} style={{ color: brandColor }} />
+                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-4 bg-white flex items-center justify-center z-10" style={{ borderColor: secondary }}>
+                    <ServiceIconRenderer name={item.icon} size={18} style={{ color: secondary }} />
                   </div>
-                  <div className={`ml-20 md:ml-0 md:w-5/12 bg-white rounded-xl p-5 border shadow-sm ${idx % 2 === 0 ? 'md:mr-auto md:ml-8' : 'md:ml-auto md:mr-8'}`} style={{ borderColor: `${brandColor}15` }}>
+                  <div className={`ml-20 md:ml-0 md:w-5/12 bg-white rounded-xl p-5 border shadow-sm ${idx % 2 === 0 ? 'md:mr-auto md:ml-8' : 'md:ml-auto md:mr-8'}`} style={{ borderColor: `15` }}>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-bold tabular-nums" style={{ color: brandColor }}>{String(idx + 1).padStart(2, '0')}</span>
+                      <span className="text-sm font-bold tabular-nums" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
                       <h3 className="font-bold text-slate-900">{item.title || 'Tiêu đề'}</h3>
                     </div>
                     <p className="text-sm text-slate-500">{item.description || 'Mô tả...'}</p>
@@ -1574,8 +1579,8 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
               ))}
               {remainingCount > 0 && (
                 <div className="relative flex">
-                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed bg-white flex items-center justify-center z-10" style={{ borderColor: `${brandColor}40` }}>
-                    <span className="text-xs font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed bg-white flex items-center justify-center z-10" style={{ borderColor: `40` }}>
+                    <span className="text-xs font-bold" style={{ color: secondary }}>+{remainingCount}</span>
                   </div>
                 </div>
               )}
@@ -1596,7 +1601,7 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item, idx) => (
             <div key={idx} className="bg-white p-6 pt-8 rounded-xl shadow-sm border border-slate-200/60 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 w-full" style={{ background: `linear-gradient(to right, ${brandColor}66, ${brandColor})` }} />
+              <div className="absolute top-0 left-0 right-0 h-1.5 w-full" style={{ background: `linear-gradient(to right, 66, )` }} />
               <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2 tracking-tight">{item.title || 'Tiêu đề'}</h3>
               <p className="text-slate-500 leading-relaxed text-sm">{item.description || 'Mô tả...'}</p>
             </div>
@@ -1610,7 +1615,8 @@ function ServicesSection({ config, brandColor, title }: { config: Record<string,
 // ============ BENEFITS SECTION ============
 // 6 Professional Styles: Solid Cards, Accent List, Bold Bento, Icon Row, Carousel, Timeline
 type BenefitsStyle = 'cards' | 'list' | 'bento' | 'row' | 'carousel' | 'timeline';
-function BenefitsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function BenefitsSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
   const style = (config.style as BenefitsStyle) || 'cards';
   const carouselId = useSafeId('benefits-carousel');
@@ -1624,8 +1630,8 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
     return (
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-            <Check size={32} style={{ color: brandColor }} />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `10` }}>
+            <Check size={32} style={{ color: secondary }} />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Lợi ích'}</h2>
           <p className="text-slate-500">Chưa có lợi ích nào</p>
@@ -1636,9 +1642,9 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
 
   // Reusable Header
   const renderBenefitsHeader = () => (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2" style={{ borderColor: `${brandColor}20` }}>
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2" style={{ borderColor: `20` }}>
       <div className="space-y-2">
-        <div className="inline-block px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+        <div className="inline-block px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `15`, color: secondary }}>
           {subHeading}
         </div>
         <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{heading}</h2>
@@ -1654,11 +1660,11 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
           {renderBenefitsHeader()}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {items.map((item, idx) => (
-              <div key={idx} className="rounded-xl p-5 md:p-6 shadow-sm flex flex-col items-start border" style={{ backgroundColor: `${brandColor}08`, borderColor: `${brandColor}20` }}>
-                <div className="w-11 h-11 md:w-12 md:h-12 rounded-lg flex items-center justify-center mb-4 text-white" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px ${brandColor}30` }}>
+              <div key={idx} className="rounded-xl p-5 md:p-6 shadow-sm flex flex-col items-start border" style={{ backgroundColor: `08`, borderColor: `20` }}>
+                <div className="w-11 h-11 md:w-12 md:h-12 rounded-lg flex items-center justify-center mb-4 text-white" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px 30` }}>
                   <Check size={18} strokeWidth={3} />
                 </div>
-                <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2" style={{ color: brandColor }}>{item.title}</h3>
+                <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2" style={{ color: secondary }}>{item.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 min-h-[3.75rem]">{item.description}</p>
               </div>
             ))}
@@ -1677,12 +1683,12 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
           <div className="flex flex-col gap-3">
             {items.map((item, idx) => (
               <div key={idx} className="relative bg-white border border-slate-200/60 rounded-lg p-4 md:p-5 pl-5 md:pl-6 overflow-hidden shadow-sm">
-                <div className="absolute top-0 bottom-0 left-0 w-1.5" style={{ backgroundColor: brandColor }} />
+                <div className="absolute top-0 bottom-0 left-0 w-1.5" style={{ backgroundColor: secondary }} />
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-3">
                   <div className="flex items-start gap-3 md:gap-4">
                     <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ backgroundColor: `${brandColor}15`, borderColor: `${brandColor}30` }}>
-                        <span className="text-[11px] font-bold" style={{ color: brandColor }}>{idx + 1}</span>
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ backgroundColor: `15`, borderColor: `30` }}>
+                        <span className="text-[11px] font-bold" style={{ color: secondary }}>{idx + 1}</span>
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1691,7 +1697,7 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
                     </div>
                   </div>
                   <div className="hidden md:block flex-shrink-0">
-                    <svg className="w-[18px] h-[18px] opacity-60" style={{ color: brandColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-[18px] h-[18px] opacity-60" style={{ color: secondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
@@ -1715,9 +1721,9 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
               const isWide = idx === 0 || idx === 3;
               const isPrimary = idx === 0;
               return (
-                <div key={idx} className={`flex flex-col justify-between p-5 md:p-6 lg:p-8 rounded-2xl transition-colors min-h-[160px] md:min-h-[180px] ${isWide ? 'md:col-span-2' : 'md:col-span-1'} ${isPrimary ? 'text-white border border-transparent' : 'bg-white border border-slate-200/60'}`} style={isPrimary ? { backgroundColor: brandColor, boxShadow: `0 10px 15px -3px ${brandColor}30` } : {}}>
+                <div key={idx} className={`flex flex-col justify-between p-5 md:p-6 lg:p-8 rounded-2xl transition-colors min-h-[160px] md:min-h-[180px] ${isWide ? 'md:col-span-2' : 'md:col-span-1'} ${isPrimary ? 'text-white border border-transparent' : 'bg-white border border-slate-200/60'}`} style={isPrimary ? { backgroundColor: brandColor, boxShadow: `0 10px 15px -3px 30` } : {}}>
                   <div className="flex justify-between items-start mb-3 md:mb-4">
-                    <span className={`text-xs font-bold uppercase tracking-widest px-2 py-1 rounded ${isPrimary ? 'bg-white/20 text-white' : ''}`} style={!isPrimary ? { backgroundColor: `${brandColor}15`, color: brandColor } : {}}>
+                    <span className={`text-xs font-bold uppercase tracking-widest px-2 py-1 rounded ${isPrimary ? 'bg-white/20 text-white' : ''}`} style={!isPrimary ? { backgroundColor: `15`, color: secondary } : {}}>
                       0{idx + 1}
                     </span>
                   </div>
@@ -1740,11 +1746,11 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto space-y-8">
           {renderBenefitsHeader()}
-          <div className="bg-white border-y-2 rounded-lg overflow-hidden" style={{ borderColor: `${brandColor}15` }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x" style={{ borderColor: `${brandColor}15` }}>
+          <div className="bg-white border-y-2 rounded-lg overflow-hidden" style={{ borderColor: `15` }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x" style={{ borderColor: `15` }}>
               {items.slice(0, 4).map((item, idx) => (
                 <div key={idx} className="p-5 md:p-6 lg:p-8 flex flex-col items-center text-center">
-                  <div className="mb-3 md:mb-4 p-3 rounded-full" style={{ backgroundColor: `${brandColor}15`, boxShadow: `0 0 0 4px ${brandColor}08`, color: brandColor }}>
+                  <div className="mb-3 md:mb-4 p-3 rounded-full" style={{ backgroundColor: `15`, boxShadow: `0 0 0 4px 08`, color: secondary }}>
                     <Check size={22} strokeWidth={3} />
                   </div>
                   <h3 className="font-bold text-slate-900 mb-1.5 md:mb-2 text-sm md:text-base line-clamp-2 min-h-[2.5rem]">{item.title}</h3>
@@ -1783,9 +1789,9 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
                   className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-slate-50 transition-colors"
-                  style={{ borderColor: `${brandColor}20` }}
+                  style={{ borderColor: `20` }}
                 >
-                  <ChevronLeft size={20} style={{ color: brandColor }} />
+                  <ChevronLeft size={20} style={{ color: secondary }} />
                 </button>
                 <button
                   type="button"
@@ -1794,7 +1800,7 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -1845,13 +1851,13 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
                 <div
                   key={idx}
                   className="snap-start w-[280px] md:w-[320px] flex-shrink-0 rounded-xl p-5 md:p-6 border shadow-sm"
-                  style={{ backgroundColor: idx === 0 ? brandColor : `${brandColor}08`, borderColor: `${brandColor}20` }}
+                  style={{ backgroundColor: idx === 0 ? brandColor : `08`, borderColor: `20` }}
                   draggable={false}
                 >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${idx === 0 ? 'bg-white/20' : ''}`} style={idx !== 0 ? { backgroundColor: brandColor } : {}}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${idx === 0 ? 'bg-white/20' : ''}`} style={idx !== 0 ? { backgroundColor: secondary } : {}}>
                     <Check size={18} strokeWidth={3} className="text-white" />
                   </div>
-                  <h3 className={`font-bold text-base mb-2 line-clamp-2 ${idx === 0 ? 'text-white' : ''}`} style={idx !== 0 ? { color: brandColor } : {}}>{item.title}</h3>
+                  <h3 className={`font-bold text-base mb-2 line-clamp-2 ${idx === 0 ? 'text-white' : ''}`} style={idx !== 0 ? { color: secondary } : {}}>{item.title}</h3>
                   <p className={`text-sm leading-relaxed line-clamp-3 ${idx === 0 ? 'text-white/80' : 'text-slate-500'}`}>{item.description}</p>
                 </div>
               ))}
@@ -1877,15 +1883,15 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
       <div className="max-w-3xl mx-auto space-y-8">
         {renderBenefitsHeader()}
         <div className="relative">
-          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
+          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `20` }} />
           <div className="space-y-6 md:space-y-8">
             {items.map((item, idx) => (
               <div key={idx} className={`relative flex items-start pl-12 md:pl-0 ${idx % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold z-10" style={{ borderColor: brandColor, color: brandColor }}>
+                <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold z-10" style={{ borderColor: brandColor, color: secondary }}>
                   {idx + 1}
                 </div>
-                <div className="bg-white rounded-xl p-4 md:p-5 border shadow-sm w-full md:w-5/12" style={{ borderColor: `${brandColor}15` }}>
-                  <h3 className="font-bold text-slate-900 mb-2 line-clamp-2" style={{ color: brandColor }}>{item.title}</h3>
+                <div className="bg-white rounded-xl p-4 md:p-5 border shadow-sm w-full md:w-5/12" style={{ borderColor: `15` }}>
+                  <h3 className="font-bold text-slate-900 mb-2 line-clamp-2" style={{ color: secondary }}>{item.title}</h3>
                   <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
                 </div>
               </div>
@@ -1894,7 +1900,7 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
         </div>
         {buttonText && (
           <div className="text-center">
-            <a href={buttonLink || '#'} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: brandColor }}>
+            <a href={buttonLink || '#'} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: secondary }}>
               {buttonText}
               <ArrowRight size={16} />
             </a>
@@ -1910,7 +1916,8 @@ function BenefitsSection({ config, brandColor, title }: { config: Record<string,
 // 6 Styles: accordion, cards, two-column, minimal, timeline, tabbed
 // Best Practices: ARIA, keyboard nav, brandColor hover, responsive, SEO schema, touch targets
 type FaqStyle = 'accordion' | 'cards' | 'two-column' | 'minimal' | 'timeline' | 'tabbed';
-function FAQSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function FAQSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { question: string; answer: string }[]) || [];
   const style = (config.style as FaqStyle) || 'accordion';
   const description = (config.description as string) || '';
@@ -1924,8 +1931,8 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
     return (
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-            <HelpCircle size={32} style={{ color: brandColor }} />
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `10` }}>
+            <HelpCircle size={32} style={{ color: secondary }} />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Câu hỏi thường gặp'}</h2>
           <p className="text-slate-500">Chưa có câu hỏi nào</p>
@@ -1966,7 +1973,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
                   className="rounded-xl overflow-hidden transition-all"
                   style={{ 
                     border: `1px solid ${isOpen ? brandColor + '40' : brandColor + '15'}`,
-                    boxShadow: isOpen ? `0 4px 12px ${brandColor}10` : 'none'
+                    boxShadow: isOpen ? `0 4px 12px 10` : 'none'
                   }}
                 >
                   <button
@@ -1983,7 +1990,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
                     <span className="pr-4">{item.question || 'Câu hỏi'}</span>
                     <svg 
                       className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-                      style={{ color: brandColor }}
+                      style={{ color: secondary }}
                       fill="none" viewBox="0 0 24 24" stroke="currentColor"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1995,7 +2002,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
                     aria-labelledby={buttonId}
                     className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-[500px]' : 'max-h-0'}`}
                   >
-                    <div className="px-5 py-4 md:px-6 md:py-5 bg-slate-50 text-slate-600 border-t leading-relaxed" style={{ borderColor: `${brandColor}15` }}>
+                    <div className="px-5 py-4 md:px-6 md:py-5 bg-slate-50 text-slate-600 border-t leading-relaxed" style={{ borderColor: `15` }}>
                       {item.answer || 'Câu trả lời'}
                     </div>
                   </div>
@@ -2021,19 +2028,19 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
                 key={idx} 
                 className="bg-white rounded-xl p-5 md:p-6 transition-all group"
                 style={{ 
-                  border: `1px solid ${brandColor}15`,
+                  border: `1px solid 15`,
                 }}
                 onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}40`; 
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; 
+                  e.currentTarget.style.borderColor = `40`; 
+                  e.currentTarget.style.boxShadow = `0 4px 12px 10`; 
                 }}
                 onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `15`; 
                   e.currentTarget.style.boxShadow = 'none'; 
                 }}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold" style={{ backgroundColor: brandColor }}>?</div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold" style={{ backgroundColor: secondary }}>?</div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold mb-2 text-slate-900 line-clamp-2">{item.question || 'Câu hỏi'}</h4>
                     <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.answer || 'Câu trả lời'}</p>
@@ -2055,13 +2062,13 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-5 gap-8 md:gap-12">
             <div className="md:col-span-2">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900" style={{ color: brandColor }}>{title}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900" style={{ color: secondary }}>{title}</h2>
               <p className="text-slate-500 mb-6 leading-relaxed">{description || 'Tìm câu trả lời cho các thắc mắc phổ biến của bạn'}</p>
               {buttonText && (
                 <a 
                   href={buttonLink || '#'}
                   className="inline-block px-6 py-3 min-h-[44px] rounded-lg text-white font-medium transition-all" 
-                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}30` }}
+                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 30` }}
                 >
                   {buttonText}
                 </a>
@@ -2069,7 +2076,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
             </div>
             <div className="md:col-span-3 space-y-5">
               {items.map((item, idx) => (
-                <div key={idx} className="pb-5" style={{ borderBottom: `1px solid ${brandColor}15` }}>
+                <div key={idx} className="pb-5" style={{ borderBottom: `1px solid 15` }}>
                   <h4 className="font-semibold mb-2 text-slate-900">{item.question || 'Câu hỏi'}</h4>
                   <p className="text-sm text-slate-500 leading-relaxed">{item.answer || 'Câu trả lời'}</p>
                 </div>
@@ -2093,7 +2100,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
               <div key={idx} className="flex gap-4 md:gap-6">
                 <span 
                   className="text-xl md:text-2xl font-bold flex-shrink-0"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   {String(idx + 1).padStart(2, '0')}
                 </span>
@@ -2120,7 +2127,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
             {/* Vertical line */}
             <div 
               className="absolute left-4 md:left-5 top-0 bottom-0 w-0.5"
-              style={{ backgroundColor: `${brandColor}20` }}
+              style={{ backgroundColor: `20` }}
             />
             <div className="space-y-6 md:space-y-8">
               {items.map((item, idx) => (
@@ -2128,9 +2135,9 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
                   {/* Dot */}
                   <div 
                     className="absolute left-2 md:left-3 top-2 w-5 h-5 rounded-full border-4 bg-white"
-                    style={{ borderColor: brandColor }}
+                    style={{ borderColor: secondary }}
                   />
-                  <div className="rounded-xl p-4 md:p-5" style={{ backgroundColor: `${brandColor}05` }}>
+                  <div className="rounded-xl p-4 md:p-5" style={{ backgroundColor: `05` }}>
                     <h4 className="font-semibold mb-2 text-slate-900">{item.question || 'Câu hỏi'}</h4>
                     <p className="text-sm text-slate-500 leading-relaxed">{item.answer || 'Câu trả lời'}</p>
                   </div>
@@ -2161,7 +2168,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
               className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                 activeTab === idx ? 'text-white' : 'text-slate-600 hover:bg-slate-100'
               }`}
-              style={activeTab === idx ? { backgroundColor: brandColor } : {}}
+              style={activeTab === idx ? { backgroundColor: secondary } : {}}
             >
               Q{idx + 1}
             </button>
@@ -2176,8 +2183,8 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
           role="tabpanel"
           className="rounded-xl p-6 md:p-8"
           style={{ 
-            backgroundColor: `${brandColor}05`,
-            border: `1px solid ${brandColor}15`
+            backgroundColor: `05`,
+            border: `1px solid 15`
           }}
         >
           {items[activeTab] && (
@@ -2200,7 +2207,7 @@ function FAQSection({ config, brandColor, title }: { config: Record<string, unkn
 // 6 Styles: banner, centered, split, floating, gradient, minimal
 // Best Practices: Clear CTA, Touch-friendly (44px min), Visual hierarchy, Action-oriented text, Box-shadow brandColor
 type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';
-function CTASection({ config, brandColor }: { config: Record<string, unknown>; brandColor: string }) {
+function CTASection({ config, brandColor, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
   const { title, description, buttonText, buttonLink, secondaryButtonText, secondaryButtonLink, badge, style: ctaStyle } = config as {
     title?: string;
     description?: string;
@@ -2216,7 +2223,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
   // Style 1: Banner (default) - Full width solid background
   if (style === 'banner') {
     return (
-      <section className="py-12 md:py-16 px-4" style={{ backgroundColor: brandColor }}>
+      <section className="py-12 md:py-16 px-4" style={{ backgroundColor: secondary }}>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
           <div className="text-white text-center md:text-left flex-1 max-w-lg">
             {badge && (
@@ -2232,7 +2239,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
               <a 
                 href={buttonLink ?? '#'} 
                 className="px-6 py-3 min-h-[44px] bg-white rounded-lg font-medium hover:bg-slate-100 transition-all hover:scale-105 text-center whitespace-nowrap" 
-                style={{ boxShadow: `0 4px 12px ${brandColor}40`, color: brandColor }}
+                style={{ boxShadow: `0 4px 12px 40`, color: secondary }}
               >
                 {buttonText}
               </a>
@@ -2254,24 +2261,24 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
   // Style 2: Centered - Text center với subtle background
   if (style === 'centered') {
     return (
-      <section className="py-12 md:py-20 px-4" style={{ backgroundColor: `${brandColor}10` }}>
+      <section className="py-12 md:py-20 px-4" style={{ backgroundColor: `10` }}>
         <div className="max-w-2xl mx-auto text-center">
           {badge && (
             <span 
               className="inline-block px-3 py-1 mb-4 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: `${brandColor}20`, color: brandColor }}
+              style={{ backgroundColor: `20`, color: secondary }}
             >
               {badge}
             </span>
           )}
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 line-clamp-2" style={{ color: brandColor }}>{title ?? 'Sẵn sàng bắt đầu?'}</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 line-clamp-2" style={{ color: secondary }}>{title ?? 'Sẵn sàng bắt đầu?'}</h2>
           <p className="text-slate-600 text-base md:text-lg mb-8 line-clamp-3">{description}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {buttonText && (
               <a 
                 href={buttonLink ?? '#'} 
                 className="px-8 py-3 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 whitespace-nowrap" 
-                style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+                style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 40` }}
               >
                 {buttonText}
               </a>
@@ -2280,7 +2287,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
               <a 
                 href={secondaryButtonLink ?? '#'} 
                 className="px-8 py-3 min-h-[44px] border-2 rounded-lg font-medium transition-all hover:bg-opacity-10 whitespace-nowrap" 
-                style={{ borderColor: brandColor, color: brandColor }}
+                style={{ borderColor: brandColor, color: secondary }}
               >
                 {secondaryButtonText}
               </a>
@@ -2297,15 +2304,15 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
       <section className="py-12 md:py-16 px-4 bg-slate-50 dark:bg-slate-900">
         <div 
           className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 overflow-hidden border-l-4"
-          style={{ borderLeftColor: brandColor, boxShadow: `0 4px 20px ${brandColor}10` }}
+          style={{ borderLeftColor: brandColor, boxShadow: `0 4px 20px 10` }}
         >
           <div className="flex flex-col md:flex-row items-start gap-5">
             {/* Icon */}
             <div 
               className="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${brandColor}15` }}
+              style={{ backgroundColor: `15` }}
             >
-              <Rocket size={28} style={{ color: brandColor }} />
+              <Rocket size={28} style={{ color: secondary }} />
             </div>
             
             {/* Content */}
@@ -2313,7 +2320,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
               {badge && (
                 <span 
                   className="inline-block px-2.5 py-0.5 mb-2 rounded text-xs font-semibold"
-                  style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                  style={{ backgroundColor: `15`, color: secondary }}
                 >
                   {badge}
                 </span>
@@ -2327,7 +2334,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
                   <a 
                     href={buttonLink ?? '#'} 
                     className="px-5 py-2.5 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-                    style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+                    style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 40` }}
                   >
                     {buttonText}
                   </a>
@@ -2336,7 +2343,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
                   <a 
                     href={secondaryButtonLink ?? '#'} 
                     className="px-5 py-2.5 min-h-[44px] border rounded-lg font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-700 text-center whitespace-nowrap"
-                    style={{ borderColor: `${brandColor}30`, color: brandColor }}
+                    style={{ borderColor: `30`, color: secondary }}
                   >
                     {secondaryButtonText}
                   </a>
@@ -2355,14 +2362,14 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
       <section className="py-12 md:py-16 px-4 bg-slate-50 dark:bg-slate-900">
         <div 
           className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 border overflow-hidden"
-          style={{ borderColor: `${brandColor}20`, boxShadow: `0 20px 40px ${brandColor}15` }}
+          style={{ borderColor: `20`, boxShadow: `0 20px 40px 15` }}
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8">
             <div className="text-center md:text-left flex-1 max-w-md">
               {badge && (
                 <span 
                   className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full text-xs font-semibold"
-                  style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                  style={{ backgroundColor: `15`, color: secondary }}
                 >
                   <Zap size={12} />
                   {badge}
@@ -2376,7 +2383,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
                 <a 
                   href={buttonLink ?? '#'} 
                   className="px-6 py-3 min-h-[44px] rounded-xl font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 40` }}
                 >
                   {buttonText}
                 </a>
@@ -2385,7 +2392,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
                 <a 
                   href={secondaryButtonLink ?? '#'} 
                   className="px-6 py-3 min-h-[44px] rounded-xl font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-700 text-center whitespace-nowrap"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   {secondaryButtonText}
                 </a>
@@ -2402,7 +2409,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
     return (
       <section 
         className="py-12 md:py-20 px-4 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 50%, ${brandColor}99 100%)` }}
+        style={{ background: `linear-gradient(135deg,  0%, cc 50%, 99 100%)` }}
       >
         {/* Decorative circles */}
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/20 pointer-events-none" />
@@ -2422,7 +2429,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
               <a 
                 href={buttonLink ?? '#'} 
                 className="px-8 py-3 md:py-4 min-h-[44px] bg-white rounded-full font-semibold transition-all hover:scale-105 hover:shadow-xl text-center whitespace-nowrap" 
-                style={{ boxShadow: `0 8px 24px rgba(0,0,0,0.2)`, color: brandColor }}
+                style={{ boxShadow: `0 8px 24px rgba(0,0,0,0.2)`, color: secondary }}
               >
                 {buttonText}
               </a>
@@ -2443,11 +2450,11 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
 
   // Style 6: Minimal - Clean, simple với accent line
   return (
-    <section className="py-10 md:py-12 px-4 border-y" style={{ borderColor: `${brandColor}20` }}>
+    <section className="py-10 md:py-12 px-4 border-y" style={{ borderColor: `20` }}>
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8">
         <div className="flex items-center gap-4 text-center md:text-left">
           {/* Accent line */}
-          <div className="hidden md:block w-1 h-16 rounded-full flex-shrink-0" style={{ backgroundColor: brandColor }} />
+          <div className="hidden md:block w-1 h-16 rounded-full flex-shrink-0" style={{ backgroundColor: secondary }} />
           <div>
             <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white line-clamp-1">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base line-clamp-1">{description}</p>
@@ -2458,7 +2465,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
             <a 
               href={buttonLink ?? '#'} 
               className="flex-1 md:flex-none px-6 py-3 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}30` }}
+              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 30` }}
             >
               {buttonText}
             </a>
@@ -2467,7 +2474,7 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
             <a 
               href={secondaryButtonLink ?? '#'} 
               className="flex-1 md:flex-none px-6 py-3 min-h-[44px] border rounded-lg font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-center whitespace-nowrap"
-              style={{ borderColor: `${brandColor}30`, color: brandColor }}
+              style={{ borderColor: `30`, color: secondary }}
             >
               {secondaryButtonText}
             </a>
@@ -2482,7 +2489,8 @@ function CTASection({ config, brandColor }: { config: Record<string, unknown>; b
 // 6 Professional Styles: Cards, Slider, Masonry, Quote, Carousel, Minimal
 // Best Practices: Authenticity, Credibility indicators, Diverse formats, Mobile responsive
 type TestimonialsStyle = 'cards' | 'slider' | 'masonry' | 'quote' | 'carousel' | 'minimal';
-function TestimonialsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function TestimonialsSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { name: string; role: string; content: string; rating: number }[]) || [];
   const style = (config.style as TestimonialsStyle) || 'cards';
   const carouselId = useSafeId('testimonials-carousel');
@@ -2529,7 +2537,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
                 {renderStars(item.rating)}
                 <p className="text-slate-600 my-4 line-clamp-4 flex-1 min-h-[5rem]">“{item.content}”</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-auto">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: secondary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -2552,16 +2560,16 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
 
     return (
       <section className="py-16 md:py-20 px-4 bg-slate-50 relative overflow-hidden">
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-[120px] md:text-[180px] leading-none font-serif opacity-5 pointer-events-none select-none" style={{ color: brandColor }}>“</div>
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-[120px] md:text-[180px] leading-none font-serif opacity-5 pointer-events-none select-none" style={{ color: secondary }}>“</div>
         
         <div className="max-w-4xl mx-auto relative">
           <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
           
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center relative" style={{ borderTop: `4px solid ${brandColor}` }}>
+          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center relative" style={{ borderTop: `4px solid ` }}>
             <div className="flex justify-center mb-6">{renderStars(current.rating, 18)}</div>
             <p className="text-lg md:text-xl text-slate-700 leading-relaxed mb-8">“{current.content}”</p>
             <div className="flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style={{ backgroundColor: brandColor }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style={{ backgroundColor: secondary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
               <div className="text-left">
@@ -2585,7 +2593,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
                     key={idx} 
                     onClick={() =>{  setCurrentSlide(idx); }} 
                     className={`h-2.5 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'w-2.5 bg-slate-300 hover:bg-slate-400'}`}
-                    style={idx === currentSlide ? { backgroundColor: brandColor } : {}}
+                    style={idx === currentSlide ? { backgroundColor: secondary } : {}}
                   />
                 ))}
               </div>
@@ -2612,7 +2620,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
             {items.map((item, idx) => (
               <div key={idx} className={`break-inside-avoid mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${idx % 2 === 1 ? 'pt-8' : ''}`}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: secondary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -2636,11 +2644,11 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
     if (!current) {return null;}
 
     return (
-      <section className="py-16 md:py-20 px-4" style={{ backgroundColor: `${brandColor}05` }}>
+      <section className="py-16 md:py-20 px-4" style={{ backgroundColor: `05` }}>
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8 text-slate-900">{title}</h2>
           
-          <div className="text-[80px] md:text-[120px] leading-none font-serif mb-[-30px] md:mb-[-50px] select-none" style={{ color: brandColor }}>“</div>
+          <div className="text-[80px] md:text-[120px] leading-none font-serif mb-[-30px] md:mb-[-50px] select-none" style={{ color: secondary }}>“</div>
           
           <blockquote className="text-xl md:text-2xl lg:text-3xl text-slate-800 leading-relaxed font-medium italic">
             {current.content}
@@ -2649,7 +2657,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
           <div className="mt-10 flex flex-col items-center gap-4">
             <div className="flex justify-center">{renderStars(current.rating, 20)}</div>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: brandColor }}>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: secondary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
               <div className="text-left">
@@ -2666,7 +2674,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
                   key={idx} 
                   onClick={() =>{  setCurrentSlide(idx); }} 
                   className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? '' : 'bg-slate-300 hover:bg-slate-400'}`}
-                  style={idx === currentSlide ? { backgroundColor: brandColor } : {}}
+                  style={idx === currentSlide ? { backgroundColor: secondary } : {}}
                 />
               ))}
             </div>
@@ -2707,7 +2715,7 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -2745,11 +2753,11 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
                 <div
                   key={idx}
                   className="flex-shrink-0 snap-start w-[320px] md:w-[360px] bg-white rounded-xl p-6 shadow-md border flex flex-col"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   draggable={false}
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: secondary }}>
                       {(item.name || 'U').charAt(0)}
                     </div>
                     <div className="min-w-0">
@@ -2781,9 +2789,9 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
             <div 
               key={idx} 
               className="flex gap-4 p-5 rounded-lg bg-white border-l-4 shadow-sm"
-              style={{ borderLeftColor: brandColor }}
+              style={{ borderLeftColor: secondary }}
             >
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: secondary }}>
                 {(item.name || 'U').charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
@@ -2806,7 +2814,8 @@ function TestimonialsSection({ config, brandColor, title }: { config: Record<str
 // ============ CONTACT SECTION ============
 // 6 Professional Styles: Modern Split, Floating Card, Grid Cards, Elegant Clean, Minimal Form, Centered
 type ContactStyle = 'modern' | 'floating' | 'grid' | 'elegant' | 'minimal' | 'centered';
-function ContactSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function ContactSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const { address, phone, email, workingHours, showMap, mapEmbed, style: contactStyle, socialLinks, formTitle, formDescription, submitButtonText, responseTimeText } = config as {
     address?: string;
     phone?: string;
@@ -2850,7 +2859,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
               {/* Left Content */}
               <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
                 <div className="max-w-md mx-auto w-full">
-                  <span className="inline-block py-1 px-3 rounded-full text-xs font-semibold tracking-wide uppercase mb-5" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                  <span className="inline-block py-1 px-3 rounded-full text-xs font-semibold tracking-wide uppercase mb-5" style={{ backgroundColor: `15`, color: secondary }}>
                     Thông tin liên hệ
                   </span>
                   <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-8 text-slate-900">
@@ -2929,7 +2938,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
                 
                 <div className="space-y-5">
                   <div className="flex items-start gap-3">
-                    <MapPin size={18} className="mt-0.5 shrink-0" style={{ color: brandColor }} />
+                    <MapPin size={18} className="mt-0.5 shrink-0" style={{ color: secondary }} />
                     <div>
                       <p className="text-[10px] text-slate-500 font-medium uppercase mb-0.5">Địa chỉ</p>
                       <p className="text-sm font-medium text-slate-900 leading-relaxed">{address ?? '123 Nguyễn Huệ, Q1, TP.HCM'}</p>
@@ -2937,7 +2946,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Phone size={18} className="mt-0.5 shrink-0" style={{ color: brandColor }} />
+                    <Phone size={18} className="mt-0.5 shrink-0" style={{ color: secondary }} />
                     <div>
                       <p className="text-[10px] text-slate-500 font-medium uppercase mb-0.5">Hotline</p>
                       <p className="text-sm font-medium text-slate-900">{phone ?? '1900 1234'}</p>
@@ -2945,7 +2954,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Mail size={18} className="mt-0.5 shrink-0" style={{ color: brandColor }} />
+                    <Mail size={18} className="mt-0.5 shrink-0" style={{ color: secondary }} />
                     <div>
                       <p className="text-[10px] text-slate-500 font-medium uppercase mb-0.5">Email</p>
                       <p className="text-sm font-medium text-slate-900">{email ?? 'contact@example.com'}</p>
@@ -2953,7 +2962,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Clock size={18} className="mt-0.5 shrink-0" style={{ color: brandColor }} />
+                    <Clock size={18} className="mt-0.5 shrink-0" style={{ color: secondary }} />
                     <div>
                       <p className="text-[10px] text-slate-500 font-medium uppercase mb-0.5">Giờ làm việc</p>
                       <p className="text-sm font-medium text-slate-900">{workingHours ?? 'T2-T6: 8:00-17:00'}</p>
@@ -2977,7 +2986,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Card 1: Phone */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200/60 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `15`, color: secondary }}>
                   <Phone size={20} />
                 </div>
                 <h3 className="font-medium text-sm text-slate-500 mb-1">Điện thoại</h3>
@@ -2986,7 +2995,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
 
               {/* Card 2: Email */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200/60 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `15`, color: secondary }}>
                   <Mail size={20} />
                 </div>
                 <h3 className="font-medium text-sm text-slate-500 mb-1">Email</h3>
@@ -2995,7 +3004,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
 
               {/* Card 3: Working Hours */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200/60 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `15`, color: secondary }}>
                   <Clock size={20} />
                 </div>
                 <h3 className="font-medium text-sm text-slate-500 mb-1">Giờ làm việc</h3>
@@ -3007,7 +3016,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
             <div className="flex flex-col md:flex-row gap-8 bg-white p-6 rounded-lg border border-slate-200/60">
               <div className="md:w-1/3 flex flex-col justify-center">
                 <div className="flex items-start gap-3">
-                  <MapPin size={24} className="shrink-0 mt-1" style={{ color: brandColor }} />
+                  <MapPin size={24} className="shrink-0 mt-1" style={{ color: secondary }} />
                   <div>
                     <h3 className="font-bold text-lg mb-2 text-slate-900">Trụ sở chính</h3>
                     <p className="text-slate-500 text-sm leading-relaxed">{address ?? '123 Nguyễn Huệ, Q1, TP.HCM'}</p>
@@ -3039,29 +3048,29 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <a href={`tel:${phone}`} className="flex flex-col items-center p-6 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-center group">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Phone size={22} /></div>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `10`, color: secondary }}><Phone size={22} /></div>
                   <span className="text-xs text-slate-500 mb-1">Điện thoại</span>
                   <span className="text-sm font-semibold text-slate-900">{phone ?? '1900 1234'}</span>
                 </a>
                 <a href={`mailto:${email}`} className="flex flex-col items-center p-6 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-center group">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Mail size={22} /></div>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `10`, color: secondary }}><Mail size={22} /></div>
                   <span className="text-xs text-slate-500 mb-1">Email</span>
                   <span className="text-sm font-semibold text-slate-900 truncate max-w-full">{email ?? 'contact@example.com'}</span>
                 </a>
                 <div className="flex flex-col items-center p-6 rounded-xl border border-slate-200 text-center">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><MapPin size={22} /></div>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `10`, color: secondary }}><MapPin size={22} /></div>
                   <span className="text-xs text-slate-500 mb-1">Địa chỉ</span>
                   <span className="text-sm font-semibold text-slate-900 line-clamp-2">{address ?? '123 Nguyễn Huệ, Q1, TP.HCM'}</span>
                 </div>
                 <div className="flex flex-col items-center p-6 rounded-xl border border-slate-200 text-center">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Clock size={22} /></div>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `10`, color: secondary }}><Clock size={22} /></div>
                   <span className="text-xs text-slate-500 mb-1">Giờ làm việc</span>
                   <span className="text-sm font-semibold text-slate-900">{workingHours ?? 'T2-T6: 8:00-17:00'}</span>
                 </div>
               </div>
               {(activeSocials.length > 0 || showMap !== false) && (
                 <div className="mt-10 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6">
-                  {activeSocials.length > 0 && (<div className="flex items-center gap-3">{activeSocials.map((social, idx) => (<a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center border border-slate-200 hover:border-slate-300 transition-colors" style={{ color: brandColor }}>{getSocialIcon(social.platform)}</a>))}</div>)}
+                  {activeSocials.length > 0 && (<div className="flex items-center gap-3">{activeSocials.map((social, idx) => (<a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center border border-slate-200 hover:border-slate-300 transition-colors" style={{ color: secondary }}>{getSocialIcon(social.platform)}</a>))}</div>)}
                   {showMap !== false && (<div className="w-full md:w-96 h-36 rounded-lg overflow-hidden">{renderMapOrPlaceholder()}</div>)}
                 </div>
               )}
@@ -3078,36 +3087,36 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white border border-slate-200/40 rounded-xl overflow-hidden shadow-sm">
-            <div className="text-center p-8 lg:p-12" style={{ backgroundColor: `${brandColor}05` }}>
-              <div className="inline-flex items-center justify-center w-18 h-18 rounded-full mb-6" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Phone size={32} /></div>
+            <div className="text-center p-8 lg:p-12" style={{ backgroundColor: `${secondary}05` }}>
+              <div className="inline-flex items-center justify-center w-18 h-18 rounded-full mb-6" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Phone size={32} /></div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-2">{heading}</h2>
               <p className="text-slate-500 max-w-lg mx-auto">{description}</p>
               <p className="text-xs text-slate-400 mt-2">{responseText}</p>
-              <a href={`mailto:${email ?? 'contact@example.com'}`} className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: brandColor }}>{submitLabel}</a>
+              <a href={`mailto:${email ?? 'contact@example.com'}`} className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ backgroundColor: secondary }}>{submitLabel}</a>
             </div>
             <div className="p-8 lg:p-10">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <a href={`tel:${phone}`} className="flex items-center gap-4 p-5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Phone size={20} /></div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Phone size={20} /></div>
                   <div><p className="text-xs text-slate-500 mb-0.5">Hotline</p><p className="text-base font-bold text-slate-900">{phone ?? '1900 1234'}</p></div>
                 </a>
                 <a href={`mailto:${email}`} className="flex items-center gap-4 p-5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Mail size={20} /></div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Mail size={20} /></div>
                   <div><p className="text-xs text-slate-500 mb-0.5">Email</p><p className="text-base font-bold text-slate-900 truncate">{email ?? 'contact@example.com'}</p></div>
                 </a>
                 <div className="flex items-center gap-4 p-5 rounded-xl bg-slate-50">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Clock size={20} /></div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `15`, color: secondary }}><Clock size={20} /></div>
                   <div><p className="text-xs text-slate-500 mb-0.5">Giờ làm việc</p><p className="text-base font-bold text-slate-900">{workingHours ?? 'T2-T6: 8:00-17:00'}</p></div>
                 </div>
               </div>
               <div className="mt-6 p-6 rounded-xl bg-slate-50 flex flex-col md:flex-row items-start gap-6">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><MapPin size={20} /></div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `15`, color: secondary }}><MapPin size={20} /></div>
                   <div><p className="text-xs text-slate-500 mb-0.5">Địa chỉ văn phòng</p><p className="text-sm font-medium text-slate-900">{address ?? '123 Nguyễn Huệ, Q1, TP.HCM'}</p></div>
                 </div>
                 {showMap !== false && (<div className="w-full md:w-72 h-32 rounded-lg overflow-hidden shrink-0">{renderMapOrPlaceholder()}</div>)}
               </div>
-              {activeSocials.length > 0 && (<div className="mt-8 text-center"><div className="flex items-center justify-center gap-3">{activeSocials.map((social, idx) => (<a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full flex items-center justify-center border border-slate-200 hover:border-slate-300 transition-colors" style={{ color: brandColor }}>{getSocialIcon(social.platform)}</a>))}</div></div>)}
+              {activeSocials.length > 0 && (<div className="mt-8 text-center"><div className="flex items-center justify-center gap-3">{activeSocials.map((social, idx) => (<a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-full flex items-center justify-center border border-slate-200 hover:border-slate-300 transition-colors" style={{ color: secondary }}>{getSocialIcon(social.platform)}</a>))}</div></div>)}
             </div>
           </div>
         </div>
@@ -3122,7 +3131,7 @@ function ContactSection({ config, brandColor, title }: { config: Record<string, 
         <div className="bg-white border border-slate-200/40 rounded-xl shadow-sm overflow-hidden">
           {/* Top Header Section */}
           <div className="bg-slate-50/80 p-8 border-b border-slate-200 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4" style={{ backgroundColor: `10`, color: secondary }}>
               <Building2 size={24} />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">{heading}</h2>
@@ -3380,7 +3389,8 @@ const CertificateModal = ({
   );
 };
 
-function TrustBadgesSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function TrustBadgesSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as TrustBadgeItem[]) || [];
   const style = (config.style as TrustBadgesStyle) || 'cards';
   const carouselId = useSafeId('trustbadges-carousel');
@@ -3392,7 +3402,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {items.map((item, idx) => (
@@ -3400,13 +3410,13 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
                 className="group relative aspect-square bg-white rounded-xl flex items-center justify-center p-5 md:p-6 cursor-zoom-in transition-all duration-300 hover:-translate-y-1"
-                style={{ border: `1px solid ${brandColor}15` }}
+                style={{ border: `1px solid 15` }}
                 onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}40`; 
-                  e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `40`; 
+                  e.currentTarget.style.boxShadow = `0 8px 24px 15`; 
                 }}
                 onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `15`; 
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -3416,8 +3426,8 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                   <ImageIcon size={40} className="text-slate-300" />
                 )}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-                    <Maximize2 size={14} style={{ color: brandColor }} />
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `15` }}>
+                    <Maximize2 size={14} style={{ color: secondary }} />
                   </div>
                 </div>
                 {item.name && (
@@ -3440,7 +3450,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {items.map((item, idx) => (
@@ -3448,34 +3458,34 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
                 className="group relative flex flex-col rounded-2xl overflow-hidden bg-white shadow-sm cursor-zoom-in h-full transition-all duration-300"
-                style={{ border: `1px solid ${brandColor}15` }}
+                style={{ border: `1px solid 15` }}
                 onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}30`; 
-                  e.currentTarget.style.boxShadow = `0 12px 32px ${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `30`; 
+                  e.currentTarget.style.boxShadow = `0 12px 32px 15`; 
                 }}
                 onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `15`; 
                   e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                 }}
               >
                 <div className="aspect-[5/4] bg-slate-50/50 flex items-center justify-center p-6 md:p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-colors duration-300" style={{ backgroundColor: `${brandColor}08` }} />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-colors duration-300" style={{ backgroundColor: `08` }} />
                   {item.url ? (
                     <SiteImage src={item.url} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 z-10" alt={item.name ?? ''} />
                   ) : (
                     <ImageIcon size={48} className="text-slate-300" />
                   )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    <span className="bg-white/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: brandColor }}>
+                    <span className="bg-white/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: secondary }}>
                       <ZoomIn size={16} /> Xem chi tiết
                     </span>
                   </div>
                 </div>
-                <div className="py-4 px-5 bg-white border-t flex items-center justify-between group-hover:bg-slate-50 transition-colors" style={{ borderColor: `${brandColor}10` }}>
-                  <span className="font-semibold truncate text-sm" style={{ color: brandColor }}>
+                <div className="py-4 px-5 bg-white border-t flex items-center justify-between group-hover:bg-slate-50 transition-colors" style={{ borderColor: `10` }}>
+                  <span className="font-semibold truncate text-sm" style={{ color: secondary }}>
                     {item.name ?? 'Chứng nhận'}
                   </span>
-                  <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: brandColor }} />
+                  <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
                 </div>
               </div>
             ))}
@@ -3489,9 +3499,9 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
   // Style 3: Marquee - Auto scroll slider with tooltip, full color
   if (style === 'marquee') {
     return (
-      <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}15` }}>
+      <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: `05`, borderColor: `15` }}>
         <div className="container max-w-7xl mx-auto px-4 mb-10 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
         </div>
         <TrustBadgesAutoScroll speed={0.6}>
           {items.map((item, idx) => (
@@ -3508,7 +3518,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 </div>
               )}
               {item.name && (
-                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded text-xs font-medium opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none text-white" style={{ backgroundColor: brandColor }}>
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded text-xs font-medium opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none text-white" style={{ backgroundColor: secondary }}>
                   {item.name}
                 </div>
               )}
@@ -3523,10 +3533,10 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
   // Style 4: Framed Wall - Certificate frames hanging on wall
   if (style === 'wall') {
     return (
-      <section className="w-full py-12 md:py-16" style={{ backgroundColor: `${brandColor}05` }}>
+      <section className="w-full py-12 md:py-16" style={{ backgroundColor: `05` }}>
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 justify-items-center">
             {items.map((item, idx) => (
@@ -3534,9 +3544,9 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
                 className="group relative bg-white p-2 md:p-3 shadow-md rounded-sm flex flex-col cursor-zoom-in w-[140px] h-[180px] md:w-[160px] md:h-[210px] transition-all duration-300"
-                style={{ border: `1px solid ${brandColor}15` }}
+                style={{ border: `1px solid 15` }}
                 onMouseEnter={(e) => { 
-                  e.currentTarget.style.boxShadow = `0 12px 24px ${brandColor}20`; 
+                  e.currentTarget.style.boxShadow = `0 12px 24px 20`; 
                   e.currentTarget.style.transform = 'translateY(-8px)';
                 }}
                 onMouseLeave={(e) => { 
@@ -3545,8 +3555,8 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 }}
               >
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-gradient-to-b from-slate-400 to-transparent opacity-40"></div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `${brandColor}60` }}></div>
-                <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}10` }}>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `60` }}></div>
+                <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `05`, border: `1px solid 10` }}>
                   {item.url ? (
                     <SiteImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? ''} />
                   ) : (
@@ -3554,7 +3564,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                   )}
                 </div>
                 <div className="h-7 md:h-8 flex items-center justify-center mt-1">
-                  <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-center truncate px-1" style={{ color: `${brandColor}cc` }}>
+                  <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-center truncate px-1" style={{ color: `cc` }}>
                     {item.name ? (item.name.length > 18 ? item.name.slice(0, 16) + '...' : item.name) : 'Certificate'}
                   </span>
                 </div>
@@ -3578,7 +3588,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
             {showArrowsDesktop && (
               <div className="hidden md:flex items-center gap-2">
                 <button
@@ -3588,9 +3598,9 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
                   className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
-                  style={{ border: `1px solid ${brandColor}20` }}
+                  style={{ border: `1px solid 20` }}
                 >
-                  <ChevronLeft size={20} style={{ color: brandColor }} />
+                  <ChevronLeft size={20} style={{ color: secondary }} />
                 </button>
                 <button
                   type="button"
@@ -3599,7 +3609,7 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-all hover:scale-110"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -3642,14 +3652,14 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 >
                   <div
                     className="aspect-square rounded-xl flex items-center justify-center p-4 md:p-5 transition-all duration-300"
-                    style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}15` }}
+                    style={{ backgroundColor: `05`, border: `1px solid 15` }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = `${brandColor}40`;
-                      e.currentTarget.style.boxShadow = `0 8px 20px ${brandColor}15`;
+                      e.currentTarget.style.borderColor = `40`;
+                      e.currentTarget.style.boxShadow = `0 8px 20px 15`;
                       e.currentTarget.style.transform = 'translateY(-4px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = `${brandColor}15`;
+                      e.currentTarget.style.borderColor = `15`;
                       e.currentTarget.style.boxShadow = 'none';
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
@@ -3683,20 +3693,20 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
     <section className="w-full py-12 md:py-16 bg-white">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: brandColor }}>{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
           {featuredItem && (
             <div 
               onClick={() =>{  setSelectedCert(featuredItem); }}
               className="group cursor-zoom-in rounded-2xl overflow-hidden transition-all duration-300"
-              style={{ backgroundColor: `${brandColor}08`, border: `2px solid ${brandColor}20` }}
+              style={{ backgroundColor: `08`, border: `2px solid 20` }}
               onMouseEnter={(e) => { 
-                e.currentTarget.style.borderColor = `${brandColor}40`; 
-                e.currentTarget.style.boxShadow = `0 12px 32px ${brandColor}15`; 
+                e.currentTarget.style.borderColor = `40`; 
+                e.currentTarget.style.boxShadow = `0 12px 32px 15`; 
               }}
               onMouseLeave={(e) => { 
-                e.currentTarget.style.borderColor = `${brandColor}20`; 
+                e.currentTarget.style.borderColor = `20`; 
                 e.currentTarget.style.boxShadow = 'none';
               }}
             >
@@ -3707,18 +3717,18 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                   <ImageIcon size={64} className="text-slate-300" />
                 )}
                 <div className="absolute top-3 left-3">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: brandColor }}>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: secondary }}>
                     NỔI BẬT
                   </span>
                 </div>
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: brandColor }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: secondary }}>
                     <ZoomIn size={20} />
                   </div>
                 </div>
               </div>
-              <div className="py-3 md:py-4 text-center border-t" style={{ borderColor: `${brandColor}15` }}>
-                <span className="font-bold text-sm md:text-base" style={{ color: brandColor }}>
+              <div className="py-3 md:py-4 text-center border-t" style={{ borderColor: `15` }}>
+                <span className="font-bold text-sm md:text-base" style={{ color: secondary }}>
                   {featuredItem.name ?? 'Chứng nhận nổi bật'}
                 </span>
               </div>
@@ -3730,13 +3740,13 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
                 key={idx}
                 onClick={() =>{  setSelectedCert(item); }}
                 className="group aspect-square rounded-xl flex items-center justify-center p-3 md:p-4 cursor-zoom-in transition-all duration-300"
-                style={{ backgroundColor: `${brandColor}05`, border: `1px solid ${brandColor}15` }}
+                style={{ backgroundColor: `05`, border: `1px solid 15` }}
                 onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}40`; 
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; 
+                  e.currentTarget.style.borderColor = `40`; 
+                  e.currentTarget.style.boxShadow = `0 4px 12px 10`; 
                 }}
                 onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${brandColor}15`; 
+                  e.currentTarget.style.borderColor = `15`; 
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -3755,7 +3765,8 @@ function TrustBadgesSection({ config, brandColor, title }: { config: Record<stri
   );
 }
 
-function GallerySection({ config, brandColor, title, type }: { config: Record<string, unknown>; brandColor: string; title: string; type: string }) {
+function GallerySection({ config, secondary, title, type }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string; type: string }) {
   const items = (config.items as { url: string; link?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
   const partnersCarouselId = useSafeId('partners-carousel');
@@ -3919,8 +3930,8 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                <ImageIcon size={32} style={{ color: brandColor }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+                <ImageIcon size={32} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -3933,7 +3944,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: brandColor }}>{title}</h2>}
+          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: secondary }}>{title}</h2>}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {items.map((photo, idx) => (
               <div 
@@ -3963,8 +3974,8 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                <ImageIcon size={32} style={{ color: brandColor }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+                <ImageIcon size={32} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -3976,7 +3987,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
 
     return (
       <section className="w-full bg-white py-8 md:py-12">
-        {title && <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: brandColor }}>{title}</h2>}
+        {title && <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: secondary }}>{title}</h2>}
         <div className="w-full relative">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
@@ -4010,8 +4021,8 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                <ImageIcon size={32} style={{ color: brandColor }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+                <ImageIcon size={32} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -4026,7 +4037,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: brandColor }}>{title}</h2>}
+          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: secondary }}>{title}</h2>}
           <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
             {items.map((photo, idx) => {
               const heightClass = heights[idx % heights.length];
@@ -4061,7 +4072,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
               {title}
             </h2>
           </div>
@@ -4096,7 +4107,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
               {title}
             </h2>
           </div>
@@ -4135,7 +4146,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
               {title}
             </h2>
           </div>
@@ -4177,7 +4188,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
           {/* Header với navigation arrows */}
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
               {title}
             </h2>
             {/* Desktop arrows - chỉ hiện khi có > 5 items */}
@@ -4200,7 +4211,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -4252,7 +4263,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
                   key={idx}
                   href={item.link ?? '#'}
                   className="snap-start flex-shrink-0 group flex flex-col items-center justify-center p-4 rounded-xl border transition-all w-[140px] md:w-[180px] aspect-[3/2] hover:shadow-lg"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   draggable={false}
                 >
                   {item.url ? (
@@ -4293,7 +4304,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
               {title}
             </h2>
           </div>
@@ -4304,14 +4315,14 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
                 href={featured.link ?? '#'}
                 className="group relative md:row-span-2 rounded-2xl border overflow-hidden flex items-center justify-center p-8 aspect-square md:aspect-auto"
                 style={{ 
-                  background: `linear-gradient(135deg, ${brandColor}08 0%, ${brandColor}03 100%)`,
-                  borderColor: `${brandColor}20`
+                  background: `linear-gradient(135deg, 08 0%, 03 100%)`,
+                  borderColor: `20`
                 }}
               >
                 <div className="absolute top-3 left-3">
                   <span 
                     className="px-2 py-1 text-[10px] font-bold rounded"
-                    style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                    style={{ backgroundColor: `15`, color: secondary }}
                   >
                     ĐỐI TÁC NỔI BẬT
                   </span>
@@ -4334,7 +4345,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
                   key={idx}
                   href={item.link ?? '#'}
                   className="group flex items-center justify-center p-4 rounded-xl border transition-all aspect-[3/2] hover:shadow-md"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                 >
                   {item.url ? (
                     <SiteImage 
@@ -4360,7 +4371,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
       <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: secondary }}></span>
             {title}
           </h2>
         </div>
@@ -4371,8 +4382,8 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
               href={item.link ?? '#'}
               className="px-4 py-2 rounded-lg border transition-all flex items-center gap-3 group"
               style={{ 
-                backgroundColor: `${brandColor}05`,
-                borderColor: `${brandColor}15`
+                backgroundColor: `05`,
+                borderColor: `15`
               }}
             >
               {item.url ? (
@@ -4380,7 +4391,7 @@ function GallerySection({ config, brandColor, title, type }: { config: Record<st
               ) : (
                 <ImageIcon size={20} className="text-slate-400" />
               )}
-              <span className="text-xs font-semibold" style={{ color: `${brandColor}cc` }}>Đối tác {idx + 1}</span>
+              <span className="text-xs font-semibold" style={{ color: `cc` }}>Đối tác {idx + 1}</span>
             </a>
           ))}
         </div>
@@ -4403,7 +4414,8 @@ interface PricingPlan {
 }
 type PricingStyle = 'cards' | 'horizontal' | 'minimal' | 'comparison' | 'featured' | 'compact';
 
-function PricingSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function PricingSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const plans = (config.plans as PricingPlan[]) || [];
   const style = (config.style as PricingStyle) || 'cards';
   const subtitle = (config.subtitle as string) || 'Chọn gói phù hợp với nhu cầu của bạn';
@@ -4430,19 +4442,19 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                 style={{ borderColor: plan.isPopular ? brandColor : '#e2e8f0' }}
               >
                 {plan.isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-medium text-white rounded-full whitespace-nowrap" style={{ backgroundColor: brandColor }}>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-medium text-white rounded-full whitespace-nowrap" style={{ backgroundColor: secondary }}>
                     Phổ biến
                   </div>
                 )}
                 <h3 className="text-lg font-semibold text-center mb-4 line-clamp-1">{plan.name}</h3>
                 <div className="text-center mb-6">
-                  <span className="text-3xl font-bold tabular-nums" style={{ color: brandColor }}>{plan.price}đ</span>
+                  <span className="text-3xl font-bold tabular-nums" style={{ color: secondary }}>{plan.price}đ</span>
                   <span className="text-slate-500">{plan.period || '/tháng'}</span>
                 </div>
                 <ul className="space-y-3 mb-6 flex-1 min-h-[100px]">
                   {plan.features.slice(0, 6).map((f, fIdx) => (
                     <li key={fIdx} className="flex items-start gap-2 text-sm">
-                      <span className="flex-shrink-0 mt-0.5" style={{ color: brandColor }}>✓</span>
+                      <span className="flex-shrink-0 mt-0.5" style={{ color: secondary }}>✓</span>
                       <span className="line-clamp-1">{f}</span>
                     </li>
                   ))}
@@ -4450,7 +4462,7 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                 <a
                   href={plan.buttonLink || '#'}
                   className={`block w-full py-3 text-center rounded-lg font-medium transition-opacity hover:opacity-90 ${plan.isPopular ? 'text-white' : ''}`}
-                  style={plan.isPopular ? { backgroundColor: brandColor } : { border: `2px solid ${brandColor}`, color: brandColor }}
+                  style={plan.isPopular ? { backgroundColor: secondary } : { border: `2px solid `, color: secondary }}
                 >
                   {plan.buttonText}
                 </a>
@@ -4479,20 +4491,20 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                 <div className="flex items-center gap-4 min-w-0 flex-1">
                   <h3 className="font-semibold text-lg truncate">{plan.name}</h3>
                   {plan.isPopular && (
-                    <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full flex-shrink-0" style={{ backgroundColor: brandColor }}>Hot</span>
+                    <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full flex-shrink-0" style={{ backgroundColor: secondary }}>Hot</span>
                   )}
                 </div>
                 <div className="text-sm text-slate-500 truncate flex-1 md:text-center">
                   {plan.features.slice(0, 2).join(' • ')}
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
-                  <span className="text-xl font-bold tabular-nums whitespace-nowrap" style={{ color: brandColor }}>
+                  <span className="text-xl font-bold tabular-nums whitespace-nowrap" style={{ color: secondary }}>
                     {plan.price}đ<span className="text-sm font-normal text-slate-500">{plan.period || '/tháng'}</span>
                   </span>
                   <a
                     href={plan.buttonLink || '#'}
                     className="px-5 py-2 rounded-lg text-sm text-white font-medium whitespace-nowrap"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: secondary }}
                   >
                     {plan.buttonText}
                   </a>
@@ -4517,23 +4529,23 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
               <div
                 key={idx}
                 className={`flex flex-col md:flex-row md:items-center gap-4 p-6 bg-white transition-all relative ${idx !== plans.length - 1 ? 'border-b' : ''}`}
-                style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}
+                style={plan.isPopular ? { backgroundColor: `08` } : {}}
               >
                 {plan.isPopular && (
-                  <span className="absolute top-3 right-4 px-2 py-0.5 text-xs font-medium text-white rounded-full" style={{ backgroundColor: brandColor }}>Phổ biến</span>
+                  <span className="absolute top-3 right-4 px-2 py-0.5 text-xs font-medium text-white rounded-full" style={{ backgroundColor: secondary }}>Phổ biến</span>
                 )}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-lg truncate">{plan.name}</h3>
                   <p className="text-sm text-slate-500 mt-1 truncate">{plan.features.slice(0, 2).join(' • ')}</p>
                 </div>
                 <div className="flex items-center gap-6 flex-shrink-0">
-                  <span className="text-2xl font-bold tabular-nums whitespace-nowrap" style={{ color: brandColor }}>
+                  <span className="text-2xl font-bold tabular-nums whitespace-nowrap" style={{ color: secondary }}>
                     {plan.price}đ<span className="text-sm text-slate-500">{plan.period || '/tháng'}</span>
                   </span>
                   <a
                     href={plan.buttonLink || '#'}
                     className={`px-6 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap ${plan.isPopular ? 'text-white shadow-md' : ''}`}
-                    style={plan.isPopular ? { backgroundColor: brandColor } : { border: `2px solid ${brandColor}`, color: brandColor }}
+                    style={plan.isPopular ? { backgroundColor: secondary } : { border: `2px solid `, color: secondary }}
                   >
                     {plan.buttonText}
                   </a>
@@ -4565,14 +4577,14 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                     <th 
                       key={idx} 
                       className="p-4 text-center border-b min-w-[140px]"
-                      style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}
+                      style={plan.isPopular ? { backgroundColor: `08` } : {}}
                     >
                       <div className="font-semibold text-slate-900">{plan.name}</div>
-                      <div className="font-bold text-xl mt-2 tabular-nums" style={{ color: brandColor }}>
+                      <div className="font-bold text-xl mt-2 tabular-nums" style={{ color: secondary }}>
                         {plan.price}đ
                       </div>
                       {plan.isPopular && (
-                        <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: brandColor }}>
+                        <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: secondary }}>
                           Khuyên dùng
                         </span>
                       )}
@@ -4588,10 +4600,10 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                       <td 
                         key={pIdx} 
                         className="p-4 text-center border-b"
-                        style={plan.isPopular ? { backgroundColor: `${brandColor}05` } : {}}
+                        style={plan.isPopular ? { backgroundColor: `05` } : {}}
                       >
                         {plan.features.includes(feature) ? (
-                          <span className="text-lg" style={{ color: brandColor }}>✓</span>
+                          <span className="text-lg" style={{ color: secondary }}>✓</span>
                         ) : (
                           <span className="text-slate-300">✗</span>
                         )}
@@ -4604,11 +4616,11 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                 <tr>
                   <td className="p-4"></td>
                   {displayPlans.map((plan, idx) => (
-                    <td key={idx} className="p-4 text-center" style={plan.isPopular ? { backgroundColor: `${brandColor}08` } : {}}>
+                    <td key={idx} className="p-4 text-center" style={plan.isPopular ? { backgroundColor: `08` } : {}}>
                       <a 
                         href={plan.buttonLink || '#'}
                         className={`inline-block px-5 py-2.5 rounded-lg text-sm font-medium ${plan.isPopular ? 'text-white' : ''}`}
-                        style={plan.isPopular ? { backgroundColor: brandColor } : { border: `2px solid ${brandColor}`, color: brandColor }}
+                        style={plan.isPopular ? { backgroundColor: secondary } : { border: `2px solid `, color: secondary }}
                       >
                         {plan.buttonText}
                       </a>
@@ -4641,19 +4653,19 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
             <div 
               className="bg-white rounded-2xl border-2 p-8 relative flex flex-col flex-1"
               style={{ 
-                borderColor: brandColor,
-                boxShadow: `0 8px 30px ${brandColor}20`
+                borderColor: secondary,
+                boxShadow: `0 8px 30px ${secondary}20`
               }}
             >
               <div 
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: secondary }}
               >
                 ★ Phổ biến nhất
               </div>
               <h3 className="text-2xl font-bold text-center mt-4">{popularPlan.name}</h3>
               <div className="text-center my-8">
-                <span className="text-4xl font-bold tabular-nums" style={{ color: brandColor }}>
+                <span className="text-4xl font-bold tabular-nums" style={{ color: secondary }}>
                   {popularPlan.price}đ
                 </span>
                 <span className="text-slate-500">{popularPlan.period || '/tháng'}</span>
@@ -4661,7 +4673,7 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
               <ul className="space-y-4 mb-8 flex-1">
                 {popularPlan.features.slice(0, 6).map((f, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <span className="text-lg flex-shrink-0" style={{ color: brandColor }}>✓</span>
+                    <span className="text-lg flex-shrink-0" style={{ color: secondary }}>✓</span>
                     <span className="line-clamp-1">{f}</span>
                   </li>
                 ))}
@@ -4669,7 +4681,7 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
               <a 
                 href={popularPlan.buttonLink || '#'}
                 className="block w-full py-4 text-center rounded-xl font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+                style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px 40` }}
               >
                 {popularPlan.buttonText}
               </a>
@@ -4682,11 +4694,11 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                   <div 
                     key={idx}
                     className="bg-white rounded-xl border p-5 flex flex-col"
-                    style={{ borderColor: `${brandColor}20` }}
+                    style={{ borderColor: `20` }}
                   >
                     <h4 className="font-semibold">{plan.name}</h4>
                     <div className="my-3">
-                      <span className="text-xl font-bold tabular-nums" style={{ color: brandColor }}>
+                      <span className="text-xl font-bold tabular-nums" style={{ color: secondary }}>
                         {plan.price}đ
                       </span>
                       <span className="text-sm text-slate-500">{plan.period || '/tháng'}</span>
@@ -4697,7 +4709,7 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
                     <a 
                       href={plan.buttonLink || '#'}
                       className="block w-full py-2.5 text-center rounded-lg text-sm font-medium border-2"
-                      style={{ borderColor: brandColor, color: brandColor }}
+                      style={{ borderColor: brandColor, color: secondary }}
                     >
                       {plan.buttonText}
                     </a>
@@ -4725,20 +4737,20 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
               className={`bg-white rounded-lg border-2 p-4 relative flex flex-col text-center ${plan.isPopular ? 'ring-2 ring-offset-2' : ''}`}
               style={{ 
                 borderColor: plan.isPopular ? brandColor : '#e2e8f0',
-                ...(plan.isPopular && { ringColor: brandColor })
+                ...(plan.isPopular && { ringColor: secondary })
               }}
             >
               {plan.isPopular && (
                 <div 
                   className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold text-white"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   HOT
                 </div>
               )}
               <h4 className="font-semibold text-sm truncate mt-1">{plan.name}</h4>
               <div className="my-3">
-                <span className="text-xl font-bold tabular-nums" style={{ color: brandColor }}>
+                <span className="text-xl font-bold tabular-nums" style={{ color: secondary }}>
                   {plan.price}đ
                 </span>
                 <span className="text-[10px] text-slate-500 block">{plan.period || '/tháng'}</span>
@@ -4749,7 +4761,7 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
               <a 
                 href={plan.buttonLink || '#'}
                 className={`block w-full py-2 rounded text-xs font-medium mt-auto ${plan.isPopular ? 'text-white' : ''}`}
-                style={plan.isPopular ? { backgroundColor: brandColor } : { border: `1px solid ${brandColor}`, color: brandColor }}
+                style={plan.isPopular ? { backgroundColor: secondary } : { border: `1px solid `, color: secondary }}
               >
                 {plan.buttonText}
               </a>
@@ -4764,7 +4776,8 @@ function PricingSection({ config, brandColor, title }: { config: Record<string, 
 // ============ CAREER SECTION ============
 // 6 Professional Styles: Cards, List, Minimal, Table, Featured, Timeline
 type CareerStyle = 'cards' | 'list' | 'minimal' | 'table' | 'featured' | 'timeline';
-function CareerSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function CareerSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const jobs = (config.jobs as { title: string; department: string; location: string; type: string; salary: string; description?: string }[]) || [];
   const style = (config.style as CareerStyle) || 'cards';
 
@@ -4773,8 +4786,8 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
     return (
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-            <Briefcase size={32} style={{ color: brandColor }} />
+          <div className="inline-flex w-16 h-16 rounded-full items-center justify-center mb-4" style={{ backgroundColor: `10` }}>
+            <Briefcase size={32} style={{ color: secondary }} />
           </div>
           <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
           <p className="text-slate-500">Hiện tại chưa có vị trí tuyển dụng</p>
@@ -4797,11 +4810,11 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
               <article 
                 key={idx} 
                 className="bg-white rounded-xl border border-slate-200 flex flex-col h-full transition-all hover:shadow-lg"
-                style={{ borderColor: `${brandColor}15` }}
+                style={{ borderColor: `15` }}
               >
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-4">
-                    <span className="text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span className="text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: `15`, color: secondary }}>
                       {job.department || 'Đang cập nhật'}
                     </span>
                     <span className="text-xs text-slate-500">{job.type || 'Full-time'}</span>
@@ -4818,7 +4831,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                       <span className="truncate">{job.location || 'Remote'}</span>
                     </div>
                     {job.salary && (
-                      <div className="flex items-center gap-2 font-medium" style={{ color: brandColor }}>
+                      <div className="flex items-center gap-2 font-medium" style={{ color: secondary }}>
                         <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -4828,7 +4841,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                   </div>
                 </div>
                 <div className="p-6 pt-0 mt-auto">
-                  <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                  <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>
                     Ứng tuyển ngay
                   </button>
                 </div>
@@ -4863,8 +4876,8 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                     </div>
                   </div>
                   <div className="flex items-center gap-4 flex-shrink-0">
-                    {job.salary && <span className="text-sm font-medium whitespace-nowrap" style={{ color: brandColor }}>{job.salary}</span>}
-                    <button className="px-5 py-2 rounded-lg text-sm font-medium text-white whitespace-nowrap transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                    {job.salary && <span className="text-sm font-medium whitespace-nowrap" style={{ color: secondary }}>{job.salary}</span>}
+                    <button className="px-5 py-2 rounded-lg text-sm font-medium text-white whitespace-nowrap transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>
                       Ứng tuyển
                     </button>
                   </div>
@@ -4880,11 +4893,11 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
   // Style 3: Minimal - Split layout with sidebar
   if (style === 'minimal') {
     return (
-      <section className="py-16 px-4" style={{ backgroundColor: `${brandColor}05` }}>
+      <section className="py-16 px-4" style={{ backgroundColor: `05` }}>
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row gap-8 md:gap-12">
             <div className="md:w-1/3 text-center md:text-left">
-              <p className="text-sm font-medium mb-2 uppercase tracking-wide" style={{ color: brandColor }}>TUYỂN DỤNG</p>
+              <p className="text-sm font-medium mb-2 uppercase tracking-wide" style={{ color: secondary }}>TUYỂN DỤNG</p>
               <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{title}</h2>
               <p className="text-slate-500">Chúng tôi đang tìm kiếm những tài năng mới</p>
             </div>
@@ -4897,7 +4910,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                         <h3 className="font-medium text-slate-900 line-clamp-1">{job.title || 'Vị trí'}</h3>
                         <span className="text-sm text-slate-500">{job.location || 'Remote'} • {job.type || 'Full-time'}</span>
                       </div>
-                      <a href="#" className="text-sm font-medium hover:underline whitespace-nowrap ml-4" style={{ color: brandColor }}>Chi tiết →</a>
+                      <a href="#" className="text-sm font-medium hover:underline whitespace-nowrap ml-4" style={{ color: secondary }}>Chi tiết →</a>
                     </article>
                   </li>
                 ))}
@@ -4919,7 +4932,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
           <div className="overflow-x-auto">
             <table className="w-full bg-white rounded-xl overflow-hidden border border-slate-200">
               <thead>
-                <tr className="border-b" style={{ backgroundColor: `${brandColor}05` }}>
+                <tr className="border-b" style={{ backgroundColor: `05` }}>
                   <th className="text-left p-4 font-semibold text-sm text-slate-700">Vị trí</th>
                   <th className="text-left p-4 font-semibold text-sm text-slate-700">Phòng ban</th>
                   <th className="text-left p-4 font-semibold text-sm text-slate-700">Địa điểm</th>
@@ -4937,9 +4950,9 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                     <td className="p-4 text-sm text-slate-600">{job.department || 'Đang cập nhật'}</td>
                     <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{job.location || 'Remote'}</td>
                     <td className="p-4 text-sm text-slate-600">{job.type || 'Full-time'}</td>
-                    <td className="p-4 text-sm font-medium" style={{ color: brandColor }}>{job.salary || 'Thỏa thuận'}</td>
+                    <td className="p-4 text-sm font-medium" style={{ color: secondary }}>{job.salary || 'Thỏa thuận'}</td>
                     <td className="p-4 text-right">
-                      <button className="px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                      <button className="px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>
                         Xem chi tiết
                       </button>
                     </td>
@@ -4969,16 +4982,16 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
           {/* Featured Job */}
           <article 
             className="bg-white rounded-2xl border-2 p-8 mb-8 relative"
-            style={{ borderColor: brandColor, boxShadow: `0 8px 30px ${brandColor}20` }}
+            style={{ borderColor: brandColor, boxShadow: `0 8px 30px 20` }}
           >
             <div className="absolute top-4 right-4">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: brandColor }}>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: secondary }}>
                 <Star size={12} fill="currentColor" />
                 HOT
               </span>
             </div>
             <div className="max-w-3xl">
-              <span className="text-xs font-medium px-2 py-1 rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+              <span className="text-xs font-medium px-2 py-1 rounded" style={{ backgroundColor: `15`, color: secondary }}>
                 {featuredJob.department || 'Đang cập nhật'}
               </span>
               <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mt-3 mb-2">{featuredJob.title || 'Vị trí tuyển dụng'}</h3>
@@ -4995,7 +5008,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                   <span>{featuredJob.type || 'Full-time'}</span>
                 </div>
                 {featuredJob.salary && (
-                  <div className="flex items-center gap-2 font-medium" style={{ color: brandColor }}>
+                  <div className="flex items-center gap-2 font-medium" style={{ color: secondary }}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -5003,7 +5016,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                   </div>
                 )}
               </div>
-              <button className="px-8 py-3 rounded-lg font-semibold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>
+              <button className="px-8 py-3 rounded-lg font-semibold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>
                 Ứng tuyển ngay
               </button>
             </div>
@@ -5020,7 +5033,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                     className="bg-white rounded-lg border border-slate-200 p-4 transition-all hover:shadow-md"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: `10`, color: secondary }}>
                         {job.department || 'Đang cập nhật'}
                       </span>
                       <span className="text-xs text-slate-500">{job.type || 'Full-time'}</span>
@@ -5030,7 +5043,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                       <MapPin size={12} />
                       <span>{job.location || 'Remote'}</span>
                     </div>
-                    <a href="#" className="text-sm font-medium hover:underline" style={{ color: brandColor }}>Xem chi tiết →</a>
+                    <a href="#" className="text-sm font-medium hover:underline" style={{ color: secondary }}>Xem chi tiết →</a>
                   </article>
                 ))}
               </div>
@@ -5058,7 +5071,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
         </div>
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute top-0 bottom-0 left-6 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
+          <div className="absolute top-0 bottom-0 left-6 w-0.5" style={{ backgroundColor: `20` }} />
           
           <div className="space-y-8">
             {Object.entries(groupedJobs).map(([department, deptJobs], deptIdx) => (
@@ -5066,13 +5079,13 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                 {/* Department badge - shows first letter */}
                 <div 
                   className="absolute left-0 w-12 h-12 rounded-full border-4 bg-white flex items-center justify-center font-bold text-sm z-10" 
-                  style={{ borderColor: brandColor, color: brandColor }}
+                  style={{ borderColor: brandColor, color: secondary }}
                 >
                   {department.charAt(0).toUpperCase()}
                 </div>
                 
                 <div>
-                  <h4 className="font-bold text-lg text-slate-900 mb-4" style={{ color: brandColor }}>
+                  <h4 className="font-bold text-lg text-slate-900 mb-4" style={{ color: secondary }}>
                     {department}
                   </h4>
                   <ul className="space-y-3" role="list">
@@ -5085,7 +5098,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                             {/* Job number badge */}
                             <div 
                               className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" 
-                              style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                              style={{ backgroundColor: `15`, color: secondary }}
                             >
                               {job.globalIdx}
                             </div>
@@ -5102,7 +5115,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                               <span>{job.location || 'Remote'}</span>
                             </div>
                             {job.salary && (
-                              <div className="flex items-center gap-1 font-medium" style={{ color: brandColor }}>
+                              <div className="flex items-center gap-1 font-medium" style={{ color: secondary }}>
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -5110,7 +5123,7 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
                               </div>
                             )}
                           </div>
-                          <button className="px-5 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                          <button className="px-5 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>
                             Ứng tuyển
                           </button>
                         </article>
@@ -5130,7 +5143,8 @@ function CareerSection({ config, brandColor, title }: { config: Record<string, u
 // ============ CASE STUDY SECTION ============
 // 6 Professional Styles following Best Practices: Grid, Featured, List, Masonry, Carousel, Timeline
 type CaseStudyStyle = 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
-function CaseStudySection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function CaseStudySection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const projects = (config.projects as { title: string; category: string; image: string; description: string; link: string }[]) || [];
   const style = (config.style as CaseStudyStyle) || 'grid';
   const caseStudyCarouselId = useSafeId('casestudy-carousel');
@@ -5159,13 +5173,13 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                 key={idx} 
                 href={project.link || '#'} 
                 className="group block bg-white rounded-xl overflow-hidden transition-all border"
-                style={{ borderColor: `${brandColor}15` }}
+                style={{ borderColor: `15` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`;
+                  e.currentTarget.style.borderColor = `40`;
+                  e.currentTarget.style.boxShadow = `0 4px 12px 10`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}15`;
+                  e.currentTarget.style.borderColor = `15`;
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -5179,12 +5193,12 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                   )}
                 </div>
                 <div className="p-5 flex flex-col h-full">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit" style={{ backgroundColor: `15`, color: secondary }}>
                     {project.category || 'Category'}
                   </span>
                   <h3 className="font-semibold text-slate-900 mt-2 mb-1 line-clamp-2 min-h-[3rem]">{project.title || 'Tên dự án'}</h3>
                   <p className="text-slate-500 text-sm line-clamp-2 min-h-[2.5rem]">{project.description}</p>
-                  <div className="mt-3 flex items-center gap-1 text-sm font-medium" style={{ color: brandColor }}>
+                  <div className="mt-3 flex items-center gap-1 text-sm font-medium" style={{ color: secondary }}>
                     Xem chi tiết <ArrowRight size={14} />
                   </div>
                 </div>
@@ -5219,7 +5233,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                   )}
                 </div>
                 <div className="p-6">
-                  <span className="text-xs font-medium" style={{ color: brandColor }}>{featured.category || 'Category'}</span>
+                  <span className="text-xs font-medium" style={{ color: secondary }}>{featured.category || 'Category'}</span>
                   <h3 className="text-xl font-bold text-slate-900 mt-1 mb-2">{featured.title || 'Dự án chính'}</h3>
                   <p className="text-slate-500">{featured.description}</p>
                 </div>
@@ -5237,7 +5251,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-medium" style={{ color: brandColor }}>{project.category || 'Category'}</span>
+                  <span className="text-xs font-medium" style={{ color: secondary }}>{project.category || 'Category'}</span>
                   <h4 className="font-semibold text-slate-900 mt-1">{project.title || 'Tên dự án'}</h4>
                   <p className="text-sm text-slate-500 mt-1 line-clamp-1">{project.description}</p>
                 </div>
@@ -5261,13 +5275,13 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                 key={idx} 
                 href={project.link || '#'} 
                 className="group block bg-white rounded-xl overflow-hidden border flex flex-col md:flex-row md:items-center transition-all"
-                style={{ borderColor: `${brandColor}15` }}
+                style={{ borderColor: `15` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`;
+                  e.currentTarget.style.borderColor = `40`;
+                  e.currentTarget.style.boxShadow = `0 4px 12px 10`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}15`;
+                  e.currentTarget.style.borderColor = `15`;
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -5280,7 +5294,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                 </div>
                 <div className="p-5 flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `15`, color: secondary }}>
                       {project.category || 'Category'}
                     </span>
                   </div>
@@ -5310,13 +5324,13 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                   key={idx} 
                   href={project.link || '#'} 
                   className="break-inside-avoid mb-6 block bg-white rounded-xl overflow-hidden border group transition-all"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`;
+                    e.currentTarget.style.borderColor = `40`;
+                    e.currentTarget.style.boxShadow = `0 4px 12px 10`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `15`;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -5330,7 +5344,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                     )}
                   </div>
                   <div className="p-4">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `15`, color: secondary }}>
                       {project.category || 'Category'}
                     </span>
                     <h4 className="font-semibold text-slate-900 mt-2 line-clamp-2">{project.title || 'Tên dự án'}</h4>
@@ -5366,9 +5380,9 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
                   className="w-10 h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                  style={{ borderColor: `${brandColor}20` }}
+                  style={{ borderColor: `20` }}
                 >
-                  <ChevronLeft size={20} style={{ color: brandColor }} />
+                  <ChevronLeft size={20} style={{ color: secondary }} />
                 </button>
                 <button
                   type="button"
@@ -5377,9 +5391,9 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                  style={{ borderColor: `${brandColor}20` }}
+                  style={{ borderColor: `20` }}
                 >
-                  <ChevronRight size={20} style={{ color: brandColor }} />
+                  <ChevronRight size={20} style={{ color: secondary }} />
                 </button>
               </div>
             )}
@@ -5412,7 +5426,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                   key={idx}
                   href={project.link || '#'}
                   className="snap-start flex-shrink-0 w-[320px] bg-white rounded-xl overflow-hidden border group transition-all hover:shadow-lg"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   draggable={false}
                 >
                   <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
@@ -5425,7 +5439,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                     )}
                   </div>
                   <div className="p-5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `15`, color: secondary }}>
                       {project.category || 'Category'}
                     </span>
                     <h4 className="font-semibold text-slate-900 mt-2 line-clamp-2 min-h-[3rem]">{project.title || 'Tên dự án'}</h4>
@@ -5454,7 +5468,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
           {/* Vertical Line */}
           <div 
             className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-0.5" 
-            style={{ backgroundColor: `${brandColor}20` }} 
+            style={{ backgroundColor: `20` }} 
           />
           <div className="space-y-8">
             {projects.map((project, idx) => (
@@ -5465,7 +5479,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                 {/* Dot */}
                 <div 
                   className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold z-10" 
-                  style={{ borderColor: brandColor, color: brandColor }}
+                  style={{ borderColor: brandColor, color: secondary }}
                 >
                   {idx + 1}
                 </div>
@@ -5473,13 +5487,13 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                 <a 
                   href={project.link || '#'} 
                   className="w-5/12 bg-white rounded-xl overflow-hidden border transition-all group"
-                  style={{ borderColor: `${brandColor}15` }}
+                  style={{ borderColor: `15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`;
+                    e.currentTarget.style.borderColor = `40`;
+                    e.currentTarget.style.boxShadow = `0 4px 12px 10`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `15`;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -5493,7 +5507,7 @@ function CaseStudySection({ config, brandColor, title }: { config: Record<string
                     )}
                   </div>
                   <div className="p-5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `15`, color: secondary }}>
                       {project.category || 'Category'}
                     </span>
                     <h4 className="font-bold text-slate-900 mt-2 mb-1 line-clamp-2">{project.title || 'Tên dự án'}</h4>
@@ -5531,7 +5545,7 @@ const SpeedDialIcon = ({ name, size = 18 }: { name: string; size?: number }) => 
   return <span className="inline-flex items-center justify-center">{icons[name] ?? <Phone size={size} />}</span>;
 };
 
-function SpeedDialSection({ config, brandColor }: { config: Record<string, unknown>; brandColor: string }) {
+function SpeedDialSection({ config, brandColor, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
   const actions = (config.actions as { icon: string; label: string; url: string; bgColor: string }[]) || [];
   const style = (config.style as SpeedDialStyle) || 'fab';
   const position = (config.position as 'bottom-right' | 'bottom-left') || 'bottom-right';
@@ -5552,7 +5566,7 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
         {actions.map((action, idx) => (
           <a key={idx} {...linkProps(action.url)} className="group flex items-center gap-3" aria-label={action.label || action.icon}>
             {isRight && action.label && <span className="px-3 py-1.5 bg-slate-900/90 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap">{action.label}</span>}
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 hover:shadow-xl transition-all duration-200 cursor-pointer min-w-[48px] min-h-[48px]" style={{ backgroundColor: action.bgColor || brandColor }}>
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 hover:shadow-xl transition-all duration-200 cursor-pointer min-w-[48px] min-h-[48px]" style={{ backgroundColor: action.bgColor || secondary }}>
               <SpeedDialIcon name={action.icon} size={20} />
             </div>
             {!isRight && action.label && <span className="px-3 py-1.5 bg-slate-900/90 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap">{action.label}</span>}
@@ -5567,7 +5581,7 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
     return (
       <div className={`fixed top-1/2 -translate-y-1/2 z-50 flex flex-col overflow-hidden shadow-xl ${isRight ? 'right-0 rounded-l-xl' : 'left-0 rounded-r-xl'}`} role="group" aria-label="Liên hệ nhanh">
         {actions.map((action, idx) => (
-          <a key={idx} {...linkProps(action.url)} className={`group relative flex items-center justify-center w-12 h-12 md:w-14 md:h-14 text-white hover:w-36 transition-all duration-200 overflow-hidden`} style={{ backgroundColor: action.bgColor || brandColor }} aria-label={action.label || action.icon}>
+          <a key={idx} {...linkProps(action.url)} className={`group relative flex items-center justify-center w-12 h-12 md:w-14 md:h-14 text-white hover:w-36 transition-all duration-200 overflow-hidden`} style={{ backgroundColor: action.bgColor || secondary }} aria-label={action.label || action.icon}>
             <div className={`absolute flex items-center gap-3 transition-all duration-200 ${isRight ? 'right-3 md:right-4' : 'left-3 md:left-4'}`}>
               <SpeedDialIcon name={action.icon} size={20} />
             </div>
@@ -5584,7 +5598,7 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
     return (
       <div className={`fixed bottom-6 z-50 flex flex-col gap-3 ${isRight ? 'right-6 items-end' : 'left-6 items-start'}`} role="group" aria-label="Liên hệ nhanh">
         {actions.map((action, idx) => (
-          <a key={idx} {...linkProps(action.url)} className={`flex items-center gap-2.5 pl-4 pr-5 py-2.5 rounded-full shadow-lg text-white hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[48px] ${isRight ? 'flex-row' : 'flex-row-reverse'}`} style={{ backgroundColor: action.bgColor || brandColor }} aria-label={action.label || action.icon}>
+          <a key={idx} {...linkProps(action.url)} className={`flex items-center gap-2.5 pl-4 pr-5 py-2.5 rounded-full shadow-lg text-white hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer min-h-[48px] ${isRight ? 'flex-row' : 'flex-row-reverse'}`} style={{ backgroundColor: action.bgColor || secondary }} aria-label={action.label || action.icon}>
             <SpeedDialIcon name={action.icon} size={18} />
             {action.label && <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>}
           </a>
@@ -5599,7 +5613,7 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
       <div className={`fixed bottom-6 z-50 flex flex-col items-center ${isRight ? 'right-6' : 'left-6'}`} role="group" aria-label="Liên hệ nhanh">
         <div className="relative" style={{ height: `${Math.min(actions.length * 36 + 24, 200)}px` }}>
           {actions.map((action, idx) => (
-            <a key={idx} {...linkProps(action.url)} className="group absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full shadow-lg text-white hover:scale-110 hover:z-50 transition-all duration-200 cursor-pointer" style={{ backgroundColor: action.bgColor || brandColor, bottom: `${idx * 36}px`, boxShadow: `0 4px 12px ${action.bgColor || brandColor}40`, zIndex: actions.length - idx }} aria-label={action.label || action.icon}>
+            <a key={idx} {...linkProps(action.url)} className="group absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full shadow-lg text-white hover:scale-110 hover:z-50 transition-all duration-200 cursor-pointer" style={{ backgroundColor: action.bgColor || brandColor, bottom: `${idx * 36}px`, boxShadow: `0 4px 12px ${action.bgColor || secondary }40`, zIndex: actions.length - idx }} aria-label={action.label || action.icon}>
               <SpeedDialIcon name={action.icon} size={18} />
               {action.label && <span className={`absolute px-2 py-1 bg-slate-900/90 text-white text-xs font-medium rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap ${isRight ? 'right-full mr-2' : 'left-full ml-2'}`}>{action.label}</span>}
             </a>
@@ -5612,9 +5626,9 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
   // Style 5: Dock - MacOS dock style
   if (style === 'dock') {
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-end justify-center rounded-2xl p-2 gap-1.5 md:gap-2" style={{ backdropFilter: 'blur(8px)', backgroundColor: `${brandColor}10` }} role="group" aria-label="Liên hệ nhanh">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-end justify-center rounded-2xl p-2 gap-1.5 md:gap-2" style={{ backdropFilter: 'blur(8px)', backgroundColor: `10` }} role="group" aria-label="Liên hệ nhanh">
         {actions.map((action, idx) => (
-          <a key={idx} {...linkProps(action.url)} className="group relative flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-xl text-white transition-all duration-200 cursor-pointer hover:scale-125 hover:-translate-y-2" style={{ backgroundColor: action.bgColor || brandColor, boxShadow: `0 4px 12px ${action.bgColor || brandColor}30` }} aria-label={action.label || action.icon}>
+          <a key={idx} {...linkProps(action.url)} className="group relative flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-xl text-white transition-all duration-200 cursor-pointer hover:scale-125 hover:-translate-y-2" style={{ backgroundColor: action.bgColor || brandColor, boxShadow: `0 4px 12px ${action.bgColor || secondary }30` }} aria-label={action.label || action.icon}>
             <SpeedDialIcon name={action.icon} size={18} />
             {action.label && <span className="absolute -top-9 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-900/90 text-white text-xs font-medium rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">{action.label}</span>}
           </a>
@@ -5625,11 +5639,11 @@ function SpeedDialSection({ config, brandColor }: { config: Record<string, unkno
 
   // Style 6: Minimal - Icons only, compact bar
   return (
-    <div className={`fixed bottom-6 z-50 flex items-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg px-2 py-1.5 gap-1.5 ${isRight ? 'right-6' : 'left-6'}`} style={{ boxShadow: `0 4px 20px ${brandColor}15` }} role="group" aria-label="Liên hệ nhanh">
+    <div className={`fixed bottom-6 z-50 flex items-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg px-2 py-1.5 gap-1.5 ${isRight ? 'right-6' : 'left-6'}`} style={{ boxShadow: `0 4px 20px 15` }} role="group" aria-label="Liên hệ nhanh">
       {actions.map((action, idx) => (
         <React.Fragment key={idx}>
-          <a {...linkProps(action.url)} className="group relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full transition-all duration-200 cursor-pointer hover:scale-110" style={{ color: action.bgColor || brandColor }} aria-label={action.label || action.icon}>
-            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: `${action.bgColor || brandColor}15` }} />
+          <a {...linkProps(action.url)} className="group relative flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full transition-all duration-200 cursor-pointer hover:scale-110" style={{ color: action.bgColor || secondary }} aria-label={action.label || action.icon}>
+            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: `${action.bgColor || secondary }15` }} />
             <SpeedDialIcon name={action.icon} size={18} />
             {action.label && <span className="absolute -top-9 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-900/90 text-white text-xs font-medium rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-10">{action.label}</span>}
           </a>
@@ -5647,7 +5661,8 @@ import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 
 type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee' | 'circular';
 
-function ProductCategoriesSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function ProductCategoriesSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const categoriesConfig = (config.categories as { categoryId: string; customImage?: string; imageMode?: string }[]) || [];
   const style = (config.style as ProductCategoriesStyle) || 'grid';
   const productCatCarouselId = useSafeId('productcat-carousel');
@@ -5738,7 +5753,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
     const iconData = cat.displayIcon ? getCategoryIcon(cat.displayIcon) : null;
     if (cat.displayIcon && iconData) {
       return (
-        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>
+        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: secondary }}>
           {React.createElement(iconData.icon, { className: 'text-white', size: iconSize })}
         </div>
       );
@@ -5765,13 +5780,13 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
-                style={{ boxShadow: `0 2px 8px ${brandColor}10` }}
+                style={{ boxShadow: `0 2px 8px 10` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
+                  e.currentTarget.style.boxShadow = `0 8px 24px 25`;
                   e.currentTarget.style.transform = 'translateY(-4px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 2px 8px ${brandColor}10`;
+                  e.currentTarget.style.boxShadow = `0 2px 8px 10`;
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
@@ -5813,9 +5828,9 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                       if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `${brandColor}20` }}
+                    style={{ borderColor: `20` }}
                   >
-                    <ChevronLeft size={18} style={{ color: brandColor }} />
+                    <ChevronLeft size={18} style={{ color: secondary }} />
                   </button>
                   <button
                     type="button"
@@ -5824,16 +5839,16 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                       if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `${brandColor}20` }}
+                    style={{ borderColor: `20` }}
                   >
-                    <ChevronRight size={18} style={{ color: brandColor }} />
+                    <ChevronRight size={18} style={{ color: secondary }} />
                   </button>
                 </div>
               )}
               <Link
                 href="/products"
                 className="text-sm font-medium flex items-center gap-1 hover:underline whitespace-nowrap"
-                style={{ color: brandColor }}
+                style={{ color: secondary }}
               >
                 Xem tất cả
                 <ArrowRight size={16} />
@@ -5872,9 +5887,9 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 >
                   <div
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
-                    style={{ border: `2px solid ${brandColor}15` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; }}
+                    style={{ border: `2px solid 15` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `40`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `15`; }}
                   >
                     {renderCategoryVisual(cat, 40)}
                   </div>
@@ -5899,7 +5914,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
   // Style 3: Cards - Modern horizontal cards with description
   if (style === 'cards') {
     return (
-      <section className="py-10 md:py-16" style={{ backgroundColor: `${brandColor}05` }}>
+      <section className="py-10 md:py-16" style={{ backgroundColor: `05` }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -5908,13 +5923,13 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group bg-white rounded-xl overflow-hidden flex cursor-pointer transition-all"
-                style={{ border: `1px solid ${brandColor}15` }}
+                style={{ border: `1px solid 15` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}15`;
+                  e.currentTarget.style.borderColor = `40`;
+                  e.currentTarget.style.boxShadow = `0 4px 12px 15`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${brandColor}15`;
+                  e.currentTarget.style.borderColor = `15`;
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -5926,7 +5941,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                   {cat.description && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                   )}
-                  <span className="text-xs font-medium flex items-center gap-1" style={{ color: brandColor }}>
+                  <span className="text-xs font-medium flex items-center gap-1" style={{ color: secondary }}>
                     {showProductCount ? `${cat.productCount} sản phẩm` : 'Xem sản phẩm'}
                     <ArrowRight size={12} />
                   </span>
@@ -5946,7 +5961,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg md:text-xl font-bold">{title}</h2>
-            <Link href="/products" className="text-sm font-medium hover:underline" style={{ color: brandColor }}>
+            <Link href="/products" className="text-sm font-medium hover:underline" style={{ color: secondary }}>
               Tất cả →
             </Link>
           </div>
@@ -5958,22 +5973,22 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full cursor-pointer transition-all"
-                  style={{ backgroundColor: `${brandColor}08`, border: `1px solid ${brandColor}20` }}
+                  style={{ backgroundColor: `08`, border: `1px solid 20` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}15`;
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.backgroundColor = `15`;
+                    e.currentTarget.style.borderColor = `40`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}08`;
-                    e.currentTarget.style.borderColor = `${brandColor}20`;
+                    e.currentTarget.style.backgroundColor = `08`;
+                    e.currentTarget.style.borderColor = `20`;
                   }}
                 >
                   {cat.displayIcon && iconData ? (
-                    React.createElement(iconData.icon, { size: 16, style: { color: brandColor } })
+                    React.createElement(iconData.icon, { size: 16, style: { color: secondary } })
                   ) : (cat.displayImage ? (
                     <SiteImage src={cat.displayImage} alt="" className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover" />
                   ) : (
-                    <Package size={16} style={{ color: brandColor }} />
+                    <Package size={16} style={{ color: secondary }} />
                   ))}
                   <span className="font-medium text-xs md:text-sm whitespace-nowrap">{cat.name}</span>
                   {showProductCount && (
@@ -6002,7 +6017,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
             <a 
               href={`/products?category=${featured.slug}`}
               className="relative rounded-2xl overflow-hidden cursor-pointer group md:row-span-2"
-              style={{ boxShadow: `0 8px 30px ${brandColor}20` }}
+              style={{ boxShadow: `0 8px 30px 20` }}
             >
               <div className="aspect-[4/3] md:aspect-auto md:h-full">
                 {renderCategoryVisual(featured, 56)}
@@ -6011,7 +6026,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
               <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
                 <span 
                   className="inline-block px-2 py-1 text-xs font-bold rounded mb-2"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   NỔI BẬT
                 </span>
@@ -6032,13 +6047,13 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
-                  style={{ border: `2px solid ${brandColor}15` }}
+                  style={{ border: `2px solid 15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.borderColor = `40`;
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `15`;
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
@@ -6058,9 +6073,9 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 <Link 
                   href="/products"
                   className="flex flex-col items-center justify-center aspect-[4/3] rounded-xl cursor-pointer"
-                  style={{ backgroundColor: `${brandColor}08`, border: `2px dashed ${brandColor}30` }}
+                  style={{ backgroundColor: `08`, border: `2px dashed 30` }}
                 >
-                  <span className="font-bold text-lg" style={{ color: brandColor }}>+{others.length - 5}</span>
+                  <span className="font-bold text-lg" style={{ color: secondary }}>+{others.length - 5}</span>
                   <span className="text-xs text-slate-500 mt-1">danh mục khác</span>
                 </Link>
               )}
@@ -6090,18 +6105,18 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 <div
                   className="rounded-full overflow-hidden transition-all duration-300 mb-3"
                   style={{
-                    border: `2px solid ${brandColor}15`,
+                    border: `2px solid 15`,
                     padding: '18px',
-                    backgroundColor: `${brandColor}05`,
+                    backgroundColor: `05`,
                     width: '100%',
                     aspectRatio: '1/1'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}20`;
+                    e.currentTarget.style.borderColor = `40`;
+                    e.currentTarget.style.boxShadow = `0 4px 12px 20`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}15`;
+                    e.currentTarget.style.borderColor = `15`;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -6148,7 +6163,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                 key={`${cat.id}-${idx}`}
                 href={`/products?category=${cat.slug}`}
                 className="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-full cursor-pointer mx-2 bg-white"
-                style={{ border: `2px solid ${brandColor}20`, boxShadow: `0 2px 8px ${brandColor}10` }}
+                style={{ border: `2px solid 20`, boxShadow: `0 2px 8px 10` }}
               >
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {renderCategoryVisual(cat, 24)}
@@ -6159,7 +6174,7 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
                     <p className="text-xs text-slate-400 whitespace-nowrap">{cat.productCount} sản phẩm</p>
                   )}
                 </div>
-                <ArrowUpRight size={14} style={{ color: brandColor }} className="flex-shrink-0" />
+                <ArrowUpRight size={14} style={{ color: secondary }} className="flex-shrink-0" />
               </a>
             ))}
           </div>
@@ -6173,7 +6188,8 @@ function ProductCategoriesSection({ config, brandColor, title }: { config: Recor
 // Sản phẩm theo danh mục - Mỗi section là 1 danh mục với các sản phẩm thuộc danh mục đó
 type CategoryProductsStyle = 'grid' | 'carousel' | 'cards' | 'bento' | 'magazine' | 'showcase';
 
-function CategoryProductsSection({ config, brandColor, title: _title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function CategoryProductsSection({ config, secondary, title: _title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const sections = (config.sections as { categoryId: string; itemCount: number }[]) || [];
   const style = (config.style as CategoryProductsStyle) || 'grid';
   const catProductCarouselBaseId = useSafeId('catproduct-carousel');
@@ -6230,7 +6246,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
     <a href={`/san-pham/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${brandColor}08` }}>
+      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `08` }}>
         {product.image ? (
           <SiteImage 
             src={product.image} 
@@ -6239,7 +6255,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package size={24} style={{ color: `${brandColor}40` }} />
+            <Package size={24} style={{ color: `40` }} />
           </div>
         )}
       </div>
@@ -6247,13 +6263,13 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
       <div className="flex flex-col mt-auto">
         {product.salePrice && product.salePrice < (product.price ?? 0) ? (
           <>
-            <span className="font-bold text-sm" style={{ color: brandColor }}>
+            <span className="font-bold text-sm" style={{ color: secondary }}>
               {formatPrice(product.salePrice)}
             </span>
             <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
           </>
         ) : (
-          <span className="font-bold text-sm" style={{ color: brandColor }}>
+          <span className="font-bold text-sm" style={{ color: secondary }}>
             {formatPrice(product.price)}
           </span>
         )}
@@ -6265,13 +6281,13 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
   const EmptyProductsState = ({ message }: { message: string }) => (
     <div 
       className="text-center py-8 rounded-xl flex flex-col items-center justify-center"
-      style={{ backgroundColor: `${brandColor}05` }}
+      style={{ backgroundColor: `05` }}
     >
       <div 
         className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-        style={{ backgroundColor: `${brandColor}10` }}
+        style={{ backgroundColor: `10` }}
       >
-        <Package size={24} style={{ color: `${brandColor}50` }} />
+        <Package size={24} style={{ color: `50` }} />
       </div>
       <p className="text-sm text-slate-500">{message}</p>
     </div>
@@ -6294,7 +6310,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                   <a 
                     href={`/products?category=${section.category.slug ?? section.category._id}`}
                     className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg border transition-colors"
-                    style={{ borderColor: `${brandColor}30`, color: brandColor }}
+                    style={{ borderColor: `30`, color: secondary }}
                   >
                     Xem danh mục
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6346,9 +6362,9 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                             if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: `${brandColor}20` }}
+                          style={{ borderColor: `20` }}
                         >
-                          <ChevronLeft size={18} style={{ color: brandColor }} />
+                          <ChevronLeft size={18} style={{ color: secondary }} />
                         </button>
                         <button
                           type="button"
@@ -6357,9 +6373,9 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                             if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: `${brandColor}20` }}
+                          style={{ borderColor: `20` }}
                         >
-                          <ChevronRight size={18} style={{ color: brandColor }} />
+                          <ChevronRight size={18} style={{ color: secondary }} />
                         </button>
                       </div>
                     )}
@@ -6367,7 +6383,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                       <a
                         href={`/products?category=${section.category.slug ?? section.category._id}`}
                         className="text-sm font-medium flex items-center gap-1 hover:underline"
-                        style={{ color: brandColor }}
+                        style={{ color: secondary }}
                       >
                         Xem danh mục
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6424,7 +6440,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                             )}
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h4>
-                          <span className="font-bold text-base" style={{ color: brandColor }}>
+                          <span className="font-bold text-base" style={{ color: secondary }}>
                             {formatPrice(product.salePrice ?? product.price)}
                           </span>
                         </a>
@@ -6458,12 +6474,12 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
             <div className="max-w-7xl mx-auto">
               <div 
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${brandColor}20` }}
+                style={{ border: `1px solid 20` }}
               >
                 {/* Category Header */}
                 <div 
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: `${brandColor}08` }}
+                  style={{ backgroundColor: `08` }}
                 >
                   <div className="flex items-center gap-3">
                     {section.category.image && (
@@ -6481,7 +6497,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                      style={{ backgroundColor: `15`, color: secondary }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6527,7 +6543,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-1 h-8 rounded-full"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     />
                     <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
                   </div>
@@ -6535,7 +6551,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full transition-all hover:shadow-md"
-                      style={{ backgroundColor: `${brandColor}10`, color: brandColor }}
+                      style={{ backgroundColor: `10`, color: secondary }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6579,7 +6595,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                             <span 
                               className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-2"
-                              style={{ backgroundColor: brandColor }}
+                              style={{ backgroundColor: secondary }}
                             >
                               Nổi bật
                             </span>
@@ -6646,11 +6662,11 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
             <section key={sectionIdx} className="px-4">
               <div className="max-w-7xl mx-auto">
                 {/* Editorial Header */}
-                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${brandColor}20` }}>
+                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `20` }}>
                   <div>
                     <span 
                       className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: brandColor }}
+                      style={{ color: secondary }}
                     >
                       Bộ sưu tập
                     </span>
@@ -6660,7 +6676,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="font-semibold flex items-center gap-2 transition-all hover:gap-3"
-                      style={{ color: brandColor }}
+                      style={{ color: secondary }}
                     >
                       Xem tất cả
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -6688,7 +6704,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                         <a 
                           href={`/san-pham/${featured.slug ?? featured._id}`}
                           className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]"
-                          style={{ backgroundColor: `${brandColor}08` }}
+                          style={{ backgroundColor: `08` }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -6698,7 +6714,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={48} style={{ color: `${brandColor}30` }} />
+                              <Package size={48} style={{ color: `30` }} />
                             </div>
                           )}
                           {/* Gradient overlay */}
@@ -6707,7 +6723,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                             <span 
                               className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3"
-                              style={{ backgroundColor: brandColor }}
+                              style={{ backgroundColor: secondary }}
                             >
                               Nổi bật
                             </span>
@@ -6736,7 +6752,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                           >
                             <div 
                               className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                              style={{ backgroundColor: `${brandColor}08` }}
+                              style={{ backgroundColor: `08` }}
                             >
                               {product.image ? (
                                 <SiteImage 
@@ -6746,17 +6762,17 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Package size={24} style={{ color: `${brandColor}30` }} />
+                                  <Package size={24} style={{ color: `30` }} />
                                 </div>
                               )}
                               {/* Quick view overlay */}
                               <div 
                                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ backgroundColor: `${brandColor}20` }}
+                                style={{ backgroundColor: `20` }}
                               >
                                 <span 
                                   className="px-4 py-2 rounded-full text-sm font-medium text-white"
-                                  style={{ backgroundColor: brandColor }}
+                                  style={{ backgroundColor: secondary }}
                                 >
                                   Xem nhanh
                                 </span>
@@ -6766,13 +6782,13 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                             <div className="flex items-baseline gap-2 mt-1">
                               {product.salePrice && product.salePrice < (product.price ?? 0) ? (
                                 <>
-                                  <span className="font-bold text-sm" style={{ color: brandColor }}>
+                                  <span className="font-bold text-sm" style={{ color: secondary }}>
                                     {formatPrice(product.salePrice)}
                                   </span>
                                   <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
                                 </>
                               ) : (
-                                <span className="font-bold text-sm" style={{ color: brandColor }}>
+                                <span className="font-bold text-sm" style={{ color: secondary }}>
                                   {formatPrice(product.price)}
                                 </span>
                               )}
@@ -6802,26 +6818,26 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
               <div>
                 <span 
                   className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   Bộ sưu tập
                 </span>
                 <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1">{section.category.name}</h2>
                 <div 
                   className="h-1 w-16 rounded-full mt-2"
-                  style={{ background: `linear-gradient(to right, ${brandColor}, ${brandColor}40)` }}
+                  style={{ background: `linear-gradient(to right, , 40)` }}
                 />
               </div>
               {showViewAll && (
                 <a 
                   href={`/products?category=${section.category.slug ?? section.category._id}`}
                   className="group flex items-center gap-2 text-sm font-medium transition-colors"
-                  style={{ color: brandColor }}
+                  style={{ color: secondary }}
                 >
                   Xem tất cả 
                   <span 
                     className="w-8 h-8 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform"
-                    style={{ backgroundColor: `${brandColor}15` }}
+                    style={{ backgroundColor: `15` }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -6847,7 +6863,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                       <div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                         style={{ 
-                          background: `linear-gradient(135deg, ${brandColor}20 0%, transparent 50%, ${brandColor}10 100%)` 
+                          background: `linear-gradient(135deg, 20 0%, transparent 50%, 10 100%)` 
                         }}
                       />
                       
@@ -6870,7 +6886,7 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                       <div className="absolute bottom-3 left-3 right-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-30">
                         <span 
                           className="block w-full py-2.5 rounded-xl text-sm font-medium text-white text-center backdrop-blur-sm"
-                          style={{ backgroundColor: `${brandColor}dd` }}
+                          style={{ backgroundColor: `dd` }}
                         >
                           Xem chi tiết
                         </span>
@@ -6890,13 +6906,13 @@ function CategoryProductsSection({ config, brandColor, title: _title }: { config
                       <div className="flex flex-col">
                         {product.salePrice && product.salePrice < (product.price ?? 0) ? (
                           <>
-                            <span className="font-bold text-sm" style={{ color: brandColor }}>
+                            <span className="font-bold text-sm" style={{ color: secondary }}>
                               {formatPrice(product.salePrice)}
                             </span>
                             <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
                           </>
                         ) : (
-                          <span className="font-bold text-sm" style={{ color: brandColor }}>
+                          <span className="font-bold text-sm" style={{ color: secondary }}>
                             {formatPrice(product.price)}
                           </span>
                         )}
@@ -6928,7 +6944,7 @@ interface TeamMember {
   email?: string;
 }
 
-const SocialIcon = ({ type, url, brandColor }: { type: 'facebook' | 'linkedin' | 'twitter' | 'email'; url?: string; brandColor: string }) => {
+const SocialIcon = ({ type, url, secondary }: { type: 'facebook' | 'linkedin' | 'twitter' | 'email'; url?: string; brandColor: string; secondary: string }) => {
   if (!url) {return null;}
   const icons = {
     email: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
@@ -6942,14 +6958,15 @@ const SocialIcon = ({ type, url, brandColor }: { type: 'facebook' | 'linkedin' |
       target="_blank" 
       rel="noopener noreferrer"
       className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
-      style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+      style={{ backgroundColor: `15`, color: secondary }}
     >
       {icons[type]}
     </a>
   );
 };
 
-function TeamSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function TeamSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const members = (config.members as TeamMember[]) || [];
   const style = (config.style as TeamStyle) || 'grid';
   const carouselId = useSafeId('team-carousel');
@@ -6985,21 +7002,21 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   ) : (
                     <div 
                       className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     >
                       {(member.name || 'U').charAt(0)}
                     </div>
                   )}
                   {/* Social overlay on hover */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2">
-                    <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} />
-                    <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} />
-                    <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} />
-                    <SocialIcon type="email" url={member.email} brandColor={brandColor} />
+                    <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="email" url={member.email} brandColor={brandColor} secondary={secondary} />
                   </div>
                 </div>
                 <h4 className="font-semibold text-lg text-slate-900">{member.name || 'Họ và tên'}</h4>
-                <p className="text-sm mt-1" style={{ color: brandColor }}>{member.role || 'Chức vụ'}</p>
+                <p className="text-sm mt-1" style={{ color: secondary }}>{member.role || 'Chức vụ'}</p>
               </div>
             ))}
           </div>
@@ -7026,7 +7043,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   ) : (
                     <div 
                       className="w-full h-full flex items-center justify-center text-2xl font-bold text-white"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     >
                       {(member.name || 'U').charAt(0)}
                     </div>
@@ -7034,13 +7051,13 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-slate-900 truncate">{member.name || 'Họ và tên'}</h4>
-                  <p className="text-sm mb-2" style={{ color: brandColor }}>{member.role || 'Chức vụ'}</p>
+                  <p className="text-sm mb-2" style={{ color: secondary }}>{member.role || 'Chức vụ'}</p>
                   <p className="text-sm text-slate-500 line-clamp-2">{member.bio || 'Giới thiệu ngắn...'}</p>
                   <div className="flex gap-1.5 mt-3">
-                    <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} />
-                    <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} />
-                    <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} />
-                    <SocialIcon type="email" url={member.email} brandColor={brandColor} />
+                    <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} secondary={secondary} />
+                    <SocialIcon type="email" url={member.email} brandColor={brandColor} secondary={secondary} />
                   </div>
                 </div>
               </div>
@@ -7084,7 +7101,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                 }}
                 className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: secondary }}
               >
                 <ChevronRight size={18} />
               </button>
@@ -7153,7 +7170,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                     ) : (
                       <div 
                         className="w-full h-full flex items-center justify-center text-5xl font-bold text-white"
-                        style={{ backgroundColor: brandColor }}
+                        style={{ backgroundColor: secondary }}
                       >
                         {(member.name || 'U').charAt(0)}
                       </div>
@@ -7163,16 +7180,16 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   {/* Info */}
                   <div className="p-5">
                     <h4 className="font-bold text-lg text-slate-900 truncate">{member.name || 'Họ và tên'}</h4>
-                    <p className="text-sm mt-0.5 truncate" style={{ color: brandColor }}>{member.role || 'Chức vụ'}</p>
+                    <p className="text-sm mt-0.5 truncate" style={{ color: secondary }}>{member.role || 'Chức vụ'}</p>
                     {member.bio && (
                       <p className="text-sm text-slate-500 mt-3 line-clamp-2">{member.bio}</p>
                     )}
                     {/* Social */}
                     <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
-                      <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} />
-                      <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} />
-                      <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} />
-                      <SocialIcon type="email" url={member.email} brandColor={brandColor} />
+                      <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} secondary={secondary} />
+                      <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} secondary={secondary} />
+                      <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} secondary={secondary} />
+                      <SocialIcon type="email" url={member.email} brandColor={brandColor} secondary={secondary} />
                     </div>
                   </div>
                 </div>
@@ -7199,7 +7216,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
         <div className="text-center mb-10 px-4">
           <span 
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4"
-            style={{ backgroundColor: `${brandColor}10`, color: brandColor }}
+            style={{ backgroundColor: `10`, color: secondary }}
           >
             <Users size={16} />
             Đội ngũ của chúng tôi
@@ -7238,24 +7255,24 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   ) : (
                     <div 
                       className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     >
                       {(member.name || 'U').charAt(0)}
                     </div>
                   )}
                   <div 
                     className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ background: `linear-gradient(to top, ${brandColor}ee, transparent)` }}
+                    style={{ background: `linear-gradient(to top, ee, transparent)` }}
                   >
                     <div className="flex gap-1 pb-3">
-                      <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} />
-                      <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} />
-                      <SocialIcon type="email" url={member.email} brandColor={brandColor} />
+                      <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} secondary={secondary} />
+                      <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} secondary={secondary} />
+                      <SocialIcon type="email" url={member.email} brandColor={brandColor} secondary={secondary} />
                     </div>
                   </div>
                 </div>
                 <h4 className="font-semibold text-slate-900 truncate px-1">{member.name || 'Họ và tên'}</h4>
-                <p className="text-sm truncate px-1" style={{ color: brandColor }}>{member.role || 'Chức vụ'}</p>
+                <p className="text-sm truncate px-1" style={{ color: secondary }}>{member.role || 'Chức vụ'}</p>
               </div>
             ))}
             </div>
@@ -7275,7 +7292,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                 ) : (
                   <div 
                     className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: secondary }}
                   >
                     {(featured.name || 'U').charAt(0)}
                   </div>
@@ -7283,22 +7300,22 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
               </div>
               <div className="flex-1 text-center md:text-left">
                 <h4 className="font-bold text-2xl text-slate-900">{featured.name || 'Họ và tên'}</h4>
-                <p className="text-lg font-medium mb-2" style={{ color: brandColor }}>{featured.role || 'Chức vụ'}</p>
+                <p className="text-lg font-medium mb-2" style={{ color: secondary }}>{featured.role || 'Chức vụ'}</p>
                 {featured.bio && (
                   <p className="text-slate-500 line-clamp-2 mb-4">{featured.bio}</p>
                 )}
                 <div className="flex gap-2 justify-center md:justify-start">
-                  <SocialIcon type="facebook" url={featured.facebook} brandColor={brandColor} />
-                  <SocialIcon type="linkedin" url={featured.linkedin} brandColor={brandColor} />
-                  <SocialIcon type="twitter" url={featured.twitter} brandColor={brandColor} />
-                  <SocialIcon type="email" url={featured.email} brandColor={brandColor} />
+                  <SocialIcon type="facebook" url={featured.facebook} brandColor={brandColor} secondary={secondary} />
+                  <SocialIcon type="linkedin" url={featured.linkedin} brandColor={brandColor} secondary={secondary} />
+                  <SocialIcon type="twitter" url={featured.twitter} brandColor={brandColor} secondary={secondary} />
+                  <SocialIcon type="email" url={featured.email} brandColor={brandColor} secondary={secondary} />
                 </div>
               </div>
               <div 
                 className="flex-shrink-0 w-20 h-20 rounded-full flex flex-col items-center justify-center"
-                style={{ backgroundColor: `${brandColor}10` }}
+                style={{ backgroundColor: `10` }}
               >
-                <span className="text-2xl font-bold" style={{ color: brandColor }}>{members.length}</span>
+                <span className="text-2xl font-bold" style={{ color: secondary }}>{members.length}</span>
                 <span className="text-xs text-slate-500">members</span>
               </div>
             </div>
@@ -7324,7 +7341,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{title}</h2>
             <div 
               className="w-20 h-1 mx-auto rounded-full"
-              style={{ background: `linear-gradient(90deg, transparent, ${brandColor}, transparent)` }}
+              style={{ background: `linear-gradient(90deg, transparent, , transparent)` }}
             />
           </div>
           
@@ -7332,7 +7349,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
             {/* Timeline line - center on desktop, left on mobile */}
             <div 
               className="absolute top-0 bottom-0 w-0.5 left-6 md:left-1/2 md:-translate-x-1/2"
-              style={{ background: `linear-gradient(to bottom, transparent, ${brandColor}30, ${brandColor}30, transparent)` }}
+              style={{ background: `linear-gradient(to bottom, transparent, 30, 30, transparent)` }}
             />
             
             <div className="space-y-8 md:space-y-12">
@@ -7346,14 +7363,14 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                     {/* Timeline dot */}
                     <div 
                       className="absolute left-6 md:left-1/2 w-4 h-4 rounded-full border-4 border-white shadow-lg -translate-x-1/2 z-10"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     />
                     
                     {/* Content card */}
                     <div className={`flex-1 ml-12 md:ml-0 ${isEven ? 'md:pr-12 md:text-right' : 'md:pl-12'}`}>
                       <div 
                         className="group bg-white rounded-2xl p-5 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100"
-                        style={{ '--hover-border': `${brandColor}30` } as React.CSSProperties}
+                        style={{ '--hover-border': `30` } as React.CSSProperties}
                       >
                         <div className={`flex items-center gap-4 ${isEven ? 'md:flex-row-reverse' : ''}`}>
                           {/* Avatar */}
@@ -7365,7 +7382,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                             ) : (
                               <div 
                                 className="w-full h-full flex items-center justify-center text-2xl font-bold text-white"
-                                style={{ backgroundColor: brandColor }}
+                                style={{ backgroundColor: secondary }}
                               >
                                 {(member.name || 'U').charAt(0)}
                               </div>
@@ -7377,7 +7394,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                             <h4 className="font-bold text-lg text-slate-900">{member.name || 'Họ và tên'}</h4>
                             <p 
                               className="text-sm font-medium"
-                              style={{ color: brandColor }}
+                              style={{ color: secondary }}
                             >
                               {member.role || 'Chức vụ'}
                             </p>
@@ -7387,10 +7404,10 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                             
                             {/* Social icons */}
                             <div className={`flex gap-2 mt-3 ${isEven ? 'md:justify-end' : ''}`}>
-                              <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} />
-                              <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} />
-                              <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} />
-                              <SocialIcon type="email" url={member.email} brandColor={brandColor} />
+                              <SocialIcon type="facebook" url={member.facebook} brandColor={brandColor} secondary={secondary} />
+                              <SocialIcon type="linkedin" url={member.linkedin} brandColor={brandColor} secondary={secondary} />
+                              <SocialIcon type="twitter" url={member.twitter} brandColor={brandColor} secondary={secondary} />
+                              <SocialIcon type="email" url={member.email} brandColor={brandColor} secondary={secondary} />
                             </div>
                           </div>
                         </div>
@@ -7413,16 +7430,16 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
   return (
     <section 
       className="py-16 md:py-20 px-4 relative overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${brandColor}08 0%, #f8fafc 50%, ${brandColor}05 100%)` }}
+      style={{ background: `linear-gradient(135deg, 08 0%, #f8fafc 50%, 05 100%)` }}
     >
       {/* Decorative background elements */}
       <div 
         className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-3xl"
-        style={{ background: `radial-gradient(circle, ${brandColor}40, transparent)` }}
+        style={{ background: `radial-gradient(circle, 40, transparent)` }}
       />
       <div 
         className="absolute bottom-0 left-0 w-80 h-80 rounded-full opacity-15 blur-3xl"
-        style={{ background: `radial-gradient(circle, ${brandColor}30, transparent)` }}
+        style={{ background: `radial-gradient(circle, 30, transparent)` }}
       />
       
       <div className="max-w-6xl mx-auto relative">
@@ -7440,7 +7457,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
               {/* Glow effect behind card */}
               <div 
                 className="absolute -inset-1 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"
-                style={{ background: `linear-gradient(135deg, ${brandColor}40, ${brandColor}20)` }}
+                style={{ background: `linear-gradient(135deg, 40, 20)` }}
               />
               
               {/* Main card with glassmorphism */}
@@ -7451,7 +7468,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                 <div 
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-500"
                   style={{ 
-                    background: `radial-gradient(circle, ${brandColor}, transparent)`,
+                    background: `radial-gradient(circle, , transparent)`,
                     filter: 'blur(20px)'
                   }}
                 />
@@ -7462,7 +7479,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                     className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{ 
                       animation: 'spin 4s linear infinite',
-                      background: `conic-gradient(from 0deg, ${brandColor}, ${brandColor}40, ${brandColor})`,
+                      background: `conic-gradient(from 0deg, , 40, )`,
                       padding: '3px'
                     }}
                   />
@@ -7477,7 +7494,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                     ) : (
                       <div 
                         className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
-                        style={{ backgroundColor: brandColor }}
+                        style={{ backgroundColor: secondary }}
                       >
                         {(member.name || 'U').charAt(0)}
                       </div>
@@ -7490,7 +7507,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                   <h4 className="font-bold text-xl text-slate-900 mb-1">{member.name || 'Họ và tên'}</h4>
                   <p 
                     className="text-sm font-medium mb-3"
-                    style={{ color: brandColor }}
+                    style={{ color: secondary }}
                   >
                     {member.role || 'Chức vụ'}
                   </p>
@@ -7507,7 +7524,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-                        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                        style={{ backgroundColor: `15`, color: secondary }}
                       >
                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                       </a>
@@ -7518,7 +7535,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-                        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                        style={{ backgroundColor: `15`, color: secondary }}
                       >
                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                       </a>
@@ -7529,7 +7546,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-                        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                        style={{ backgroundColor: `15`, color: secondary }}
                       >
                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                       </a>
@@ -7538,7 +7555,7 @@ function TeamSection({ config, brandColor, title }: { config: Record<string, unk
                       <a 
                         href={`mailto:${member.email}`}
                         className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-                        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                        style={{ backgroundColor: `15`, color: secondary }}
                       >
                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                       </a>
@@ -7568,7 +7585,8 @@ type FeaturesStyle = 'iconGrid' | 'alternating' | 'compact' | 'cards' | 'carouse
 
 const featureIcons: Record<string, React.ElementType> = { Check, Cpu, Globe, Layers, Rocket, Settings, Shield, Star, Target, Zap };
 
-function FeaturesSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function FeaturesSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
   const style = (config.style as FeaturesStyle) || 'iconGrid';
   const featuresCarouselId = useSafeId('features-carousel');
@@ -7583,7 +7601,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 md:mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-3">{title}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">Khám phá những tính năng ưu việt giúp bạn đạt hiệu quả tối đa</p>
           </div>
@@ -7592,7 +7610,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               const IconComponent = getIcon(item.icon);
               return (
                 <div key={idx} className="group bg-white rounded-2xl p-6 border border-slate-200 hover:border-transparent hover:shadow-xl transition-all duration-300">
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`, boxShadow: `0 8px 16px -4px ${brandColor}40` }}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg,  0%, cc 100%)`, boxShadow: `0 8px 16px -4px 40` }}>
                     <IconComponent size={24} className="text-white" strokeWidth={2} />
                   </div>
                   <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
@@ -7616,7 +7634,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
       <section className="py-10 md:py-12 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -7625,10 +7643,10 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               return (
                 <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
                   <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-                      <IconComponent size={18} style={{ color: brandColor }} strokeWidth={2} />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `15` }}>
+                      <IconComponent size={18} style={{ color: secondary }} strokeWidth={2} />
                     </div>
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: brandColor }}>{idx + 1}</span>
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: secondary }}>{idx + 1}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm text-slate-900 line-clamp-1">{item.title}</h3>
@@ -7638,7 +7656,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               );
             })}
           </div>
-          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: brandColor }}>+{remainingCount} tính năng khác</span></div>)}
+          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
         </div>
       </section>
     );
@@ -7652,9 +7670,9 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
     return (
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `${brandColor}20` }}>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `20` }}>
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
             </div>
             {remainingCount > 0 && <span className="text-sm text-slate-500">+{remainingCount} tính năng khác</span>}
@@ -7664,7 +7682,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               const IconComponent = getIcon(item.icon);
               return (
                 <div key={idx} className="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}15` }}><IconComponent size={18} style={{ color: brandColor }} strokeWidth={2} /></div>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm text-slate-900 mb-0.5 truncate">{item.title}</h3>
                     <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
@@ -7687,7 +7705,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 md:mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-3">{title}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -7695,16 +7713,16 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               const IconComponent = getIcon(item.icon);
               return (
                 <div key={idx} className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                  <div className="h-1" style={{ backgroundColor: brandColor }} />
+                  <div className="h-1" style={{ backgroundColor: secondary }} />
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}><IconComponent size={22} style={{ color: brandColor }} strokeWidth={2} /></div>
-                      <span className="text-3xl font-bold opacity-20" style={{ color: brandColor }}>{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `15` }}><IconComponent size={22} style={{ color: secondary }} strokeWidth={2} /></div>
+                      <span className="text-3xl font-bold opacity-20" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
                     </div>
                     <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
                     <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
                     <div className="mt-4 pt-4 border-t border-slate-100">
-                      <span className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all" style={{ color: brandColor }}>Tìm hiểu thêm <ArrowRight size={14} /></span>
+                      <span className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all" style={{ color: secondary }}>Tìm hiểu thêm <ArrowRight size={14} /></span>
                     </div>
                   </div>
                 </div>
@@ -7727,7 +7745,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
         <div className="max-w-6xl mx-auto">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
             </div>
             {items.length > 3 && (
@@ -7782,7 +7800,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
                 const IconComponent = getIcon(item.icon);
                 return (
                   <div key={idx} className="snap-start flex-shrink-0 w-[280px] md:w-[320px] bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all" draggable={false}>
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`, boxShadow: `0 8px 16px -4px ${brandColor}40` }}>
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg,  0%, cc 100%)`, boxShadow: `0 8px 16px -4px 40` }}>
                       <IconComponent size={24} className="text-white" strokeWidth={2} />
                     </div>
                     <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
@@ -7810,23 +7828,23 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
     <section className="py-10 md:py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}><Zap size={12} />Tính năng</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `15`, color: secondary }}><Zap size={12} />Tính năng</div>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
         </div>
         <div className="relative">
-          <div className="absolute top-0 bottom-0 left-3 md:left-1/2 w-px" style={{ backgroundColor: `${brandColor}30` }} />
+          <div className="absolute top-0 bottom-0 left-3 md:left-1/2 w-px" style={{ backgroundColor: `30` }} />
           <div className="relative space-y-4">
             {visibleItems.map((item, idx) => {
               const IconComponent = getIcon(item.icon);
               const isEven = idx % 2 === 0;
               return (
                 <div key={idx} className={`relative flex items-center pl-8 md:pl-0 ${isEven ? 'md:pr-[52%]' : 'md:pl-[52%] md:flex-row-reverse'}`}>
-                  <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center w-6 h-6 rounded-full border-2 border-white shadow z-10" style={{ backgroundColor: brandColor }}>
+                  <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center w-6 h-6 rounded-full border-2 border-white shadow z-10" style={{ backgroundColor: secondary }}>
                     <IconComponent size={12} className="text-white" strokeWidth={2.5} />
                   </div>
                   <div className="flex-1 bg-white rounded-lg p-3 shadow-sm border border-slate-200">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{idx + 1}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `15`, color: secondary }}>{idx + 1}</span>
                       <h3 className="font-semibold text-sm text-slate-900 line-clamp-1">{item.title}</h3>
                     </div>
                     <p className="text-xs text-slate-500 line-clamp-1 pl-6">{item.description}</p>
@@ -7835,7 +7853,7 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
               );
             })}
           </div>
-          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: brandColor }}>+{remainingCount} tính năng khác</span></div>)}
+          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
         </div>
       </div>
     </section>
@@ -7846,7 +7864,8 @@ function FeaturesSection({ config, brandColor, title }: { config: Record<string,
 // 6 Professional Styles: Horizontal, Stepper, Cards, Accordion, Minimal, Grid
 type ProcessStyle = 'horizontal' | 'stepper' | 'cards' | 'accordion' | 'minimal' | 'grid';
 
-function ProcessSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function ProcessSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const steps = (config.steps as { icon: string; title: string; description: string }[]) || [];
   const style = (config.style as ProcessStyle) || 'horizontal';
   const [activeAccordion, setActiveAccordion] = React.useState<number>(0);
@@ -7866,13 +7885,13 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="relative flex items-center justify-between max-w-2xl mx-auto">
-              <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: `${brandColor}20` }} />
+              <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: `20` }} />
               <div className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: brandColor, width: `${((visibleSteps.length - 1) / Math.max(visibleSteps.length - 1, 1)) * 100}%` }} />
               {visibleSteps.map((step, idx) => (
                 <div key={idx} className="relative z-10 flex flex-col items-center">
                   <div 
                     className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white"
-                    style={{ backgroundColor: brandColor, boxShadow: `0 2px 8px ${brandColor}40` }}
+                    style={{ backgroundColor: brandColor, boxShadow: `0 2px 8px 40` }}
                   >
                     {step.icon || idx + 1}
                   </div>
@@ -7901,7 +7920,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
       <section className="py-10 md:py-14 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `15`, color: secondary }}>
               Quy trình
             </div>
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
@@ -7913,12 +7932,12 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
                 <div className="flex flex-col items-center">
                   <div 
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: secondary }}
                   >
                     {step.icon || idx + 1}
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className="w-0.5 flex-1 my-2" style={{ backgroundColor: `${brandColor}30` }} />
+                    <div className="w-0.5 flex-1 my-2" style={{ backgroundColor: `30` }} />
                   )}
                 </div>
                 <div className={`flex-1 ${idx === steps.length - 1 ? 'pb-0' : 'pb-8'}`}>
@@ -7939,11 +7958,11 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
       <section className="py-12 md:py-16 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `${brandColor}20` }}>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `20` }}>
             <div className="space-y-2">
               <div 
                 className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"
-                style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                style={{ backgroundColor: `15`, color: secondary }}
               >
                 Quy trình
               </div>
@@ -7961,7 +7980,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
                 {/* Gradient Header */}
                 <div 
                   className="h-2"
-                  style={{ background: `linear-gradient(to right, ${brandColor}, ${brandColor}99)` }}
+                  style={{ background: `linear-gradient(to right, , 99)` }}
                 />
                 
                 <div className="p-5 md:p-6">
@@ -7969,7 +7988,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
                   <div className="flex items-center gap-3 mb-4">
                     <div 
                       className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                      style={{ backgroundColor: brandColor }}
+                      style={{ backgroundColor: secondary }}
                     >
                       {step.icon || idx + 1}
                     </div>
@@ -7999,7 +8018,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
       <section className="py-10 md:py-14 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `15`, color: secondary }}>
               Quy trình
             </div>
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
@@ -8015,7 +8034,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
                 >
                   <div 
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: secondary }}
                   >
                     {step.icon || idx + 1}
                   </div>
@@ -8055,7 +8074,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
               >
                 <div 
                   className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-                  style={{ backgroundColor: brandColor }}
+                  style={{ backgroundColor: secondary }}
                 >
                   {step.icon || idx + 1}
                 </div>
@@ -8077,7 +8096,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
     <section className="py-10 md:py-14 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `15`, color: secondary }}>
             Quy trình
           </div>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
@@ -8088,7 +8107,7 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
             <div key={idx} className="bg-white rounded-lg p-4 border border-slate-200 text-center">
               <div 
                 className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm mx-auto mb-3"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: secondary }}
               >
                 {step.icon || idx + 1}
               </div>
@@ -8109,7 +8128,8 @@ function ProcessSection({ config, brandColor, title }: { config: Record<string, 
 // Best Practices: pause on hover, a11y, prefers-reduced-motion, compact spacing, full color (no grayscale)
 type ClientsStyle = 'marquee' | 'dualRow' | 'wave' | 'grid' | 'carousel' | 'featured';
 
-function ClientsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function ClientsSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const items = (config.items as { url: string; link: string; name?: string }[]) || [];
   const style = (config.style as ClientsStyle) || 'marquee';
   const clientsCarouselId = useSafeId('clients-carousel');
@@ -8136,8 +8156,8 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
     const logo = item.url ? (
       <SiteImage src={item.url} alt={item.name ?? `Khách hàng ${idx + 1}`} className="h-14 md:h-16 w-auto object-contain select-none pointer-events-none" />
     ) : (
-      <div className="h-14 md:h-16 w-28 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-        <ImageIcon size={22} style={{ color: brandColor }} className="opacity-40" />
+      <div className="h-14 md:h-16 w-28 rounded-lg flex items-center justify-center" style={{ backgroundColor: `15` }}>
+        <ImageIcon size={22} style={{ color: secondary }} className="opacity-40" />
       </div>
     );
     return item.link ? (
@@ -8156,7 +8176,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
         <style>{marqueeStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
           <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }} />
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: secondary }} />
             {title}
           </h2>
           <div className="clients-container relative py-4 overflow-hidden" role="list" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)' }}>
@@ -8177,7 +8197,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
         <style>{marqueeStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
           <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }} />
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: secondary }} />
             {title}
           </h2>
           <div className="space-y-2" role="list">
@@ -8206,7 +8226,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
         <style>{marqueeStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
           <div className="text-center space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>Đối tác & Khách hàng</div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: `15`, color: secondary }}>Đối tác & Khách hàng</div>
             <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">{title}</h2>
           </div>
           <div className="clients-container relative py-4 overflow-hidden" role="list" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)' }}>
@@ -8254,10 +8274,10 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
         <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 relative pl-3">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }} />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: secondary }} />
               {title}
             </h2>
-            {items.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>{items.length} đối tác</span>}
+            {items.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `10`, color: secondary }}>{items.length} đối tác</span>}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 py-3" role="list">
             {visibleItems.map((item, idx) => (
@@ -8265,7 +8285,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
                 {item.url ? (
                   <SiteImage src={item.url} alt={item.name ?? `Khách hàng ${idx + 1}`} className="h-14 md:h-16 w-auto object-contain select-none pointer-events-none" />
                 ) : (
-                  <div className="h-14 md:h-16 w-24 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}10` }}>
+                  <div className="h-14 md:h-16 w-24 rounded-lg flex items-center justify-center" style={{ backgroundColor: `10` }}>
                     <ImageIcon size={18} className="text-slate-300" />
                   </div>
                 )}
@@ -8273,11 +8293,11 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
               </div>
             ))}
             {remainingCount > 0 && (
-              <div className="p-3 rounded-lg flex flex-col items-center justify-center" style={{ backgroundColor: `${brandColor}08` }} role="listitem">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center mb-1" style={{ backgroundColor: `${brandColor}15` }}>
-                  <Plus size={18} style={{ color: brandColor }} />
+              <div className="p-3 rounded-lg flex flex-col items-center justify-center" style={{ backgroundColor: `08` }} role="listitem">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center mb-1" style={{ backgroundColor: `15` }}>
+                  <Plus size={18} style={{ color: secondary }} />
                 </div>
-                <span className="text-sm font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+                <span className="text-sm font-bold" style={{ color: secondary }}>+{remainingCount}</span>
                 <span className="text-[10px] text-slate-400">khác</span>
               </div>
             )}
@@ -8297,7 +8317,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
           <div className="px-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-900 relative pl-3">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }} />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: secondary }} />
                 {title}
               </h2>
               <p className="text-slate-400 pl-3 text-xs">Vuốt để xem thêm →</p>
@@ -8305,7 +8325,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
             {items.length > 3 && (
               <div className="flex gap-1.5">
                 <button type="button" onClick={() => { const el = document.querySelector(`#${carouselId}`); if (el) {el.scrollBy({ behavior: 'smooth', left: -182 });} }} className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all border border-slate-200" aria-label="Cuộn trái"><ChevronLeft size={14} /></button>
-                <button type="button" onClick={() => { const el = document.querySelector(`#${carouselId}`); if (el) {el.scrollBy({ behavior: 'smooth', left: 182 });} }} className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all" style={{ backgroundColor: brandColor }} aria-label="Cuộn phải"><ChevronRight size={14} /></button>
+                <button type="button" onClick={() => { const el = document.querySelector(`#${carouselId}`); if (el) {el.scrollBy({ behavior: 'smooth', left: 182 });} }} className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all" style={{ backgroundColor: secondary }} aria-label="Cuộn phải"><ChevronRight size={14} /></button>
               </div>
             )}
           </div>
@@ -8319,7 +8339,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
               onMouseMove={(e) => { const el = e.currentTarget; if (el.dataset.isDown !== 'true') {return;} e.preventDefault(); const x = e.pageX - el.offsetLeft; const walk = (x - Number(el.dataset.startX)) * 1.5; el.scrollLeft = Number(el.dataset.scrollLeft) - walk; }}>
               {items.map((item, idx) => (
                 <div key={`carousel-${idx}`} className="flex-shrink-0 snap-start w-[170px]" role="listitem">
-                  <div className="h-full p-3 rounded-lg border bg-slate-50 flex flex-col items-center justify-center transition-all hover:shadow-md" style={{ borderColor: `${brandColor}15` }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; }}>
+                  <div className="h-full p-3 rounded-lg border bg-slate-50 flex flex-col items-center justify-center transition-all hover:shadow-md" style={{ borderColor: `15` }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = `40`; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = `15`; }}>
                     {item.url ? <SiteImage src={item.url} alt={item.name ?? `Khách hàng ${idx + 1}`} className="h-12 w-auto object-contain select-none pointer-events-none" /> : <div className="h-12 w-full flex items-center justify-center"><ImageIcon size={22} className="text-slate-300" /></div>}
                     {item.name && <span className="text-[10px] text-slate-500 text-center mt-1.5 truncate w-full">{item.name}</span>}
                   </div>
@@ -8349,7 +8369,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="list">
           {featuredItems.map((item, idx) => (
-            <div key={`featured-${idx}`} className="group rounded-xl border bg-white flex flex-col items-center justify-center p-5 transition-all hover:shadow-lg" style={{ borderColor: `${brandColor}20`, boxShadow: `0 2px 8px ${brandColor}08` }} role="listitem">
+            <div key={`featured-${idx}`} className="group rounded-xl border bg-white flex flex-col items-center justify-center p-5 transition-all hover:shadow-lg" style={{ borderColor: `20`, boxShadow: `0 2px 8px 08` }} role="listitem">
               {item.url ? <SiteImage src={item.url} alt={item.name ?? `Khách hàng ${idx + 1}`} className="h-14 md:h-16 w-auto object-contain select-none pointer-events-none transition-transform duration-300 group-hover:scale-105" /> : <div className="h-16 w-full flex items-center justify-center"><ImageIcon size={26} className="text-slate-300" /></div>}
               {item.name && <span className="font-medium text-slate-600 text-center mt-2 truncate w-full text-xs">{item.name}</span>}
             </div>
@@ -8364,7 +8384,7 @@ function ClientsSection({ config, brandColor, title }: { config: Record<string, 
                   {item.url ? <SiteImage src={item.url} alt={item.name ?? `Khách hàng`} className="h-9 md:h-10 w-auto object-contain select-none pointer-events-none" /> : <div className="h-10 w-16 flex items-center justify-center"><ImageIcon size={16} className="text-slate-300" /></div>}
                 </div>
               ))}
-              {remainingCount > 0 && <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>+{remainingCount}</span>}
+              {remainingCount > 0 && <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `10`, color: secondary }}>+{remainingCount}</span>}
             </div>
           </div>
         )}
@@ -8397,7 +8417,8 @@ const getVideoInfo = (url: string): { type: 'youtube' | 'vimeo' | 'drive' | 'dir
 
 const getYouTubeThumbnail = (videoId: string): string => `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
-function VideoSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function VideoSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const videoUrl = (config.videoUrl as string) || '';
   const thumbnailUrl = (config.thumbnailUrl as string) || '';
   const heading = (config.heading as string) || title;
@@ -8432,7 +8453,7 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
 
   const renderPlayButton = (size: 'sm' | 'lg' = 'lg') => (
     <button onClick={() =>{  setIsPlaying(true); }} className="absolute inset-0 flex items-center justify-center group transition-all bg-black/30 hover:bg-black/40">
-      <div className={`rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-xl ${size === 'lg' ? 'w-16 h-16 md:w-20 md:h-20' : 'w-12 h-12'}`} style={{ backgroundColor: brandColor }}>
+      <div className={`rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-xl ${size === 'lg' ? 'w-16 h-16 md:w-20 md:h-20' : 'w-12 h-12'}`} style={{ backgroundColor: secondary }}>
         <Play className={`text-white ml-1 ${size === 'lg' ? 'w-7 h-7 md:w-8 md:h-8' : 'w-5 h-5'}`} fill="white" />
       </div>
     </button>
@@ -8442,7 +8463,7 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
     return (
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="w-full aspect-video flex flex-col items-center justify-center rounded-xl" style={{ backgroundColor: `${brandColor}10` }}>
+          <div className="w-full aspect-video flex flex-col items-center justify-center rounded-xl" style={{ backgroundColor: `10` }}>
             <VideoIcon size={48} className="text-slate-300 mb-3" />
             <p className="text-sm text-slate-400">Chưa cấu hình video</p>
           </div>
@@ -8464,7 +8485,7 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
           )}
           <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl bg-slate-900">
             {!isPlaying && displayThumbnail && <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-            {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}><VideoIcon size={64} className="text-slate-400" /></div>}
+            {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `20` }}><VideoIcon size={64} className="text-slate-400" /></div>}
             {!isPlaying && renderPlayButton()}
             {renderVideoEmbed()}
           </div>
@@ -8482,16 +8503,16 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
             <div className="order-1">
               <div className="relative aspect-video rounded-xl overflow-hidden shadow-xl bg-slate-900">
                 {!isPlaying && displayThumbnail && <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-                {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}><VideoIcon size={48} className="text-slate-400" /></div>}
+                {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `20` }}><VideoIcon size={48} className="text-slate-400" /></div>}
                 {!isPlaying && renderPlayButton('sm')}
                 {renderVideoEmbed()}
               </div>
             </div>
             <div className="order-2">
-              {badge && <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{badge}</span>}
+              {badge && <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3" style={{ backgroundColor: `15`, color: secondary }}>{badge}</span>}
               {heading && <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">{heading}</h2>}
               {description && <p className="text-slate-500 mb-6">{description}</p>}
-              {buttonText && <a href={buttonLink} className="inline-block px-6 py-2.5 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>{buttonText}</a>}
+              {buttonText && <a href={buttonLink} className="inline-block px-6 py-2.5 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90" style={{ backgroundColor: secondary }}>{buttonText}</a>}
             </div>
           </div>
         </div>
@@ -8505,14 +8526,14 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
       <section className="relative">
         <div className="relative overflow-hidden aspect-video md:aspect-[21/9] md:min-h-[400px]">
           {!isPlaying && displayThumbnail && <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-          {!isPlaying && !displayThumbnail && <div className="absolute inset-0" style={{ backgroundColor: `${brandColor}30` }} />}
+          {!isPlaying && !displayThumbnail && <div className="absolute inset-0" style={{ backgroundColor: `30` }} />}
           {!isPlaying && <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />}
           {!isPlaying && (
             <div className="absolute inset-0 flex items-center px-4 md:px-8 lg:px-16">
               <div className="max-w-xl">
                 {heading && <h2 className="text-xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{heading}</h2>}
                 {description && <p className="text-sm md:text-lg text-white/80 mb-6">{description}</p>}
-                <button onClick={() =>{  setIsPlaying(true); }} className="flex items-center gap-3 px-6 py-3 rounded-lg text-white font-medium transition-transform hover:scale-105" style={{ backgroundColor: brandColor }}>
+                <button onClick={() =>{  setIsPlaying(true); }} className="flex items-center gap-3 px-6 py-3 rounded-lg text-white font-medium transition-transform hover:scale-105" style={{ backgroundColor: secondary }}>
                   <Play className="w-5 h-5" fill="white" />{buttonText || 'Xem video'}
                 </button>
               </div>
@@ -8531,22 +8552,22 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
         <div className="max-w-5xl mx-auto">
           {(heading || description) && (
             <div className="text-center mb-8">
-              {badge && <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: `${brandColor}30`, color: brandColor }}>{badge}</span>}
+              {badge && <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: `30`, color: secondary }}>{badge}</span>}
               {heading && <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{heading}</h2>}
               {description && <p className="text-slate-400 max-w-2xl mx-auto">{description}</p>}
             </div>
           )}
           <div className="relative">
-            <div className="absolute -top-3 -left-3 -right-3 h-3 rounded-t-xl" style={{ backgroundColor: `${brandColor}40` }} />
-            <div className="absolute -bottom-3 -left-3 -right-3 h-3 rounded-b-xl" style={{ backgroundColor: `${brandColor}40` }} />
+            <div className="absolute -top-3 -left-3 -right-3 h-3 rounded-t-xl" style={{ backgroundColor: `40` }} />
+            <div className="absolute -bottom-3 -left-3 -right-3 h-3 rounded-b-xl" style={{ backgroundColor: `40` }} />
             <div className="relative aspect-[21/9] rounded-lg overflow-hidden bg-black">
               {!isPlaying && displayThumbnail && <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-              {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `${brandColor}10` }}><VideoIcon size={64} className="text-slate-600" /></div>}
+              {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `10` }}><VideoIcon size={64} className="text-slate-600" /></div>}
               {!isPlaying && renderPlayButton()}
               {renderVideoEmbed()}
             </div>
           </div>
-          {buttonText && !isPlaying && <div className="text-center mt-8"><a href={buttonLink} className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium hover:opacity-90" style={{ backgroundColor: brandColor, boxShadow: `0 4px 14px ${brandColor}40` }}>{buttonText}</a></div>}
+          {buttonText && !isPlaying && <div className="text-center mt-8"><a href={buttonLink} className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium hover:opacity-90" style={{ backgroundColor: brandColor, boxShadow: `0 4px 14px 40` }}>{buttonText}</a></div>}
         </div>
       </section>
     );
@@ -8560,7 +8581,7 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="relative aspect-video">
               {!isPlaying && displayThumbnail && <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-              {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `${brandColor}10` }}><VideoIcon size={48} className="text-slate-300" /></div>}
+              {!isPlaying && !displayThumbnail && <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: `10` }}><VideoIcon size={48} className="text-slate-300" /></div>}
               {!isPlaying && renderPlayButton()}
               {renderVideoEmbed()}
             </div>
@@ -8568,11 +8589,11 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
               <div className="p-6 md:p-8 border-t border-slate-100">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
-                    {badge && <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-medium mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{badge}</span>}
+                    {badge && <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-medium mb-2" style={{ backgroundColor: `15`, color: secondary }}>{badge}</span>}
                     {heading && <h3 className="text-xl font-bold text-slate-900">{heading}</h3>}
                     {description && <p className="text-sm text-slate-500 mt-1 line-clamp-2">{description}</p>}
                   </div>
-                  {buttonText && <a href={buttonLink} className="inline-flex items-center px-5 py-2.5 rounded-lg text-white font-medium text-sm whitespace-nowrap hover:opacity-90" style={{ backgroundColor: brandColor }}>{buttonText}</a>}
+                  {buttonText && <a href={buttonLink} className="inline-flex items-center px-5 py-2.5 rounded-lg text-white font-medium text-sm whitespace-nowrap hover:opacity-90" style={{ backgroundColor: secondary }}>{buttonText}</a>}
                 </div>
               </div>
             )}
@@ -8592,16 +8613,16 @@ function VideoSection({ config, brandColor, title }: { config: Record<string, un
             <SiteImage src={displayThumbnail} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
           </>
         )}
-        {!isPlaying && !displayThumbnail && <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${brandColor}dd 0%, ${brandColor} 100%)` }} />}
+        {!isPlaying && !displayThumbnail && <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, dd 0%,  100%)` }} />}
         {!isPlaying && <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />}
         {!isPlaying && (
           <div className="absolute z-10 inset-x-4 md:inset-x-8 bottom-4 md:bottom-8 flex items-end">
             <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-4 md:p-6 max-w-lg">
-              {badge && <div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} /><span className="text-xs font-semibold uppercase tracking-wide" style={{ color: brandColor }}>{badge}</span></div>}
+              {badge && <div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} /><span className="text-xs font-semibold uppercase tracking-wide" style={{ color: secondary }}>{badge}</span></div>}
               {heading && <h3 className="text-lg md:text-xl font-bold text-slate-900">{heading}</h3>}
               {description && <p className="text-slate-600 text-sm mt-1">{description}</p>}
               <div className="flex items-center gap-3 mt-4">
-                <button onClick={() =>{  setIsPlaying(true); }} className="flex items-center gap-2 px-5 py-2.5 font-medium rounded-lg text-white text-sm" style={{ backgroundColor: brandColor }}>
+                <button onClick={() =>{  setIsPlaying(true); }} className="flex items-center gap-2 px-5 py-2.5 font-medium rounded-lg text-white text-sm" style={{ backgroundColor: secondary }}>
                   <Play className="w-4 h-4" fill="white" />{buttonText || 'Xem video'}
                 </button>
               </div>
@@ -8658,7 +8679,8 @@ const useCountdownTimer = (endDate: string) => {
   return timeLeft;
 };
 
-function CountdownSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function CountdownSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const heading = (config.heading as string) || title;
   const subHeading = (config.subHeading as string) || '';
   const description = (config.description as string) || '';
@@ -8703,8 +8725,8 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
     if (variant === 'outlined') {
       return (
         <div className="flex flex-col items-center">
-          <div className="border-2 rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px]" style={{ borderColor: brandColor }}>
-            <span className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: brandColor }}>{String(value).padStart(2, '0')}</span>
+          <div className="border-2 rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px]" style={{ borderColor: secondary }}>
+            <span className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: secondary }}>{String(value).padStart(2, '0')}</span>
           </div>
           <span className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{label}</span>
         </div>
@@ -8712,7 +8734,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
     }
     return (
       <div className="flex flex-col items-center">
-        <div className="rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px] text-white" style={{ backgroundColor: brandColor }}>
+        <div className="rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px] text-white" style={{ backgroundColor: secondary }}>
           <span className="text-2xl md:text-3xl font-bold tabular-nums">{String(value).padStart(2, '0')}</span>
         </div>
         <span className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{label}</span>
@@ -8753,7 +8775,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
         style={{ 
           background: backgroundImage 
             ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${backgroundImage}) center/cover`
-            : `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`
+            : `linear-gradient(135deg,  0%, cc 100%)`
         }}
       >
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{ backgroundColor: 'white' }} />
@@ -8770,7 +8792,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
           {description && <p className="text-white/90 mb-6 max-w-2xl mx-auto">{description}</p>}
           <div className="flex justify-center mb-6">{renderTimerDisplay('light')}</div>
           {buttonText && (
-            <a href={buttonLink} className="inline-flex items-center gap-2 px-8 py-3 bg-white rounded-lg font-semibold transition-transform hover:scale-105" style={{ color: brandColor }}>
+            <a href={buttonLink} className="inline-flex items-center gap-2 px-8 py-3 bg-white rounded-lg font-semibold transition-transform hover:scale-105" style={{ color: secondary }}>
               {buttonText}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </a>
@@ -8790,7 +8812,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
             style={{ 
               background: backgroundImage 
                 ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backgroundImage}) center/cover`
-                : `linear-gradient(135deg, ${brandColor}ee 0%, ${brandColor} 100%)`
+                : `linear-gradient(135deg, ee 0%,  100%)`
             }}
           >
             {discountText && (
@@ -8806,7 +8828,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
               {description && <p className="text-white/80 mb-6 text-sm md:text-base">{description}</p>}
               <div className="flex justify-center mb-6">{renderTimerDisplay('light')}</div>
               {buttonText && (
-                <a href={buttonLink} className="inline-flex items-center gap-2 px-6 py-2.5 bg-white rounded-full font-semibold text-sm transition-all hover:shadow-lg hover:scale-105" style={{ color: brandColor }}>
+                <a href={buttonLink} className="inline-flex items-center gap-2 px-6 py-2.5 bg-white rounded-full font-semibold text-sm transition-all hover:shadow-lg hover:scale-105" style={{ color: secondary }}>
                   {buttonText}
                 </a>
               )}
@@ -8826,13 +8848,13 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-center md:text-left">
                 {discountText && (
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{discountText}</span>
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3" style={{ backgroundColor: `15`, color: secondary }}>{discountText}</span>
                 )}
                 {subHeading && <p className="text-sm text-slate-500 mb-1">{subHeading}</p>}
                 <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-2">{heading}</h2>
                 {description && <p className="text-slate-500 text-sm mb-4">{description}</p>}
                 {buttonText && (
-                  <a href={buttonLink} className="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                  <a href={buttonLink} className="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white transition-colors hover:opacity-90" style={{ backgroundColor: secondary }}>
                     {buttonText}
                   </a>
                 )}
@@ -8841,7 +8863,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Kết thúc sau</p>
                 {renderTimerDisplay('outlined')}
                 {buttonText && (
-                  <a href={buttonLink} className="md:hidden inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white mt-4 transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                  <a href={buttonLink} className="md:hidden inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white mt-4 transition-colors hover:opacity-90" style={{ backgroundColor: secondary }}>
                     {buttonText}
                   </a>
                 )}
@@ -8874,7 +8896,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
               style={{ 
                 background: backgroundImage 
                   ? `url(${backgroundImage}) center/cover`
-                  : `linear-gradient(135deg, ${brandColor}dd 0%, ${brandColor} 100%)`
+                  : `linear-gradient(135deg, dd 0%,  100%)`
               }}
             >
               {!backgroundImage && (
@@ -8888,7 +8910,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
               )}
             </div>
             <div className="bg-white p-6 md:p-8 flex flex-col justify-center">
-              {subHeading && <p className="text-sm uppercase tracking-wider mb-2" style={{ color: brandColor }}>{subHeading}</p>}
+              {subHeading && <p className="text-sm uppercase tracking-wider mb-2" style={{ color: secondary }}>{subHeading}</p>}
               <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">{heading}</h2>
               {description && <p className="text-slate-500 text-sm mb-5">{description}</p>}
               <div className="mb-5">
@@ -8896,7 +8918,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
                 {timeLeft.isExpired ? renderExpiredState() : renderTimerDisplay('default')}
               </div>
               {buttonText && !timeLeft.isExpired && (
-                <a href={buttonLink} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90 w-full md:w-auto" style={{ backgroundColor: brandColor }}>
+                <a href={buttonLink} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90 w-full md:w-auto" style={{ backgroundColor: secondary }}>
                   {buttonText}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </a>
@@ -8913,7 +8935,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
     return (
       <section 
         className="w-full py-3 px-4"
-        style={{ backgroundColor: brandColor }}
+        style={{ backgroundColor: secondary }}
         role="banner"
         aria-label="Khuyến mãi có thời hạn"
       >
@@ -8955,7 +8977,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
               )}
             </div>
             {buttonText && !timeLeft.isExpired && (
-              <a href={buttonLink} className="bg-white px-4 py-1.5 rounded-full text-sm font-semibold transition-transform hover:scale-105 whitespace-nowrap" style={{ color: brandColor }}>
+              <a href={buttonLink} className="bg-white px-4 py-1.5 rounded-full text-sm font-semibold transition-transform hover:scale-105 whitespace-nowrap" style={{ color: secondary }}>
                 {buttonText}
               </a>
             )}
@@ -9000,7 +9022,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
           style={{ 
             background: backgroundImage 
               ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${backgroundImage}) center/cover`
-              : `linear-gradient(135deg, ${brandColor}ee 0%, ${brandColor} 100%)`
+              : `linear-gradient(135deg, ee 0%,  100%)`
           }}
         >
           {discountText && (
@@ -9020,7 +9042,7 @@ function CountdownSection({ config, brandColor, title }: { config: Record<string
             {timeLeft.isExpired ? renderExpiredState() : renderTimerDisplay('default')}
           </div>
           {buttonText && !timeLeft.isExpired && (
-            <a href={buttonLink} className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+            <a href={buttonLink} className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: secondary }}>
               {buttonText}
             </a>
           )}
@@ -9046,7 +9068,8 @@ interface VoucherItem {
   thumbnail?: string;
 }
 
-function VoucherPromotionsSection({ config, brandColor, title }: { config: Record<string, unknown>; brandColor: string; title: string }) {
+function VoucherPromotionsSection({ config, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
   const heading = (config.heading as string) || title || 'Voucher khuyến mãi';
   const description = (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
   const ctaLabel = (config.ctaLabel as string) || '';
@@ -9097,7 +9120,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
       <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{heading}</h2>
       <p className="text-slate-500">{description}</p>
       {ctaLabel && ctaUrl && (
-        <a href={ctaUrl} className="inline-flex items-center gap-2 font-medium" style={{ color: brandColor }}>
+        <a href={ctaUrl} className="inline-flex items-center gap-2 font-medium" style={{ color: secondary }}>
           {ctaLabel}
           <ArrowRight size={16} />
         </a>
@@ -9118,16 +9141,16 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                     {voucher.thumbnail ? (
                       <SiteImage src={voucher.thumbnail} alt={voucher.name} className="h-full w-full object-cover" />
                     ) : (
-                      <Tag size={18} style={{ color: brandColor }} />
+                      <Tag size={18} style={{ color: secondary }} />
                     )}
                   </div>
                   <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                     <div className="text-lg font-bold text-slate-900">{voucher.code}</div>
                     <div className="text-xs text-slate-500">{voucher.name}</div>
                   </div>
                 </div>
-                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                   {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
                 </button>
               </div>
@@ -9166,7 +9189,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                       {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
                     </div>
                   </div>
-                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                  <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                     {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
                   </button>
                 </div>
@@ -9186,15 +9209,15 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
           {vouchers.map((voucher) => (
             <div key={voucher.code} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               <div className="flex h-full">
-                <div className="w-1" style={{ backgroundColor: brandColor }} />
+                <div className="w-1" style={{ backgroundColor: secondary }} />
                 <div className="flex-1 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                      <div className="text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                       <div className="text-xl font-bold text-slate-900">{voucher.code}</div>
                       <div className="text-sm font-medium text-slate-700">{voucher.name}</div>
                     </div>
-                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                    <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                       {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
                     </button>
                   </div>
@@ -9217,15 +9240,15 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
     <section className="py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {renderHeader('left')}
-        <div className="rounded-2xl border border-slate-200 overflow-hidden" style={{ background: `linear-gradient(135deg, ${brandColor}10, ${brandColor}05)` }}>
+        <div className="rounded-2xl border border-slate-200 overflow-hidden" style={{ background: `linear-gradient(135deg, 10, 05)` }}>
           {vouchers.map((voucher, index) => (
             <div key={voucher.code} className={`flex items-center justify-between gap-4 px-4 py-4 ${index < vouchers.length - 1 ? 'border-b border-dashed border-slate-200' : ''}`}>
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${brandColor}20` }}>
-                  <Tag size={18} style={{ color: brandColor }} />
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `20` }}>
+                  <Tag size={18} style={{ color: secondary }} />
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                  <div className="text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                   <div className="text-sm font-semibold text-slate-900">{voucher.code} • {voucher.name}</div>
                   {voucher.description && <div className="text-xs text-slate-500 mt-1">{voucher.description}</div>}
                   <div className="text-xs text-slate-400 mt-2">
@@ -9235,7 +9258,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                   </div>
                 </div>
               </div>
-              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                 {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
               </button>
             </div>
@@ -9287,10 +9310,10 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                 key={voucher.code}
                 data-voucher-card
                 className={`min-w-[260px] max-w-[260px] snap-start rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${index === currentIndex ? 'ring-2' : ''}`}
-                style={index === currentIndex ? { '--tw-ring-color': `${brandColor}40` } as React.CSSProperties : undefined}
+                style={index === currentIndex ? { '--tw-ring-color': `40` } as React.CSSProperties : undefined}
               >
-                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
-                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: brandColor }}>Voucher</div>
+                <div className="h-2 w-16 rounded-full" style={{ backgroundColor: secondary }} />
+                <div className="mt-4 text-xs uppercase tracking-wider" style={{ color: secondary }}>Voucher</div>
                 <div className="text-xl font-bold text-slate-900">{voucher.code}</div>
                 <div className="text-sm font-medium text-slate-700 mt-1">{voucher.name}</div>
                 {voucher.description && <p className="text-xs text-slate-500 mt-2">{voucher.description}</p>}
@@ -9299,7 +9322,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                   {formatMaxDiscount(voucher) && ` • ${formatMaxDiscount(voucher)}`}
                   {voucher.endDate && ` • Hết hạn ${formatVoucherExpiry(voucher.endDate)}`}
                 </div>
-                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+                <button type="button" className="mt-4 w-full text-xs font-medium px-3 py-2 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                   {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
                 </button>
               </div>
@@ -9316,7 +9339,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                     scrollToIndex(index);
                   }}
                   className={`h-2 rounded-full transition-all ${index === currentIndex ? 'w-6' : 'w-2 bg-slate-300'}`}
-                  style={index === currentIndex ? { backgroundColor: brandColor } : {}}
+                  style={index === currentIndex ? { backgroundColor: secondary } : {}}
                 />
               ))}
             </div>
@@ -9337,7 +9360,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
   const renderMinimal = () => (
     <section className="py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: brandColor }} />
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: secondary }} />
         {renderHeader('left')}
         <div className="space-y-3">
           {vouchers.map((voucher, index) => (
@@ -9354,7 +9377,7 @@ function VoucherPromotionsSection({ config, brandColor, title }: { config: Recor
                   </div>
                 </div>
               </div>
-              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: brandColor }} onClick={() =>{  void handleCopy(voucher.code); }}>
+              <button type="button" className="text-xs font-medium px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: secondary }} onClick={() =>{  void handleCopy(voucher.code); }}>
                 {copiedCode === voucher.code ? 'Đã sao chép' : 'Sao chép mã'}
               </button>
             </div>
@@ -9394,7 +9417,7 @@ type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' |
 interface FooterColumn { title: string; links: { label: string; url: string }[] }
 interface SocialLinkItem { platform: string; url: string; icon: string }
 
-function FooterSection({ config, brandColor }: { config: Record<string, unknown>; brandColor: string }) {
+function FooterSection({ config, brandColor, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
   const style = (config.style as FooterStyle) || 'classic';
   const logo = (config.logo as string) || '';
   const description = (config.description as string) || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.';
@@ -9465,7 +9488,7 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
             <div className="md:col-span-5 space-y-3 text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <div className="p-1.5 rounded-lg" style={{ backgroundColor: bgMedium, border: `1px solid ${borderColor}` }}>
-                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: brandColor }}>V</div>}
+                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>}
                 </div>
                 <span className="text-base font-bold tracking-tight text-white">VietAdmin</span>
               </div>
@@ -9508,14 +9531,14 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
         <div className="max-w-5xl mx-auto px-3 md:px-4 flex flex-col items-center text-center space-y-3 md:space-y-4">
           <div className="flex flex-col items-center gap-2">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20 mb-1" style={{ background: `linear-gradient(to top right, ${bgMedium}, ${borderColor})` }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain drop-shadow-md" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: brandColor }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain drop-shadow-md" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: secondary }}>V</div>}
             </div>
             <h2 className="text-base font-bold text-white tracking-tight">VietAdmin</h2>
             <p className="text-xs leading-relaxed text-white/80 max-w-xs md:max-w-md">{description}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-x-3 md:gap-x-4 gap-y-1.5">
             {getColumns().flatMap(col => col.links).slice(0, 8).map((link, i) => (
-              <a key={i} href={link.url} className="text-xs font-medium text-white/70 hover:text-white hover:underline underline-offset-4 transition-all" style={{ textDecorationColor: brandColor }}>{link.label}</a>
+              <a key={i} href={link.url} className="text-xs font-medium text-white/70 hover:text-white hover:underline underline-offset-4 transition-all" style={{ textDecorationColor: secondary }}>{link.label}</a>
             ))}
           </div>
           <div className="w-12 h-px" style={{ background: `linear-gradient(to right, transparent, ${borderColor}, transparent)` }}></div>
@@ -9541,7 +9564,7 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
             <div className="flex items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: brandColor }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>}
               <span className="text-sm font-bold text-white">VietAdmin</span>
             </div>
             {showSocialLinks && (
@@ -9585,7 +9608,7 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4 opacity-80" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: brandColor }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4 opacity-80" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: secondary }}>V</div>}
               <span className="text-[10px] font-medium text-white/60">{copyright}</span>
             </div>
             {showSocialLinks && (
@@ -9609,8 +9632,8 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
       <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark }}>
         <div className="max-w-6xl mx-auto px-3 md:px-4 text-center">
           <div className="flex flex-col items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${brandColor}20`, border: `2px solid ${brandColor}40` }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: brandColor }}>V</div>}
+            <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `20`, border: `2px solid 40` }}>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: secondary }}>V</div>}
             </div>
             <h2 className="text-lg font-bold text-white tracking-tight">VietAdmin</h2>
             <p className="text-xs leading-relaxed text-white/70 max-w-xs md:max-w-md">{description}</p>
@@ -9627,11 +9650,11 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
               </div>
             ))}
           </div>
-          <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${brandColor}, transparent)` }}></div>
+          <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, , transparent)` }}></div>
           {showSocialLinks && (
             <div className="flex justify-center gap-3 mb-4">
               {getSocials().map((s, i) => (
-                <a key={i} href={s.url} className="h-8 w-8 flex items-center justify-center rounded-full transition-all hover:scale-110" style={{ backgroundColor: `${brandColor}20`, border: `1px solid ${brandColor}30`, color: '#fff' }}>
+                <a key={i} href={s.url} className="h-8 w-8 flex items-center justify-center rounded-full transition-all hover:scale-110" style={{ backgroundColor: `20`, border: `1px solid 30`, color: '#fff' }}>
                   {renderSocialIcon(s.platform, 16)}
                 </a>
               ))}
@@ -9645,10 +9668,10 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
 
   // Style 6: Stacked (default)
   return (
-    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${brandColor}` }}>
+    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ` }}>
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: brandColor }}>
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: secondary }}>
             {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" /> : <span className="text-white font-bold text-sm">V</span>}
           </div>
           <div className="md:flex-1">
@@ -9667,7 +9690,7 @@ function FooterSection({ config, brandColor }: { config: Record<string, unknown>
           {showSocialLinks && (
             <div className="flex gap-2">
               {getSocials().map((s, i) => (
-                <a key={i} href={s.url} className="h-7 w-7 flex items-center justify-center rounded-lg transition-all" style={{ backgroundColor: `${brandColor}15`, color: '#fff' }}>
+                <a key={i} href={s.url} className="h-7 w-7 flex items-center justify-center rounded-lg transition-all" style={{ backgroundColor: `15`, color: '#fff' }}>
                   {renderSocialIcon(s.platform, 14)}
                 </a>
               ))}

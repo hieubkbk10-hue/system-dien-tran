@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { type ContactConfig, ContactPreview, type ContactStyle } from '../../previews';
 import { Facebook, Globe, Instagram, Linkedin, MessageCircle, Plus, Twitter, X, Youtube } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const SOCIAL_PLATFORMS = [
 
 export default function ContactCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Liên hệ', 'Contact');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [contactConfig, setContactConfig] = useState<ContactConfig>({
     address: '123 Nguyễn Huệ, Quận 1, TP.HCM',
@@ -172,7 +172,7 @@ export default function ContactCreatePage() {
         </Card>
       )}
 
-      <ContactPreview config={contactConfig} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <ContactPreview config={contactConfig} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

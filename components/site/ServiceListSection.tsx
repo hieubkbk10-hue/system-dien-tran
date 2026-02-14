@@ -14,6 +14,7 @@ type ServiceListStyle = 'grid' | 'bento' | 'list' | 'carousel' | 'minimal' | 'sh
 interface ServiceListSectionProps {
   config: Record<string, unknown>;
   brandColor: string;
+  secondary: string;
   title: string;
 }
 
@@ -49,7 +50,7 @@ const ServiceBadge = ({ isNew, isHot, brandColor }: { isNew?: boolean; isHot?: b
   );
 };
 
-export function ServiceListSection({ config, brandColor, title }: ServiceListSectionProps) {
+export function ServiceListSection({ config, brandColor, secondary, title }: ServiceListSectionProps) {
   const style = (config.style as ServiceListStyle) || 'grid';
   const itemCount = (config.itemCount as number) || 8;
   const selectionMode = (config.selectionMode as 'auto' | 'manual') || 'auto';
@@ -164,10 +165,10 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                     </h3>
 
                     <div className="flex items-end justify-between mt-3">
-                      <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                      <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                         {formatServicePrice(service.price)}
                       </span>
-                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                     </div>
                   </div>
                 </article>
@@ -259,10 +260,10 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                         </p>
                       )}
                       <div className="flex items-end justify-between mt-2">
-                        <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                        <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                           {formatServicePrice(service.price)}
                         </span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/bento:opacity-100 group-hover/bento:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/bento:opacity-100 group-hover/bento:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                       </div>
                     </div>
                   </article>
@@ -346,10 +347,10 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                       {service.title}
                     </h3>
                     <div className="flex items-end justify-between mt-2">
-                      <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>
+                      <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
                         {formatServicePrice(service.price)}
                       </span>
-                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                     </div>
                   </div>
                 </article>
@@ -508,8 +509,8 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                     <div className="flex flex-col justify-between flex-shrink-0 pt-1">
                       <h3 className="font-medium text-base text-slate-900 leading-tight group-hover:opacity-70 transition-colors line-clamp-2">{service.title}</h3>
                       <div className="flex items-end justify-between mt-3">
-                        <span className="text-sm font-semibold tracking-wide" style={{ color: brandColor }}>{formatServicePrice(service.price)}</span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: brandColor }} />
+                        <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
+                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
                       </div>
                     </div>
                   </article>
@@ -574,9 +575,9 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                     <h3 className="font-medium text-lg text-slate-900 leading-snug group-hover:text-slate-600 transition-colors line-clamp-2">{service.title}</h3>
                     {service.excerpt && <p className="text-sm text-slate-500 line-clamp-2">{stripHtml(service.excerpt)}</p>}
                     <div className="flex items-center justify-between pt-2">
-                      <span className="text-base font-semibold" style={{ color: brandColor }}>{formatServicePrice(service.price)}</span>
+                      <span className="text-base font-semibold" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
                       <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${brandColor}80` }}>
-                        Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: brandColor }} />
+                        Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: secondary }} />
                       </span>
                     </div>
                   </div>
@@ -664,8 +665,8 @@ export function ServiceListSection({ config, brandColor, title }: ServiceListSec
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 line-clamp-1 group-hover:text-slate-600 transition-colors">{service.title}</h4>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm font-semibold" style={{ color: brandColor }}>{formatServicePrice(service.price)}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: brandColor }} />
+                    <span className="text-sm font-semibold" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
+                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
                   </div>
                 </article>
               </Link>

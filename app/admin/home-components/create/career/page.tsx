@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { CareerStyle } from '../../previews';
 import { CareerPreview } from '../../previews';
 
 export default function CareerCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', 'Career');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [jobPositions, setJobPositions] = useState([
@@ -100,7 +100,7 @@ export default function CareerCreatePage() {
 
       <CareerPreview 
         jobs={jobPositions} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={careerStyle}
         onStyleChange={setCareerStyle}
       />

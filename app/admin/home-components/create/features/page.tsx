@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { FeaturesPreview, type FeaturesStyle } from '../../previews';
 
 export default function FeaturesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', 'Features');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [featuresItems, setFeaturesItems] = useState([
     { description: 'Hiệu suất tối ưu với thời gian phản hồi dưới 100ms.', icon: 'Zap', id: 1, title: 'Tốc độ nhanh' },
@@ -129,7 +129,7 @@ export default function FeaturesCreatePage() {
         </CardContent>
       </Card>
 
-      <FeaturesPreview items={featuresItems} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <FeaturesPreview items={featuresItems} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Star, Trash2, User } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { TestimonialsPreview, type TestimonialsStyle } from '../../previews';
 
 interface TestimonialItem { id: number; name: string; role: string; content: string; avatar: string; rating: number }
 
 export default function TestimonialsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đánh giá / Review', 'Testimonials');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([
     { avatar: '', content: 'Dịch vụ tuyệt vời! Chúng tôi rất hài lòng với chất lượng sản phẩm và dịch vụ hỗ trợ.', id: 1, name: 'Nguyễn Văn A', rating: 5, role: 'CEO, ABC Corp' },
@@ -153,7 +153,7 @@ export default function TestimonialsCreatePage() {
         </CardContent>
       </Card>
 
-      <TestimonialsPreview items={testimonials} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <TestimonialsPreview items={testimonials} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

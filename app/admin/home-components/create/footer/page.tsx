@@ -6,7 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { FooterPreview, type FooterStyle } from '../../previews';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
 
@@ -24,7 +24,7 @@ const SOCIAL_PLATFORMS = [
 
 export default function FooterCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', 'Footer');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   // Load settings from Convex
   const siteLogo = useQuery(api.settings.getByKey, { key: 'site_logo' });
@@ -302,9 +302,9 @@ export default function FooterCreatePage() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div 
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${brandColor}10` }}
+                style={{ backgroundColor: `${secondary}10` }}
               >
-                <LayoutGrid size={24} style={{ color: brandColor }} />
+                <LayoutGrid size={24} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có cột menu</h3>
               <p className="text-sm text-slate-500 mb-3">Nhấn “Thêm cột” để tạo menu footer</p>
@@ -414,9 +414,9 @@ export default function FooterCreatePage() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div 
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${brandColor}10` }}
+                style={{ backgroundColor: `${secondary}10` }}
               >
-                <Share2 size={24} style={{ color: brandColor }} />
+                <Share2 size={24} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có mạng xã hội</h3>
               <p className="text-sm text-slate-500 mb-3">Thêm MXH hoặc load từ Settings</p>
@@ -481,7 +481,7 @@ export default function FooterCreatePage() {
         </CardContent>
       </Card>
 
-      <FooterPreview config={footerConfig} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <FooterPreview config={footerConfig} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

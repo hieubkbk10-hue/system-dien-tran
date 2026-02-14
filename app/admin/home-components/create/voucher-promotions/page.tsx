@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { VoucherPromotionsPreview } from '../../previews';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 export default function VoucherPromotionsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   const [style, setStyle] = useState<VoucherPromotionsStyle>(DEFAULT_VOUCHER_STYLE);
   const [limit, setLimit] = useState(4);
   const [voucherConfig, setVoucherConfig] = useState({
@@ -92,7 +92,7 @@ export default function VoucherPromotionsCreatePage() {
       <VoucherPromotionsPreview
         config={voucherConfig}
         limit={normalizeVoucherLimit(limit)}
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={style}
         onStyleChange={setStyle}
       />

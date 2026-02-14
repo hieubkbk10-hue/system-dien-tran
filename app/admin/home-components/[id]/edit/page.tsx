@@ -50,7 +50,7 @@ import {
   VideoPreview,
   VoucherPromotionsPreview
 } from '../../previews';
-import { useBrandColor } from '../../create/shared';
+import { useBrandColors } from '../../create/shared';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
@@ -105,7 +105,8 @@ interface GalleryItem extends ImageItem {
 export default function HomeComponentEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
+  const brandColor = primary;
   
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -935,7 +936,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             )}
             <HeroBannerPreview 
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}
@@ -978,14 +979,14 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             {component.type === 'TrustBadges' ? (
               <TrustBadgesPreview 
                 items={galleryItems.map((g, idx) => ({ id: idx + 1, link: g.link, name: g.name, url: g.url }))} 
-                brandColor={brandColor}
+                brandColor={brandColor} secondary={secondary}
                 selectedStyle={trustBadgesStyle}
                 onStyleChange={setTrustBadgesStyle}
               />
             ) : (
               <GalleryPreview 
                 items={galleryItems.map((g, idx) => ({ id: idx + 1, link: g.link, url: g.url }))} 
-                brandColor={brandColor}
+                brandColor={brandColor} secondary={secondary}
                 componentType={component.type}
                 selectedStyle={galleryStyle}
                 onStyleChange={setGalleryStyle}
@@ -1017,7 +1018,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <StatsPreview 
               items={statsItems.map(s => ({ label: s.label, value: s.value }))} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={statsStyle}
               onStyleChange={setStatsStyle}
             />
@@ -1055,7 +1056,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <CTAPreview 
               config={ctaConfig} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={ctaStyle}
               onStyleChange={setCtaStyle}
             />
@@ -1069,7 +1070,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             setFaqItems={setFaqItems}
             faqStyle={faqStyle}
             setFaqStyle={setFaqStyle}
-            brandColor={brandColor}
+            brandColor={brandColor} secondary={secondary}
             faqConfig={faqConfig}
             setFaqConfig={setFaqConfig}
           />
@@ -1374,7 +1375,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
             <FooterPreview 
               config={footerConfig} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={footerStyle}
               onStyleChange={setFooterStyle}
             />
@@ -1455,7 +1456,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <ServicesPreview 
               items={servicesItems} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               componentType="Services"
               selectedStyle={servicesStyle}
               onStyleChange={setServicesStyle}
@@ -1516,7 +1517,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <BenefitsPreview 
               items={benefitsItems} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={benefitsStyle}
               onStyleChange={setBenefitsStyle}
               config={benefitsConfig}
@@ -1620,7 +1621,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <TestimonialsPreview 
               items={testimonialsItems} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={testimonialsStyle}
               onStyleChange={setTestimonialsStyle}
             />
@@ -1806,7 +1807,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <PricingPreview 
               plans={pricingPlans} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={pricingStyle}
               onStyleChange={setPricingStyle}
               config={pricingConfig}
@@ -1843,7 +1844,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <ContactPreview 
               config={{ ...contactConfig, formFields: [], socialLinks: [] }} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={contactStyle}
               onStyleChange={setContactStyle}
             />
@@ -1955,7 +1956,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <AboutPreview 
               config={aboutConfig} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={aboutConfig.style}
               onStyleChange={(style) =>{  setAboutConfig({...aboutConfig, style}); }}
             />
@@ -2159,7 +2160,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               </CardContent>
             </Card>
             <ProductListPreview 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               itemCount={productSelectionMode === 'manual' ? selectedProductIds.length : productListConfig.itemCount}
               componentType="ProductList"
               selectedStyle={productListStyle}
@@ -2346,7 +2347,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               </CardContent>
             </Card>
             <ServiceListPreview 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               itemCount={serviceSelectionMode === 'manual' ? selectedServiceIds.length : productListConfig.itemCount}
               selectedStyle={serviceListStyle}
               onStyleChange={setServiceListStyle}
@@ -2531,7 +2532,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               </CardContent>
             </Card>
             <BlogPreview 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               postCount={blogSelectionMode === 'manual' ? selectedPostIds.length : productListConfig.itemCount}
               selectedStyle={blogStyle}
               onStyleChange={setBlogStyle}
@@ -2643,7 +2644,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 link: p.link, 
                 title: p.title 
               }))} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={caseStudyStyle}
               onStyleChange={setCaseStudyStyle}
             />
@@ -2721,7 +2722,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <CareerPreview 
               jobs={careerJobs} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={careerStyle}
               onStyleChange={setCareerStyle}
             />
@@ -2858,7 +2859,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 position: speedDialPosition,
                 style: speedDialStyle,
               }}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={speedDialStyle}
               onStyleChange={setSpeedDialStyle}
             />
@@ -3004,7 +3005,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 showProductCount: productCategoriesShowCount,
                 style: productCategoriesStyle,
               }}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={productCategoriesStyle}
               onStyleChange={setProductCategoriesStyle}
               categoriesData={productCategoriesData ?? []}
@@ -3171,7 +3172,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 showViewAll: categoryProductsShowViewAll,
                 style: categoryProductsStyle,
               }}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={categoryProductsStyle}
               onStyleChange={setCategoryProductsStyle}
               categoriesData={productCategoriesData ?? []}
@@ -3300,7 +3301,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
             <TeamPreview 
               members={teamMembers} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={teamStyle}
               onStyleChange={setTeamStyle}
             />
@@ -3313,6 +3314,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             featuresItems={featuresItems} 
             setFeaturesItems={setFeaturesItems} 
             brandColor={brandColor} 
+            secondary={secondary} 
             featuresStyle={featuresStyle} 
             setFeaturesStyle={setFeaturesStyle} 
           />
@@ -3378,7 +3380,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
             <ProcessPreview 
               steps={processSteps} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={processStyle}
               onStyleChange={setProcessStyle}
             />
@@ -3415,7 +3417,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <ClientsPreview 
               items={clientItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))} 
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={clientsStyle}
               onStyleChange={setClientsStyle}
             />
@@ -3512,7 +3514,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             </Card>
             <VideoPreview 
               config={videoConfig}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={videoStyle}
               onStyleChange={setVideoStyle}
             />
@@ -3650,7 +3652,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
             <CountdownPreview 
               config={countdownConfig}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={countdownStyle}
               onStyleChange={setCountdownStyle}
             />
@@ -3719,7 +3721,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             <VoucherPromotionsPreview
               config={voucherConfig}
               limit={normalizeVoucherLimit(voucherLimit)}
-              brandColor={brandColor}
+              brandColor={brandColor} secondary={secondary}
               selectedStyle={voucherStyle}
               onStyleChange={setVoucherStyle}
             />
@@ -3739,13 +3741,14 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 interface FaqItem { id: number; question: string; answer: string }
 interface FaqConfigType { description?: string; buttonText?: string; buttonLink?: string }
 function FaqEditSection({ 
-  faqItems, setFaqItems, faqStyle, setFaqStyle, brandColor, faqConfig, setFaqConfig
+  faqItems, setFaqItems, faqStyle, setFaqStyle, brandColor, secondary, faqConfig, setFaqConfig
 }: { 
   faqItems: FaqItem[]; 
   setFaqItems: (items: FaqItem[]) => void; 
   faqStyle: FaqStyle; 
   setFaqStyle: (style: FaqStyle) => void; 
   brandColor: string;
+  secondary: string;
   faqConfig: FaqConfigType;
   setFaqConfig: (config: FaqConfigType) => void;
 }) {
@@ -3878,7 +3881,7 @@ function FaqEditSection({
 
       <FaqPreview 
         items={faqItems} 
-        brandColor={brandColor}
+        brandColor={brandColor} secondary={secondary}
         selectedStyle={faqStyle}
         onStyleChange={setFaqStyle}
         config={faqConfig}
@@ -3892,12 +3895,14 @@ function FeaturesEditSection({
   featuresItems, 
   setFeaturesItems, 
   brandColor, 
+  secondary,
   featuresStyle, 
   setFeaturesStyle 
 }: { 
   featuresItems: {id: number, icon: string, title: string, description: string}[];
   setFeaturesItems: React.Dispatch<React.SetStateAction<{id: number, icon: string, title: string, description: string}[]>>;
   brandColor: string;
+  secondary: string;
   featuresStyle: FeaturesStyle;
   setFeaturesStyle: React.Dispatch<React.SetStateAction<FeaturesStyle>>;
 }) {
@@ -3999,7 +4004,7 @@ function FeaturesEditSection({
 
       <FeaturesPreview 
         items={featuresItems} 
-        brandColor={brandColor}
+        brandColor={brandColor} secondary={secondary}
         selectedStyle={featuresStyle}
         onStyleChange={setFeaturesStyle}
       />

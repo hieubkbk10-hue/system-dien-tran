@@ -5,7 +5,7 @@ import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { CategoryProductsPreview, type CategoryProductsStyle } from '../../previews';
 
 interface CategoryProductItem {
@@ -16,7 +16,7 @@ interface CategoryProductItem {
 
 export default function CategoryProductsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', 'CategoryProducts');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, { limit: 100 });
@@ -245,7 +245,7 @@ export default function CategoryProductsCreatePage() {
           showViewAll,
           style,
         }}
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={style}
         onStyleChange={setStyle}
         categoriesData={availableCategories}

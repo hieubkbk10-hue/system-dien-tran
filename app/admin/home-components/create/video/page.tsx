@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { VideoPreview, type VideoStyle } from '../../previews';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
 import { Video as VideoIcon } from 'lucide-react';
 
 export default function VideoCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', 'Video');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   // Config states
   const [videoUrl, setVideoUrl] = useState('');
@@ -85,7 +85,7 @@ export default function VideoCreatePage() {
             />
             {videoType && (
               <p className="text-xs text-slate-500">
-                Loại video: <span className="font-medium capitalize" style={{ color: brandColor }}>{videoType}</span>
+                Loại video: <span className="font-medium capitalize" style={{ color: secondary }}>{videoType}</span>
                 {videoType === 'youtube' && ' - Hỗ trợ embed tự động (YouTube, Shorts)'}
                 {videoType === 'vimeo' && ' - Hỗ trợ embed tự động'}
                 {videoType === 'drive' && ' - Hỗ trợ Google Drive embed'}
@@ -226,7 +226,7 @@ export default function VideoCreatePage() {
           thumbnailUrl,
           videoUrl,
         }}
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={style}
         onStyleChange={setStyle}
       />

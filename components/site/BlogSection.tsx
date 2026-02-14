@@ -13,10 +13,11 @@ type BlogStyle = 'grid' | 'list' | 'featured' | 'magazine' | 'carousel' | 'minim
 interface BlogSectionProps {
   config: Record<string, unknown>;
   brandColor: string;
+  secondary: string;
   title: string;
 }
 
-export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
+export function BlogSection({ config, brandColor, secondary, title }: BlogSectionProps) {
   const style = (config.style as BlogStyle) || 'grid';
   const itemCount = (config.itemCount as number) || 6;
   
@@ -102,7 +103,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
           </div>
           {showViewAll && (
             <div className="flex justify-center pt-8 md:pt-10">
-              <Link href="/posts" className="group inline-flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: brandColor }}>
+              <Link href="/posts" className="group inline-flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: secondary }}>
                 Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -132,7 +133,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                     )}
                   </div>
                   <div className="flex flex-1 flex-col justify-center p-4 sm:px-6">
-                    <div className="mb-2"><span className="text-xs font-semibold" style={{ color: brandColor }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span></div>
+                    <div className="mb-2"><span className="text-xs font-semibold" style={{ color: secondary }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span></div>
                     <h3 className="mb-2 text-base md:text-lg font-bold leading-snug text-slate-900 group-hover:opacity-80 transition-colors line-clamp-2">{post.title}</h3>
                     {post.excerpt && <p className="text-sm text-slate-500 line-clamp-2 mb-2">{post.excerpt}</p>}
                     <div className="flex items-center gap-3">
@@ -145,7 +146,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
           </div>
           {showViewAll && (
             <div className="flex justify-center pt-8 md:pt-10">
-              <Link href="/posts" className="group inline-flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: brandColor }}>
+              <Link href="/posts" className="group inline-flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: secondary }}>
                 Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -164,7 +165,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter text-slate-900">{title}</h2>
             {showViewAll && (
-              <Link href="/posts" className="group flex items-center gap-1 text-sm font-medium transition-colors" style={{ color: brandColor }}>
+              <Link href="/posts" className="group flex items-center gap-1 text-sm font-medium transition-colors" style={{ color: secondary }}>
                 Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -209,7 +210,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                       )}
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
-                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: brandColor }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: secondary }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
                       <h4 className="text-sm font-semibold leading-snug text-slate-900 line-clamp-2 group-hover:opacity-80 transition-colors">{post.title}</h4>
                       <time className="mt-1 text-[10px] text-slate-500">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
                     </div>
@@ -232,13 +233,13 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8 md:mb-10">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-widest" style={{ color: brandColor }}>
+              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-widest" style={{ color: secondary }}>
                 <span className="w-6 h-[2px]" style={{ backgroundColor: brandColor }}></span>Magazine
               </div>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter text-slate-900">{title}</h2>
             </div>
             {showViewAll && (
-              <Link href="/posts" className="group flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: brandColor }}>
+              <Link href="/posts" className="group flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: secondary }}>
                 Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -298,7 +299,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                     {post.thumbnail ? <Image src={post.thumbnail} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(min-width: 1024px) 33vw, 50vw" /> : <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `${brandColor}10` }}><FileText size={28} style={{ color: `${brandColor}40` }} /></div>}
                   </div>
                   <div className="p-4 flex flex-col flex-1">
-                    <span className="text-[10px] font-bold uppercase mb-1" style={{ color: brandColor }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
+                    <span className="text-[10px] font-bold uppercase mb-1" style={{ color: secondary }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
                     <h4 className="text-base font-semibold text-slate-900 line-clamp-2 mb-2 group-hover:opacity-80 transition-colors">{post.title}</h4>
                     <time className="text-xs text-slate-500 mt-auto">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
                   </div>
@@ -366,7 +367,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:bg-slate-50"
                   style={{ borderColor: `${brandColor}30` }}
                 >
-                  <ChevronLeft size={18} style={{ color: brandColor }} />
+                  <ChevronLeft size={18} style={{ color: secondary }} />
                 </button>
                 <button
                   type="button"
@@ -444,13 +445,13 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                     </div>
                     <div className="p-4 flex flex-col flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase" style={{ color: brandColor }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
+                        <span className="text-[10px] font-bold uppercase" style={{ color: secondary }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
                       </div>
                       <h3 className="font-bold text-slate-900 line-clamp-2 mb-2 group-hover:opacity-80 transition-colors">{post.title}</h3>
                       <p className="text-sm text-slate-500 line-clamp-2 mb-3 flex-1">{post.excerpt ?? ''}</p>
                       <div className="flex items-center justify-between mt-auto">
                         <time className="text-xs text-slate-500">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
-                        <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: brandColor }} />
+                        <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
                       </div>
                     </div>
                   </article>
@@ -480,7 +481,7 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
           <div className="flex items-center justify-between border-b pb-4 mb-8" style={{ borderColor: `${brandColor}20` }}>
             <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">{title}</h2>
             {showViewAll && (
-              <Link href="/posts" className="group flex items-center gap-2 text-sm transition-colors" style={{ color: brandColor }}>
+              <Link href="/posts" className="group flex items-center gap-2 text-sm transition-colors" style={{ color: secondary }}>
                 Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
             )}
@@ -492,14 +493,14 @@ export function BlogSection({ config, brandColor, title }: BlogSectionProps) {
                   <span className="text-xl md:text-2xl font-bold tabular-nums flex-shrink-0 w-8 md:w-10" style={{ color: `${brandColor}60` }}>{String(index + 1).padStart(2, '0')}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: brandColor }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: secondary }}>{categoryMap.get(post.categoryId) ?? 'Tin tức'}</span>
                       <span className="text-[10px] text-slate-400">•</span>
                       <time className="text-[10px] text-slate-500">{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
                     </div>
                     <h3 className="text-base md:text-lg font-semibold text-slate-900 group-hover:opacity-80 transition-colors line-clamp-2">{post.title}</h3>
                     {post.excerpt && <p className="text-sm text-slate-500 line-clamp-1 mt-1">{post.excerpt}</p>}
                   </div>
-                  <ArrowRight size={18} className="flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" style={{ color: brandColor }} />
+                  <ArrowRight size={18} className="flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" style={{ color: secondary }} />
                 </article>
               </Link>
             ))}

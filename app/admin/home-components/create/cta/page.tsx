@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { CTAPreview, type CTAStyle } from '../../previews';
 
 export default function CTACreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Kêu gọi hành động (CTA)', 'CTA');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [ctaConfig, setCtaConfig] = useState({
     badge: '',
@@ -104,7 +104,7 @@ export default function CTACreatePage() {
         </CardContent>
       </Card>
 
-      <CTAPreview config={ctaConfig} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <CTAPreview config={ctaConfig} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

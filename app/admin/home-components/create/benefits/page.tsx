@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { type BenefitsConfig, BenefitsPreview, type BenefitsStyle } from '../../previews';
 
 const MIN_ITEMS = 1;
@@ -11,7 +11,7 @@ const MAX_ITEMS = 8;
 
 export default function BenefitsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', 'Benefits');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [benefitsItems, setBenefitsItems] = useState([
     { description: 'Sản phẩm chính hãng 100%, nguồn gốc xuất xứ rõ ràng.', icon: 'Check', id: 1, title: 'Chất lượng đảm bảo' },
@@ -203,7 +203,7 @@ export default function BenefitsCreatePage() {
 
       <BenefitsPreview 
         items={benefitsItems} 
-        brandColor={brandColor} 
+        brandColor={primary} secondary={secondary} 
         selectedStyle={style} 
         onStyleChange={setStyle}
         config={config}

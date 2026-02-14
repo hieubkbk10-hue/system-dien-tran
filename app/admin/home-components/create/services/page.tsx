@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Briefcase, Building2, Check, Clock, Cpu, Globe, GripVertical, Layers, Mail, MapPin, Package, Phone, Plus, Rocket, Settings, Shield, Star, Target, Trash2, Users, Zap } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { ServicesPreview, type ServicesStyle } from '../../previews';
 
 // Available icons for services
@@ -11,7 +11,7 @@ const AVAILABLE_ICONS = ['Briefcase', 'Shield', 'Star', 'Users', 'Phone', 'Targe
 
 export default function ServicesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', 'Services');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [servicesItems, setServicesItems] = useState([
     { description: 'Đội ngũ chuyên gia giàu kinh nghiệm', icon: 'Briefcase', id: 1, title: 'Tư vấn chiến lược' },
@@ -98,8 +98,8 @@ export default function ServicesCreatePage() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <GripVertical size={16} className="text-slate-400 flex-shrink-0" />
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}15` }}>
-                      <IconComponent size={16} style={{ color: brandColor }} />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${secondary}15` }}>
+                      <IconComponent size={16} style={{ color: secondary }} />
                     </div>
                     <Label className="font-medium">Dịch vụ {idx + 1}</Label>
                   </div>
@@ -142,7 +142,7 @@ export default function ServicesCreatePage() {
         </CardContent>
       </Card>
 
-      <ServicesPreview items={servicesItems} brandColor={brandColor} componentType="Services" selectedStyle={style} onStyleChange={setStyle} />
+      <ServicesPreview items={servicesItems} brandColor={primary} secondary={secondary} componentType="Services" selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

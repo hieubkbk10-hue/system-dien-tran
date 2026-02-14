@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { TeamPreview, type TeamStyle } from '../../previews';
 
 interface TeamMember {
@@ -184,7 +184,7 @@ const SocialIconBtn = ({ type, value, onChange }: { type: 'facebook' | 'linkedin
 
 export default function TeamCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', 'Team');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [members, setMembers] = useState<TeamMember[]>([
     { avatar: '', bio: '', email: '', facebook: '', id: 1, linkedin: '', name: 'Nguyễn Văn A', role: 'CEO & Founder', twitter: '' },
@@ -220,8 +220,8 @@ export default function TeamCreatePage() {
           {/* Empty State */}
           {members.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                <Users size={28} style={{ color: brandColor }} />
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+                <Users size={28} style={{ color: secondary }} />
               </div>
               <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có thành viên nào</h4>
               <p className="text-sm text-slate-500 mb-4">Thêm thành viên đầu tiên để bắt đầu</p>
@@ -303,7 +303,7 @@ export default function TeamCreatePage() {
         </CardContent>
       </Card>
 
-      <TeamPreview members={members} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} />
+      <TeamPreview members={members} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
     </ComponentFormWrapper>
   );
 }

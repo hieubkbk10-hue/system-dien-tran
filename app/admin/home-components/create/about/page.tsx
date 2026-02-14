@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { AboutStyle } from '../../previews';
 import { AboutPreview } from '../../previews';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
 
 export default function AboutCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', 'About');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [aboutConfig, setAboutConfig] = useState({
     style: 'bento' as AboutStyle,
@@ -192,7 +192,7 @@ export default function AboutCreatePage() {
 
       <AboutPreview 
         config={aboutConfig} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={aboutConfig.style}
         onStyleChange={(style) =>{  setAboutConfig({...aboutConfig, style}); }}
       />

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { CaseStudyStyle } from '../../previews';
 import { CaseStudyPreview } from '../../previews';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
@@ -19,7 +19,7 @@ interface Project {
 
 export default function CaseStudyCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', 'CaseStudy');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
   
   // Reset carousel index when changing away from carousel style
@@ -166,7 +166,7 @@ export default function CaseStudyCreatePage() {
           link: p.link, 
           title: p.title 
         }))} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={caseStudyStyle}
         onStyleChange={setCaseStudyStyle}
       />

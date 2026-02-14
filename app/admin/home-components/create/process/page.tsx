@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GripVertical, Layers, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { ProcessPreview, type ProcessStyle } from '../../previews';
 
 interface ProcessStep {
@@ -15,7 +15,7 @@ interface ProcessStep {
 
 export default function ProcessCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Quy trình làm việc', 'Process');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [steps, setSteps] = useState<ProcessStep[]>([
     { description: 'Lắng nghe và tìm hiểu nhu cầu của khách hàng một cách chi tiết.', icon: '1', id: 1, title: 'Tiếp nhận yêu cầu' },
@@ -81,8 +81,8 @@ export default function ProcessCreatePage() {
         <CardContent className="space-y-4">
           {steps.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                <Layers size={28} style={{ color: brandColor }} />
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
+                <Layers size={28} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có bước nào</h3>
               <p className="text-sm text-slate-500">Nhấn &quot;Thêm bước&quot; để bắt đầu</p>
@@ -141,7 +141,7 @@ export default function ProcessCreatePage() {
 
       <ProcessPreview 
         steps={steps} 
-        brandColor={brandColor} 
+        brandColor={primary} secondary={secondary} 
         selectedStyle={style} 
         onStyleChange={setStyle} 
       />

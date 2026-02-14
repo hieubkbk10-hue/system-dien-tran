@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { GripVertical, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { type FaqConfig, FaqPreview, type FaqStyle } from '../../previews';
 
 export default function FaqCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', 'FAQ');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [faqItems, setFaqItems] = useState([
     { answer: 'Bạn có thể đặt hàng trực tuyến qua website hoặc gọi hotline.', id: 1, question: 'Làm thế nào để đặt hàng?' },
@@ -79,8 +79,8 @@ export default function FaqCreatePage() {
           {faqItems.length === 0 ? (
             // Empty state
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}10` }}>
-                <HelpCircle size={24} style={{ color: brandColor }} />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${secondary}10` }}>
+                <HelpCircle size={24} style={{ color: secondary }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có câu hỏi nào</h3>
               <p className="text-sm text-slate-500 mb-4">Thêm câu hỏi đầu tiên để bắt đầu</p>
@@ -169,7 +169,7 @@ export default function FaqCreatePage() {
         </Card>
       )}
 
-      <FaqPreview items={faqItems} brandColor={brandColor} selectedStyle={style} onStyleChange={setStyle} config={faqConfig} />
+      <FaqPreview items={faqItems} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} config={faqConfig} />
     </ComponentFormWrapper>
   );
 }

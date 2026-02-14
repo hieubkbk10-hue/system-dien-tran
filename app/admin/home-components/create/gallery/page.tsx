@@ -4,7 +4,7 @@ import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { GalleryPreview, type GalleryStyle, TrustBadgesPreview, type TrustBadgesStyle } from '../../previews';
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
@@ -33,7 +33,7 @@ function GalleryCreateContent() {
   };
   
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titles[type], type);
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -91,7 +91,7 @@ function GalleryCreateContent() {
       {type === 'TrustBadges' ? (
         <TrustBadgesPreview 
           items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))} 
-          brandColor={brandColor}
+          brandColor={primary} secondary={secondary}
           selectedStyle={trustBadgesStyle}
           onStyleChange={setTrustBadgesStyle}
         />
@@ -99,7 +99,7 @@ function GalleryCreateContent() {
         <>
           <GalleryPreview 
             items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))} 
-            brandColor={brandColor} 
+            brandColor={primary} secondary={secondary} 
             componentType={type}
             selectedStyle={style}
             onStyleChange={setStyle}

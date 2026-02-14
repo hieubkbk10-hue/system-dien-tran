@@ -4,7 +4,7 @@ import React, { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { ImageIcon, Link as LinkIcon, Loader2, Plus, Upload } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { ClientsPreview, type ClientsStyle } from '../../previews';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -21,7 +21,7 @@ interface ClientItem {
 
 export default function ClientsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khách hàng của chúng tôi', 'Clients');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
   
@@ -272,7 +272,7 @@ export default function ClientsCreatePage() {
 
       <ClientsPreview 
         items={clientItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={style}
         onStyleChange={setStyle}
       />

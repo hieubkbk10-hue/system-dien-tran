@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { BlogPreview, type BlogStyle, ProductListPreview, type ProductListStyle, ServiceListPreview, type ServiceListPreviewItem, type ServiceListStyle } from '../../previews';
 
 function ProductListCreateContent() {
@@ -22,7 +22,7 @@ function ProductListCreateContent() {
   };
   
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titles[type], type);
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState('newest');
@@ -478,10 +478,10 @@ function ProductListCreateContent() {
       </Card>
 
       {type === 'Blog' ? (
-        <BlogPreview brandColor={brandColor} postCount={selectionMode === 'manual' ? selectedPostIds.length : itemCount} selectedStyle={blogStyle} onStyleChange={setBlogStyle} />
+        <BlogPreview brandColor={primary} secondary={secondary} postCount={selectionMode === 'manual' ? selectedPostIds.length : itemCount} selectedStyle={blogStyle} onStyleChange={setBlogStyle} />
       ) : (type === 'ServiceList' ? (
         <ServiceListPreview 
-          brandColor={brandColor} 
+          brandColor={primary} secondary={secondary} 
           itemCount={selectionMode === 'manual' ? selectedServiceIds.length : itemCount} 
           selectedStyle={serviceStyle} 
           onStyleChange={setServiceStyle} 
@@ -494,7 +494,7 @@ function ProductListCreateContent() {
           title={title}
         />
       ) : (
-        <ProductListPreview brandColor={brandColor} itemCount={selectionMode === 'manual' ? selectedProductIds.length : itemCount} componentType="ProductList" selectedStyle={productStyle} onStyleChange={setProductStyle} subTitle={subTitle} sectionTitle={sectionTitle} />
+        <ProductListPreview brandColor={primary} secondary={secondary} itemCount={selectionMode === 'manual' ? selectedProductIds.length : itemCount} componentType="ProductList" selectedStyle={productStyle} onStyleChange={setProductStyle} subTitle={subTitle} sectionTitle={sectionTitle} />
       ))}
     </ComponentFormWrapper>
   );

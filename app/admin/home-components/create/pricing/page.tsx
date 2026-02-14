@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GripVertical, Package, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { PricingConfig, PricingStyle } from '../../previews';
 import { PricingPreview } from '../../previews';
 
@@ -21,7 +21,7 @@ interface PricingPlan {
 
 export default function PricingCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Bảng giá', 'Pricing');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [pricingStyle, setPricingStyle] = useState<PricingStyle>('cards');
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([
@@ -286,7 +286,7 @@ export default function PricingCreatePage() {
 
       <PricingPreview 
         plans={pricingPlans} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={pricingStyle}
         onStyleChange={setPricingStyle}
         config={pricingConfig}

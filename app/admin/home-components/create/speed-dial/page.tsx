@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { SpeedDialPreview, type SpeedDialStyle } from '../../previews';
 
 interface SpeedDialAction {
@@ -31,7 +31,7 @@ const ICON_OPTIONS = [
 
 export default function SpeedDialCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Speed Dial', 'SpeedDial');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [actions, setActions] = useState<SpeedDialAction[]>([
     { bgColor: '#22c55e', icon: 'phone', id: 1, label: 'Gọi ngay', url: 'tel:0123456789' },
@@ -47,7 +47,7 @@ export default function SpeedDialCreatePage() {
 
   const addAction = () => {
     const newId = Math.max(0, ...actions.map(a => a.id)) + 1;
-    setActions([...actions, { bgColor: brandColor, icon: 'phone', id: newId, label: '', url: '' }]);
+    setActions([...actions, { bgColor: secondary, icon: 'phone', id: newId, label: '', url: '' }]);
   };
 
   const removeAction = (id: number) => {
@@ -224,11 +224,11 @@ export default function SpeedDialCreatePage() {
       <SpeedDialPreview 
         config={{
           actions,
-          mainButtonColor: brandColor,
+      mainButtonColor: primary,
           position,
           style,
         }}
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={style}
         onStyleChange={setStyle}
       />

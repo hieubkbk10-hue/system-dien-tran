@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { CountdownStyle } from '../../previews';
 import { CountdownPreview } from '../../previews';
 
@@ -11,7 +11,7 @@ const DEFAULT_END_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOStr
 
 export default function CountdownCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khuyến mãi đặc biệt', 'Countdown');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [countdownStyle, setCountdownStyle] = useState<CountdownStyle>('banner');
   const [countdownConfig, setCountdownConfig] = useState({
@@ -174,7 +174,7 @@ export default function CountdownCreatePage() {
 
       <CountdownPreview 
         config={countdownConfig}
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={countdownStyle}
         onStyleChange={setCountdownStyle}
       />

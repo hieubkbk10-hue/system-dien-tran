@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColor, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { HeroContent, HeroStyle } from '../../previews';
 import { HeroBannerPreview } from '../../previews';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -19,7 +19,7 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
-  const brandColor = useBrandColor();
+  const { primary, secondary } = useBrandColors();
   
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', image: '', link: '', url: '' }
@@ -156,7 +156,7 @@ export default function HeroCreatePage() {
 
       <HeroBannerPreview 
         slides={previewSlides} 
-        brandColor={brandColor}
+        brandColor={primary} secondary={secondary}
         selectedStyle={heroStyle}
         onStyleChange={setHeroStyle}
         content={heroContent}

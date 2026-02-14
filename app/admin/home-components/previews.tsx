@@ -149,12 +149,14 @@ export interface HeroContent {
 export const HeroBannerPreview = ({ 
   slides, 
   brandColor,
+  secondary,
   selectedStyle = 'slider',
   onStyleChange,
   content
 }: { 
   slides: { id: number; image: string; link: string }[]; 
   brandColor: string;
+  secondary: string;
   selectedStyle?: HeroStyle;
   onStyleChange?: (style: HeroStyle) => void;
   content?: HeroContent;
@@ -389,7 +391,7 @@ export const HeroBannerPreview = ({
                 <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
                   {c.badge && (
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${brandColor}30`, color: brandColor }}>
-                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
+                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
                       {c.badge}
                     </div>
                   )}
@@ -703,7 +705,8 @@ export const HeroBannerPreview = ({
 // Professional Stats UI/UX - 6 Variants
 interface StatsItem { value: string; label: string }
 export type StatsStyle = 'horizontal' | 'cards' | 'icons' | 'gradient' | 'minimal' | 'counter';
-export const StatsPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: StatsItem[]; brandColor: string; selectedStyle?: StatsStyle; onStyleChange?: (style: StatsStyle) => void }) => {
+export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onStyleChange }: { items: StatsItem[]; brandColor: string;
+  secondary: string; selectedStyle?: StatsStyle; onStyleChange?: (style: StatsStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'horizontal';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as StatsStyle);
@@ -791,7 +794,7 @@ export const StatsPreview = ({ items, brandColor, selectedStyle, onStyleChange }
               )}
               style={{ 
                 backgroundColor: brandColor,
-                boxShadow: `0 10px 15px -3px ${brandColor}30, 0 4px 6px -4px ${brandColor}20`
+                boxShadow: `0 10px 15px -3px ${secondary}30, 0 4px 6px -4px ${secondary}20`
               }}
             >
               <span className={cn(
@@ -915,7 +918,7 @@ export const StatsPreview = ({ items, brandColor, selectedStyle, onStyleChange }
               <div 
                 className="h-full transition-all duration-500"
                 style={{ 
-                  backgroundColor: brandColor,
+                  backgroundColor: secondary,
                   width: `${Math.min(100, (idx + 1) * 25)}%`
                 }}
               />
@@ -973,7 +976,8 @@ export const StatsPreview = ({ items, brandColor, selectedStyle, onStyleChange }
 interface FaqItem { id: number; question: string; answer: string }
 export type FaqStyle = 'accordion' | 'cards' | 'two-column' | 'minimal' | 'timeline' | 'tabbed';
 export interface FaqConfig { description?: string; buttonText?: string; buttonLink?: string }
-export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: FaqItem[]; brandColor: string; selectedStyle?: FaqStyle; onStyleChange?: (style: FaqStyle) => void; config?: FaqConfig }) => {
+export const FaqPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: FaqItem[]; brandColor: string;
+  secondary: string; selectedStyle?: FaqStyle; onStyleChange?: (style: FaqStyle) => void; config?: FaqConfig }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'accordion';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as FaqStyle);
@@ -1323,7 +1327,8 @@ interface TestimonialItem { id: number; name: string; role: string; content: str
 // - Diverse formats: Cards, Slider, Masonry, Quote, Carousel, Minimal
 // - Mobile responsive with proper touch targets
 export type TestimonialsStyle = 'cards' | 'slider' | 'masonry' | 'quote' | 'carousel' | 'minimal';
-export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: TestimonialItem[]; brandColor: string; selectedStyle?: TestimonialsStyle; onStyleChange?: (style: TestimonialsStyle) => void }) => {
+export const TestimonialsPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: TestimonialItem[]; brandColor: string;
+  secondary: string; selectedStyle?: TestimonialsStyle; onStyleChange?: (style: TestimonialsStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'cards';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as TestimonialsStyle);
@@ -1650,12 +1655,14 @@ export type PricingStyle = 'cards' | 'horizontal' | 'minimal' | 'comparison' | '
 export const PricingPreview = ({ 
   plans, 
   brandColor, 
+  secondary,
   selectedStyle, 
   onStyleChange,
   config 
 }: { 
   plans: PricingPlan[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: PricingStyle; 
   onStyleChange?: (style: PricingStyle) => void;
   config?: PricingConfig;
@@ -1991,8 +1998,8 @@ export const PricingPreview = ({
               device === 'mobile' ? 'p-5 mb-4' : 'p-8 flex-1'
             )}
             style={{ 
-              borderColor: brandColor,
-              boxShadow: `0 8px 30px ${brandColor}20`
+              borderColor: secondary,
+              boxShadow: `0 8px 30px ${secondary}20`
             }}
           >
             <div 
@@ -2296,7 +2303,8 @@ const GalleryLightbox = ({
 
 export const GalleryPreview = ({ items, brandColor, componentType, selectedStyle, onStyleChange }: { 
   items: GalleryItem[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   componentType: 'Partners' | 'Gallery' | 'TrustBadges'; 
   selectedStyle?: GalleryStyle; 
   onStyleChange?: (style: GalleryStyle) => void;
@@ -3124,7 +3132,8 @@ const ServiceIcon = ({ name, size = 24, className, style }: { name: string; size
   return <IconComponent size={size} className={className} style={style} />;
 };
 
-export const ServicesPreview = ({ items, brandColor, componentType, selectedStyle, onStyleChange }: { items: ServiceItem[]; brandColor: string; componentType: 'Services' | 'Benefits'; selectedStyle?: ServicesStyle; onStyleChange?: (style: ServicesStyle) => void }) => {
+export const ServicesPreview = ({ items, brandColor, componentType, selectedStyle, onStyleChange }: { items: ServiceItem[]; brandColor: string;
+  secondary: string; componentType: 'Services' | 'Benefits'; selectedStyle?: ServicesStyle; onStyleChange?: (style: ServicesStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'elegantGrid';
@@ -3491,7 +3500,8 @@ export interface ProductListPreviewItem {
 
 // Helper to strip HTML tags from description
 export const ProductListPreview = ({ brandColor, itemCount, componentType, selectedStyle, onStyleChange, items, subTitle = 'Bộ sưu tập', sectionTitle }: { 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   itemCount: number; 
   componentType: 'ProductList' | 'ServiceList'; 
   selectedStyle?: ProductListStyle; 
@@ -4167,7 +4177,8 @@ const formatServicePrice = (price?: string | number) => {
 };
 
 export const ServiceListPreview = ({ brandColor, itemCount, selectedStyle, onStyleChange, items, title: propTitle }: { 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   itemCount: number; 
   selectedStyle?: ServiceListStyle; 
   onStyleChange?: (style: ServiceListStyle) => void;
@@ -4743,7 +4754,8 @@ export const BlogPreview = ({
   posts,
   title = 'Bài viết'
 }: { 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   postCount: number; 
   selectedStyle?: BlogStyle; 
   onStyleChange?: (style: BlogStyle) => void;
@@ -5174,7 +5186,8 @@ interface FooterConfig {
   showSocialLinks: boolean 
 }
 export type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
-export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string; selectedStyle?: FooterStyle; onStyleChange?: (style: FooterStyle) => void }) => {
+export const FooterPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string;
+  secondary: string; selectedStyle?: FooterStyle; onStyleChange?: (style: FooterStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'classic';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as FooterStyle);
@@ -5706,7 +5719,8 @@ interface CTAConfig {
   backgroundImage?: string;
 }
 export type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';
-export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: CTAConfig; brandColor: string; selectedStyle?: CTAStyle; onStyleChange?: (style: CTAStyle) => void }) => {
+export const CTAPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: CTAConfig; brandColor: string;
+  secondary: string; selectedStyle?: CTAStyle; onStyleChange?: (style: CTAStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'banner';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as CTAStyle);
@@ -6158,6 +6172,7 @@ const AboutStatBox = ({ stat, variant = 'classic', brandColor }: {
   stat: { value: string; label: string }; 
   variant?: 'classic' | 'bento' | 'minimal';
   brandColor: string;
+  secondary: string;
 }) => {
   if (variant === 'bento') {
     return (
@@ -6196,7 +6211,8 @@ const AboutStatBox = ({ stat, variant = 'classic', brandColor }: {
   );
 };
 
-export const AboutPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: AboutConfig; brandColor: string; selectedStyle?: AboutStyle; onStyleChange?: (style: AboutStyle) => void }) => {
+export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: AboutConfig; brandColor: string;
+  secondary: string; selectedStyle?: AboutStyle; onStyleChange?: (style: AboutStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = (selectedStyle ?? config.style) ?? 'bento';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as AboutStyle);
@@ -6276,7 +6292,7 @@ export const AboutPreview = ({ config, brandColor, selectedStyle, onStyleChange 
               device === 'mobile' ? 'gap-6' : ''
             )}>
               {config.stats.slice(0, 2).map((stat) => (
-                <AboutStatBox key={stat.id} stat={stat} variant="classic" brandColor={brandColor} />
+                <AboutStatBox key={stat.id} stat={stat} variant="classic" brandColor={brandColor} secondary={secondary} />
               ))}
             </div>
           )}
@@ -6349,7 +6365,7 @@ export const AboutPreview = ({ config, brandColor, selectedStyle, onStyleChange 
           device === 'mobile' ? 'grid-cols-2' : 'grid-cols-1'
         )}>
           {config.stats.slice(0, 2).map((stat) => (
-            <AboutStatBox key={stat.id} stat={stat} variant="bento" brandColor={brandColor} />
+            <AboutStatBox key={stat.id} stat={stat} variant="bento" brandColor={brandColor} secondary={secondary} />
           ))}
         </div>
 
@@ -6417,7 +6433,7 @@ export const AboutPreview = ({ config, brandColor, selectedStyle, onStyleChange 
             {config.stats.length > 0 && (
               <div className={cn("flex gap-6 md:gap-8 py-4", device === 'mobile' ? 'gap-4' : '')}>
                 {config.stats.slice(0, 2).map((stat) => (
-                  <AboutStatBox key={stat.id} stat={stat} variant="minimal" brandColor={brandColor} />
+                  <AboutStatBox key={stat.id} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
                 ))}
               </div>
             )}
@@ -6699,7 +6715,8 @@ export const AboutPreview = ({ config, brandColor, selectedStyle, onStyleChange 
 interface BenefitItem { id: number; icon: string; title: string; description: string }
 export type BenefitsStyle = 'cards' | 'list' | 'bento' | 'row' | 'carousel' | 'timeline';
 export interface BenefitsConfig { subHeading?: string; heading?: string; buttonText?: string; buttonLink?: string }
-export const BenefitsPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: BenefitItem[]; brandColor: string; selectedStyle?: BenefitsStyle; onStyleChange?: (style: BenefitsStyle) => void; config?: BenefitsConfig }) => {
+export const BenefitsPreview = ({ items, brandColor, selectedStyle, onStyleChange, config }: { items: BenefitItem[]; brandColor: string;
+  secondary: string; selectedStyle?: BenefitsStyle; onStyleChange?: (style: BenefitsStyle) => void; config?: BenefitsConfig }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'cards';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as BenefitsStyle);
@@ -7014,7 +7031,8 @@ export const BenefitsPreview = ({ items, brandColor, selectedStyle, onStyleChang
 // ============ CASE STUDY / PROJECTS PREVIEW ============
 interface ProjectItem { id: number; title: string; category: string; image: string; description: string; link: string }
 export type CaseStudyStyle = 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
-export const CaseStudyPreview = ({ projects, brandColor, selectedStyle, onStyleChange }: { projects: ProjectItem[]; brandColor: string; selectedStyle?: CaseStudyStyle; onStyleChange?: (style: CaseStudyStyle) => void }) => {
+export const CaseStudyPreview = ({ projects, brandColor, selectedStyle, onStyleChange }: { projects: ProjectItem[]; brandColor: string;
+  secondary: string; selectedStyle?: CaseStudyStyle; onStyleChange?: (style: CaseStudyStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'grid';
@@ -7533,7 +7551,8 @@ export const CaseStudyPreview = ({ projects, brandColor, selectedStyle, onStyleC
 // Best Practices: Accessibility (semantic HTML, ARIA), Equal Height Cards, Line Clamp, Edge Cases
 interface JobPosition { id: number; title: string; department: string; location: string; type: string; salary: string; description: string }
 export type CareerStyle = 'cards' | 'list' | 'minimal' | 'table' | 'featured' | 'timeline';
-export const CareerPreview = ({ jobs, brandColor, selectedStyle, onStyleChange }: { jobs: JobPosition[]; brandColor: string; selectedStyle?: CareerStyle; onStyleChange?: (style: CareerStyle) => void }) => {
+export const CareerPreview = ({ jobs, brandColor, secondary, selectedStyle, onStyleChange }: { jobs: JobPosition[]; brandColor: string;
+  secondary: string; selectedStyle?: CareerStyle; onStyleChange?: (style: CareerStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'cards';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as CareerStyle);
@@ -7595,7 +7614,7 @@ export const CareerPreview = ({ jobs, brandColor, selectedStyle, onStyleChange }
         <div className={cn("px-4", device === 'mobile' ? 'py-6' : 'py-10 md:py-16')}>
           <CareerHeader subtitle="Tham gia đội ngũ của chúng tôi" />
           <div className="max-w-md mx-auto">
-            <JobCard job={jobs[0]} brandColor={brandColor} device={device} />
+            <JobCard job={jobs[0]} brandColor={brandColor} secondary={secondary} device={device} />
           </div>
         </div>
       );
@@ -7606,7 +7625,7 @@ export const CareerPreview = ({ jobs, brandColor, selectedStyle, onStyleChange }
         <div className={cn("px-4", device === 'mobile' ? 'py-6' : 'py-10 md:py-16')}>
           <CareerHeader subtitle="Tham gia đội ngũ của chúng tôi" />
           <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-            {jobs.map(job => <JobCard key={job.id} job={job} brandColor={brandColor} device={device} />)}
+            {jobs.map(job => <JobCard key={job.id} job={job} brandColor={brandColor} secondary={secondary} device={device} />)}
           </div>
         </div>
       );
@@ -7618,7 +7637,7 @@ export const CareerPreview = ({ jobs, brandColor, selectedStyle, onStyleChange }
         {jobs.length === 0 ? <EmptyState /> : (
           <>
             <div className={cn("grid gap-4 max-w-6xl mx-auto", device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'))}>
-              {visibleJobs.map((job) => <JobCard key={job.id} job={job} brandColor={brandColor} device={device} />)}
+              {visibleJobs.map((job) => <JobCard key={job.id} job={job} brandColor={brandColor} secondary={secondary} device={device} />)}
             </div>
             {remainingCount > 0 && (
               <div className="text-center mt-6">
@@ -7632,7 +7651,8 @@ export const CareerPreview = ({ jobs, brandColor, selectedStyle, onStyleChange }
   };
 
   // Job Card Component - Reusable with Equal Height
-  const JobCard = ({ job, brandColor, device }: { job: JobPosition; brandColor: string; device: PreviewDevice }) => (
+  const JobCard = ({ job, brandColor, device }: { job: JobPosition; brandColor: string;
+  secondary: string; device: PreviewDevice }) => (
     <article 
       className="bg-white dark:bg-slate-800 rounded-xl border flex flex-col h-full transition-all"
       style={{ borderColor: `${brandColor}15` }}
@@ -8074,7 +8094,8 @@ const getSocialIcon = (platform: string) => {
   }
 };
 
-export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: ContactConfig; brandColor: string; selectedStyle?: ContactStyle; onStyleChange?: (style: ContactStyle) => void }) => {
+export const ContactPreview = ({ config, brandColor, selectedStyle, onStyleChange }: { config: ContactConfig; brandColor: string;
+  secondary: string; selectedStyle?: ContactStyle; onStyleChange?: (style: ContactStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'modern';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as ContactStyle);
@@ -8497,7 +8518,8 @@ export const TrustBadgesPreview = ({
   config
 }: { 
   items: TrustBadgeItem[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: TrustBadgesStyle; 
   onStyleChange?: (style: TrustBadgesStyle) => void;
   config?: TrustBadgesConfig;
@@ -9035,6 +9057,7 @@ export const SpeedDialPreview = ({
     alwaysOpen?: boolean;
   };
   brandColor: string;
+  secondary: string;
   selectedStyle?: SpeedDialStyle;
   onStyleChange?: (style: SpeedDialStyle) => void;
 }) => {
@@ -9255,6 +9278,7 @@ export const ProductCategoriesPreview = ({
     columnsMobile: number;
   };
   brandColor: string;
+  secondary: string;
   selectedStyle?: ProductCategoriesStyle;
   onStyleChange?: (style: ProductCategoriesStyle) => void;
   categoriesData: CategoryData[];
@@ -10025,6 +10049,7 @@ interface ProductData {
 interface CategoryProductsPreviewProps {
   config: CategoryProductsConfig;
   brandColor: string;
+  secondary: string;
   selectedStyle: CategoryProductsStyle;
   onStyleChange: (style: CategoryProductsStyle) => void;
   categoriesData: { _id: string; name: string; slug?: string; image?: string }[];
@@ -10828,7 +10853,8 @@ export type TeamStyle = 'grid' | 'cards' | 'carousel' | 'hexagon' | 'timeline' |
 
 export const TeamPreview = ({ members, brandColor, selectedStyle, onStyleChange }: { 
   members: TeamMember[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: TeamStyle; 
   onStyleChange?: (style: TeamStyle) => void 
 }) => {
@@ -11562,7 +11588,8 @@ export type FeaturesStyle = 'iconGrid' | 'alternating' | 'compact' | 'cards' | '
 
 const featureIcons: Record<string, React.ElementType> = { Check, Cpu, Globe, Layers, Rocket, Settings, Shield, Star, Target, Zap };
 
-export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string; selectedStyle?: FeaturesStyle; onStyleChange?: (style: FeaturesStyle) => void }) => {
+export const FeaturesPreview = ({ items, brandColor, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string;
+  secondary: string; selectedStyle?: FeaturesStyle; onStyleChange?: (style: FeaturesStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'iconGrid';
@@ -11808,7 +11835,8 @@ export const ProcessPreview = ({
   onStyleChange 
 }: { 
   steps: ProcessStep[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: ProcessStyle; 
   onStyleChange?: (style: ProcessStyle) => void;
 }) => {
@@ -12232,7 +12260,8 @@ export const ClientsPreview = ({
   onStyleChange 
 }: { 
   items: ClientItem[]; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: ClientsStyle; 
   onStyleChange?: (style: ClientsStyle) => void;
 }) => {
@@ -12623,7 +12652,8 @@ export const VideoPreview = ({
   onStyleChange 
 }: { 
   config: VideoConfig; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: VideoStyle; 
   onStyleChange?: (style: VideoStyle) => void;
 }) => {
@@ -13155,7 +13185,8 @@ export const CountdownPreview = ({
   onStyleChange 
 }: { 
   config: CountdownConfig;
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: CountdownStyle; 
   onStyleChange?: (style: CountdownStyle) => void;
 }) => {
@@ -13741,7 +13772,8 @@ export const VoucherPromotionsPreview = ({
   onStyleChange 
 }: { 
   config: VoucherPromotionsConfig; 
-  brandColor: string; 
+  brandColor: string;
+  secondary: string; 
   selectedStyle?: VoucherPromotionsStyle;
   limit?: number;
   onStyleChange?: (style: VoucherPromotionsStyle) => void;
