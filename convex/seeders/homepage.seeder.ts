@@ -76,31 +76,30 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
       const maxHeroSlides = 3;
       const maxGalleryImages = 6;
       const pickRandom = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
-      const pickMany = <T,>(items: T[], count: number): T[] => {
-        if (items.length <= count) {
-          return items;
-        }
-        const pool = [...items];
-        const picked: T[] = [];
-        while (pool.length > 0 && picked.length < count) {
-          const index = Math.floor(Math.random() * pool.length);
-          picked.push(pool.splice(index, 1)[0]);
-        }
-        return picked;
-      };
       const productCategories = await this.ctx.db.query('productCategories').collect();
       const categoryItems = productCategories.slice(0, 6).map((category) => ({
         categoryId: category._id,
         imageMode: 'default',
       }));
       const heroSlides = template.assets.hero.length > 0
-        ? pickMany(template.assets.hero, maxHeroSlides)
+        ? this.pickMany(template.assets.hero, maxHeroSlides)
         : [];
       const galleryImages = getGalleryImages(template, maxGalleryImages, { heroWeight: 0.5, productWeight: 0.5 });
       const { selectedLogo, useSeedMauImages } = this.config;
-      const randomLogo = useSeedMauImages && template.assets.logos.length > 0
+      const hasLogoPool = useSeedMauImages && template.assets.logos.length > 0;
+      const siteLogo = hasLogoPool
         ? (selectedLogo ?? pickRandom(template.assets.logos))
         : undefined;
+      const partnersPool = hasLogoPool
+        ? template.assets.logos.filter((logo) => logo !== siteLogo)
+        : [];
+      const partnersLogos = hasLogoPool
+        ? this.pickMany(partnersPool, Math.min(8, partnersPool.length))
+        : [];
+
+      if (siteLogo) {
+        await this.setSiteLogo(siteLogo);
+      }
 
       const components = template.homeComponents.map((component) => {
         const config = { ...component.config } as Record<string, unknown>;
@@ -113,8 +112,8 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
         if (component.type === 'About' && galleryImages.length > 0) {
           config.image = pickRandom(galleryImages);
         }
-        if (Array.isArray(config.logos) && randomLogo) {
-          config.logos = [randomLogo];
+        if (Array.isArray(config.logos) && partnersLogos.length > 0) {
+          config.logos = partnersLogos;
         }
         if (Array.isArray(config.images) && galleryImages.length > 0) {
           config.images = galleryImages;
@@ -213,6 +212,37 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
 
     await Promise.all(components.map(component => this.ctx.db.insert('homeComponents', component)));
     return components.length;
+  }
+
+  private pickMany<T>(items: T[], count: number): T[] {
+    if (items.length <= count) {
+      return items;
+    }
+    const pool = [...items];
+    const picked: T[] = [];
+    while (pool.length > 0 && picked.length < count) {
+      const index = Math.floor(Math.random() * pool.length);
+      picked.push(pool.splice(index, 1)[0]);
+    }
+    return picked;
+  }
+
+  private async setSiteLogo(logoPath: string): Promise<void> {
+    const existing = await this.ctx.db
+      .query('settings')
+      .withIndex('by_key', (q) => q.eq('key', 'site_logo'))
+      .first();
+
+    if (existing) {
+      await this.ctx.db.patch(existing._id, { value: logoPath });
+      return;
+    }
+
+    await this.ctx.db.insert('settings', {
+      group: 'site',
+      key: 'site_logo',
+      value: logoPath,
+    });
   }
 
   private async seedModuleConfig(): Promise<void> {

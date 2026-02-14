@@ -88,20 +88,24 @@ export function ReviewStep({
           {useSeedMauImages ? 'Đang bật' : 'Đang tắt'}
         </div>
         {useSeedMauImages && selectedLogo && (
-          <div className="flex items-center gap-3 text-xs text-slate-500">
-            <img
-              src={selectedLogo}
-              alt="Logo"
-              className="h-8 object-contain border rounded px-2 bg-white dark:bg-slate-900"
-            />
-            <div>
-              <div className="text-slate-700 dark:text-slate-200 font-medium">
-                {logoCustomized ? 'Logo đã chọn' : 'Logo ngẫu nhiên'}
+          <div className="space-y-2 text-xs text-slate-500">
+            <div className="flex items-center gap-3">
+              <img
+                src={selectedLogo}
+                alt="Logo"
+                className="h-10 object-contain border rounded px-2 bg-white dark:bg-slate-900"
+              />
+              <div>
+                <div className="text-slate-700 dark:text-slate-200 font-medium">
+                  {logoCustomized ? 'Logo website đã chọn' : 'Logo website ngẫu nhiên'}
+                </div>
+                <div className="text-[11px] text-slate-500">Hiển thị ở header, footer và settings</div>
               </div>
-              {industryKey && (
-                <div className="text-[11px] text-slate-500">seed_mau/{industryKey}/logos</div>
-              )}
             </div>
+            <div className="text-[11px] text-slate-500">Tự động chọn 6-8 logos còn lại làm đối tác.</div>
+            {industryKey && (
+              <div className="text-[11px] text-slate-400">Nguồn: seed_mau/{industryKey}/logos</div>
+            )}
           </div>
         )}
       </div>

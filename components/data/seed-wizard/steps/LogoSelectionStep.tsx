@@ -65,8 +65,10 @@ export function LogoSelectionStep({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Chọn logo</h3>
-        <p className="text-xs text-slate-500">Logo hiển thị ở header và footer. Bạn có thể để ngẫu nhiên hoặc chọn cụ thể.</p>
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Chọn logo website</h3>
+        <p className="text-xs text-slate-500">
+          Logo này sẽ hiển thị ở header, footer và làm logo chính của website. Các logo còn lại sẽ tự động thành logo đối tác.
+        </p>
       </div>
 
       {!showPicker ? (
