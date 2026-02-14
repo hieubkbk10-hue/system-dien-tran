@@ -235,7 +235,7 @@ export const HeroBannerPreview = ({
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                   {slides.map((_, idx) => (
-                    <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")} style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
+                    <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")} style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
                   ))}
                 </div>
               </>
@@ -268,7 +268,7 @@ export const HeroBannerPreview = ({
                   <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }}
                     className={cn("rounded overflow-hidden transition-all border-2", idx === currentSlide ? "scale-105" : "border-transparent opacity-70 hover:opacity-100", device === 'mobile' ? 'w-10 h-7' : 'w-14 h-9')}
                     style={idx === currentSlide ? { borderColor: brandColor } : {}}>
-                    {slide.image ? <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: secondary }}></div>}
+                    {slide.image ? <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: brandColor }}></div>}
                   </button>
                 ))}
               </div>
@@ -391,7 +391,7 @@ export const HeroBannerPreview = ({
                 <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
                   {c.badge && (
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${secondary}30`, color: secondary }}>
-                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
+                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
                       {c.badge}
                     </div>
                   )}
@@ -405,7 +405,7 @@ export const HeroBannerPreview = ({
                   )}
                   <div className={cn("flex gap-3", device === 'mobile' ? 'flex-col' : 'flex-row')}>
                     {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: secondary }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: brandColor }}>
                         {c.primaryButtonText}
                       </button>
                     )}
@@ -423,7 +423,7 @@ export const HeroBannerPreview = ({
                   {slides.map((_, idx) => (
                     <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} 
                       className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")} 
-                      style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
+                      style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
                   ))}
                 </div>
               )}
@@ -469,7 +469,7 @@ export const HeroBannerPreview = ({
                   )}
                   {c.primaryButtonText && (
                     <div className="pt-2">
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: secondary }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: brandColor }}>
                         {c.primaryButtonText}
                       </button>
                     </div>
@@ -481,7 +481,7 @@ export const HeroBannerPreview = ({
                     {slides.map((_, idx) => (
                       <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }}
                         className={cn("h-1 rounded-full transition-all", idx === currentSlide ? "w-8" : "w-4 bg-slate-300 dark:bg-slate-600")}
-                        style={idx === currentSlide ? { backgroundColor: secondary } : {}} />
+                        style={idx === currentSlide ? { backgroundColor: brandColor } : {}} />
                     ))}
                   </div>
                 )}
@@ -560,7 +560,7 @@ export const HeroBannerPreview = ({
                 )}>
                   {c.badge && (
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: secondary }} />
+                      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
                       <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: secondary }}>{c.badge}</span>
                     </div>
                   )}
@@ -574,7 +574,7 @@ export const HeroBannerPreview = ({
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: secondary }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: brandColor }}>
                         {c.primaryButtonText}
                       </button>
                     )}
@@ -918,7 +918,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
               <div 
                 className="h-full transition-all duration-500"
                 style={{ 
-                  backgroundColor: secondary,
+                  backgroundColor: brandColor,
                   width: `${Math.min(100, (idx + 1) * 25)}%`
                 }}
               />
