@@ -2,7 +2,6 @@
 
 import { APCAcontrast } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import { getShade, getTint } from '@/lib/utils/colors';
 import type { HeroHarmony } from '../_types';
 
 export interface HeroColorScheme {
@@ -119,23 +118,28 @@ export function getHeroColors(
   useDualBrand: boolean,
 ): HeroColorScheme {
   const secondaryBase = useDualBrand ? secondary : primary;
+  const primaryPalette = generatePalette(primary);
+  const primaryColor = oklch(primary);
+  const secondaryColor = oklch(secondaryBase);
+  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
+  const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColor, l: Math.min(secondaryColor.l + lightness, 0.98) }));
   const overlayGradient = 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)';
   const brandGradient = useDualBrand
-    ? `linear-gradient(135deg, ${getTint(primary, 0.8)} 0%, ${getTint(secondary, 0.6)} 100%)`
-    : `linear-gradient(135deg, ${getTint(primary, 0.8)} 0%, ${getTint(primary, 0.5)} 100%)`;
+    ? `linear-gradient(135deg, ${getPrimaryTint(0.4)} 0%, ${getSecondaryTint(0.35)} 100%)`
+    : `linear-gradient(135deg, ${getPrimaryTint(0.4)} 0%, ${getPrimaryTint(0.25)} 100%)`;
 
   return {
     primarySolid: primary,
-    primaryHover: getShade(primary, 10),
-    primaryTintSubtle: getTint(primary, 0.1),
-    primaryTintLight: getTint(primary, 0.15),
-    primaryTintMedium: getTint(primary, 0.25),
+    primaryHover: primaryPalette.hover,
+    primaryTintSubtle: getPrimaryTint(0.4),
+    primaryTintLight: getPrimaryTint(0.45),
+    primaryTintMedium: getPrimaryTint(0.35),
     secondarySolid: secondaryBase,
-    secondaryTintVeryLight: getTint(secondaryBase, useDualBrand ? 0.1 : 0.08),
-    secondaryTintLight: getTint(secondaryBase, useDualBrand ? 0.15 : 0.12),
-    secondaryTintMedium: getTint(secondaryBase, useDualBrand ? 0.3 : 0.2),
-    secondaryTintStrong: getTint(secondaryBase, useDualBrand ? 0.4 : 0.25),
-    secondaryTintRing: getTint(secondaryBase, useDualBrand ? 0.6 : 0.35),
+    secondaryTintVeryLight: getSecondaryTint(useDualBrand ? 0.45 : 0.42),
+    secondaryTintLight: getSecondaryTint(useDualBrand ? 0.4 : 0.38),
+    secondaryTintMedium: getSecondaryTint(useDualBrand ? 0.3 : 0.35),
+    secondaryTintStrong: getSecondaryTint(useDualBrand ? 0.25 : 0.3),
+    secondaryTintRing: getSecondaryTint(useDualBrand ? 0.15 : 0.25),
     overlayGradient,
     brandGradient,
   };

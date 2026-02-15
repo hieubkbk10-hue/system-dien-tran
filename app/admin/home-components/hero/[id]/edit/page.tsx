@@ -31,6 +31,15 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
   const [heroHarmony, setHeroHarmony] = useState<HeroHarmony>('analogous');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    slides: HeroSlide[];
+    style: HeroStyle;
+    content: HeroContent;
+    harmony: HeroHarmony;
+  } | null>(null);
 
   useEffect(() => {
     if (component) {
@@ -43,14 +52,44 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       setActive(component.active);
 
       const config = component.config ?? {};
-      setHeroSlides(config.slides?.map((s: { image: string; link: string }, i: number) => ({ id: `slide-${i}`, link: s.link || '', url: s.image })) ?? [{ id: 'slide-1', link: '', url: '' }]);
-      setHeroStyle((config.style as HeroStyle) || 'slider');
-      setHeroHarmony((config.harmony as HeroHarmony) || 'analogous');
-      if (config.content) {
-        setHeroContent(config.content as HeroContent);
-      }
+      const slides = config.slides?.map((s: { image: string; link: string }, i: number) => ({ id: `slide-${i}`, link: s.link || '', url: s.image })) ?? [{ id: 'slide-1', link: '', url: '' }];
+      const style = (config.style as HeroStyle) || 'slider';
+      const harmony = (config.harmony as HeroHarmony) || 'analogous';
+      const content = (config.content as HeroContent) ?? DEFAULT_HERO_CONTENT;
+
+      setHeroSlides(slides);
+      setHeroStyle(style);
+      setHeroHarmony(harmony);
+      setHeroContent(content);
+      setInitialData({
+        title: component.title,
+        active: component.active,
+        slides,
+        style,
+        content,
+        harmony,
+      });
+      setHasChanges(false);
     }
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const currentSlides = JSON.stringify(heroSlides);
+    const initialSlides = JSON.stringify(initialData.slides);
+    const currentContent = JSON.stringify(heroContent);
+    const initialContent = JSON.stringify(initialData.content);
+
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || currentSlides !== initialSlides
+      || heroStyle !== initialData.style
+      || currentContent !== initialContent
+      || heroHarmony !== initialData.harmony;
+
+    setHasChanges(changed);
+  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +110,15 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         title,
       });
       toast.success('Đã cập nhật Hero Banner');
+      setInitialData({
+        title,
+        active,
+        slides: heroSlides,
+        style: heroStyle,
+        content: heroContent,
+        harmony: heroHarmony,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -167,8 +215,8 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>
