@@ -9128,10 +9128,10 @@ export const SpeedDialPreview = ({
 
 // ============ PRODUCT CATEGORIES PREVIEW ============
 // Best Practices: Clear navigation, visual appeal, mobile optimization, hover effects
-// 6 styles: grid, carousel, cards, minimal, showcase, marquee
+// 6 styles: grid, carousel, cards, minimal, marquee, circular
 interface CategoryConfigItem { id: number; categoryId: string; customImage?: string; imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url' }
 interface CategoryData { _id: string; name: string; slug: string; image?: string; description?: string }
-export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee' | 'circular';
+export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'marquee' | 'circular';
 
 // Import icon render helper
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
@@ -9174,7 +9174,6 @@ export const ProductCategoriesPreview = ({
     { id: 'carousel', label: 'Carousel' },
     { id: 'cards', label: 'Cards' },
     { id: 'minimal', label: 'Minimal' },
-    { id: 'showcase', label: 'Showcase' },
     { id: 'marquee', label: 'Marquee' },
     { id: 'circular', label: 'Circular' },
   ];
@@ -9326,7 +9325,7 @@ export const ProductCategoriesPreview = ({
                   <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-3' : 'p-4')}>
                     <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
                     {config.showProductCount && (
-                      <p className="text-xs opacity-80 mt-0.5" style={{ color: brandColor }}>12 sản phẩm</p>
+                      <p className="text-xs opacity-80 mt-0.5" style={{ color: secondary }}>12 sản phẩm</p>
                     )}
                   </div>
                 </div>
@@ -9503,90 +9502,6 @@ export const ProductCategoriesPreview = ({
       </div>
     </section>
   );
-
-  // Style 5: Showcase - Featured first item + grid of smaller items
-  const renderShowcaseStyle = () => {
-    if (resolvedCategories.length === 0) {return (
-      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
-        <div className="max-w-7xl mx-auto">{renderEmptyState()}</div>
-      </section>
-    );}
-    
-    const [featured, ...others] = resolvedCategories;
-    const displayOthers = others.slice(0, isMobile ? 3 : 5);
-
-    return (
-      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
-            Danh mục nổi bật
-          </h2>
-          
-          <div className={cn("grid gap-4", isMobile ? 'grid-cols-1' : 'grid-cols-3')}>
-            {/* Featured category */}
-            <div 
-              className={cn(
-                "relative rounded-2xl overflow-hidden cursor-pointer group",
-                isMobile ? 'aspect-[4/3]' : 'row-span-2 aspect-auto'
-              )}
-              style={{ boxShadow: `0 8px 30px ${brandColor}30` }}
-            >
-              {renderCategoryVisual(featured, 'lg')}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-4' : 'p-6')}>
-                <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
-                <h3 className={cn("font-bold line-clamp-1", isMobile ? 'text-lg' : 'text-xl')} style={{ color: brandColor }}>{featured.name}</h3>
-                {featured.description && (
-                  <p className="text-sm opacity-80 line-clamp-2 mt-1">{featured.description}</p>
-                )}
-                {config.showProductCount && (
-                  <p className="text-sm opacity-70 mt-2">12 sản phẩm</p>
-                )}
-              </div>
-            </div>
-            
-            {/* Other categories grid */}
-            <div className={cn("grid gap-3", isMobile ? 'grid-cols-2' : 'col-span-2 grid-cols-2 lg:grid-cols-3')}>
-              {displayOthers.map((cat) => (
-                <div 
-                  key={cat.itemId} 
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
-                  style={{ border: `2px solid ${secondary}15` }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${brandColor}60`;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {renderCategoryVisual(cat, 'md')}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-2' : 'p-3')}>
-                    <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-xs' : 'text-sm')}>{cat.name}</h3>
-                  </div>
-                </div>
-              ))}
-              
-              {/* +N more */}
-              {others.length > displayOthers.length && (
-                <div 
-                  className="flex flex-col items-center justify-center aspect-[4/3] rounded-xl cursor-pointer"
-                  style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
-                >
-                  <Plus size={20} style={{ color: secondary }} />
-                  <span className="font-bold text-sm mt-1" style={{ color: secondary }}>
-                    +{others.length - displayOthers.length}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  };
 
   // Style 6: Marquee - Auto-scrolling horizontal animation
   const renderMarqueeStyle = () => (
@@ -9830,7 +9745,6 @@ export const ProductCategoriesPreview = ({
       grid: `${count} danh mục • Ảnh: 400×400px (1:1)`,
       marquee: `${count} danh mục • Ảnh: 80×80px (1:1)`,
       minimal: `${count} danh mục • Icon/Ảnh: 48×48px`,
-      showcase: `${count} danh mục • Featured: 600×800px (3:4) • Others: 400×300px (4:3)`,
       circular: `${count} danh mục • Ảnh: 500×500px (1:1, tròn)`,
     };
     return sizeRecommendations[previewStyle] || `${count} danh mục`;
@@ -9852,7 +9766,6 @@ export const ProductCategoriesPreview = ({
           {previewStyle === 'carousel' && renderCarouselStyle()}
           {previewStyle === 'cards' && renderCardsStyle()}
           {previewStyle === 'minimal' && renderMinimalStyle()}
-          {previewStyle === 'showcase' && renderShowcaseStyle()}
           {previewStyle === 'marquee' && renderMarqueeStyle()}
           {previewStyle === 'circular' && renderCircularStyle()}
         </BrowserFrame>
@@ -9874,9 +9787,6 @@ export const ProductCategoriesPreview = ({
             )}
             {previewStyle === 'minimal' && (
               <p><strong>48×48px</strong> hoặc icon • Style text-based, ảnh chỉ làm accent</p>
-            )}
-            {previewStyle === 'showcase' && (
-              <p><strong>Featured:</strong> 600×800px (3:4) • <strong>Others:</strong> 400×300px (4:3)</p>
             )}
             {previewStyle === 'marquee' && (
               <p><strong>80×80px</strong> (1:1) • Avatar nhỏ trong pill, auto-scroll animation</p>
