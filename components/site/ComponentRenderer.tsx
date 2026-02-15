@@ -5687,7 +5687,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-white">
                   <h3 className="font-semibold text-sm md:text-base line-clamp-1">{cat.name}</h3>
                   {showProductCount && (
-                    <p className="text-xs opacity-80 mt-0.5">{cat.productCount} sản phẩm</p>
+                    <p className="text-xs opacity-80 mt-0.5" style={{ color: secondary }}>{cat.productCount} sản phẩm</p>
                   )}
                 </div>
               </a>
