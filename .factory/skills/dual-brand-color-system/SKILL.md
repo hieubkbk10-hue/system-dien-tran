@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, và Theme Engine UI.
-version: 5.0.0
+version: 6.0.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -67,25 +67,89 @@ version: 5.0.0
 - Default: Analogous (+30°)
 - Options: Complementary (180°), Triadic (120°)
 
-### 4) 60-30-10
+### 4) 60-30-10 (đo tại Content State)
 
-- 60% Neutral: background/surface
-- 30% Primary: headings/CTA/prices
-- 10% Secondary: badges/accents/hover
+- 60% Neutral: background/surface/text body
+- 30% Primary: CTA, accent heading, price, gradient, active state
+- 10% Secondary: badge, tag, secondary action, decorative accent
+- **QUAN TRỌNG**: Tỷ lệ trên đo khi component có **DATA ĐẦY ĐỦ**
+- Placeholder state **KHÔNG** tính vào tỷ lệ này
 
-### 5) Placeholder chỉ là trạng thái phụ
+### 5) Placeholder dùng Neutral, không phải Primary
 
-- Không dùng gradient slate cố định để override background
-- Placeholder dùng **primary tint nhẹ** để giữ trung tính
-- Dual-brand ưu tiên áp dụng khi **có data đầy đủ** (content thật)
+- Background placeholder: neutral (slate-100/200), **KHÔNG** dùng primary tint
+- Icon placeholder: primary solid (chỉ icon, không phải background)
+- Text placeholder: neutral (slate-400/500)
+- Lý do: nếu dùng primary tint cho placeholder background, khi có data thật phần primary "biến mất" → tỷ lệ bị lệch
+
+### 6) Secondary phải “nhìn thấy được” khi có data
+
+- Không chỉ dùng secondary cho icon < 20px
+- Secondary phải xuất hiện ở ít nhất 1 element có diện tích >= 5% component
+- Ví dụ tốt: badge background, gradient accent, card ring, overlay tint
+- Ví dụ xấu: chỉ dùng cho nav arrow icon 16px
 
 ---
 
-## Placeholder vs Content Colors
+## Content-Aware Color Distribution
 
-- **Placeholder:** chỉ dùng primary tint (subtle) + icon primary solid
-- **Content thật:** áp dụng dual-brand đầy đủ cho CTA, badges, accents
-- Nếu mode=dual nhưng dữ liệu trống: vẫn giữ placeholder theo primary để tránh loãng brand
+### Nguyên tắc: Đo màu ở trạng thái DATA ĐẦY ĐỦ
+
+Tỷ lệ 60-30-10 phải đo tại trạng thái có data thật (ảnh, text, link đầy đủ),
+KHÔNG tính placeholder vào tỷ lệ này.
+
+### 2 Layer phân phối
+
+**Layer 1: Content State (data đầy đủ) - ĐO TẠI ĐÂY**
+- 60% Neutral: background page, card surface, text body
+- 30% Primary: CTA buttons, headings có accent, price tags,
+  overlay gradient tint, section accent border/line, hover state
+- 10% Secondary: badges, tag labels, secondary buttons/links,
+  active state indicators, decorative accents, hover accent
+
+**Layer 2: Placeholder State (data trống) - KHÔNG tính vào tỷ lệ**
+- Background: neutral tint (slate-100/200), KHÔNG dùng primary tint
+- Icon: primary solid (hint cho user biết component thuộc brand nào)
+- Text: neutral (slate-500)
+
+## Dual-Brand Visibility Checklist (khi mode=dual)
+
+### Primary phải hiện ở ít nhất 3 element types
+
+- CTA button (fill hoặc border)
+- Heading accent (underline, highlight, hoặc text color)
+- Active indicator (dot, progress bar, tab underline)
+- Price/important number styling
+- Gradient contribution (ít nhất 1 gradient có primary)
+- Section border/line accent
+
+### Secondary phải hiện ở ít nhất 2 element types CÓ DIỆN TÍCH ĐỦ LỚN
+
+- Badge/tag (background tint đủ rộng, không chỉ text)
+- Overlay/gradient accent (ít nhất 20% diện tích gradient)
+- Card border/ring khi selected/active
+- Secondary button (outline hoặc tonal)
+- Image overlay tint
+- Decorative element (divider, pattern, border strip)
+
+### Minimum visibility rule
+
+- Primary: chiếm >= 15% diện tích element có màu (không tính neutral)
+- Secondary: chiếm >= 5% diện tích element có màu (không tính neutral)
+- Nếu secondary chỉ dùng cho icon < 20px → FAIL → cần thêm element lớn hơn
+
+## Color Role Matrix (template)
+
+| Element | Trạng thái | Primary | Secondary | Neutral | Ghi chú |
+|---------|-----------|---------|-----------|---------|---------|
+| CTA button | content | fill | - | - | Always visible |
+| Badge | content | dot | bg+text | - | Secondary phải tint đủ rộng |
+| Heading | content | accent line | - | text | - |
+| Card bg | content | - | - | fill | 60% rule |
+| Nav icon | content | - | solid | - | Quá nhỏ, không đủ |
+| Placeholder bg | empty | - | - | fill | KHÔNG dùng primary tint |
+| Placeholder icon | empty | solid | - | - | Hint only |
+| Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
 
 ---
 
@@ -153,6 +217,7 @@ textOnSolid: getAPCATextColor(primary, 16, 500)
 - `examples/hero-before-after.md`
 - `checklists/review-checklist.md`
 - `checklists/create-checklist.md`
+- `checklists/dual-visibility-checklist.md`
 - `reference-oklch.md`
 - `reference-apca.md`
 - `reference-harmony.md`

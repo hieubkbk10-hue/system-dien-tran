@@ -69,24 +69,11 @@ export const getComplementary = (hex: string) => {
   return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
 };
 
-export const getPlaceholderColors = (primary: string, mode: 'single' | 'dual'): PlaceholderColors => {
-  const color = oklch(primary);
-  const background = formatHex(oklch({
-    ...color,
-    l: Math.min(color.l + (mode === 'dual' ? 0.4 : 0.3), 0.98),
-  }));
-  const text = formatHex(oklch({
-    ...color,
-    l: Math.max(color.l - 0.25, 0.2),
-    c: color.c * 0.5,
-  }));
-
-  return {
-    background,
-    icon: primary,
-    text,
-  };
-};
+export const getPlaceholderColors = (primary: string): PlaceholderColors => ({
+  background: '#f1f5f9',
+  icon: primary,
+  text: '#64748b',
+});
 
 export const getBrandColors = (
   primary: string,
@@ -105,7 +92,7 @@ export const getBrandColors = (
   }
 
   const similarity = 1 - Math.min(differenceEuclidean('oklch')(primary, secondaryColor), 1);
-  const placeholder = getPlaceholderColors(primary, mode);
+  const placeholder = getPlaceholderColors(primary);
 
   return {
     primary: generatePalette(primary),
