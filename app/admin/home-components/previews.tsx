@@ -9308,13 +9308,16 @@ export const ProductCategoriesPreview = ({
                   className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                   style={{ 
                     boxShadow: `0 2px 8px ${secondary}10`,
+                    border: `1px solid ${secondary}10`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}25`;
+                    e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
+                    e.currentTarget.style.borderColor = brandColor;
                     e.currentTarget.style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}10`;
+                    e.currentTarget.style.borderColor = `${secondary}10`;
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
@@ -9323,7 +9326,7 @@ export const ProductCategoriesPreview = ({
                   <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-3' : 'p-4')}>
                     <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
                     {config.showProductCount && (
-                      <p className="text-xs opacity-80 mt-0.5">12 sản phẩm</p>
+                      <p className="text-xs opacity-80 mt-0.5" style={{ color: brandColor }}>12 sản phẩm</p>
                     )}
                   </div>
                 </div>
@@ -9471,8 +9474,8 @@ export const ProductCategoriesPreview = ({
                     border: `1px solid ${secondary}20`
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${secondary}15`;
-                    e.currentTarget.style.borderColor = `${secondary}40`;
+                    e.currentTarget.style.backgroundColor = `${brandColor}10`;
+                    e.currentTarget.style.borderColor = `${brandColor}40`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = `${secondary}08`;
@@ -9480,11 +9483,11 @@ export const ProductCategoriesPreview = ({
                   }}
                 >
                   {cat.displayIcon && iconData ? (
-                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: secondary } })
+                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: brandColor } })
                   ) : (cat.displayImage ? (
                     <PreviewImage src={cat.displayImage} alt="" className={cn("rounded-full object-cover", isMobile ? 'w-5 h-5' : 'w-6 h-6')} />
                   ) : (
-                    <Package size={isMobile ? 14 : 16} style={{ color: secondary }} />
+                    <Package size={isMobile ? 14 : 16} style={{ color: brandColor }} />
                   ))}
                   <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')}>
                     {cat.name}
@@ -9526,13 +9529,13 @@ export const ProductCategoriesPreview = ({
                 "relative rounded-2xl overflow-hidden cursor-pointer group",
                 isMobile ? 'aspect-[4/3]' : 'row-span-2 aspect-auto'
               )}
-              style={{ boxShadow: `0 8px 30px ${secondary}20` }}
+              style={{ boxShadow: `0 8px 30px ${brandColor}30` }}
             >
               {renderCategoryVisual(featured, 'lg')}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-4' : 'p-6')}>
                 <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
-                <h3 className={cn("font-bold line-clamp-1", isMobile ? 'text-lg' : 'text-xl')}>{featured.name}</h3>
+                <h3 className={cn("font-bold line-clamp-1", isMobile ? 'text-lg' : 'text-xl')} style={{ color: brandColor }}>{featured.name}</h3>
                 {featured.description && (
                   <p className="text-sm opacity-80 line-clamp-2 mt-1">{featured.description}</p>
                 )}
@@ -9550,7 +9553,7 @@ export const ProductCategoriesPreview = ({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
                   style={{ border: `2px solid ${secondary}15` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
+                    e.currentTarget.style.borderColor = `${brandColor}60`;
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
