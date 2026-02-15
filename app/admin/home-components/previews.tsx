@@ -3601,7 +3601,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                     <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                   )}
                   {item.tag === 'new' && !discount && (
-                    <BrandBadge text="NEW" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                    <BrandBadge text="NEW" variant="outline" brandColor={secondary} secondary={secondary} className="text-[10px] px-2 py-1" />
                   )}
                   {item.tag === 'hot' && !discount && (
                     <BrandBadge text="HOT" variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
@@ -3610,7 +3610,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
 
                 {/* View Details Button (Hover) */}
                 <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                  <button className="w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg border-0 font-bold py-2 px-4 rounded-lg text-sm" style={{ color: secondary }}>
+                  <button className="w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg border-0 font-bold py-2 px-4 rounded-lg text-sm" style={{ color: brandColor }}>
                     Xem chi tiết
                   </button>
                 </div>
@@ -3622,7 +3622,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                   {item.name}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="font-bold text-slate-900 dark:text-slate-100" style={{ color: secondary }}>{item.price}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100" style={{ color: brandColor }}>{item.price}</span>
                   {item.originalPrice && (
                     <span className="text-xs text-slate-400 line-through">
                       {item.originalPrice}
@@ -3701,7 +3701,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 </h3>
                 
                 <div className="flex items-baseline gap-2 mb-4 mt-auto pt-2">
-                  <span className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors" style={{ color: secondary }}>{item.price}</span>
+                  <span className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors" style={{ color: brandColor }}>{item.price}</span>
                   {item.originalPrice && (
                     <span className="text-xs text-slate-400 line-through">
                       {item.originalPrice}
@@ -3711,9 +3711,9 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
 
                 <button 
                   className="w-full gap-1.5 md:gap-2 border-2 py-1.5 md:py-2 px-2 md:px-4 rounded-lg font-medium flex items-center justify-center transition-colors whitespace-nowrap text-xs md:text-sm"
-                  style={{ borderColor: `${secondary}20`, color: secondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = secondary; e.currentTarget.style.backgroundColor = `${secondary}08`; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}20`; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = brandColor; e.currentTarget.style.backgroundColor = `${brandColor}08`; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}20`; e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   Xem chi tiết
                   <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
@@ -3746,11 +3746,11 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 {displayTitle}
               </h2>
             </div>
-            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
+            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
               {buttonText} <ArrowRight size={16} />
             </button>
           </div>
-          <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center">
+          <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center" style={{ color: brandColor }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
@@ -3776,7 +3776,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{item.price}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{item.price}</span>
                 </div>
               );
             })}
@@ -3816,7 +3816,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 <div className="flex flex-row items-center justify-between gap-4 mt-2">
                   <span className="text-2xl font-bold text-white">{featured?.price}</span>
                   
-                  <button className="rounded-full px-6 py-2 text-white border-0 shadow-lg transition-all hover:scale-105" style={{ backgroundColor: secondary, boxShadow: `0 4px 6px ${secondary}20` }}>
+                  <button className="rounded-full px-6 py-2 text-white border-0 shadow-lg transition-all hover:scale-105" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}20` }}>
                     Xem chi tiết
                   </button>
                 </div>
@@ -3867,7 +3867,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                       {item.name}
                     </h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: secondary }}>
+                      <span className="text-sm font-bold" style={{ color: brandColor }}>
                         {item.price}
                       </span>
                       {item.originalPrice && (
@@ -3903,18 +3903,18 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
             </div>
             <div className="flex gap-2 md:hidden">
               <button className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ChevronLeft size={16} style={{ color: secondary }} />
+                <ChevronLeft size={16} style={{ color: brandColor }} />
               </button>
               <button className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ChevronRight size={16} style={{ color: secondary }} />
+                <ChevronRight size={16} style={{ color: brandColor }} />
               </button>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-3">
             <button className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <ChevronLeft size={18} style={{ color: secondary }} />
+              <ChevronLeft size={18} style={{ color: brandColor }} />
             </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors" style={{ backgroundColor: secondary }}>
+            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors" style={{ backgroundColor: brandColor }}>
               <ChevronRight size={18} />
             </button>
           </div>
@@ -3951,7 +3951,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                   </div>
                   <h3 className="font-medium text-slate-900 dark:text-slate-100 text-sm truncate group-hover:opacity-80 transition-colors">{item.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="font-bold text-sm" style={{ color: secondary }}>{item.price}</span>
+                    <span className="font-bold text-sm" style={{ color: brandColor }}>{item.price}</span>
                     {item.originalPrice && <span className="text-xs text-slate-400 line-through">{item.originalPrice}</span>}
                   </div>
                 </div>
@@ -3963,7 +3963,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
         {/* Dots indicator */}
         <div className="flex justify-center gap-2 mt-6">
           {[0, 1, 2].map((i) => (
-            <button key={i} className={cn("h-2 rounded-full transition-all", i === 0 ? "w-6" : "w-2 bg-slate-200 dark:bg-slate-700")} style={i === 0 ? { backgroundColor: secondary } : {}} />
+            <button key={i} className={cn("h-2 rounded-full transition-all", i === 0 ? "w-6" : "w-2 bg-slate-200 dark:bg-slate-700")} style={i === 0 ? { backgroundColor: brandColor } : {}} />
           ))}
         </div>
       </section>
@@ -3984,11 +3984,11 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
               {displayTitle}
             </h2>
           </div>
-            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
+            <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
-        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center">
+        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center" style={{ color: brandColor }}>
           {buttonText} <ArrowRight size={16} />
         </button>
       </div>
@@ -4020,7 +4020,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 )}
               </div>
               <h3 className="font-medium text-xs text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h3>
-              <span className="font-bold text-xs mt-0.5 block" style={{ color: secondary }}>{item.price}</span>
+              <span className="font-bold text-xs mt-0.5 block" style={{ color: brandColor }}>{item.price}</span>
             </div>
           );
         })}
@@ -4048,11 +4048,11 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 {displayTitle}
               </h2>
             </div>
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
               {buttonText} <ArrowRight size={16} />
             </button>
           </div>
-          <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center">
+          <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center" style={{ color: brandColor }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
@@ -4073,7 +4073,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{item.price}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{item.price}</span>
                 </div>
               );
             })}
@@ -4098,7 +4098,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-white" style={{ textShadow: `0 2px 8px ${secondary}40` }}>{showcaseFeatured?.price}</span>
-                  <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondary }}>Xem chi tiết</button>
+                  <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</button>
                 </div>
               </div>
             </div>
@@ -4119,7 +4119,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                     </div>
                     <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate group-hover:opacity-80 transition-colors">{item.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: secondary }}>{item.price}</span>
+                      <span className="text-sm font-bold" style={{ color: brandColor }}>{item.price}</span>
                       {item.originalPrice && <span className="text-[10px] text-slate-400 line-through">{item.originalPrice}</span>}
                     </div>
                   </div>
