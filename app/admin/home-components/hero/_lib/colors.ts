@@ -194,7 +194,7 @@ export function getFadeColors(
   const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
 
   return {
-    thumbnailBorderActive: secondaryPalette.solid,
+    thumbnailBorderActive: mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid,
     thumbnailBorderInactive: 'transparent',
     placeholderBg: getPrimaryTint(0.4),
     placeholderIconColor: primaryPalette.solid,

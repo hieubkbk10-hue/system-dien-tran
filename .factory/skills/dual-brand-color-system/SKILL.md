@@ -73,10 +73,19 @@ version: 5.0.0
 - 30% Primary: headings/CTA/prices
 - 10% Secondary: badges/accents/hover
 
-### 5) Placeholder phải tôn màu brand
+### 5) Placeholder chỉ là trạng thái phụ
 
-- Không dùng gradient màu slate cố định để override background
-- Placeholder phải dùng màu từ color helpers (primary/secondary tint)
+- Không dùng gradient slate cố định để override background
+- Placeholder dùng **primary tint nhẹ** để giữ trung tính
+- Dual-brand ưu tiên áp dụng khi **có data đầy đủ** (content thật)
+
+---
+
+## Placeholder vs Content Colors
+
+- **Placeholder:** chỉ dùng primary tint (subtle) + icon primary solid
+- **Content thật:** áp dụng dual-brand đầy đủ cho CTA, badges, accents
+- Nếu mode=dual nhưng dữ liệu trống: vẫn giữ placeholder theo primary để tránh loãng brand
 
 ---
 

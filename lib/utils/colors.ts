@@ -97,6 +97,13 @@ export interface BrandColorsResult {
   useDualBrand: boolean;
   getTint: (opacity: number, useSecondary?: boolean) => string;
   getShade: (percent: number, useSecondary?: boolean) => string;
+  getPlaceholder: () => PlaceholderColors;
+}
+
+export interface PlaceholderColors {
+  background: string;
+  icon: string;
+  text: string;
 }
 
 export function getBrandColors(config: BrandColorsConfig): BrandColorsResult {
@@ -115,5 +122,10 @@ export function getBrandColors(config: BrandColorsConfig): BrandColorsResult {
       const color = useSecondary && useDualBrand ? secondary : primary;
       return getShade(color, percent);
     },
+    getPlaceholder: () => ({
+      background: getTint(primary, useDualBrand ? 0.4 : 0.3),
+      icon: primary,
+      text: getShade(primary, 35),
+    }),
   };
 }

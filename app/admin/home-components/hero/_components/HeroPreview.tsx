@@ -49,6 +49,7 @@ export const HeroPreview = ({
     primary: brandColor,
     secondary,
   });
+  const placeholderColors = brandColors.getPlaceholder();
   const colors = getHeroColors(brandColors.primary, brandColors.secondary, brandColors.useDualBrand);
   const sliderColors = getSliderColors(brandColors.primary, brandColors.secondary, mode, harmony);
   const fadeColors = getFadeColors(brandColors.primary, brandColors.secondary, mode, harmony);
@@ -86,17 +87,19 @@ export const HeroPreview = ({
       useSliderColors?: boolean;
       backgroundColor?: string;
       iconColor?: string;
+      textColor?: string;
     }
   ) => {
-    const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : colors.primaryTintMedium);
-    const placeholderIconColor = options?.iconColor ?? (options?.useSliderColors ? sliderColors.placeholderIconColor : colors.primarySolid);
+    const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : placeholderColors.background);
+    const placeholderIconColor = options?.iconColor ?? (options?.useSliderColors ? sliderColors.placeholderIconColor : placeholderColors.icon);
+    const placeholderTextColor = options?.textColor ?? placeholderColors.text;
     return (
       <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: placeholderBg }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: placeholderBg }}>
           <ImageIcon size={24} style={{ color: placeholderIconColor }} />
         </div>
-        <div className="text-sm font-medium text-slate-400">Banner #{idx + 1}</div>
-        <div className="text-xs text-slate-500 mt-1">Khuyến nghị: 1920x600px</div>
+        <div className="text-sm font-medium" style={{ color: placeholderTextColor }}>Banner #{idx + 1}</div>
+        <div className="text-xs mt-1" style={{ color: placeholderTextColor }}>Khuyến nghị: 1920x600px</div>
       </div>
     );
   };
