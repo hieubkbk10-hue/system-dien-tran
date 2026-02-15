@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { StatsPreview, type StatsStyle } from '../../previews';
+import { StatsPreview } from '../../stats/_components/StatsPreview';
+import type { StatsStyle } from '../../stats/_types';
 
 export default function StatsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', 'Stats');

@@ -18,7 +18,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
 } from '../../previews';
 import type { HeroContent, HeroStyle, HeroSlide } from '../../hero/_types';
 import { 
@@ -44,7 +44,6 @@ import {
   ServiceListPreview,
   ServicesPreview,
   SpeedDialPreview,
-  StatsPreview,
   TeamPreview,
   TestimonialsPreview,
   TrustBadgesPreview,
@@ -136,8 +135,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryStyle, setGalleryStyle] = useState<GalleryStyle>('grid');
   const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
-  const [statsItems, setStatsItems] = useState<{id: number, value: string, label: string}[]>([]);
-  const [statsStyle, setStatsStyle] = useState<StatsStyle>('horizontal');
   const [ctaConfig, setCtaConfig] = useState({ badge: '', buttonLink: '', buttonText: '', description: '', secondaryButtonLink: '', secondaryButtonText: '', title: '' });
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
   const [faqItems, setFaqItems] = useState<{id: number, question: string, answer: string}[]>([]);
@@ -330,11 +327,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         case 'TrustBadges': {
           setGalleryItems(config.items?.map((item: {url: string, link: string, name?: string}, i: number) => ({ id: `item-${i}`, link: item.link || '', name: item.name ?? '', url: item.url })) ?? [{ id: 'item-1', link: '', name: '', url: '' }]);
           setTrustBadgesStyle((config.style as TrustBadgesStyle) || 'cards');
-          break;
-        }
-        case 'Stats': {
-          setStatsItems(config.items?.map((item: {value: string, label: string}, i: number) => ({ id: i, label: item.label, value: item.value })) ?? [{ id: 1, label: '', value: '' }]);
-          setStatsStyle((config.style as StatsStyle) || 'horizontal');
           break;
         }
         case 'CTA': {
@@ -574,11 +566,17 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     if (typeParam?.toLowerCase() === 'hero') {
       router.replace(`/admin/home-components/hero/${id}/edit`);
     }
+    if (typeParam?.toLowerCase() === 'stats') {
+      router.replace(`/admin/home-components/stats/${id}/edit`);
+    }
   }, [id, router, searchParams]);
 
   useEffect(() => {
     if (component?.type === 'Hero') {
       router.replace(`/admin/home-components/hero/${id}/edit`);
+    }
+    if (component?.type === 'Stats') {
+      router.replace(`/admin/home-components/stats/${id}/edit`);
     }
   }, [component, id, router]);
 
@@ -594,7 +592,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  if (searchParams.get('type')?.toLowerCase() === 'hero' || component.type === 'Hero') {
+  if (['hero', 'stats'].includes(searchParams.get('type')?.toLowerCase() ?? '') || component.type === 'Hero' || component.type === 'Stats') {
     return <div className="flex items-center justify-center h-64 text-slate-500">Đang chuyển hướng...</div>;
   }
 
@@ -617,9 +615,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       }
       case 'TrustBadges': {
         return { items: galleryItems.map(g => ({ link: g.link, name: g.name, url: g.url })), style: trustBadgesStyle };
-      }
-      case 'Stats': {
-        return { items: statsItems.map(s => ({ label: s.label, value: s.value })), style: statsStyle };
       }
       case 'CTA': {
         return { ...ctaConfig, style: ctaStyle };
@@ -998,36 +993,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 onStyleChange={setGalleryStyle}
               />
             )}
-          </>
-        )}
-
-        {/* Stats */}
-        {component.type === 'Stats' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Số liệu thống kê</CardTitle>
-                <Button type="button" variant="outline" size="sm" onClick={() =>{  setStatsItems([...statsItems, { id: Date.now(), label: '', value: '' }]); }} className="gap-2">
-                  <Plus size={14} /> Thêm
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {statsItems.map((item, idx) => (
-                  <div key={item.id} className="flex gap-3 items-center">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-medium text-slate-500">{idx + 1}</div>
-                    <Input placeholder="Số liệu (VD: 1000+)" value={item.value} onChange={(e) =>{  setStatsItems(statsItems.map(s => s.id === item.id ? {...s, value: e.target.value} : s)); }} className="flex-1" />
-                    <Input placeholder="Nhãn (VD: Khách hàng)" value={item.label} onChange={(e) =>{  setStatsItems(statsItems.map(s => s.id === item.id ? {...s, label: e.target.value} : s)); }} className="flex-1" />
-                    <Button type="button" variant="ghost" size="icon" className="text-red-500 h-8 w-8" onClick={() => statsItems.length > 1 && setStatsItems(statsItems.filter(s => s.id !== item.id))}><Trash2 size={14} /></Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            <StatsPreview 
-              items={statsItems.map(s => ({ label: s.label, value: s.value }))} 
-              brandColor={brandColor} secondary={secondary}
-              selectedStyle={statsStyle}
-              onStyleChange={setStatsStyle}
-            />
           </>
         )}
 
