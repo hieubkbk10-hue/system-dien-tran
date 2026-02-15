@@ -5740,7 +5740,8 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
   // Style 1: Banner - Full width với solid background
   const renderBannerStyle = () => (
     <section 
-      className={cn("w-full bg-slate-50 dark:bg-slate-900", device === 'mobile' ? 'py-8 px-4' : 'py-12 px-6')} 
+      className={cn("w-full", device === 'mobile' ? 'py-8 px-4' : 'py-12 px-6')} 
+      style={{ backgroundColor: brandColor }}
     >
       <div className={cn(
         "max-w-4xl mx-auto flex items-center justify-between",
@@ -5751,13 +5752,13 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
             <BrandBadge text={config.badge} variant="solid" brandColor={brandColor} secondary={secondary} />
           )}
           <h3 className={cn(
-            "font-bold text-slate-900 dark:text-white line-clamp-2",
+            "font-bold text-white line-clamp-2",
             device === 'mobile' ? 'text-xl' : 'text-2xl'
           )}>
             {config.title || 'Sẵn sàng bắt đầu?'}
           </h3>
           <p className={cn(
-            "text-slate-600 dark:text-slate-400 mt-2 line-clamp-2",
+            "text-white opacity-90 mt-2 line-clamp-2",
             device === 'mobile' ? 'text-sm' : 'text-base'
           )}>
             {config.description || 'Đăng ký ngay để nhận ưu đãi đặc biệt'}
@@ -5766,18 +5767,18 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
         <div className={cn("flex gap-3 flex-shrink-0", device === 'mobile' ? 'flex-col w-full' : '')}>
           <button 
             className={cn(
-              "rounded-lg font-medium text-white whitespace-nowrap transition-all hover:shadow-lg hover:scale-105",
+              "rounded-lg font-medium bg-white whitespace-nowrap transition-all hover:shadow-lg hover:scale-105",
               device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-6 py-3'
             )} 
-            style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${brandColor}40` }}
+            style={{ color: secondary, boxShadow: `0 4px 12px ${secondary}40` }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
           {config.secondaryButtonText && (
             <button className={cn(
-              "border-2 rounded-lg font-medium whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-800 transition-all",
+              "border-2 border-white/50 text-white rounded-lg font-medium whitespace-nowrap hover:bg-white/10 transition-all",
               device === 'mobile' ? 'px-5 py-3 min-h-[44px] text-sm' : 'px-6 py-3'
-            )} style={{ borderColor: `${secondary}30`, color: secondary }}>
+            )}>
               {config.secondaryButtonText}
             </button>
           )}
@@ -5798,7 +5799,7 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
         )}
         <h3 
           className={cn("font-bold line-clamp-2", device === 'mobile' ? 'text-xl' : 'text-3xl')} 
-          style={{ color: brandColor }}
+          style={{ color: secondary }}
         >
           {config.title || 'Sẵn sàng bắt đầu?'}
         </h3>
@@ -5824,7 +5825,7 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
                 "border-2 rounded-lg font-medium whitespace-nowrap hover:bg-opacity-10 transition-all",
                 device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-3'
               )} 
-              style={{ borderColor: `${secondary}30`, color: secondary }}
+              style={{ borderColor: brandColor, color: secondary }}
             >
               {config.secondaryButtonText}
             </button>
@@ -5972,31 +5973,25 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
     <section 
       className={cn("w-full relative overflow-hidden", device === 'mobile' ? 'py-10 px-4' : 'py-16 px-6')}
       style={{ 
-        background: `linear-gradient(135deg, ${brandColor}15 0%, ${secondary}10 50%, ${brandColor}15 100%)`
+        background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 50%, ${brandColor} 100%)`
       }}
     >
       {/* Decorative circles */}
-      <div 
-        className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-10"
-        style={{ backgroundColor: brandColor }}
-      />
-      <div 
-        className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-10"
-        style={{ backgroundColor: secondary }}
-      />
+      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/20" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
       
       <div className="max-w-3xl mx-auto text-center relative z-10">
         {config.badge && (
           <BrandBadge text={`★ ${config.badge}`} variant="solid" brandColor={brandColor} secondary={secondary} />
         )}
         <h3 className={cn(
-          "font-bold text-slate-900 dark:text-white line-clamp-2",
+          "font-bold text-white line-clamp-2",
           device === 'mobile' ? 'text-2xl' : 'text-4xl'
         )}>
           {config.title || 'Sẵn sàng bắt đầu?'}
         </h3>
         <p className={cn(
-          "text-slate-600 dark:text-slate-400 mt-4 max-w-xl mx-auto line-clamp-3",
+          "text-white/90 mt-4 max-w-xl mx-auto line-clamp-3",
           device === 'mobile' ? 'text-sm' : 'text-lg'
         )}>
           {config.description || 'Đăng ký ngay để nhận ưu đãi đặc biệt'}
@@ -6004,18 +5999,18 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
         <div className={cn("flex justify-center gap-4 mt-8", device === 'mobile' ? 'flex-col' : '')}>
           <button 
             className={cn(
-              "rounded-full font-semibold text-white whitespace-nowrap transition-all hover:scale-105 hover:shadow-xl",
+              "rounded-full font-semibold bg-white whitespace-nowrap transition-all hover:scale-105 hover:shadow-xl",
               device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-4'
             )} 
-            style={{ backgroundColor: brandColor, boxShadow: `0 8px 24px ${brandColor}40` }}
+            style={{ color: secondary, boxShadow: `0 8px 24px rgba(0, 0, 0, 0.2)` }}
           >
             {config.buttonText || 'Bắt đầu ngay'}
           </button>
           {config.secondaryButtonText && (
             <button className={cn(
-              "border-2 rounded-full font-semibold whitespace-nowrap hover:bg-slate-100 dark:hover:bg-slate-800 transition-all",
+              "border-2 border-white text-white rounded-full font-semibold whitespace-nowrap hover:bg-white/10 transition-all",
               device === 'mobile' ? 'px-6 py-3 min-h-[44px] text-sm' : 'px-8 py-4'
-            )} style={{ borderColor: `${secondary}30`, color: secondary }}>
+            )}>
               {config.secondaryButtonText}
             </button>
           )}
