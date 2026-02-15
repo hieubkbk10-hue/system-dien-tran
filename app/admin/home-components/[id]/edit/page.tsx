@@ -17,7 +17,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, CTAStyle, CareerStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, CTAStyle, CareerStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, PricingConfig, PricingStyle, ProcessStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, VideoStyle
 } from '../../previews';
 import type { HeroContent, HeroStyle, HeroSlide } from '../../hero/_types';
 import { 
@@ -34,7 +34,6 @@ import {
   
   PricingPreview,
   ProcessPreview,
-  ProductCategoriesPreview,
   ServicesPreview,
   SpeedDialPreview,
   TeamPreview,
@@ -43,7 +42,6 @@ import {
   VoucherPromotionsPreview
 } from '../../previews';
 import { useBrandColors } from '../../create/shared';
-import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
 import { HeroPreview } from '../../hero/_components/HeroPreview';
@@ -99,8 +97,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
-  // Query product categories for ProductCategories component
-  const productCategoriesData = useQuery(api.productCategories.listActive);
   // Query settings for Footer
   const siteLogo = useQuery(api.settings.getByKey, { key: 'site_logo' });
   const socialFacebook = useQuery(api.settings.getByKey, { key: 'social_facebook' });
@@ -157,12 +153,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [speedDialStyle, setSpeedDialStyle] = useState<SpeedDialStyle>('fab');
   const [speedDialPosition, setSpeedDialPosition] = useState<'bottom-right' | 'bottom-left'>('bottom-right');
   const [speedDialAlwaysOpen, setSpeedDialAlwaysOpen] = useState(true);
-  // ProductCategories states
-  const [productCategoriesItems, setProductCategoriesItems] = useState<{id: number, categoryId: string, customImage: string, imageMode?: 'product-image' | 'default' | 'icon' | 'upload' | 'url'}[]>([]);
-  const [productCategoriesStyle, setProductCategoriesStyle] = useState<ProductCategoriesStyle>('grid');
-  const [productCategoriesShowCount, setProductCategoriesShowCount] = useState(true);
-  const [productCategoriesColsDesktop, setProductCategoriesColsDesktop] = useState(4);
-  const [productCategoriesColsMobile, setProductCategoriesColsMobile] = useState(2);
   // Team states
   const [teamMembers, setTeamMembers] = useState<{id: number, name: string, role: string, avatar: string, bio: string, facebook: string, linkedin: string, twitter: string, email: string}[]>([]);
   const [teamStyle, setTeamStyle] = useState<TeamStyle>('grid');
@@ -205,6 +195,10 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       }
       if (component.type === 'CategoryProducts') {
         router.replace(`/admin/home-components/category-products/${component._id}/edit`);
+        return;
+      }
+      if (component.type === 'ProductCategories') {
+        router.replace(`/admin/home-components/product-categories/${component._id}/edit`);
         return;
       }
       if (component.type === 'ProductList') {
@@ -335,14 +329,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           setSpeedDialStyle((config.style as SpeedDialStyle) || 'fab');
           setSpeedDialPosition(config.position ?? 'bottom-right');
           setSpeedDialAlwaysOpen(config.alwaysOpen ?? true);
-          break;
-        }
-        case 'ProductCategories': {
-          setProductCategoriesItems(config.categories?.map((c: {categoryId: string, customImage?: string, imageMode?: string}, i: number) => ({ categoryId: c.categoryId, customImage: c.customImage ?? '', id: i, imageMode: (c.imageMode as 'product-image' | 'default' | 'icon' | 'upload' | 'url') || 'default' })) ?? []);
-          setProductCategoriesStyle((config.style as ProductCategoriesStyle) || 'grid');
-          setProductCategoriesShowCount(config.showProductCount ?? true);
-          setProductCategoriesColsDesktop(config.columnsDesktop ?? 4);
-          setProductCategoriesColsMobile(config.columnsMobile ?? 2);
           break;
         }
         case 'Team': {
@@ -560,15 +546,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           mainButtonColor: brandColor,
           position: speedDialPosition,
           style: speedDialStyle,
-        };
-      }
-      case 'ProductCategories': {
-        return {
-          categories: productCategoriesItems.map(c => ({ categoryId: c.categoryId, customImage: c.customImage || undefined, imageMode: c.imageMode ?? 'default' })),
-          columnsDesktop: productCategoriesColsDesktop,
-          columnsMobile: productCategoriesColsMobile,
-          showProductCount: productCategoriesShowCount,
-          style: productCategoriesStyle,
         };
       }
       case 'Team': {
@@ -1944,153 +1921,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               brandColor={brandColor} secondary={secondary}
               selectedStyle={speedDialStyle}
               onStyleChange={setSpeedDialStyle}
-            />
-          </>
-        )}
-
-        {/* ProductCategories */}
-        {component.type === 'ProductCategories' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-base">Cấu hình hiển thị</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Số cột (Desktop)</Label>
-                    <select
-                      value={productCategoriesColsDesktop}
-                      onChange={(e) =>{  setProductCategoriesColsDesktop(Number.parseInt(e.target.value)); }}
-                      className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                    >
-                      <option value={3}>3 cột</option>
-                      <option value={4}>4 cột</option>
-                      <option value={5}>5 cột</option>
-                      <option value={6}>6 cột</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Số cột (Mobile)</Label>
-                    <select
-                      value={productCategoriesColsMobile}
-                      onChange={(e) =>{  setProductCategoriesColsMobile(Number.parseInt(e.target.value)); }}
-                      className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                    >
-                      <option value={2}>2 cột</option>
-                      <option value={3}>3 cột</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="showProductCount"
-                    checked={productCategoriesShowCount}
-                    onChange={(e) =>{  setProductCategoriesShowCount(e.target.checked); }}
-                    className="w-4 h-4 rounded border-slate-300"
-                  />
-                  <Label htmlFor="showProductCount" className="cursor-pointer">Hiển thị số lượng sản phẩm</Label>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Chọn danh mục ({productCategoriesItems.length})</CardTitle>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => {
-                    const newId = Math.max(0, ...productCategoriesItems.map(c => c.id)) + 1;
-                    setProductCategoriesItems([...productCategoriesItems, { categoryId: '', customImage: '', id: newId }]);
-                  }}
-                  disabled={productCategoriesItems.length >= 12 || !productCategoriesData?.length}
-                  className="gap-2"
-                >
-                  <Plus size={14} /> Thêm
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!productCategoriesData?.length ? (
-                  <p className="text-sm text-slate-500 text-center py-4">
-                    Chưa có danh mục sản phẩm. Vui lòng tạo danh mục trước.
-                  </p>
-                ) : (productCategoriesItems.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-4">
-                    Chưa chọn danh mục nào. Nhấn &quot;Thêm&quot; để bắt đầu.
-                  </p>
-                ) : (
-                  productCategoriesItems.map((item, idx) => (
-                    <div key={item.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <GripVertical size={16} className="text-slate-400 cursor-move" />
-                          <Label>Danh mục {idx + 1}</Label>
-                        </div>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 h-8 w-8" 
-                          onClick={() =>{  setProductCategoriesItems(productCategoriesItems.filter(c => c.id !== item.id)); }}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-500">Danh mục</Label>
-                          <select
-                            value={item.categoryId}
-                            onChange={(e) =>{  setProductCategoriesItems(productCategoriesItems.map(c => c.id === item.id ? {...c, categoryId: e.target.value} : c)); }}
-                            className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                          >
-                            <option value="">-- Chọn danh mục --</option>
-                            {productCategoriesData?.map(cat => (
-                              <option key={cat._id} value={cat._id}>{cat.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        
-                        {item.categoryId && (
-                          <div className="space-y-2">
-                            <Label className="text-xs text-slate-500">Hình ảnh hiển thị</Label>
-                            <CategoryImageSelector
-                              value={item.customImage || ''}
-                              onChange={(value, mode) =>{  setProductCategoriesItems(productCategoriesItems.map(c => c.id === item.id ? {...c, customImage: value, imageMode: mode} : c)); }}
-                              categoryId={item.categoryId}
-                              categoryImage={productCategoriesData?.find(cat => cat._id === item.categoryId)?.image}
-                              brandColor={brandColor}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ))}
-                
-                <p className="text-xs text-slate-500">
-                  Tối đa 12 danh mục. Mỗi danh mục có thể: sử dụng ảnh gốc, chọn icon, upload ảnh, hoặc nhập URL.
-                </p>
-              </CardContent>
-            </Card>
-
-            <ProductCategoriesPreview 
-              config={{
-                categories: productCategoriesItems,
-                columnsDesktop: productCategoriesColsDesktop,
-                columnsMobile: productCategoriesColsMobile,
-                showProductCount: productCategoriesShowCount,
-                style: productCategoriesStyle,
-              }}
-              brandColor={brandColor} secondary={secondary}
-              selectedStyle={productCategoriesStyle}
-              onStyleChange={setProductCategoriesStyle}
-              categoriesData={productCategoriesData ?? []}
             />
           </>
         )}
