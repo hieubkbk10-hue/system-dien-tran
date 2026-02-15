@@ -5791,7 +5791,7 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
   const renderCenteredStyle = () => (
     <section 
       className={cn("w-full text-center", device === 'mobile' ? 'py-10 px-4' : 'py-16 px-6')} 
-      style={{ backgroundColor: `${secondary}10` }}
+      style={{ backgroundColor: 'white' }}
     >
       <div className="max-w-2xl mx-auto">
         {config.badge && (

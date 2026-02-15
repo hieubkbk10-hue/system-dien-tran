@@ -2183,7 +2183,7 @@ function CTASection({ config, brandColor, secondary }: { config: Record<string, 
   // Style 2: Centered - Text center với subtle background
   if (style === 'centered') {
     return (
-      <section className="py-12 md:py-20 px-4" style={{ backgroundColor: `${secondary}10` }}>
+      <section className="py-12 md:py-20 px-4" style={{ backgroundColor: 'white' }}>
         <div className="max-w-2xl mx-auto text-center">
           {badge && (
             <BrandBadge text={badge} variant="default" brandColor={brandColor} secondary={secondary} />
