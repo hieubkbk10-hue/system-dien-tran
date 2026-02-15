@@ -9310,8 +9310,8 @@ export const ProductCategoriesPreview = ({
                     border: '1px solid rgb(226 232 240)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
-                    e.currentTarget.style.borderColor = brandColor;
+                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}25`;
+                    e.currentTarget.style.borderColor = secondary;
                     e.currentTarget.style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={(e) => {
