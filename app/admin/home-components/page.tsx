@@ -52,6 +52,47 @@ const COMPONENT_TYPES = [
   { description: 'Banner slider', icon: LayoutTemplate, label: 'Banner', value: 'Banner' },
 ];
 
+const EDIT_ROUTE_MAP: Record<string, string> = {
+  About: 'about',
+  Benefits: 'benefits',
+  Blog: 'blog',
+  Career: 'career',
+  CaseStudy: 'case-study',
+  CategoryProducts: 'category-products',
+  Clients: 'clients',
+  Contact: 'contact',
+  Countdown: 'countdown',
+  CTA: 'cta',
+  FAQ: 'faq',
+  Features: 'features',
+  Footer: 'footer',
+  Gallery: 'gallery',
+  Hero: 'hero',
+  Partners: 'partners',
+  Pricing: 'pricing',
+  Process: 'process',
+  ProductCategories: 'product-categories',
+  ProductGrid: 'product-grid',
+  ProductList: 'product-list',
+  ServiceList: 'service-list',
+  Services: 'services',
+  SpeedDial: 'speed-dial',
+  Stats: 'stats',
+  Team: 'team',
+  Testimonials: 'testimonials',
+  TrustBadges: 'gallery',
+  Video: 'video',
+  VoucherPromotions: 'voucher-promotions',
+};
+
+const getEditRoute = (type: string, id: string) => {
+  const slug = EDIT_ROUTE_MAP[type];
+  if (slug) {
+    return `/admin/home-components/${slug}/${id}/edit`;
+  }
+  return `/admin/home-components/${id}/edit`;
+};
+
 interface SortableRowProps {
   comp: { _id: string; title: string; type: string; active: boolean; config?: { preview?: string; description?: string } };
   index: number;
@@ -106,7 +147,7 @@ function SortableRow({ comp, index, isSelected, onToggleSelect, onToggleActive, 
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Link href={comp.type === 'Hero' ? `/admin/home-components/hero/${comp._id}/edit` : `/admin/home-components/${comp._id}/edit?type=${comp.type.toLowerCase()}`}>
+          <Link href={getEditRoute(comp.type, comp._id)}>
             <Button variant="ghost" size="icon"><Edit size={16} /></Button>
           </Link>
           <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={onDelete}>

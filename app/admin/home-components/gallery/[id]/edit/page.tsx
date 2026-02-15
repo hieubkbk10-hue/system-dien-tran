@@ -42,7 +42,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
       return;
     }
     if (component.type !== 'Gallery' && component.type !== 'TrustBadges') {
-      router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+      router.replace(`/admin/home-components/${id}/edit`);
       return;
     }
 
@@ -75,7 +75,6 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
         title,
       });
       toast.success('Đã cập nhật component');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -152,30 +151,35 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
-            {componentType === 'TrustBadges' ? (
-              <TrustBadgesPreview 
-                items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
-                brandColor={primary}
-                secondary={secondary}
-                selectedStyle={trustBadgesStyle}
-                onStyleChange={setTrustBadgesStyle}
-              />
-            ) : (
-              <GalleryPreview 
-                items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
-                brandColor={primary}
-                secondary={secondary}
-                selectedStyle={galleryStyle}
-                onStyleChange={setGalleryStyle}
-              />
-            )}
+              {componentType === 'TrustBadges' ? (
+            <TrustBadgesPreview
+              items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
+              brandColor={primary}
+              secondary={secondary}
+              selectedStyle={trustBadgesStyle}
+              onStyleChange={setTrustBadgesStyle}
+            />
+              ) : (
+            <GalleryPreview
+              items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
+              brandColor={primary}
+              secondary={secondary}
+              selectedStyle={galleryStyle}
+              onStyleChange={setGalleryStyle}
+            />
+              )}
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

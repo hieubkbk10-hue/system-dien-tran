@@ -42,7 +42,7 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
   useEffect(() => {
     if (!component || isInitialized) {return;}
     if (component.type !== 'ProductGrid') {
-      router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+      router.replace(`/admin/home-components/${id}/edit`);
       return;
     }
 
@@ -130,7 +130,6 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         title,
       });
       toast.success('Đã cập nhật Sản phẩm');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -217,11 +216,7 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <ProductGridPreview
               brandColor={primary}
@@ -230,13 +225,22 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
               selectedStyle={style}
               onStyleChange={setStyle}
               items={selectionMode === 'manual' && productPreviewItems.length > 0
-                ? productPreviewItems
-                : (autoProductPreviewItems.length > 0 ? autoProductPreviewItems : undefined)
+              ? productPreviewItems
+              : (autoProductPreviewItems.length > 0 ? autoProductPreviewItems : undefined)
               }
               subTitle={subTitle}
               sectionTitle={sectionTitle}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

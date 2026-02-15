@@ -30,7 +30,7 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     if (component) {
       if (component.type !== 'Benefits') {
-        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        router.replace(`/admin/home-components/${id}/edit`);
         return;
       }
 
@@ -62,7 +62,6 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
         title,
       });
       toast.success('Đã cập nhật Benefits');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -133,11 +132,7 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
         <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as BenefitsConfig); }} title="Cấu hình Benefits" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <BenefitsPreview
               items={items as any}
@@ -148,6 +143,15 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
               config={config as any}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

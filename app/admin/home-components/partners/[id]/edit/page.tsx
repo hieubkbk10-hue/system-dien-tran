@@ -28,7 +28,7 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     if (component) {
       if (component.type !== 'Partners') {
-        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        router.replace(`/admin/home-components/${id}/edit`);
         return;
       }
 
@@ -62,7 +62,6 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
         title,
       });
       toast.success('Đã cập nhật Partners');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -131,11 +130,7 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
         <PartnersForm items={partnersItems} setItems={setPartnersItems} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <PartnersPreview
               items={partnersItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
@@ -145,6 +140,15 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
               onStyleChange={setPartnersStyle}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

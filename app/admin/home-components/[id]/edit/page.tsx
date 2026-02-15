@@ -57,6 +57,7 @@ export default function HomeComponentRedirectPage({ params }: { params: Promise<
 
     toast.error(`Component type "${component.type}" không được hỗ trợ`);
     router.push('/admin/home-components');
+
   }, [component, router]);
 
   if (component === undefined) {

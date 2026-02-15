@@ -30,7 +30,7 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     if (component) {
       if (component.type !== 'SpeedDial') {
-        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        router.replace(`/admin/home-components/${id}/edit`);
         return;
       }
 
@@ -61,7 +61,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
         title,
       });
       toast.success('Đã cập nhật Speed Dial');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -130,11 +129,7 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
         <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as SpeedDialConfig); }} title="Cấu hình Speed Dial" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <SpeedDialPreview
               config={config as any}
@@ -144,6 +139,15 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
               onStyleChange={(style) =>{  setConfig({ ...config, style: style as SpeedDialStyle }); }}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

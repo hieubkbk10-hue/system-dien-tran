@@ -38,7 +38,7 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
   useEffect(() => {
     if (component) {
       if (component.type !== 'ServiceList') {
-        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        router.replace(`/admin/home-components/${id}/edit`);
         return;
       }
 
@@ -100,7 +100,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
         title,
       });
       toast.success('Đã cập nhật Danh sách Dịch vụ');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -182,11 +181,7 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <ServiceListPreview
               brandColor={primary}
@@ -195,12 +190,21 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
               selectedStyle={serviceListStyle}
               onStyleChange={setServiceListStyle}
               items={serviceSelectionMode === 'manual' && selectedServices.length > 0
-                ? selectedServices.map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
-                : filteredServices.slice(0, serviceListConfig.itemCount).map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
+              ? selectedServices.map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
+              : filteredServices.slice(0, serviceListConfig.itemCount).map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
               }
               title={title}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>

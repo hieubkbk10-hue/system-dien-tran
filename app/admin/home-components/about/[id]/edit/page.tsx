@@ -30,7 +30,7 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     if (component) {
       if (component.type !== 'About') {
-        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        router.replace(`/admin/home-components/${id}/edit`);
         return;
       }
 
@@ -65,7 +65,6 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
         title,
       });
       toast.success('Đã cập nhật About');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -134,11 +133,7 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
         <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as AboutConfig); }} title="Cấu hình About" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
-          </div>
+          <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <AboutPreview
               config={config as any}
@@ -148,6 +143,15 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
               onStyleChange={(style) =>{  setConfig({ ...config, style: style as AboutStyle }); }}
             />
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+            Hủy bỏ
+          </Button>
+          <Button type="submit" variant="accent" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </Button>
         </div>
       </form>
     </div>
