@@ -73,6 +73,11 @@ version: 5.0.0
 - 30% Primary: headings/CTA/prices
 - 10% Secondary: badges/accents/hover
 
+### 5) Placeholder phải tôn màu brand
+
+- Không dùng gradient màu slate cố định để override background
+- Placeholder phải dùng màu từ color helpers (primary/secondary tint)
+
 ---
 
 ## Auto-Refactor Patterns

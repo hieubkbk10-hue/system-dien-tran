@@ -91,7 +91,7 @@ export const HeroPreview = ({
     const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : colors.primaryTintMedium);
     const placeholderIconColor = options?.iconColor ?? (options?.useSliderColors ? sliderColors.placeholderIconColor : colors.primarySolid);
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+      <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: placeholderBg }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: placeholderBg }}>
           <ImageIcon size={24} style={{ color: placeholderIconColor }} />
         </div>
