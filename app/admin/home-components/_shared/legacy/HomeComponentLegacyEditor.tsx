@@ -435,6 +435,60 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     if (typeParam?.toLowerCase() === 'blog') {
       router.replace(`/admin/home-components/blog/${id}/edit`);
     }
+    if (typeParam?.toLowerCase() === 'cta') {
+      router.replace(`/admin/home-components/cta/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'faq') {
+      router.replace(`/admin/home-components/faq/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'about') {
+      router.replace(`/admin/home-components/about/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'footer') {
+      router.replace(`/admin/home-components/footer/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'services') {
+      router.replace(`/admin/home-components/services/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'benefits') {
+      router.replace(`/admin/home-components/benefits/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'testimonials') {
+      router.replace(`/admin/home-components/testimonials/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'pricing') {
+      router.replace(`/admin/home-components/pricing/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'career') {
+      router.replace(`/admin/home-components/career/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'contact') {
+      router.replace(`/admin/home-components/contact/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'speed-dial') {
+      router.replace(`/admin/home-components/speed-dial/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'team') {
+      router.replace(`/admin/home-components/team/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'features') {
+      router.replace(`/admin/home-components/features/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'process') {
+      router.replace(`/admin/home-components/process/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'clients') {
+      router.replace(`/admin/home-components/clients/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'video') {
+      router.replace(`/admin/home-components/video/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'countdown') {
+      router.replace(`/admin/home-components/countdown/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'voucher-promotions') {
+      router.replace(`/admin/home-components/voucher-promotions/${id}/edit`);
+    }
   }, [id, router, searchParams]);
 
   useEffect(() => {
@@ -459,6 +513,60 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     if (component?.type === 'Blog') {
       router.replace(`/admin/home-components/blog/${id}/edit`);
     }
+    if (component?.type === 'CTA') {
+      router.replace(`/admin/home-components/cta/${id}/edit`);
+    }
+    if (component?.type === 'FAQ') {
+      router.replace(`/admin/home-components/faq/${id}/edit`);
+    }
+    if (component?.type === 'About') {
+      router.replace(`/admin/home-components/about/${id}/edit`);
+    }
+    if (component?.type === 'Footer') {
+      router.replace(`/admin/home-components/footer/${id}/edit`);
+    }
+    if (component?.type === 'Services') {
+      router.replace(`/admin/home-components/services/${id}/edit`);
+    }
+    if (component?.type === 'Benefits') {
+      router.replace(`/admin/home-components/benefits/${id}/edit`);
+    }
+    if (component?.type === 'Testimonials') {
+      router.replace(`/admin/home-components/testimonials/${id}/edit`);
+    }
+    if (component?.type === 'Pricing') {
+      router.replace(`/admin/home-components/pricing/${id}/edit`);
+    }
+    if (component?.type === 'Career') {
+      router.replace(`/admin/home-components/career/${id}/edit`);
+    }
+    if (component?.type === 'Contact') {
+      router.replace(`/admin/home-components/contact/${id}/edit`);
+    }
+    if (component?.type === 'SpeedDial') {
+      router.replace(`/admin/home-components/speed-dial/${id}/edit`);
+    }
+    if (component?.type === 'Team') {
+      router.replace(`/admin/home-components/team/${id}/edit`);
+    }
+    if (component?.type === 'Features') {
+      router.replace(`/admin/home-components/features/${id}/edit`);
+    }
+    if (component?.type === 'Process') {
+      router.replace(`/admin/home-components/process/${id}/edit`);
+    }
+    if (component?.type === 'Clients') {
+      router.replace(`/admin/home-components/clients/${id}/edit`);
+    }
+    if (component?.type === 'Video') {
+      router.replace(`/admin/home-components/video/${id}/edit`);
+    }
+    if (component?.type === 'Countdown') {
+      router.replace(`/admin/home-components/countdown/${id}/edit`);
+    }
+    if (component?.type === 'VoucherPromotions') {
+      router.replace(`/admin/home-components/voucher-promotions/${id}/edit`);
+    }
   }, [component, id, router]);
 
   if (component === undefined) {
@@ -473,7 +581,18 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  if (['hero', 'stats', 'casestudy', 'case-study', 'servicelist', 'productgrid', 'productlist', 'blog'].includes(searchParams.get('type')?.toLowerCase() ?? '') || component.type === 'Hero' || component.type === 'Stats' || component.type === 'CaseStudy' || component.type === 'ServiceList' || component.type === 'ProductGrid' || component.type === 'ProductList' || component.type === 'Blog') {
+  if (
+    [
+      'hero', 'stats', 'casestudy', 'case-study', 'servicelist', 'productgrid', 'productlist', 'blog',
+      'cta', 'faq', 'about', 'footer', 'services', 'benefits', 'testimonials', 'pricing', 'career', 'contact',
+      'speed-dial', 'team', 'features', 'process', 'clients', 'video', 'countdown', 'voucher-promotions'
+    ].includes(searchParams.get('type')?.toLowerCase() ?? '')
+    || [
+      'Hero', 'Stats', 'CaseStudy', 'ServiceList', 'ProductGrid', 'ProductList', 'Blog',
+      'CTA', 'FAQ', 'About', 'Footer', 'Services', 'Benefits', 'Testimonials', 'Pricing', 'Career', 'Contact',
+      'SpeedDial', 'Team', 'Features', 'Process', 'Clients', 'Video', 'Countdown', 'VoucherPromotions'
+    ].includes(component.type)
+  ) {
     return <div className="flex items-center justify-center h-64 text-slate-500">Đang chuyển hướng...</div>;
   }
 
