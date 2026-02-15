@@ -722,7 +722,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
 
   // Style 1: Thanh ngang - Full width bar với dividers
   const renderHorizontalStyle = () => (
-    <section className="w-full rounded-lg shadow-md overflow-hidden border" style={{ backgroundColor: 'white', borderColor: `${secondary}20`, boxShadow: `0 4px 6px -1px ${secondary}15` }}>
+    <section className="w-full rounded-lg shadow-md overflow-hidden border" style={{ backgroundColor: 'white', borderColor: `${brandColor}20`, boxShadow: `0 4px 6px -1px ${brandColor}15` }}>
       <div className={cn(
         "flex items-center justify-between",
         device === 'mobile' ? 'flex-col divide-y' : 'flex-row divide-x',
@@ -915,14 +915,14 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
           <div 
             key={idx}
             className="relative bg-white dark:bg-slate-800 rounded-2xl border overflow-hidden group"
-            style={{ borderColor: `${secondary}15` }}
+            style={{ borderColor: `${secondary}20` }}
           >
             {/* Top progress bar */}
             <div className="h-1 w-full bg-slate-100 dark:bg-slate-700">
               <div 
                 className="h-full transition-all duration-500"
                 style={{ 
-                  backgroundColor: brandColor,
+                  backgroundColor: secondary,
                   width: `${Math.min(100, (idx + 1) * 25)}%`
                 }}
               />
@@ -937,7 +937,7 @@ export const StatsPreview = ({ items, brandColor, secondary, selectedStyle, onSt
                   "font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300",
                   device === 'mobile' ? 'text-4xl' : 'text-5xl md:text-6xl'
                 )}
-                style={{ color: secondary }}
+                style={{ color: brandColor }}
               >
                 {item.value || '0'}
               </span>
