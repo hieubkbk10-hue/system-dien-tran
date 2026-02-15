@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import type { HeroContent, HeroStyle } from '../../hero/_types';
@@ -21,6 +23,8 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', image: '', link: '', url: '' }
@@ -151,6 +155,7 @@ export default function HeroCreatePage() {
       <HeroPreview 
         slides={previewSlides} 
         brandColor={primary} secondary={secondary}
+        mode={brandMode}
         selectedStyle={heroStyle}
         onStyleChange={setHeroStyle}
         content={heroContent}

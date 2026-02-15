@@ -19,6 +19,8 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params);
   const router = useRouter();
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -151,6 +153,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}

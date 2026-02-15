@@ -93,6 +93,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const router = useRouter();
   const searchParams = useSearchParams();
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const brandColor = primary;
   
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
@@ -884,6 +886,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             <HeroPreview 
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))} 
               brandColor={brandColor} secondary={secondary}
+              mode={brandMode}
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}
