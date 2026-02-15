@@ -9306,8 +9306,8 @@ export const ProductCategoriesPreview = ({
                   key={cat.itemId} 
                   className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                   style={{ 
-                    boxShadow: `0 2px 8px ${secondary}10`,
-                    border: `1px solid ${secondary}10`,
+                    boxShadow: '0 2px 8px rgb(226 232 240 / 0.5)',
+                    border: '1px solid rgb(226 232 240)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}25`;
@@ -9315,16 +9315,20 @@ export const ProductCategoriesPreview = ({
                     e.currentTarget.style.transform = 'translateY(-4px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}10`;
-                    e.currentTarget.style.borderColor = `${secondary}10`;
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgb(226 232 240 / 0.5)';
+                    e.currentTarget.style.borderColor = 'rgb(226 232 240)';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   {renderCategoryVisual(cat, 'lg')}
-                  <div className={cn("absolute bottom-0 left-0 right-0 text-white", isMobile ? 'p-3' : 'p-4')}>
+                  <div
+                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"
+                    style={{ height: '60%' }}
+                  />
+                  <div className={cn("absolute bottom-0 left-0 right-0 text-white z-10", isMobile ? 'p-3' : 'p-4')}>
                     <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
                     {config.showProductCount && (
-                      <p className="text-xs opacity-80 mt-0.5" style={{ color: secondary }}>12 sản phẩm</p>
+                      <p className="text-xs text-white/90 mt-0.5">12 sản phẩm</p>
                     )}
                   </div>
                 </div>
@@ -9334,7 +9338,7 @@ export const ProductCategoriesPreview = ({
               {remainingCount > 0 && resolvedCategories.length > 2 && (
                 <div 
                   className="flex flex-col items-center justify-center aspect-square rounded-xl cursor-pointer transition-all"
-                  style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
+                  style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}20` }}
                 >
                   <Plus size={isMobile ? 24 : 32} style={{ color: secondary }} className="mb-2" />
                   <span className={cn("font-bold", isMobile ? 'text-base' : 'text-lg')} style={{ color: secondary }}>
