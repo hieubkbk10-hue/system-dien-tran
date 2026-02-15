@@ -15,9 +15,19 @@
      { key: 'enableMail', label: 'Cấu hình Email', icon: Mail },
    ],
  
-   settings: [
-     { key: 'cacheDuration', label: 'Cache duration (s)', type: 'number', default: 3600 },
-   ],
+  settings: [
+    {
+      key: 'site_brand_mode',
+      label: 'Chế độ màu thương hiệu',
+      type: 'select',
+      default: 'dual',
+      options: [
+        { label: '1 màu (Primary)', value: 'single' },
+        { label: '2 màu (Primary + Secondary)', value: 'dual' },
+      ],
+    },
+    { key: 'cacheDuration', label: 'Cache duration (s)', type: 'number', default: 3600 },
+  ],
  
    conventionNote: 'Settings lưu dạng key-value với group. Module này là isCore: true - không thể tắt.',
  

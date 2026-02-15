@@ -553,6 +553,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         settings: [
           { group: 'site', key: 'site_name', value: state.businessInfo.siteName || 'VietAdmin' },
           { group: 'site', key: 'site_tagline', value: state.businessInfo.tagline || '' },
+          { group: 'site', key: 'site_brand_mode', value: 'dual' },
           { group: 'site', key: 'site_brand_primary', value: state.businessInfo.brandColor || '#3b82f6' },
           { group: 'site', key: 'site_brand_secondary', value: '' },
           { group: 'site', key: 'site_brand_color', value: state.businessInfo.brandColor || '#3b82f6' },

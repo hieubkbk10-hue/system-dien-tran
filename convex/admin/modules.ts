@@ -498,6 +498,17 @@ export const setModuleSetting = mutation({
     } else {
       await ctx.db.insert("moduleSettings", args);
     }
+    if (args.moduleKey === "settings" && args.settingKey === "site_brand_mode") {
+      const existingSetting = await ctx.db
+        .query("settings")
+        .withIndex("by_key", (q) => q.eq("key", "site_brand_mode"))
+        .unique();
+      if (existingSetting) {
+        await ctx.db.patch(existingSetting._id, { group: "site", value: args.value });
+      } else {
+        await ctx.db.insert("settings", { group: "site", key: "site_brand_mode", value: args.value });
+      }
+    }
     return null;
   },
   returns: v.null(),

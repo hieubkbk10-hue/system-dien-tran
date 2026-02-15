@@ -132,6 +132,9 @@ function SettingsContent() {
     return features;
   }, [featuresData]);
 
+  const brandMode = form.site_brand_mode === 'single' ? 'single' : 'dual';
+  const isSecondaryModeSingle = brandMode === 'single';
+
   // Filter tabs based on enabled features
   const visibleTabs = useMemo(() => TAB_CONFIG.filter(tab => 
       tab.feature === null ||  enabledFeatures[tab.feature]
@@ -174,11 +177,17 @@ function SettingsContent() {
       if (!values.site_brand_primary && values.site_brand_color) {
         values.site_brand_primary = values.site_brand_color;
       }
-      setIsSecondaryAuto(!values.site_brand_secondary);
+      setIsSecondaryAuto(values.site_brand_mode === 'single' ? true : !values.site_brand_secondary);
       setForm(values);
       setInitialForm(values);
     }
   }, [settingsData]);
+
+  useEffect(() => {
+    if (isSecondaryModeSingle && !isSecondaryAuto) {
+      setIsSecondaryAuto(true);
+    }
+  }, [isSecondaryModeSingle, isSecondaryAuto]);
 
   // Reset active tab if current tab becomes hidden
   useEffect(() => {
@@ -235,7 +244,7 @@ function SettingsContent() {
           if (field.fieldKey === 'site_brand_primary' && !value && form.site_brand_color) {
             value = form.site_brand_color;
           }
-          if (field.fieldKey === 'site_brand_secondary' && isSecondaryAuto) {
+          if (field.fieldKey === 'site_brand_secondary' && (isSecondaryAuto || isSecondaryModeSingle)) {
             value = '';
           }
           return {
@@ -291,17 +300,19 @@ function SettingsContent() {
           const primaryColor = form.site_brand_primary || form.site_brand_color || '#3b82f6';
           const normalizedPrimary = isValidHexColor(primaryColor) ? primaryColor : '#3b82f6';
           const derivedSecondary = generateComplementary(normalizedPrimary);
-          const displayColor = isSecondaryAuto ? derivedSecondary : value;
+          const displayColor = isSecondaryModeSingle ? derivedSecondary : (isSecondaryAuto ? derivedSecondary : value);
+          const isSecondaryDisabled = isSecondaryAuto || isSecondaryModeSingle;
 
           return (
             <div className="space-y-2" key={key}>
               <div className="flex items-center justify-between gap-3">
-                <Label>{field.name}</Label>
+                <Label className={cn(isSecondaryModeSingle && 'opacity-50')}>{field.name}</Label>
                 <label className="flex items-center gap-2 text-xs text-slate-500">
                   <input
                     type="checkbox"
                     checked={isSecondaryAuto}
                     onChange={(e) => {
+                      if (isSecondaryModeSingle) {return;}
                       const auto = e.target.checked;
                       setIsSecondaryAuto(auto);
                       if (auto) {
@@ -309,6 +320,7 @@ function SettingsContent() {
                       }
                     }}
                     className="rounded border-slate-300"
+                    disabled={isSecondaryModeSingle}
                   />
                   Tự động sinh từ màu chính
                 </label>
@@ -318,24 +330,24 @@ function SettingsContent() {
                   type="color"
                   value={isValidHexColor(displayColor) ? displayColor : derivedSecondary}
                   onChange={(e) => {
-                    if (!isSecondaryAuto) {
+                    if (!isSecondaryDisabled) {
                       updateField(key, e.target.value);
                     }
                   }}
                   className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
-                  disabled={isSecondaryAuto}
+                  disabled={isSecondaryDisabled}
                 />
                 <Input
                   value={(displayColor || '').toUpperCase()}
                   onChange={(e) => {
-                    if (!isSecondaryAuto) {
+                    if (!isSecondaryDisabled) {
                       updateField(key, e.target.value);
                     }
                   }}
                   className="w-28 font-mono text-sm uppercase"
                   maxLength={7}
                   placeholder="#000000"
-                  disabled={isSecondaryAuto}
+                  disabled={isSecondaryDisabled}
                 />
                 <Palette size={16} className="text-slate-400" />
               </div>
@@ -346,14 +358,14 @@ function SettingsContent() {
                       key={idx}
                       type="button"
                       onClick={() =>{
-                        if (!isSecondaryAuto) {
+                        if (!isSecondaryDisabled) {
                           updateField(key, shade);
                         }
                       }}
                       className="flex-1 h-8 transition-all hover:scale-y-125 hover:z-10 relative group"
                       style={{ backgroundColor: shade }}
                       title={shade.toUpperCase()}
-                      disabled={isSecondaryAuto}
+                      disabled={isSecondaryDisabled}
                     >
                       <span
                         className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-[8px] font-mono font-bold"

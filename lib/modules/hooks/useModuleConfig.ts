@@ -104,6 +104,23 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
        setLocalSettings(state);
      }
    }, [settingsData, config.settings]);
+
+  useEffect(() => {
+    if (moduleKey !== 'settings') {return;}
+    const mode = localSettings.site_brand_mode;
+    if (!mode) {return;}
+    const shouldEnable = mode !== 'single';
+    setLocalFields(prev => {
+      let changed = false;
+      const next = prev.map(field => {
+        if (field.key !== 'site_brand_secondary') {return field;}
+        if (field.enabled === shouldEnable) {return field;}
+        changed = true;
+        return { ...field, enabled: shouldEnable };
+      });
+      return changed ? next : prev;
+    });
+  }, [moduleKey, localSettings.site_brand_mode]);
    
    // ============ SERVER STATE FOR COMPARISON ============
    const serverFeatures = useMemo<FeaturesState>(() => {

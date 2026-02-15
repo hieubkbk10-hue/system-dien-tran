@@ -55,11 +55,15 @@ export function useBrandColors() {
   const primarySetting = useQuery(api.settings.getByKey, { key: 'site_brand_primary' });
   const legacySetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
   const secondarySetting = useQuery(api.settings.getByKey, { key: 'site_brand_secondary' });
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const primary = resolveColorSetting(primarySetting?.value)
     ?? resolveColorSetting(legacySetting?.value)
     ?? DEFAULT_BRAND_COLOR;
-  const secondary = resolveColorSetting(secondarySetting?.value)
-    ?? generateComplementary(primary);
+  const mode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const secondary = mode === 'single'
+    ? ''
+    : resolveColorSetting(secondarySetting?.value)
+      ?? generateComplementary(primary);
 
   return { primary, secondary };
 }
@@ -83,7 +87,10 @@ export function useSiteSettings() {
   });
   
   const brandPrimary = settingsMap.site_brand_primary || settingsMap.site_brand_color || DEFAULT_BRAND_COLOR;
-  const brandSecondary = settingsMap.site_brand_secondary || generateComplementary(brandPrimary);
+  const brandMode = settingsMap.site_brand_mode === 'single' ? 'single' : 'dual';
+  const brandSecondary = brandMode === 'single'
+    ? ''
+    : settingsMap.site_brand_secondary || generateComplementary(brandPrimary);
 
   return {
     brandColor: brandPrimary,

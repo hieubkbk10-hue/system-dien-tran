@@ -241,6 +241,12 @@ function ConfigTab({ config, moduleData, localFeatures, localFields, localCatego
   })).filter((item) => item.settings.length > 0);
 
   const isProductModule = config.key === 'products';
+  const isSettingsModule = config.key === 'settings';
+  const isSingleBrandMode = isSettingsModule && localSettings.site_brand_mode === 'single';
+  const handleFieldToggle = (key: string) => {
+    if (isSingleBrandMode && key === 'site_brand_secondary') {return;}
+    onToggleField(key);
+  };
 
   return (
      <>
@@ -349,7 +355,7 @@ function ConfigTab({ config, moduleData, localFeatures, localFields, localCatego
            icon={config.icon}
            iconColorClass={colorClasses.iconText}
            fields={localFields}
-           onToggle={onToggleField}
+           onToggle={handleFieldToggle}
            fieldColorClass={colorClasses.fieldColor}
            toggleColor={colorClasses.toggle}
          />

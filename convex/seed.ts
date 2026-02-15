@@ -2042,6 +2042,7 @@ export const seedSettingsModule = mutation({
         { group: "site", key: "site_favicon", value: "" },
         { group: "site", key: "site_timezone", value: "Asia/Ho_Chi_Minh" },
         { group: "site", key: "site_language", value: "vi" },
+        { group: "site", key: "site_brand_mode", value: "dual" },
         { group: "site", key: "site_brand_primary", value: "#3b82f6" },
         { group: "site", key: "site_brand_secondary", value: "" },
         { group: "site", key: "site_brand_color", value: "#3b82f6" },
