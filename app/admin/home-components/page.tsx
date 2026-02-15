@@ -106,7 +106,7 @@ function SortableRow({ comp, index, isSelected, onToggleSelect, onToggleActive, 
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Link href={`/admin/home-components/${comp._id}/edit?type=${comp.type.toLowerCase()}`}>
+          <Link href={comp.type === 'Hero' ? `/admin/home-components/hero/${comp._id}/edit` : `/admin/home-components/${comp._id}/edit?type=${comp.type.toLowerCase()}`}>
             <Button variant="ghost" size="icon"><Edit size={16} /></Button>
           </Link>
           <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={onDelete}>

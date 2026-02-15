@@ -3,7 +3,7 @@
 import React, { use, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -18,8 +18,9 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, HeroContent, HeroStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, StatsStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
 } from '../../previews';
+import type { HeroContent, HeroStyle, HeroSlide } from '../../hero/_types';
 import { 
   AboutPreview,
   BenefitsPreview,
@@ -35,7 +36,7 @@ import {
   FeaturesPreview,
   FooterPreview,
   GalleryPreview,
-  HeroBannerPreview,
+  
   PricingPreview,
   ProcessPreview,
   ProductCategoriesPreview,
@@ -53,6 +54,8 @@ import {
 import { useBrandColors } from '../../create/shared';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
+import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
+import { HeroPreview } from '../../hero/_components/HeroPreview';
 
 const COMPONENT_TYPES = [
   { icon: LayoutTemplate, label: 'Hero Banner', value: 'Hero' },
@@ -89,12 +92,6 @@ const COMPONENT_TYPES = [
   { icon: Tag, label: 'Voucher khuyến mãi', value: 'VoucherPromotions' },
 ];
 
-interface HeroSlide extends ImageItem {
-  id: string | number;
-  url: string;
-  link: string;
-}
-
 interface GalleryItem extends ImageItem {
   id: string | number;
   url: string;
@@ -105,6 +102,7 @@ interface GalleryItem extends ImageItem {
 export default function HomeComponentEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { primary, secondary } = useBrandColors();
   const brandColor = primary;
   
@@ -134,14 +132,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   // Config states for different component types
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [heroStyle, setHeroStyle] = useState<HeroStyle>('slider');
-  const [heroContent, setHeroContent] = useState<HeroContent>({
-    badge: 'Nổi bật',
-    countdownText: 'Còn 3 ngày',
-    description: 'Sản phẩm chất lượng cao với giá thành hợp lý',
-    heading: 'Khám phá bộ sưu tập mới nhất',
-    primaryButtonText: 'Khám phá ngay',
-    secondaryButtonText: 'Tìm hiểu thêm',
-  });
+  const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryStyle, setGalleryStyle] = useState<GalleryStyle>('grid');
   const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
@@ -322,7 +313,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       
       // Initialize config based on type
       switch (component.type) {
-        case 'Hero':
         case 'Banner': {
           setHeroSlides(config.slides?.map((s: {image: string, link: string}, i: number) => ({ id: `slide-${i}`, link: s.link || '', url: s.image })) ?? [{ id: 'slide-1', link: '', url: '' }]);
           setHeroStyle((config.style as HeroStyle) || 'slider');
@@ -579,6 +569,19 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     }
   }, [component, isInitialized, brandColor]);
 
+  useEffect(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam?.toLowerCase() === 'hero') {
+      router.replace(`/admin/home-components/hero/${id}/edit`);
+    }
+  }, [id, router, searchParams]);
+
+  useEffect(() => {
+    if (component?.type === 'Hero') {
+      router.replace(`/admin/home-components/hero/${id}/edit`);
+    }
+  }, [component, id, router]);
+
   if (component === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -591,12 +594,15 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
+  if (searchParams.get('type')?.toLowerCase() === 'hero' || component.type === 'Hero') {
+    return <div className="flex items-center justify-center h-64 text-slate-500">Đang chuyển hướng...</div>;
+  }
+
   const TypeIcon = COMPONENT_TYPES.find(t => t.value === component.type)?.icon ?? Grid;
   const typeLabel = COMPONENT_TYPES.find(t => t.value === component.type)?.label ?? component.type;
 
   const buildConfig = () => {
     switch (component.type) {
-      case 'Hero':
       case 'Banner': {
         const needsContent = ['fullscreen', 'split', 'parallax'].includes(heroStyle);
         return { 
@@ -844,8 +850,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           </CardContent>
         </Card>
 
-        {/* Hero/Banner slides */}
-        {(component.type === 'Banner' || component.type === 'Hero') && (
+        {/* Banner slides */}
+        {component.type === 'Banner' && (
           <>
             <Card className="mb-6">
               <CardHeader>
@@ -934,7 +940,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 </CardContent>
               </Card>
             )}
-            <HeroBannerPreview 
+            <HeroPreview 
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))} 
               brandColor={brandColor} secondary={secondary}
               selectedStyle={heroStyle}

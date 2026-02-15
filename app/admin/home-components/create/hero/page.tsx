@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { HeroContent, HeroStyle } from '../../previews';
-import { HeroBannerPreview } from '../../previews';
+import type { HeroContent, HeroStyle } from '../../hero/_types';
+import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
+import { HeroPreview } from '../../hero/_components/HeroPreview';
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 
@@ -25,14 +26,7 @@ export default function HeroCreatePage() {
     { id: 'slide-1', image: '', link: '', url: '' }
   ]);
   const [heroStyle, setHeroStyle] = useState<HeroStyle>('slider');
-  const [heroContent, setHeroContent] = useState<HeroContent>({
-    badge: 'Nổi bật',
-    countdownText: 'Còn 3 ngày',
-    description: 'Sản phẩm chất lượng cao với giá thành hợp lý',
-    heading: 'Khám phá bộ sưu tập mới nhất',
-    primaryButtonText: 'Khám phá ngay',
-    secondaryButtonText: 'Tìm hiểu thêm',
-  });
+  const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
 
   const handleSlidesChange = (slides: HeroSlide[]) => {
     setHeroSlides(slides.map(s => ({ ...s, image: s.url })));
@@ -154,7 +148,7 @@ export default function HeroCreatePage() {
         </Card>
       )}
 
-      <HeroBannerPreview 
+      <HeroPreview 
         slides={previewSlides} 
         brandColor={primary} secondary={secondary}
         selectedStyle={heroStyle}
