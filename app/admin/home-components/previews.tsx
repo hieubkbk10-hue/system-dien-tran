@@ -9328,7 +9328,7 @@ export const ProductCategoriesPreview = ({
                   <div className={cn("absolute bottom-0 left-0 right-0 text-white z-10", isMobile ? 'p-3' : 'p-4')}>
                     <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
                     {config.showProductCount && (
-                      <p className="text-xs text-white/90 mt-0.5">12 sản phẩm</p>
+                      <p className="text-xs mt-0.5" style={{ color: secondary }}>12 sản phẩm</p>
                     )}
                   </div>
                 </div>
