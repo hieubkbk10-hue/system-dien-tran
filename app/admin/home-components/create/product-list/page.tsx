@@ -9,7 +9,12 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { BlogPreview, type BlogStyle, ProductListPreview, type ProductListPreviewItem, type ProductListStyle, ServiceListPreview, type ServiceListPreviewItem, type ServiceListStyle } from '../../previews';
+import { BlogPreview } from '../../blog/_components/BlogPreview';
+import type { BlogStyle } from '../../blog/_types';
+import { ProductListPreview } from '../../product-list/_components/ProductListPreview';
+import type { ProductListPreviewItem, ProductListStyle } from '../../product-list/_types';
+import { ServiceListPreview } from '../../service-list/_components/ServiceListPreview';
+import type { ServiceListPreviewItem, ServiceListStyle } from '../../service-list/_types';
 
 function ProductListCreateContent() {
   const searchParams = useSearchParams();

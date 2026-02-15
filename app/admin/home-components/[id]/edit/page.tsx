@@ -1,7 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
+import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -10,43 +9,36 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { 
   AlertCircle, Award, Briefcase, Check, ChevronDown, ChevronUp, 
   Download, FileText, Grid, GripVertical, HelpCircle, 
-  Image as ImageIcon, LayoutTemplate, Loader2, MousePointerClick, Package, Phone, Plus, Search, Star, Tag, Trash2,
-  User as UserIcon, Users, X, Zap
+  Image as ImageIcon, LayoutTemplate, Loader2, MousePointerClick, Package, Phone, Plus, Star, Tag, Trash2,
+  User as UserIcon, Users, Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, BlogStyle, CTAStyle, CareerStyle, CaseStudyStyle, CategoryProductsStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, GalleryStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ProductListStyle, ServiceListStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, TrustBadgesStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, CTAStyle, CareerStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, PricingConfig, PricingStyle, ProcessStyle, ProductCategoriesStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, VideoStyle
 } from '../../previews';
 import type { HeroContent, HeroStyle, HeroSlide } from '../../hero/_types';
 import { 
   AboutPreview,
   BenefitsPreview,
-  BlogPreview,
   CTAPreview,
   CareerPreview,
-  CaseStudyPreview,
-  CategoryProductsPreview,
   ClientsPreview,
   ContactPreview,
   CountdownPreview,
   FaqPreview,
   FeaturesPreview,
   FooterPreview,
-  GalleryPreview,
   
   PricingPreview,
   ProcessPreview,
   ProductCategoriesPreview,
-  ProductListPreview,
-  ServiceListPreview,
   ServicesPreview,
   SpeedDialPreview,
   TeamPreview,
   TestimonialsPreview,
-  TrustBadgesPreview,
   VideoPreview,
   VoucherPromotionsPreview
 } from '../../previews';
@@ -107,12 +99,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
-  // Query posts for Blog manual selection
-  const postsData = useQuery(api.posts.listAll, { limit: 100 });
-  // Query services for ServiceList manual selection
-  const servicesData = useQuery(api.services.listAll, { limit: 100 });
-  // Query products for ProductList manual selection
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
   // Query product categories for ProductCategories component
   const productCategoriesData = useQuery(api.productCategories.listActive);
   // Query settings for Footer
@@ -132,9 +118,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [heroStyle, setHeroStyle] = useState<HeroStyle>('slider');
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
-  const [galleryStyle, setGalleryStyle] = useState<GalleryStyle>('grid');
-  const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
   const [ctaConfig, setCtaConfig] = useState({ badge: '', buttonLink: '', buttonText: '', description: '', secondaryButtonLink: '', secondaryButtonText: '', title: '' });
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
   const [faqItems, setFaqItems] = useState<{id: number, question: string, answer: string}[]>([]);
@@ -168,8 +151,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>({ monthlyLabel: 'Hàng tháng', showBillingToggle: true, subtitle: '', yearlyLabel: 'Hàng năm', yearlySavingText: 'Tiết kiệm 17%' });
   const [draggedPricingId, setDraggedPricingId] = useState<number | null>(null);
   const [dragOverPricingId, setDragOverPricingId] = useState<number | null>(null);
-  const [caseStudyProjects, setCaseStudyProjects] = useState<{id: number, title: string, category: string, image: string, description: string, link: string}[]>([]);
-  const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
   const [careerJobs, setCareerJobs] = useState<{id: number, title: string, department: string, location: string, type: string, salary: string, description: string}[]>([]);
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [speedDialActions, setSpeedDialActions] = useState<{id: number, icon: string, label: string, url: string, bgColor: string}[]>([]);
@@ -182,15 +163,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [productCategoriesShowCount, setProductCategoriesShowCount] = useState(true);
   const [productCategoriesColsDesktop, setProductCategoriesColsDesktop] = useState(4);
   const [productCategoriesColsMobile, setProductCategoriesColsMobile] = useState(2);
-  // CategoryProducts states
-  const [categoryProductsSections, setCategoryProductsSections] = useState<{id: number, categoryId: string, itemCount: number}[]>([]);
-  const [categoryProductsStyle, setCategoryProductsStyle] = useState<CategoryProductsStyle>('grid');
-  const [categoryProductsShowViewAll, setCategoryProductsShowViewAll] = useState(true);
-  const [categoryProductsColsDesktop, setCategoryProductsColsDesktop] = useState(4);
-  const [categoryProductsColsMobile, setCategoryProductsColsMobile] = useState(2);
-  // CategoryProducts Drag & Drop states
-  const [categoryProductsDraggedId, setCategoryProductsDraggedId] = useState<number | null>(null);
-  const [categoryProductsDragOverId, setCategoryProductsDragOverId] = useState<number | null>(null);
   // Team states
   const [teamMembers, setTeamMembers] = useState<{id: number, name: string, role: string, avatar: string, bio: string, facebook: string, linkedin: string, twitter: string, email: string}[]>([]);
   const [teamStyle, setTeamStyle] = useState<TeamStyle>('grid');
@@ -223,86 +195,26 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [voucherLimit, setVoucherLimit] = useState(4);
   const [contactConfig, setContactConfig] = useState({ address: '', email: '', formDescription: '', formFields: ['name', 'email', 'phone', 'message'], formTitle: '', mapEmbed: '', phone: '', responseTimeText: '', showMap: true, socialLinks: [] as { id: number; platform: string; url: string }[], submitButtonText: '', workingHours: '' });
   const [contactStyle, setContactStyle] = useState<ContactStyle>('modern');
-  const [productListConfig, setProductListConfig] = useState({ itemCount: 8, sortBy: 'newest' });
-  const [productListStyle, setProductListStyle] = useState<ProductListStyle>('commerce');
-  const [serviceListStyle, setServiceListStyle] = useState<ServiceListStyle>('grid');
-  const [blogStyle, setBlogStyle] = useState<BlogStyle>('grid');
-  // Blog manual selection states
-  const [blogSelectionMode, setBlogSelectionMode] = useState<'auto' | 'manual'>('auto');
-  const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
-  const [postSearchTerm, setPostSearchTerm] = useState('');
-  // ServiceList manual selection states
-  const [serviceSelectionMode, setServiceSelectionMode] = useState<'auto' | 'manual'>('auto');
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-  const [serviceSearchTerm, setServiceSearchTerm] = useState('');
-  // ProductList manual selection states
-  const [productSelectionMode, setProductSelectionMode] = useState<'auto' | 'manual'>('auto');
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [productSearchTerm, setProductSearchTerm] = useState('');
-  // ProductList text config
-  const [productSubTitle, setProductSubTitle] = useState('Bộ sưu tập');
-  const [productSectionTitle, setProductSectionTitle] = useState('Sản phẩm nổi bật');
-
-  // Filter posts for search and get selected posts data
-  const filteredPosts = useMemo(() => {
-    if (!postsData) {return [];}
-    return postsData
-      .filter(post => post.status === 'Published')
-      .filter(post => 
-        !postSearchTerm || 
-        post.title.toLowerCase().includes(postSearchTerm.toLowerCase())
-      );
-  }, [postsData, postSearchTerm]);
-
-  const selectedPosts = useMemo(() => {
-    if (!postsData || selectedPostIds.length === 0) {return [];}
-    const postMap = new Map(postsData.map(p => [p._id, p]));
-    return selectedPostIds
-      .map(id => postMap.get(id as Id<"posts">))
-      .filter((p): p is NonNullable<typeof p> => p !== undefined);
-  }, [postsData, selectedPostIds]);
-
-  // Filter services for search and get selected services data
-  const filteredServices = useMemo(() => {
-    if (!servicesData) {return [];}
-    return servicesData
-      .filter(service => service.status === 'Published')
-      .filter(service => 
-        !serviceSearchTerm || 
-        service.title.toLowerCase().includes(serviceSearchTerm.toLowerCase())
-      );
-  }, [servicesData, serviceSearchTerm]);
-
-  const selectedServices = useMemo(() => {
-    if (!servicesData || selectedServiceIds.length === 0) {return [];}
-    const serviceMap = new Map(servicesData.map(s => [s._id, s]));
-    return selectedServiceIds
-      .map(id => serviceMap.get(id as Id<"services">))
-      .filter((s): s is NonNullable<typeof s> => s !== undefined);
-  }, [servicesData, selectedServiceIds]);
-
-  // Filter products for search and get selected products data
-  const filteredProducts = useMemo(() => {
-    if (!productsData) {return [];}
-    return productsData
-      .filter(product => product.status === 'Active')
-      .filter(product => 
-        !productSearchTerm || 
-        product.name.toLowerCase().includes(productSearchTerm.toLowerCase())
-      );
-  }, [productsData, productSearchTerm]);
-
-  const selectedProducts = useMemo(() => {
-    if (!productsData || selectedProductIds.length === 0) {return [];}
-    const productMap = new Map(productsData.map(p => [p._id, p]));
-    return selectedProductIds
-      .map(id => productMap.get(id as Id<"products">))
-      .filter((p): p is NonNullable<typeof p> => p !== undefined);
-  }, [productsData, selectedProductIds]);
 
   // Initialize form with component data
   useEffect(() => {
     if (component && !isInitialized) {
+      if (component.type === 'Partners') {
+        router.replace(`/admin/home-components/partners/${component._id}/edit`);
+        return;
+      }
+      if (component.type === 'CategoryProducts') {
+        router.replace(`/admin/home-components/category-products/${component._id}/edit`);
+        return;
+      }
+      if (component.type === 'ProductList') {
+        router.replace(`/admin/home-components/product-list/${component._id}/edit`);
+        return;
+      }
+      if (component.type === 'Gallery' || component.type === 'TrustBadges') {
+        router.replace(`/admin/home-components/gallery/${component._id}/edit`);
+        return;
+      }
       setTitle(component.title);
       setActive(component.active);
       
@@ -316,17 +228,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           if (config.content) {
             setHeroContent(config.content as HeroContent);
           }
-          break;
-        }
-        case 'Gallery':
-        case 'Partners': {
-          setGalleryItems(config.items?.map((item: {url: string, link: string, name?: string}, i: number) => ({ id: `item-${i}`, link: item.link || '', name: item.name ?? '', url: item.url })) ?? [{ id: 'item-1', link: '', name: '', url: '' }]);
-          setGalleryStyle((config.style as GalleryStyle) || 'grid');
-          break;
-        }
-        case 'TrustBadges': {
-          setGalleryItems(config.items?.map((item: {url: string, link: string, name?: string}, i: number) => ({ id: `item-${i}`, link: item.link || '', name: item.name ?? '', url: item.url })) ?? [{ id: 'item-1', link: '', name: '', url: '' }]);
-          setTrustBadgesStyle((config.style as TrustBadgesStyle) || 'cards');
           break;
         }
         case 'CTA': {
@@ -412,11 +313,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           });
           break;
         }
-        case 'CaseStudy': {
-          setCaseStudyProjects(config.projects?.map((p: {title: string, category: string, image: string, description: string, link: string}, i: number) => ({ id: i, ...p })) ?? []);
-          setCaseStudyStyle((config.style as CaseStudyStyle) || 'grid');
-          break;
-        }
         case 'Career': {
           setCareerJobs(config.jobs?.map((j: {title: string, department: string, location: string, type: string, salary: string, description: string}, i: number) => ({ id: i, ...j })) ?? []);
           setCareerStyle((config.style as CareerStyle) || 'cards');
@@ -434,29 +330,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           setContactStyle((config.style as ContactStyle) || 'modern');
           break;
         }
-        case 'ProductList': {
-          setProductListConfig({ itemCount: config.itemCount ?? 8, sortBy: config.sortBy ?? 'newest' });
-          setProductListStyle((config.style as ProductListStyle) || 'commerce');
-          setProductSelectionMode(config.selectionMode ?? 'auto');
-          setSelectedProductIds(config.selectedProductIds ?? []);
-          setProductSubTitle(config.subTitle ?? 'Bộ sưu tập');
-          setProductSectionTitle(config.sectionTitle ?? 'Sản phẩm nổi bật');
-          break;
-        }
-        case 'ServiceList': {
-          setProductListConfig({ itemCount: config.itemCount ?? 8, sortBy: config.sortBy ?? 'newest' });
-          setServiceListStyle((config.style as ServiceListStyle) || 'grid');
-          setServiceSelectionMode(config.selectionMode ?? 'auto');
-          setSelectedServiceIds(config.selectedServiceIds ?? []);
-          break;
-        }
-        case 'Blog': {
-          setProductListConfig({ itemCount: config.itemCount ?? 8, sortBy: config.sortBy ?? 'newest' });
-          setBlogStyle((config.style as BlogStyle) || 'grid');
-          setBlogSelectionMode(config.selectionMode ?? 'auto');
-          setSelectedPostIds(config.selectedPostIds ?? []);
-          break;
-        }
         case 'SpeedDial': {
           setSpeedDialActions(config.actions?.map((a: {icon: string, label: string, url: string, bgColor: string}, i: number) => ({ id: i, ...a })) ?? [{ bgColor: '#22c55e', icon: 'phone', id: 1, label: 'Gọi ngay', url: '' }]);
           setSpeedDialStyle((config.style as SpeedDialStyle) || 'fab');
@@ -470,14 +343,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           setProductCategoriesShowCount(config.showProductCount ?? true);
           setProductCategoriesColsDesktop(config.columnsDesktop ?? 4);
           setProductCategoriesColsMobile(config.columnsMobile ?? 2);
-          break;
-        }
-        case 'CategoryProducts': {
-          setCategoryProductsSections(config.sections?.map((s: {categoryId: string, itemCount: number}, i: number) => ({ categoryId: s.categoryId, id: i, itemCount: s.itemCount || 4 })) ?? []);
-          setCategoryProductsStyle((config.style as CategoryProductsStyle) || 'grid');
-          setCategoryProductsShowViewAll(config.showViewAll ?? true);
-          setCategoryProductsColsDesktop(config.columnsDesktop ?? 4);
-          setCategoryProductsColsMobile(config.columnsMobile ?? 2);
           break;
         }
         case 'Team': {
@@ -559,7 +424,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       
       setIsInitialized(true);
     }
-  }, [component, isInitialized, brandColor]);
+  }, [component, isInitialized, brandColor, router]);
 
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -569,6 +434,21 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     if (typeParam?.toLowerCase() === 'stats') {
       router.replace(`/admin/home-components/stats/${id}/edit`);
     }
+    if (['casestudy', 'case-study'].includes(typeParam?.toLowerCase() ?? '')) {
+      router.replace(`/admin/home-components/case-study/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'servicelist') {
+      router.replace(`/admin/home-components/service-list/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'productgrid') {
+      router.replace(`/admin/home-components/product-grid/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'productlist') {
+      router.replace(`/admin/home-components/product-list/${id}/edit`);
+    }
+    if (typeParam?.toLowerCase() === 'blog') {
+      router.replace(`/admin/home-components/blog/${id}/edit`);
+    }
   }, [id, router, searchParams]);
 
   useEffect(() => {
@@ -577,6 +457,21 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     }
     if (component?.type === 'Stats') {
       router.replace(`/admin/home-components/stats/${id}/edit`);
+    }
+    if (component?.type === 'CaseStudy') {
+      router.replace(`/admin/home-components/case-study/${id}/edit`);
+    }
+    if (component?.type === 'ServiceList') {
+      router.replace(`/admin/home-components/service-list/${id}/edit`);
+    }
+    if (component?.type === 'ProductGrid') {
+      router.replace(`/admin/home-components/product-grid/${id}/edit`);
+    }
+    if (component?.type === 'ProductList') {
+      router.replace(`/admin/home-components/product-list/${id}/edit`);
+    }
+    if (component?.type === 'Blog') {
+      router.replace(`/admin/home-components/blog/${id}/edit`);
     }
   }, [component, id, router]);
 
@@ -592,7 +487,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  if (['hero', 'stats'].includes(searchParams.get('type')?.toLowerCase() ?? '') || component.type === 'Hero' || component.type === 'Stats') {
+  if (['hero', 'stats', 'casestudy', 'case-study', 'servicelist', 'productgrid', 'productlist', 'blog'].includes(searchParams.get('type')?.toLowerCase() ?? '') || component.type === 'Hero' || component.type === 'Stats' || component.type === 'CaseStudy' || component.type === 'ServiceList' || component.type === 'ProductGrid' || component.type === 'ProductList' || component.type === 'Blog') {
     return <div className="flex items-center justify-center h-64 text-slate-500">Đang chuyển hướng...</div>;
   }
 
@@ -608,13 +503,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           slides: heroSlides.map(s => ({ image: s.url, link: s.link })),
           style: heroStyle,
         };
-      }
-      case 'Gallery':
-      case 'Partners': {
-        return { items: galleryItems.map(g => ({ link: g.link, name: g.name, url: g.url })), style: galleryStyle };
-      }
-      case 'TrustBadges': {
-        return { items: galleryItems.map(g => ({ link: g.link, name: g.name, url: g.url })), style: trustBadgesStyle };
       }
       case 'CTA': {
         return { ...ctaConfig, style: ctaStyle };
@@ -659,40 +547,11 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           ...pricingConfig
         };
       }
-      case 'CaseStudy': {
-        return { projects: caseStudyProjects.map(p => ({ category: p.category, description: p.description, image: p.image, link: p.link, title: p.title })), style: caseStudyStyle };
-      }
       case 'Career': {
         return { jobs: careerJobs.map(j => ({ department: j.department, description: j.description, location: j.location, salary: j.salary, title: j.title, type: j.type })), style: careerStyle };
       }
       case 'Contact': {
         return { ...contactConfig, style: contactStyle };
-      }
-      case 'ProductList': {
-        return { 
-          ...productListConfig, 
-          style: productListStyle, 
-          selectionMode: productSelectionMode,
-          selectedProductIds: productSelectionMode === 'manual' ? selectedProductIds : [],
-          subTitle: productSubTitle,
-          sectionTitle: productSectionTitle,
-        };
-      }
-      case 'ServiceList': {
-        return { 
-          ...productListConfig, 
-          style: serviceListStyle, 
-          selectionMode: serviceSelectionMode,
-          selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
-        };
-      }
-      case 'Blog': {
-        return { 
-          ...productListConfig, 
-          style: blogStyle, 
-          selectionMode: blogSelectionMode,
-          selectedPostIds: blogSelectionMode === 'manual' ? selectedPostIds : [],
-        };
       }
       case 'SpeedDial': {
         return {
@@ -710,15 +569,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           columnsMobile: productCategoriesColsMobile,
           showProductCount: productCategoriesShowCount,
           style: productCategoriesStyle,
-        };
-      }
-      case 'CategoryProducts': {
-        return {
-          columnsDesktop: categoryProductsColsDesktop,
-          columnsMobile: categoryProductsColsMobile,
-          sections: categoryProductsSections.map(s => ({ categoryId: s.categoryId, itemCount: s.itemCount })),
-          showViewAll: categoryProductsShowViewAll,
-          style: categoryProductsStyle,
         };
       }
       case 'Team': {
@@ -942,57 +792,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               onStyleChange={setHeroStyle}
               content={heroContent}
             />
-          </>
-        )}
-
-        {/* Gallery / Partners / TrustBadges */}
-        {(component.type === 'Gallery' || component.type === 'Partners' || component.type === 'TrustBadges') && (
-          <>
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {component.type === 'Partners' ? 'Logo đối tác' : (component.type === 'TrustBadges' ? 'Chứng nhận' : 'Thư viện ảnh')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MultiImageUploader<GalleryItem>
-                  items={galleryItems}
-                  onChange={setGalleryItems}
-                  folder={component.type.toLowerCase()}
-                  imageKey="url"
-                  extraFields={
-                    component.type === 'Partners' 
-                      ? [{ key: 'link', placeholder: 'Link website đối tác', type: 'url' }] 
-                      : (component.type === 'TrustBadges'
-                      ? [{ key: 'name', placeholder: 'Tên chứng nhận/bằng cấp', type: 'text' }]
-                      : [])
-                  }
-                  minItems={1}
-                  maxItems={20}
-                  aspectRatio={component.type === 'Partners' ? 'video' : (component.type === 'Gallery' ? 'video' : 'square')}
-                  columns={component.type === 'Gallery' ? 2 : (component.type === 'TrustBadges' ? 3 : 4)}
-                  showReorder={true}
-                  addButtonText={component.type === 'Partners' ? 'Thêm logo' : (component.type === 'TrustBadges' ? 'Thêm chứng nhận' : 'Thêm ảnh')}
-                  layout={component.type === 'Gallery' ? 'vertical' : (component.type === 'TrustBadges' ? 'vertical' : 'horizontal')}
-                />
-              </CardContent>
-            </Card>
-            {component.type === 'TrustBadges' ? (
-              <TrustBadgesPreview 
-                items={galleryItems.map((g, idx) => ({ id: idx + 1, link: g.link, name: g.name, url: g.url }))} 
-                brandColor={brandColor} secondary={secondary}
-                selectedStyle={trustBadgesStyle}
-                onStyleChange={setTrustBadgesStyle}
-              />
-            ) : (
-              <GalleryPreview 
-                items={galleryItems.map((g, idx) => ({ id: idx + 1, link: g.link, url: g.url }))} 
-                brandColor={brandColor} secondary={secondary}
-                componentType={component.type}
-                selectedStyle={galleryStyle}
-                onStyleChange={setGalleryStyle}
-              />
-            )}
           </>
         )}
 
@@ -1934,694 +1733,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           </>
         )}
 
-        {/* ProductList */}
-        {component.type === 'ProductList' && (
-          <>
-            {/* Cấu hình hiển thị */}
-            <Card className="mb-6">
-              <CardHeader><CardTitle className="text-base">Cấu hình hiển thị</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tiêu đề phụ (badge)</Label>
-                    <Input 
-                      value={productSubTitle} 
-                      onChange={(e) =>{  setProductSubTitle(e.target.value); }} 
-                      placeholder="VD: Bộ sưu tập, Sản phẩm hot..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tiêu đề chính</Label>
-                    <Input 
-                      value={productSectionTitle} 
-                      onChange={(e) =>{  setProductSectionTitle(e.target.value); }} 
-                      placeholder="VD: Sản phẩm nổi bật, Bán chạy nhất..."
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-6">
-              <CardHeader><CardTitle className="text-base">Nguồn dữ liệu</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {/* Selection Mode Toggle */}
-                <div className="space-y-2">
-                  <Label>Chế độ chọn sản phẩm</Label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>{  setProductSelectionMode('auto'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        productSelectionMode === 'auto'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Tự động
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>{  setProductSelectionMode('manual'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        productSelectionMode === 'manual'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Chọn thủ công
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {productSelectionMode === 'auto' 
-                      ? 'Hiển thị sản phẩm tự động theo số lượng và sắp xếp' 
-                      : 'Chọn từng sản phẩm cụ thể để hiển thị'}
-                  </p>
-                </div>
-
-                {/* Auto mode settings */}
-                {productSelectionMode === 'auto' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Số lượng hiển thị</Label>
-                      <Input type="number" value={productListConfig.itemCount} onChange={(e) =>{  setProductListConfig({...productListConfig, itemCount: Number.parseInt(e.target.value) || 8}); }} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sắp xếp theo</Label>
-                      <select className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" value={productListConfig.sortBy} onChange={(e) =>{  setProductListConfig({...productListConfig, sortBy: e.target.value}); }}>
-                        <option value="newest">Mới nhất</option>
-                        <option value="bestseller">Bán chạy nhất</option>
-                        <option value="random">Ngẫu nhiên</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* Manual mode - Product selector */}
-                {productSelectionMode === 'manual' && (
-                  <div className="space-y-4">
-                    {/* Selected products list */}
-                    {selectedProducts.length > 0 && (
-                      <div className="space-y-2">
-                        <Label>Sản phẩm đã chọn ({selectedProducts.length})</Label>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                          {selectedProducts.map((product, index) => (
-                            <div 
-                              key={product._id} 
-                              className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg group"
-                            >
-                              <div className="text-slate-400 cursor-move">
-                                <GripVertical size={16} />
-                              </div>
-                              <span className="w-6 h-6 flex items-center justify-center bg-blue-500 text-white text-xs rounded-full font-medium">
-                                {index + 1}
-                              </span>
-                              {product.image ? (
-                                <Image src={product.image} alt="" width={48} height={48} className="w-12 h-12 object-cover rounded" />
-                              ) : (
-                                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
-                                  <Package size={16} className="text-slate-400" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{product.name}</p>
-                                <p className="text-xs text-slate-500">{product.price?.toLocaleString('vi-VN')}đ</p>
-                              </div>
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={() =>{  setSelectedProductIds(ids => ids.filter(id => id !== product._id)); }}
-                              >
-                                <X size={16} />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Search and add products */}
-                    <div className="space-y-2">
-                      <Label>Thêm sản phẩm</Label>
-                      <div className="relative">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <Input 
-                          placeholder="Tìm kiếm sản phẩm..." 
-                          className="pl-9"
-                          value={productSearchTerm}
-                          onChange={(e) =>{  setProductSearchTerm(e.target.value); }}
-                        />
-                      </div>
-                      <div className="border border-slate-200 dark:border-slate-700 rounded-lg max-h-[250px] overflow-y-auto">
-                        {filteredProducts.length === 0 ? (
-                          <div className="p-4 text-center text-sm text-slate-500">
-                            {productsData === undefined ? 'Đang tải...' : 'Không tìm thấy sản phẩm'}
-                          </div>
-                        ) : (
-                          filteredProducts.map(product => {
-                            const isSelected = selectedProductIds.includes(product._id);
-                            return (
-                              <div 
-                                key={product._id}
-                                onClick={() => {
-                                  if (isSelected) {
-                                    setSelectedProductIds(ids => ids.filter(id => id !== product._id));
-                                  } else {
-                                    setSelectedProductIds(ids => [...ids, product._id]);
-                                  }
-                                }}
-                                className={cn(
-                                  "flex items-center gap-3 p-3 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors",
-                                  isSelected 
-                                    ? "bg-blue-50 dark:bg-blue-500/10" 
-                                    : "hover:bg-slate-50 dark:hover:bg-slate-800"
-                                )}
-                              >
-                                <div className={cn(
-                                  "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                                  isSelected 
-                                    ? "border-blue-500 bg-blue-500" 
-                                    : "border-slate-300 dark:border-slate-600"
-                                )}>
-                                  {isSelected && <Check size={12} className="text-white" />}
-                                </div>
-                                {product.image ? (
-                                  <Image src={product.image} alt="" width={40} height={40} className="w-10 h-10 object-cover rounded" />
-                                ) : (
-                                  <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center">
-                                    <Package size={14} className="text-slate-400" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{product.name}</p>
-                                  <p className="text-xs text-slate-500">{product.price?.toLocaleString('vi-VN')}đ</p>
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <ProductListPreview 
-              brandColor={brandColor} secondary={secondary}
-              itemCount={productSelectionMode === 'manual' ? selectedProductIds.length : productListConfig.itemCount}
-              componentType="ProductList"
-              selectedStyle={productListStyle}
-              onStyleChange={setProductListStyle}
-              items={productSelectionMode === 'manual' && selectedProducts.length > 0 
-                ? selectedProducts.map(p => ({ description: p.description, id: p._id, image: p.image, name: p.name, price: p.price?.toLocaleString('vi-VN') + 'đ' }))
-                : filteredProducts.slice(0, productListConfig.itemCount).map(p => ({ description: p.description, id: p._id, image: p.image, name: p.name, price: p.price?.toLocaleString('vi-VN') + 'đ' }))
-              }
-              subTitle={productSubTitle}
-              sectionTitle={productSectionTitle}
-            />
-          </>
-        )}
-
-        {/* ServiceList */}
-        {component.type === 'ServiceList' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader><CardTitle className="text-base">Nguồn dữ liệu</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {/* Selection Mode Toggle */}
-                <div className="space-y-2">
-                  <Label>Chế độ chọn dịch vụ</Label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>{  setServiceSelectionMode('auto'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        serviceSelectionMode === 'auto'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Tự động
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>{  setServiceSelectionMode('manual'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        serviceSelectionMode === 'manual'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Chọn thủ công
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {serviceSelectionMode === 'auto' 
-                      ? 'Hiển thị dịch vụ tự động theo số lượng và sắp xếp' 
-                      : 'Chọn từng dịch vụ cụ thể để hiển thị'}
-                  </p>
-                </div>
-
-                {/* Auto mode settings */}
-                {serviceSelectionMode === 'auto' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Số lượng hiển thị</Label>
-                      <Input type="number" value={productListConfig.itemCount} onChange={(e) =>{  setProductListConfig({...productListConfig, itemCount: Number.parseInt(e.target.value) || 8}); }} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sắp xếp theo</Label>
-                      <select className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" value={productListConfig.sortBy} onChange={(e) =>{  setProductListConfig({...productListConfig, sortBy: e.target.value}); }}>
-                        <option value="newest">Mới nhất</option>
-                        <option value="popular">Xem nhiều nhất</option>
-                        <option value="random">Ngẫu nhiên</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* Manual mode - Service selector */}
-                {serviceSelectionMode === 'manual' && (
-                  <div className="space-y-4">
-                    {/* Selected services list */}
-                    {selectedServices.length > 0 && (
-                      <div className="space-y-2">
-                        <Label>Dịch vụ đã chọn ({selectedServices.length})</Label>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                          {selectedServices.map((service, index) => (
-                            <div 
-                              key={service._id} 
-                              className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg group"
-                            >
-                              <div className="text-slate-400 cursor-move">
-                                <GripVertical size={16} />
-                              </div>
-                              <span className="w-6 h-6 flex items-center justify-center bg-blue-500 text-white text-xs rounded-full font-medium">
-                                {index + 1}
-                              </span>
-                              {service.thumbnail ? (
-                                <Image src={service.thumbnail} alt="" width={48} height={48} className="w-12 h-12 object-cover rounded" />
-                              ) : (
-                                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
-                                  <Briefcase size={16} className="text-slate-400" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{service.title}</p>
-                                <p className="text-xs text-slate-500">{service.views} lượt xem</p>
-                              </div>
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={() =>{  setSelectedServiceIds(ids => ids.filter(id => id !== service._id)); }}
-                              >
-                                <X size={16} />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Search and add services */}
-                    <div className="space-y-2">
-                      <Label>Thêm dịch vụ</Label>
-                      <div className="relative">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <Input 
-                          placeholder="Tìm kiếm dịch vụ..." 
-                          className="pl-9"
-                          value={serviceSearchTerm}
-                          onChange={(e) =>{  setServiceSearchTerm(e.target.value); }}
-                        />
-                      </div>
-                      <div className="border border-slate-200 dark:border-slate-700 rounded-lg max-h-[250px] overflow-y-auto">
-                        {filteredServices.length === 0 ? (
-                          <div className="p-4 text-center text-sm text-slate-500">
-                            {servicesData === undefined ? 'Đang tải...' : 'Không tìm thấy dịch vụ'}
-                          </div>
-                        ) : (
-                          filteredServices.map(service => {
-                            const isSelected = selectedServiceIds.includes(service._id);
-                            return (
-                              <div 
-                                key={service._id}
-                                onClick={() => {
-                                  if (isSelected) {
-                                    setSelectedServiceIds(ids => ids.filter(id => id !== service._id));
-                                  } else {
-                                    setSelectedServiceIds(ids => [...ids, service._id]);
-                                  }
-                                }}
-                                className={cn(
-                                  "flex items-center gap-3 p-3 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors",
-                                  isSelected 
-                                    ? "bg-blue-50 dark:bg-blue-500/10" 
-                                    : "hover:bg-slate-50 dark:hover:bg-slate-800"
-                                )}
-                              >
-                                <div className={cn(
-                                  "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                                  isSelected 
-                                    ? "border-blue-500 bg-blue-500" 
-                                    : "border-slate-300 dark:border-slate-600"
-                                )}>
-                                  {isSelected && <Check size={12} className="text-white" />}
-                                </div>
-                                {service.thumbnail ? (
-                                  <Image src={service.thumbnail} alt="" width={40} height={40} className="w-10 h-10 object-cover rounded" />
-                                ) : (
-                                  <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center">
-                                    <Briefcase size={14} className="text-slate-400" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{service.title}</p>
-                                  <p className="text-xs text-slate-500">{service.views} lượt xem</p>
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <ServiceListPreview 
-              brandColor={brandColor} secondary={secondary}
-              itemCount={serviceSelectionMode === 'manual' ? selectedServiceIds.length : productListConfig.itemCount}
-              selectedStyle={serviceListStyle}
-              onStyleChange={setServiceListStyle}
-              items={serviceSelectionMode === 'manual' && selectedServices.length > 0 
-                ? selectedServices.map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
-                : filteredServices.slice(0, productListConfig.itemCount).map(s => ({ description: s.excerpt, id: s._id, image: s.thumbnail, name: s.title, price: s.price ? s.price.toLocaleString('vi-VN') + 'đ' : 'Liên hệ' }))
-              }
-              title={title}
-            />
-          </>
-        )}
-
-        {/* Blog */}
-        {component.type === 'Blog' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader><CardTitle className="text-base">Nguồn dữ liệu</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {/* Selection Mode Toggle */}
-                <div className="space-y-2">
-                  <Label>Chế độ chọn bài viết</Label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>{  setBlogSelectionMode('auto'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        blogSelectionMode === 'auto'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Tự động
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>{  setBlogSelectionMode('manual'); }}
-                      className={cn(
-                        "flex-1 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all",
-                        blogSelectionMode === 'manual'
-                          ? "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                      )}
-                    >
-                      Chọn thủ công
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {blogSelectionMode === 'auto' 
-                      ? 'Hiển thị bài viết tự động theo số lượng và sắp xếp' 
-                      : 'Chọn từng bài viết cụ thể để hiển thị'}
-                  </p>
-                </div>
-
-                {/* Auto mode settings */}
-                {blogSelectionMode === 'auto' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Số lượng hiển thị</Label>
-                      <Input type="number" value={productListConfig.itemCount} onChange={(e) =>{  setProductListConfig({...productListConfig, itemCount: Number.parseInt(e.target.value) || 8}); }} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Sắp xếp theo</Label>
-                      <select className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" value={productListConfig.sortBy} onChange={(e) =>{  setProductListConfig({...productListConfig, sortBy: e.target.value}); }}>
-                        <option value="newest">Mới nhất</option>
-                        <option value="popular">Xem nhiều nhất</option>
-                        <option value="random">Ngẫu nhiên</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* Manual mode - Post selector */}
-                {blogSelectionMode === 'manual' && (
-                  <div className="space-y-4">
-                    {/* Selected posts list */}
-                    {selectedPosts.length > 0 && (
-                      <div className="space-y-2">
-                        <Label>Bài viết đã chọn ({selectedPosts.length})</Label>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                          {selectedPosts.map((post, index) => (
-                            <div 
-                              key={post._id} 
-                              className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg group"
-                            >
-                              <div className="text-slate-400 cursor-move">
-                                <GripVertical size={16} />
-                              </div>
-                              <span className="w-6 h-6 flex items-center justify-center bg-blue-500 text-white text-xs rounded-full font-medium">
-                                {index + 1}
-                              </span>
-                              {post.thumbnail ? (
-                                <Image src={post.thumbnail} alt="" width={48} height={48} className="w-12 h-12 object-cover rounded" />
-                              ) : (
-                                <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
-                                  <FileText size={16} className="text-slate-400" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{post.title}</p>
-                                <p className="text-xs text-slate-500">{new Date(post._creationTime).toLocaleDateString('vi-VN')}</p>
-                              </div>
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={() =>{  setSelectedPostIds(ids => ids.filter(id => id !== post._id)); }}
-                              >
-                                <X size={16} />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Search and add posts */}
-                    <div className="space-y-2">
-                      <Label>Thêm bài viết</Label>
-                      <div className="relative">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <Input 
-                          placeholder="Tìm kiếm bài viết..." 
-                          className="pl-9"
-                          value={postSearchTerm}
-                          onChange={(e) =>{  setPostSearchTerm(e.target.value); }}
-                        />
-                      </div>
-                      <div className="border border-slate-200 dark:border-slate-700 rounded-lg max-h-[250px] overflow-y-auto">
-                        {filteredPosts.length === 0 ? (
-                          <div className="p-4 text-center text-sm text-slate-500">
-                            {postsData === undefined ? 'Đang tải...' : 'Không tìm thấy bài viết'}
-                          </div>
-                        ) : (
-                          filteredPosts.map(post => {
-                            const isSelected = selectedPostIds.includes(post._id);
-                            return (
-                              <div 
-                                key={post._id}
-                                onClick={() => {
-                                  if (isSelected) {
-                                    setSelectedPostIds(ids => ids.filter(id => id !== post._id));
-                                  } else {
-                                    setSelectedPostIds(ids => [...ids, post._id]);
-                                  }
-                                }}
-                                className={cn(
-                                  "flex items-center gap-3 p-3 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors",
-                                  isSelected 
-                                    ? "bg-blue-50 dark:bg-blue-500/10" 
-                                    : "hover:bg-slate-50 dark:hover:bg-slate-800"
-                                )}
-                              >
-                                <div className={cn(
-                                  "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                                  isSelected 
-                                    ? "border-blue-500 bg-blue-500" 
-                                    : "border-slate-300 dark:border-slate-600"
-                                )}>
-                                  {isSelected && <Check size={12} className="text-white" />}
-                                </div>
-                                {post.thumbnail ? (
-                                  <Image src={post.thumbnail} alt="" width={40} height={40} className="w-10 h-10 object-cover rounded" />
-                                ) : (
-                                  <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded flex items-center justify-center">
-                                    <FileText size={14} className="text-slate-400" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{post.title}</p>
-                                  <p className="text-xs text-slate-500">{post.views} lượt xem</p>
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <BlogPreview 
-              brandColor={brandColor} secondary={secondary}
-              postCount={blogSelectionMode === 'manual' ? selectedPostIds.length : productListConfig.itemCount}
-              selectedStyle={blogStyle}
-              onStyleChange={setBlogStyle}
-            />
-          </>
-        )}
-
-        {/* CaseStudy */}
-        {component.type === 'CaseStudy' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Dự án tiêu biểu</CardTitle>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() =>{  setCaseStudyProjects([...caseStudyProjects, { category: '', description: '', id: Date.now(), image: '', link: '', title: '' }]); }} 
-                  className="gap-2"
-                >
-                  <Plus size={14} /> Thêm dự án
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {caseStudyProjects.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500 text-sm">
-                    Chưa có dự án nào. Nhấn “Thêm dự án” để bắt đầu.
-                  </div>
-                ) : (
-                  caseStudyProjects.map((project, idx) => (
-                    <div key={project.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label>Dự án {idx + 1}</Label>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 h-8 w-8" 
-                          onClick={() =>{  setCaseStudyProjects(caseStudyProjects.filter(p => p.id !== project.id)); }}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Left: Image upload */}
-                        <div>
-                          <Label className="text-sm mb-2 block">Hình ảnh dự án</Label>
-                          <ImageFieldWithUpload
-                            label=""
-                            value={project.image}
-                            onChange={(url) =>{  setCaseStudyProjects(caseStudyProjects.map(p => p.id === project.id ? {...p, image: url} : p)); }}
-                            folder="case-studies"
-                            aspectRatio="video"
-                            quality={0.85}
-                            placeholder="Chọn hoặc upload ảnh dự án"
-                          />
-                        </div>
-                        
-                        {/* Right: Info fields */}
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-xs text-slate-500">Tên dự án</Label>
-                              <Input 
-                                placeholder="VD: Website ABC Corp" 
-                                value={project.title} 
-                                onChange={(e) =>{  setCaseStudyProjects(caseStudyProjects.map(p => p.id === project.id ? {...p, title: e.target.value} : p)); }} 
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs text-slate-500">Danh mục</Label>
-                              <Input 
-                                placeholder="VD: Website, Mobile..." 
-                                value={project.category} 
-                                onChange={(e) =>{  setCaseStudyProjects(caseStudyProjects.map(p => p.id === project.id ? {...p, category: e.target.value} : p)); }} 
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label className="text-xs text-slate-500">Mô tả ngắn</Label>
-                            <Input 
-                              placeholder="Mô tả ngắn về dự án" 
-                              value={project.description} 
-                              onChange={(e) =>{  setCaseStudyProjects(caseStudyProjects.map(p => p.id === project.id ? {...p, description: e.target.value} : p)); }} 
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs text-slate-500">Link chi tiết</Label>
-                            <Input 
-                              placeholder="https://example.com/project" 
-                              value={project.link} 
-                              onChange={(e) =>{  setCaseStudyProjects(caseStudyProjects.map(p => p.id === project.id ? {...p, link: e.target.value} : p)); }} 
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-            <CaseStudyPreview 
-              projects={caseStudyProjects.map(p => ({ 
-                category: p.category, 
-                description: p.description, 
-                id: p.id, 
-                image: p.image, 
-                link: p.link, 
-                title: p.title 
-              }))} 
-              brandColor={brandColor} secondary={secondary}
-              selectedStyle={caseStudyStyle}
-              onStyleChange={setCaseStudyStyle}
-            />
-          </>
-        )}
-
         {/* Career */}
         {component.type === 'Career' && (
           <>
@@ -2980,174 +2091,6 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               selectedStyle={productCategoriesStyle}
               onStyleChange={setProductCategoriesStyle}
               categoriesData={productCategoriesData ?? []}
-            />
-          </>
-        )}
-
-        {/* CategoryProducts - Sản phẩm theo danh mục */}
-        {component.type === 'CategoryProducts' && (
-          <>
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-base">Cấu hình hiển thị</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Số cột (Desktop)</Label>
-                    <select
-                      value={categoryProductsColsDesktop}
-                      onChange={(e) =>{  setCategoryProductsColsDesktop(Number.parseInt(e.target.value)); }}
-                      className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                    >
-                      <option value={3}>3 cột</option>
-                      <option value={4}>4 cột</option>
-                      <option value={5}>5 cột</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Số cột (Mobile)</Label>
-                    <select
-                      value={categoryProductsColsMobile}
-                      onChange={(e) =>{  setCategoryProductsColsMobile(Number.parseInt(e.target.value)); }}
-                      className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                    >
-                      <option value={1}>1 cột</option>
-                      <option value={2}>2 cột</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="categoryProductsShowViewAll"
-                    checked={categoryProductsShowViewAll}
-                    onChange={(e) =>{  setCategoryProductsShowViewAll(e.target.checked); }}
-                    className="w-4 h-4 rounded border-slate-300"
-                  />
-                  <Label htmlFor="categoryProductsShowViewAll" className="cursor-pointer">Hiển thị nút “Xem danh mục”</Label>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Các section danh mục ({categoryProductsSections.length})</CardTitle>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => {
-                    const newId = Math.max(0, ...categoryProductsSections.map(s => s.id)) + 1;
-                    setCategoryProductsSections([...categoryProductsSections, { categoryId: '', id: newId, itemCount: 4 }]);
-                  }}
-                  disabled={categoryProductsSections.length >= 6 || !productCategoriesData?.length}
-                  className="gap-2"
-                >
-                  <Plus size={14} /> Thêm
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!productCategoriesData?.length ? (
-                  <p className="text-sm text-slate-500 text-center py-4">
-                    Chưa có danh mục sản phẩm. Vui lòng tạo danh mục trước.
-                  </p>
-                ) : (categoryProductsSections.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-4">
-                    Chưa có section nào. Nhấn &quot;Thêm&quot; để bắt đầu.
-                  </p>
-                ) : (
-                  categoryProductsSections.map((item, idx) => (
-                    <div 
-                      key={item.id} 
-                      draggable
-                      onDragStart={() =>{  setCategoryProductsDraggedId(item.id); }}
-                      onDragEnd={() => { setCategoryProductsDraggedId(null); setCategoryProductsDragOverId(null); }}
-                      onDragOver={(e) => { e.preventDefault(); if (categoryProductsDraggedId !== item.id) {setCategoryProductsDragOverId(item.id);} }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        if (!categoryProductsDraggedId || categoryProductsDraggedId === item.id) {return;}
-                        const newSections = [...categoryProductsSections];
-                        const draggedIndex = newSections.findIndex(s => s.id === categoryProductsDraggedId);
-                        const targetIndex = newSections.findIndex(s => s.id === item.id);
-                        const [draggedItem] = newSections.splice(draggedIndex, 1);
-                        newSections.splice(targetIndex, 0, draggedItem);
-                        setCategoryProductsSections(newSections);
-                        setCategoryProductsDraggedId(null);
-                        setCategoryProductsDragOverId(null);
-                      }}
-                      className={cn(
-                        "p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3 transition-all",
-                        categoryProductsDraggedId === item.id && "opacity-50 scale-[0.98]",
-                        categoryProductsDragOverId === item.id && "ring-2 ring-blue-500 ring-offset-2"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <GripVertical size={16} className="text-slate-400 cursor-grab active:cursor-grabbing" />
-                          <Label className="font-semibold">Section {idx + 1}</Label>
-                        </div>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 h-8 w-8" 
-                          onClick={() =>{  setCategoryProductsSections(categoryProductsSections.filter(s => s.id !== item.id)); }}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-500">Danh mục</Label>
-                          <select
-                            value={item.categoryId}
-                            onChange={(e) =>{  setCategoryProductsSections(categoryProductsSections.map(s => s.id === item.id ? {...s, categoryId: e.target.value} : s)); }}
-                            className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                          >
-                            <option value="">-- Chọn danh mục --</option>
-                            {productCategoriesData?.map(cat => (
-                              <option key={cat._id} value={cat._id}>{cat.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-500">Số sản phẩm hiển thị</Label>
-                          <Input
-                            type="number"
-                            min={2}
-                            max={12}
-                            value={item.itemCount}
-                            onChange={(e) =>{  setCategoryProductsSections(categoryProductsSections.map(s => s.id === item.id ? {...s, itemCount: Number.parseInt(e.target.value) || 4} : s)); }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ))}
-                
-                <p className="text-xs text-slate-500">
-                  Tối đa 6 section. Mỗi section là 1 danh mục với các sản phẩm thuộc danh mục đó.
-                </p>
-              </CardContent>
-            </Card>
-
-            <CategoryProductsPreview 
-              config={{
-                columnsDesktop: categoryProductsColsDesktop,
-                columnsMobile: categoryProductsColsMobile,
-                sections: categoryProductsSections,
-                showViewAll: categoryProductsShowViewAll,
-                style: categoryProductsStyle,
-              }}
-              brandColor={brandColor} secondary={secondary}
-              selectedStyle={categoryProductsStyle}
-              onStyleChange={setCategoryProductsStyle}
-              categoriesData={productCategoriesData ?? []}
-              productsData={productsData ?? []}
             />
           </>
         )}

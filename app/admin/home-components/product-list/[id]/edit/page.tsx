@@ -1,0 +1,221 @@
+'use client';
+
+import React, { use, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { Package, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
+import { useBrandColors } from '../../../create/shared';
+import { ProductListForm } from '../../_components/ProductListForm';
+import { ProductListPreview } from '../../_components/ProductListPreview';
+import { DEFAULT_PRODUCT_LIST_CONFIG, DEFAULT_PRODUCT_LIST_TEXT } from '../../_lib/constants';
+import type { ProductListConfig, ProductListStyle, ProductSelectionMode } from '../../_types';
+
+export default function ProductListEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const { primary, secondary } = useBrandColors();
+  const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
+  const updateMutation = useMutation(api.homeComponents.update);
+
+  const [title, setTitle] = useState('');
+  const [active, setActive] = useState(true);
+  const [productListConfig, setProductListConfig] = useState<ProductListConfig>(DEFAULT_PRODUCT_LIST_CONFIG);
+  const [productListStyle, setProductListStyle] = useState<ProductListStyle>('commerce');
+  const [productSelectionMode, setProductSelectionMode] = useState<ProductSelectionMode>('auto');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [productSubTitle, setProductSubTitle] = useState(DEFAULT_PRODUCT_LIST_TEXT.subTitle);
+  const [productSectionTitle, setProductSectionTitle] = useState(DEFAULT_PRODUCT_LIST_TEXT.sectionTitle);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const productsData = useQuery(api.products.listAll, { limit: 100 });
+
+  const filteredProducts = useMemo(() => {
+    if (!productsData) {return [];}
+    return productsData
+      .filter(product => product.status === 'Active')
+      .filter(product =>
+        !productSearchTerm ||
+        product.name.toLowerCase().includes(productSearchTerm.toLowerCase())
+      );
+  }, [productsData, productSearchTerm]);
+
+  const selectedProducts = useMemo(() => {
+    if (!productsData || selectedProductIds.length === 0) {return [];}
+    const productMap = new Map(productsData.map(p => [p._id, p]));
+    return selectedProductIds
+      .map((productId) => productMap.get(productId as Id<'products'>))
+      .filter((product): product is NonNullable<typeof product> => product !== undefined);
+  }, [productsData, selectedProductIds]);
+
+  useEffect(() => {
+    if (component) {
+      if (component.type !== 'ProductList') {
+        router.replace(`/admin/home-components/${id}/edit?type=${component.type.toLowerCase()}`);
+        return;
+      }
+
+      setTitle(component.title);
+      setActive(component.active);
+
+      const config = component.config ?? {};
+      setProductListConfig({
+        itemCount: config.itemCount ?? DEFAULT_PRODUCT_LIST_CONFIG.itemCount,
+        sortBy: config.sortBy ?? DEFAULT_PRODUCT_LIST_CONFIG.sortBy,
+      });
+      setProductListStyle((config.style as ProductListStyle) || 'commerce');
+      setProductSelectionMode((config.selectionMode as ProductSelectionMode) || 'auto');
+      setSelectedProductIds((config.selectedProductIds as string[]) ?? []);
+      setProductSubTitle((config.subTitle as string) || DEFAULT_PRODUCT_LIST_TEXT.subTitle);
+      setProductSectionTitle((config.sectionTitle as string) || DEFAULT_PRODUCT_LIST_TEXT.sectionTitle);
+    }
+  }, [component, id, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) {return;}
+
+    setIsSubmitting(true);
+    try {
+      await updateMutation({
+        active,
+        config: {
+          ...productListConfig,
+          selectionMode: productSelectionMode,
+          selectedProductIds: productSelectionMode === 'manual' ? selectedProductIds : [],
+          sectionTitle: productSectionTitle,
+          style: productListStyle,
+          subTitle: productSubTitle,
+        },
+        id: id as Id<'homeComponents'>,
+        title,
+      });
+      toast.success('Đã cập nhật danh sách sản phẩm');
+      router.push('/admin/home-components');
+    } catch (error) {
+      toast.error('Lỗi khi cập nhật');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (component === undefined) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (component === null) {
+    return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa Danh sách Sản phẩm</h1>
+        <Link href="/admin/home-components" className="text-sm text-blue-600 hover:underline">Quay lại danh sách</Link>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Package size={20} />
+              Danh sách Sản phẩm
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
+              <Input
+                value={title}
+                onChange={(e) =>{  setTitle(e.target.value); }}
+                required
+                placeholder="Nhập tiêu đề component..."
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Label>Trạng thái:</Label>
+              <div
+                className={cn(
+                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
+                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                )}
+                onClick={() =>{  setActive(!active); }}
+              >
+                <div className={cn(
+                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
+                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                )}></div>
+              </div>
+              <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <ProductListForm
+          productSubTitle={productSubTitle}
+          setProductSubTitle={setProductSubTitle}
+          productSectionTitle={productSectionTitle}
+          setProductSectionTitle={setProductSectionTitle}
+          productSelectionMode={productSelectionMode}
+          setProductSelectionMode={setProductSelectionMode}
+          productListConfig={productListConfig}
+          setProductListConfig={setProductListConfig}
+          filteredProducts={filteredProducts}
+          selectedProducts={selectedProducts}
+          selectedProductIds={selectedProductIds}
+          setSelectedProductIds={setSelectedProductIds}
+          productSearchTerm={productSearchTerm}
+          setProductSearchTerm={setProductSearchTerm}
+          isLoading={productsData === undefined}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
+          <div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+            </Button>
+          </div>
+          <div className="lg:sticky lg:top-6 lg:self-start">
+            <ProductListPreview
+              brandColor={primary}
+              secondary={secondary}
+              itemCount={productSelectionMode === 'manual' ? selectedProductIds.length : productListConfig.itemCount}
+              componentType="ProductList"
+              selectedStyle={productListStyle}
+              onStyleChange={setProductListStyle}
+              items={productSelectionMode === 'manual' && selectedProducts.length > 0
+                ? selectedProducts.map((product) => ({
+                  description: product.description,
+                  id: product._id,
+                  image: product.image,
+                  name: product.name,
+                  price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
+                }))
+                : filteredProducts.slice(0, productListConfig.itemCount).map((product) => ({
+                  description: product.description,
+                  id: product._id,
+                  image: product.image,
+                  name: product.name,
+                  price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
+                }))
+              }
+              subTitle={productSubTitle}
+              sectionTitle={productSectionTitle}
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

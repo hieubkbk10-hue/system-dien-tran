@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { CaseStudyStyle } from '../../previews';
-import { CaseStudyPreview } from '../../previews';
+import type { CaseStudyStyle } from '../../case-study/_types';
+import { CaseStudyPreview } from '../../case-study/_components/CaseStudyPreview';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
 
 interface Project {

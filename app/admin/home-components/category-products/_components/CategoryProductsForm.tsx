@@ -1,34 +1,31 @@
-'use client';
-
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { CategoryProductsPreview } from '../../category-products/_components/CategoryProductsPreview';
-import type { CategoryProductsStyle } from '../../category-products/_types';
+import type { CategoryProductsSection } from '../_types';
 
-interface CategoryProductItem {
-  id: number;
-  categoryId: string;
-  itemCount: number;
+interface CategoryProductsFormProps {
+  sections: CategoryProductsSection[];
+  setSections: (sections: CategoryProductsSection[]) => void;
+  columnsDesktop: number;
+  setColumnsDesktop: (value: number) => void;
+  columnsMobile: number;
+  setColumnsMobile: (value: number) => void;
+  showViewAll: boolean;
+  setShowViewAll: (value: boolean) => void;
+  categoriesData: { _id: string; name: string }[];
 }
 
-export default function CategoryProductsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', 'CategoryProducts');
-  const { primary, secondary } = useBrandColors();
-  
-  const categoriesData = useQuery(api.productCategories.listActive);
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
-  
-  const [sections, setSections] = useState<CategoryProductItem[]>([]);
-  const [style, setStyle] = useState<CategoryProductsStyle>('grid');
-  const [showViewAll, setShowViewAll] = useState(true);
-  const [columnsDesktop, setColumnsDesktop] = useState(4);
-  const [columnsMobile, setColumnsMobile] = useState(2);
-
-  // Drag & Drop states
+export const CategoryProductsForm = ({
+  sections,
+  setSections,
+  columnsDesktop,
+  setColumnsDesktop,
+  columnsMobile,
+  setColumnsMobile,
+  showViewAll,
+  setShowViewAll,
+  categoriesData,
+}: CategoryProductsFormProps) => {
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
 
@@ -42,11 +39,10 @@ export default function CategoryProductsCreatePage() {
     setSections(sections.filter(s => s.id !== id));
   };
 
-  const updateSection = (id: number, updates: Partial<CategoryProductItem>) => {
+  const updateSection = (id: number, updates: Partial<CategoryProductsSection>) => {
     setSections(sections.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
-  // Drag & Drop handlers
   const handleDragStart = (id: number) => {
     setDraggedId(id);
   };
@@ -66,44 +62,21 @@ export default function CategoryProductsCreatePage() {
   const handleDrop = (e: React.DragEvent, targetId: number) => {
     e.preventDefault();
     if (!draggedId || draggedId === targetId) {return;}
-    
+
     const newSections = [...sections];
     const draggedIndex = newSections.findIndex(s => s.id === draggedId);
     const targetIndex = newSections.findIndex(s => s.id === targetId);
-    
+
     const [draggedItem] = newSections.splice(draggedIndex, 1);
     newSections.splice(targetIndex, 0, draggedItem);
-    
+
     setSections(newSections);
     setDraggedId(null);
     setDragOverId(null);
   };
 
-  const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, {
-      columnsDesktop,
-      columnsMobile,
-      sections: sections.map(s => ({ 
-        categoryId: s.categoryId, 
-        itemCount: s.itemCount,
-      })),
-      showViewAll,
-      style,
-    });
-  };
-
-  const availableCategories = categoriesData ?? [];
-
   return (
-    <ComponentFormWrapper
-      type="CategoryProducts"
-      title={title}
-      setTitle={setTitle}
-      active={active}
-      setActive={setActive}
-      onSubmit={onSubmit}
-      isSubmitting={isSubmitting}
-    >
+    <>
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-base">Cấu hình hiển thị</CardTitle>
@@ -134,7 +107,7 @@ export default function CategoryProductsCreatePage() {
               </select>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -156,14 +129,14 @@ export default function CategoryProductsCreatePage() {
             variant="outline" 
             size="sm" 
             onClick={addSection}
-            disabled={sections.length >= 6 || availableCategories.length === 0}
+            disabled={sections.length >= 6 || categoriesData.length === 0}
             className="gap-2"
           >
             <Plus size={14} /> Thêm
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {availableCategories.length === 0 ? (
+          {categoriesData.length === 0 ? (
             <p className="text-sm text-slate-500 text-center py-4">
               Chưa có danh mục sản phẩm. Vui lòng tạo danh mục trước.
             </p>
@@ -181,9 +154,9 @@ export default function CategoryProductsCreatePage() {
                 onDragOver={(e) =>{  handleDragOver(e, item.id); }}
                 onDrop={(e) =>{  handleDrop(e, item.id); }}
                 className={cn(
-                  "p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3 transition-all",
-                  draggedId === item.id && "opacity-50 scale-[0.98]",
-                  dragOverId === item.id && "ring-2 ring-blue-500 ring-offset-2"
+                  'p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3 transition-all',
+                  draggedId === item.id && 'opacity-50 scale-[0.98]',
+                  dragOverId === item.id && 'ring-2 ring-blue-500 ring-offset-2'
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -201,7 +174,7 @@ export default function CategoryProductsCreatePage() {
                     <Trash2 size={14} />
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="text-xs text-slate-500">Danh mục</Label>
@@ -211,12 +184,12 @@ export default function CategoryProductsCreatePage() {
                       className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
                     >
                       <option value="">-- Chọn danh mục --</option>
-                      {availableCategories.map(cat => (
+                      {categoriesData.map(cat => (
                         <option key={cat._id} value={cat._id}>{cat.name}</option>
                       ))}
                     </select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className="text-xs text-slate-500">Số sản phẩm hiển thị</Label>
                     <Input
@@ -231,27 +204,12 @@ export default function CategoryProductsCreatePage() {
               </div>
             ))
           ))}
-          
+
           <p className="text-xs text-slate-500">
             Tối đa 6 section. Mỗi section là 1 danh mục với các sản phẩm thuộc danh mục đó.
           </p>
         </CardContent>
       </Card>
-
-      <CategoryProductsPreview 
-        config={{
-          columnsDesktop,
-          columnsMobile,
-          sections,
-          showViewAll,
-          style,
-        }}
-        brandColor={primary} secondary={secondary}
-        selectedStyle={style}
-        onStyleChange={setStyle}
-        categoriesData={availableCategories}
-        productsData={productsData ?? []}
-      />
-    </ComponentFormWrapper>
+    </>
   );
-}
+};

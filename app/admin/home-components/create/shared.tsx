@@ -20,6 +20,7 @@ export const COMPONENT_TYPES = [
   { description: 'Giải thưởng, chứng chỉ', icon: Award, label: 'Chứng nhận', route: 'gallery?type=TrustBadges', value: 'TrustBadges', position: 4 },
   { description: 'Hiển thị danh mục SP', icon: FolderTree, label: 'Danh mục sản phẩm', route: 'product-categories', value: 'ProductCategories', recommended: true, position: 5 },
   { description: 'Sản phẩm theo danh mục', icon: Package, label: 'Danh sách Sản phẩm', route: 'product-list?type=ProductList', value: 'ProductList', recommended: true, position: 6 },
+  { description: 'Grid sản phẩm', icon: Package, label: 'Sản phẩm', route: 'product-grid', value: 'ProductGrid', position: 7 },
   { description: 'SP trong từng danh mục', icon: ShoppingBag, label: 'Sản phẩm theo danh mục', route: 'category-products', value: 'CategoryProducts', position: 7 },
   { description: 'Các dịch vụ cung cấp', icon: Briefcase, label: 'Danh sách Dịch vụ', route: 'product-list?type=ServiceList', value: 'ServiceList', position: 8 },
   { description: 'Bài viết mới nhất', icon: FileText, label: 'Tin tức / Blog', route: 'product-list?type=Blog', value: 'Blog', position: 9 },

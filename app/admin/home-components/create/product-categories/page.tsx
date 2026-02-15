@@ -6,7 +6,8 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { ProductCategoriesPreview, type ProductCategoriesStyle } from '../../previews';
+import { ProductCategoriesPreview } from '../../product-categories/_components/ProductCategoriesPreview';
+import type { ProductCategoriesStyle } from '../../product-categories/_types';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 
 interface CategoryItem {
