@@ -13,7 +13,7 @@ import { useBrandColors } from '../../../create/shared';
 import { HeroForm } from '../../_components/HeroForm';
 import { HeroPreview } from '../../_components/HeroPreview';
 import { DEFAULT_HERO_CONTENT } from '../../_lib/constants';
-import type { HeroContent, HeroSlide, HeroStyle } from '../../_types';
+import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_types';
 
 export default function HeroEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -29,6 +29,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [heroStyle, setHeroStyle] = useState<HeroStyle>('slider');
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
+  const [heroHarmony, setHeroHarmony] = useState<HeroHarmony>('analogous');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       const config = component.config ?? {};
       setHeroSlides(config.slides?.map((s: { image: string; link: string }, i: number) => ({ id: `slide-${i}`, link: s.link || '', url: s.image })) ?? [{ id: 'slide-1', link: '', url: '' }]);
       setHeroStyle((config.style as HeroStyle) || 'slider');
+      setHeroHarmony((config.harmony as HeroHarmony) || 'analogous');
       if (config.content) {
         setHeroContent(config.content as HeroContent);
       }
@@ -61,6 +63,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         active,
         config: {
           content: needsContent ? heroContent : undefined,
+          harmony: heroHarmony,
           slides: heroSlides.map(s => ({ image: s.url, link: s.link })),
           style: heroStyle,
         },
@@ -139,6 +142,9 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           heroStyle={heroStyle}
           heroContent={heroContent}
           setHeroContent={setHeroContent}
+          brandMode={brandMode}
+          harmony={heroHarmony}
+          setHarmony={setHeroHarmony}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
@@ -152,6 +158,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}
+              harmony={heroHarmony}
             />
           </div>
         </div>

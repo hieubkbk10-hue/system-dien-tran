@@ -18,3 +18,5 @@ export interface HeroSlide extends ImageItem {
   url: string;
   link: string;
 }
+
+export type HeroHarmony = 'analogous' | 'complementary' | 'triadic';

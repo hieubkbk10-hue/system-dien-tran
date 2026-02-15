@@ -1,6 +1,9 @@
 'use client';
 
+import { apcaContrast } from 'apca-w3';
+import { differenceEuclidean, formatHex, oklch } from 'culori';
 import { getShade, getTint } from '@/lib/utils/colors';
+import type { HeroHarmony } from '../_types';
 
 export interface HeroColorScheme {
   primarySolid: string;
@@ -16,6 +19,98 @@ export interface HeroColorScheme {
   secondaryTintRing: string;
   overlayGradient: string;
   brandGradient: string;
+}
+
+export interface SliderColorScheme {
+  navButtonBg: string;
+  navButtonBgHover: string;
+  navButtonIconColor: string;
+  navButtonBorderColor: string;
+  dotActive: string;
+  dotInactive: string;
+  placeholderBg: string;
+  placeholderIconColor: string;
+  similarity: number;
+}
+
+export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
+  const whiteLc = Math.abs(apcaContrast('#ffffff', bg));
+  const blackLc = Math.abs(apcaContrast('#000000', bg));
+  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+
+  if (whiteLc >= threshold) {return '#ffffff';}
+  if (blackLc >= threshold) {return '#0f172a';}
+  return whiteLc > blackLc ? '#ffffff' : '#0f172a';
+};
+
+export const generatePalette = (hex: string) => {
+  const color = oklch(hex);
+  return {
+    solid: hex,
+    surface: formatHex(oklch({ ...color, l: Math.min(color.l + 0.4, 0.98) })),
+    hover: formatHex(oklch({ ...color, l: Math.max(color.l - 0.1, 0.1) })),
+    active: formatHex(oklch({ ...color, l: Math.max(color.l - 0.15, 0.08) })),
+    border: formatHex(oklch({ ...color, l: Math.min(color.l + 0.3, 0.92) })),
+    disabled: formatHex(oklch({ ...color, l: Math.min(color.l + 0.25, 0.9), c: color.c * 0.5 })),
+    textOnSolid: getAPCATextColor(hex, 16, 500),
+    textInteractive: formatHex(oklch({ ...color, l: Math.max(color.l - 0.25, 0.2) })),
+  };
+};
+
+export const getAnalogous = (hex: string): [string, string] => {
+  const color = oklch(hex);
+  return [
+    formatHex(oklch({ ...color, h: (color.h + 30) % 360 })),
+    formatHex(oklch({ ...color, h: (color.h - 30 + 360) % 360 })),
+  ];
+};
+
+export const getComplementary = (hex: string) => {
+  const color = oklch(hex);
+  return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
+};
+
+export const getTriadic = (hex: string): [string, string] => {
+  const color = oklch(hex);
+  return [
+    formatHex(oklch({ ...color, h: (color.h + 120) % 360 })),
+    formatHex(oklch({ ...color, h: (color.h - 120 + 360) % 360 })),
+  ];
+};
+
+export function getSliderColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): SliderColorScheme {
+  let secondaryColor = secondary;
+
+  if (mode === 'single') {
+    if (harmony === 'complementary') {
+      secondaryColor = getComplementary(primary);
+    } else if (harmony === 'triadic') {
+      secondaryColor = getTriadic(primary)[0];
+    } else {
+      secondaryColor = getAnalogous(primary)[0];
+    }
+  }
+
+  const primaryPalette = generatePalette(primary);
+  const secondaryPalette = generatePalette(secondaryColor);
+  const similarity = 1 - Math.min(differenceEuclidean('oklch')(primary, secondaryColor), 1);
+
+  return {
+    navButtonBg: '#ffffff',
+    navButtonBgHover: '#ffffff',
+    navButtonIconColor: secondaryPalette.solid,
+    navButtonBorderColor: secondaryPalette.surface,
+    dotActive: primaryPalette.solid,
+    dotInactive: 'rgba(255, 255, 255, 0.5)',
+    placeholderBg: primaryPalette.surface,
+    placeholderIconColor: primaryPalette.solid,
+    similarity,
+  };
 }
 
 export function getHeroColors(

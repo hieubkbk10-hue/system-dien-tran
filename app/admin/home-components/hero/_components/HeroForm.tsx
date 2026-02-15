@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
-import type { HeroContent, HeroSlide, HeroStyle } from '../_types';
+import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../_types';
 
 export const HeroForm = ({
   heroSlides,
@@ -11,12 +11,18 @@ export const HeroForm = ({
   heroStyle,
   heroContent,
   setHeroContent,
+  brandMode,
+  harmony,
+  setHarmony,
 }: {
   heroSlides: HeroSlide[];
   setHeroSlides: (slides: HeroSlide[]) => void;
   heroStyle: HeroStyle;
   heroContent: HeroContent;
   setHeroContent: (content: HeroContent) => void;
+  brandMode: 'single' | 'dual';
+  harmony: HeroHarmony;
+  setHarmony: (value: HeroHarmony) => void;
 }) => (
   <>
     <Card className="mb-6">
@@ -40,6 +46,29 @@ export const HeroForm = ({
         />
       </CardContent>
     </Card>
+
+    {brandMode === 'single' && heroStyle === 'slider' && (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Color Harmony (Single Mode)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <Label>Harmony Scheme</Label>
+            <select
+              value={harmony}
+              onChange={(e) =>{  setHarmony(e.target.value as HeroHarmony); }}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
+            >
+              <option value="analogous">Analogous (+30°)</option>
+              <option value="complementary">Complementary (180°)</option>
+              <option value="triadic">Triadic (120°)</option>
+            </select>
+            <p className="text-xs text-slate-500">Tự động tạo màu phụ hài hòa từ màu chính.</p>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
     {['fullscreen', 'split', 'parallax'].includes(heroStyle) && (
       <Card className="mb-6">

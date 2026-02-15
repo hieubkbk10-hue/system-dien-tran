@@ -8,9 +8,9 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { getHeroColors } from '../_lib/colors';
+import { getHeroColors, getSliderColors } from '../_lib/colors';
 import { HERO_STYLES } from '../_lib/constants';
-import type { HeroContent, HeroStyle } from '../_types';
+import type { HeroContent, HeroHarmony, HeroStyle } from '../_types';
 
 export const HeroPreview = ({ 
   slides, 
@@ -20,6 +20,7 @@ export const HeroPreview = ({
   selectedStyle = 'slider',
   onStyleChange,
   content,
+  harmony = 'analogous',
 }: { 
   slides: { id: number; image: string; link: string }[]; 
   brandColor: string;
@@ -28,6 +29,7 @@ export const HeroPreview = ({
   selectedStyle?: HeroStyle;
   onStyleChange?: (style: HeroStyle) => void;
   content?: HeroContent;
+  harmony?: HeroHarmony;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -40,6 +42,7 @@ export const HeroPreview = ({
     secondary,
   });
   const colors = getHeroColors(brandColors.primary, brandColors.secondary, brandColors.useDualBrand);
+  const sliderColors = getSliderColors(brandColors.primary, brandColors.secondary, mode, harmony);
 
   const nextSlide = () =>{  setCurrentSlide((prev) => (prev + 1) % slides.length); };
   const prevSlide = () =>{  setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length); };
@@ -64,15 +67,19 @@ export const HeroPreview = ({
     </div>
   );
 
-  const renderPlaceholder = (idx: number) => (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: colors.primaryTintMedium }}>
-        <ImageIcon size={24} style={{ color: colors.primarySolid }} />
+  const renderPlaceholder = (idx: number, useSliderColors = false) => {
+    const placeholderBg = useSliderColors ? sliderColors.placeholderBg : colors.primaryTintMedium;
+    const placeholderIconColor = useSliderColors ? sliderColors.placeholderIconColor : colors.primarySolid;
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: placeholderBg }}>
+          <ImageIcon size={24} style={{ color: placeholderIconColor }} />
+        </div>
+        <div className="text-sm font-medium text-slate-400">Banner #{idx + 1}</div>
+        <div className="text-xs text-slate-500 mt-1">Khuyến nghị: 1920x600px</div>
       </div>
-      <div className="text-sm font-medium text-slate-400">Banner #{idx + 1}</div>
-      <div className="text-xs text-slate-500 mt-1">Khuyến nghị: 1920x600px</div>
-    </div>
-  );
+    );
+  };
 
   const renderSliderStyle = () => (
     <section className="relative w-full bg-slate-900 overflow-hidden">
@@ -84,20 +91,44 @@ export const HeroPreview = ({
           <>
             {slides.map((slide, idx) => (
               <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx)}
+                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, true)}
               </div>
             ))}
             {slides.length > 1 && (
               <>
-                <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: colors.secondaryTintStrong }}>
-                  <ChevronLeft size={14} style={{ color: colors.secondarySolid }} />
+                <button
+                  type="button"
+                  onClick={prevSlide}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2 hover:scale-105"
+                  style={{
+                    backgroundColor: sliderColors.navButtonBg,
+                    borderColor: sliderColors.navButtonBorderColor,
+                  }}
+                >
+                  <ChevronLeft size={14} style={{ color: sliderColors.navButtonIconColor }} />
                 </button>
-                <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105" style={{ borderColor: colors.secondaryTintStrong }}>
-                  <ChevronRight size={14} style={{ color: colors.secondarySolid }} />
+                <button
+                  type="button"
+                  onClick={nextSlide}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2 hover:scale-105"
+                  style={{
+                    backgroundColor: sliderColors.navButtonBgHover,
+                    borderColor: sliderColors.navButtonBorderColor,
+                  }}
+                >
+                  <ChevronRight size={14} style={{ color: sliderColors.navButtonIconColor }} />
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                   {slides.map((_, idx) => (
-                    <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")} style={idx === currentSlide ? { backgroundColor: colors.primarySolid } : {}} />
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() =>{  setCurrentSlide(idx); }}
+                      className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "")}
+                      style={{
+                        backgroundColor: idx === currentSlide ? sliderColors.dotActive : sliderColors.dotInactive,
+                      }}
+                    />
                   ))}
                 </div>
               </>
@@ -492,6 +523,11 @@ export const HeroPreview = ({
           </div>
         </BrowserFrame>
       </PreviewWrapper>
+      {previewStyle === 'slider' && mode === 'dual' && sliderColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(sliderColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
       <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
         <div className="flex items-start gap-2">
           <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
