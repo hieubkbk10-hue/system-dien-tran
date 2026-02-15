@@ -3557,17 +3557,17 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
               <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
               {subTitle}
             </div>
-            <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
+            <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')} style={{ color: brandColor }}>
               {displayTitle}
             </h2>
           </div>
           {/* Mobile View All */}
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
         {/* Desktop View All */}
-        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center">
+        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center" style={{ color: brandColor }}>
           {buttonText} <ArrowRight size={16} />
         </button>
       </div>
@@ -3603,6 +3603,9 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                   {item.tag === 'new' && !discount && (
                     <BrandBadge text="NEW" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
                   )}
+                  {item.tag === 'hot' && !discount && (
+                    <BrandBadge text="HOT" variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                  )}
                 </div>
 
                 {/* View Details Button (Hover) */}
@@ -3619,7 +3622,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                   {item.name}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{item.price}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100" style={{ color: secondary }}>{item.price}</span>
                   {item.originalPrice && (
                     <span className="text-xs text-slate-400 line-through">
                       {item.originalPrice}
@@ -3645,15 +3648,15 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
               <span className="w-6 h-[2px] md:w-8" style={{ backgroundColor: secondary }}></span>
               {subTitle}
             </div>
-            <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')}>
+            <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-2xl' : 'text-2xl md:text-4xl')} style={{ color: brandColor }}>
               {displayTitle}
             </h2>
           </div>
-          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: secondary }}>
+          <button className="md:hidden p-0 h-auto font-semibold mb-1 gap-1 flex items-center" style={{ color: brandColor }}>
             {buttonText} <ArrowRight size={16} />
           </button>
         </div>
-        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center">
+        <button className="hidden md:flex gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 pl-6 border-l border-slate-200 dark:border-slate-700 transition-colors items-center" style={{ color: brandColor }}>
           {buttonText} <ArrowRight size={16} />
         </button>
       </div>
@@ -3698,7 +3701,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 </h3>
                 
                 <div className="flex items-baseline gap-2 mb-4 mt-auto pt-2">
-                  <span className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors">{item.price}</span>
+                  <span className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors" style={{ color: secondary }}>{item.price}</span>
                   {item.originalPrice && (
                     <span className="text-xs text-slate-400 line-through">
                       {item.originalPrice}
@@ -3798,7 +3801,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 </div>
               )}
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
               
               {/* Discount Badge */}
               {discount && (
@@ -3930,7 +3933,11 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                     device === 'mobile' ? 'w-[160px]' : (device === 'tablet' ? 'w-[220px]' : 'w-[260px]')
                   )}
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                  <div
+                    className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3 border border-transparent transition-all"
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}20`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'transparent'; }}
+                  >
                     {item.image ? (
                       <PreviewImage src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
@@ -3994,7 +4001,12 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
         {displayItems.slice(0, device === 'mobile' ? 6 : 6).map((item) => {
           const discount = getDiscount(item.price, item.originalPrice);
           return (
-            <div key={item.id} className="group cursor-pointer bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 p-2 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600 transition-all">
+            <div
+              key={item.id}
+              className="group cursor-pointer bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 p-2 hover:shadow-md transition-all"
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}20`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+            >
               <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 dark:bg-slate-700 mb-2">
                 {item.image ? (
                   <PreviewImage src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -4075,7 +4087,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
               ) : (
                 <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800"><Package size={64} className="text-slate-300" /></div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {featuredDiscount && (
                 <div className="absolute top-4 left-4">
                   <BrandBadge text={featuredDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
@@ -4085,7 +4097,7 @@ export const ProductListPreview = ({ brandColor, secondary, itemCount, component
                 <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-white">{showcaseFeatured?.price}</span>
+                    <span className="text-xl font-bold text-white" style={{ textShadow: `0 2px 8px ${secondary}40` }}>{showcaseFeatured?.price}</span>
                   <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondary }}>Xem chi tiết</button>
                 </div>
               </div>

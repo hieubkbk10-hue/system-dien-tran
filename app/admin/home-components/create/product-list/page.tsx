@@ -9,7 +9,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { BlogPreview, type BlogStyle, ProductListPreview, type ProductListStyle, ServiceListPreview, type ServiceListPreviewItem, type ServiceListStyle } from '../../previews';
+import { BlogPreview, type BlogStyle, ProductListPreview, type ProductListPreviewItem, type ProductListStyle, ServiceListPreview, type ServiceListPreviewItem, type ServiceListStyle } from '../../previews';
 
 function ProductListCreateContent() {
   const searchParams = useSearchParams();
@@ -75,6 +75,28 @@ function ProductListCreateContent() {
       .map(id => productMap.get(id as Id<"products">))
       .filter((p): p is NonNullable<typeof p> => p !== undefined);
   }, [productsData, selectedProductIds]);
+
+  const productPreviewItems = useMemo(() => selectedProducts.map((p) => ({
+    description: p.description,
+    id: p._id,
+    image: p.image,
+    name: p.name,
+    price: p.price ? `${p.price.toLocaleString('vi-VN')}đ` : undefined
+  })), [selectedProducts]);
+
+  const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
+    if (!productsData) {return [];} 
+    return productsData
+      .filter(product => product.status === 'Active')
+      .slice(0, itemCount)
+      .map(product => ({
+        description: product.description,
+        id: product._id,
+        image: product.image,
+        name: product.name,
+        price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined
+      }));
+  }, [productsData, itemCount]);
 
   const filteredServices = useMemo(() => {
     if (!servicesData) {return [];}
@@ -494,7 +516,20 @@ function ProductListCreateContent() {
           title={title}
         />
       ) : (
-        <ProductListPreview brandColor={primary} secondary={secondary} itemCount={selectionMode === 'manual' ? selectedProductIds.length : itemCount} componentType="ProductList" selectedStyle={productStyle} onStyleChange={setProductStyle} subTitle={subTitle} sectionTitle={sectionTitle} />
+        <ProductListPreview
+          brandColor={primary}
+          secondary={secondary}
+          itemCount={selectionMode === 'manual' ? selectedProductIds.length : itemCount}
+          componentType="ProductList"
+          selectedStyle={productStyle}
+          onStyleChange={setProductStyle}
+          items={selectionMode === 'manual' && productPreviewItems.length > 0
+            ? productPreviewItems
+            : (autoProductPreviewItems.length > 0 ? autoProductPreviewItems : undefined)
+          }
+          subTitle={subTitle}
+          sectionTitle={sectionTitle}
+        />
       ))}
     </ComponentFormWrapper>
   );
