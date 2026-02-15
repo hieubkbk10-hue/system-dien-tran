@@ -1,6 +1,6 @@
 'use client';
 
-import { apcaContrast } from 'apca-w3';
+import { APCAcontrast } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
 import { getShade, getTint } from '@/lib/utils/colors';
 import type { HeroHarmony } from '../_types';
@@ -34,8 +34,8 @@ export interface SliderColorScheme {
 }
 
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
-  const whiteLc = Math.abs(apcaContrast('#ffffff', bg));
-  const blackLc = Math.abs(apcaContrast('#000000', bg));
+  const whiteLc = Math.abs(APCAcontrast('#ffffff', bg));
+  const blackLc = Math.abs(APCAcontrast('#000000', bg));
   const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
 
   if (whiteLc >= threshold) {return '#ffffff';}
