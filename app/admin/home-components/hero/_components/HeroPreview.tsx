@@ -8,7 +8,15 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { getHeroColors, getSliderColors } from '../_lib/colors';
+import {
+  getBentoColors,
+  getFadeColors,
+  getFullscreenColors,
+  getHeroColors,
+  getParallaxColors,
+  getSliderColors,
+  getSplitColors,
+} from '../_lib/colors';
 import { HERO_STYLES } from '../_lib/constants';
 import type { HeroContent, HeroHarmony, HeroStyle } from '../_types';
 
@@ -43,6 +51,11 @@ export const HeroPreview = ({
   });
   const colors = getHeroColors(brandColors.primary, brandColors.secondary, brandColors.useDualBrand);
   const sliderColors = getSliderColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const fadeColors = getFadeColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const bentoColors = getBentoColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const fullscreenColors = getFullscreenColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const splitColors = getSplitColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const parallaxColors = getParallaxColors(brandColors.primary, brandColors.secondary, mode, harmony);
 
   const nextSlide = () =>{  setCurrentSlide((prev) => (prev + 1) % slides.length); };
   const prevSlide = () =>{  setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length); };
@@ -67,9 +80,16 @@ export const HeroPreview = ({
     </div>
   );
 
-  const renderPlaceholder = (idx: number, useSliderColors = false) => {
-    const placeholderBg = useSliderColors ? sliderColors.placeholderBg : colors.primaryTintMedium;
-    const placeholderIconColor = useSliderColors ? sliderColors.placeholderIconColor : colors.primarySolid;
+  const renderPlaceholder = (
+    idx: number,
+    options?: {
+      useSliderColors?: boolean;
+      backgroundColor?: string;
+      iconColor?: string;
+    }
+  ) => {
+    const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : colors.primaryTintMedium);
+    const placeholderIconColor = options?.iconColor ?? (options?.useSliderColors ? sliderColors.placeholderIconColor : colors.primarySolid);
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: placeholderBg }}>
@@ -91,7 +111,7 @@ export const HeroPreview = ({
           <>
             {slides.map((slide, idx) => (
               <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, true)}
+                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, { useSliderColors: true })}
               </div>
             ))}
             {slides.length > 1 && (
@@ -151,7 +171,7 @@ export const HeroPreview = ({
           <>
             {slides.map((slide, idx) => (
               <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx)}
+                {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, { backgroundColor: fadeColors.placeholderBg, iconColor: fadeColors.placeholderIconColor })}
               </div>
             ))}
             {slides.length > 1 && (
@@ -159,8 +179,8 @@ export const HeroPreview = ({
                 {slides.map((slide, idx) => (
                   <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }}
                     className={cn("rounded overflow-hidden transition-all border-2", idx === currentSlide ? "scale-105" : "border-transparent opacity-70 hover:opacity-100", device === 'mobile' ? 'w-10 h-7' : 'w-14 h-9')}
-                    style={idx === currentSlide ? { borderColor: colors.secondarySolid } : {}}>
-                    {slide.image ? <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: colors.primarySolid }}></div>}
+                    style={idx === currentSlide ? { borderColor: fadeColors.thumbnailBorderActive } : { borderColor: fadeColors.thumbnailBorderInactive }}>
+                    {slide.image ? <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full" style={{ backgroundColor: fadeColors.placeholderBg }}></div>}
                   </button>
                 ))}
               </div>
@@ -176,10 +196,10 @@ export const HeroPreview = ({
   const renderBentoStyle = () => {
     const bentoSlides = slides.slice(0, 4);
     const mobileBentoTints = [
-      colors.primaryTintLight,
-      colors.primaryTintMedium,
-      brandColors.getTint(0.3),
-      brandColors.getTint(0.35),
+      bentoColors.gridTint1,
+      bentoColors.gridTint2,
+      bentoColors.gridTint3,
+      bentoColors.gridTint4,
     ];
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden p-2">
@@ -198,14 +218,14 @@ export const HeroPreview = ({
                       <PreviewImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" />
                     </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: mobileBentoTints[idx] ?? colors.primaryTintMedium }}><ImageIcon size={20} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: mobileBentoTints[idx] ?? bentoColors.gridTint2 }}><ImageIcon size={20} className="text-white/50" /></div>
                   )}
                 </div>
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-4 grid-rows-2 gap-2 h-full" style={{ height: device === 'desktop' ? '280px' : '260px' }}>
-              <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden ring-2 ring-offset-1 ring-offset-slate-900" style={{ '--tw-ring-color': colors.secondaryTintRing } as React.CSSProperties}>
+              <div className="col-span-2 row-span-2 relative rounded-xl overflow-hidden ring-2 ring-offset-1 ring-offset-slate-900" style={{ '--tw-ring-color': bentoColors.mainImageRing } as React.CSSProperties}>
                 {bentoSlides[0]?.image ? (
                   <div className="w-full h-full relative">
                     <div className="absolute inset-0 scale-110" style={{ backgroundImage: `url(${bentoSlides[0].image})`, backgroundPosition: 'center', backgroundSize: 'cover', filter: 'blur(25px)' }} />
@@ -213,8 +233,8 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[0].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: colors.primaryTintLight }}>
-                    <ImageIcon size={28} style={{ color: colors.primarySolid }} /><span className="text-xs text-slate-400 mt-1">Banner chính</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: bentoColors.gridTint1 }}>
+                    <ImageIcon size={28} style={{ color: bentoColors.placeholderIcon }} /><span className="text-xs text-slate-400 mt-1">Banner chính</span>
                   </div>
                 )}
               </div>
@@ -226,7 +246,7 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[1].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: brandColors.getTint(0.2) }}><ImageIcon size={20} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint2 }}><ImageIcon size={20} className="text-white/50" /></div>
                 )}
               </div>
               <div className="relative rounded-xl overflow-hidden">
@@ -237,7 +257,7 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[2].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.primaryTintMedium }}><ImageIcon size={16} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint3 }}><ImageIcon size={16} className="text-white/50" /></div>
                 )}
               </div>
               <div className="relative rounded-xl overflow-hidden">
@@ -248,7 +268,7 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[3].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: brandColors.getTint(0.3) }}><ImageIcon size={16} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint4 }}><ImageIcon size={16} className="text-white/50" /></div>
                 )}
               </div>
             </div>
@@ -276,7 +296,7 @@ export const HeroPreview = ({
                       <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
                     </div>
-                  ) : renderPlaceholder(idx)}
+                  ) : renderPlaceholder(idx, { backgroundColor: fullscreenColors.placeholderBg, iconColor: fullscreenColors.placeholderIcon })}
                 </div>
               ))}
               <div className={cn(
@@ -285,8 +305,8 @@ export const HeroPreview = ({
               )}>
                 <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
                   {c.badge && (
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: colors.secondaryTintMedium, color: colors.secondarySolid }}>
-                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: colors.primarySolid }} />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
+                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: fullscreenColors.badgeDotPulse }} />
                       {c.badge}
                     </div>
                   )}
@@ -300,7 +320,7 @@ export const HeroPreview = ({
                   )}
                   <div className={cn("flex gap-3", device === 'mobile' ? 'flex-col' : 'flex-row')}>
                     {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: colors.primarySolid }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
                         {c.primaryButtonText}
                       </button>
                     )}
@@ -316,8 +336,8 @@ export const HeroPreview = ({
                 <div className="absolute bottom-4 right-4 flex gap-2 z-20">
                   {slides.map((_, idx) => (
                     <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} 
-                      className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")} 
-                      style={idx === currentSlide ? { backgroundColor: colors.primarySolid } : {}} />
+                      className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "")}
+                      style={idx === currentSlide ? { backgroundColor: fullscreenColors.dotActive } : { backgroundColor: fullscreenColors.dotInactive }} />
                   ))}
                 </div>
               )}
@@ -348,7 +368,7 @@ export const HeroPreview = ({
                 device === 'mobile' ? 'p-4 order-2' : 'w-1/2 p-8 lg:p-12'
               )}>
                 <div className={cn("space-y-3", device === 'mobile' ? '' : 'max-w-md')}>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: colors.secondaryTintLight, color: colors.secondarySolid }}>
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide" style={{ backgroundColor: splitColors.badgeBg, color: splitColors.badgeText }}>
                     {c.badge ?? `Banner ${currentSlide + 1}/${slides.length}`}
                   </span>
                   <h2 className={cn("font-bold text-slate-900 dark:text-white leading-tight", device === 'mobile' ? 'text-lg' : 'text-2xl lg:text-3xl')}>
@@ -361,7 +381,7 @@ export const HeroPreview = ({
                   )}
                   {c.primaryButtonText && (
                     <div className="pt-2">
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: colors.primarySolid }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: splitColors.primaryCTA, color: splitColors.primaryCTAText }}>
                         {c.primaryButtonText}
                       </button>
                     </div>
@@ -371,8 +391,8 @@ export const HeroPreview = ({
                   <div className="flex gap-2 mt-6">
                     {slides.map((_, idx) => (
                       <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }}
-                        className={cn("h-1 rounded-full transition-all", idx === currentSlide ? "w-8" : "w-4 bg-slate-300 dark:bg-slate-600")}
-                        style={idx === currentSlide ? { backgroundColor: colors.primarySolid } : {}} />
+                        className={cn("h-1 rounded-full transition-all", idx === currentSlide ? "w-8" : "w-4")}
+                        style={idx === currentSlide ? { backgroundColor: splitColors.progressDotActive } : { backgroundColor: splitColors.progressDotInactive }} />
                     ))}
                   </div>
                 )}
@@ -394,11 +414,11 @@ export const HeroPreview = ({
                 ))}
                 {slides.length > 1 && (
                   <>
-                    <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-lg flex items-center justify-center z-10">
-                      <ChevronLeft size={16} style={{ color: colors.secondarySolid }} />
+                    <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg }}>
+                      <ChevronLeft size={16} style={{ color: splitColors.navButtonIcon }} />
                     </button>
-                    <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-lg flex items-center justify-center z-10">
-                      <ChevronRight size={16} style={{ color: colors.secondarySolid }} />
+                    <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg }}>
+                      <ChevronRight size={16} style={{ color: splitColors.navButtonIcon }} />
                     </button>
                   </>
                 )}
@@ -432,7 +452,7 @@ export const HeroPreview = ({
                       <div className="absolute inset-0 scale-110 transform-gpu" style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: 'center', backgroundSize: 'cover' }} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
                     </div>
-                  ) : renderPlaceholder(idx)}
+                  ) : renderPlaceholder(idx, { backgroundColor: parallaxColors.placeholderBg, iconColor: parallaxColors.placeholderIcon })}
                 </div>
               ))}
               <div className={cn(
@@ -445,8 +465,8 @@ export const HeroPreview = ({
                 )}>
                   {c.badge && (
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: colors.primarySolid }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ backgroundColor: colors.secondaryTintLight, color: colors.secondarySolid }}>{c.badge}</span>
+                      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: parallaxColors.cardBadgeDot }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full" style={{ backgroundColor: parallaxColors.cardBadgeBg, color: parallaxColors.cardBadgeText }}>{c.badge}</span>
                     </div>
                   )}
                   <h3 className={cn("font-bold text-slate-900 dark:text-white", device === 'mobile' ? 'text-base' : 'text-xl')}>
@@ -459,7 +479,7 @@ export const HeroPreview = ({
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: colors.primarySolid }}>
+                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: parallaxColors.primaryCTA, color: parallaxColors.primaryCTAText }}>
                         {c.primaryButtonText}
                       </button>
                     )}
@@ -471,12 +491,12 @@ export const HeroPreview = ({
               </div>
               {slides.length > 1 && (
                 <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-                  <button type="button" onClick={prevSlide} className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <ChevronLeft size={16} className="text-white" />
+                  <button type="button" onClick={prevSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg }}>
+                    <ChevronLeft size={16} style={{ color: parallaxColors.navButtonIcon }} />
                   </button>
                   <span className="text-white/80 text-xs font-medium px-2">{currentSlide + 1} / {slides.length}</span>
-                  <button type="button" onClick={nextSlide} className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                    <ChevronRight size={16} className="text-white" />
+                  <button type="button" onClick={nextSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg }}>
+                    <ChevronRight size={16} style={{ color: parallaxColors.navButtonIcon }} />
                   </button>
                 </div>
               )}
@@ -526,6 +546,31 @@ export const HeroPreview = ({
       {previewStyle === 'slider' && mode === 'dual' && sliderColors.similarity > 0.9 && (
         <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
           ⚠️ Hai màu quá giống nhau (similarity: {(sliderColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
+      {previewStyle === 'fade' && mode === 'dual' && fadeColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(fadeColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
+      {previewStyle === 'bento' && mode === 'dual' && bentoColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(bentoColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
+      {previewStyle === 'fullscreen' && mode === 'dual' && fullscreenColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(fullscreenColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
+      {previewStyle === 'split' && mode === 'dual' && splitColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(splitColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
+        </div>
+      )}
+      {previewStyle === 'parallax' && mode === 'dual' && parallaxColors.similarity > 0.9 && (
+        <div className="mt-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+          ⚠️ Hai màu quá giống nhau (similarity: {(parallaxColors.similarity * 100).toFixed(0)}%). Khuyến nghị chọn màu phụ khác biệt hơn.
         </div>
       )}
       {mode === 'dual' && (

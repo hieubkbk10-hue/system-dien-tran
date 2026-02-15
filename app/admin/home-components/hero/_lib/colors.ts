@@ -32,6 +32,62 @@ export interface SliderColorScheme {
   similarity: number;
 }
 
+export interface FadeColorScheme {
+  thumbnailBorderActive: string;
+  thumbnailBorderInactive: string;
+  placeholderBg: string;
+  placeholderIconColor: string;
+  similarity: number;
+}
+
+export interface BentoColorScheme {
+  mainImageRing: string;
+  gridTint1: string;
+  gridTint2: string;
+  gridTint3: string;
+  gridTint4: string;
+  placeholderIcon: string;
+  similarity: number;
+}
+
+export interface FullscreenColorScheme {
+  badgeBg: string;
+  badgeText: string;
+  badgeDotPulse: string;
+  primaryCTA: string;
+  primaryCTAText: string;
+  dotActive: string;
+  dotInactive: string;
+  placeholderBg: string;
+  placeholderIcon: string;
+  similarity: number;
+}
+
+export interface SplitColorScheme {
+  badgeBg: string;
+  badgeText: string;
+  primaryCTA: string;
+  primaryCTAText: string;
+  navButtonIcon: string;
+  navButtonBg: string;
+  progressDotActive: string;
+  progressDotInactive: string;
+  similarity: number;
+}
+
+export interface ParallaxColorScheme {
+  cardBadgeBg: string;
+  cardBadgeText: string;
+  cardBadgeDot: string;
+  primaryCTA: string;
+  primaryCTAText: string;
+  navButtonBg: string;
+  navButtonIcon: string;
+  placeholderBg: string;
+  placeholderIcon: string;
+  similarity: number;
+}
+
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = Math.abs(APCAcontrast('#ffffff', bg));
   const blackLc = Math.abs(APCAcontrast('#000000', bg));
@@ -77,27 +133,40 @@ export const getTriadic = (hex: string): [string, string] => {
   ];
 };
 
+const resolveSecondaryColor = (
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony,
+) => {
+  if (mode === 'single') {
+    if (harmony === 'complementary') {
+      return getComplementary(primary);
+    }
+    if (harmony === 'triadic') {
+      return getTriadic(primary)[0];
+    }
+    return getAnalogous(primary)[0];
+  }
+
+  return secondary;
+};
+
+const getSimilarity = (primary: string, secondary: string) => (
+  1 - Math.min(differenceEuclidean('oklch')(primary, secondary), 1)
+);
+
 export function getSliderColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
   harmony: HeroHarmony = 'analogous',
 ): SliderColorScheme {
-  let secondaryColor = secondary;
-
-  if (mode === 'single') {
-    if (harmony === 'complementary') {
-      secondaryColor = getComplementary(primary);
-    } else if (harmony === 'triadic') {
-      secondaryColor = getTriadic(primary)[0];
-    } else {
-      secondaryColor = getAnalogous(primary)[0];
-    }
-  }
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
 
   const primaryPalette = generatePalette(primary);
   const secondaryPalette = generatePalette(secondaryColor);
-  const similarity = 1 - Math.min(differenceEuclidean('oklch')(primary, secondaryColor), 1);
+  const similarity = getSimilarity(primary, secondaryColor);
 
   return {
     navButtonBg: '#ffffff',
@@ -109,6 +178,125 @@ export function getSliderColors(
     placeholderBg: primaryPalette.surface,
     placeholderIconColor: primaryPalette.solid,
     similarity,
+  };
+}
+
+export function getFadeColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): FadeColorScheme {
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryPalette = generatePalette(primary);
+  const primaryColor = oklch(primary);
+  const secondaryPalette = generatePalette(secondaryColor);
+  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
+
+  return {
+    thumbnailBorderActive: secondaryPalette.solid,
+    thumbnailBorderInactive: 'transparent',
+    placeholderBg: getPrimaryTint(0.4),
+    placeholderIconColor: primaryPalette.solid,
+    similarity: getSimilarity(primary, secondaryColor),
+  };
+}
+
+export function getBentoColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): BentoColorScheme {
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryColor = oklch(primary);
+  const secondaryColorValue = oklch(secondaryColor);
+  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
+  const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+
+  return {
+    mainImageRing: getSecondaryTint(0.35),
+    gridTint1: getPrimaryTint(0.4),
+    gridTint2: getPrimaryTint(0.35),
+    gridTint3: getPrimaryTint(0.3),
+    gridTint4: getPrimaryTint(0.25),
+    placeholderIcon: primary,
+    similarity: getSimilarity(primary, secondaryColor),
+  };
+}
+
+export function getFullscreenColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): FullscreenColorScheme {
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryColor = oklch(primary);
+  const secondaryColorValue = oklch(secondaryColor);
+  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
+  const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+
+  return {
+    badgeBg: getSecondaryTint(0.3),
+    badgeText: secondaryColor,
+    badgeDotPulse: primary,
+    primaryCTA: primary,
+    primaryCTAText: getAPCATextColor(primary, 16, 600),
+    dotActive: primary,
+    dotInactive: 'rgba(255, 255, 255, 0.5)',
+    placeholderBg: getPrimaryTint(0.35),
+    placeholderIcon: primary,
+    similarity: getSimilarity(primary, secondaryColor),
+  };
+}
+
+export function getSplitColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): SplitColorScheme {
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColorValue = oklch(secondaryColor);
+  const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+
+  return {
+    badgeBg: getSecondaryTint(0.4),
+    badgeText: secondaryColor,
+    primaryCTA: primary,
+    primaryCTAText: getAPCATextColor(primary, 16, 600),
+    navButtonIcon: secondaryColor,
+    navButtonBg: 'rgba(255, 255, 255, 0.9)',
+    progressDotActive: primary,
+    progressDotInactive: '#cbd5e1',
+    similarity: getSimilarity(primary, secondaryColor),
+  };
+}
+
+export function getParallaxColors(
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+  harmony: HeroHarmony = 'analogous',
+): ParallaxColorScheme {
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryColor = oklch(primary);
+  const secondaryColorValue = oklch(secondaryColor);
+  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
+  const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+
+  return {
+    cardBadgeBg: getSecondaryTint(0.4),
+    cardBadgeText: secondaryColor,
+    cardBadgeDot: primary,
+    primaryCTA: primary,
+    primaryCTAText: getAPCATextColor(primary, 14, 600),
+    navButtonBg: 'rgba(255, 255, 255, 0.2)',
+    navButtonIcon: '#ffffff',
+    placeholderBg: getPrimaryTint(0.35),
+    placeholderIcon: primary,
+    similarity: getSimilarity(primary, secondaryColor),
   };
 }
 
