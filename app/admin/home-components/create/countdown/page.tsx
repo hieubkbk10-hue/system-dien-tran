@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { CountdownStyle } from '../../previews';
-import { CountdownPreview } from '../../previews';
+import type { CountdownStyle } from '../../_shared/legacy/previews';
+import { CountdownPreview } from '../../_shared/legacy/previews';
 
 const DEFAULT_END_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 

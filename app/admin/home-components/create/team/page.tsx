@@ -9,7 +9,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { TeamPreview, type TeamStyle } from '../../previews';
+import { TeamPreview, type TeamStyle } from '../../_shared/legacy/previews';
 
 interface TeamMember {
   id: number;

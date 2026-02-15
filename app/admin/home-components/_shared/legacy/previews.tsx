@@ -10,7 +10,7 @@ import {
   Monitor, Package, Phone, Plus, Rocket, Settings, Shield, Smartphone, Star, Tablet, Tag, Target,
   Twitter, Users, X, Youtube, Zap
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, cn } from '../components/ui';
+import { Card, CardContent, CardHeader, CardTitle, cn } from '../../../components/ui';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';

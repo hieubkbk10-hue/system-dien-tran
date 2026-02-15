@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { type BenefitsConfig, BenefitsPreview, type BenefitsStyle } from '../../previews';
+import { type BenefitsConfig, BenefitsPreview, type BenefitsStyle } from '../../_shared/legacy/previews';
 
 const MIN_ITEMS = 1;
 const MAX_ITEMS = 8;

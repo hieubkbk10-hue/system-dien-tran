@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { type ContactConfig, ContactPreview, type ContactStyle } from '../../previews';
+import { type ContactConfig, ContactPreview, type ContactStyle } from '../../_shared/legacy/previews';
 import { Facebook, Globe, Instagram, Linkedin, MessageCircle, Plus, Twitter, X, Youtube } from 'lucide-react';
 
 const SOCIAL_PLATFORMS = [

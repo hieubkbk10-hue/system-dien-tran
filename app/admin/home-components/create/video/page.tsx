@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { VideoPreview, type VideoStyle } from '../../previews';
+import { VideoPreview, type VideoStyle } from '../../_shared/legacy/previews';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
 import { Video as VideoIcon } from 'lucide-react';
 

@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { CareerStyle } from '../../previews';
-import { CareerPreview } from '../../previews';
+import type { CareerStyle } from '../../_shared/legacy/previews';
+import { CareerPreview } from '../../_shared/legacy/previews';
 
 export default function CareerCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', 'Career');

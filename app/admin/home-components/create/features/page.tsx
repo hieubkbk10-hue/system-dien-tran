@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { FeaturesPreview, type FeaturesStyle } from '../../previews';
+import { FeaturesPreview, type FeaturesStyle } from '../../_shared/legacy/previews';
 
 export default function FeaturesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', 'Features');

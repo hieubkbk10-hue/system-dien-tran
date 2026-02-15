@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { AboutStyle } from '../../previews';
-import { AboutPreview } from '../../previews';
+import type { AboutStyle } from '../../_shared/legacy/previews';
+import { AboutPreview } from '../../_shared/legacy/previews';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
 
 export default function AboutCreatePage() {

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GripVertical, Plus, Star, Trash2, User } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { TestimonialsPreview, type TestimonialsStyle } from '../../previews';
+import { TestimonialsPreview, type TestimonialsStyle } from '../../_shared/legacy/previews';
 
 interface TestimonialItem { id: number; name: string; role: string; content: string; avatar: string; rating: number }
 

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Briefcase, Building2, Check, Clock, Cpu, Globe, GripVertical, Layers, Mail, MapPin, Package, Phone, Plus, Rocket, Settings, Shield, Star, Target, Trash2, Users, Zap } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { ServicesPreview, type ServicesStyle } from '../../previews';
+import { ServicesPreview, type ServicesStyle } from '../../_shared/legacy/previews';
 
 // Available icons for services
 const AVAILABLE_ICONS = ['Briefcase', 'Shield', 'Star', 'Users', 'Phone', 'Target', 'Zap', 'Globe', 'Rocket', 'Settings', 'Layers', 'Cpu', 'Clock', 'MapPin', 'Mail', 'Building2', 'Check', 'Package'];

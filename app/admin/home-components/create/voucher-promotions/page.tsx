@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { VoucherPromotionsPreview } from '../../previews';
+import { VoucherPromotionsPreview } from '../../_shared/legacy/previews';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 
 export default function VoucherPromotionsCreatePage() {

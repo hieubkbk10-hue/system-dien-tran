@@ -7,7 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { FooterPreview, type FooterStyle } from '../../previews';
+import { FooterPreview, type FooterStyle } from '../../_shared/legacy/previews';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
 
 interface FooterLink { label: string; url: string }

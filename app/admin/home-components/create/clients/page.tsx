@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ImageIcon, Link as LinkIcon, Loader2, Plus, Upload } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { ClientsPreview, type ClientsStyle } from '../../previews';
+import { ClientsPreview, type ClientsStyle } from '../../_shared/legacy/previews';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { SpeedDialPreview, type SpeedDialStyle } from '../../previews';
+import { SpeedDialPreview, type SpeedDialStyle } from '../../_shared/legacy/previews';
 
 interface SpeedDialAction {
   id: number;
