@@ -12,8 +12,10 @@
 
 - [ ] 60-30-10 đo tại data-đầy-đủ, placeholder không tính
 - [ ] Neutral chiếm nền + body text
-- [ ] Primary cho CTA/heading/price/active
-- [ ] Secondary cho badge/hover/accents
+- [ ] Primary cho CTA/heading/icon/active
+- [ ] Secondary cho subtitle/label/badge/hover/accents
+- [ ] Heading (h2) dùng brandColor, KHÔNG dùng secondary
+- [ ] Primary chiếm >= 25% visual weight (heading + CTA + icon)
 - [ ] Placeholder bg luôn neutral (grid/bento cũng neutral)
 
 ## C. Accent Prominence

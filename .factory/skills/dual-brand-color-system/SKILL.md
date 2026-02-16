@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 9.0.0
+version: 10.0.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -64,8 +64,8 @@ version: 9.0.0
 ### 3) 60-30-10 Distribution (đo tại content state)
 
 - 60% Neutral: background/surface/body text
-- 30% Primary: CTA, heading accent, price, active state
-- 10% Secondary: badge, tag, secondary action, decorative accent
+- 30% Primary: section heading (h2), CTA, icon containers, active state
+- 10% Secondary: subtitle/label, badge, tag, secondary action, decorative accent
 - Placeholder **không tính vào tỷ lệ** và luôn dùng neutral cho background
 
 **Ví dụ áp dụng**
@@ -147,10 +147,10 @@ KHÔNG tính placeholder vào tỷ lệ này.
 
 **Layer 1: Content State (data đầy đủ) - ĐO TẠI ĐÂY**
 - 60% Neutral: background page, card surface, text body
-- 30% Primary: CTA buttons, headings có accent, price tags,
-  overlay gradient tint, section accent border/line, hover state
-- 10% Secondary: badges, tag labels, secondary buttons/links,
-  active state indicators, decorative accents, hover accent
+- 30% Primary: section headings (h2), CTA buttons, icon containers,
+  active states, section accent border/line
+- 10% Secondary: subtitles/labels, badges, tag labels,
+  secondary buttons/links, decorative accents, hover accent
 
 **Layer 2: Placeholder State (data trống) - KHÔNG tính vào tỷ lệ**
 - Background: neutral tint (slate-100/200), KHÔNG dùng primary/secondary tint
@@ -226,21 +226,25 @@ promotions-list, menu, account-profile, account-orders, search
 
 | UI Element | Color | Lý do |
 |---|---|---|
+| Section title/heading | `brandColor` | Element lớn nhất, nhận diện thương hiệu |
 | CTA button (primary action) | `brandColor` | Dominant action = primary brand |
-| Section title/heading accent | `brandColor` | Brand recognition |
-| Prices, số liệu nổi bật | `secondary` | Data highlight, contrast với heading |
-| Badge solid (HOT, discount) | `brandColor` bg | Qua BrandBadge component |
-| Badge outline (NEW, tag) | `secondary` border + text | Qua BrandBadge component |
-| Card borders, hover glow | `secondary` (10-40% opacity) | Subtle accent |
 | Icon container background | `brandColor` (10% opacity) | Brand hint |
-| Section label/subtitle | `secondary` | Phân biệt với heading |
-| Gradient accent line/bar | `brandColor → secondary` | Dual brand harmony |
-| Footer background | Shade of `brandColor` (65%) | Dark brand tone |
-| Timeline/process dots | `secondary` | Decorative, không dominant |
 | Active/selected state | `brandColor` | Primary feedback |
+| Navigation arrows | `brandColor` border + icon | Interactive control |
+| Section label/subtitle | `secondary` | Phân biệt với heading |
+| Prices, số liệu nổi bật | `secondary` | Data highlight, contrast với heading |
+| Badge outline (NEW, tag) | `secondary` border + text | Qua BrandBadge component |
+| Badge solid (HOT, discount) | `brandColor` bg | Qua BrandBadge component |
+| Card borders, hover glow | `secondary` (10-40% opacity) | Subtle accent |
+| Timeline/process dots | `secondary` | Decorative, không dominant |
 | Form focus ring | `secondary` | Subtle feedback |
 | Pagination active dot | `secondary` | Tăng visibility (nhỏ) |
-| Navigation arrows | `brandColor` border + icon | Interactive control |
+| Gradient accent line/bar | `brandColor → secondary` | Dual brand harmony |
+| Footer background | Shade of `brandColor` (65%) | Dark brand tone |
+
+**Rule bắt buộc**
+- Heading (h2 section title) LUÔN dùng `brandColor`.
+- Nếu heading dùng neutral (slate-900), KHÔNG dùng `secondary` cho heading.
 
 ## Checklist & Template
 
