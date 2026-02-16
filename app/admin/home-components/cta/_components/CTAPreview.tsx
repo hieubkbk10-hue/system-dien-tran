@@ -62,6 +62,8 @@ export const CTAPreview = ({
   const hasBadge = Boolean(config.badge?.trim());
   const hasSecondaryButton = Boolean(config.secondaryButtonText?.trim());
 
+  const descriptionFontSize = style === 'banner' ? 18 : 16;
+
   const accessibilityPairs: Array<{
     background: string;
     text: string;
@@ -70,7 +72,7 @@ export const CTAPreview = ({
     label: string;
   }> = [
     { background: sectionBgForCheck, text: tokens.title, fontSize: 32, fontWeight: 700, label: 'title' },
-    { background: sectionBgForCheck, text: tokens.description, fontSize: 16, fontWeight: 500, label: 'description' },
+    { background: sectionBgForCheck, text: tokens.description, fontSize: descriptionFontSize, fontWeight: 500, label: 'description' },
     { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 700, label: 'primaryButton' },
   ];
 
