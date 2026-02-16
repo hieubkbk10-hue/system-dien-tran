@@ -155,7 +155,10 @@ export const ProductCategoriesPreview = ({
     return (
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
         <div className="max-w-7xl mx-auto">
-          <h2 className={cn("font-bold mb-6 text-center text-slate-900 dark:text-slate-100", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
+          <h2
+            className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+            style={{ color: colors.primary.solid }}
+          >
             Danh mục sản phẩm
           </h2>
           
@@ -215,7 +218,12 @@ export const ProductCategoriesPreview = ({
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
       <div className="max-w-7xl mx-auto">
         <div className={cn("flex items-center justify-between mb-6", isMobile ? 'px-3' : 'px-6')}>
-          <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>Danh mục sản phẩm</h2>
+          <h2
+            className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+            style={{ color: colors.primary.solid }}
+          >
+            Danh mục sản phẩm
+          </h2>
           <button 
             className="text-sm font-medium flex items-center gap-1 hover:underline whitespace-nowrap"
             style={{ color: colors.linkText }}
@@ -263,7 +271,10 @@ export const ProductCategoriesPreview = ({
     return (
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto">
-          <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
+          <h2
+            className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+            style={{ color: colors.primary.solid }}
+          >
             Khám phá theo danh mục
           </h2>
           
@@ -308,7 +319,12 @@ export const ProductCategoriesPreview = ({
     <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl')}>Danh mục</h2>
+          <h2
+            className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl')}
+            style={{ color: colors.primary.solid }}
+          >
+            Danh mục
+          </h2>
           <button className="text-sm font-medium hover:underline" style={{ color: colors.linkText }}>
             Tất cả →
           </button>
@@ -363,7 +379,10 @@ export const ProductCategoriesPreview = ({
   const renderMarqueeStyle = () => (
     <section className={cn("w-full overflow-hidden", isMobile ? 'py-6' : 'py-10')}>
       <div className="max-w-7xl mx-auto">
-        <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg px-3' : 'text-xl md:text-2xl')}>
+        <h2
+          className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg px-3' : 'text-xl md:text-2xl')}
+          style={{ color: colors.primary.solid }}
+        >
           Khám phá danh mục
         </h2>
         
@@ -490,7 +509,10 @@ export const ProductCategoriesPreview = ({
   const renderCircularStyle = () => (
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
       <div className="max-w-7xl mx-auto">
-        <h2 className={cn("font-bold mb-6 text-center px-3", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
+        <h2
+          className={cn("font-bold mb-6 text-center px-3", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+          style={{ color: colors.primary.solid }}
+        >
           Danh mục sản phẩm
         </h2>
 
