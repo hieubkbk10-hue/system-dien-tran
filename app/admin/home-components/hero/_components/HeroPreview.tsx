@@ -121,7 +121,6 @@ export const HeroPreview = ({
                 {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, { useSliderColors: true })}
               </div>
             ))}
-            <div className="absolute bottom-0 left-0 right-0 h-1 z-30" style={{ background: sliderColors.bottomStripGradient }} />
             {slides.length > 1 && (
               <>
                 <button

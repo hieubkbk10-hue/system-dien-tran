@@ -267,7 +267,6 @@ function HeroSection({
               {slide.image ? renderSlideWithBlur(slide) : renderPlaceholder(sliderColors.placeholderBg, sliderColors.placeholderIconColor)}
             </div>
           ))}
-          <div className="absolute bottom-0 left-0 right-0 h-1 z-30" style={{ background: sliderColors.bottomStripGradient }} />
           {slides.length > 1 && (
             <>
               <button onClick={() =>{  setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBg, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>

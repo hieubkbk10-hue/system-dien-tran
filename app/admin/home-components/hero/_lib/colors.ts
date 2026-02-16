@@ -28,7 +28,6 @@ export interface SliderColorScheme {
   navButtonOuterRing: string;
   dotActive: string;
   dotInactive: string;
-  bottomStripGradient: string;
   progressBarActive: string;
   progressBarInactive: string;
   hoverRingColor: string;
@@ -196,19 +195,16 @@ export function getSliderColors(
   const navBase = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
   const navIndicator = getNavIndicatorColors(navBase);
   const dotActive = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
-  const bottomStripGradient = mode === 'dual'
-    ? `linear-gradient(to right, ${primaryPalette.solid}, ${secondaryPalette.solid})`
-    : `linear-gradient(to right, ${primaryPalette.solid}, ${primaryPalette.hover})`;
+  const navIconColor = mode === 'dual' ? primaryPalette.solid : navIndicator.icon;
 
   return {
     navButtonBg: navIndicator.bg,
     navButtonBgHover: navIndicator.bg,
-    navButtonIconColor: navIndicator.icon,
+    navButtonIconColor: navIconColor,
     navButtonBorderColor: 'transparent',
     navButtonOuterRing: navIndicator.ring,
     dotActive,
     dotInactive: 'rgba(255, 255, 255, 0.5)',
-    bottomStripGradient,
     progressBarActive: primaryPalette.solid,
     progressBarInactive: 'rgba(255, 255, 255, 0.2)',
     hoverRingColor: primaryPalette.solid,
