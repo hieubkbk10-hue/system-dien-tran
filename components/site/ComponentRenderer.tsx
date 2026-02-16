@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from './hooks';
+import { cn } from '@/app/admin/components/ui';
 import {
   getBentoColors,
   getFadeColors,
@@ -5613,6 +5614,9 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   const columnsDesktop = (config.columnsDesktop as number) || 4;
   const columnsMobile = (config.columnsMobile as number) || 2;
   const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary), [brandColor, secondary]);
+  const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const circularScrollRef = React.useRef<HTMLDivElement>(null);
+  const [circularScrollPosition, setCircularScrollPosition] = React.useState(0);
   
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, {});
@@ -5645,6 +5649,25 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     }
     return map;
   }, [productsData]);
+
+  React.useEffect(() => {
+    const updateDevice = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setDevice('mobile');
+        return;
+      }
+      if (width < 1024) {
+        setDevice('tablet');
+        return;
+      }
+      setDevice('desktop');
+    };
+
+    updateDevice();
+    window.addEventListener('resize', updateDevice);
+    return () => window.removeEventListener('resize', updateDevice);
+  }, []);
   
   const resolvedCategories = categoriesConfig
     .filter((item, index, arr) => arr.findIndex(i => i.categoryId === item.categoryId) === index)
@@ -5692,6 +5715,42 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   };
 
   const getMobileGridCols = () => columnsMobile === 3 ? 'grid-cols-3' : 'grid-cols-2';
+  const maxVisible = device === 'mobile' ? 4 : (device === 'tablet' ? 6 : 8);
+  const visibleCategories = resolvedCategories.slice(0, maxVisible);
+  const remainingCount = resolvedCategories.length - maxVisible;
+
+  const handleCircularScroll = () => {
+    if (!circularScrollRef.current) {return;}
+    const { scrollLeft, scrollWidth, clientWidth } = circularScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+
+    if (maxScroll <= 0) {
+      setCircularScrollPosition(0);
+      return;
+    }
+
+    const percentage = scrollLeft / maxScroll;
+
+    if (percentage < 0.3) {
+      setCircularScrollPosition(0);
+    } else if (percentage > 0.7) {
+      setCircularScrollPosition(2);
+    } else {
+      setCircularScrollPosition(1);
+    }
+  };
+
+  const handleCircularPageChange = (index: number) => {
+    if (!circularScrollRef.current) {return;}
+    const { scrollWidth, clientWidth } = circularScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+
+    let targetLeft = 0;
+    if (index === 1) {targetLeft = maxScroll / 2;}
+    if (index === 2) {targetLeft = maxScroll;}
+
+    circularScrollRef.current.scrollTo({ left: targetLeft, behavior: 'smooth' });
+  };
 
   // Helper: Render category visual (image or icon)
   const renderCategoryVisual = (cat: typeof resolvedCategories[0], iconSize: number = 48) => {
@@ -5715,12 +5774,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
 
   // Style 1: Grid - Classic grid with hover effect + monochromatic
   if (style === 'grid') {
+    const gridItems = resolvedCategories.length <= 2 ? resolvedCategories : visibleCategories;
     return (
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
           <div className={`grid gap-3 md:gap-4 lg:gap-6 ${getMobileGridCols()} ${getGridCols()}`}>
-            {resolvedCategories.map((cat) => (
+            {gridItems.map((cat) => (
               <a 
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
@@ -5736,14 +5796,30 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 }}
               >
                 {renderCategoryVisual(cat, 48)}
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"
+                  style={{ height: '60%' }}
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-10">
                   <h3 className="font-semibold text-sm md:text-base line-clamp-1" style={{ color: colors.overlayText }}>{cat.name}</h3>
                   {showProductCount && (
-                    <p className="text-xs opacity-80 mt-0.5" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
+                    <p className="text-xs mt-0.5" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}
                 </div>
               </a>
             ))}
+            {remainingCount > 0 && resolvedCategories.length > 2 && (
+              <div
+                className="flex flex-col items-center justify-center aspect-square rounded-xl cursor-pointer transition-all"
+                style={{ backgroundColor: colors.ctaMoreBg, border: `2px dashed ${colors.ctaMoreBorder}` }}
+              >
+                <Plus size={32} style={{ color: colors.ctaMoreText }} className="mb-2" />
+                <span className="font-bold text-lg" style={{ color: colors.ctaMoreText }}>
+                  +{remainingCount}
+                </span>
+                <p className="text-xs text-slate-500 mt-1">danh mục khác</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -5767,6 +5843,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 <div className="flex gap-2">
                   <button
                     type="button"
+                    aria-label="Cuộn trước"
                     onClick={() => {
                       const container = document.querySelector(`#${productCatCarouselId}`);
                       if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
@@ -5778,6 +5855,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   </button>
                   <button
                     type="button"
+                    aria-label="Cuộn sau"
                     onClick={() => {
                       const container = document.querySelector(`#${productCatCarouselId}`);
                       if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
@@ -5954,8 +6032,10 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
         <div className="max-w-7xl mx-auto">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center px-4 md:px-6" style={{ color: colors.primary.solid }}>{title}</h2>
           <div
+            ref={circularScrollRef}
             className="flex overflow-x-auto scrollbar-hide pb-4 gap-4 md:gap-6 snap-x snap-mandatory px-4 md:px-6"
             style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+            onScroll={handleCircularScroll}
           >
             {resolvedCategories.map((cat) => (
               <a
@@ -5986,12 +6066,44 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   </div>
                 </div>
                 <h3 className="font-semibold text-center text-sm line-clamp-1 w-full">{cat.name}</h3>
-                {showProductCount && (
-                  <p className="text-xs text-center" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
-                )}
+                <div className="relative h-[24px] overflow-hidden w-full">
+                  <span
+                    className="block w-full absolute top-0 left-0 text-center transition-transform duration-300 group-hover:translate-y-full group-hover:opacity-0 text-xs"
+                    style={{ color: colors.productCountText }}
+                  >
+                    {showProductCount ? `${cat.productCount} sản phẩm` : '\u00A0'}
+                  </span>
+                  <span
+                    className="block w-full underline absolute top-0 left-0 text-center transition-transform duration-300 -translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 text-xs"
+                    style={{ color: colors.linkText }}
+                  >
+                    Xem chi tiết
+                  </span>
+                </div>
               </a>
             ))}
           </div>
+          {resolvedCategories.length > 3 && (
+            <div className="flex items-center justify-center mt-8 gap-[10px]">
+              {[0, 1, 2].map((index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => { handleCircularPageChange(index); }}
+                  className={cn(
+                    "inline-block h-[8px] rounded-[10px] cursor-pointer transition-all duration-300",
+                    circularScrollPosition === index ? 'w-[28px]' : 'w-[8px] border'
+                  )}
+                  style={
+                    circularScrollPosition === index
+                      ? { backgroundColor: colors.paginationDotActive }
+                      : { borderColor: colors.paginationDotInactive, backgroundColor: 'transparent' }
+                  }
+                  aria-label={`Go to page ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
         <style jsx>{`
           .scrollbar-hide::-webkit-scrollbar {
