@@ -5647,6 +5647,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   }, [productsData]);
   
   const resolvedCategories = categoriesConfig
+    .filter((item, index, arr) => arr.findIndex(i => i.categoryId === item.categoryId) === index)
     .map(item => {
       const cat = categoryMap[item.categoryId];
       if (!cat) {return null;}
