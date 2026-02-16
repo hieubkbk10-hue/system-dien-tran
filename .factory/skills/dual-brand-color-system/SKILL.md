@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, và Theme Engine UI.
-version: 7.1.0
+version: 8.0.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -49,109 +49,48 @@ version: 7.1.0
 
 ---
 
-## Core Rules
+## 6 Principles (gọn, tổng quát)
 
-### 1) OKLCH thay HSL
+### 1) OKLCH Only
 
-- Không dùng HSL để generate tint/shade
-- Dùng OKLCH để giữ **perceptual uniformity**
+- Dùng OKLCH để generate tint/shade, không dùng HSL
+- Ưu tiên chỉnh L/C/H có clamp để tránh wash-out
 
-### 2) APCA thay WCAG 2.0
+### 2) APCA Contrast
 
-- Text on background phải pass APCA (Lc >= 60 cho body)
+- Text/UI phải pass APCA thresholds
 - Luôn dùng `Math.abs(apcaContrast(...))`
 
-### 3) Harmony (single -> dual)
+### 3) 60-30-10 Distribution (đo tại content state)
 
-- Single mode: secondary auto từ primary
-- Default: Analogous (+30°)
-- Options: Complementary (180°), Triadic (120°)
-
-### 4) 60-30-10 (đo tại Content State)
-
-- 60% Neutral: background/surface/text body
-- 30% Primary: CTA, accent heading, price, gradient, active state
+- 60% Neutral: background/surface/body text
+- 30% Primary: CTA, heading accent, price, active state
 - 10% Secondary: badge, tag, secondary action, decorative accent
-- **QUAN TRỌNG**: Tỷ lệ trên đo khi component có **DATA ĐẦY ĐỦ**
-- Placeholder state **KHÔNG** tính vào tỷ lệ này
+- Placeholder **không tính vào tỷ lệ** và luôn dùng neutral cho background
 
-### 5) Placeholder dùng Neutral, không phải Primary/Secondary
+**Ví dụ áp dụng**
+- Pagination dot active (dual) = secondary để tăng visibility
+- Placeholder grid/bento: neutral tint, không gridTint khi chưa có data
 
-- Background placeholder: neutral (slate-100/200), **KHÔNG** dùng primary hoặc secondary tint
-- Grid/multi-cell placeholder (vd: bento): vẫn dùng neutral, **KHÔNG** dùng gridTint
-- Icon placeholder: primary solid (chỉ icon, không phải background)
-- Text placeholder: neutral (slate-400/500)
-- Lý do: nếu dùng primary/secondary tint cho placeholder background, khi có data thật phần brand "biến mất" → tỷ lệ bị lệch
+### 4) Accent Prominence
 
-### 6) Secondary phải “nhìn thấy được” khi có data
+- Gán primary/secondary theo **accent count + tier**
+- Lone accent luôn primary; 2 accents: lớn hơn = primary
+- Tier S yêu cầu APCA cao hơn (>= 60)
 
-- Không chỉ dùng secondary cho icon < 20px
-- Secondary phải xuất hiện ở ít nhất 1 element có diện tích >= 5% component
-- Ví dụ tốt: badge background, gradient accent, card ring, overlay tint
-- Ví dụ xấu: chỉ dùng cho nav arrow icon 16px
+**Ví dụ áp dụng**
+- Secondary không chỉ dùng icon < 20px; phải có element đủ lớn
+- Tránh decorative accent nếu không có chức năng
 
-### 7) Pagination dots ưu tiên Secondary (dual mode)
+### 5) Harmony Auto-suggest
 
-- Dual mode: dot active = secondary solid (tăng visibility cho secondary)
-- Single mode: dot active = primary solid
-- Dot inactive: luôn neutral (rgba white hoặc slate-300)
-- Lý do: dot phân trang có diện tích đủ lớn để “nhìn thấy” secondary, giúp pass minimum visibility rule
+- Single mode: auto secondary từ primary
+- Default: Analogous (+30°), options: Complementary/Triadic
 
-### 8) Nav Arrows (< >) dùng Two-Color Indicator (W3C C40)
+### 6) Single Source of Truth
 
-- **Dual mode**: base (bg/ring) dùng secondary, **icon dùng primary**
-- **Single mode**: icon dùng primary solid
-- Luôn dùng **2 lớp contrast** (inner bg + outer ring) để đảm bảo hiển thị trên mọi nền:
-  - Secondary sáng (L >= 0.65): bg tối (#0f172a) + icon trắng + outer ring trắng
-  - Secondary tối (L < 0.65): bg trắng + icon secondary + outer ring tối
-- Kỹ thuật: `box-shadow: 0 0 0 2px <outer>` + `background: <inner>`
-- Tham chiếu: W3C C40, WCAG 2.2 SC 1.4.11 (Non-text Contrast 3:1)
-
-### 9) Accent Prominence Engine (phân phối thông minh)
-
-#### Bước 1: Đếm Accent Points
-
-- Accent point = element dùng primary/secondary (không tính neutral)
-- Chỉ đo ở trạng thái **data đầy đủ**
-
-#### Bước 2: Phân loại Surface Area (ước lượng)
-
-| Tier | Diện tích ước lượng | Ví dụ |
-|------|---------------------|-------|
-| XL | >= 20% component | CTA lớn, overlay gradient, hero badge |
-| L | 5-20% | Card ring, badge bg, progress bar |
-| M | 1-5% | Dot active, small badge, thin border |
-| S | < 1% | Icon 16px, thin line |
-
-#### Bước 3: Phân phối theo Accent Count
-
-- **1 accent** → luôn **primary** (Lone Accent Rule)
-- **2 accents** → lớn hơn = primary, nhỏ hơn = secondary
-  - Nếu cùng tier → element có interaction (click/hover) = primary
-- **3 accents** → 2 primary + 1 secondary (secondary = tier thấp nhất)
-- **4+ accents** → áp dụng 60-30-10 bình thường (~70% primary / ~30% secondary)
-
-#### Bước 4: Validate Contrast theo Tier
-
-- Tier S: APCA >= 60
-- Tier M: APCA >= 45
-- Tier L/XL: APCA >= 30
-
-### 10) Single Source of Truth — Render ≡ Preview
-
-- Site `ComponentRenderer` và admin `Preview` phải dùng **cùng hàm** trong `_lib/colors.ts`
-- Không hardcode color ở site nếu preview đã dùng helper
-- Sửa logic màu chỉ ở `_lib/colors.ts`
-
-### 11) Placeholder Grid/Multi-cell luôn neutral
-
-- Placeholder grid (bento, mosaic, gallery) dùng neutral tint
-- Grid tint chỉ dùng khi cell có data thật
-
-### 12) YAGNI — Không thêm decorative accent thừa
-
-- Không thêm element chỉ để “tăng visibility” nếu secondary đã đủ 2 element types
-- Mỗi accent phải có functional purpose (navigation, state indicator, CTA)
+- Render ≡ Preview, dùng chung helper trong `_lib/colors.ts`
+- Không hardcode màu ở site nếu preview đã dùng helper
 
 ---
 
@@ -176,56 +115,10 @@ KHÔNG tính placeholder vào tỷ lệ này.
 - Icon: primary solid (hint cho user biết component thuộc brand nào)
 - Text: neutral (slate-500)
 
-## Dual-Brand Visibility Checklist (khi mode=dual)
+## Checklist & Template
 
-### Primary phải hiện ở ít nhất 3 element types
-
-- CTA button (fill hoặc border)
-- Heading accent (underline, highlight, hoặc text color)
-- Active indicator (dot, progress bar, tab underline)
-- Price/important number styling
-- Gradient contribution (ít nhất 1 gradient có primary)
-- Section border/line accent
-
-### Secondary phải hiện ở ít nhất 2 element types CÓ DIỆN TÍCH ĐỦ LỚN
-
-- Badge/tag (background tint đủ rộng, không chỉ text)
-- Overlay/gradient accent (ít nhất 20% diện tích gradient)
-- Card border/ring khi selected/active
-- Secondary button (outline hoặc tonal)
-- Image overlay tint
-- Decorative element (divider, pattern, border strip)
-
-### Minimum visibility rule
-
-- Primary: chiếm >= 15% diện tích element có màu (không tính neutral)
-- Secondary: chiếm >= 5% diện tích element có màu (không tính neutral)
-- Nếu secondary chỉ dùng cho icon < 20px → FAIL → cần thêm element lớn hơn
-
-## Color Role Matrix (template)
-
-| Element | Trạng thái | Primary | Secondary | Neutral | Ghi chú |
-|---------|-----------|---------|-----------|---------|---------|
-| CTA button | content | fill | - | - | Always visible |
-| Badge | content | dot | bg+text | - | Secondary phải tint đủ rộng |
-| Heading | content | accent line | - | text | - |
-| Card bg | content | - | - | fill | 60% rule |
-| Nav icon | content | - | solid | - | Quá nhỏ, không đủ |
-| Placeholder bg | empty | - | - | fill | KHÔNG dùng primary/secondary tint |
-| Placeholder grid cell | empty | - | - | fill | Bento/grid dùng neutral |
-| Placeholder icon | empty | solid | - | - | Hint only |
-| Pagination dot | content | single: solid | dual: solid | - | Dual mode ưu tiên secondary |
-| Nav arrow btn | content | dual: icon | dual: bg logic | bg + ring | Icon=primary, base=secondary |
-| Progress bar | content | fill | - | track | Optional |
-| Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
-
-## Accent Analysis Template
-
-| # | Element | Tier | Area Est. | Interactive? | Assigned Color | Reason |
-|---|---------|------|-----------|-------------|----------------|--------|
-| 1 | thumbnail border | M | ~3% | yes | primary | Lone accent |
-| 2 | | | | | | |
-| Total accent points: X | | | | | | Apply Rule: Lone/Dual/Triple/Standard |
+- Dùng `checklist.md` cho review/create
+- Dùng `reference.md` cho bảng tóm tắt OKLCH/APCA/Harmony/W3C C40
 
 ---
 
@@ -291,13 +184,8 @@ textOnSolid: getAPCATextColor(primary, 16, 500)
 - `examples/color-utils.ts`
 - `examples/theme-engine-ui.tsx`
 - `examples/hero-before-after.md`
-- `checklists/review-checklist.md`
-- `checklists/create-checklist.md`
-- `checklists/dual-visibility-checklist.md`
-- `checklists/accent-analysis-template.md`
-- `reference-oklch.md`
-- `reference-apca.md`
-- `reference-harmony.md`
+- `checklist.md`
+- `reference.md`
 
 
 ---
