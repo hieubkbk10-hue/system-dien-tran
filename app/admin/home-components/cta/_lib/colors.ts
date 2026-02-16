@@ -1,6 +1,6 @@
 'use client';
 
-import { APCAcontrast } from 'apca-w3';
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
 import type { CTAHarmony, CTAStyle } from '../_types';
 
@@ -64,6 +64,29 @@ export interface CTAAccentBalance {
 
 const clampLightness = (value: number) => Math.min(Math.max(value, 0.08), 0.98);
 
+const hexToRgb = (hex: string): [number, number, number] | null => {
+  const cleaned = hex.trim().replace('#', '');
+  if (cleaned.length !== 6 && cleaned.length !== 8) {return null;}
+
+  const normalized = cleaned.length === 8 ? cleaned.slice(0, 6) : cleaned;
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+
+  if ([r, g, b].some((value) => Number.isNaN(value))) {return null;}
+  return [r, g, b];
+};
+
+const getAPCALc = (textHex: string, backgroundHex: string) => {
+  const textRgb = hexToRgb(textHex);
+  const backgroundRgb = hexToRgb(backgroundHex);
+
+  if (!textRgb || !backgroundRgb) {return 0;}
+
+  const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(backgroundRgb)));
+  return Number.isFinite(lc) ? lc : 0;
+};
+
 const getOKLCH = (hex: string) => {
   const parsed = oklch(hex);
   return {
@@ -75,8 +98,8 @@ const getOKLCH = (hex: string) => {
 };
 
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
-  const whiteLc = Math.abs(APCAcontrast('#ffffff', bg));
-  const blackLc = Math.abs(APCAcontrast('#000000', bg));
+  const whiteLc = getAPCALc('#ffffff', bg);
+  const blackLc = getAPCALc('#000000', bg);
   const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
 
   if (whiteLc >= threshold) {return '#ffffff';}
@@ -152,8 +175,7 @@ export const getCTAAccessibilityScore = (pairs: CTAAccessibilityPair[]): CTAAcce
     const fontSize = pair.fontSize ?? 16;
     const fontWeight = pair.fontWeight ?? 500;
     const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
-    const rawLc = Math.abs(APCAcontrast(pair.text, pair.background));
-    const lc = Number.isFinite(rawLc) ? rawLc : 0;
+    const lc = getAPCALc(pair.text, pair.background);
     minLc = Math.min(minLc, lc);
 
     if (lc < threshold) {
@@ -243,7 +265,7 @@ export const getCTAColors = ({
       sectionBg: primaryPalette.solid,
       sectionBorder: primaryPalette.active,
       title: primaryPalette.textOnSolid,
-      description: getAPCATextColor(primaryPalette.solid, 16, 500) === '#ffffff' ? '#e2e8f0' : '#1e293b',
+      description: getAPCATextColor(primaryPalette.solid, 16, 500) === '#ffffff' ? '#ffffff' : '#1e293b',
       badgeBg: applyAlpha(secondaryPalette.solid, '2A'),
       badgeText: getAPCATextColor(applyAlpha(secondaryPalette.solid, '2A'), 12, 600),
       primaryButtonBg: '#ffffff',

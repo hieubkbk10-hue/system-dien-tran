@@ -55,13 +55,34 @@ export const CTAPreview = ({
   const resolvedSecondary = resolveSecondaryColor(brandColor, secondary, mode, harmony);
   const harmonyStatus = getHarmonyStatus(brandColor, resolvedSecondary);
   const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient') ? brandColor : tokens.sectionBg;
+  const secondaryButtonBgForCheck = !tokens.secondaryButtonBg || tokens.secondaryButtonBg === 'transparent'
+    ? sectionBgForCheck
+    : tokens.secondaryButtonBg;
 
-  const accessibility = getCTAAccessibilityScore([
+  const hasBadge = Boolean(config.badge?.trim());
+  const hasSecondaryButton = Boolean(config.secondaryButtonText?.trim());
+
+  const accessibilityPairs: Array<{
+    background: string;
+    text: string;
+    fontSize: number;
+    fontWeight: number;
+    label: string;
+  }> = [
     { background: sectionBgForCheck, text: tokens.title, fontSize: 32, fontWeight: 700, label: 'title' },
     { background: sectionBgForCheck, text: tokens.description, fontSize: 16, fontWeight: 500, label: 'description' },
     { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 600, label: 'primaryButton' },
-    { background: tokens.secondaryButtonBg ?? sectionBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 600, label: 'secondaryButton' },
-  ]);
+  ];
+
+  if (hasBadge) {
+    accessibilityPairs.push({ background: tokens.badgeBg, text: tokens.badgeText, fontSize: 12, fontWeight: 600, label: 'badge' });
+  }
+
+  if (hasSecondaryButton) {
+    accessibilityPairs.push({ background: secondaryButtonBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 600, label: 'secondaryButton' });
+  }
+
+  const accessibility = getCTAAccessibilityScore(accessibilityPairs);
 
   const accentBalance = getCTAAccentBalance(style);
 
