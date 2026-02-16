@@ -30,3 +30,14 @@ const colors = {
 - getTint/getShade -> OKLCH palette
 - textOnPrimary -> APCA computed
 - Added hover/active/disabled variants
+
+## Single Source of Truth (Site = Preview)
+
+```ts
+import { getSliderColors } from '@/app/admin/home-components/hero/_lib/colors';
+
+const sliderColors = getSliderColors(primary, secondary, mode, harmony);
+```
+
+- Site `ComponentRenderer` và admin `Preview` dùng chung helper
+- Mọi thay đổi màu chỉ sửa trong `_lib/colors.ts`

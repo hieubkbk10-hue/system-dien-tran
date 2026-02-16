@@ -13,7 +13,7 @@
 
 - [ ] Badge/tag (background tint đủ rộng, không chỉ text)
 - [ ] Pagination dots active (dual mode)
-- [ ] Nav arrow buttons (dual mode: icon dùng secondary, two-color indicator)
+- [ ] Nav arrow buttons (dual mode: base=secondary, icon=primary, two-color indicator)
 - [ ] Overlay/gradient accent (ít nhất 20% diện tích gradient)
 - [ ] Card border/ring khi selected/active
 - [ ] Secondary button (outline hoặc tonal)
@@ -25,3 +25,4 @@
 - [ ] Primary chiếm >= 15% diện tích element có màu (không tính neutral)
 - [ ] Secondary chiếm >= 5% diện tích element có màu (không tính neutral)
 - [ ] Nếu secondary chỉ dùng cho icon < 20px → FAIL → cần thêm element lớn hơn
+- [ ] Không thêm decorative element chỉ để đạt minimum visibility

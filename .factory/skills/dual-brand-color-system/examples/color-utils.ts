@@ -88,8 +88,9 @@ export const getNavButtonColors = (
   mode: 'single' | 'dual',
   secondaryColor?: string,
 ) => {
-  const iconColor = mode === 'dual' && secondaryColor ? secondaryColor : brandColor;
-  const color = oklch(iconColor);
+  const baseColor = mode === 'dual' && secondaryColor ? secondaryColor : brandColor;
+  const iconColor = brandColor;
+  const color = oklch(baseColor);
   const isLight = color.l >= 0.65;
 
   return {

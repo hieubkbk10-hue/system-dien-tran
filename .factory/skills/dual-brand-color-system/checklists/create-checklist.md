@@ -30,3 +30,10 @@
 - [ ] Đã điền Accent Analysis Template
 - [ ] Áp dụng đúng Accent Count Rule
 - [ ] Lone Accent = primary
+
+## 7. Single Source of Truth
+- [ ] ComponentRenderer import từ _lib/colors.ts (không hardcode)
+- [ ] Preview và Site dùng cùng helper
+
+## 8. Placeholder Grid
+- [ ] Multi-cell placeholder dùng neutral (không gridTint)

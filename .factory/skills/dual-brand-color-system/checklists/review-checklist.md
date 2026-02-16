@@ -36,3 +36,11 @@
 - [ ] Đã áp dụng đúng rule theo accent count (Lone/Dual/Triple/Standard)
 - [ ] Lone accent dùng primary, không dùng secondary
 - [ ] Accent tier S có APCA >= 60
+
+## 8. Single Source of Truth
+- [ ] Site và Preview dùng cùng helper trong _lib/colors.ts
+- [ ] Không hardcode màu ở site nếu preview đã dùng helper
+
+## 9. YAGNI Decorative
+- [ ] Không thêm decorative accent không có functional purpose
+- [ ] Secondary đã đủ 2 element types thì không thêm element mới

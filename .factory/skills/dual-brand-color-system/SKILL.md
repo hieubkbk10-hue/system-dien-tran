@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, và Theme Engine UI.
-version: 7.0.0
+version: 7.1.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -78,6 +78,7 @@ version: 7.0.0
 ### 5) Placeholder dùng Neutral, không phải Primary/Secondary
 
 - Background placeholder: neutral (slate-100/200), **KHÔNG** dùng primary hoặc secondary tint
+- Grid/multi-cell placeholder (vd: bento): vẫn dùng neutral, **KHÔNG** dùng gridTint
 - Icon placeholder: primary solid (chỉ icon, không phải background)
 - Text placeholder: neutral (slate-400/500)
 - Lý do: nếu dùng primary/secondary tint cho placeholder background, khi có data thật phần brand "biến mất" → tỷ lệ bị lệch
@@ -98,7 +99,7 @@ version: 7.0.0
 
 ### 8) Nav Arrows (< >) dùng Two-Color Indicator (W3C C40)
 
-- **Dual mode**: icon ưu tiên secondary solid (tăng visibility secondary)
+- **Dual mode**: base (bg/ring) dùng secondary, **icon dùng primary**
 - **Single mode**: icon dùng primary solid
 - Luôn dùng **2 lớp contrast** (inner bg + outer ring) để đảm bảo hiển thị trên mọi nền:
   - Secondary sáng (L >= 0.65): bg tối (#0f172a) + icon trắng + outer ring trắng
@@ -135,6 +136,22 @@ version: 7.0.0
 - Tier S: APCA >= 60
 - Tier M: APCA >= 45
 - Tier L/XL: APCA >= 30
+
+### 10) Single Source of Truth — Render ≡ Preview
+
+- Site `ComponentRenderer` và admin `Preview` phải dùng **cùng hàm** trong `_lib/colors.ts`
+- Không hardcode color ở site nếu preview đã dùng helper
+- Sửa logic màu chỉ ở `_lib/colors.ts`
+
+### 11) Placeholder Grid/Multi-cell luôn neutral
+
+- Placeholder grid (bento, mosaic, gallery) dùng neutral tint
+- Grid tint chỉ dùng khi cell có data thật
+
+### 12) YAGNI — Không thêm decorative accent thừa
+
+- Không thêm element chỉ để “tăng visibility” nếu secondary đã đủ 2 element types
+- Mỗi accent phải có functional purpose (navigation, state indicator, CTA)
 
 ---
 
@@ -195,9 +212,11 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Card bg | content | - | - | fill | 60% rule |
 | Nav icon | content | - | solid | - | Quá nhỏ, không đủ |
 | Placeholder bg | empty | - | - | fill | KHÔNG dùng primary/secondary tint |
+| Placeholder grid cell | empty | - | - | fill | Bento/grid dùng neutral |
 | Placeholder icon | empty | solid | - | - | Hint only |
 | Pagination dot | content | single: solid | dual: solid | - | Dual mode ưu tiên secondary |
-| Nav arrow btn | content | single: icon | dual: icon | bg + ring | W3C C40 two-color |
+| Nav arrow btn | content | dual: icon | dual: bg logic | bg + ring | Icon=primary, base=secondary |
+| Progress bar | content | fill | - | track | Optional |
 | Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
 
 ## Accent Analysis Template
