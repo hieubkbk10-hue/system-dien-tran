@@ -113,10 +113,15 @@ export const HeroPreview = ({
         {slides.length > 0 ? (
           <>
             {slides.map((slide, idx) => (
-              <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
+              <div
+                key={slide.id}
+                className={cn("absolute inset-0 transition-opacity duration-700 hover:ring-2 hover:ring-offset-2 hover:ring-offset-slate-900", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}
+                style={{ '--tw-ring-color': sliderColors.hoverRingColor } as React.CSSProperties}
+              >
                 {slide.image ? renderSlideWithBlur(slide, idx) : renderPlaceholder(idx, { useSliderColors: true })}
               </div>
             ))}
+            <div className="absolute bottom-0 left-0 right-0 h-1 z-30" style={{ background: sliderColors.bottomStripGradient }} />
             {slides.length > 1 && (
               <>
                 <button
@@ -155,6 +160,15 @@ export const HeroPreview = ({
                       }}
                     />
                   ))}
+                </div>
+                <div className="absolute bottom-1 left-0 right-0 h-0.5 z-20" style={{ backgroundColor: sliderColors.progressBarInactive }}>
+                  <div
+                    className="h-full transition-all duration-700"
+                    style={{
+                      backgroundColor: sliderColors.progressBarActive,
+                      width: `${((currentSlide + 1) / slides.length) * 100}%`,
+                    }}
+                  />
                 </div>
               </>
             )}

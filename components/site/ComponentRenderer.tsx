@@ -259,10 +259,15 @@ function HeroSection({
       <section className="relative w-full bg-slate-900 overflow-hidden">
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9] max-h-[400px] md:max-h-[550px]">
           {slides.map((slide, idx) => (
-            <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-700 hover:ring-2 hover:ring-offset-2 hover:ring-offset-slate-900 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              style={{ '--tw-ring-color': sliderColors.hoverRingColor } as React.CSSProperties}
+            >
               {slide.image ? renderSlideWithBlur(slide) : renderPlaceholder(sliderColors.placeholderBg, sliderColors.placeholderIconColor)}
             </div>
           ))}
+          <div className="absolute bottom-0 left-0 right-0 h-1 z-30" style={{ background: sliderColors.bottomStripGradient }} />
           {slides.length > 1 && (
             <>
               <button onClick={() =>{  setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBg, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>
@@ -275,6 +280,15 @@ function HeroSection({
                 {slides.map((_, idx) => (
                   <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : ''}`} style={{ backgroundColor: idx === currentSlide ? sliderColors.dotActive : sliderColors.dotInactive }} />
                 ))}
+              </div>
+              <div className="absolute bottom-2 left-0 right-0 h-0.5 z-20" style={{ backgroundColor: sliderColors.progressBarInactive }}>
+                <div
+                  className="h-full transition-all duration-700"
+                  style={{
+                    backgroundColor: sliderColors.progressBarActive,
+                    width: `${((currentSlide + 1) / slides.length) * 100}%`,
+                  }}
+                />
               </div>
             </>
           )}
