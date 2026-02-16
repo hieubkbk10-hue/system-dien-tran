@@ -6,7 +6,9 @@
 - [ ] APCA cho text/UI, không hard-code #fff/#000
 - [ ] Palette đủ: solid/surface/hover/active/border/disabled
 - [ ] Single mode auto-suggest secondary (harmony)
-- [ ] Dual mode có similarity check (ΔE)
+- [ ] Dual mode có similarity check (ΔE >= 20)
+- [ ] Harmony validator (getHarmonyStatus) không báo too-similar
+- [ ] Accessibility score (getAccessibilityScore) không fail
 
 ## B. Distribution (content state)
 
@@ -16,6 +18,7 @@
 - [ ] Secondary cho subtitle/label/badge/hover/accents
 - [ ] Heading (h2) dùng brandColor, KHÔNG dùng secondary
 - [ ] Primary chiếm >= 25% visual weight (heading + CTA + icon)
+- [ ] Accent balance calculator: primary >= 25%, secondary >= 5%
 - [ ] Placeholder bg luôn neutral (grid/bento cũng neutral)
 
 ## C. Accent Prominence

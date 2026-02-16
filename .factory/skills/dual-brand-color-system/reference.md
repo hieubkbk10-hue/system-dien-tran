@@ -24,6 +24,24 @@
 | Complementary | 180° | contrast mạnh, dùng accent nhỏ |
 | Triadic | 120° | cân bằng nhưng dễ rối |
 
+## ΔE Similarity (OKLCH)
+
+- Dùng `differenceEuclidean('oklch')`
+- Quy đổi: `deltaE ≈ difference * 100`
+- Rule: `deltaE < 20` → quá giống, đổi harmony
+
+## Accent Balance
+
+- Primary mục tiêu ≥ 25%
+- Secondary mục tiêu ≥ 5%
+- Neutral = 100% - (Primary + Secondary)
+
+## Accessibility Score (APCA)
+
+- Body text: Lc ≥ 60
+- Heading / bold: Lc ≥ 45
+- Score = minLc của tất cả text pairs
+
 ## Nav Button Adaptive Contrast (W3C C40)
 
 - Dual mode: base (bg/ring) = secondary, icon = primary

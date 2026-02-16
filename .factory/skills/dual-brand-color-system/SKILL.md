@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 10.0.0
+version: 11.0.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -36,8 +36,10 @@ version: 10.0.0
 2. Kiểm tra HSL / getTint / getShade
 3. Đổi sang OKLCH (culori)
 4. Thay hard-coded text color bằng APCA
-5. Kiểm tra dual-mode + similarity
-6. Ghi report theo format ở dưới
+5. Kiểm tra dual-mode + similarity (getHarmonyStatus)
+6. Tính accent balance (calculateAccentBalance)
+7. Tính accessibility score (getAccessibilityScore)
+8. Ghi report theo format ở dưới
 
 ### B. Create new component
 
@@ -91,6 +93,37 @@ version: 10.0.0
 
 - Render ≡ Preview, dùng chung helper trong `_lib/colors.ts`
 - Không hardcode màu ở site nếu preview đã dùng helper
+
+---
+
+## Tooling Add-ons (v11)
+
+### Accent Prominence Calculator
+
+- File: `examples/color-utils.ts`
+- Dùng `calculateAccentBalance()` để tính % primary/secondary/neutral
+- Warning nếu primary < 25% hoặc secondary < 5%
+
+### Component Color Analyzer
+
+- File: `examples/component-analyzer.ts`
+- Dùng `analyzeComponentColors()` để tạo report nhanh (tỷ lệ + tier count)
+
+### Color Harmony Validator
+
+- Dùng `getHarmonyStatus()` để check ΔE
+- ΔE < 20 → quá giống, cần đổi harmony
+- `getTriadic()` để tạo option triadic
+
+### Accessibility Score
+
+- Dùng `getAccessibilityScore()` để kiểm tra tất cả text pairs
+- Trả về minLc + danh sách fail
+
+### Quick Fix Templates
+
+- File: `examples/quick-fix-templates.md`
+- Dùng khi cần fix nhanh primary/secondary/heading
 
 ---
 
@@ -164,45 +197,50 @@ KHÔNG tính placeholder vào tỷ lệ này.
 ### Home Components - 4 nhóm
 
 **Nhóm A: Primary-only** (secondary bị ignore `_secondary`)
-| Component | P% | S% | Pattern |
-|---|---|---|---|
-| Blog | 100 | 0 | brandColor cho borders, hover, badges, category tags |
-| CaseStudy | 100 | 0 | brandColor cho borders, hover, badges, links |
-| Benefits | 95 | 5 | brandColor dominant, secondary minimal |
-| Team | 95 | 5 | brandColor dominant |
+| Component | P% | S% | Pattern | Last Updated | Status |
+|---|---|---|---|---|---|
+| Blog | 100 | 0 | brandColor cho borders, hover, badges, category tags | N/A | Needs Review |
+| CaseStudy | 100 | 0 | brandColor cho borders, hover, badges, links | N/A | Needs Review |
+| Benefits | 95 | 5 | brandColor dominant, secondary minimal | N/A | Needs Review |
+| Team | 95 | 5 | brandColor dominant | N/A | Needs Review |
 
 **Nhóm B: Secondary-dominant** (brandColor ít hoặc chỉ cho BrandBadge)
-| Component | P% | S% | Pattern |
-|---|---|---|---|
-| CategoryProducts | 5 | 95 | `_brandColor`, secondary cho tất cả UI |
-| Features | 10 | 90 | `_brandColor`, secondary dominant |
-| TrustBadges | 10 | 90 | brandColor chỉ trong BrandBadge |
-| ServiceList | 10 | 90 | brandColor chỉ trong BrandBadge |
-| Gallery | 5 | 95 | secondary cho borders, text, icons |
-| Partners | 5 | 95 | secondary cho borders, animations |
-| FAQ | 40 | 60 | secondary: expanded border/icon |
-| Testimonials | 40 | 60 | secondary: quotes, rating stars |
-| Services | 40 | 60 | secondary: numbers, accent bar, timeline |
-| Footer | 30 | 70 | secondary: logo/dividers; brandColor: bg shade |
-| Career | 40 | 60 | secondary cho borders, tags |
-| Contact | 40 | 60 | secondary cho form elements |
-| Process | 40 | 60 | secondary cho timeline, dots |
+| Component | P% | S% | Pattern | Last Updated | Status |
+|---|---|---|---|---|---|
+| CategoryProducts | 5 | 95 | `_brandColor`, secondary cho tất cả UI | N/A | Needs Review |
+| Features | 10 | 90 | `_brandColor`, secondary dominant | N/A | Needs Review |
+| TrustBadges | 10 | 90 | brandColor chỉ trong BrandBadge | N/A | Needs Review |
+| ServiceList | 10 | 90 | brandColor chỉ trong BrandBadge | N/A | Needs Review |
+| Gallery | 5 | 95 | secondary cho borders, text, icons | N/A | Needs Review |
+| Partners | 5 | 95 | secondary cho borders, animations | N/A | Needs Review |
+| FAQ | 40 | 60 | secondary: expanded border/icon | N/A | Needs Review |
+| Testimonials | 40 | 60 | secondary: quotes, rating stars | N/A | Needs Review |
+| Services | 40 | 60 | secondary: numbers, accent bar, timeline | N/A | Needs Review |
+| Footer | 30 | 70 | secondary: logo/dividers; brandColor: bg shade | N/A | Needs Review |
+| Career | 40 | 60 | secondary cho borders, tags | N/A | Needs Review |
+| Contact | 40 | 60 | secondary cho form elements | N/A | Needs Review |
+| Process | 40 | 60 | secondary cho timeline, dots | N/A | Needs Review |
 
 **Nhóm C: Balanced dual-brand** (~50/50)
-| Component | P% | S% | Pattern |
-|---|---|---|---|
-| Hero | 50 | 50 | Hệ thống color riêng (`_lib/colors.ts`) |
-| Stats | 50 | 50 | Custom implementation |
-| ProductList | 55 | 45 | P: titles/prices/buttons; S: labels/borders |
-| ProductGrid | 50 | 50 | Pass-through |
-| CTA | 60 | 40 | P: bg/buttons; S: title text/button text |
-| About | 50 | 50 | Cả 2 cho accent bar, icons |
-| Pricing | 45 | 55 | S: prices/ring; P: popular bg |
-| SpeedDial | 50 | 50 | Cân bằng |
-| Clients | 50 | 50 | Cân bằng |
-| Video | 50 | 50 | Cân bằng |
-| Countdown | 50 | 50 | Cân bằng |
-| VoucherPromotions | 50 | 50 | Cân bằng |
+| Component | P% | S% | Pattern | Last Updated | Status |
+|---|---|---|---|---|---|
+| Hero | 50 | 50 | Hệ thống color riêng (`_lib/colors.ts`) | N/A | Needs Review |
+| Stats | 50 | 50 | Custom implementation | N/A | Needs Review |
+| ProductList | 55 | 45 | P: titles/prices/buttons; S: labels/borders | N/A | Needs Review |
+| ProductGrid | 50 | 50 | Pass-through | N/A | Needs Review |
+| CTA | 60 | 40 | P: bg/buttons; S: title text/button text | N/A | Needs Review |
+| About | 50 | 50 | Cả 2 cho accent bar, icons | N/A | Needs Review |
+| Pricing | 45 | 55 | S: prices/ring; P: popular bg | N/A | Needs Review |
+| SpeedDial | 50 | 50 | Cân bằng | N/A | Needs Review |
+| Clients | 50 | 50 | Cân bằng | N/A | Needs Review |
+| Video | 50 | 50 | Cân bằng | N/A | Needs Review |
+| Countdown | 50 | 50 | Cân bằng | N/A | Needs Review |
+| VoucherPromotions | 50 | 50 | Cân bằng | N/A | Needs Review |
+
+### Status tracking
+
+- Khi component đổi code màu: cập nhật `Last Updated` = `git log -1 --format=%cs <file>`
+- Nếu pass checklist + balance + APCA: đặt `Status = OK`, ngược lại `Needs Review`
 
 ### Experiences - Chỉ dùng primary (KHÔNG có secondary)
 
@@ -228,14 +266,19 @@ promotions-list, menu, account-profile, account-orders, search
 |---|---|---|
 | Section title/heading | `brandColor` | Element lớn nhất, nhận diện thương hiệu |
 | CTA button (primary action) | `brandColor` | Dominant action = primary brand |
+| CTA button (secondary action) | `secondary` | Phân biệt rõ primary/secondary action |
 | Icon container background | `brandColor` (10% opacity) | Brand hint |
 | Active/selected state | `brandColor` | Primary feedback |
 | Navigation arrows | `brandColor` border + icon | Interactive control |
+| Interactive link (primary) | `brandColor` | Nhận diện action chính |
+| Interactive link (secondary) | `secondary` | Action phụ, ít nổi bật |
 | Section label/subtitle | `secondary` | Phân biệt với heading |
 | Prices, số liệu nổi bật | `secondary` | Data highlight, contrast với heading |
+| Data count/badge | `secondary` | Tăng focus cho dữ liệu |
 | Badge outline (NEW, tag) | `secondary` border + text | Qua BrandBadge component |
 | Badge solid (HOT, discount) | `brandColor` bg | Qua BrandBadge component |
 | Card borders, hover glow | `secondary` (10-40% opacity) | Subtle accent |
+| Divider/section line | `secondary` (10-30% opacity) | Structural separator |
 | Timeline/process dots | `secondary` | Decorative, không dominant |
 | Form focus ring | `secondary` | Subtle feedback |
 | Pagination active dot | `secondary` | Tăng visibility (nhỏ) |
@@ -313,6 +356,8 @@ textOnSolid: getAPCATextColor(primary, 16, 500)
 ## Files tham chiếu
 
 - `examples/color-utils.ts`
+- `examples/component-analyzer.ts`
+- `examples/quick-fix-templates.md`
 - `examples/theme-engine-ui.tsx`
 - `examples/hero-before-after.md`
 - `checklist.md`
