@@ -21,6 +21,7 @@
 - [ ] Secondary dùng cho badges/hover
 - [ ] Neutral chiếm background
 - [ ] Pagination dots: dual dùng secondary, single dùng primary
+- [ ] Nav arrows: dual dùng secondary icon, two-color indicator (W3C C40)
 
 ## 6. Content-Aware Distribution
 - [ ] Tỷ lệ 60-30-10 đo tại trạng thái DATA ĐẦY ĐỦ

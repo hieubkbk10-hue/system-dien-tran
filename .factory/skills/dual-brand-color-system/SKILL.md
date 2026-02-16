@@ -96,6 +96,16 @@ version: 6.0.0
 - Dot inactive: luôn neutral (rgba white hoặc slate-300)
 - Lý do: dot phân trang có diện tích đủ lớn để “nhìn thấy” secondary, giúp pass minimum visibility rule
 
+### 8) Nav Arrows (< >) dùng Two-Color Indicator (W3C C40)
+
+- **Dual mode**: icon ưu tiên secondary solid (tăng visibility secondary)
+- **Single mode**: icon dùng primary solid
+- Luôn dùng **2 lớp contrast** (inner bg + outer ring) để đảm bảo hiển thị trên mọi nền:
+  - Secondary sáng (L >= 0.65): bg tối (#0f172a) + icon trắng + outer ring trắng
+  - Secondary tối (L < 0.65): bg trắng + icon secondary + outer ring tối
+- Kỹ thuật: `box-shadow: 0 0 0 2px <outer>` + `background: <inner>`
+- Tham chiếu: W3C C40, WCAG 2.2 SC 1.4.11 (Non-text Contrast 3:1)
+
 ---
 
 ## Content-Aware Color Distribution
@@ -157,6 +167,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Placeholder bg | empty | - | - | fill | KHÔNG dùng primary/secondary tint |
 | Placeholder icon | empty | solid | - | - | Hint only |
 | Pagination dot | content | single: solid | dual: solid | - | Dual mode ưu tiên secondary |
+| Nav arrow btn | content | single: icon | dual: icon | bg + ring | W3C C40 two-color |
 | Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
 
 ---

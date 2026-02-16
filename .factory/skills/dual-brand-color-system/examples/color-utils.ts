@@ -75,6 +75,23 @@ export const getPlaceholderColors = (primary: string): PlaceholderColors => ({
   text: '#64748b',
 });
 
+export const getNavButtonColors = (
+  brandColor: string,
+  mode: 'single' | 'dual',
+  secondaryColor?: string,
+) => {
+  const iconColor = mode === 'dual' && secondaryColor ? secondaryColor : brandColor;
+  const color = oklch(iconColor);
+  const isLight = color.l >= 0.65;
+
+  return {
+    bg: isLight ? '#0f172a' : '#ffffff',
+    icon: isLight ? '#ffffff' : iconColor,
+    outerRing: isLight ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.3)',
+    bgHover: isLight ? '#1e293b' : '#f8fafc',
+  };
+};
+
 export const getBrandColors = (
   primary: string,
   secondary: string | undefined,

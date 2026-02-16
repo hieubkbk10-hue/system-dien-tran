@@ -18,6 +18,7 @@
 - [ ] Secondary: badges/hover/accents
 - [ ] Neutral: background
 - [ ] Pagination dots: dual dùng secondary, single dùng primary
+- [ ] Nav arrows: dual dùng secondary icon, two-color indicator (W3C C40)
 
 ## 5. Content-Aware Distribution
 - [ ] Đã điền Color Role Matrix cho component

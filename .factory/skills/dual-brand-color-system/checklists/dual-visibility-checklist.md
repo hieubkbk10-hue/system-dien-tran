@@ -13,6 +13,7 @@
 
 - [ ] Badge/tag (background tint đủ rộng, không chỉ text)
 - [ ] Pagination dots active (dual mode)
+- [ ] Nav arrow buttons (dual mode: icon dùng secondary, two-color indicator)
 - [ ] Overlay/gradient accent (ít nhất 20% diện tích gradient)
 - [ ] Card border/ring khi selected/active
 - [ ] Secondary button (outline hoặc tonal)
