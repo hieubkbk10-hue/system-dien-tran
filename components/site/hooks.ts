@@ -59,13 +59,13 @@ export function useBrandColors() {
   const primary = resolveColorSetting(primarySetting?.value)
     ?? resolveColorSetting(legacySetting?.value)
     ?? DEFAULT_BRAND_COLOR;
-  const mode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const mode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
   const secondary = mode === 'single'
     ? ''
     : resolveColorSetting(secondarySetting?.value)
       ?? generateComplementary(primary);
 
-  return { primary, secondary };
+  return { primary, secondary, mode };
 }
 
 // Hook lấy brandColor từ settings
