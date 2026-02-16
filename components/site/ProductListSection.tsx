@@ -161,7 +161,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
                     {/* View Details Button (Hover) */}
                     <div className="absolute inset-x-4 bottom-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                      <span className="block w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg font-bold py-2 px-4 rounded-lg text-sm text-center" style={{ color: secondary }}>
+                      <span className="block w-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg font-bold py-2 px-4 rounded-lg text-sm text-center" style={{ color: brandColor }}>
                         Xem chi tiết
                       </span>
                     </div>
@@ -173,7 +173,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-slate-900">{formatPrice(product.salePrice ?? product.price)}</span>
+                      <span className="font-bold text-slate-900" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                       {product.salePrice && product.price && product.salePrice < product.price && (
                         <span className="text-xs text-slate-400 line-through">
                           {formatPrice(product.price)}
@@ -236,7 +236,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </h3>
                     
                     <div className="flex items-baseline gap-2 mb-4 mt-auto pt-2">
-                      <span className="text-base font-bold text-slate-900 group-hover:opacity-80 transition-colors">{formatPrice(product.salePrice ?? product.price)}</span>
+                      <span className="text-base font-bold text-slate-900 group-hover:opacity-80 transition-colors" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                       {product.salePrice && product.price && product.salePrice < product.price && (
                         <span className="text-xs text-slate-400 line-through">
                           {formatPrice(product.price)}
@@ -246,7 +246,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
                     <span 
                       className="w-full gap-1.5 md:gap-2 border-2 py-1.5 md:py-2 px-2 md:px-4 rounded-lg font-medium flex items-center justify-center transition-colors hover:bg-opacity-10 whitespace-nowrap text-xs md:text-sm"
-                      style={{ borderColor: `${secondary}30`, color: secondary }}
+                      style={{ borderColor: `${brandColor}30`, color: brandColor }}
                     >
                       Xem chi tiết
                       <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
@@ -296,7 +296,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     }}
                     className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
                   >
-                    <ChevronLeft size={16} style={{ color: secondary }} />
+                    <ChevronLeft size={16} style={{ color: brandColor }} />
                   </button>
                   <button
                     type="button"
@@ -306,7 +306,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     }}
                     className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
                   >
-                    <ChevronRight size={16} style={{ color: secondary }} />
+                    <ChevronRight size={16} style={{ color: brandColor }} />
                   </button>
                 </div>
               )}
@@ -322,7 +322,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   }}
                   className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
                 >
-                  <ChevronLeft size={18} style={{ color: secondary }} />
+                  <ChevronLeft size={18} style={{ color: brandColor }} />
                 </button>
                 <button
                   type="button"
@@ -331,7 +331,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: secondary }}
+                  style={{ backgroundColor: brandColor }}
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -408,7 +408,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </div>
                     <h3 className="font-medium text-slate-900 text-sm truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-sm" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                      <span className="font-bold text-sm" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                       {product.salePrice && product.price && product.salePrice < product.price && (
                         <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
                       )}
@@ -464,7 +464,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                   </div>
                   <h3 className="font-medium text-xs text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
-                  <span className="font-bold text-xs mt-0.5 block" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                  <span className="font-bold text-xs mt-0.5 block" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                 </Link>
               );
             })}
@@ -504,7 +504,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 truncate">{product.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                 </Link>
               );
             })}
@@ -540,7 +540,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-white">{formatPrice(showcaseFeatured?.salePrice ?? showcaseFeatured?.price)}</span>
-                  <span className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondary }}>Xem chi tiết</span>
+                  <span className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</span>
                 </div>
               </div>
             </Link>
@@ -565,7 +565,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </div>
                     <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                      <span className="text-sm font-bold" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
                       {product.salePrice && product.price && product.salePrice < product.price && (
                         <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
                       )}
@@ -627,7 +627,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               <div className="flex flex-row items-center justify-between gap-4 mt-2">
                 <span className="text-2xl font-bold text-white">{formatPrice(featured?.salePrice ?? featured?.price)}</span>
                 
-                <span className="rounded-full px-6 py-2 text-white border-0 shadow-lg" style={{ backgroundColor: secondary, boxShadow: `0 4px 6px ${secondary}20` }}>
+                <span className="rounded-full px-6 py-2 text-white border-0 shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}20` }}>
                   Xem chi tiết
                 </span>
               </div>
@@ -668,7 +668,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
                   {/* Hover Action Button */}
                   <div className="absolute bottom-2 right-2 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                    <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: secondary }}>
+                    <div className="text-white p-2 rounded-full shadow-lg" style={{ backgroundColor: brandColor }}>
                       <ArrowRight size={16} />
                     </div>
                   </div>
@@ -680,7 +680,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     {product.name}
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm font-bold" style={{ color: secondary }}>
+                    <span className="text-sm font-bold" style={{ color: brandColor }}>
                       {formatPrice(product.salePrice ?? product.price)}
                     </span>
                     {product.salePrice && product.price && product.salePrice < product.price && (
@@ -714,7 +714,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   )}
                 </div>
                 <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>
-                <span className="text-sm font-bold mt-1" style={{ color: secondary }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
               </Link>
             );
           })}
