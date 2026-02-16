@@ -14,6 +14,14 @@ import {
   getSliderColors,
   getSplitColors,
 } from '@/app/admin/home-components/hero/_lib/colors';
+import {
+  getCardsColors,
+  getCounterColors,
+  getGradientColors,
+  getHorizontalColors,
+  getIconsColors,
+  getMinimalColors,
+} from '@/app/admin/home-components/stats/_lib/colors';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
@@ -587,12 +595,13 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 1: Thanh ngang - Full width bar với dividers
   if (style === 'horizontal') {
+    const colors = getHorizontalColors(brandColor, secondary);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div 
             className="w-full rounded-lg shadow-md overflow-hidden border"
-            style={{ backgroundColor: 'white', borderColor: `${secondary}20`, boxShadow: `0 4px 6px -1px ${secondary}15` }}
+            style={{ backgroundColor: 'white', borderColor: colors.border, boxShadow: `0 4px 6px -1px ${colors.shadow}` }}
           >
             <div className="flex flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x divide-slate-200">
               {items.map((item, idx) => (
@@ -617,6 +626,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 2: Cards - Grid cards với hover effects và accent line
   if (style === 'cards') {
+    const colors = getCardsColors(brandColor, secondary);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -625,7 +635,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               <div 
                 key={idx}
                 className="group bg-white border rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
-                style={{ borderColor: `${secondary}20` }}
+                style={{ borderColor: colors.border }}
               >
                 <span 
                   className="text-3xl font-bold mb-1 tracking-tight tabular-nums group-hover:scale-105 transition-transform duration-200"
@@ -639,7 +649,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 {/* Minimal accent line */}
                 <div 
                   className="w-8 h-0.5 rounded-full mt-3 group-hover:opacity-70 transition-opacity duration-200"
-                  style={{ backgroundColor: secondary }}
+                  style={{ backgroundColor: colors.accent }}
                 />
               </div>
             ))}
@@ -651,6 +661,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 3: Icon Grid - Circle containers với shadow và hover scale
   if (style === 'icons') {
+    const colors = getIconsColors(brandColor, secondary);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -661,15 +672,15 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 <div 
                   className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 group-hover:scale-105 transition-all duration-300 ease-out border-[3px] border-white ring-1 ring-slate-100"
                   style={{ 
-                    backgroundColor: brandColor,
-                    boxShadow: `0 10px 15px -3px ${secondary}30, 0 4px 6px -4px ${secondary}20`
+                    backgroundColor: colors.circleBg,
+                    boxShadow: `0 10px 15px -3px ${colors.shadowStrong}, 0 4px 6px -4px ${colors.shadowSoft}`
                   }}
                 >
-                  <span className="text-2xl md:text-3xl font-bold text-white tracking-tight z-10 tabular-nums">
+                  <span className="text-2xl md:text-3xl font-bold tracking-tight z-10 tabular-nums" style={{ color: colors.textOnCircle }}>
                     {item.value}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-slate-800 group-hover:text-opacity-80 transition-colors" style={{ color: secondary }}>
+                <h3 className="text-base font-semibold text-slate-800 group-hover:text-opacity-80 transition-colors" style={{ color: colors.label }}>
                   {item.label}
                 </h3>
               </div>
@@ -682,30 +693,31 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 4: Gradient - Glass morphism với gradient background
   if (style === 'gradient') {
+    const colors = getGradientColors(brandColor, secondary);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div 
             className="rounded-2xl overflow-hidden border"
             style={{ 
-              background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 100%)`,
-              borderColor: `${secondary}20`
+              background: colors.background,
+              borderColor: colors.border
             }}
           >
             <div className="grid grid-cols-2 md:grid-cols-4 backdrop-blur-sm">
               {items.map((item, idx) => (
                 <div 
                   key={idx}
-                  className={`relative flex flex-col items-center justify-center text-center text-white p-6 md:p-8 ${
+                  className={`relative flex flex-col items-center justify-center text-center p-6 md:p-8 ${
                     idx !== items.length - 1 ? 'md:border-r md:border-white/10' : ''
                   }`}
                 >
                   {/* Decorative circle */}
                   <div className="absolute top-2 right-2 w-16 h-16 rounded-full bg-white/5 blur-xl" />
-                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg">
+                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg" style={{ color: colors.text }}>
                     {item.value}
                   </span>
-                  <h3 className="text-sm font-medium opacity-90 relative z-10">
+                  <h3 className="text-sm font-medium opacity-90 relative z-10" style={{ color: colors.label }}>
                     {item.label}
                   </h3>
                 </div>
@@ -719,6 +731,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 5: Minimal - Clean, simple với typography focus
   if (style === 'minimal') {
+    const colors = getMinimalColors(brandColor, secondary);
     return (
       <section className="py-12 md:py-16 px-4 bg-slate-50">
         <div className="max-w-5xl mx-auto">
@@ -728,9 +741,9 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 {/* Accent line */}
                 <div 
                   className="w-12 h-1 rounded-full mb-4"
-                  style={{ backgroundColor: secondary }}
+                  style={{ backgroundColor: colors.accent }}
                 />
-                <span className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums leading-none" style={{ color: brandColor }}>
+                <span className="text-4xl md:text-5xl font-bold tracking-tight tabular-nums leading-none" style={{ color: colors.value }}>
                   {item.value}
                 </span>
                 <h3 className="text-base font-medium text-slate-500 mt-2">
@@ -745,6 +758,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
   }
 
   // Style 6: Counter - Big numbers với animated feel & progress indicator
+  const colors = getCounterColors(brandColor, secondary);
   return (
     <section className="py-12 md:py-16 px-4">
       <div className="max-w-5xl mx-auto">
@@ -753,14 +767,14 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
             <div 
               key={idx}
               className="relative bg-white rounded-2xl border overflow-hidden group"
-              style={{ borderColor: `${secondary}15` }}
+              style={{ borderColor: colors.border }}
             >
               {/* Top progress bar */}
               <div className="h-1 w-full bg-slate-100">
                 <div 
                   className="h-full transition-all duration-500"
                   style={{ 
-                    backgroundColor: brandColor,
+                    backgroundColor: colors.progress,
                     width: `${Math.min(100, (idx + 1) * 25)}%`
                   }}
                 />
@@ -769,7 +783,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               <div className="flex flex-col items-center justify-center text-center p-6">
                 <span 
                   className="text-5xl md:text-6xl font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300"
-                style={{ color: secondary }}
+                style={{ color: colors.value }}
                 >
                   {item.value}
                 </span>
@@ -781,7 +795,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               {/* Decorative watermark */}
               <div 
                 className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-              style={{ color: secondary }}
+              style={{ color: colors.watermark }}
               >
                 {idx + 1}
               </div>
