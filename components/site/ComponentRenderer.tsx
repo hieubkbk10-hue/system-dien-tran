@@ -310,12 +310,7 @@ function HeroSection({
   // Style 3: Bento Grid
   if (style === 'bento') {
     const bentoSlides = slides.slice(0, 4);
-    const bentoPlaceholders = [
-      bentoColors.gridTint1,
-      bentoColors.gridTint2,
-      bentoColors.gridTint3,
-      bentoColors.gridTint4,
-    ];
+    const bentoPlaceholders = ['#f1f5f9', '#e2e8f0', '#f1f5f9', '#e2e8f0'];
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden p-2 md:p-4">
         <div className="max-h-[400px] md:max-h-[550px]">
