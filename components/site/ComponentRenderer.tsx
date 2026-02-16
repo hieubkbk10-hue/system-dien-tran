@@ -5699,7 +5699,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     if (cat.displayIcon && iconData) {
       return (
         <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.iconContainerBg }}>
-          {React.createElement(iconData.icon, { size: iconSize, style: { color: colors.primary.textOnSolid } })}
+          {React.createElement(iconData.icon, { size: iconSize, style: { color: colors.primary.solid } })}
         </div>
       );
     }
