@@ -7,6 +7,8 @@ export interface CTAConfig {
   secondaryButtonLink: string;
   badge?: string;
   backgroundImage?: string;
+  harmony?: CTAHarmony;
 }
 
+export type CTAHarmony = 'analogous' | 'complementary' | 'triadic';
 export type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';

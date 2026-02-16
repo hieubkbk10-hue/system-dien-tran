@@ -12,13 +12,15 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { CTAForm } from '../../_components/CTAForm';
 import { CTAPreview } from '../../_components/CTAPreview';
-import { DEFAULT_CTA_CONFIG } from '../../_lib/constants';
-import type { CTAConfig, CTAStyle } from '../../_types';
+import { DEFAULT_CTA_CONFIG, DEFAULT_CTA_HARMONY } from '../../_lib/constants';
+import type { CTAConfig, CTAHarmony, CTAStyle } from '../../_types';
 
 export default function CtaEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -26,6 +28,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
   const [active, setActive] = useState(true);
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(DEFAULT_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
+  const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,6 +52,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         title: (config.title as string | undefined) ?? '',
       });
       setCtaStyle((config.style as CTAStyle) || 'banner');
+      setCtaHarmony((config.harmony as CTAHarmony) || DEFAULT_CTA_HARMONY);
     }
   }, [component, id, router]);
 
@@ -60,7 +64,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
     try {
       await updateMutation({
         active,
-        config: { ...ctaConfig, style: ctaStyle },
+        config: { ...ctaConfig, style: ctaStyle, harmony: ctaHarmony },
         id: id as Id<'homeComponents'>,
         title,
       });
@@ -115,14 +119,14 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
                 onClick={() =>{  setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5',
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -130,7 +134,13 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
           </CardContent>
         </Card>
 
-        <CTAForm config={ctaConfig} onChange={setCtaConfig} />
+        <CTAForm
+          config={ctaConfig}
+          onChange={setCtaConfig}
+          brandMode={brandMode}
+          harmony={ctaHarmony}
+          setHarmony={setCtaHarmony}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
@@ -139,6 +149,8 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
               config={ctaConfig}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
+              harmony={ctaHarmony}
               selectedStyle={ctaStyle}
               onStyleChange={setCtaStyle}
             />

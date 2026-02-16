@@ -24,7 +24,10 @@ import {
   getMinimalColors,
 } from '@/app/admin/home-components/stats/_lib/colors';
 import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
+import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
+import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
+import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
 import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
@@ -120,7 +123,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <FAQSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'CTA': {
-      return <CTASection config={config} brandColor={brandColor} secondary={secondary} />;
+      return <CTASection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
     }
     case 'Testimonials': {
       return <TestimonialsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -2179,11 +2182,18 @@ function FAQSection({ config, brandColor, secondary, title }: { config: Record<s
 }
 
 // ============ CTA SECTION ============
-// 6 Styles: banner, centered, split, floating, gradient, minimal
-// Best Practices: Clear CTA, Touch-friendly (44px min), Visual hierarchy, Action-oriented text, Box-shadow brandColor
-type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';
-function CTASection({ config, brandColor, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
-  const { title, description, buttonText, buttonLink, secondaryButtonText, secondaryButtonLink, badge, style: ctaStyle } = config as {
+function CTASection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+}) {
+  const ctaConfig = config as {
     title?: string;
     description?: string;
     buttonText?: string;
@@ -2192,250 +2202,36 @@ function CTASection({ config, brandColor, secondary }: { config: Record<string, 
     secondaryButtonLink?: string;
     badge?: string;
     style?: CTAStyle;
+    harmony?: CTAHarmony;
   };
-  const style = ctaStyle ?? 'banner';
 
-  // Style 1: Banner (default) - Full width solid background
-  if (style === 'banner') {
-    return (
-      <section className="py-12 md:py-16 px-4" style={{ backgroundColor: brandColor }}>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-          <div className="text-white text-center md:text-left flex-1 max-w-lg">
-            {badge && (
-              <BrandBadge text={badge} variant="solid" brandColor={brandColor} secondary={secondary} />
-            )}
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 line-clamp-2">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-            <p className="opacity-90 line-clamp-2 text-sm md:text-base">{description}</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full sm:w-auto">
-            {buttonText && (
-              <a 
-                href={buttonLink ?? '#'} 
-                className="px-6 py-3 min-h-[44px] bg-white rounded-lg font-medium hover:bg-slate-100 transition-all hover:scale-105 text-center whitespace-nowrap" 
-                style={{ boxShadow: `0 4px 12px ${secondary}40`, color: secondary }}
-              >
-                {buttonText}
-              </a>
-            )}
-            {secondaryButtonText && (
-              <a 
-                href={secondaryButtonLink ?? '#'} 
-                className="px-6 py-3 min-h-[44px] border-2 border-white/50 text-white rounded-lg font-medium hover:bg-white/10 transition-all text-center whitespace-nowrap"
-              >
-                {secondaryButtonText}
-              </a>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const style = ctaConfig.style ?? 'banner';
+  const harmony = ctaConfig.harmony ?? 'analogous';
 
-  // Style 2: Centered - Text center với subtle background
-  if (style === 'centered') {
-    return (
-      <section className="py-12 md:py-20 px-4" style={{ backgroundColor: 'white' }}>
-        <div className="max-w-2xl mx-auto text-center">
-          {badge && (
-            <BrandBadge text={badge} variant="default" brandColor={brandColor} secondary={secondary} />
-          )}
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 line-clamp-2" style={{ color: secondary }}>{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-          <p className="text-slate-600 text-base md:text-lg mb-8 line-clamp-3">{description}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {buttonText && (
-              <a 
-                href={buttonLink ?? '#'} 
-                className="px-8 py-3 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 whitespace-nowrap" 
-                style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
-              >
-                {buttonText}
-              </a>
-            )}
-            {secondaryButtonText && (
-              <a 
-                href={secondaryButtonLink ?? '#'} 
-                className="px-8 py-3 min-h-[44px] border-2 rounded-lg font-medium transition-all hover:bg-opacity-10 whitespace-nowrap" 
-                style={{ borderColor: brandColor, color: secondary }}
-              >
-                {secondaryButtonText}
-              </a>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const tokens = getCTAColors({
+    primary: brandColor,
+    secondary,
+    mode,
+    harmony,
+    style,
+  });
 
-  // Style 3: Split - Card với icon và border accent (khác Banner)
-  if (style === 'split') {
-    return (
-      <section className="py-12 md:py-16 px-4 bg-slate-50 dark:bg-slate-900">
-        <div 
-          className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 overflow-hidden border-l-4"
-          style={{ borderLeftColor: brandColor, boxShadow: `0 4px 20px ${secondary}10` }}
-        >
-          <div className="flex flex-col md:flex-row items-start gap-5">
-            {/* Icon */}
-            <div 
-              className="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${brandColor}10` }}
-            >
-              <Rocket size={28} style={{ color: brandColor }} />
-            </div>
-            
-            {/* Content */}
-            <div className="flex-1">
-              {badge && (
-                <BrandBadge text={badge} variant="minimal" brandColor={brandColor} secondary={secondary} />
-              )}
-              <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white line-clamp-2">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-              <p className="text-slate-600 dark:text-slate-400 mt-1.5 text-sm md:text-base line-clamp-2">{description}</p>
-              
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                {buttonText && (
-                  <a 
-                    href={buttonLink ?? '#'} 
-                    className="px-5 py-2.5 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-                    style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
-                  >
-                    {buttonText}
-                  </a>
-                )}
-                {secondaryButtonText && (
-                  <a 
-                    href={secondaryButtonLink ?? '#'} 
-                    className="px-5 py-2.5 min-h-[44px] border rounded-lg font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-700 text-center whitespace-nowrap"
-                    style={{ borderColor: `${secondary}30`, color: secondary }}
-                  >
-                    {secondaryButtonText}
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Floating - Card nổi với shadow
-  if (style === 'floating') {
-    return (
-      <section className="py-12 md:py-16 px-4 bg-slate-50 dark:bg-slate-900">
-        <div 
-          className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 border overflow-hidden"
-          style={{ borderColor: `${secondary}20`, boxShadow: `0 20px 40px ${secondary}15` }}
-        >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8">
-            <div className="text-center md:text-left flex-1 max-w-md">
-              {badge && (
-                <BrandBadge text={`⚡ ${badge}`} variant="default" brandColor={brandColor} secondary={secondary} />
-              )}
-              <h2 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white line-clamp-2">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-              <p className="text-slate-600 dark:text-slate-400 mt-2 text-sm md:text-base line-clamp-2">{description}</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full md:w-auto">
-              {buttonText && (
-                <a 
-                  href={buttonLink ?? '#'} 
-                  className="px-6 py-3 min-h-[44px] rounded-xl font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}40` }}
-                >
-                  {buttonText}
-                </a>
-              )}
-              {secondaryButtonText && (
-                <a 
-                  href={secondaryButtonLink ?? '#'} 
-                  className="px-6 py-3 min-h-[44px] rounded-xl font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-700 text-center whitespace-nowrap"
-                  style={{ color: secondary }}
-                >
-                  {secondaryButtonText}
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Gradient - Multi-color gradient với decorative elements
-  if (style === 'gradient') {
-    return (
-      <section 
-        className="py-12 md:py-20 px-4 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${secondary} 50%, ${brandColor} 100%)` }}
-      >
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/20 pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
-        
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          {badge && (
-            <BrandBadge text={`★ ${badge}`} variant="solid" brandColor={brandColor} secondary={secondary} />
-          )}
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white line-clamp-2">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-          <p className="text-white/90 mt-4 text-sm md:text-lg max-w-xl mx-auto line-clamp-3">{description}</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-            {buttonText && (
-              <a 
-                href={buttonLink ?? '#'} 
-                className="px-8 py-3 md:py-4 min-h-[44px] bg-white rounded-full font-semibold transition-all hover:scale-105 hover:shadow-xl text-center whitespace-nowrap" 
-                style={{ boxShadow: `0 8px 24px rgba(0,0,0,0.2)`, color: secondary }}
-              >
-                {buttonText}
-              </a>
-            )}
-            {secondaryButtonText && (
-              <a 
-                href={secondaryButtonLink ?? '#'} 
-                className="px-8 py-3 md:py-4 min-h-[44px] border-2 border-white text-white rounded-full font-semibold hover:bg-white/10 transition-all text-center whitespace-nowrap"
-              >
-                {secondaryButtonText}
-              </a>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Minimal - Clean, simple với accent line
   return (
-    <section className="py-10 md:py-12 px-4 border-y" style={{ borderColor: `${secondary}20` }}>
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8">
-        <div className="flex items-center gap-4 text-center md:text-left">
-          {/* Accent line */}
-          <AccentLine orientation="vertical" thickness="thick" className="hidden md:block h-16" brandColor={brandColor} secondary={secondary} />
-          <div>
-            <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white line-clamp-1">{title ?? 'Sẵn sàng bắt đầu?'}</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base line-clamp-1">{description}</p>
-          </div>
-        </div>
-        <div className="flex gap-3 flex-shrink-0 w-full md:w-auto">
-          {buttonText && (
-            <a 
-              href={buttonLink ?? '#'} 
-              className="flex-1 md:flex-none px-6 py-3 min-h-[44px] rounded-lg font-medium text-white transition-all hover:scale-105 text-center whitespace-nowrap" 
-              style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}30` }}
-            >
-              {buttonText}
-            </a>
-          )}
-          {secondaryButtonText && (
-            <a 
-              href={secondaryButtonLink ?? '#'} 
-              className="flex-1 md:flex-none px-6 py-3 min-h-[44px] border rounded-lg font-medium transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-center whitespace-nowrap"
-              style={{ borderColor: `${secondary}30`, color: secondary }}
-            >
-              {secondaryButtonText}
-            </a>
-          )}
-        </div>
-      </div>
-    </section>
+    <CTASectionShared
+      config={{
+        title: ctaConfig.title ?? '',
+        description: ctaConfig.description ?? '',
+        buttonText: ctaConfig.buttonText ?? '',
+        buttonLink: ctaConfig.buttonLink ?? '',
+        secondaryButtonText: ctaConfig.secondaryButtonText ?? '',
+        secondaryButtonLink: ctaConfig.secondaryButtonLink ?? '',
+        badge: ctaConfig.badge ?? '',
+        harmony,
+      }}
+      style={style}
+      tokens={tokens}
+      context="site"
+    />
   );
 }
 
