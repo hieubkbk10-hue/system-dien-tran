@@ -5718,7 +5718,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
           <div className={`grid gap-3 md:gap-4 lg:gap-6 ${getMobileGridCols()} ${getGridCols()}`}>
             {resolvedCategories.map((cat) => (
               <a 
@@ -5761,7 +5761,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between px-4 md:px-6 mb-6 md:mb-8">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold">{title}</h2>
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: colors.primary.solid }}>{title}</h2>
             <div className="flex items-center gap-2 md:gap-4">
               {showArrows && (
                 <div className="flex gap-2">
@@ -5860,7 +5860,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16" style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {resolvedCategories.map((cat) => (
               <a 
@@ -5904,7 +5904,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
       <section className="py-10 md:py-16">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg md:text-xl font-bold">{title}</h2>
+            <h2 className="text-lg md:text-xl font-bold" style={{ color: colors.primary.solid }}>{title}</h2>
           <Link href="/products" className="text-sm font-medium hover:underline" style={{ color: colors.linkText }}>
               Tất cả →
             </Link>
@@ -5952,7 +5952,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center px-4 md:px-6">{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center px-4 md:px-6" style={{ color: colors.primary.solid }}>{title}</h2>
           <div
             className="flex overflow-x-auto scrollbar-hide pb-4 gap-4 md:gap-6 snap-x snap-mandatory px-4 md:px-6"
             style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
@@ -6006,7 +6006,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   return (
     <section className="py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
         <div className="relative overflow-hidden rounded-xl">
           {/* Gradient masks */}
           <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none" />
