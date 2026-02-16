@@ -11,6 +11,7 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 import { PRODUCT_CATEGORIES_STYLES } from '../_lib/constants';
+import { getProductCategoriesColors } from '../_lib/colors';
 import type { CategoryData, ProductCategoriesConfig, ProductCategoriesStyle } from '../_types';
 
 export const ProductCategoriesPreview = ({ 
@@ -33,6 +34,7 @@ export const ProductCategoriesPreview = ({
   const isTablet = device === 'tablet';
   const previewStyle = (selectedStyle ?? config.style) || 'grid';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as ProductCategoriesStyle);
+  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary), [brandColor, secondary]);
   const [isCircularDown, setIsCircularDown] = useState(false);
   const [isCircularDragging, setIsCircularDragging] = useState(false);
   const [circularStartX, setCircularStartX] = useState(0);
@@ -109,12 +111,12 @@ export const ProductCategoriesPreview = ({
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <div 
         className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-        style={{ backgroundColor: `${secondary}10` }}
+        style={{ backgroundColor: colors.emptyState.iconBg }}
       >
-        <Package size={32} style={{ color: secondary }} />
+        <Package size={32} style={{ color: colors.emptyState.icon }} />
       </div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có danh mục nào</h3>
-      <p className="text-sm text-slate-500">Thêm danh mục để bắt đầu hiển thị</p>
+      <p className="text-sm" style={{ color: colors.emptyState.text }}>Thêm danh mục để bắt đầu hiển thị</p>
     </div>
   );
 
@@ -125,13 +127,13 @@ export const ProductCategoriesPreview = ({
     
     if (cat.displayIcon && iconData) {
       return (
-        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>
-          {React.createElement(iconData.icon, { className: 'text-white', size: iconSize })}
+        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.iconContainerBg }}>
+          {React.createElement(iconData.icon, { size: iconSize, style: { color: colors.primary.textOnSolid } })}
         </div>
       );
     }
     if (cat.displayImage) {
-      return <PreviewImage src={cat.displayImage} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />;
+      return <PreviewImage src={cat.displayImage} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />;
     }
     return (
       <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800">
@@ -164,18 +166,16 @@ export const ProductCategoriesPreview = ({
                   key={cat.itemId} 
                   className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                   style={{ 
-                    boxShadow: '0 2px 8px rgb(226 232 240 / 0.5)',
-                    border: '1px solid rgb(226 232 240)',
+                    boxShadow: colors.cardShadow,
+                    border: `1px solid ${colors.cardBorder}`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}25`;
-                    e.currentTarget.style.borderColor = secondary;
-                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = colors.cardShadowHover;
+                    e.currentTarget.style.borderColor = colors.cardBorderHover;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgb(226 232 240 / 0.5)';
-                    e.currentTarget.style.borderColor = 'rgb(226 232 240)';
-                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = colors.cardShadow;
+                    e.currentTarget.style.borderColor = colors.cardBorder;
                   }}
                 >
                   {renderCategoryVisual(cat, 'lg')}
@@ -183,10 +183,10 @@ export const ProductCategoriesPreview = ({
                     className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"
                     style={{ height: '60%' }}
                   />
-                  <div className={cn("absolute bottom-0 left-0 right-0 text-white z-10", isMobile ? 'p-3' : 'p-4')}>
-                    <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
+                  <div className={cn("absolute bottom-0 left-0 right-0 z-10", isMobile ? 'p-3' : 'p-4')}>
+                    <h3 className={cn("font-semibold line-clamp-1", isMobile ? 'text-sm' : 'text-base')} style={{ color: colors.overlayText }}>{cat.name}</h3>
                     {config.showProductCount && (
-                      <p className="text-xs mt-0.5" style={{ color: secondary }}>12 sản phẩm</p>
+                      <p className="text-xs mt-0.5" style={{ color: colors.productCountText }}>12 sản phẩm</p>
                     )}
                   </div>
                 </div>
@@ -195,10 +195,10 @@ export const ProductCategoriesPreview = ({
               {remainingCount > 0 && resolvedCategories.length > 2 && (
                 <div 
                   className="flex flex-col items-center justify-center aspect-square rounded-xl cursor-pointer transition-all"
-                  style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}20` }}
+                  style={{ backgroundColor: colors.ctaMoreBg, border: `2px dashed ${colors.ctaMoreBorder}` }}
                 >
-                  <Plus size={isMobile ? 24 : 32} style={{ color: secondary }} className="mb-2" />
-                  <span className={cn("font-bold", isMobile ? 'text-base' : 'text-lg')} style={{ color: secondary }}>
+                  <Plus size={isMobile ? 24 : 32} style={{ color: colors.ctaMoreText }} className="mb-2" />
+                  <span className={cn("font-bold", isMobile ? 'text-base' : 'text-lg')} style={{ color: colors.ctaMoreText }}>
                     +{remainingCount}
                   </span>
                   <p className="text-xs text-slate-500 mt-1">danh mục khác</p>
@@ -218,7 +218,7 @@ export const ProductCategoriesPreview = ({
           <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>Danh mục sản phẩm</h2>
           <button 
             className="text-sm font-medium flex items-center gap-1 hover:underline whitespace-nowrap"
-            style={{ color: secondary }}
+            style={{ color: colors.linkText }}
           >
             Xem tất cả <ChevronRight size={16} />
           </button>
@@ -236,9 +236,9 @@ export const ProductCategoriesPreview = ({
                 >
                   <div 
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
-                    style={{ border: `2px solid ${secondary}15` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; }}
+                    style={{ border: `2px solid ${colors.cardBorder}` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.cardBorderHover; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder; }}
                   >
                     {renderCategoryVisual(cat, 'md')}
                   </div>
@@ -246,7 +246,7 @@ export const ProductCategoriesPreview = ({
                     {cat.name}
                   </h3>
                   {config.showProductCount && (
-                    <p className="text-xs text-slate-500 text-center">12 sản phẩm</p>
+                    <p className="text-xs text-center" style={{ color: colors.productCountText }}>12 sản phẩm</p>
                   )}
                 </div>
               ))}
@@ -261,7 +261,7 @@ export const ProductCategoriesPreview = ({
     const displayItems = isMobile ? resolvedCategories.slice(0, 3) : resolvedCategories.slice(0, 6);
     
     return (
-      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: `${secondary}05` }}>
+      <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto">
           <h2 className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}>
             Khám phá theo danh mục
@@ -273,13 +273,13 @@ export const ProductCategoriesPreview = ({
                 <div 
                   key={cat.itemId} 
                   className="group bg-white dark:bg-slate-800 rounded-xl overflow-hidden flex cursor-pointer transition-all"
-                  style={{ border: `1px solid ${secondary}15` }}
+                  style={{ border: `1px solid ${colors.cardBorder}` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}15`;
+                    e.currentTarget.style.borderColor = colors.cardBorderHover;
+                    e.currentTarget.style.boxShadow = colors.cardShadow;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
+                    e.currentTarget.style.borderColor = colors.cardBorder;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -291,7 +291,7 @@ export const ProductCategoriesPreview = ({
                     {cat.description && (
                       <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                     )}
-                    <span className="text-xs font-medium flex items-center gap-1" style={{ color: secondary }}>
+                    <span className="text-xs font-medium flex items-center gap-1" style={{ color: colors.linkText }}>
                       Xem sản phẩm <ArrowRight size={12} />
                     </span>
                   </div>
@@ -309,7 +309,7 @@ export const ProductCategoriesPreview = ({
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className={cn("font-bold", isMobile ? 'text-lg' : 'text-xl')}>Danh mục</h2>
-          <button className="text-sm font-medium hover:underline" style={{ color: secondary }}>
+          <button className="text-sm font-medium hover:underline" style={{ color: colors.linkText }}>
             Tất cả →
           </button>
         </div>
@@ -326,30 +326,30 @@ export const ProductCategoriesPreview = ({
                     isMobile ? 'px-3 py-2' : 'px-4 py-2.5'
                   )}
                   style={{ 
-                    backgroundColor: `${secondary}08`,
-                    border: `1px solid ${secondary}20`
+                    backgroundColor: colors.pillBg,
+                    border: `1px solid ${colors.pillBorder}`
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${brandColor}10`;
-                    e.currentTarget.style.borderColor = `${brandColor}40`;
+                    e.currentTarget.style.backgroundColor = colors.primary.surface;
+                    e.currentTarget.style.borderColor = colors.primary.border;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${secondary}08`;
-                    e.currentTarget.style.borderColor = `${secondary}20`;
+                    e.currentTarget.style.backgroundColor = colors.pillBg;
+                    e.currentTarget.style.borderColor = colors.pillBorder;
                   }}
                 >
                   {cat.displayIcon && iconData ? (
-                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: brandColor } })
+                    React.createElement(iconData.icon, { size: isMobile ? 14 : 16, style: { color: colors.primary.solid } })
                   ) : (cat.displayImage ? (
                     <PreviewImage src={cat.displayImage} alt="" className={cn("rounded-full object-cover", isMobile ? 'w-5 h-5' : 'w-6 h-6')} />
                   ) : (
-                    <Package size={isMobile ? 14 : 16} style={{ color: brandColor }} />
+                    <Package size={isMobile ? 14 : 16} style={{ color: colors.primary.solid }} />
                   ))}
                   <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')}>
                     {cat.name}
                   </span>
                   {config.showProductCount && (
-                    <span className="text-xs text-slate-400">(12)</span>
+                    <span className="text-xs" style={{ color: colors.productCountText }}>(12)</span>
                   )}
                 </div>
               );
@@ -383,9 +383,9 @@ export const ProductCategoriesPreview = ({
                     isMobile ? 'px-3 py-2' : 'px-4 py-3'
                   )}
                   style={{ 
-                    backgroundColor: 'white',
-                    border: `2px solid ${secondary}20`,
-                    boxShadow: `0 2px 8px ${secondary}10`
+                    backgroundColor: colors.neutral.surface,
+                    border: `2px solid ${colors.pillBorder}`,
+                    boxShadow: colors.cardShadow
                   }}
                 >
                   <div className={cn("rounded-full overflow-hidden flex-shrink-0", isMobile ? 'w-8 h-8' : 'w-10 h-10')}>
@@ -396,10 +396,10 @@ export const ProductCategoriesPreview = ({
                       {cat.name}
                     </h3>
                     {config.showProductCount && (
-                      <p className="text-xs text-slate-400 whitespace-nowrap">12 sản phẩm</p>
+                      <p className="text-xs whitespace-nowrap" style={{ color: colors.productCountText }}>12 sản phẩm</p>
                     )}
                   </div>
-                  <ArrowUpRight size={14} style={{ color: secondary }} className="flex-shrink-0" />
+                  <ArrowUpRight size={14} style={{ color: colors.arrowIcon }} className="flex-shrink-0" />
                 </div>
               ))}
             </div>
@@ -521,12 +521,12 @@ export const ProductCategoriesPreview = ({
                   <div
                     className="rounded-full overflow-hidden transition-all duration-300"
                     style={{
-                      border: `1px solid ${secondary}15`,
+                      border: `1px solid ${colors.circularBorder}`,
                       padding: isMobile ? '15px' : '20px',
-                      backgroundColor: `${secondary}05`
+                      backgroundColor: colors.circularBg
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}15`;
+                      e.currentTarget.style.boxShadow = colors.cardShadow;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.boxShadow = 'none';
@@ -545,12 +545,12 @@ export const ProductCategoriesPreview = ({
                     </h3>
 
                     <div className="relative h-[27px] overflow-hidden w-full">
-                      <span className={cn("block w-full text-slate-500 absolute top-0 left-0 transition-transform duration-300 group-hover:translate-y-full group-hover:opacity-0", isMobile ? 'text-xs' : 'text-sm')}>
+                      <span className={cn("block w-full absolute top-0 left-0 transition-transform duration-300 group-hover:translate-y-full group-hover:opacity-0", isMobile ? 'text-xs' : 'text-sm')} style={{ color: colors.productCountText }}>
                         {config.showProductCount ? '12 sản phẩm' : '\u00A0'}
                       </span>
                       <span
                         className={cn("block w-full underline absolute top-0 left-0 transition-transform duration-300 -translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100", isMobile ? 'text-xs' : 'text-sm')}
-                        style={{ color: secondary }}
+                        style={{ color: colors.linkText }}
                       >
                         Xem chi tiết
                       </span>
@@ -573,8 +573,8 @@ export const ProductCategoriesPreview = ({
                     )}
                     style={
                       circularScrollPosition === index
-                        ? { backgroundColor: secondary }
-                        : { borderColor: secondary, backgroundColor: 'transparent' }
+                        ? { backgroundColor: colors.paginationDotActive }
+                        : { borderColor: colors.paginationDotInactive, backgroundColor: 'transparent' }
                     }
                     aria-label={`Go to page ${index + 1}`}
                   />

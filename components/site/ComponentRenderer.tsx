@@ -22,6 +22,7 @@ import {
   getIconsColors,
   getMinimalColors,
 } from '@/app/admin/home-components/stats/_lib/colors';
+import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
@@ -5598,10 +5599,10 @@ function SpeedDialSection({ config, brandColor, secondary }: { config: Record<st
 
 // ============ PRODUCT CATEGORIES SECTION ============
 // Best Practices: Clear navigation, visual appeal, mobile optimization, hover effects
-// 7 styles: grid, carousel, cards, minimal, showcase, marquee, circular
+// 6 styles: grid, carousel, cards, minimal, marquee, circular
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 
-type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'showcase' | 'marquee' | 'circular';
+type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'marquee' | 'circular';
 
 function ProductCategoriesSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; title: string }) {
@@ -5611,6 +5612,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   const showProductCount = (config.showProductCount as boolean) ?? true;
   const columnsDesktop = (config.columnsDesktop as number) || 4;
   const columnsMobile = (config.columnsMobile as number) || 2;
+  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary), [brandColor, secondary]);
   
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, {});
@@ -5695,13 +5697,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     const iconData = cat.displayIcon ? getCategoryIcon(cat.displayIcon) : null;
     if (cat.displayIcon && iconData) {
       return (
-        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>
-          {React.createElement(iconData.icon, { className: 'text-white', size: iconSize })}
+        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.iconContainerBg }}>
+          {React.createElement(iconData.icon, { size: iconSize, style: { color: colors.primary.textOnSolid } })}
         </div>
       );
     }
     if (cat.displayImage) {
-      return <SiteImage src={cat.displayImage} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />;
+      return <SiteImage src={cat.displayImage} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />;
     }
     return (
       <div className="w-full h-full flex items-center justify-center bg-slate-100">
@@ -5722,21 +5724,21 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
-                style={{ boxShadow: `0 2px 8px ${secondary}10` }}
+                style={{ boxShadow: colors.cardShadow, border: `1px solid ${colors.cardBorder}` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}25`;
-                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = colors.cardShadowHover;
+                  e.currentTarget.style.borderColor = colors.cardBorderHover;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 2px 8px ${secondary}10`;
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = colors.cardShadow;
+                  e.currentTarget.style.borderColor = colors.cardBorder;
                 }}
               >
                 {renderCategoryVisual(cat, 48)}
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-white">
-                  <h3 className="font-semibold text-sm md:text-base line-clamp-1">{cat.name}</h3>
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                  <h3 className="font-semibold text-sm md:text-base line-clamp-1" style={{ color: colors.overlayText }}>{cat.name}</h3>
                   {showProductCount && (
-                    <p className="text-xs opacity-80 mt-0.5" style={{ color: secondary }}>{cat.productCount} sản phẩm</p>
+                    <p className="text-xs opacity-80 mt-0.5" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}
                 </div>
               </a>
@@ -5769,9 +5771,9 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                       if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `${secondary}20` }}
+                    style={{ borderColor: colors.cardBorder }}
                   >
-                    <ChevronLeft size={18} style={{ color: secondary }} />
+                    <ChevronLeft size={18} style={{ color: colors.arrowIcon }} />
                   </button>
                   <button
                     type="button"
@@ -5780,16 +5782,16 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                       if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                    style={{ borderColor: `${secondary}20` }}
+                    style={{ borderColor: colors.cardBorder }}
                   >
-                    <ChevronRight size={18} style={{ color: secondary }} />
+                    <ChevronRight size={18} style={{ color: colors.arrowIcon }} />
                   </button>
                 </div>
               )}
               <Link
                 href="/products"
                 className="text-sm font-medium flex items-center gap-1 hover:underline whitespace-nowrap"
-                style={{ color: secondary }}
+                style={{ color: colors.linkText }}
               >
                 Xem tất cả
                 <ArrowRight size={16} />
@@ -5828,15 +5830,15 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 >
                   <div
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
-                    style={{ border: `2px solid ${secondary}15` }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${secondary}40`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${secondary}15`; }}
+                    style={{ border: `2px solid ${colors.cardBorder}` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.cardBorderHover; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder; }}
                   >
                     {renderCategoryVisual(cat, 40)}
                   </div>
                   <h3 className="font-medium text-center text-sm line-clamp-1">{cat.name}</h3>
                   {showProductCount && (
-                    <p className="text-xs text-slate-500 text-center">{cat.productCount} sản phẩm</p>
+                    <p className="text-xs text-center" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}
                 </a>
               ))}
@@ -5855,7 +5857,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   // Style 3: Cards - Modern horizontal cards with description
   if (style === 'cards') {
     return (
-      <section className="py-10 md:py-16" style={{ backgroundColor: `${secondary}05` }}>
+      <section className="py-10 md:py-16" style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -5864,13 +5866,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
                 className="group bg-white rounded-xl overflow-hidden flex cursor-pointer transition-all"
-                style={{ border: `1px solid ${secondary}15` }}
+                style={{ border: `1px solid ${colors.cardBorder}` }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}15`;
+                  e.currentTarget.style.borderColor = colors.cardBorderHover;
+                  e.currentTarget.style.boxShadow = colors.cardShadow;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}15`;
+                  e.currentTarget.style.borderColor = colors.cardBorder;
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
@@ -5882,7 +5884,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   {cat.description && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                   )}
-                  <span className="text-xs font-medium flex items-center gap-1" style={{ color: secondary }}>
+                  <span className="text-xs font-medium flex items-center gap-1" style={{ color: colors.linkText }}>
                     {showProductCount ? `${cat.productCount} sản phẩm` : 'Xem sản phẩm'}
                     <ArrowRight size={12} />
                   </span>
@@ -5902,7 +5904,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg md:text-xl font-bold">{title}</h2>
-            <Link href="/products" className="text-sm font-medium hover:underline" style={{ color: secondary }}>
+          <Link href="/products" className="text-sm font-medium hover:underline" style={{ color: colors.linkText }}>
               Tất cả →
             </Link>
           </div>
@@ -5914,26 +5916,26 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
                   className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full cursor-pointer transition-all"
-                  style={{ backgroundColor: `${secondary}08`, border: `1px solid ${secondary}20` }}
+                  style={{ backgroundColor: colors.pillBg, border: `1px solid ${colors.pillBorder}` }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${secondary}15`;
-                    e.currentTarget.style.borderColor = `${secondary}40`;
+                    e.currentTarget.style.backgroundColor = colors.primary.surface;
+                    e.currentTarget.style.borderColor = colors.primary.border;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${secondary}08`;
-                    e.currentTarget.style.borderColor = `${secondary}20`;
+                    e.currentTarget.style.backgroundColor = colors.pillBg;
+                    e.currentTarget.style.borderColor = colors.pillBorder;
                   }}
                 >
                   {cat.displayIcon && iconData ? (
-                    React.createElement(iconData.icon, { size: 16, style: { color: secondary } })
+                    React.createElement(iconData.icon, { size: 16, style: { color: colors.primary.solid } })
                   ) : (cat.displayImage ? (
                     <SiteImage src={cat.displayImage} alt="" className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover" />
                   ) : (
-                    <Package size={16} style={{ color: secondary }} />
+                    <Package size={16} style={{ color: colors.primary.solid }} />
                   ))}
                   <span className="font-medium text-xs md:text-sm whitespace-nowrap">{cat.name}</span>
                   {showProductCount && (
-                    <span className="text-xs text-slate-400">({cat.productCount})</span>
+                    <span className="text-xs" style={{ color: colors.productCountText }}>({cat.productCount})</span>
                   )}
                 </a>
               );
@@ -5944,85 +5946,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     );
   }
 
-  // Style 5: Showcase - Featured first item + grid of smaller items
-  if (style === 'showcase') {
-    const [featured, ...others] = resolvedCategories;
-    if (!featured) {return null;}
-    
-    return (
-      <section className="py-10 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-            {/* Featured category */}
-            <a 
-              href={`/products?category=${featured.slug}`}
-              className="relative rounded-2xl overflow-hidden cursor-pointer group md:row-span-2"
-              style={{ boxShadow: `0 8px 30px ${secondary}20` }}
-            >
-              <div className="aspect-[4/3] md:aspect-auto md:h-full">
-                {renderCategoryVisual(featured, 56)}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
-                <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
-                <h3 className="font-bold text-lg md:text-xl line-clamp-1">{featured.name}</h3>
-                {featured.description && (
-                  <p className="text-sm opacity-80 line-clamp-2 mt-1">{featured.description}</p>
-                )}
-                {showProductCount && (
-                  <p className="text-sm opacity-70 mt-2">{featured.productCount} sản phẩm</p>
-                )}
-              </div>
-            </a>
-            
-            {/* Other categories grid */}
-            <div className="grid gap-3 grid-cols-2 md:col-span-2 md:grid-cols-2 lg:grid-cols-3">
-              {others.slice(0, 5).map((cat) => (
-                <a 
-                  key={cat.id}
-                  href={`/products?category=${cat.slug}`}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group transition-all"
-                  style={{ border: `2px solid ${secondary}15` }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {renderCategoryVisual(cat, 36)}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-2 md:p-3 text-white">
-                    <h3 className="font-semibold text-xs md:text-sm line-clamp-1">{cat.name}</h3>
-                    {showProductCount && (
-                      <p className="text-xs opacity-70">{cat.productCount} sp</p>
-                    )}
-                  </div>
-                </a>
-              ))}
-              
-              {/* +N more */}
-              {others.length > 5 && (
-                <Link 
-                  href="/products"
-                  className="flex flex-col items-center justify-center aspect-[4/3] rounded-xl cursor-pointer"
-                  style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
-                >
-                  <span className="font-bold text-lg" style={{ color: secondary }}>+{others.length - 5}</span>
-                  <span className="text-xs text-slate-500 mt-1">danh mục khác</span>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Circular - Horizontal scroll với circular containers
+  // Style 5: Circular - Horizontal scroll với circular containers
   if (style === 'circular') {
     return (
       <section className="py-10 md:py-16">
@@ -6041,18 +5965,18 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 <div
                   className="rounded-full overflow-hidden transition-all duration-300 mb-3"
                   style={{
-                    border: `2px solid ${secondary}15`,
+                    border: `2px solid ${colors.circularBorder}`,
                     padding: '18px',
-                    backgroundColor: `${secondary}05`,
+                    backgroundColor: colors.circularBg,
                     width: '100%',
                     aspectRatio: '1/1'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}20`;
+                    e.currentTarget.style.borderColor = colors.cardBorderHover;
+                    e.currentTarget.style.boxShadow = colors.cardShadow;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
+                    e.currentTarget.style.borderColor = colors.circularBorder;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
@@ -6062,7 +5986,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 </div>
                 <h3 className="font-semibold text-center text-sm line-clamp-1 w-full">{cat.name}</h3>
                 {showProductCount && (
-                  <p className="text-xs text-slate-500 text-center">{cat.productCount} sản phẩm</p>
+                  <p className="text-xs text-center" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                 )}
               </a>
             ))}
@@ -6077,15 +6001,15 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     );
   }
 
-  // Style 7: Marquee - Auto-scrolling horizontal animation (default fallback)
+  // Style 6: Marquee - Auto-scrolling horizontal animation (default fallback)
   return (
     <section className="py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center">{title}</h2>
         <div className="relative overflow-hidden rounded-xl">
           {/* Gradient masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none" />
           
           {/* Marquee track */}
           <div 
@@ -6099,7 +6023,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 key={`${cat.id}-${idx}`}
                 href={`/products?category=${cat.slug}`}
                 className="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-full cursor-pointer mx-2 bg-white"
-                style={{ border: `2px solid ${secondary}20`, boxShadow: `0 2px 8px ${secondary}10` }}
+                style={{ border: `2px solid ${colors.pillBorder}`, boxShadow: colors.cardShadow, backgroundColor: colors.neutral.surface }}
               >
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {renderCategoryVisual(cat, 24)}
@@ -6107,10 +6031,10 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                 <div className="min-w-0">
                   <h3 className="font-semibold text-sm whitespace-nowrap">{cat.name}</h3>
                   {showProductCount && (
-                    <p className="text-xs text-slate-400 whitespace-nowrap">{cat.productCount} sản phẩm</p>
+                    <p className="text-xs whitespace-nowrap" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}
                 </div>
-                <ArrowUpRight size={14} style={{ color: secondary }} className="flex-shrink-0" />
+                <ArrowUpRight size={14} style={{ color: colors.arrowIcon }} className="flex-shrink-0" />
               </a>
             ))}
           </div>
