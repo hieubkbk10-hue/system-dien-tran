@@ -175,7 +175,7 @@ export function getSliderColors(
     navButtonBorderColor: secondaryPalette.surface,
     dotActive: primaryPalette.solid,
     dotInactive: 'rgba(255, 255, 255, 0.5)',
-    placeholderBg: primaryPalette.surface,
+    placeholderBg: '#f1f5f9',
     placeholderIconColor: primaryPalette.solid,
     similarity,
   };
@@ -189,14 +189,12 @@ export function getFadeColors(
 ): FadeColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
   const primaryPalette = generatePalette(primary);
-  const primaryColor = oklch(primary);
   const secondaryPalette = generatePalette(secondaryColor);
-  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
 
   return {
     thumbnailBorderActive: mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid,
     thumbnailBorderInactive: 'transparent',
-    placeholderBg: getPrimaryTint(0.4),
+    placeholderBg: '#f1f5f9',
     placeholderIconColor: primaryPalette.solid,
     similarity: getSimilarity(primary, secondaryColor),
   };
@@ -232,9 +230,7 @@ export function getFullscreenColors(
   harmony: HeroHarmony = 'analogous',
 ): FullscreenColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
-  const primaryColor = oklch(primary);
   const secondaryColorValue = oklch(secondaryColor);
-  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
 
   return {
@@ -245,7 +241,7 @@ export function getFullscreenColors(
     primaryCTAText: getAPCATextColor(primary, 16, 600),
     dotActive: primary,
     dotInactive: 'rgba(255, 255, 255, 0.5)',
-    placeholderBg: getPrimaryTint(0.35),
+    placeholderBg: '#f1f5f9',
     placeholderIcon: primary,
     similarity: getSimilarity(primary, secondaryColor),
   };
@@ -281,9 +277,7 @@ export function getParallaxColors(
   harmony: HeroHarmony = 'analogous',
 ): ParallaxColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
-  const primaryColor = oklch(primary);
   const secondaryColorValue = oklch(secondaryColor);
-  const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
 
   return {
@@ -294,7 +288,7 @@ export function getParallaxColors(
     primaryCTAText: getAPCATextColor(primary, 14, 600),
     navButtonBg: 'rgba(255, 255, 255, 0.2)',
     navButtonIcon: '#ffffff',
-    placeholderBg: getPrimaryTint(0.35),
+    placeholderBg: '#f1f5f9',
     placeholderIcon: primary,
     similarity: getSimilarity(primary, secondaryColor),
   };

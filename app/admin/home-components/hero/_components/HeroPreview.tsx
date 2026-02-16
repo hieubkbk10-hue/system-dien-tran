@@ -90,9 +90,9 @@ export const HeroPreview = ({
       textColor?: string;
     }
   ) => {
-    const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : placeholderColors.background);
+    const placeholderBg = options?.backgroundColor ?? (options?.useSliderColors ? sliderColors.placeholderBg : '#f1f5f9');
     const placeholderIconColor = options?.iconColor ?? (options?.useSliderColors ? sliderColors.placeholderIconColor : placeholderColors.icon);
-    const placeholderTextColor = options?.textColor ?? placeholderColors.text;
+    const placeholderTextColor = options?.textColor ?? '#64748b';
     return (
       <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: placeholderBg }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: placeholderBg }}>

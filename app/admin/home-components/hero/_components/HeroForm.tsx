@@ -47,7 +47,7 @@ export const HeroForm = ({
       </CardContent>
     </Card>
 
-    {brandMode === 'single' && heroStyle === 'slider' && (
+    {brandMode === 'single' && (
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-base">Color Harmony (Single Mode)</CardTitle>
