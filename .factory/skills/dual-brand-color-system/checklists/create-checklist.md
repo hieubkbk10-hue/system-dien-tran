@@ -17,9 +17,10 @@
 - [ ] Primary: CTA/prices/headings
 - [ ] Secondary: badges/hover/accents
 - [ ] Neutral: background
+- [ ] Pagination dots: dual dùng secondary, single dùng primary
 
 ## 5. Content-Aware Distribution
 - [ ] Đã điền Color Role Matrix cho component
 - [ ] Primary có >= 3 content-state elements
 - [ ] Secondary có >= 2 visible elements (không chỉ icon nhỏ)
-- [ ] Placeholder dùng neutral, không dùng primary tint cho bg
+- [ ] Placeholder dùng neutral, không dùng primary/secondary tint cho bg

@@ -20,10 +20,11 @@
 - [ ] Primary dùng cho CTA/prices/headings
 - [ ] Secondary dùng cho badges/hover
 - [ ] Neutral chiếm background
+- [ ] Pagination dots: dual dùng secondary, single dùng primary
 
 ## 6. Content-Aware Distribution
 - [ ] Tỷ lệ 60-30-10 đo tại trạng thái DATA ĐẦY ĐỦ
-- [ ] Placeholder dùng neutral background (không primary tint)
+- [ ] Placeholder dùng neutral background (không primary/secondary tint)
 - [ ] Primary hiện ở >= 3 element types khi có data
 - [ ] Secondary hiện ở >= 2 element types có diện tích đủ lớn
 - [ ] Color Role Matrix đã điền đầy đủ

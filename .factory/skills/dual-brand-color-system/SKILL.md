@@ -75,12 +75,12 @@ version: 6.0.0
 - **QUAN TRỌNG**: Tỷ lệ trên đo khi component có **DATA ĐẦY ĐỦ**
 - Placeholder state **KHÔNG** tính vào tỷ lệ này
 
-### 5) Placeholder dùng Neutral, không phải Primary
+### 5) Placeholder dùng Neutral, không phải Primary/Secondary
 
-- Background placeholder: neutral (slate-100/200), **KHÔNG** dùng primary tint
+- Background placeholder: neutral (slate-100/200), **KHÔNG** dùng primary hoặc secondary tint
 - Icon placeholder: primary solid (chỉ icon, không phải background)
 - Text placeholder: neutral (slate-400/500)
-- Lý do: nếu dùng primary tint cho placeholder background, khi có data thật phần primary "biến mất" → tỷ lệ bị lệch
+- Lý do: nếu dùng primary/secondary tint cho placeholder background, khi có data thật phần brand "biến mất" → tỷ lệ bị lệch
 
 ### 6) Secondary phải “nhìn thấy được” khi có data
 
@@ -88,6 +88,13 @@ version: 6.0.0
 - Secondary phải xuất hiện ở ít nhất 1 element có diện tích >= 5% component
 - Ví dụ tốt: badge background, gradient accent, card ring, overlay tint
 - Ví dụ xấu: chỉ dùng cho nav arrow icon 16px
+
+### 7) Pagination dots ưu tiên Secondary (dual mode)
+
+- Dual mode: dot active = secondary solid (tăng visibility cho secondary)
+- Single mode: dot active = primary solid
+- Dot inactive: luôn neutral (rgba white hoặc slate-300)
+- Lý do: dot phân trang có diện tích đủ lớn để “nhìn thấy” secondary, giúp pass minimum visibility rule
 
 ---
 
@@ -108,7 +115,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
   active state indicators, decorative accents, hover accent
 
 **Layer 2: Placeholder State (data trống) - KHÔNG tính vào tỷ lệ**
-- Background: neutral tint (slate-100/200), KHÔNG dùng primary tint
+- Background: neutral tint (slate-100/200), KHÔNG dùng primary/secondary tint
 - Icon: primary solid (hint cho user biết component thuộc brand nào)
 - Text: neutral (slate-500)
 
@@ -147,8 +154,9 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Heading | content | accent line | - | text | - |
 | Card bg | content | - | - | fill | 60% rule |
 | Nav icon | content | - | solid | - | Quá nhỏ, không đủ |
-| Placeholder bg | empty | - | - | fill | KHÔNG dùng primary tint |
+| Placeholder bg | empty | - | - | fill | KHÔNG dùng primary/secondary tint |
 | Placeholder icon | empty | solid | - | - | Hint only |
+| Pagination dot | content | single: solid | dual: solid | - | Dual mode ưu tiên secondary |
 | Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
 
 ---
