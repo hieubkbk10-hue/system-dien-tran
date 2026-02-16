@@ -3,7 +3,8 @@ Trả lời bằng Tiếng Việt , dĩ nhiên là tiếng Việt có dấu
 Tuân thủ nghiêm ngặc KISS, YAGNI, DRY
 Tuân thủ Rails Convention Over Configuration
 Khi user đưa URL localhost (ví dụ http://localhost:3000/...), hãy đọc route tương ứng trong Next.js để hiểu, không hỏi lại.
-Mọi thay đổi code khi hoàn thành đều phải commit (nhưng không được push nha). Trước khi commit chỉ chạy bunx oxlint --type-aware --type-check --fix khi có thay đổi code/TS; không chạy khi chỉ sửa docs/cấu hình không liên quan.
+Mọi thay đổi code khi hoàn thành đều phải commit (nhưng không được push nha). 
+Trước khi commit chỉ chạy bunx tsc --noEmit thôi (không chạy bun run lint hay gì khác tốn thời gian nha) khi có thay đổi code/TS; không chạy khi chỉ sửa docs/cấu hình không liên quan.
 
 # Prompt Best Practices (để tăng độ chính xác)
 * Nêu rõ yêu cầu + phạm vi; không mở rộng tính năng ngoài yêu cầu.

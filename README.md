@@ -196,3 +196,5 @@ Private project - All rights reserved.
 ## Support
 
 Liên hệ: contact@vietadmin.com
+
+bunx oxlint --type-aware --type-check --fix
