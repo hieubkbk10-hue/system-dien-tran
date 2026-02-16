@@ -26,8 +26,11 @@ import {
 import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
 import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
+import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
+import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
+import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
 import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
@@ -35,7 +38,7 @@ import { ServiceListSection } from './ServiceListSection';
 import { 
   ArrowRight, ArrowUpRight, Briefcase, 
   Building2, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Cpu, Facebook, Globe,
-  HelpCircle, Image as ImageIcon, Instagram, Layers, LayoutTemplate, Linkedin, Mail, MapPin, Maximize2, MessageCircle, Package, Phone, Plus, Rocket,
+  Image as ImageIcon, Instagram, Layers, LayoutTemplate, Linkedin, Mail, MapPin, Maximize2, MessageCircle, Package, Phone, Plus, Rocket,
   Settings, Shield, Star, Tag, Target, Twitter, Users, X, Youtube, Zap, ZoomIn
 } from 'lucide-react';
 import { formatVoucherExpiry, normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
@@ -120,7 +123,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <BenefitsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'FAQ': {
-      return <FAQSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <FAQSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'CTA': {
       return <CTASection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
@@ -1890,294 +1893,72 @@ function BenefitsSection({ config, brandColor, secondary, title }: { config: Rec
 }
 
 // ============ FAQ SECTION ============
-// ============ FAQ SECTION ============
-// 6 Styles: accordion, cards, two-column, minimal, timeline, tabbed
-// Best Practices: ARIA, keyboard nav, brandColor hover, responsive, SEO schema, touch targets
-type FaqStyle = 'accordion' | 'cards' | 'two-column' | 'minimal' | 'timeline' | 'tabbed';
-function FAQSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const items = (config.items as { question: string; answer: string }[]) || [];
-  const style = (config.style as FaqStyle) || 'accordion';
-  const description = (config.description as string) || '';
-  const buttonText = (config.buttonText as string) || '';
-  const buttonLink = (config.buttonLink as string) || '';
-  const [openIndex, setOpenIndex] = React.useState<number | null>(0);
-  const [activeTab, setActiveTab] = React.useState(0);
-
-  // Empty state
-  if (items.length === 0) {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${secondary}10` }}>
-            <HelpCircle size={32} style={{ color: secondary }} />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Câu hỏi thường gặp'}</h2>
-          <p className="text-slate-500">Chưa có câu hỏi nào</p>
-        </div>
-      </section>
-    );
-  }
-
-  // FAQ Schema for SEO
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": items.map(item => ({
-      "@type": "Question",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": item.answer
-      },
-      "name": item.question
-    }))
+function FAQSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
+  const faqConfig = config as {
+    items?: Array<{ question?: string; answer?: string }>;
+    style?: FaqStyle;
+    description?: string;
+    buttonText?: string;
+    buttonLink?: string;
   };
 
-  // Style 1: Accordion - with ARIA, keyboard nav, brandColor monochromatic
-  if (style === 'accordion') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-slate-900">{title}</h2>
-          <div className="space-y-3" role="region" aria-label="Câu hỏi thường gặp">
-            {items.map((item, idx) => {
-              const isOpen = openIndex === idx;
-              const panelId = `faq-panel-${idx}`;
-              const buttonId = `faq-button-${idx}`;
-              return (
-                <div 
-                  key={idx} 
-                  className="rounded-xl overflow-hidden transition-all"
-                  style={{ 
-                    border: `1px solid ${isOpen ? secondary + '40' : secondary + '15'}`,
-                    boxShadow: isOpen ? `0 4px 12px ${secondary}10` : 'none'
-                  }}
-                >
-                  <button
-                    id={buttonId}
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() =>{  setOpenIndex(isOpen ? null : idx); }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'ArrowDown') { e.preventDefault(); setOpenIndex(Math.min((openIndex ?? -1) + 1, items.length - 1)); }
-                      if (e.key === 'ArrowUp') { e.preventDefault(); setOpenIndex(Math.max((openIndex ?? 1) - 1, 0)); }
-                    }}
-                    className={`w-full px-5 py-4 md:px-6 md:py-5 min-h-[44px] text-left flex items-center justify-between font-medium text-slate-900 transition-colors ${isOpen ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
-                  >
-                    <span className="pr-4">{item.question || 'Câu hỏi'}</span>
-                    <svg 
-                      className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-                      style={{ color: secondary }}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div 
-                    id={panelId}
-                    role="region"
-                    aria-labelledby={buttonId}
-                    className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-[500px]' : 'max-h-0'}`}
-                  >
-                    <div className="px-5 py-4 md:px-6 md:py-5 bg-slate-50 text-slate-600 border-t leading-relaxed" style={{ borderColor: `${secondary}15` }}>
-                      {item.answer || 'Câu trả lời'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const items: FaqItem[] = (faqConfig.items ?? []).map((item, idx) => ({
+    id: idx,
+    question: item.question ?? '',
+    answer: item.answer ?? '',
+  }));
 
-  // Style 2: Cards - with brandColor hover
-  if (style === 'cards') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-slate-900">{title}</h2>
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            {items.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="bg-white rounded-xl p-5 md:p-6 transition-all group"
-                style={{ 
-                  border: `1px solid ${secondary}15`,
-                }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}40`; 
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; 
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}15`; 
-                  e.currentTarget.style.boxShadow = 'none'; 
-                }}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold" style={{ backgroundColor: brandColor }}>?</div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold mb-2 text-slate-900 line-clamp-2">{item.question || 'Câu hỏi'}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.answer || 'Câu trả lời'}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const style: FaqStyle = faqConfig.style ?? 'accordion';
+  const sectionConfig: FaqConfig = {
+    description: faqConfig.description,
+    buttonText: faqConfig.buttonText,
+    buttonLink: faqConfig.buttonLink,
+  };
 
-  // Style 3: Two Column - with configurable CTA
-  if (style === 'two-column') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-5 gap-8 md:gap-12">
-            <div className="md:col-span-2">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900" style={{ color: secondary }}>{title}</h2>
-              <p className="text-slate-500 mb-6 leading-relaxed">{description || 'Tìm câu trả lời cho các thắc mắc phổ biến của bạn'}</p>
-              {buttonText && (
-                <a 
-                  href={buttonLink || '#'}
-                  className="inline-block px-6 py-3 min-h-[44px] rounded-lg text-white font-medium transition-all" 
-                  style={{ backgroundColor: brandColor, boxShadow: `0 4px 12px ${secondary}30` }}
-                >
-                  {buttonText}
-                </a>
-              )}
-            </div>
-            <div className="md:col-span-3 space-y-5">
-              {items.map((item, idx) => (
-                <div key={idx} className="pb-5" style={{ borderBottom: `1px solid ${secondary}15` }}>
-                  <h4 className="font-semibold mb-2 text-slate-900">{item.question || 'Câu hỏi'}</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.answer || 'Câu trả lời'}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const tokens = getFaqColors({
+    primary: brandColor,
+    secondary,
+    mode,
+    style,
+  });
 
-  // Style 4: Minimal - clean, numbered
-  if (style === 'minimal') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 text-slate-900">{title}</h2>
-          <div className="space-y-6 md:space-y-8">
-            {items.map((item, idx) => (
-              <div key={idx} className="flex gap-4 md:gap-6">
-                <span 
-                  className="text-xl md:text-2xl font-bold flex-shrink-0"
-                  style={{ color: secondary }}
-                >
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                <div className="flex-1">
-                  <h4 className="font-semibold mb-2 text-slate-900">{item.question || 'Câu hỏi'}</h4>
-                  <p className="text-sm md:text-base text-slate-500 leading-relaxed">{item.answer || 'Câu trả lời'}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
 
-  // Style 5: Timeline - vertical connector
-  if (style === 'timeline') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-slate-900">{title}</h2>
-          <div className="relative">
-            {/* Vertical line */}
-            <div 
-              className="absolute left-4 md:left-5 top-0 bottom-0 w-0.5"
-              style={{ backgroundColor: `${secondary}20` }}
-            />
-            <div className="space-y-6 md:space-y-8">
-              {items.map((item, idx) => (
-                <div key={idx} className="relative pl-12 md:pl-14">
-                  {/* Dot */}
-                  <div 
-                    className="absolute left-2 md:left-3 top-2 w-5 h-5 rounded-full border-4 bg-white"
-                    style={{ borderColor: secondary }}
-                  />
-                  <div className="rounded-xl p-4 md:p-5" style={{ backgroundColor: `${secondary}05` }}>
-                    <h4 className="font-semibold mb-2 text-slate-900">{item.question || 'Câu hỏi'}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">{item.answer || 'Câu trả lời'}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Tabbed
   return (
-    <section className="py-12 md:py-16 px-4">
+    <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8 text-slate-900">{title}</h2>
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2" role="tablist">
-          {items.slice(0, 6).map((_, idx) => (
-            <button
-              key={idx}
-              role="tab"
-              aria-selected={activeTab === idx}
-              aria-controls={`tabpanel-${idx}`}
-              onClick={() =>{  setActiveTab(idx); }}
-              className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                activeTab === idx ? 'text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              style={activeTab === idx ? { backgroundColor: secondary } : {}}
-            >
-              Q{idx + 1}
-            </button>
-          ))}
-          {items.length > 6 && (
-            <span className="px-3 py-2 text-sm text-slate-400 flex items-center">+{items.length - 6}</span>
-          )}
-        </div>
-        {/* Content */}
-        <div 
-          id={`tabpanel-${activeTab}`}
-          role="tabpanel"
-          className="rounded-xl p-6 md:p-8"
-          style={{ 
-            backgroundColor: `${secondary}05`,
-            border: `1px solid ${secondary}15`
-          }}
-        >
-          {items[activeTab] && (
-            <>
-              <h4 className="text-lg md:text-xl font-semibold mb-3 text-slate-900">
-                {items[activeTab].question || 'Câu hỏi'}
-              </h4>
-              <p className="text-slate-600 leading-relaxed">
-                {items[activeTab].answer || 'Câu trả lời'}
-              </p>
-            </>
-          )}
-        </div>
-      </div>
-    </section>
+      <FaqSectionShared
+        items={items}
+        title={title}
+        style={style}
+        config={sectionConfig}
+        tokens={tokens}
+        context="site"
+      />
+    </>
   );
 }
 
