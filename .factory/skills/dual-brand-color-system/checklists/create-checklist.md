@@ -25,3 +25,8 @@
 - [ ] Primary có >= 3 content-state elements
 - [ ] Secondary có >= 2 visible elements (không chỉ icon nhỏ)
 - [ ] Placeholder dùng neutral, không dùng primary/secondary tint cho bg
+
+## 6. Accent Prominence
+- [ ] Đã điền Accent Analysis Template
+- [ ] Áp dụng đúng Accent Count Rule
+- [ ] Lone Accent = primary

@@ -29,3 +29,10 @@
 - [ ] Primary hiện ở >= 3 element types khi có data
 - [ ] Secondary hiện ở >= 2 element types có diện tích đủ lớn
 - [ ] Color Role Matrix đã điền đầy đủ
+
+## 7. Accent Prominence
+- [ ] Đã liệt kê tất cả accent points
+- [ ] Đã phân loại tier (XL/L/M/S) cho từng accent
+- [ ] Đã áp dụng đúng rule theo accent count (Lone/Dual/Triple/Standard)
+- [ ] Lone accent dùng primary, không dùng secondary
+- [ ] Accent tier S có APCA >= 60

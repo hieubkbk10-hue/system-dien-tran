@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, và Theme Engine UI.
-version: 6.0.0
+version: 7.0.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -106,6 +106,36 @@ version: 6.0.0
 - Kỹ thuật: `box-shadow: 0 0 0 2px <outer>` + `background: <inner>`
 - Tham chiếu: W3C C40, WCAG 2.2 SC 1.4.11 (Non-text Contrast 3:1)
 
+### 9) Accent Prominence Engine (phân phối thông minh)
+
+#### Bước 1: Đếm Accent Points
+
+- Accent point = element dùng primary/secondary (không tính neutral)
+- Chỉ đo ở trạng thái **data đầy đủ**
+
+#### Bước 2: Phân loại Surface Area (ước lượng)
+
+| Tier | Diện tích ước lượng | Ví dụ |
+|------|---------------------|-------|
+| XL | >= 20% component | CTA lớn, overlay gradient, hero badge |
+| L | 5-20% | Card ring, badge bg, progress bar |
+| M | 1-5% | Dot active, small badge, thin border |
+| S | < 1% | Icon 16px, thin line |
+
+#### Bước 3: Phân phối theo Accent Count
+
+- **1 accent** → luôn **primary** (Lone Accent Rule)
+- **2 accents** → lớn hơn = primary, nhỏ hơn = secondary
+  - Nếu cùng tier → element có interaction (click/hover) = primary
+- **3 accents** → 2 primary + 1 secondary (secondary = tier thấp nhất)
+- **4+ accents** → áp dụng 60-30-10 bình thường (~70% primary / ~30% secondary)
+
+#### Bước 4: Validate Contrast theo Tier
+
+- Tier S: APCA >= 60
+- Tier M: APCA >= 45
+- Tier L/XL: APCA >= 30
+
 ---
 
 ## Content-Aware Color Distribution
@@ -169,6 +199,14 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Pagination dot | content | single: solid | dual: solid | - | Dual mode ưu tiên secondary |
 | Nav arrow btn | content | single: icon | dual: icon | bg + ring | W3C C40 two-color |
 | Overlay gradient | content | from-color | to-color | - | Dual-brand gradient |
+
+## Accent Analysis Template
+
+| # | Element | Tier | Area Est. | Interactive? | Assigned Color | Reason |
+|---|---------|------|-----------|-------------|----------------|--------|
+| 1 | thumbnail border | M | ~3% | yes | primary | Lone accent |
+| 2 | | | | | | |
+| Total accent points: X | | | | | | Apply Rule: Lone/Dual/Triple/Standard |
 
 ---
 
@@ -237,9 +275,11 @@ textOnSolid: getAPCATextColor(primary, 16, 500)
 - `checklists/review-checklist.md`
 - `checklists/create-checklist.md`
 - `checklists/dual-visibility-checklist.md`
+- `checklists/accent-analysis-template.md`
 - `reference-oklch.md`
 - `reference-apca.md`
 - `reference-harmony.md`
+
 
 ---
 

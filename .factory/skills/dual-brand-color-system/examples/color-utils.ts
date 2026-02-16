@@ -26,6 +26,14 @@ export interface BrandColorsResult {
   similarity: number;
 }
 
+export type AccentTier = 'XL' | 'L' | 'M' | 'S';
+
+export interface AccentPoint {
+  element: string;
+  tier: AccentTier;
+  interactive: boolean;
+}
+
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = Math.abs(apcaContrast('#ffffff', bg));
   const blackLc = Math.abs(apcaContrast('#000000', bg));
@@ -118,4 +126,42 @@ export const getBrandColors = (
     useDualBrand: mode === 'dual',
     similarity,
   };
+};
+
+export const getAccentDistribution = (
+  accents: AccentPoint[],
+): Map<string, 'primary' | 'secondary'> => {
+  const tierOrder: Record<AccentTier, number> = { XL: 4, L: 3, M: 2, S: 1 };
+  const sorted = [...accents].sort((a, b) => {
+    const tierDiff = tierOrder[b.tier] - tierOrder[a.tier];
+    if (tierDiff !== 0) {return tierDiff;}
+    return (b.interactive ? 1 : 0) - (a.interactive ? 1 : 0);
+  });
+  const result = new Map<string, 'primary' | 'secondary'>();
+  const count = accents.length;
+
+  if (count <= 1) {
+    sorted.forEach((accent) => result.set(accent.element, 'primary'));
+    return result;
+  }
+
+  if (count === 2) {
+    result.set(sorted[0].element, 'primary');
+    result.set(sorted[1].element, 'secondary');
+    return result;
+  }
+
+  if (count === 3) {
+    result.set(sorted[0].element, 'primary');
+    result.set(sorted[1].element, 'primary');
+    result.set(sorted[2].element, 'secondary');
+    return result;
+  }
+
+  const primaryCount = Math.ceil(count * 0.7);
+  sorted.forEach((accent, index) => {
+    result.set(accent.element, index < primaryCount ? 'primary' : 'secondary');
+  });
+
+  return result;
 };
