@@ -235,7 +235,7 @@ export function getFullscreenColors(
 
   return {
     badgeBg: getSecondaryTint(0.3),
-    badgeText: secondaryColor,
+    badgeText: getAPCATextColor(getSecondaryTint(0.3), 12, 500),
     badgeDotPulse: primary,
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 16, 600),
@@ -259,7 +259,7 @@ export function getSplitColors(
 
   return {
     badgeBg: getSecondaryTint(0.4),
-    badgeText: secondaryColor,
+    badgeText: getAPCATextColor(getSecondaryTint(0.4), 12, 600),
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 16, 600),
     navButtonIcon: secondaryColor,
@@ -282,7 +282,7 @@ export function getParallaxColors(
 
   return {
     cardBadgeBg: getSecondaryTint(0.4),
-    cardBadgeText: secondaryColor,
+    cardBadgeText: getAPCATextColor(getSecondaryTint(0.4), 12, 600),
     cardBadgeDot: primary,
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 14, 600),
