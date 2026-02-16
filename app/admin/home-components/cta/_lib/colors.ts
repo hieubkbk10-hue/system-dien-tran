@@ -97,14 +97,45 @@ const getOKLCH = (hex: string) => {
   };
 };
 
+const getAPCAThreshold = (fontSize = 16, fontWeight = 500) => (
+  (fontSize >= 18 || fontWeight >= 700) ? 45 : 60
+);
+
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = getAPCALc('#ffffff', bg);
   const blackLc = getAPCALc('#000000', bg);
-  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
 
   if (whiteLc >= threshold) {return '#ffffff';}
   if (blackLc >= threshold) {return '#0f172a';}
   return whiteLc > blackLc ? '#ffffff' : '#0f172a';
+};
+
+const ensureAPCATextColor = (
+  preferredText: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  if (getAPCALc(preferredText, background) >= threshold) {return preferredText;}
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
+const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fontWeight = 500) => {
+  const whitePrimary = getAPCALc('#ffffff', primary);
+  const whiteSecondary = getAPCALc('#ffffff', secondary);
+  const blackPrimary = getAPCALc('#000000', primary);
+  const blackSecondary = getAPCALc('#000000', secondary);
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  const whiteMin = Math.min(whitePrimary, whiteSecondary);
+  const blackMin = Math.min(blackPrimary, blackSecondary);
+
+  if (whiteMin >= threshold || blackMin >= threshold) {
+    return whiteMin >= blackMin ? '#ffffff' : '#0f172a';
+  }
+
+  return whiteMin > blackMin ? '#ffffff' : '#0f172a';
 };
 
 export const generatePalette = (hex: string): Palette => {
@@ -174,7 +205,7 @@ export const getCTAAccessibilityScore = (pairs: CTAAccessibilityPair[]): CTAAcce
   pairs.forEach((pair) => {
     const fontSize = pair.fontSize ?? 16;
     const fontWeight = pair.fontWeight ?? 500;
-    const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+    const threshold = getAPCAThreshold(fontSize, fontWeight);
     const lc = getAPCALc(pair.text, pair.background);
     minLc = Math.min(minLc, lc);
 
@@ -264,15 +295,20 @@ export const getCTAColors = ({
       ...base,
       sectionBg: primaryPalette.solid,
       sectionBorder: primaryPalette.active,
-      title: primaryPalette.textOnSolid,
-      description: getAPCATextColor(primaryPalette.solid, 16, 500) === '#ffffff' ? '#ffffff' : '#1e293b',
+      title: ensureAPCATextColor(primaryPalette.textOnSolid, primaryPalette.solid, 32, 700),
+      description: ensureAPCATextColor(
+        getAPCATextColor(primaryPalette.solid, 16, 500) === '#ffffff' ? '#ffffff' : '#1e293b',
+        primaryPalette.solid,
+        16,
+        500,
+      ),
       badgeBg: applyAlpha(secondaryPalette.solid, '2A'),
-      badgeText: getAPCATextColor(applyAlpha(secondaryPalette.solid, '2A'), 12, 600),
+      badgeText: ensureAPCATextColor(getAPCATextColor(secondaryPalette.solid, 12, 600), applyAlpha(secondaryPalette.solid, '2A'), 12, 600),
       primaryButtonBg: '#ffffff',
-      primaryButtonText: primaryPalette.textInteractive,
+      primaryButtonText: ensureAPCATextColor(primaryPalette.textInteractive, '#ffffff', 14, 700),
       primaryButtonBorder: applyAlpha(primaryPalette.active, '80'),
       secondaryButtonBg: 'transparent',
-      secondaryButtonText: primaryPalette.textOnSolid,
+      secondaryButtonText: ensureAPCATextColor(primaryPalette.textOnSolid, primaryPalette.solid, 14, 700),
       secondaryButtonBorder: applyAlpha(primaryPalette.textOnSolid === '#ffffff' ? '#ffffff' : '#0f172a', '66'),
       cardBg: undefined,
       cardBorder: undefined,
@@ -317,18 +353,18 @@ export const getCTAColors = ({
 
   if (style === 'gradient') {
     const gradientBg = getGradientBg(primaryPalette.solid, secondaryPalette.solid);
-    const textOnGradient = getAPCATextColor(primaryPalette.solid, 24, 700);
+    const textOnGradient = getTextOnGradient(primaryPalette.solid, secondaryPalette.solid, 24, 700);
 
     return {
       ...base,
       sectionBg: gradientBg,
       sectionBorder: undefined,
       title: textOnGradient,
-      description: textOnGradient === '#ffffff' ? '#f8fafc' : '#1e293b',
+      description: ensureAPCATextColor(textOnGradient === '#ffffff' ? '#f8fafc' : '#1e293b', textOnGradient === '#ffffff' ? primaryPalette.solid : secondaryPalette.solid, 16, 500),
       badgeBg: applyAlpha('#ffffff', '2E'),
-      badgeText: textOnGradient,
+      badgeText: ensureAPCATextColor(textOnGradient, '#ffffff', 12, 600),
       primaryButtonBg: '#ffffff',
-      primaryButtonText: secondaryPalette.textInteractive,
+      primaryButtonText: ensureAPCATextColor(secondaryPalette.textInteractive, '#ffffff', 14, 700),
       primaryButtonBorder: applyAlpha('#ffffff', '80'),
       secondaryButtonBg: 'transparent',
       secondaryButtonText: textOnGradient,

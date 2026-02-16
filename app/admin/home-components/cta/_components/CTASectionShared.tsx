@@ -24,7 +24,7 @@ const getValue = (value?: string) => {
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
 };
 
-const buttonBaseClass = 'inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors duration-200';
+const buttonBaseClass = 'inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-bold transition-colors duration-200';
 
 export function CTASectionShared({ config, style, tokens, context }: CTASectionSharedProps) {
   const HeadingTag = context === 'site' ? 'h2' : 'h3';

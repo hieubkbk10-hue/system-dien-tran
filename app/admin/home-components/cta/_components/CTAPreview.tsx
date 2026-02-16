@@ -71,7 +71,7 @@ export const CTAPreview = ({
   }> = [
     { background: sectionBgForCheck, text: tokens.title, fontSize: 32, fontWeight: 700, label: 'title' },
     { background: sectionBgForCheck, text: tokens.description, fontSize: 16, fontWeight: 500, label: 'description' },
-    { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 600, label: 'primaryButton' },
+    { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 700, label: 'primaryButton' },
   ];
 
   if (hasBadge) {
@@ -79,7 +79,7 @@ export const CTAPreview = ({
   }
 
   if (hasSecondaryButton) {
-    accessibilityPairs.push({ background: secondaryButtonBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 600, label: 'secondaryButton' });
+    accessibilityPairs.push({ background: secondaryButtonBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 700, label: 'secondaryButton' });
   }
 
   const accessibility = getCTAAccessibilityScore(accessibilityPairs);
