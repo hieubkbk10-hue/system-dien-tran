@@ -156,11 +156,15 @@ export const ProductCategoriesPreview = ({
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')}>
         <div className="max-w-7xl mx-auto">
           <h2
-            className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+            className={cn("font-bold mb-2 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
             style={{ color: colors.primary.solid }}
           >
             Danh mục sản phẩm
           </h2>
+          <div
+            className={cn("mx-auto h-1 w-12 rounded-full", isMobile ? 'mb-4' : 'mb-6')}
+            style={{ backgroundColor: colors.sectionAccent }}
+          />
           
           {resolvedCategories.length === 0 ? renderEmptyState() : (
             <div className={containerClass}>
@@ -250,7 +254,7 @@ export const ProductCategoriesPreview = ({
                   >
                     {renderCategoryVisual(cat, 'md')}
                   </div>
-                  <h3 className={cn("font-medium text-center line-clamp-1", isMobile ? 'text-xs' : 'text-sm')}>
+                  <h3 className={cn("font-medium text-center line-clamp-1", isMobile ? 'text-xs' : 'text-sm')} style={{ color: colors.categoryNameText }}>
                     {cat.name}
                   </h3>
                   {config.showProductCount && (
@@ -272,11 +276,15 @@ export const ProductCategoriesPreview = ({
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto">
           <h2
-            className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+            className={cn("font-bold mb-2 text-center", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
             style={{ color: colors.primary.solid }}
           >
             Khám phá theo danh mục
           </h2>
+          <div
+            className={cn("mx-auto h-1 w-12 rounded-full", isMobile ? 'mb-4' : 'mb-6')}
+            style={{ backgroundColor: colors.sectionAccent }}
+          />
           
           {resolvedCategories.length === 0 ? renderEmptyState() : (
             <div className={cn("grid", isMobile ? 'grid-cols-1 gap-3' : (isTablet ? 'grid-cols-2 gap-4' : 'grid-cols-3 gap-4'))}>
@@ -294,11 +302,12 @@ export const ProductCategoriesPreview = ({
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
+                  <div className="w-1.5 self-stretch" style={{ backgroundColor: colors.cardAccentBar }} />
                   <div className={cn("flex-shrink-0", isMobile ? 'w-20 h-20' : 'w-28 h-28')}>
                     {renderCategoryVisual(cat, 'sm')}
                   </div>
                   <div className={cn("flex-1 flex flex-col justify-center", isMobile ? 'p-3' : 'p-4')}>
-                    <h3 className={cn("font-semibold line-clamp-1 mb-1", isMobile ? 'text-sm' : 'text-base')}>{cat.name}</h3>
+                    <h3 className={cn("font-semibold line-clamp-1 mb-1", isMobile ? 'text-sm' : 'text-base')} style={{ color: colors.categoryNameText }}>{cat.name}</h3>
                     {cat.description && (
                       <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                     )}
@@ -361,7 +370,7 @@ export const ProductCategoriesPreview = ({
                   ) : (
                     <Package size={isMobile ? 14 : 16} style={{ color: colors.primary.solid }} />
                   ))}
-                  <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')}>
+                  <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')} style={{ color: colors.categoryNameText }}>
                     {cat.name}
                   </span>
                   {config.showProductCount && (
@@ -380,11 +389,15 @@ export const ProductCategoriesPreview = ({
     <section className={cn("w-full overflow-hidden", isMobile ? 'py-6' : 'py-10')}>
       <div className="max-w-7xl mx-auto">
         <h2
-          className={cn("font-bold mb-6 text-center", isMobile ? 'text-lg px-3' : 'text-xl md:text-2xl')}
+          className={cn("font-bold mb-2 text-center", isMobile ? 'text-lg px-3' : 'text-xl md:text-2xl')}
           style={{ color: colors.primary.solid }}
         >
           Khám phá danh mục
         </h2>
+        <div
+          className={cn("mx-auto h-1 w-12 rounded-full", isMobile ? 'mb-4' : 'mb-6')}
+          style={{ backgroundColor: colors.sectionAccent }}
+        />
         
         {resolvedCategories.length === 0 ? (
           <div className={cn(isMobile ? 'px-3' : 'px-6')}>{renderEmptyState()}</div>
@@ -411,7 +424,7 @@ export const ProductCategoriesPreview = ({
                     {renderCategoryVisual(cat, 'sm')}
                   </div>
                   <div className="min-w-0">
-                    <h3 className={cn("font-semibold whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')}>
+                    <h3 className={cn("font-semibold whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')} style={{ color: colors.categoryNameText }}>
                       {cat.name}
                     </h3>
                     {config.showProductCount && (
@@ -510,11 +523,15 @@ export const ProductCategoriesPreview = ({
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
       <div className="max-w-7xl mx-auto">
         <h2
-          className={cn("font-bold mb-6 text-center px-3", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
+          className={cn("font-bold mb-2 text-center px-3", isMobile ? 'text-lg' : 'text-xl md:text-2xl')}
           style={{ color: colors.primary.solid }}
         >
           Danh mục sản phẩm
         </h2>
+        <div
+          className={cn("mx-auto h-1 w-12 rounded-full", isMobile ? 'mb-4' : 'mb-6')}
+          style={{ backgroundColor: colors.sectionAccent }}
+        />
 
         {resolvedCategories.length === 0 ? (
           <div className={cn(isMobile ? 'px-3' : 'px-6')}>{renderEmptyState()}</div>
@@ -562,7 +579,7 @@ export const ProductCategoriesPreview = ({
                   </div>
 
                   <div className="text-center pt-3">
-                    <h3 className={cn("font-semibold line-clamp-2 mb-1 leading-tight", isMobile ? 'text-sm min-h-[2rem]' : 'text-base min-h-[2.8rem]')}>
+                    <h3 className={cn("font-semibold line-clamp-2 mb-1 leading-tight", isMobile ? 'text-sm min-h-[2rem]' : 'text-base min-h-[2.8rem]')} style={{ color: colors.categoryNameText }}>
                       {cat.name}
                     </h3>
 

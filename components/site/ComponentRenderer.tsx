@@ -5778,7 +5778,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+          <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
           <div className={`grid gap-3 md:gap-4 lg:gap-6 ${getMobileGridCols()} ${getGridCols()}`}>
             {gridItems.map((cat) => (
               <a 
@@ -5915,7 +5916,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   >
                     {renderCategoryVisual(cat, 40)}
                   </div>
-                  <h3 className="font-medium text-center text-sm line-clamp-1">{cat.name}</h3>
+                  <h3 className="font-medium text-center text-sm line-clamp-1" style={{ color: colors.categoryNameText }}>{cat.name}</h3>
                   {showProductCount && (
                     <p className="text-xs text-center" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}
@@ -5938,7 +5939,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16" style={{ backgroundColor: colors.sectionBg }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+          <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {resolvedCategories.map((cat) => (
               <a 
@@ -5955,11 +5957,12 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
+                <div className="w-1.5 self-stretch" style={{ backgroundColor: colors.cardAccentBar }} />
                 <div className="w-24 h-24 md:w-28 md:h-28 flex-shrink-0">
                   {renderCategoryVisual(cat, 32)}
                 </div>
                 <div className="flex-1 p-3 md:p-4 flex flex-col justify-center">
-                  <h3 className="font-semibold text-sm md:text-base line-clamp-1 mb-1">{cat.name}</h3>
+                  <h3 className="font-semibold text-sm md:text-base line-clamp-1 mb-1" style={{ color: colors.categoryNameText }}>{cat.name}</h3>
                   {cat.description && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2 min-h-[2rem]">{cat.description}</p>
                   )}
@@ -6012,7 +6015,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   ) : (
                     <Package size={16} style={{ color: colors.primary.solid }} />
                   ))}
-                  <span className="font-medium text-xs md:text-sm whitespace-nowrap">{cat.name}</span>
+                  <span className="font-medium text-xs md:text-sm whitespace-nowrap" style={{ color: colors.categoryNameText }}>{cat.name}</span>
                   {showProductCount && (
                     <span className="text-xs" style={{ color: colors.productCountText }}>({cat.productCount})</span>
                   )}
@@ -6030,7 +6033,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
     return (
       <section className="py-10 md:py-16">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center px-4 md:px-6" style={{ color: colors.primary.solid }}>{title}</h2>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 text-center px-4 md:px-6" style={{ color: colors.primary.solid }}>{title}</h2>
+          <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
           <div
             ref={circularScrollRef}
             className="flex overflow-x-auto scrollbar-hide pb-4 gap-4 md:gap-6 snap-x snap-mandatory px-4 md:px-6"
@@ -6065,7 +6069,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                     {renderCategoryVisual(cat, 40)}
                   </div>
                 </div>
-                <h3 className="font-semibold text-center text-sm line-clamp-1 w-full">{cat.name}</h3>
+                <h3 className="font-semibold text-center text-sm line-clamp-1 w-full" style={{ color: colors.categoryNameText }}>{cat.name}</h3>
                 <div className="relative h-[24px] overflow-hidden w-full">
                   <span
                     className="block w-full absolute top-0 left-0 text-center transition-transform duration-300 group-hover:translate-y-full group-hover:opacity-0 text-xs"
@@ -6118,7 +6122,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
   return (
     <section className="py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
+        <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
         <div className="relative overflow-hidden rounded-xl">
           {/* Gradient masks */}
           <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none" />
@@ -6142,7 +6147,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, title }: { co
                   {renderCategoryVisual(cat, 24)}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-sm whitespace-nowrap">{cat.name}</h3>
+                  <h3 className="font-semibold text-sm whitespace-nowrap" style={{ color: colors.categoryNameText }}>{cat.name}</h3>
                   {showProductCount && (
                     <p className="text-xs whitespace-nowrap" style={{ color: colors.productCountText }}>{cat.productCount} sản phẩm</p>
                   )}

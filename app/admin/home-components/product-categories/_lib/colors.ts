@@ -29,10 +29,13 @@ export interface ProductCategoriesColors {
   cardBorder: string;
   cardBorderHover: string;
   sectionBg: string;
+  sectionAccent: string;
   linkText: string;
   productCountText: string;
   iconContainerBg: string;
   overlayText: string;
+  categoryNameText: string;
+  cardAccentBar: string;
   pillBg: string;
   pillBorder: string;
   ctaMoreBg: string;
@@ -98,24 +101,27 @@ export const getProductCategoriesColors = (primary: string, secondary: string): 
     primary: primaryPalette,
     secondary: secondaryPalette,
     neutral,
-    cardShadow: `0 2px 8px ${toOklchString(secondaryPalette.solid, 0.12)}`,
-    cardShadowHover: `0 8px 24px ${toOklchString(secondaryPalette.solid, 0.2)}`,
+    cardShadow: `0 2px 8px ${toOklchString(secondaryPalette.solid, 0.15)}`,
+    cardShadowHover: `0 8px 24px ${toOklchString(secondaryPalette.solid, 0.25)}`,
     cardBorder: secondaryPalette.border,
-    cardBorderHover: secondaryPalette.solid,
+    cardBorderHover: primaryPalette.solid,
     sectionBg: neutral.background,
+    sectionAccent: primaryPalette.solid,
     linkText: secondaryPalette.textInteractive,
     productCountText: secondaryPalette.textInteractive,
-    iconContainerBg: toOklchString(primaryPalette.solid, 0.12),
+    iconContainerBg: toOklchString(primaryPalette.solid, 0.15),
     overlayText: getAPCATextColor('#0f172a', 16, 600),
-    pillBg: toOklchString(secondaryPalette.solid, 0.08),
-    pillBorder: toOklchString(secondaryPalette.solid, 0.2),
+    categoryNameText: primaryPalette.textInteractive,
+    cardAccentBar: primaryPalette.solid,
+    pillBg: toOklchString(primaryPalette.solid, 0.08),
+    pillBorder: toOklchString(primaryPalette.solid, 0.2),
     ctaMoreBg: primaryPalette.surface,
     ctaMoreBorder: primaryPalette.border,
     ctaMoreText: primaryPalette.solid,
-    circularBg: toOklchString(secondaryPalette.solid, 0.05),
-    circularBorder: toOklchString(secondaryPalette.solid, 0.15),
+    circularBg: toOklchString(primaryPalette.solid, 0.06),
+    circularBorder: toOklchString(primaryPalette.solid, 0.2),
     paginationDotActive: secondaryPalette.solid,
-    paginationDotInactive: secondaryPalette.border,
+    paginationDotInactive: toOklchString(secondaryPalette.solid, 0.4),
     arrowIcon: primaryPalette.solid,
     emptyState: {
       background: neutral.background,
