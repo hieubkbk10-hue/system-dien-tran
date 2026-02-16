@@ -25,6 +25,7 @@ export interface SliderColorScheme {
   navButtonBgHover: string;
   navButtonIconColor: string;
   navButtonBorderColor: string;
+  navButtonOuterRing: string;
   dotActive: string;
   dotInactive: string;
   placeholderBg: string;
@@ -70,6 +71,7 @@ export interface SplitColorScheme {
   primaryCTAText: string;
   navButtonIcon: string;
   navButtonBg: string;
+  navButtonOuterRing: string;
   progressDotActive: string;
   progressDotInactive: string;
   similarity: number;
@@ -83,6 +85,7 @@ export interface ParallaxColorScheme {
   primaryCTAText: string;
   navButtonBg: string;
   navButtonIcon: string;
+  navButtonOuterRing: string;
   placeholderBg: string;
   placeholderIcon: string;
   similarity: number;
@@ -156,6 +159,25 @@ const getSimilarity = (primary: string, secondary: string) => (
   1 - Math.min(differenceEuclidean('oklch')(primary, secondary), 1)
 );
 
+const getNavIndicatorColors = (baseColor: string) => {
+  const color = oklch(baseColor);
+  const isLight = color.l >= 0.65;
+
+  if (isLight) {
+    return {
+      bg: '#0f172a',
+      icon: '#ffffff',
+      ring: '#ffffff',
+    };
+  }
+
+  return {
+    bg: '#ffffff',
+    icon: baseColor,
+    ring: '#0f172a',
+  };
+};
+
 export function getSliderColors(
   primary: string,
   secondary: string,
@@ -167,13 +189,17 @@ export function getSliderColors(
   const primaryPalette = generatePalette(primary);
   const secondaryPalette = generatePalette(secondaryColor);
   const similarity = getSimilarity(primary, secondaryColor);
+  const navBase = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
+  const navIndicator = getNavIndicatorColors(navBase);
+  const dotActive = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
 
   return {
-    navButtonBg: '#ffffff',
-    navButtonBgHover: '#ffffff',
-    navButtonIconColor: secondaryPalette.solid,
-    navButtonBorderColor: secondaryPalette.surface,
-    dotActive: primaryPalette.solid,
+    navButtonBg: navIndicator.bg,
+    navButtonBgHover: navIndicator.bg,
+    navButtonIconColor: navIndicator.icon,
+    navButtonBorderColor: 'transparent',
+    navButtonOuterRing: navIndicator.ring,
+    dotActive,
     dotInactive: 'rgba(255, 255, 255, 0.5)',
     placeholderBg: '#f1f5f9',
     placeholderIconColor: primaryPalette.solid,
@@ -189,10 +215,9 @@ export function getFadeColors(
 ): FadeColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
   const primaryPalette = generatePalette(primary);
-  const secondaryPalette = generatePalette(secondaryColor);
 
   return {
-    thumbnailBorderActive: mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid,
+    thumbnailBorderActive: primaryPalette.solid,
     thumbnailBorderInactive: 'transparent',
     placeholderBg: '#f1f5f9',
     placeholderIconColor: primaryPalette.solid,
@@ -230,8 +255,10 @@ export function getFullscreenColors(
   harmony: HeroHarmony = 'analogous',
 ): FullscreenColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+  const dotActive = mode === 'dual' ? secondaryPalette.solid : primary;
 
   return {
     badgeBg: getSecondaryTint(0.3),
@@ -239,7 +266,7 @@ export function getFullscreenColors(
     badgeDotPulse: primary,
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 16, 600),
-    dotActive: primary,
+    dotActive,
     dotInactive: 'rgba(255, 255, 255, 0.5)',
     placeholderBg: '#f1f5f9',
     placeholderIcon: primary,
@@ -254,17 +281,23 @@ export function getSplitColors(
   harmony: HeroHarmony = 'analogous',
 ): SplitColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryPalette = generatePalette(primary);
+  const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+  const navBase = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
+  const navIndicator = getNavIndicatorColors(navBase);
+  const progressDotActive = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
 
   return {
     badgeBg: getSecondaryTint(0.4),
     badgeText: getAPCATextColor(getSecondaryTint(0.4), 12, 600),
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 16, 600),
-    navButtonIcon: secondaryColor,
-    navButtonBg: 'rgba(255, 255, 255, 0.9)',
-    progressDotActive: primary,
+    navButtonIcon: navIndicator.icon,
+    navButtonBg: navIndicator.bg,
+    navButtonOuterRing: navIndicator.ring,
+    progressDotActive,
     progressDotInactive: '#cbd5e1',
     similarity: getSimilarity(primary, secondaryColor),
   };
@@ -277,8 +310,12 @@ export function getParallaxColors(
   harmony: HeroHarmony = 'analogous',
 ): ParallaxColorScheme {
   const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const primaryPalette = generatePalette(primary);
+  const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
+  const navBase = mode === 'dual' ? secondaryPalette.solid : primaryPalette.solid;
+  const navIndicator = getNavIndicatorColors(navBase);
 
   return {
     cardBadgeBg: getSecondaryTint(0.4),
@@ -286,8 +323,9 @@ export function getParallaxColors(
     cardBadgeDot: primary,
     primaryCTA: primary,
     primaryCTAText: getAPCATextColor(primary, 14, 600),
-    navButtonBg: 'rgba(255, 255, 255, 0.2)',
-    navButtonIcon: '#ffffff',
+    navButtonBg: navIndicator.bg,
+    navButtonIcon: navIndicator.icon,
+    navButtonOuterRing: navIndicator.ring,
     placeholderBg: '#f1f5f9',
     placeholderIcon: primary,
     similarity: getSimilarity(primary, secondaryColor),

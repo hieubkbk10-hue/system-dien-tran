@@ -126,6 +126,7 @@ export const HeroPreview = ({
                   style={{
                     backgroundColor: sliderColors.navButtonBg,
                     borderColor: sliderColors.navButtonBorderColor,
+                    boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}`,
                   }}
                 >
                   <ChevronLeft size={14} style={{ color: sliderColors.navButtonIconColor }} />
@@ -137,6 +138,7 @@ export const HeroPreview = ({
                   style={{
                     backgroundColor: sliderColors.navButtonBgHover,
                     borderColor: sliderColors.navButtonBorderColor,
+                    boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}`,
                   }}
                 >
                   <ChevronRight size={14} style={{ color: sliderColors.navButtonIconColor }} />
@@ -198,12 +200,7 @@ export const HeroPreview = ({
 
   const renderBentoStyle = () => {
     const bentoSlides = slides.slice(0, 4);
-    const mobileBentoTints = [
-      bentoColors.gridTint1,
-      bentoColors.gridTint2,
-      bentoColors.gridTint3,
-      bentoColors.gridTint4,
-    ];
+    const placeholderTints = ['#f1f5f9', '#e2e8f0', '#f1f5f9', '#e2e8f0'];
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden p-2">
         <div className={cn(
@@ -221,7 +218,9 @@ export const HeroPreview = ({
                       <PreviewImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" />
                     </div>
                   ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: mobileBentoTints[idx] ?? bentoColors.gridTint2 }}><ImageIcon size={20} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: placeholderTints[idx] ?? '#f1f5f9' }}>
+                    <ImageIcon size={20} style={{ color: bentoColors.placeholderIcon }} />
+                  </div>
                   )}
                 </div>
               ))}
@@ -236,7 +235,7 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[0].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: bentoColors.gridTint1 }}>
+                  <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: placeholderTints[0] }}>
                     <ImageIcon size={28} style={{ color: bentoColors.placeholderIcon }} /><span className="text-xs text-slate-400 mt-1">Banner chính</span>
                   </div>
                 )}
@@ -249,7 +248,9 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[1].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint2 }}><ImageIcon size={20} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: placeholderTints[1] }}>
+                    <ImageIcon size={20} style={{ color: bentoColors.placeholderIcon }} />
+                  </div>
                 )}
               </div>
               <div className="relative rounded-xl overflow-hidden">
@@ -260,7 +261,9 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[2].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint3 }}><ImageIcon size={16} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: placeholderTints[2] }}>
+                    <ImageIcon size={16} style={{ color: bentoColors.placeholderIcon }} />
+                  </div>
                 )}
               </div>
               <div className="relative rounded-xl overflow-hidden">
@@ -271,7 +274,9 @@ export const HeroPreview = ({
                     <PreviewImage src={bentoSlides[3].image} alt="" className="relative w-full h-full object-contain z-10" />
                   </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bentoColors.gridTint4 }}><ImageIcon size={16} className="text-white/50" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: placeholderTints[3] }}>
+                    <ImageIcon size={16} style={{ color: bentoColors.placeholderIcon }} />
+                  </div>
                 )}
               </div>
             </div>
@@ -417,10 +422,10 @@ export const HeroPreview = ({
                 ))}
                 {slides.length > 1 && (
                   <>
-                    <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg }}>
+                    <button type="button" onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg, boxShadow: `0 0 0 2px ${splitColors.navButtonOuterRing}` }}>
                       <ChevronLeft size={16} style={{ color: splitColors.navButtonIcon }} />
                     </button>
-                    <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg }}>
+                    <button type="button" onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10" style={{ backgroundColor: splitColors.navButtonBg, boxShadow: `0 0 0 2px ${splitColors.navButtonOuterRing}` }}>
                       <ChevronRight size={16} style={{ color: splitColors.navButtonIcon }} />
                     </button>
                   </>
@@ -494,11 +499,11 @@ export const HeroPreview = ({
               </div>
               {slides.length > 1 && (
                 <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-                  <button type="button" onClick={prevSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg }}>
+                  <button type="button" onClick={prevSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg, boxShadow: `0 0 0 2px ${parallaxColors.navButtonOuterRing}` }}>
                     <ChevronLeft size={16} style={{ color: parallaxColors.navButtonIcon }} />
                   </button>
                   <span className="text-white/80 text-xs font-medium px-2">{currentSlide + 1} / {slides.length}</span>
-                  <button type="button" onClick={nextSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg }}>
+                  <button type="button" onClick={nextSlide} className="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors" style={{ backgroundColor: parallaxColors.navButtonBg, boxShadow: `0 0 0 2px ${parallaxColors.navButtonOuterRing}` }}>
                     <ChevronRight size={16} style={{ color: parallaxColors.navButtonIcon }} />
                   </button>
                 </div>

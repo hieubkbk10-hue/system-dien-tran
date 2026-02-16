@@ -123,7 +123,7 @@ export function getBrandColors(config: BrandColorsConfig): BrandColorsResult {
       return getShade(color, percent);
     },
     getPlaceholder: () => ({
-      background: getTint(primary, useDualBrand ? 0.4 : 0.3),
+      background: '#f1f5f9',
       icon: primary,
       text: getShade(primary, 35),
     }),
