@@ -37,7 +37,7 @@ export const StatsPreview = ({
   const renderHorizontalStyle = () => {
     const colors = getHorizontalColors(brandColor, secondary);
     return (
-    <section className="w-full rounded-lg shadow-md overflow-hidden border" style={{ backgroundColor: 'white', borderColor: colors.border, boxShadow: `0 4px 6px -1px ${colors.shadow}` }}>
+    <section className="w-full rounded-lg shadow-sm overflow-hidden border" style={{ backgroundColor: 'white', borderColor: colors.border }}>
       <div className={cn(
         "flex items-center justify-between",
         device === 'mobile' ? 'flex-col divide-y' : 'flex-row divide-x',
@@ -47,7 +47,7 @@ export const StatsPreview = ({
           <div
             key={idx}
             className={cn(
-              "flex-1 w-full flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors duration-200 cursor-default",
+              "flex-1 w-full flex flex-col items-center justify-center text-center cursor-default",
               device === 'mobile' ? 'py-5 px-4' : 'py-6 px-4'
             )}
           >
@@ -75,12 +75,12 @@ export const StatsPreview = ({
         {items.slice(0, 4).map((item, idx) => (
           <div
             key={idx}
-            className="group bg-white dark:bg-slate-800 border rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
+            className="bg-white dark:bg-slate-800 border rounded-xl p-5 flex flex-col items-center text-center shadow-sm"
             style={{ borderColor: colors.border }}
           >
             <span
               className={cn(
-                "font-bold mb-1 tracking-tight tabular-nums group-hover:scale-105 transition-transform duration-200",
+                "font-bold mb-1 tracking-tight tabular-nums",
                 device === 'mobile' ? 'text-2xl' : 'text-3xl'
               )}
               style={{ color: brandColor }}
@@ -90,7 +90,7 @@ export const StatsPreview = ({
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {item.label || 'Label'}
             </h3>
-            <div className="w-8 h-0.5 rounded-full mt-3 group-hover:opacity-70 transition-opacity duration-200" style={{ backgroundColor: colors.accent }} />
+            <div className="w-8 h-0.5 rounded-full mt-3" style={{ backgroundColor: colors.accent }} />
           </div>
         ))}
       </div>
@@ -104,15 +104,14 @@ export const StatsPreview = ({
     <section className={cn("w-full", device === 'mobile' ? 'py-4 px-3' : 'py-6 px-4')}>
       <div className={cn("grid gap-6", device === 'mobile' ? 'grid-cols-2 gap-4' : 'grid-cols-4 md:gap-8')}>
         {items.slice(0, 4).map((item, idx) => (
-          <div key={idx} className="flex flex-col items-center group">
+          <div key={idx} className="flex flex-col items-center">
             <div
               className={cn(
-                "relative rounded-full flex items-center justify-center mb-3 group-hover:scale-105 transition-all duration-300 ease-out border-[3px] border-white ring-1 ring-slate-100 dark:ring-slate-700",
+                "relative rounded-full flex items-center justify-center mb-3 border border-slate-200 shadow-sm",
                 device === 'mobile' ? 'w-20 h-20' : 'w-24 h-24 md:w-28 md:h-28'
               )}
               style={{
-                backgroundColor: colors.circleBg,
-                boxShadow: `0 10px 15px -3px ${colors.shadowStrong}, 0 4px 6px -4px ${colors.shadowSoft}`
+                backgroundColor: colors.circleBg
               }}
             >
               <span
@@ -127,7 +126,7 @@ export const StatsPreview = ({
             </div>
             <h3
               className={cn(
-                "font-semibold text-slate-800 dark:text-slate-200 group-hover:transition-colors",
+                "font-semibold text-slate-800 dark:text-slate-200",
                 device === 'mobile' ? 'text-sm' : 'text-base'
               )}
               style={{ color: colors.label }}
@@ -153,7 +152,7 @@ export const StatsPreview = ({
         }}
       >
         <div className={cn(
-          "grid backdrop-blur-sm",
+          "grid",
           device === 'mobile' ? 'grid-cols-2' : 'grid-cols-4'
         )}>
           {items.slice(0, 4).map((item, idx) => (
@@ -165,12 +164,9 @@ export const StatsPreview = ({
                 idx !== items.slice(0, 4).length - 1 && (device === 'mobile' ? '' : 'border-r border-white/10')
               )}
             >
-              <div
-                className="absolute top-2 right-2 w-16 h-16 rounded-full bg-white/5 blur-xl"
-              />
               <span
                 className={cn(
-                  "font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg",
+                  "font-extrabold tracking-tight tabular-nums leading-none mb-2",
                   device === 'mobile' ? 'text-3xl' : 'text-4xl md:text-5xl'
                 )}
                 style={{ color: colors.text }}
@@ -244,7 +240,7 @@ export const StatsPreview = ({
         {items.slice(0, 4).map((item, idx) => (
           <div
             key={idx}
-            className="relative bg-white dark:bg-slate-800 rounded-2xl border overflow-hidden group"
+            className="relative bg-white dark:bg-slate-800 rounded-2xl border overflow-hidden shadow-sm"
             style={{ borderColor: colors.border }}
           >
             <div className="h-1 w-full bg-slate-100 dark:bg-slate-700">
@@ -263,7 +259,7 @@ export const StatsPreview = ({
             )}>
               <span
                 className={cn(
-                  "font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300",
+                  "font-black tracking-tighter tabular-nums leading-none",
                   device === 'mobile' ? 'text-4xl' : 'text-5xl md:text-6xl'
                 )}
                 style={{ color: colors.value }}
@@ -276,13 +272,6 @@ export const StatsPreview = ({
               )}>
                 {item.label || 'Label'}
               </h3>
-            </div>
-
-            <div
-              className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-              style={{ color: colors.watermark }}
-            >
-              {idx + 1}
             </div>
           </div>
         ))}

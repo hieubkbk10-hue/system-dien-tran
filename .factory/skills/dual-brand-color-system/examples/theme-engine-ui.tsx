@@ -3,7 +3,6 @@ import React from 'react';
 type Palette = {
   solid: string;
   surface: string;
-  hover: string;
   textOnSolid: string;
   textInteractive: string;
 };
@@ -101,9 +100,6 @@ const PaletteStrip = ({ palette }: { palette: Palette }) => (
     </div>
     <div className="flex-1 text-[10px] flex items-center justify-center" style={{ backgroundColor: palette.solid, color: palette.textOnSolid }}>
       Solid
-    </div>
-    <div className="flex-1 text-[10px] flex items-center justify-center" style={{ backgroundColor: palette.hover, color: palette.textOnSolid }}>
-      Hover
     </div>
   </div>
 );

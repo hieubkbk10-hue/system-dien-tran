@@ -4,7 +4,6 @@ import { differenceEuclidean, formatHex, oklch } from 'culori';
 export interface BrandPalette {
   solid: string;
   surface: string;
-  hover: string;
   active: string;
   border: string;
   disabled: string;
@@ -47,7 +46,6 @@ export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) =>
 export const generatePalette = (hex: string): BrandPalette => {
   const color = oklch(hex);
   const surface = formatHex(oklch({ ...color, l: Math.min(color.l + 0.4, 0.98) }));
-  const hover = formatHex(oklch({ ...color, l: Math.max(color.l - 0.1, 0.1) }));
   const active = formatHex(oklch({ ...color, l: Math.max(color.l - 0.15, 0.08) }));
   const border = formatHex(oklch({ ...color, l: Math.min(color.l + 0.3, 0.92) }));
   const disabled = formatHex(oklch({ ...color, l: Math.min(color.l + 0.25, 0.9), c: color.c * 0.5 }));
@@ -55,7 +53,6 @@ export const generatePalette = (hex: string): BrandPalette => {
   return {
     solid: hex,
     surface,
-    hover,
     active,
     border,
     disabled,

@@ -94,6 +94,48 @@ version: 9.0.0
 
 ---
 
+## Anti AI-Styling Design Rules (STRICT)
+
+### Tech Stack bắt buộc
+- Shadcn/ui components + Tailwind CSS + Lucide React icons
+- CSS Variables cho brand colors
+
+### Mobile-First
+- Design mobile first, scale up desktop
+- Touch targets >= 44px
+- `max-md:` cho mobile-specific overrides
+
+### CẤM (AI Styling)
+- NO gradient backgrounds loang màu (trừ gradient style có chủ đích)
+- NO hover effects phức tạp (mobile không có hover)
+- NO blur/backdrop-blur decorative
+- NO drop-shadow-lg, shadow phức tạp nhiều lớp
+- NO animate-pulse/scale decorative
+- NO opacity layers chồng chéo
+- NO rainbow/flashy accent colors
+- NO group-hover:scale-105 trên text/numbers
+
+### PHẢI (Enterprise UI)
+- Flat design + subtle depth: `shadow-sm`, `border` nhẹ
+- Whitespace > decoration (spacing 4/8/12/16/24/32px)
+- 1 font family, 3-4 weights max
+- Border-radius nhất quán: `rounded-lg` hoặc `rounded-xl`
+- Contrast: Text >= 4.5:1, UI >= 3:1 (APCA)
+- Skeleton loading thay spinner
+- Transitions chỉ 150-300ms, chỉ cho state changes thật sự
+
+### Scrollbar
+- Width: 6px, track: transparent
+- Thumb: muted 30% opacity, radius 3px
+
+### Accessibility
+- `aria-label` on icon-only buttons
+- `focus-visible:ring-2` states
+- Keyboard navigation
+- Heading hierarchy (h1->h2->h3)
+
+---
+
 ## Content-Aware Color Distribution
 
 ### Nguyên tắc: Đo màu ở trạng thái DATA ĐẦY ĐỦ

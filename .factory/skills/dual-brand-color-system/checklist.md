@@ -29,6 +29,17 @@
 
 ---
 
+## E. Anti AI-Styling
+
+- [ ] Không gradient decorative (chỉ gradient style mới dùng)
+- [ ] Không hover effects phức tạp (mobile-first)
+- [ ] Không blur/shadow nhiều lớp
+- [ ] Không animate decorative (pulse, scale)
+- [ ] Flat design + border + whitespace
+- [ ] Touch targets >= 44px
+
+---
+
 # Accent Analysis Template
 
 | # | Element | Tier | Area Est. | Interactive? | Assigned Color | Reason |

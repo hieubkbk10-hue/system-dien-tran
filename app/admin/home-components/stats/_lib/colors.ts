@@ -38,7 +38,6 @@ const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fo
 
 export const getHorizontalColors = (_primary: string, secondary: string) => ({
   border: getTint(secondary, 0.35),
-  shadow: getTint(secondary, 0.3),
 });
 
 export const getCardsColors = (_primary: string, secondary: string) => ({
@@ -50,8 +49,6 @@ export const getIconsColors = (primary: string, secondary: string) => ({
   circleBg: primary,
   textOnCircle: getAPCATextColor(primary, 20, 700),
   label: secondary,
-  shadowStrong: getTint(secondary, 0.25),
-  shadowSoft: getTint(secondary, 0.35),
 });
 
 export const getGradientColors = (primary: string, secondary: string) => ({
@@ -70,5 +67,4 @@ export const getCounterColors = (primary: string, secondary: string) => ({
   border: getTint(secondary, 0.35),
   progress: secondary,
   value: primary,
-  watermark: secondary,
 });

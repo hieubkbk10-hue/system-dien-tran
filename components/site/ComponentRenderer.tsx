@@ -600,14 +600,14 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div 
-            className="w-full rounded-lg shadow-md overflow-hidden border"
-            style={{ backgroundColor: 'white', borderColor: colors.border, boxShadow: `0 4px 6px -1px ${colors.shadow}` }}
+            className="w-full rounded-lg shadow-sm overflow-hidden border"
+            style={{ backgroundColor: 'white', borderColor: colors.border }}
           >
             <div className="flex flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x divide-slate-200">
               {items.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className="flex-1 w-full py-6 px-4 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors duration-200 cursor-default"
+                  className="flex-1 w-full py-6 px-4 flex flex-col items-center justify-center text-center cursor-default"
                 >
                   <span className="text-3xl md:text-4xl font-bold tracking-tight tabular-nums leading-none mb-1" style={{ color: brandColor }}>
                     {item.value}
@@ -634,11 +634,11 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
             {items.map((item, idx) => (
               <div 
                 key={idx}
-                className="group bg-white border rounded-xl p-5 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-opacity-50 transition-all duration-200"
+                className="bg-white border rounded-xl p-5 flex flex-col items-center text-center shadow-sm"
                 style={{ borderColor: colors.border }}
               >
                 <span 
-                  className="text-3xl font-bold mb-1 tracking-tight tabular-nums group-hover:scale-105 transition-transform duration-200"
+                  className="text-3xl font-bold mb-1 tracking-tight tabular-nums"
                   style={{ color: brandColor }}
                 >
                   {item.value}
@@ -648,7 +648,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 </h3>
                 {/* Minimal accent line */}
                 <div 
-                  className="w-8 h-0.5 rounded-full mt-3 group-hover:opacity-70 transition-opacity duration-200"
+                  className="w-8 h-0.5 rounded-full mt-3"
                   style={{ backgroundColor: colors.accent }}
                 />
               </div>
@@ -667,20 +667,19 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {items.map((item, idx) => (
-              <div key={idx} className="flex flex-col items-center group">
+              <div key={idx} className="flex flex-col items-center">
                 {/* Circle Container with shadow and border */}
                 <div 
-                  className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 group-hover:scale-105 transition-all duration-300 ease-out border-[3px] border-white ring-1 ring-slate-100"
+                  className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 border border-slate-200 shadow-sm"
                   style={{ 
-                    backgroundColor: colors.circleBg,
-                    boxShadow: `0 10px 15px -3px ${colors.shadowStrong}, 0 4px 6px -4px ${colors.shadowSoft}`
+                    backgroundColor: colors.circleBg
                   }}
                 >
                   <span className="text-2xl md:text-3xl font-bold tracking-tight z-10 tabular-nums" style={{ color: colors.textOnCircle }}>
                     {item.value}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-slate-800 group-hover:text-opacity-80 transition-colors" style={{ color: colors.label }}>
+                <h3 className="text-base font-semibold text-slate-800" style={{ color: colors.label }}>
                   {item.label}
                 </h3>
               </div>
@@ -704,7 +703,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               borderColor: colors.border
             }}
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 backdrop-blur-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4">
               {items.map((item, idx) => (
                 <div 
                   key={idx}
@@ -712,9 +711,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                     idx !== items.length - 1 ? 'md:border-r md:border-white/10' : ''
                   }`}
                 >
-                  {/* Decorative circle */}
-                  <div className="absolute top-2 right-2 w-16 h-16 rounded-full bg-white/5 blur-xl" />
-                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2 relative z-10 drop-shadow-lg" style={{ color: colors.text }}>
+                  <span className="text-4xl md:text-5xl font-extrabold tracking-tight tabular-nums leading-none mb-2" style={{ color: colors.text }}>
                     {item.value}
                   </span>
                   <h3 className="text-sm font-medium opacity-90 relative z-10" style={{ color: colors.label }}>
@@ -766,7 +763,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
           {items.map((item, idx) => (
             <div 
               key={idx}
-              className="relative bg-white rounded-2xl border overflow-hidden group"
+              className="relative bg-white rounded-2xl border overflow-hidden shadow-sm"
               style={{ borderColor: colors.border }}
             >
               {/* Top progress bar */}
@@ -782,7 +779,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
               
               <div className="flex flex-col items-center justify-center text-center p-6">
                 <span 
-                  className="text-5xl md:text-6xl font-black tracking-tighter tabular-nums leading-none group-hover:scale-110 transition-transform duration-300"
+                  className="text-5xl md:text-6xl font-black tracking-tighter tabular-nums leading-none"
                 style={{ color: colors.value }}
                 >
                   {item.value}
@@ -790,14 +787,6 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
                 <h3 className="text-sm font-semibold text-slate-600 mt-2">
                   {item.label}
                 </h3>
-              </div>
-              
-              {/* Decorative watermark */}
-              <div 
-                className="absolute -bottom-4 -right-4 text-[5rem] font-black opacity-[0.03] select-none pointer-events-none leading-none"
-              style={{ color: colors.watermark }}
-              >
-                {idx + 1}
               </div>
             </div>
           ))}
