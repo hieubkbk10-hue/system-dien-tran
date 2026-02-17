@@ -1,222 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, GripVertical, LayoutGrid, Plus, Share2, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { toast } from 'sonner';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { FooterPreview, type FooterStyle } from '../../_shared/legacy/previews';
-import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
-
-interface FooterLink { label: string; url: string }
-interface FooterColumn { id: number; title: string; links: FooterLink[] }
-interface SocialLink { id: number; platform: string; url: string; icon: string }
-
-const SOCIAL_PLATFORMS = [
-  { icon: 'facebook', key: 'facebook', label: 'Facebook' },
-  { icon: 'instagram', key: 'instagram', label: 'Instagram' },
-  { icon: 'youtube', key: 'youtube', label: 'Youtube' },
-  { icon: 'tiktok', key: 'tiktok', label: 'TikTok' },
-  { icon: 'zalo', key: 'zalo', label: 'Zalo' },
-];
+import { FooterPreview } from '../../footer/_components/FooterPreview';
+import { FooterForm } from '../../footer/_components/FooterForm';
+import { normalizeFooterConfig } from '../../footer/_lib/constants';
+import type { FooterConfig } from '../../footer/_types';
 
 export default function FooterCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', 'Footer');
   const { primary, secondary } = useBrandColors();
-  
-  // Load settings from Convex
-  const siteLogo = useQuery(api.settings.getByKey, { key: 'site_logo' });
-  const socialFacebook = useQuery(api.settings.getByKey, { key: 'social_facebook' });
-  const socialInstagram = useQuery(api.settings.getByKey, { key: 'social_instagram' });
-  const socialYoutube = useQuery(api.settings.getByKey, { key: 'social_youtube' });
-  const socialTiktok = useQuery(api.settings.getByKey, { key: 'social_tiktok' });
-  const socialZalo = useQuery(api.settings.getByKey, { key: 'social_zalo' });
-  
-  const [footerConfig, setFooterConfig] = useState({
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+
+  const [footerConfig, setFooterConfig] = useState<FooterConfig>(() => normalizeFooterConfig({
     columns: [
       { id: 1, links: [{ label: 'Giới thiệu', url: '/about' }, { label: 'Tuyển dụng', url: '/careers' }], title: 'Về chúng tôi' },
-      { id: 2, links: [{ label: 'FAQ', url: '/faq' }, { label: 'Liên hệ', url: '/contact' }], title: 'Hỗ trợ' }
-    ] as FooterColumn[],
+      { id: 2, links: [{ label: 'FAQ', url: '/faq' }, { label: 'Liên hệ', url: '/contact' }], title: 'Hỗ trợ' },
+    ],
     copyright: '© 2024 VietAdmin. All rights reserved.',
     description: 'Công ty TNHH ABC - Đối tác tin cậy của bạn',
     logo: '',
     showSocialLinks: true,
-    socialLinks: [] as SocialLink[]
-  });
-  const [style, setStyle] = useState<FooterStyle>('classic');
+    socialLinks: [],
+    style: 'classic',
+  }));
 
-  // Drag & Drop states for columns
-  const [draggedColumnId, setDraggedColumnId] = useState<number | null>(null);
-  const [dragOverColumnId, setDragOverColumnId] = useState<number | null>(null);
-
-  // Drag & Drop states for social links
-  const [draggedSocialId, setDraggedSocialId] = useState<number | null>(null);
-  const [dragOverSocialId, setDragOverSocialId] = useState<number | null>(null);
-
-  // Load from Settings
-  const loadFromSettings = () => {
-    const newSocialLinks: SocialLink[] = [];
-    let idCounter = 1;
-    
-    if (socialFacebook?.value) {
-      newSocialLinks.push({ icon: 'facebook', id: idCounter++, platform: 'facebook', url: socialFacebook.value as string });
-    }
-    if (socialInstagram?.value) {
-      newSocialLinks.push({ icon: 'instagram', id: idCounter++, platform: 'instagram', url: socialInstagram.value as string });
-    }
-    if (socialYoutube?.value) {
-      newSocialLinks.push({ icon: 'youtube', id: idCounter++, platform: 'youtube', url: socialYoutube.value as string });
-    }
-    if (socialTiktok?.value) {
-      newSocialLinks.push({ icon: 'tiktok', id: idCounter++, platform: 'tiktok', url: socialTiktok.value as string });
-    }
-    if (socialZalo?.value) {
-      newSocialLinks.push({ icon: 'zalo', id: idCounter++, platform: 'zalo', url: socialZalo.value as string });
-    }
-    
-    setFooterConfig(prev => ({
-      ...prev,
-      logo: (siteLogo?.value as string) || prev.logo,
-      socialLinks: newSocialLinks.length > 0 ? newSocialLinks : prev.socialLinks,
-    }));
-    
-    toast.success('Đã load dữ liệu từ Settings');
-  };
+  const brandMode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
 
   const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { ...footerConfig, style });
-  };
-
-  // Column drag handlers
-  const handleColumnDragStart = (columnId: number) =>{  setDraggedColumnId(columnId); };
-  const handleColumnDragEnd = () => { setDraggedColumnId(null); setDragOverColumnId(null); };
-  const handleColumnDragOver = (e: React.DragEvent, columnId: number) => {
-    e.preventDefault();
-    if (draggedColumnId !== columnId) {setDragOverColumnId(columnId);}
-  };
-  const handleColumnDrop = (e: React.DragEvent, targetId: number) => {
-    e.preventDefault();
-    if (!draggedColumnId || draggedColumnId === targetId) {return;}
-    const newColumns = [...footerConfig.columns];
-    const draggedIndex = newColumns.findIndex(c => c.id === draggedColumnId);
-    const targetIndex = newColumns.findIndex(c => c.id === targetId);
-    const [moved] = newColumns.splice(draggedIndex, 1);
-    newColumns.splice(targetIndex, 0, moved);
-    setFooterConfig({ ...footerConfig, columns: newColumns });
-    setDraggedColumnId(null);
-    setDragOverColumnId(null);
-  };
-
-  // Social drag handlers
-  const handleSocialDragStart = (socialId: number) =>{  setDraggedSocialId(socialId); };
-  const handleSocialDragEnd = () => { setDraggedSocialId(null); setDragOverSocialId(null); };
-  const handleSocialDragOver = (e: React.DragEvent, socialId: number) => {
-    e.preventDefault();
-    if (draggedSocialId !== socialId) {setDragOverSocialId(socialId);}
-  };
-  const handleSocialDrop = (e: React.DragEvent, targetId: number) => {
-    e.preventDefault();
-    if (!draggedSocialId || draggedSocialId === targetId) {return;}
-    const newSocials = [...footerConfig.socialLinks];
-    const draggedIndex = newSocials.findIndex(s => s.id === draggedSocialId);
-    const targetIndex = newSocials.findIndex(s => s.id === targetId);
-    const [moved] = newSocials.splice(draggedIndex, 1);
-    newSocials.splice(targetIndex, 0, moved);
-    setFooterConfig({ ...footerConfig, socialLinks: newSocials });
-    setDraggedSocialId(null);
-    setDragOverSocialId(null);
-  };
-
-  // Column management
-  const addColumn = () => {
-    const newId = Math.max(0, ...footerConfig.columns.map(c => c.id)) + 1;
-    setFooterConfig({
-      ...footerConfig,
-      columns: [...footerConfig.columns, { id: newId, links: [{ label: 'Link mới', url: '#' }], title: `Cột ${newId}` }]
-    });
-  };
-
-  const removeColumn = (columnId: number) => {
-    setFooterConfig({
-      ...footerConfig,
-      columns: footerConfig.columns.filter(c => c.id !== columnId)
-    });
-  };
-
-  const updateColumn = (columnId: number, field: 'title', value: string) => {
-    setFooterConfig({
-      ...footerConfig,
-      columns: footerConfig.columns.map(c => c.id === columnId ? { ...c, [field]: value } : c)
-    });
-  };
-
-  // Link management
-  const addLink = (columnId: number) => {
-    setFooterConfig({
-      ...footerConfig,
-      columns: footerConfig.columns.map(c => 
-        c.id === columnId ? { ...c, links: [...c.links, { label: 'Link mới', url: '#' }] } : c
-      )
-    });
-  };
-
-  const removeLink = (columnId: number, linkIndex: number) => {
-    setFooterConfig({
-      ...footerConfig,
-      columns: footerConfig.columns.map(c => 
-        c.id === columnId ? { ...c, links: c.links.filter((_, idx) => idx !== linkIndex) } : c
-      )
-    });
-  };
-
-  const updateLink = (columnId: number, linkIndex: number, field: 'label' | 'url', value: string) => {
-    setFooterConfig({
-      ...footerConfig,
-      columns: footerConfig.columns.map(c => 
-        c.id === columnId ? { 
-          ...c, 
-          links: c.links.map((link, idx) => idx === linkIndex ? { ...link, [field]: value } : link)
-        } : c
-      )
-    });
-  };
-
-  // Social links management
-  const addSocialLink = () => {
-    const usedPlatforms = new Set(footerConfig.socialLinks.map(s => s.platform));
-    const availablePlatform = SOCIAL_PLATFORMS.find(p => !usedPlatforms.has(p.key));
-    if (!availablePlatform) {
-      toast.error('Đã thêm đủ tất cả mạng xã hội');
-      return;
-    }
-    const newId = Math.max(0, ...footerConfig.socialLinks.map(s => s.id)) + 1;
-    setFooterConfig({
-      ...footerConfig,
-      socialLinks: [...footerConfig.socialLinks, { icon: availablePlatform.icon, id: newId, platform: availablePlatform.key, url: '' }]
-    });
-  };
-
-  const removeSocialLink = (id: number) => {
-    setFooterConfig({
-      ...footerConfig,
-      socialLinks: footerConfig.socialLinks.filter(s => s.id !== id)
-    });
-  };
-
-  const updateSocialLink = (id: number, field: 'platform' | 'url', value: string) => {
-    setFooterConfig({
-      ...footerConfig,
-      socialLinks: footerConfig.socialLinks.map(s => {
-        if (s.id !== id) {return s;}
-        if (field === 'platform') {
-          const platform = SOCIAL_PLATFORMS.find(p => p.key === value);
-          return { ...s, platform: value, icon: platform?.icon ?? value };
-        }
-        return { ...s, [field]: value };
-      })
-    });
+    void handleSubmit(e, footerConfig as unknown as Record<string, unknown>);
   };
 
   return (
@@ -229,259 +43,16 @@ export default function FooterCreatePage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
     >
-      {/* Load from Settings Button */}
-      <div className="mb-4 flex justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={loadFromSettings}>
-          <Download size={14} className="mr-1" /> Load từ Settings
-        </Button>
-      </div>
+      <FooterForm value={footerConfig} onChange={setFooterConfig} secondary={secondary} />
 
-      {/* Logo & Basic Info */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Thông tin cơ bản</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Logo</Label>
-            <SettingsImageUploader
-              value={footerConfig.logo}
-              onChange={(url) =>{  setFooterConfig({...footerConfig, logo: url ?? ''}); }}
-              folder="footer"
-              previewSize="sm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Mô tả công ty</Label>
-            <textarea 
-              value={footerConfig.description} 
-              onChange={(e) =>{  setFooterConfig({...footerConfig, description: e.target.value}); }} 
-              placeholder="Công ty TNHH ABC - Đối tác tin cậy của bạn"
-              className="w-full min-h-[60px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Copyright</Label>
-            <Input 
-              value={footerConfig.copyright} 
-              onChange={(e) =>{  setFooterConfig({...footerConfig, copyright: e.target.value}); }} 
-              placeholder="© 2024 Company. All rights reserved." 
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              checked={footerConfig.showSocialLinks} 
-              onChange={(e) =>{  setFooterConfig({...footerConfig, showSocialLinks: e.target.checked}); }} 
-              className="w-4 h-4 rounded" 
-            />
-            <Label>Hiển thị social links</Label>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Menu Columns with Drag & Drop */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Cột menu ({footerConfig.columns.length}/4)</CardTitle>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={addColumn} 
-              disabled={footerConfig.columns.length >= 4}
-              title={footerConfig.columns.length >= 4 ? 'Tối đa 4 cột menu' : ''}
-            >
-              <Plus size={14} className="mr-1" /> Thêm cột
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {footerConfig.columns.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div 
-                className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${secondary}10` }}
-              >
-                <LayoutGrid size={24} style={{ color: secondary }} />
-              </div>
-              <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có cột menu</h3>
-              <p className="text-sm text-slate-500 mb-3">Nhấn “Thêm cột” để tạo menu footer</p>
-              <Button type="button" variant="outline" size="sm" onClick={addColumn}>
-                <Plus size={14} className="mr-1" /> Thêm cột đầu tiên
-              </Button>
-            </div>
-          ) : (
-            footerConfig.columns.map((column) => (
-              <div 
-                key={column.id} 
-                draggable
-                onDragStart={() =>{  handleColumnDragStart(column.id); }}
-                onDragEnd={handleColumnDragEnd}
-                onDragOver={(e) =>{  handleColumnDragOver(e, column.id); }}
-                onDrop={(e) =>{  handleColumnDrop(e, column.id); }}
-                className={cn(
-                  "border rounded-lg p-4 space-y-3 transition-all",
-                  draggedColumnId === column.id && "opacity-50",
-                  dragOverColumnId === column.id && "ring-2 ring-blue-500 ring-offset-2",
-                  "border-slate-200 dark:border-slate-700"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <GripVertical size={16} className="text-slate-400 cursor-grab flex-shrink-0" />
-                  <Input
-                    value={column.title}
-                    onChange={(e) =>{  updateColumn(column.id, 'title', e.target.value); }}
-                    placeholder="Tiêu đề cột"
-                    className="flex-1"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() =>{  removeColumn(column.id); }}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-                
-                {/* Links */}
-                <div className="pl-6 space-y-2">
-                  <Label className="text-xs text-slate-500">Links ({column.links.length})</Label>
-                  {column.links.map((link, linkIdx) => (
-                    <div key={linkIdx} className="flex items-center gap-2">
-                      <Input
-                        value={link.label}
-                        onChange={(e) =>{  updateLink(column.id, linkIdx, 'label', e.target.value); }}
-                        placeholder="Tên link"
-                        className="flex-1"
-                      />
-                      <Input
-                        value={link.url}
-                        onChange={(e) =>{  updateLink(column.id, linkIdx, 'url', e.target.value); }}
-                        placeholder="/url"
-                        className="flex-1"
-                      />
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() =>{  removeLink(column.id, linkIdx); }}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
-                        disabled={column.links.length <= 1}
-                      >
-                        <Trash2 size={12} />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() =>{  addLink(column.id); }}
-                    className="text-slate-500 hover:text-slate-700"
-                  >
-                    <Plus size={12} className="mr-1" /> Thêm link
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Social Links with Drag & Drop */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Mạng xã hội ({footerConfig.socialLinks.length}/{SOCIAL_PLATFORMS.length})</CardTitle>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={addSocialLink}
-              disabled={footerConfig.socialLinks.length >= SOCIAL_PLATFORMS.length}
-              title={footerConfig.socialLinks.length >= SOCIAL_PLATFORMS.length ? 'Đã thêm đủ tất cả mạng xã hội' : ''}
-            >
-              <Plus size={14} className="mr-1" /> Thêm MXH
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {footerConfig.socialLinks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div 
-                className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${secondary}10` }}
-              >
-                <Share2 size={24} style={{ color: secondary }} />
-              </div>
-              <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có mạng xã hội</h3>
-              <p className="text-sm text-slate-500 mb-3">Thêm MXH hoặc load từ Settings</p>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={loadFromSettings}>
-                  <Download size={14} className="mr-1" /> Load từ Settings
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={addSocialLink}>
-                  <Plus size={14} className="mr-1" /> Thêm MXH
-                </Button>
-              </div>
-            </div>
-          ) : (
-            footerConfig.socialLinks.map((social) => (
-              <div 
-                key={social.id} 
-                draggable
-                onDragStart={() =>{  handleSocialDragStart(social.id); }}
-                onDragEnd={handleSocialDragEnd}
-                onDragOver={(e) =>{  handleSocialDragOver(e, social.id); }}
-                onDrop={(e) =>{  handleSocialDrop(e, social.id); }}
-                className={cn(
-                  "flex items-center gap-3 p-2 rounded-lg transition-all",
-                  draggedSocialId === social.id && "opacity-50",
-                  dragOverSocialId === social.id && "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                )}
-              >
-                <GripVertical size={16} className="text-slate-400 cursor-grab flex-shrink-0" />
-                <select
-                  value={social.platform}
-                  onChange={(e) =>{  updateSocialLink(social.id, 'platform', e.target.value); }}
-                  className="w-36 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                >
-                  {SOCIAL_PLATFORMS.map(p => (
-                    <option 
-                      key={p.key} 
-                      value={p.key}
-                      disabled={footerConfig.socialLinks.some(s => s.platform === p.key && s.id !== social.id)}
-                    >
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  value={social.url}
-                  onChange={(e) =>{  updateSocialLink(social.id, 'url', e.target.value); }}
-                  placeholder="https://facebook.com/yourpage"
-                  className="flex-1"
-                />
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() =>{  removeSocialLink(social.id); }}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      <FooterPreview config={footerConfig} brandColor={primary} secondary={secondary} selectedStyle={style} onStyleChange={setStyle} />
+      <FooterPreview
+        config={footerConfig as any}
+        brandColor={primary}
+        secondary={secondary}
+        mode={brandMode}
+        selectedStyle={footerConfig.style}
+        onStyleChange={(style) =>{  setFooterConfig({ ...footerConfig, style }); }}
+      />
     </ComponentFormWrapper>
   );
 }

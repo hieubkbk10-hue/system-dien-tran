@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -10,22 +10,42 @@ import { LayoutTemplate, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { FooterForm } from '../../_components/FooterForm';
 import { FooterPreview } from '../../_components/FooterPreview';
-import { DEFAULT_FOOTER_CONFIG } from '../../_lib/constants';
+import { DEFAULT_FOOTER_CONFIG, normalizeFooterConfig } from '../../_lib/constants';
 import type { FooterConfig, FooterStyle } from '../../_types';
+
+interface FooterInitialData {
+  title: string;
+  active: boolean;
+  config: FooterConfig;
+}
 
 export default function FooterEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { primary, secondary } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<FooterConfig>(DEFAULT_FOOTER_CONFIG);
+  const [config, setConfig] = useState<FooterConfig>(() => normalizeFooterConfig(DEFAULT_FOOTER_CONFIG));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialData, setInitialData] = useState<FooterInitialData | null>(null);
+
+  const brandMode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
+
+  const hasChanges = useMemo(() => {
+    if (!initialData) {return false;}
+
+    return (
+      title !== initialData.title
+      || active !== initialData.active
+      || JSON.stringify(config) !== JSON.stringify(initialData.config)
+    );
+  }, [active, config, initialData, title]);
 
   useEffect(() => {
     if (component) {
@@ -37,15 +57,13 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
       setTitle(component.title);
       setActive(component.active);
 
-      const rawConfig = component.config ?? {};
-      setConfig({
-        columns: Array.isArray(rawConfig.columns) ? rawConfig.columns : DEFAULT_FOOTER_CONFIG.columns,
-        copyright: (rawConfig.copyright as string | undefined) ?? '',
-        description: (rawConfig.description as string | undefined) ?? '',
-        logo: (rawConfig.logo as string | undefined) ?? '',
-        showSocialLinks: rawConfig.showSocialLinks !== false,
-        socialLinks: Array.isArray(rawConfig.socialLinks) ? rawConfig.socialLinks : DEFAULT_FOOTER_CONFIG.socialLinks,
-        style: (rawConfig.style as FooterStyle) || 'classic',
+      const normalizedConfig = normalizeFooterConfig(component.config as Partial<FooterConfig> | null | undefined);
+
+      setConfig(normalizedConfig);
+      setInitialData({
+        active: component.active,
+        config: normalizedConfig,
+        title: component.title,
       });
     }
   }, [component, id, router]);
@@ -60,6 +78,11 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
         active,
         config,
         id: id as Id<'homeComponents'>,
+        title,
+      });
+      setInitialData({
+        active,
+        config,
         title,
       });
       toast.success('Đã cập nhật Footer');
@@ -128,7 +151,7 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as FooterConfig); }} title="Cấu hình Footer" />
+        <FooterForm value={config} onChange={setConfig} secondary={secondary} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
@@ -137,6 +160,7 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
               config={config as any}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
               selectedStyle={config.style as any}
               onStyleChange={(style) =>{  setConfig({ ...config, style: style as FooterStyle }); }}
             />
@@ -147,8 +171,8 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

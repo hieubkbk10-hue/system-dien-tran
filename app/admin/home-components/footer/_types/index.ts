@@ -4,15 +4,19 @@ export interface FooterLink {
 }
 
 export interface FooterColumn {
+  id?: number | string;
   title: string;
   links: FooterLink[];
 }
 
 export interface FooterSocialLink {
+  id?: number | string;
   platform: string;
   url: string;
   icon: string;
 }
+
+export type FooterBrandMode = 'single' | 'dual';
 
 export type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
 
