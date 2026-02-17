@@ -67,7 +67,16 @@ export const ProductCategoriesPreview = ({
     return map;
   }, [productsData]);
 
-  const resolvedCategories = config.categories
+  const categoriesConfig = config.categories ?? [];
+  const uniqueCategories = React.useMemo(() => (
+    categoriesConfig.filter((item, index, arr) => {
+      if (!item.categoryId) {return true;}
+      return arr.findIndex(i => i.categoryId === item.categoryId) === index;
+    })
+  ), [categoriesConfig]);
+  const duplicateCount = categoriesConfig.length - uniqueCategories.length;
+
+  const resolvedCategories = uniqueCategories
     .map((item, idx) => {
       const cat = categoryMap[item.categoryId];
       if (!cat) {return null;}
@@ -650,6 +659,11 @@ export const ProductCategoriesPreview = ({
 
   return (
     <>
+      {duplicateCount > 0 && (
+        <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Có {duplicateCount} danh mục bị trùng lặp. Preview đã ẩn bớt để khớp trang chủ.
+        </div>
+      )}
       <PreviewWrapper 
         title="Preview Danh mục sản phẩm" 
         device={device} 
