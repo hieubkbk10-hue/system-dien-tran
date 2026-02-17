@@ -274,7 +274,9 @@ export const getCTAValidationResult = ({
 
   const resolvedSecondary = resolveSecondaryColor(primaryNormalized, secondary, mode, harmonyNormalized);
   const harmonyStatus = getHarmonyStatus(primaryNormalized, resolvedSecondary);
-  const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient') ? primaryNormalized : tokens.sectionBg;
+  const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient')
+    ? getGradientTints(primaryNormalized, resolvedSecondary).fromTint
+    : tokens.sectionBg;
   const secondaryButtonBgForCheck = !tokens.secondaryButtonBg || tokens.secondaryButtonBg === 'transparent'
     ? sectionBgForCheck
     : tokens.secondaryButtonBg;
@@ -333,11 +335,17 @@ export const getCTAAccentBalance = (style: CTAStyle): CTAAccentBalance => {
 
 const applyAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
 
-const getGradientBg = (from: string, to: string) => {
+const getGradientTints = (from: string, to: string) => {
   const fromColor = getOKLCH(from, DEFAULT_BRAND_COLOR);
   const toColor = getOKLCH(to, from);
-  const fromTint = formatHex(oklch({ ...fromColor, l: clampLightness(fromColor.l + 0.12), c: fromColor.c * 0.85 }));
-  const toTint = formatHex(oklch({ ...toColor, l: clampLightness(toColor.l + 0.1), c: toColor.c * 0.85 }));
+  return {
+    fromTint: formatHex(oklch({ ...fromColor, l: clampLightness(fromColor.l + 0.12), c: fromColor.c * 0.85 })),
+    toTint: formatHex(oklch({ ...toColor, l: clampLightness(toColor.l + 0.1), c: toColor.c * 0.85 })),
+  };
+};
+
+const getGradientBg = (from: string, to: string) => {
+  const { fromTint, toTint } = getGradientTints(from, to);
   return `linear-gradient(135deg, ${fromTint} 0%, ${toTint} 100%)`;
 };
 
@@ -442,15 +450,23 @@ export const getCTAColors = ({
   }
 
   if (styleNormalized === 'gradient') {
-    const gradientBg = getGradientBg(primaryPalette.solid, secondaryPalette.solid);
+    const { fromTint, toTint } = getGradientTints(primaryPalette.solid, secondaryPalette.solid);
+    const gradientBg = `linear-gradient(135deg, ${fromTint} 0%, ${toTint} 100%)`;
     const textOnGradient = getTextOnGradient(primaryPalette.solid, secondaryPalette.solid, 24, 700);
+    const descriptionOnFrom = getAPCATextColor(fromTint, 16, 500);
+    const descriptionOnTo = getAPCATextColor(toTint, 16, 500);
+    const descriptionColor = descriptionOnFrom === '#ffffff' && descriptionOnTo === '#ffffff'
+      ? '#f8fafc'
+      : descriptionOnFrom === '#0f172a' && descriptionOnTo === '#0f172a'
+        ? '#1e293b'
+        : textOnGradient;
 
     return {
       ...base,
       sectionBg: gradientBg,
       sectionBorder: undefined,
       title: textOnGradient,
-      description: ensureAPCATextColor(textOnGradient === '#ffffff' ? '#f8fafc' : '#1e293b', textOnGradient === '#ffffff' ? primaryPalette.solid : secondaryPalette.solid, 16, 500),
+      description: descriptionColor,
       badgeBg: applyAlpha('#ffffff', '2E'),
       badgeText: ensureAPCATextColor(textOnGradient, '#ffffff', 12, 600),
       primaryButtonBg: '#ffffff',

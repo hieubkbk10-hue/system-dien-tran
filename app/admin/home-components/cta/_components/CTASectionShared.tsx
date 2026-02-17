@@ -190,16 +190,16 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'gradient') {
     return (
-      <section className={cn('py-12 md:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
-        <div className="mx-auto max-w-3xl text-center">
+      <section className={cn('px-4 py-8 md:py-12 lg:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           {badgeNode}
-          <HeadingTag className="text-2xl font-bold md:text-4xl" style={{ color: tokens.title }}>
+          <HeadingTag className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl" style={{ color: tokens.title }}>
             {title}
           </HeadingTag>
-          <p className="mx-auto mt-3 max-w-2xl text-sm md:text-base" style={{ color: tokens.description }}>
+          <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed sm:mt-3 sm:text-base" style={{ color: tokens.description }}>
             {description}
           </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:mt-6 sm:flex-row md:mt-7">
             {primaryButton}
             {secondaryButton}
           </div>
