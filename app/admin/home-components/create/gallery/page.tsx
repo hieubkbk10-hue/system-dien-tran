@@ -99,6 +99,7 @@ function GalleryCreateContent() {
         <TrustBadgesPreview 
           items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))} 
           brandColor={primary} secondary={secondary}
+          mode={mode}
           selectedStyle={trustBadgesStyle}
           onStyleChange={setTrustBadgesStyle}
         />
@@ -117,6 +118,7 @@ function GalleryCreateContent() {
             <GalleryPreview 
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))} 
               brandColor={primary} secondary={secondary} 
+              mode={mode}
               selectedStyle={galleryStyle}
               onStyleChange={setGalleryStyle}
             />

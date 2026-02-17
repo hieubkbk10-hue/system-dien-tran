@@ -9,6 +9,7 @@ import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type { GalleryItem, GalleryStyle } from '../_types';
+import { getGalleryColorTokens } from '../_lib/colors';
 
 // Lightbox Component for Gallery - with Arrow Keys Navigation
 const GalleryLightbox = ({ 
@@ -46,12 +47,12 @@ const GalleryLightbox = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200" 
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 animate-in fade-in duration-200" 
       onClick={onClose}
     >
       <button 
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors z-[70]"
+        className="absolute top-4 right-4 p-2 text-slate-300 hover:text-white transition-colors z-[70]"
         aria-label="Đóng"
       >
         <X size={24} />
@@ -62,14 +63,14 @@ const GalleryLightbox = ({
         <>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-[70]"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors z-[70]"
             aria-label="Ảnh trước"
           >
             <ChevronLeft size={24} className="text-white" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-[70]"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors z-[70]"
             aria-label="Ảnh sau"
           >
             <ChevronRight size={24} className="text-white" />
@@ -79,7 +80,7 @@ const GalleryLightbox = ({
       
       {/* Counter */}
       {hasMultiple && typeof currentIndex === 'number' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm z-[70]">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-slate-200 text-sm z-[70]">
           {currentIndex + 1} / {photos.length}
         </div>
       )}
@@ -95,16 +96,18 @@ const GalleryLightbox = ({
   );
 };
 
-export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selectedStyle, onStyleChange }: { 
+export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedStyle, onStyleChange }: { 
   items: GalleryItem[]; 
   brandColor: string;
   secondary: string; 
+  mode: 'single' | 'dual';
   selectedStyle?: GalleryStyle; 
   onStyleChange?: (style: GalleryStyle) => void;
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
   const [isPaused, setIsPaused] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const ONE = 1;
   const NEGATIVE_ONE = -1;
   let previewStyle = selectedStyle;
@@ -281,8 +284,8 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
   // Gallery Empty State with brandColor
   const renderGalleryEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <ImageIcon size={32} style={{ color: brandColor }} />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+        <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
       </div>
       <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có hình ảnh nào</h3>
       <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -309,7 +312,7 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
                 )}
@@ -333,23 +336,21 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
               )}
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
             </div>
           ))}
           {/* +N remaining */}
           {remainingCount > 0 && (
             <div 
               className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer"
-              style={{ backgroundColor: `${brandColor}10` }}
+              style={{ backgroundColor: colors.badgeBg }}
             >
-              <Plus size={28} style={{ color: brandColor }} className="mb-1" />
-              <span className="text-lg font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
-              <span className="text-xs text-slate-500">ảnh khác</span>
+              <Plus size={28} style={{ color: colors.badgeText }} className="mb-1" />
+              <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
+              <span className="text-xs" style={{ color: colors.mutedText }}>ảnh khác</span>
             </div>
           )}
         </div>
@@ -364,8 +365,6 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
     return (
       <div className="py-8">
         <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10 pointer-events-none"></div>
           <AutoScrollSlider speed={0.6} isPaused={isPaused}>
             {items.map((photo) => (
               <div 
@@ -374,7 +373,7 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                     <ImageIcon size={32} className="text-slate-300" />
@@ -408,7 +407,7 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
                 )}
@@ -438,11 +437,10 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
                 )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
               </div>
             );
           })}
@@ -450,7 +448,7 @@ export const GalleryPreview = ({ items, brandColor, secondary: _secondary, selec
         {/* +N remaining */}
         {remainingCount > 0 && (
           <div className="flex items-center justify-center mt-4">
-            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
               +{remainingCount} ảnh khác
             </span>
           </div>

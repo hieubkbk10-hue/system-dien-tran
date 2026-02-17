@@ -1,0 +1,239 @@
+'use client';
+
+import { APCAcontrast } from 'apca-w3';
+import { differenceEuclidean, formatHex, oklch } from 'culori';
+
+export type GalleryBrandMode = 'single' | 'dual';
+export type GalleryHarmony = 'analogous' | 'complementary' | 'triadic';
+
+export interface GalleryColorTokens {
+  primary: string;
+  secondary: string;
+  heading: string;
+  subheading: string;
+  bodyText: string;
+  mutedText: string;
+  neutralBackground: string;
+  neutralSurface: string;
+  neutralBorder: string;
+  iconBg: string;
+  iconColor: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+  accentSurface: string;
+  accentBorder: string;
+  placeholderBg: string;
+  placeholderIcon: string;
+  lightboxBg: string;
+  lightboxText: string;
+}
+
+export interface GalleryAccessibilityPair {
+  background: string;
+  text: string;
+  fontSize?: number;
+  fontWeight?: number;
+  label?: string;
+}
+
+export interface GalleryAccessibilityScore {
+  minLc: number;
+  failing: Array<GalleryAccessibilityPair & { lc: number; threshold: number }>;
+}
+
+export interface GalleryHarmonyStatus {
+  deltaE: number;
+  similarity: number;
+  isTooSimilar: boolean;
+}
+
+const DEFAULT_BRAND_COLOR = '#3b82f6';
+
+const clampLightness = (value: number) => Math.min(Math.max(value, 0.08), 0.98);
+
+const safeParseOklch = (value: string, fallback: string) => (
+  oklch(value) ?? oklch(fallback) ?? oklch(DEFAULT_BRAND_COLOR)
+);
+
+const normalizeHex = (value: string, fallback: string) => {
+  const candidate = value.trim().length > 0 ? value.trim() : fallback;
+  return formatHex(safeParseOklch(candidate, fallback));
+};
+
+const isValidHexColor = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
+
+const getAPCAThreshold = (fontSize = 16, fontWeight = 500) => (
+  (fontSize >= 18 || fontWeight >= 700) ? 45 : 60
+);
+
+const getAPCALc = (text: string, background: string) => {
+  const lc = Math.abs(APCAcontrast(text, background));
+  return Number.isFinite(lc) ? lc : 0;
+};
+
+export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
+  const whiteLc = getAPCALc('#ffffff', bg);
+  const blackLc = getAPCALc('#000000', bg);
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+
+  if (whiteLc >= threshold) {return '#ffffff';}
+  if (blackLc >= threshold) {return '#0f172a';}
+  return whiteLc > blackLc ? '#ffffff' : '#0f172a';
+};
+
+const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
+  const color = safeParseOklch(hex, DEFAULT_BRAND_COLOR);
+  return formatHex(oklch({ ...color, l: clampLightness((color.l ?? 0.6) + lightnessIncrease) }));
+};
+
+export const normalizeGalleryHarmony = (value?: string): GalleryHarmony => {
+  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
+    return value;
+  }
+  return 'analogous';
+};
+
+export const getHarmonyColor = (primary: string, harmony: GalleryHarmony) => {
+  const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
+  if (harmony === 'complementary') {
+    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
+  }
+  if (harmony === 'triadic') {
+    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
+  }
+  return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
+};
+
+export const resolveSecondaryForMode = (
+  primary: string,
+  secondary: string,
+  mode: GalleryBrandMode,
+  harmony: GalleryHarmony,
+) => {
+  const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+
+  if (mode === 'single') {
+    return normalizedPrimary;
+  }
+
+  if (isValidHexColor(secondary)) {
+    return normalizeHex(secondary, normalizedPrimary);
+  }
+
+  return getHarmonyColor(normalizedPrimary, harmony);
+};
+
+export const getHarmonyStatus = (primary: string, secondary: string): GalleryHarmonyStatus => {
+  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const secondaryNormalized = normalizeHex(secondary, primaryNormalized);
+  const delta = differenceEuclidean('oklch')(primaryNormalized, secondaryNormalized);
+  const safeDelta = Number.isFinite(delta) ? delta : 1;
+  const similarity = 1 - Math.min(safeDelta, 1);
+  const deltaE = Math.round(safeDelta * 100);
+  return {
+    deltaE,
+    similarity,
+    isTooSimilar: deltaE < 20,
+  };
+};
+
+export const getGalleryAccessibilityScore = (pairs: GalleryAccessibilityPair[]): GalleryAccessibilityScore => {
+  const failing: GalleryAccessibilityScore['failing'] = [];
+  let minLc = Number.POSITIVE_INFINITY;
+
+  pairs.forEach((pair) => {
+    const fontSize = pair.fontSize ?? 16;
+    const fontWeight = pair.fontWeight ?? 500;
+    const threshold = getAPCAThreshold(fontSize, fontWeight);
+    const lc = getAPCALc(pair.text, pair.background);
+    minLc = Math.min(minLc, lc);
+
+    if (lc < threshold) {
+      failing.push({ ...pair, lc, threshold });
+    }
+  });
+
+  return {
+    minLc: Number.isFinite(minLc) ? minLc : 0,
+    failing,
+  };
+};
+
+export const getGalleryColorTokens = ({
+  primary,
+  secondary,
+  mode,
+  harmony = 'analogous',
+}: {
+  primary: string;
+  secondary: string;
+  mode: GalleryBrandMode;
+  harmony?: GalleryHarmony;
+}): GalleryColorTokens => {
+  const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const harmonyResolved = normalizeGalleryHarmony(harmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, harmonyResolved);
+  const neutralBackground = '#f8fafc';
+  const neutralSurface = '#ffffff';
+  const neutralBorder = '#e2e8f0';
+  const neutralText = '#0f172a';
+  const neutralMuted = '#64748b';
+
+  const primaryTint = getSolidTint(primaryResolved, 0.42);
+  const secondaryTint = getSolidTint(secondaryResolved, 0.42);
+  const accentSurface = getSolidTint(secondaryResolved, 0.5);
+  const accentBorder = getSolidTint(secondaryResolved, 0.3);
+
+  return {
+    primary: primaryResolved,
+    secondary: secondaryResolved,
+    heading: primaryResolved,
+    subheading: secondaryResolved,
+    bodyText: neutralText,
+    mutedText: neutralMuted,
+    neutralBackground,
+    neutralSurface,
+    neutralBorder,
+    iconBg: primaryTint,
+    iconColor: primaryResolved,
+    badgeBg: secondaryTint,
+    badgeText: getAPCATextColor(secondaryTint, 12, 600),
+    badgeBorder: accentBorder,
+    accentSurface,
+    accentBorder,
+    placeholderBg: neutralBackground,
+    placeholderIcon: primaryResolved,
+    lightboxBg: '#0f172a',
+    lightboxText: '#f8fafc',
+  };
+};
+
+export const getGalleryValidationResult = ({
+  primary,
+  secondary,
+  mode,
+  harmony = 'analogous',
+}: {
+  primary: string;
+  secondary: string;
+  mode: GalleryBrandMode;
+  harmony?: GalleryHarmony;
+}) => {
+  const tokens = getGalleryColorTokens({ primary, secondary, mode, harmony });
+  const resolvedSecondary = resolveSecondaryForMode(tokens.primary, secondary, mode, normalizeGalleryHarmony(harmony));
+  const harmonyStatus = getHarmonyStatus(tokens.primary, resolvedSecondary);
+  const accessibilityPairs: GalleryAccessibilityPair[] = [
+    { background: tokens.neutralSurface, text: tokens.heading, fontSize: 24, fontWeight: 700, label: 'heading' },
+    { background: tokens.neutralSurface, text: tokens.subheading, fontSize: 14, fontWeight: 600, label: 'subheading' },
+    { background: tokens.badgeBg, text: tokens.badgeText, fontSize: 12, fontWeight: 600, label: 'badge' },
+  ];
+  const accessibility = getGalleryAccessibilityScore(accessibilityPairs);
+
+  return {
+    tokens,
+    resolvedSecondary,
+    harmonyStatus,
+    accessibility,
+  };
+};

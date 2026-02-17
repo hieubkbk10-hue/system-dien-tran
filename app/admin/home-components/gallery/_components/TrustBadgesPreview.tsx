@@ -9,6 +9,7 @@ import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type { TrustBadgesStyle } from '../_types';
+import { getGalleryColorTokens } from '../_lib/colors';
 
 // Best Practices: Grayscale-to-color hover, lightbox/zoom indicator, verification links, alt text accessibility
 interface TrustBadgeItem { id: number; url: string; link: string; name?: string }
@@ -61,6 +62,7 @@ export const TrustBadgesPreview = ({
   items, 
   brandColor, 
   secondary,
+  mode,
   selectedStyle, 
   onStyleChange,
   config
@@ -68,6 +70,7 @@ export const TrustBadgesPreview = ({
   items: TrustBadgeItem[]; 
   brandColor: string;
   secondary: string; 
+  mode: 'single' | 'dual';
   selectedStyle?: TrustBadgesStyle; 
   onStyleChange?: (style: TrustBadgesStyle) => void;
   config?: TrustBadgesConfig;
@@ -75,6 +78,7 @@ export const TrustBadgesPreview = ({
   const { device, setDevice } = usePreviewDevice();
   const [isPaused, setIsPaused] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const previewStyle = selectedStyle ?? 'cards';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as TrustBadgesStyle);
   
@@ -99,8 +103,8 @@ export const TrustBadgesPreview = ({
   // Empty State Component
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
-        <Shield size={36} style={{ color: secondary }} />
+      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+        <Shield size={36} style={{ color: colors.placeholderIcon }} />
       </div>
       <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Chưa có chứng nhận</h3>
       <p className="text-sm text-slate-500 max-w-xs">Thêm chứng nhận, giải thưởng hoặc badge để tăng độ tin cậy</p>
@@ -118,7 +122,7 @@ export const TrustBadgesPreview = ({
       <h2 className={cn(
         "font-bold text-slate-900 dark:text-slate-100",
         device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl'
-      )}>
+      )} style={{ color: colors.heading }}>
         {heading}
       </h2>
     </div>
@@ -127,7 +131,7 @@ export const TrustBadgesPreview = ({
   // +N More Items Badge
   const MoreItemsBadge = ({ count }: { count: number }) => count > 0 ? (
     <div className="flex items-center justify-center py-4 mt-4">
-      <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>
+      <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
         +{count} chứng nhận khác
       </span>
     </div>
@@ -147,30 +151,21 @@ export const TrustBadgesPreview = ({
               {visibleItems.map((item) => (
                 <div 
                   key={item.id} 
-                  className="group relative aspect-square bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300"
+                  className="group relative aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-colors duration-200"
                   style={{ 
-                    border: `1px solid ${secondary}15`,
+                    border: `1px solid ${colors.neutralBorder}`,
+                    backgroundColor: colors.neutralSurface,
                     padding: device === 'mobile' ? '16px' : '20px'
-                  }}
-                  onMouseEnter={(e) => { 
-                    e.currentTarget.style.borderColor = `${secondary}40`; 
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}15`; 
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                  }}
-                  onMouseLeave={(e) => { 
-                    e.currentTarget.style.borderColor = `${secondary}15`; 
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   {item.url ? (
-                    <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? 'Chứng nhận'} />
+                    <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300" alt={item.name ?? 'Chứng nhận'} />
                   ) : (
                     <ImageIcon size={device === 'mobile' ? 32 : 40} className="text-slate-300" />
                   )}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}>
-                      <Maximize2 size={14} style={{ color: secondary }} />
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.badgeBg }}>
+                      <Maximize2 size={14} style={{ color: colors.badgeText }} />
                     </div>
                   </div>
                   {item.name && (
@@ -182,12 +177,12 @@ export const TrustBadgesPreview = ({
               ))}
               {remainingCount > 0 && (
                 <div 
-                  className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all"
-                  style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}30` }}
+                  className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer"
+                  style={{ backgroundColor: colors.accentSurface, border: `1px dashed ${colors.accentBorder}` }}
                 >
-                  <Plus size={28} style={{ color: secondary }} className="mb-1" />
-                  <span className="text-lg font-bold" style={{ color: secondary }}>+{remainingCount}</span>
-                  <span className="text-[10px] text-slate-400">xem thêm</span>
+                  <Plus size={28} style={{ color: colors.subheading }} className="mb-1" />
+                  <span className="text-lg font-bold" style={{ color: colors.subheading }}>+{remainingCount}</span>
+                  <span className="text-[10px]" style={{ color: colors.mutedText }}>xem thêm</span>
                 </div>
               )}
             </div>
@@ -214,35 +209,26 @@ export const TrustBadgesPreview = ({
                 {cardItems.map((item) => (
                   <div 
                     key={item.id} 
-                    className="group relative flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm cursor-pointer h-full transition-all duration-300"
-                    style={{ border: `1px solid ${secondary}15` }}
-                    onMouseEnter={(e) => { 
-                      e.currentTarget.style.borderColor = `${secondary}30`; 
-                      e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
-                    }}
-                    onMouseLeave={(e) => { 
-                      e.currentTarget.style.borderColor = `${secondary}15`; 
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                    }}
+                    className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer h-full transition-colors duration-200"
+                    style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
                   >
-                    <div className={cn("bg-slate-50 dark:bg-slate-700/30 flex items-center justify-center relative overflow-hidden", device === 'mobile' ? 'aspect-[4/3] p-6' : 'aspect-[5/4] p-10')}>
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-colors duration-300" style={{ backgroundColor: `${secondary}08` }} />
+                    <div className={cn("flex items-center justify-center relative overflow-hidden", device === 'mobile' ? 'aspect-[4/3] p-6' : 'aspect-[5/4] p-10')} style={{ backgroundColor: colors.neutralBackground }}>
                       {item.url ? (
-                        <PreviewImage src={item.url} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 z-10" alt={item.name ?? 'Chứng nhận'} />
+                        <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-500 z-10" alt={item.name ?? 'Chứng nhận'} />
                       ) : (
                         <ImageIcon size={48} className="text-slate-300" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                        <span className="bg-white/90 dark:bg-slate-800/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: secondary }}>
+                        <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
                           <ZoomIn size={16} /> Xem chi tiết
                         </span>
                       </div>
                     </div>
-                    <div className={cn("bg-white dark:bg-slate-800 border-t flex items-center justify-between group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 transition-colors", device === 'mobile' ? 'py-3 px-4 min-h-[48px]' : 'py-4 px-5')} style={{ borderColor: `${secondary}10` }}>
-                      <span className="font-semibold truncate text-sm" style={{ color: secondary }}>
+                    <div className={cn("border-t flex items-center justify-between transition-colors", device === 'mobile' ? 'py-3 px-4 min-h-[48px]' : 'py-4 px-5')} style={{ borderColor: colors.neutralBorder, backgroundColor: colors.neutralSurface }}>
+                      <span className="font-semibold truncate text-sm" style={{ color: colors.subheading }}>
                         {item.name ?? 'Chứng nhận'}
                       </span>
-                      <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
+                      <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: colors.subheading }} />
                     </div>
                   </div>
                 ))}
@@ -259,7 +245,7 @@ export const TrustBadgesPreview = ({
   const renderMarqueeStyle = () => (
     <section 
       className={cn("w-full border-y", device === 'mobile' ? 'py-10' : 'py-14')}
-      style={{ backgroundColor: `${secondary}05`, borderColor: `${secondary}15` }}
+      style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
       onMouseEnter={() =>{  setIsPaused(true); }}
       onMouseLeave={() =>{  setIsPaused(false); }}
     >
@@ -271,7 +257,7 @@ export const TrustBadgesPreview = ({
           {items.map((item) => (
             <div 
               key={item.id} 
-              className={cn("w-auto flex items-center justify-center px-4 hover:scale-110 transition-all duration-300 cursor-pointer relative group", device === 'mobile' ? 'h-20' : 'h-24 md:h-28')}
+              className={cn("w-auto flex items-center justify-center px-4 transition-colors duration-200 cursor-pointer relative group", device === 'mobile' ? 'h-20' : 'h-24 md:h-28')}
             >
               {item.url ? (
                 <PreviewImage src={item.url} className="h-full w-auto object-contain max-w-[200px] transition-transform" alt={item.name ?? 'Chứng nhận'} />
@@ -297,7 +283,7 @@ export const TrustBadgesPreview = ({
     const wallItems = items.slice(0, device === 'mobile' ? 4 : 6);
     const wallRemaining = items.length - wallItems.length;
     return (
-      <section className={cn("w-full", device === 'mobile' ? 'py-10 px-3' : 'py-12 px-6')} style={{ backgroundColor: `${secondary}05` }}>
+      <section className={cn("w-full", device === 'mobile' ? 'py-10 px-3' : 'py-12 px-6')} style={{ backgroundColor: colors.neutralBackground }}>
         <div className="container max-w-7xl mx-auto">
           <SectionHeader />
           {items.length === 0 ? <EmptyState /> : (
@@ -310,22 +296,14 @@ export const TrustBadgesPreview = ({
                   <div 
                     key={item.id} 
                     className={cn(
-                      "group relative bg-white dark:bg-slate-800 shadow-md rounded-sm flex flex-col cursor-pointer transition-all duration-300",
+                      "group relative rounded-sm flex flex-col cursor-pointer transition-colors duration-200",
                       device === 'mobile' ? 'w-[140px] h-[180px] p-2' : 'w-[160px] h-[210px] p-3'
                     )}
-                    style={{ border: `1px solid ${secondary}15` }}
-                    onMouseEnter={(e) => { 
-                      e.currentTarget.style.boxShadow = `0 12px 24px ${secondary}20`; 
-                      e.currentTarget.style.transform = 'translateY(-8px)';
-                    }}
-                    onMouseLeave={(e) => { 
-                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
+                    style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
                   >
-                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-gradient-to-b from-slate-400 to-transparent opacity-40"></div>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `${secondary}60` }}></div>
-                    <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}10` }}>
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-slate-300"></div>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                    <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}>
                       {item.url ? (
                         <PreviewImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? 'Chứng nhận'} />
                       ) : (
@@ -333,7 +311,7 @@ export const TrustBadgesPreview = ({
                       )}
                     </div>
                     <div className={cn("flex items-center justify-center", device === 'mobile' ? 'h-7 mt-1' : 'h-8 mt-1')}>
-                      <span className={cn("font-semibold uppercase tracking-wider text-center truncate px-1", device === 'mobile' ? 'text-[8px]' : 'text-[9px]')} style={{ color: secondary }}>
+                      <span className={cn("font-semibold uppercase tracking-wider text-center truncate px-1", device === 'mobile' ? 'text-[8px]' : 'text-[9px]')} style={{ color: colors.subheading }}>
                         {item.name ? (item.name.length > 18 ? item.name.slice(0, 16) + '...' : item.name) : 'Certificate'}
                       </span>
                     </div>
@@ -363,18 +341,18 @@ export const TrustBadgesPreview = ({
                   <button
                     onClick={() =>{  setCarouselIndex(Math.max(0, carouselIndex - 1)); }}
                     disabled={carouselIndex === 0}
-                    className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all", carouselIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110')}
-                    style={{ border: `1px solid ${secondary}20`, left: device === 'mobile' ? '-4px' : '-16px' }}
+                    className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors", carouselIndex === 0 ? 'opacity-40 cursor-not-allowed' : '')}
+                    style={{ border: `1px solid ${colors.accentBorder}`, left: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
                   >
-                    <ChevronLeft size={20} style={{ color: secondary }} />
+                    <ChevronLeft size={20} style={{ color: colors.heading }} />
                   </button>
                   <button
                     onClick={() =>{  setCarouselIndex(Math.min(maxIndex, carouselIndex + 1)); }}
                     disabled={carouselIndex >= maxIndex}
-                    className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all", carouselIndex >= maxIndex ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110')}
-                    style={{ border: `1px solid ${secondary}20`, right: device === 'mobile' ? '-4px' : '-16px' }}
+                    className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors", carouselIndex >= maxIndex ? 'opacity-40 cursor-not-allowed' : '')}
+                    style={{ border: `1px solid ${colors.accentBorder}`, right: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
                   >
-                    <ChevronRight size={20} style={{ color: secondary }} />
+                    <ChevronRight size={20} style={{ color: colors.heading }} />
                   </button>
                 </>
               )}
@@ -388,20 +366,10 @@ export const TrustBadgesPreview = ({
                     >
                       <div 
                         className="aspect-square rounded-xl flex items-center justify-center transition-all duration-300"
-                        style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15`, padding: device === 'mobile' ? '12px' : '16px' }}
-                        onMouseEnter={(e) => { 
-                          e.currentTarget.style.borderColor = `${secondary}40`; 
-                          e.currentTarget.style.boxShadow = `0 8px 20px ${secondary}15`; 
-                          e.currentTarget.style.transform = 'translateY(-4px)';
-                        }}
-                        onMouseLeave={(e) => { 
-                          e.currentTarget.style.borderColor = `${secondary}15`; 
-                          e.currentTarget.style.boxShadow = 'none';
-                          e.currentTarget.style.transform = 'translateY(0)';
-                        }}
+                        style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}`, padding: device === 'mobile' ? '12px' : '16px' }}
                       >
                         {item.url ? (
-                          <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? 'Chứng nhận'} />
+                          <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300" alt={item.name ?? 'Chứng nhận'} />
                         ) : (
                           <ImageIcon size={32} className="text-slate-300" />
                         )}
@@ -416,7 +384,7 @@ export const TrustBadgesPreview = ({
               {items.length > itemsPerView && (
                 <div className="flex justify-center gap-2 mt-6">
                   {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? secondary : `${secondary}30` }} />
+                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? colors.subheading : colors.badgeBorder }} />
                   ))}
                 </div>
               )}
@@ -440,20 +408,12 @@ export const TrustBadgesPreview = ({
             <div className={cn("grid gap-5", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2')}>
               {featuredItem && (
                 <div 
-                  className="group cursor-pointer rounded-2xl overflow-hidden transition-all duration-300"
-                  style={{ backgroundColor: `${secondary}08`, border: `2px solid ${secondary}20` }}
-                  onMouseEnter={(e) => { 
-                    e.currentTarget.style.borderColor = `${secondary}40`; 
-                    e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
-                  }}
-                  onMouseLeave={(e) => { 
-                    e.currentTarget.style.borderColor = `${secondary}20`; 
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
+                  className="group cursor-pointer rounded-2xl overflow-hidden transition-colors duration-200"
+                  style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}
                 >
                   <div className={cn("flex items-center justify-center relative", device === 'mobile' ? 'aspect-[4/3] p-6' : 'aspect-[4/3] p-10')}>
                     {featuredItem.url ? (
-                      <PreviewImage src={featuredItem.url} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" alt={featuredItem.name ?? 'Chứng nhận nổi bật'} />
+                      <PreviewImage src={featuredItem.url} className="w-full h-full object-contain transition-transform duration-500" alt={featuredItem.name ?? 'Chứng nhận nổi bật'} />
                     ) : (
                       <ImageIcon size={64} className="text-slate-300" />
                     )}
@@ -461,13 +421,13 @@ export const TrustBadgesPreview = ({
                       <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} />
                     </div>
                     <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: secondary }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
                         <ZoomIn size={20} />
                       </div>
                     </div>
                   </div>
-                  <div className={cn("border-t flex items-center justify-center", device === 'mobile' ? 'py-3 min-h-[48px]' : 'py-4')} style={{ borderColor: `${secondary}15` }}>
-                    <span className="font-bold text-base" style={{ color: secondary }}>
+                  <div className={cn("border-t flex items-center justify-center", device === 'mobile' ? 'py-3 min-h-[48px]' : 'py-4')} style={{ borderColor: colors.neutralBorder }}>
+                    <span className="font-bold text-base" style={{ color: colors.heading }}>
                       {featuredItem.name ?? 'Chứng nhận nổi bật'}
                     </span>
                   </div>
@@ -477,19 +437,11 @@ export const TrustBadgesPreview = ({
                 {otherItems.map((item) => (
                   <div 
                     key={item.id} 
-                    className="group aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300"
-                    style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15`, padding: device === 'mobile' ? '10px' : '12px' }}
-                    onMouseEnter={(e) => { 
-                      e.currentTarget.style.borderColor = `${secondary}40`; 
-                      e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; 
-                    }}
-                    onMouseLeave={(e) => { 
-                      e.currentTarget.style.borderColor = `${secondary}15`; 
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
+                    className="group aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-colors duration-200"
+                    style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}`, padding: device === 'mobile' ? '10px' : '12px' }}
                   >
                     {item.url ? (
-                      <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? 'Chứng nhận'} />
+                      <PreviewImage src={item.url} className="w-full h-full object-contain transition-transform duration-300" alt={item.name ?? 'Chứng nhận'} />
                     ) : (
                       <ImageIcon size={24} className="text-slate-300" />
                     )}
@@ -498,10 +450,10 @@ export const TrustBadgesPreview = ({
                 {featuredRemaining > 0 && (
                   <div 
                     className="aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer"
-                    style={{ backgroundColor: `${secondary}08`, border: `2px dashed ${secondary}30` }}
+                    style={{ backgroundColor: colors.accentSurface, border: `1px dashed ${colors.accentBorder}` }}
                   >
-                    <Plus size={24} style={{ color: secondary }} />
-                    <span className="text-sm font-bold mt-1" style={{ color: secondary }}>+{featuredRemaining}</span>
+                    <Plus size={24} style={{ color: colors.subheading }} />
+                    <span className="text-sm font-bold mt-1" style={{ color: colors.subheading }}>+{featuredRemaining}</span>
                   </div>
                 )}
               </div>
@@ -519,10 +471,10 @@ export const TrustBadgesPreview = ({
         <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
         <div className="text-xs text-slate-600 dark:text-slate-400">
           {previewStyle === 'grid' && (
-            <p><strong>300×300px</strong> (1:1) • Ảnh vuông, nền trong suốt PNG. Scale up on hover.</p>
+            <p><strong>300×300px</strong> (1:1) • Ảnh vuông, nền trong suốt PNG.</p>
           )}
           {previewStyle === 'cards' && (
-            <p><strong>400×320px</strong> (5:4) • Ảnh chứng nhận rõ ràng, zoom on hover.</p>
+            <p><strong>400×320px</strong> (5:4) • Ảnh chứng nhận rõ ràng.</p>
           )}
           {previewStyle === 'marquee' && (
             <p><strong>200×120px</strong> (5:3) • Logo/badge nhỏ gọn, auto scroll, hover pause.</p>

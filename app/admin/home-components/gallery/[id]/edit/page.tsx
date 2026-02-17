@@ -14,6 +14,7 @@ import { GalleryForm } from '../../_components/GalleryForm';
 import { GalleryPreview } from '../../_components/GalleryPreview';
 import { TrustBadgesPreview } from '../../_components/TrustBadgesPreview';
 import { DEFAULT_GALLERY_ITEMS } from '../../_lib/constants';
+import { getGalleryValidationResult, normalizeGalleryHarmony } from '../../_lib/colors';
 import type { GalleryItem, GalleryStyle, TrustBadgesStyle } from '../../_types';
 
 const TYPE_TITLES: Record<'Gallery' | 'TrustBadges', string> = {
@@ -24,7 +25,7 @@ const TYPE_TITLES: Record<'Gallery' | 'TrustBadges', string> = {
 export default function GalleryEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -34,6 +35,8 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
   const [galleryStyle, setGalleryStyle] = useState<GalleryStyle>('grid');
   const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (!component) {return;}
@@ -51,17 +54,61 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
 
     const config = component.config ?? {};
     const items = (config.items as { url: string; link: string; name?: string }[] | undefined) ?? DEFAULT_GALLERY_ITEMS;
-    setGalleryItems(items.map((item, idx) => ({ id: `item-${idx + 1}`, link: item.link || '', name: item.name ?? '', url: item.url })));
+    const normalizedItems = items.map((item, idx) => ({ id: `item-${idx + 1}`, link: item.link || '', name: item.name ?? '', url: item.url }));
+    setGalleryItems(normalizedItems);
+    const nextTrustBadgesStyle = (config.style as TrustBadgesStyle) || 'cards';
+    const nextGalleryStyle = (config.style as GalleryStyle) || 'grid';
     if (component.type === 'TrustBadges') {
-      setTrustBadgesStyle((config.style as TrustBadgesStyle) || 'cards');
+      setTrustBadgesStyle(nextTrustBadgesStyle);
     } else {
-      setGalleryStyle((config.style as GalleryStyle) || 'grid');
+      setGalleryStyle(nextGalleryStyle);
     }
+    setInitialSnapshot(JSON.stringify({
+      title: component.title,
+      active: component.active,
+      items: normalizedItems,
+      style: component.type === 'TrustBadges' ? nextTrustBadgesStyle : nextGalleryStyle,
+      type: component.type,
+    }));
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!component || !initialSnapshot) {return;}
+    const snapshot = JSON.stringify({
+      title,
+      active,
+      items: galleryItems,
+      style: component.type === 'TrustBadges' ? trustBadgesStyle : galleryStyle,
+      type: component.type,
+    });
+    setHasChanges(snapshot !== initialSnapshot);
+  }, [title, active, galleryItems, galleryStyle, trustBadgesStyle, component, initialSnapshot]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
+
+    const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
+    const { accessibility, harmonyStatus } = getGalleryValidationResult({
+      primary,
+      secondary,
+      mode,
+      harmony,
+    });
+
+    if (mode === 'dual' && harmonyStatus.isTooSimilar) {
+      toast.error(`Không thể lưu Gallery: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
+      return;
+    }
+
+    if (accessibility.failing.length > 0) {
+      const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
+      toast.error(
+        `Không thể lưu Gallery: APCA chưa đạt cho ${failedPairs}. `
+        + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -75,6 +122,14 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
         title,
       });
       toast.success('Đã cập nhật component');
+      setInitialSnapshot(JSON.stringify({
+        title,
+        active,
+        items: galleryItems,
+        style: component?.type === 'TrustBadges' ? trustBadgesStyle : galleryStyle,
+        type: component?.type,
+      }));
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -158,6 +213,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
               selectedStyle={trustBadgesStyle}
               onStyleChange={setTrustBadgesStyle}
             />
@@ -166,6 +222,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
               selectedStyle={galleryStyle}
               onStyleChange={setGalleryStyle}
             />
@@ -177,7 +234,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>
