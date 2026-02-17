@@ -64,7 +64,7 @@ export const FaqPreview = ({
   const resolvedSecondary = resolveFaqSecondary(normalizedPrimary, secondary, mode, harmony);
   const harmonyStatus = getFaqHarmonyStatus(normalizedPrimary, resolvedSecondary);
 
-  const accessibility = getFaqAccessibilityScore([
+  const accessibilityPairs = [
     { background: tokens.sectionBg, text: tokens.heading, fontSize: 32, fontWeight: 700, label: 'heading' },
     { background: tokens.panelBg, text: tokens.panelTitleText, fontSize: 18, fontWeight: 600, label: 'panelTitle' },
     { background: tokens.panelBgMuted, text: tokens.questionText, fontSize: 16, fontWeight: 500, label: 'question' },
@@ -75,10 +75,17 @@ export const FaqPreview = ({
       fontWeight: 500,
       label: 'body',
     },
-    { background: tokens.tabInactiveBg, text: tokens.tabInactiveText, fontSize: 14, fontWeight: 500, label: 'tabInactive' },
-    { background: tokens.tabActiveBg, text: tokens.tabActiveText, fontSize: 14, fontWeight: 600, label: 'tabActive' },
     { background: tokens.ctaBg, text: tokens.ctaText, fontSize: 14, fontWeight: 700, label: 'cta' },
-  ]);
+  ];
+
+  if (style === 'tabbed') {
+    accessibilityPairs.push(
+      { background: tokens.tabInactiveBg, text: tokens.tabInactiveText, fontSize: 14, fontWeight: 500, label: 'tabInactive' },
+      { background: tokens.tabActiveBg, text: tokens.tabActiveText, fontSize: 14, fontWeight: 600, label: 'tabActive' },
+    );
+  }
+
+  const accessibility = getFaqAccessibilityScore(accessibilityPairs);
 
   const accentBalance = calculateFaqAccentBalance(style);
 
