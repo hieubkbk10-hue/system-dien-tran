@@ -151,7 +151,7 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
           </CardContent>
         </Card>
 
-        <FooterForm value={config} onChange={setConfig} secondary={secondary} />
+        <FooterForm value={config} onChange={setConfig} primary={primary} secondary={secondary} mode={brandMode} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>

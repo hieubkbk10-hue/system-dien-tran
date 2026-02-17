@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor, useSiteSettings, useSocialLinks } from './hooks';
+import { useBrandColors, useSiteSettings, useSocialLinks } from './hooks';
+import { getFooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import { Facebook, Github, Globe, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react';
 
 interface SocialLinkItem { id: number; platform: string; url: string; icon: string }
@@ -57,18 +59,8 @@ const SocialIcon = ({ platform, size = 18 }: { platform: string; size?: number }
   }
 };
 
-// Utility: Create shade from brandColor (same as previews.tsx)
-// Multiplies RGB by (1 - percent/100) to keep brand hue while darkening
-const shadeColor = (hex: string, percent: number): string => {
-  const num = Number.parseInt(hex.replace('#', ''), 16);
-  const R = Math.round((num >> 16) * (1 - percent / 100));
-  const G = Math.round((num >> 8 & 0x00_FF) * (1 - percent / 100));
-  const B = Math.round((num & 0x00_00_FF) * (1 - percent / 100));
-  return `#${(0x1_00_00_00 + R * 0x1_00_00 + G * 0x1_00 + B).toString(16).slice(1)}`;
-};
-
 export function DynamicFooter() {
-  const brandColor = useBrandColor();
+  const { primary: brandColor, secondary, mode } = useBrandColors();
   const { siteName, logo: siteLogo } = useSiteSettings();
   const socialLinks = useSocialLinks();
   const components = useQuery(api.homeComponents.listActive);
@@ -111,7 +103,7 @@ export function DynamicFooter() {
   };
 
   // Fallback footer nếu không có Footer component
-  const fallbackBgDark = shadeColor(brandColor, 65);
+  const fallbackBgDark = getFooterLayoutColors('classic', brandColor, secondary, mode as FooterBrandMode).bg;
   if (!footerComponent) {
     return (
       <footer className="text-white" style={{ backgroundColor: fallbackBgDark }}>
@@ -125,50 +117,34 @@ export function DynamicFooter() {
   }
 
   const config = footerComponent.config as FooterConfig;
-  const style = config.style ?? 'classic';
+  const style = (config.style ?? 'classic') as FooterStyle;
   const logo = config.logo ?? siteLogo;
   const socials = getSocials(config);
   const columns = getColumns(config);
-
-  // Background colors from brandColor (same as previews.tsx)
-  const bgDark = shadeColor(brandColor, 65);       // Đậm nhất - nền footer
-  const bgMedium = shadeColor(brandColor, 50);     // Medium - cards/sections
-  const borderColor = shadeColor(brandColor, 30);  // Nhẹ - borders
-
-  // Social media brand colors
-  const socialColors: Record<string, string> = {
-    facebook: '#1877F2',
-    github: '#181717', 
-    instagram: '#E4405F',
-    linkedin: '#0A66C2',
-    tiktok: '#000000',
-    twitter: '#1DA1F2',
-    youtube: '#FF0000',
-    zalo: '#0084FF',
-  };
+  const colors = getFooterLayoutColors(style, brandColor, secondary, mode as FooterBrandMode);
 
   // Style 1: Classic Dark - Standard layout với brand column và menu columns
   if (style === 'classic') {
     return (
-      <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-6">
             
             {/* Brand Column */}
             <div className="lg:col-span-5 space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: bgMedium, border: `1px solid ${borderColor}` }}>
+                <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
                   {logo ? (
                     <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain brightness-110" />
                   ) : (
-                    <div className="h-6 w-6 rounded flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: brandColor }}>
+                    <div className="h-6 w-6 rounded flex items-center justify-center text-sm font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
                       {(siteName ?? 'V').charAt(0)}
                     </div>
                   )}
                 </div>
-                <span className="text-lg font-bold tracking-tight text-white">{siteName ?? 'VietAdmin'}</span>
+                <span className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</span>
               </Link>
-              <p className="text-sm leading-relaxed max-w-sm text-white/80">
+              <p className="text-sm leading-relaxed max-w-sm" style={{ color: colors.textMuted }}>
                 {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}
               </p>
               {config.showSocialLinks !== false && (
@@ -179,8 +155,8 @@ export function DynamicFooter() {
                       href={s.url || '#'} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-6 w-6 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300"
-                      style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}
+                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                     >
                       <SocialIcon platform={s.platform} size={16} />
                     </a>
@@ -193,13 +169,16 @@ export function DynamicFooter() {
             <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-6">
               {columns.slice(0, 2).map((col, colIdx) => (
                 <div key={col.id || `col-${colIdx}`}>
-                  <h3 className="font-semibold text-white text-sm tracking-wide mb-3">{col.title}</h3>
+                  <h3 className="font-semibold text-sm tracking-wide mb-3" style={{ color: colors.heading }}>{col.title}</h3>
                   <ul className="space-y-2">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
                         <Link 
                           href={link.url || '#'} 
-                          className="text-sm hover:text-white transition-colors block text-white/70"
+                          className="text-sm transition-colors block"
+                          style={{ color: colors.textMuted }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
                         >
                           {link.label}
                         </Link>
@@ -211,8 +190,8 @@ export function DynamicFooter() {
             </div>
           </div>
 
-          <div className="mt-8 pt-4" style={{ borderTop: `1px solid ${borderColor}50` }}>
-            <p className="text-xs text-white/60">{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</p>
+          <div className="mt-8 pt-4" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
+            <p className="text-xs" style={{ color: colors.textSubtle }}>{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</p>
           </div>
         </div>
       </footer>
@@ -222,22 +201,22 @@ export function DynamicFooter() {
   // Style 2: Modern Centered - Elegant centered layout
   if (style === 'modern') {
     return (
-      <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark }}>
+      <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
         <div className="container max-w-5xl mx-auto px-4 md:px-6 flex flex-col items-center text-center space-y-5 md:space-y-6">
           
           {/* Brand */}
           <div className="flex flex-col items-center gap-2">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center shadow-lg shadow-black/20 mb-1" style={{ background: `linear-gradient(to top right, ${bgMedium}, ${borderColor})` }}>
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
               {logo ? (
-                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={28} height={28} className="h-7 w-7 object-contain drop-shadow-md" />
+                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={28} height={28} className="h-7 w-7 object-contain" />
               ) : (
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold text-base" style={{ backgroundColor: brandColor }}>
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold text-base" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
             </div>
-            <h2 className="text-lg font-bold text-white tracking-tight">{siteName ?? 'VietAdmin'}</h2>
-            <p className="max-w-md text-sm leading-relaxed text-white/80">
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h2>
+            <p className="max-w-md text-sm leading-relaxed" style={{ color: colors.textMuted }}>
               {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}
             </p>
           </div>
@@ -248,15 +227,17 @@ export function DynamicFooter() {
               <Link 
                 key={i} 
                 href={link.url || '#'} 
-                className="text-sm font-medium hover:text-white hover:underline underline-offset-4 transition-all text-white/70"
-                style={{ textDecorationColor: brandColor }}
+                className="text-sm font-medium underline-offset-4 transition-colors"
+                style={{ color: colors.textMuted, textDecorationColor: colors.primary }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="w-16 h-px" style={{ background: `linear-gradient(to right, transparent, ${borderColor}, transparent)` }}></div>
+          <div className="w-16 h-px" style={{ backgroundColor: colors.dividerGradient }}></div>
 
           {/* Socials */}
           {config.showSocialLinks !== false && (
@@ -267,8 +248,8 @@ export function DynamicFooter() {
                   href={s.url || '#'} 
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-6 w-6 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300"
-                  style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}
+                  className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                 >
                   <SocialIcon platform={s.platform} size={16} />
                 </a>
@@ -276,8 +257,7 @@ export function DynamicFooter() {
             </div>
           )}
 
-          {/* Copyright */}
-          <div className="text-xs font-medium text-white/60">
+          <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
             {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
           </div>
         </div>
@@ -288,20 +268,20 @@ export function DynamicFooter() {
   // Style 3: Corporate Grid - Structured professional layout
   if (style === 'corporate') {
     return (
-      <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           
           {/* Top Row: Logo & Socials */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6" style={{ borderBottom: `1px solid ${borderColor}` }}>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <Link href="/" className="flex items-center gap-2">
               {logo ? (
                 <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain" />
               ) : (
-                <div className="h-6 w-6 rounded flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: brandColor }}>
+                <div className="h-6 w-6 rounded flex items-center justify-center text-sm font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
-              <span className="text-base font-bold text-white">{siteName ?? 'VietAdmin'}</span>
+              <span className="text-base font-bold" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</span>
             </Link>
             {config.showSocialLinks !== false && (
               <div className="flex gap-3">
@@ -311,8 +291,8 @@ export function DynamicFooter() {
                     href={s.url || '#'} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300"
-                    style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}
+                    className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </a>
@@ -324,19 +304,25 @@ export function DynamicFooter() {
           {/* Middle Row: Columns */}
           <div className="py-6 grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="md:col-span-2 md:pr-6">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">Về Công Ty</h4>
-              <p className="text-sm leading-relaxed text-white/80">
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>Về Công Ty</h4>
+              <p className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>
                 {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}
               </p>
             </div>
             
             {columns.slice(0, 2).map((col, colIdx) => (
               <div key={col.id || `col-${colIdx}`}>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>{col.title}</h4>
                 <ul className="space-y-1.5">
                   {col.links.map((link, lIdx) => (
                     <li key={lIdx}>
-                      <Link href={link.url || '#'} className="text-sm hover:text-white transition-colors text-white/70">
+                      <Link
+                        href={link.url || '#'}
+                        className="text-sm transition-colors"
+                        style={{ color: colors.textMuted }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                      >
                         {link.label}
                       </Link>
                     </li>
@@ -346,8 +332,7 @@ export function DynamicFooter() {
             ))}
           </div>
 
-          {/* Bottom Row */}
-          <div className="pt-4 text-xs text-center md:text-left text-white/60">
+          <div className="pt-4 text-xs text-center md:text-left" style={{ color: colors.textSubtle }}>
             {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
           </div>
         </div>
@@ -358,7 +343,7 @@ export function DynamicFooter() {
   // Style 4: Minimal - Compact single row
   if (style === 'minimal') {
     return (
-      <footer className="w-full text-white py-4 md:py-5" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-4 md:py-5" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             
@@ -367,11 +352,11 @@ export function DynamicFooter() {
               {logo ? (
                 <Image src={logo} alt={siteName ?? 'VietAdmin'} width={20} height={20} className="h-5 w-5 opacity-80" />
               ) : (
-                <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: brandColor }}>
+                <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
-              <span className="text-xs font-medium text-white/60">
+              <span className="text-xs font-medium" style={{ color: colors.textSubtle }}>
                 {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
               </span>
             </div>
@@ -385,8 +370,8 @@ export function DynamicFooter() {
                     href={s.url || '#'} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300"
-                    style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}
+                    className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </a>
@@ -402,25 +387,25 @@ export function DynamicFooter() {
   // Style 5: Centered - Logo + social giữa, columns dàn 2 rows
   if (style === 'centered') {
     return (
-      <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark }}>
+      <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
         <div className="container max-w-6xl mx-auto px-4 md:px-6 text-center">
           
           {/* Brand Center */}
           <div className="flex flex-col items-center gap-3 mb-6">
-            <div 
-              className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg"
-              style={{ backgroundColor: `${brandColor}20`, border: `2px solid ${brandColor}40` }}
+            <div
+              className="h-12 w-12 rounded-2xl flex items-center justify-center"
+              style={{ backgroundColor: colors.centeredBrandBg, border: `2px solid ${colors.centeredBrandBorder}` }}
             >
               {logo ? (
                 <Image src={logo} alt={siteName ?? 'VietAdmin'} width={28} height={28} className="h-7 w-7 object-contain" />
               ) : (
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: brandColor }}>
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
             </div>
-            <h2 className="text-lg font-bold text-white tracking-tight">{siteName ?? 'VietAdmin'}</h2>
-            <p className="text-xs leading-relaxed text-white/70 max-w-xs md:max-w-md">
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h2>
+            <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>
               {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
             </p>
           </div>
@@ -429,13 +414,16 @@ export function DynamicFooter() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
             {columns.slice(0, 4).map((col, colIdx) => (
               <div key={col.id || `col-${colIdx}`} className="text-center">
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>{col.title}</h4>
                 <ul className="space-y-1">
                   {col.links.slice(0, 4).map((link, lIdx) => (
                     <li key={lIdx}>
                       <Link 
                         href={link.url || '#'} 
-                        className="text-xs text-white/60 hover:text-white transition-colors inline-block"
+                        className="text-xs transition-colors inline-block"
+                        style={{ color: colors.textMuted }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
                       >
                         {link.label}
                       </Link>
@@ -447,7 +435,7 @@ export function DynamicFooter() {
           </div>
 
           {/* Divider */}
-          <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${brandColor}, transparent)` }}></div>
+          <div className="w-16 h-px mx-auto mb-5" style={{ backgroundColor: colors.dividerGradient }}></div>
 
           {/* Socials Center */}
           {config.showSocialLinks !== false && (
@@ -458,8 +446,8 @@ export function DynamicFooter() {
                   href={s.url || '#'} 
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-8 w-8 flex items-center justify-center rounded-full transition-all hover:scale-110"
-                  style={{ backgroundColor: `${brandColor}20`, border: `1px solid ${brandColor}30`, color: '#fff' }}
+                  className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: colors.centeredSocialText }}
                 >
                   <SocialIcon platform={s.platform} size={16} />
                 </a>
@@ -468,7 +456,7 @@ export function DynamicFooter() {
           )}
 
           {/* Copyright */}
-          <p className="text-[10px] text-white/50">
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
             {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
           </p>
         </div>
@@ -478,37 +466,40 @@ export function DynamicFooter() {
 
   // Style 6: Stacked - Tất cả elements xếp chồng vertical, mobile-first compact (default)
   return (
-    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${brandColor}` }}>
+    <footer className="w-full py-6" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
       <div className="container max-w-4xl mx-auto px-4 md:px-6">
         
         {/* Logo + Description */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
           <div 
             className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: brandColor }}
+            style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}
           >
             {logo ? (
               <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain brightness-110" />
             ) : (
-              <span className="text-white font-bold text-sm">{(siteName ?? 'V').charAt(0)}</span>
+              <span className="font-bold text-sm">{(siteName ?? 'V').charAt(0)}</span>
             )}
           </div>
           <div className="md:flex-1">
-            <h3 className="text-sm font-bold text-white mb-1">{siteName ?? 'VietAdmin'}</h3>
-            <p className="text-xs text-white/70 leading-relaxed line-clamp-2">
+            <h3 className="text-sm font-bold mb-1" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h3>
+            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>
               {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
             </p>
           </div>
         </div>
 
         {/* Links in single row (flat) */}
-        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
+        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${colors.borderSoft}` }}>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2">
             {columns.flatMap(col => col.links).slice(0, 10).map((link, i) => (
               <Link 
                 key={i} 
                 href={link.url || '#'} 
-                className="text-xs font-medium text-white/60 hover:text-white transition-colors"
+                className="text-xs font-medium transition-colors"
+                style={{ color: colors.textMuted }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
               >
                 {link.label}
               </Link>
@@ -526,15 +517,15 @@ export function DynamicFooter() {
                   href={s.url || '#'} 
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-7 w-7 flex items-center justify-center rounded-lg transition-all"
-                  style={{ backgroundColor: `${brandColor}15`, color: '#fff' }}
+                  className="h-7 w-7 flex items-center justify-center rounded-lg transition-colors"
+                  style={{ backgroundColor: colors.stackedSocialBg, color: colors.stackedSocialText }}
                 >
                   <SocialIcon platform={s.platform} size={14} />
                 </a>
               ))}
             </div>
           )}
-          <p className="text-[10px] text-white/50">
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
             {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
           </p>
         </div>

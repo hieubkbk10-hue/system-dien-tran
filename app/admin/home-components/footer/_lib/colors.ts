@@ -118,17 +118,22 @@ export const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_C
 };
 
 export interface FooterLayoutColors {
+  primary: string;
+  secondary: string;
   bg: string;
   surface: string;
   border: string;
   borderSoft: string;
   accent: string;
+  heading: string;
+  textOnPrimary: string;
   textOnAccent: string;
   textPrimary: string;
   textMuted: string;
   textSubtle: string;
   linkHover: string;
   socialBg: string;
+  socialText: string;
   socialIconFallback: string;
   brandGradient: string;
   dividerGradient: string;
@@ -160,15 +165,18 @@ export const getFooterLayoutColors = (
 
   const textPrimary = getAPCATextColor(bg, 14, 700);
   const textVariants = getTextVariants(bg, 12, 500);
+  const textOnPrimary = getAPCATextColor(primaryResolved, 12, 700);
   const textOnAccent = getAPCATextColor(secondaryResolved, 12, 700);
+  const heading = ensureTextContrast(primaryResolved, bg, 14, 700, textPrimary);
   const linkHover = ensureTextContrast(secondaryResolved, bg, 12, 600, textPrimary);
   const socialBg = oklchShift(primaryResolved, primaryResolved, { c: -0.06, l: 0.48 });
+  const socialText = getAPCATextColor(socialBg, 12, 600);
   const socialIconFallback = getAPCATextColor(socialBg, 12, 600);
 
   const centeredStrength = style === 'centered' ? 0.2 : 0.18;
   const stackedStrength = style === 'stacked' ? 0.15 : 0.12;
-  const centeredBrandBg = oklchShift(secondaryResolved, primaryResolved, { c: -0.05, l: centeredStrength });
-  const centeredBrandBorder = oklchShift(secondaryResolved, primaryResolved, { c: -0.03, l: centeredStrength - 0.08 });
+  const centeredBrandBg = oklchShift(primaryResolved, primaryResolved, { c: -0.05, l: centeredStrength });
+  const centeredBrandBorder = oklchShift(primaryResolved, primaryResolved, { c: -0.03, l: centeredStrength - 0.08 });
   const centeredSocialBg = oklchShift(secondaryResolved, primaryResolved, { c: -0.05, l: centeredStrength - 0.04 });
   const centeredSocialBorder = oklchShift(secondaryResolved, primaryResolved, { c: -0.03, l: centeredStrength - 0.1 });
   const centeredSocialText = getAPCATextColor(centeredSocialBg, 12, 600);
@@ -176,17 +184,22 @@ export const getFooterLayoutColors = (
   const stackedSocialText = getAPCATextColor(stackedSocialBg, 12, 600);
 
   return {
+    primary: primaryResolved,
+    secondary: secondaryResolved,
     bg,
     surface,
     border,
     borderSoft,
     accent: secondaryResolved,
+    heading,
+    textOnPrimary,
     textOnAccent,
     textPrimary,
     textMuted: textVariants.muted,
     textSubtle: textVariants.subtle,
     linkHover,
     socialBg,
+    socialText,
     socialIconFallback,
     brandGradient: surface,
     dividerGradient: borderSoft,
@@ -197,7 +210,7 @@ export const getFooterLayoutColors = (
     centeredSocialHoverBg: secondaryResolved,
     centeredSocialHoverBorder: secondaryResolved,
     centeredSocialText,
-    stackedTopBorder: secondaryResolved,
+    stackedTopBorder: primaryResolved,
     stackedSocialBg,
     stackedSocialHoverBg: secondaryResolved,
     stackedSocialText,

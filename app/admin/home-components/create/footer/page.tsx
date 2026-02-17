@@ -43,7 +43,7 @@ export default function FooterCreatePage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
     >
-      <FooterForm value={footerConfig} onChange={setFooterConfig} secondary={secondary} />
+      <FooterForm value={footerConfig} onChange={setFooterConfig} primary={primary} secondary={secondary} mode={brandMode} />
 
       <FooterPreview
         config={footerConfig as any}

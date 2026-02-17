@@ -7,12 +7,15 @@ import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
-import type { FooterConfig, FooterColumn, FooterSocialLink } from '../_types';
+import { getFooterLayoutColors } from '../_lib/colors';
+import type { FooterBrandMode, FooterConfig, FooterColumn, FooterSocialLink } from '../_types';
 
 interface FooterFormProps {
   value: FooterConfig;
   onChange: (next: FooterConfig) => void;
+  primary: string;
   secondary: string;
+  mode: FooterBrandMode;
 }
 
 const SOCIAL_PLATFORMS = [
@@ -31,7 +34,7 @@ const getNextId = (items: Array<{ id?: number | string }>) => {
   return max + 1;
 };
 
-export function FooterForm({ value, onChange, secondary }: FooterFormProps) {
+export function FooterForm({ value, onChange, primary, secondary, mode }: FooterFormProps) {
   const siteLogo = useQuery(api.settings.getByKey, { key: 'site_logo' });
   const socialFacebook = useQuery(api.settings.getByKey, { key: 'social_facebook' });
   const socialInstagram = useQuery(api.settings.getByKey, { key: 'social_instagram' });
@@ -53,6 +56,8 @@ export function FooterForm({ value, onChange, secondary }: FooterFormProps) {
   const [dragOverColumnId, setDragOverColumnId] = useState<number | string | null>(null);
   const [draggedSocialId, setDraggedSocialId] = useState<number | string | null>(null);
   const [dragOverSocialId, setDragOverSocialId] = useState<number | string | null>(null);
+
+  const colors = useMemo(() => getFooterLayoutColors(value.style ?? 'classic', primary, secondary, mode), [mode, primary, secondary, value.style]);
 
   const updateConfig = (patch: Partial<FooterConfig>) => {
     onChange({ ...value, ...patch });
@@ -273,9 +278,9 @@ export function FooterForm({ value, onChange, secondary }: FooterFormProps) {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${secondary}10` }}
+                style={{ backgroundColor: colors.surface, border: `1px solid ${colors.borderSoft}` }}
               >
-                <LayoutGrid size={24} style={{ color: secondary }} />
+                <LayoutGrid size={24} style={{ color: colors.accent }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có cột menu</h3>
               <p className="text-sm text-slate-500 mb-3">Nhấn “Thêm cột” để tạo menu footer</p>
@@ -383,9 +388,9 @@ export function FooterForm({ value, onChange, secondary }: FooterFormProps) {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${secondary}10` }}
+                style={{ backgroundColor: colors.surface, border: `1px solid ${colors.borderSoft}` }}
               >
-                <Share2 size={24} style={{ color: secondary }} />
+                <Share2 size={24} style={{ color: colors.accent }} />
               </div>
               <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có mạng xã hội</h3>
               <p className="text-sm text-slate-500 mb-3">Thêm MXH hoặc load từ Settings</p>

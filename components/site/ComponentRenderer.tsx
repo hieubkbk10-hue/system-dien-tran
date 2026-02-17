@@ -8983,11 +8983,6 @@ function FooterSection({
   const showSocialLinks = config.showSocialLinks !== false;
   const colors: FooterLayoutColors = getFooterLayoutColors(style, brandColor, secondary, mode);
 
-  const socialColors: Record<string, string> = {
-    facebook: '#1877F2', instagram: '#E4405F', linkedin: '#0A66C2',
-    tiktok: '#000000', twitter: '#1DA1F2', youtube: '#FF0000', zalo: '#0084FF'
-  };
-
   // Social icons
   const renderSocialIcon = (platform: string, size: number = 18) => {
     switch (platform) {
@@ -9031,9 +9026,9 @@ function FooterSection({
             <div className="md:col-span-5 space-y-3 text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
-                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
                 </div>
-                <span className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</span>
+                <span className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</span>
               </div>
               <p className="text-xs leading-relaxed md:max-w-sm" style={{ color: colors.textMuted }}>{description}</p>
               {showSocialLinks && (
@@ -9043,7 +9038,7 @@ function FooterSection({
                       key={`${s.id ?? 'social'}-${i}`}
                       href={s.url}
                       className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
-                      style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                      style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                     >
                       {renderSocialIcon(s.platform, 14)}
                     </a>
@@ -9054,7 +9049,7 @@ function FooterSection({
             <div className="md:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-5 text-center md:text-left">
               {getColumns().slice(0, 3).map((col, i) => (
                 <div key={`${col.id ?? 'col'}-${i}`}>
-                  <h3 className="font-semibold text-xs tracking-wide mb-2" style={{ color: colors.textPrimary }}>{col.title}</h3>
+                  <h3 className="font-semibold text-xs tracking-wide mb-2" style={{ color: colors.heading }}>{col.title}</h3>
                   <ul className="space-y-1.5">
                     {col.links.map((link, j) => (
                       <li key={j}>
@@ -9088,9 +9083,9 @@ function FooterSection({
         <div className="max-w-5xl mx-auto px-3 md:px-4 flex flex-col items-center text-center space-y-3 md:space-y-4">
           <div className="flex flex-col items-center gap-2">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
             </div>
-            <h2 className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
             <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-x-3 md:gap-x-4 gap-y-1.5">
@@ -9099,7 +9094,7 @@ function FooterSection({
                 key={i}
                 href={link.url}
                 className="text-xs font-medium underline-offset-4 transition-colors"
-                style={{ color: colors.textMuted, textDecorationColor: colors.accent }}
+                style={{ color: colors.textMuted, textDecorationColor: colors.primary }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
               >
@@ -9115,7 +9110,7 @@ function FooterSection({
                   key={`${s.id ?? 'social'}-${i}`}
                   href={s.url}
                   className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
-                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                  style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                 >
                   {renderSocialIcon(s.platform, 14)}
                 </a>
@@ -9134,8 +9129,8 @@ function FooterSection({
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <div className="flex items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
-              <span className="text-sm font-bold" style={{ color: colors.textPrimary }}>VietAdmin</span>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+              <span className="text-sm font-bold" style={{ color: colors.heading }}>VietAdmin</span>
             </div>
             {showSocialLinks && (
               <div className="flex gap-2">
@@ -9144,7 +9139,7 @@ function FooterSection({
                     key={`${s.id ?? 'social'}-${i}`}
                     href={s.url}
                     className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                   >
                     {renderSocialIcon(s.platform, 12)}
                   </a>
@@ -9154,12 +9149,12 @@ function FooterSection({
           </div>
           <div className="py-5 grid grid-cols-1 md:grid-cols-4 gap-5 text-center md:text-left">
             <div className="md:col-span-2 md:pr-4">
-              <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>Về Công Ty</h4>
+              <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>Về Công Ty</h4>
               <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{description}</p>
             </div>
             {getColumns().slice(0, 2).map((col, i) => (
               <div key={`${col.id ?? 'col'}-${i}`}>
-                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>{col.title}</h4>
                 <ul className="space-y-1">
                   {col.links.map((link, j) => (
                     <li key={j}>
@@ -9192,7 +9187,7 @@ function FooterSection({
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
               <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{copyright}</span>
             </div>
             {showSocialLinks && (
@@ -9202,7 +9197,7 @@ function FooterSection({
                   key={`${s.id ?? 'social'}-${i}`}
                   href={s.url}
                   className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
-                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                  style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
                 >
                   {renderSocialIcon(s.platform, 12)}
                 </a>
@@ -9221,24 +9216,24 @@ function FooterSection({
         <div className="max-w-6xl mx-auto px-3 md:px-4 text-center">
           <div className="flex flex-col items-center gap-3 mb-6">
           <div className="h-12 w-12 rounded-2xl flex items-center justify-center border" style={{ backgroundColor: colors.centeredBrandBg, borderColor: colors.centeredBrandBorder }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
             </div>
-            <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
             <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
             {getColumns().slice(0, 4).map((col, i) => (
               <div key={`${col.id ?? 'col'}-${i}`} className="text-center">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.heading }}>{col.title}</h4>
                 <ul className="space-y-1">
                   {col.links.slice(0, 4).map((link, j) => (
                     <li key={j}>
                       <a
                         href={link.url}
                         className="text-xs transition-colors"
-                        style={{ color: colors.textSubtle }}
+                        style={{ color: colors.textMuted }}
                         onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
                       >
                         {link.label}
                       </a>
@@ -9283,24 +9278,24 @@ function FooterSection({
     <footer className="w-full py-6" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
             {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" /> : <span className="font-bold text-sm">V</span>}
           </div>
           <div className="md:flex-1">
-            <h3 className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }}>VietAdmin</h3>
+            <h3 className="text-sm font-bold mb-1" style={{ color: colors.heading }}>VietAdmin</h3>
             <p className="text-xs leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>{description}</p>
           </div>
         </div>
-        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
+        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${colors.borderSoft}` }}>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 md:gap-x-4 gap-y-2">
             {getColumns().flatMap(col => col.links).slice(0, 10).map((link, i) => (
               <a
                 key={i}
                 href={link.url}
                 className="text-xs font-medium transition-colors"
-                style={{ color: colors.textSubtle }}
+                style={{ color: colors.textMuted }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
               >
                 {link.label}
               </a>
