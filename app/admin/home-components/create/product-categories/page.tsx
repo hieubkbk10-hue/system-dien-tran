@@ -7,7 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { ProductCategoriesPreview } from '../../product-categories/_components/ProductCategoriesPreview';
-import type { ProductCategoriesStyle } from '../../product-categories/_types';
+import type { ProductCategoriesBrandMode, ProductCategoriesStyle } from '../../product-categories/_types';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 
 interface CategoryItem {
@@ -20,7 +20,9 @@ interface CategoryItem {
 export default function ProductCategoriesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', 'ProductCategories');
   const { primary, secondary } = useBrandColors();
-  
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode: ProductCategoriesBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+
   const categoriesData = useQuery(api.productCategories.listActive);
   
   const [selectedCategories, setSelectedCategories] = useState<CategoryItem[]>([]);
@@ -257,7 +259,9 @@ export default function ProductCategoriesCreatePage() {
           showProductCount,
           style,
         }}
-        brandColor={primary} secondary={secondary}
+        brandColor={primary}
+        secondary={secondary}
+        mode={brandMode}
         selectedStyle={style}
         onStyleChange={setStyle}
         categoriesData={availableCategories}

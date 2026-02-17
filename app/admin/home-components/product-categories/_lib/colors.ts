@@ -2,6 +2,7 @@
 
 import { APCAcontrast } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
+import type { ProductCategoriesBrandMode } from '../_types';
 
 export interface BrandPalette {
   solid: string;
@@ -54,6 +55,14 @@ export interface ProductCategoriesColors {
   };
 }
 
+const DEFAULT_BRAND_COLOR = '#3b82f6';
+
+const isNonEmptyColor = (value: string) => value.trim().length > 0;
+
+const safeParseOklch = (input: string, fallback: string) => (
+  oklch(input) ?? oklch(fallback) ?? oklch(DEFAULT_BRAND_COLOR)
+);
+
 const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = Math.abs(APCAcontrast('#ffffff', bg));
   const blackLc = Math.abs(APCAcontrast('#000000', bg));
@@ -64,31 +73,43 @@ const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   return whiteLc > blackLc ? '#ffffff' : '#0f172a';
 };
 
-const toOklchString = (hex: string, alpha = 1) => {
-  const color = oklch(hex);
+const toOklchString = (hex: string, alpha = 1, fallback = DEFAULT_BRAND_COLOR) => {
+  const color = safeParseOklch(hex, fallback);
   const l = Math.max(0, Math.min(color.l ?? 0, 1));
   const c = Math.max(0, Math.min(color.c ?? 0, 0.4));
   const h = Number.isFinite(color.h) ? color.h : 0;
   return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${alpha})`;
 };
 
-const generatePalette = (hex: string): BrandPalette => {
-  const color = oklch(hex);
+const generatePalette = (hex: string, fallback = DEFAULT_BRAND_COLOR): BrandPalette => {
+  const solid = isNonEmptyColor(hex) ? hex : fallback;
+  const color = safeParseOklch(solid, fallback);
+
   return {
-    solid: hex,
-    surface: formatHex(oklch({ ...color, l: Math.min(color.l + 0.4, 0.98) })),
-    hover: formatHex(oklch({ ...color, l: Math.max(color.l - 0.1, 0.1) })),
-    active: formatHex(oklch({ ...color, l: Math.max(color.l - 0.15, 0.08) })),
-    border: formatHex(oklch({ ...color, l: Math.min(color.l + 0.3, 0.92) })),
-    disabled: formatHex(oklch({ ...color, l: Math.min(color.l + 0.25, 0.9), c: color.c * 0.5 })),
-    textOnSolid: getAPCATextColor(hex, 16, 500),
-    textInteractive: formatHex(oklch({ ...color, l: Math.max(color.l - 0.25, 0.2) })),
+    solid,
+    surface: formatHex(oklch({ ...color, l: Math.min((color.l ?? 0) + 0.4, 0.98) })),
+    hover: formatHex(oklch({ ...color, l: Math.max((color.l ?? 0) - 0.1, 0.1) })),
+    active: formatHex(oklch({ ...color, l: Math.max((color.l ?? 0) - 0.15, 0.08) })),
+    border: formatHex(oklch({ ...color, l: Math.min((color.l ?? 0) + 0.3, 0.92) })),
+    disabled: formatHex(oklch({ ...color, l: Math.min((color.l ?? 0) + 0.25, 0.9), c: (color.c ?? 0) * 0.5 })),
+    textOnSolid: getAPCATextColor(solid, 16, 500),
+    textInteractive: formatHex(oklch({ ...color, l: Math.max((color.l ?? 0) - 0.25, 0.2) })),
   };
 };
 
-export const getProductCategoriesColors = (primary: string, secondary: string): ProductCategoriesColors => {
+const resolveSecondaryForMode = (primary: string, secondary: string, mode: ProductCategoriesBrandMode) => {
+  if (mode === 'single') {return primary;}
+  return isNonEmptyColor(secondary) ? secondary : primary;
+};
+
+export const getProductCategoriesColors = (
+  primary: string,
+  secondary: string,
+  mode: ProductCategoriesBrandMode
+): ProductCategoriesColors => {
   const primaryPalette = generatePalette(primary);
-  const secondaryPalette = generatePalette(secondary);
+  const secondaryResolved = resolveSecondaryForMode(primaryPalette.solid, secondary, mode);
+  const secondaryPalette = generatePalette(secondaryResolved, primaryPalette.solid);
   const neutral = {
     background: '#f8fafc',
     surface: '#ffffff',

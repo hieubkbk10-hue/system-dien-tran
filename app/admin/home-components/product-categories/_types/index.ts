@@ -1,6 +1,7 @@
 'use client';
 
 export type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'marquee' | 'circular';
+export type ProductCategoriesBrandMode = 'single' | 'dual';
 
 export interface CategoryConfigItem {
   id: number;

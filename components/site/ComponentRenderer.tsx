@@ -163,7 +163,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <SpeedDialSection config={config} brandColor={brandColor} secondary={secondary} />;
     }
     case 'ProductCategories': {
-      return <ProductCategoriesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <ProductCategoriesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'CategoryProducts': {
       return <CategoryProductsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -5182,15 +5182,15 @@ import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 
 type ProductCategoriesStyle = 'grid' | 'carousel' | 'cards' | 'minimal' | 'marquee' | 'circular';
 
-function ProductCategoriesSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
+function ProductCategoriesSection({ config, brandColor, secondary, mode, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; mode: 'single' | 'dual'; title: string }) {
   const categoriesConfig = (config.categories as { categoryId: string; customImage?: string; imageMode?: string }[]) || [];
   const style = (config.style as ProductCategoriesStyle) || 'grid';
   const productCatCarouselId = useSafeId('productcat-carousel');
   const showProductCount = (config.showProductCount as boolean) ?? true;
   const columnsDesktop = (config.columnsDesktop as number) || 4;
   const columnsMobile = (config.columnsMobile as number) || 2;
-  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary), [brandColor, secondary]);
+  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
   const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const circularScrollRef = React.useRef<HTMLDivElement>(null);
   const [circularScrollPosition, setCircularScrollPosition] = React.useState(0);

@@ -12,12 +12,18 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ProductCategoriesForm } from '../../_components/ProductCategoriesForm';
 import { ProductCategoriesPreview } from '../../_components/ProductCategoriesPreview';
-import type { CategoryConfigItem, ProductCategoriesStyle } from '../../_types';
+import type {
+  CategoryConfigItem,
+  ProductCategoriesBrandMode,
+  ProductCategoriesStyle,
+} from '../../_types';
 
 export default function ProductCategoriesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode: ProductCategoriesBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
   const productCategoriesData = useQuery(api.productCategories.listActive);
@@ -25,6 +31,16 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    categories: CategoryConfigItem[];
+    style: ProductCategoriesStyle;
+    showProductCount: boolean;
+    columnsDesktop: number;
+    columnsMobile: number;
+  } | null>(null);
 
   const [productCategoriesItems, setProductCategoriesItems] = useState<CategoryConfigItem[]>([]);
   const [productCategoriesStyle, setProductCategoriesStyle] = useState<ProductCategoriesStyle>('grid');
@@ -43,18 +59,59 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
       setActive(component.active);
 
       const config = component.config ?? {};
-      setProductCategoriesItems(config.categories?.map((c: { categoryId: string; customImage?: string; imageMode?: string }, i: number) => ({
+      const categories = config.categories?.map((c: { categoryId: string; customImage?: string; imageMode?: string }, i: number) => ({
         categoryId: c.categoryId,
         customImage: c.customImage ?? '',
         id: i,
         imageMode: (c.imageMode as 'product-image' | 'default' | 'icon' | 'upload' | 'url') || 'default'
-      })) ?? []);
-      setProductCategoriesStyle((config.style as ProductCategoriesStyle) || 'grid');
-      setProductCategoriesShowCount(config.showProductCount ?? true);
-      setProductCategoriesColsDesktop(config.columnsDesktop ?? 4);
-      setProductCategoriesColsMobile(config.columnsMobile ?? 2);
+      })) ?? [];
+      const style = (config.style as ProductCategoriesStyle) || 'grid';
+      const showProductCount = config.showProductCount ?? true;
+      const columnsDesktop = config.columnsDesktop ?? 4;
+      const columnsMobile = config.columnsMobile ?? 2;
+
+      setProductCategoriesItems(categories);
+      setProductCategoriesStyle(style);
+      setProductCategoriesShowCount(showProductCount);
+      setProductCategoriesColsDesktop(columnsDesktop);
+      setProductCategoriesColsMobile(columnsMobile);
+      setInitialData({
+        title: component.title,
+        active: component.active,
+        categories,
+        style,
+        showProductCount,
+        columnsDesktop,
+        columnsMobile,
+      });
+      setHasChanges(false);
     }
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const currentCategories = JSON.stringify(productCategoriesItems);
+    const initialCategories = JSON.stringify(initialData.categories);
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || currentCategories !== initialCategories
+      || productCategoriesStyle !== initialData.style
+      || productCategoriesShowCount !== initialData.showProductCount
+      || productCategoriesColsDesktop !== initialData.columnsDesktop
+      || productCategoriesColsMobile !== initialData.columnsMobile;
+
+    setHasChanges(changed);
+  }, [
+    title,
+    active,
+    productCategoriesItems,
+    productCategoriesStyle,
+    productCategoriesShowCount,
+    productCategoriesColsDesktop,
+    productCategoriesColsMobile,
+    initialData,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +136,16 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
         title,
       });
       toast.success('Đã cập nhật danh mục sản phẩm');
+      setInitialData({
+        title,
+        active,
+        categories: productCategoriesItems,
+        style: productCategoriesStyle,
+        showProductCount: productCategoriesShowCount,
+        columnsDesktop: productCategoriesColsDesktop,
+        columnsMobile: productCategoriesColsMobile,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -170,6 +237,7 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
               }}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
               selectedStyle={productCategoriesStyle}
               onStyleChange={setProductCategoriesStyle}
               categoriesData={productCategoriesData ?? []}
@@ -181,8 +249,8 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

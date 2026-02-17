@@ -12,12 +12,18 @@ import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDe
 import { getCategoryIcon } from '@/app/admin/components/CategoryImageSelector';
 import { PRODUCT_CATEGORIES_STYLES } from '../_lib/constants';
 import { getProductCategoriesColors } from '../_lib/colors';
-import type { CategoryData, ProductCategoriesConfig, ProductCategoriesStyle } from '../_types';
+import type {
+  CategoryData,
+  ProductCategoriesBrandMode,
+  ProductCategoriesConfig,
+  ProductCategoriesStyle,
+} from '../_types';
 
 export const ProductCategoriesPreview = ({ 
   config, 
   brandColor, 
   secondary,
+  mode,
   selectedStyle, 
   onStyleChange,
   categoriesData
@@ -25,6 +31,7 @@ export const ProductCategoriesPreview = ({
   config: ProductCategoriesConfig;
   brandColor: string;
   secondary: string;
+  mode: ProductCategoriesBrandMode;
   selectedStyle?: ProductCategoriesStyle;
   onStyleChange?: (style: ProductCategoriesStyle) => void;
   categoriesData: CategoryData[];
@@ -34,7 +41,7 @@ export const ProductCategoriesPreview = ({
   const isTablet = device === 'tablet';
   const previewStyle = (selectedStyle ?? config.style) || 'grid';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as ProductCategoriesStyle);
-  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary), [brandColor, secondary]);
+  const colors = React.useMemo(() => getProductCategoriesColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
   const [isCircularDown, setIsCircularDown] = useState(false);
   const [isCircularDragging, setIsCircularDragging] = useState(false);
   const [circularStartX, setCircularStartX] = useState(0);
