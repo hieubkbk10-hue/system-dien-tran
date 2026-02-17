@@ -225,7 +225,7 @@ export const resolveFaqSecondary = (
   mode: FaqBrandMode,
   harmony: FaqHarmony = 'analogous',
 ) => {
-  if (mode === 'single') {return primary;}
+  if (mode === 'single') {return getFaqHarmonyFallback(primary, normalizeHarmony(harmony));}
 
   const trimmedSecondary = secondary.trim();
   if (trimmedSecondary && isValidHexColor(trimmedSecondary)) {return trimmedSecondary;}
@@ -329,7 +329,7 @@ export const getFaqColors = ({
     timelineDotBorder: secondaryPalette.solid,
     timelineDotBg: '#ffffff',
     tabActiveBg: secondaryPalette.solid,
-    tabActiveText: secondaryPalette.textOnSolid,
+    tabActiveText: getAPCATextColor(secondaryPalette.solid, 14, 500),
     tabInactiveBg: '#f1f5f9',
     tabInactiveText: ensureAPCATextColor('#475569', '#f1f5f9', 14, 500),
     tabOverflowText: ensureAPCATextColor('#94a3b8', '#ffffff', 14, 500),
@@ -399,7 +399,7 @@ export const getFaqColors = ({
       questionText: ensureAPCATextColor(base.questionText, panelMuted, 16, 500),
       panelTitleText: ensureAPCATextColor(base.panelTitleText, panelBg, 18, 600),
       tabActiveBg: secondaryPalette.solid,
-      tabActiveText: secondaryPalette.textOnSolid,
+      tabActiveText: getAPCATextColor(secondaryPalette.solid, 14, 500),
       tabInactiveBg: '#f1f5f9',
       tabInactiveText: ensureAPCATextColor('#475569', '#f1f5f9', 14, 500),
       tabOverflowText: ensureAPCATextColor('#94a3b8', '#ffffff', 14, 500),
