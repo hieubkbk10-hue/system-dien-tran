@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { cn } from '../../../components/ui';
+import { normalizeCTAStyle } from '../_lib/constants';
 import type { CTAStyleTokens } from '../_lib/colors';
 import type { CTAConfig, CTAStyle } from '../_types';
 
@@ -27,6 +28,7 @@ const getValue = (value?: string) => {
 const buttonBaseClass = 'inline-flex min-h-[44px] items-center justify-center rounded-lg px-5 py-2.5 text-sm font-bold transition-colors duration-200';
 
 export function CTASectionShared({ config, style, tokens, context }: CTASectionSharedProps) {
+  const normalizedStyle = normalizeCTAStyle(style);
   const HeadingTag = context === 'site' ? 'h2' : 'h3';
 
   const badge = getValue(config.badge);
@@ -79,7 +81,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     </span>
   ) : null;
 
-  if (style === 'banner') {
+  if (normalizedStyle === 'banner') {
     return (
       <section className={cn('py-10 md:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 md:flex-row md:gap-8">
@@ -101,7 +103,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     );
   }
 
-  if (style === 'centered') {
+  if (normalizedStyle === 'centered') {
     return (
       <section className={cn('py-12 md:py-16', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
         <div className="mx-auto max-w-3xl text-center">
@@ -121,7 +123,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     );
   }
 
-  if (style === 'split') {
+  if (normalizedStyle === 'split') {
     return (
       <section className={cn('bg-slate-50 py-10 md:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
         <div
@@ -153,7 +155,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     );
   }
 
-  if (style === 'floating') {
+  if (normalizedStyle === 'floating') {
     return (
       <section className={cn('bg-slate-50 py-10 md:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
         <div className="mx-auto max-w-5xl">
@@ -186,7 +188,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     );
   }
 
-  if (style === 'gradient') {
+  if (normalizedStyle === 'gradient') {
     return (
       <section className={cn('py-12 md:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
         <div className="mx-auto max-w-3xl text-center">

@@ -2,9 +2,12 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { CTAHarmony, CTAStyle } from '../_types';
+import type { CTAConfig, CTAHarmony, CTAStyle } from '../_types';
+import { normalizeCTAHarmony, normalizeCTAStyle } from './constants';
 
 type BrandMode = 'single' | 'dual';
+
+const DEFAULT_BRAND_COLOR = '#3b82f6';
 
 interface Palette {
   solid: string;
@@ -64,6 +67,17 @@ export interface CTAAccentBalance {
 
 const clampLightness = (value: number) => Math.min(Math.max(value, 0.08), 0.98);
 
+const isNonEmptyColor = (value: string) => value.trim().length > 0;
+
+const safeParseOklch = (value: string, fallback: string) => (
+  oklch(value) ?? oklch(fallback) ?? oklch(DEFAULT_BRAND_COLOR)
+);
+
+const normalizeHex = (value: string, fallback: string) => {
+  const candidate = isNonEmptyColor(value) ? value.trim() : fallback;
+  return formatHex(safeParseOklch(candidate, fallback));
+};
+
 const hexToRgb = (hex: string): [number, number, number] | null => {
   const cleaned = hex.trim().replace('#', '');
   if (cleaned.length !== 6 && cleaned.length !== 8) {return null;}
@@ -87,8 +101,8 @@ const getAPCALc = (textHex: string, backgroundHex: string) => {
   return Number.isFinite(lc) ? lc : 0;
 };
 
-const getOKLCH = (hex: string) => {
-  const parsed = oklch(hex);
+const getOKLCH = (hex: string, fallback = DEFAULT_BRAND_COLOR) => {
+  const parsed = safeParseOklch(hex, fallback);
   return {
     l: parsed.l ?? 0.6,
     c: parsed.c ?? 0.12,
@@ -138,22 +152,24 @@ const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fo
   return whiteMin > blackMin ? '#ffffff' : '#0f172a';
 };
 
-export const generatePalette = (hex: string): Palette => {
-  const color = getOKLCH(hex);
+export const generatePalette = (hex: string, fallback = DEFAULT_BRAND_COLOR): Palette => {
+  const solid = normalizeHex(hex, fallback);
+  const color = getOKLCH(solid, fallback);
   return {
-    solid: hex,
+    solid,
     surface: formatHex(oklch({ ...color, l: clampLightness(color.l + 0.38) })),
     hover: formatHex(oklch({ ...color, l: clampLightness(color.l - 0.08) })),
     active: formatHex(oklch({ ...color, l: clampLightness(color.l - 0.14) })),
     border: formatHex(oklch({ ...color, l: clampLightness(color.l + 0.28), c: color.c * 0.9 })),
     disabled: formatHex(oklch({ ...color, l: clampLightness(color.l + 0.22), c: color.c * 0.55 })),
-    textOnSolid: getAPCATextColor(hex, 16, 600),
+    textOnSolid: getAPCATextColor(solid, 16, 600),
     textInteractive: formatHex(oklch({ ...color, l: clampLightness(color.l - 0.26), c: color.c * 0.92 })),
   };
 };
 
 export const getAnalogous = (hex: string): [string, string] => {
-  const color = getOKLCH(hex);
+  const primary = normalizeHex(hex, DEFAULT_BRAND_COLOR);
+  const color = getOKLCH(primary, DEFAULT_BRAND_COLOR);
   return [
     formatHex(oklch({ ...color, h: (color.h + 30) % 360 })),
     formatHex(oklch({ ...color, h: (color.h - 30 + 360) % 360 })),
@@ -161,12 +177,14 @@ export const getAnalogous = (hex: string): [string, string] => {
 };
 
 export const getComplementary = (hex: string) => {
-  const color = getOKLCH(hex);
+  const primary = normalizeHex(hex, DEFAULT_BRAND_COLOR);
+  const color = getOKLCH(primary, DEFAULT_BRAND_COLOR);
   return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
 };
 
 export const getTriadic = (hex: string): [string, string] => {
-  const color = getOKLCH(hex);
+  const primary = normalizeHex(hex, DEFAULT_BRAND_COLOR);
+  const color = getOKLCH(primary, DEFAULT_BRAND_COLOR);
   return [
     formatHex(oklch({ ...color, h: (color.h + 120) % 360 })),
     formatHex(oklch({ ...color, h: (color.h - 120 + 360) % 360 })),
@@ -179,18 +197,25 @@ export const resolveSecondaryColor = (
   mode: BrandMode,
   harmony: CTAHarmony,
 ) => {
+  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const harmonyNormalized = normalizeCTAHarmony(harmony);
+
   if (mode === 'single') {
-    if (harmony === 'complementary') {return getComplementary(primary);}
-    if (harmony === 'triadic') {return getTriadic(primary)[0];}
-    return getAnalogous(primary)[0];
+    if (harmonyNormalized === 'complementary') {return getComplementary(primaryNormalized);}
+    if (harmonyNormalized === 'triadic') {return getTriadic(primaryNormalized)[0];}
+    return getAnalogous(primaryNormalized)[0];
   }
-  return secondary;
+
+  return normalizeHex(secondary, primaryNormalized);
 };
 
 export const getHarmonyStatus = (primary: string, secondary: string): CTAHarmonyStatus => {
-  const delta = differenceEuclidean('oklch')(primary, secondary);
-  const similarity = 1 - Math.min(delta, 1);
-  const deltaE = Math.round(delta * 100);
+  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const secondaryNormalized = normalizeHex(secondary, primaryNormalized);
+  const delta = differenceEuclidean('oklch')(primaryNormalized, secondaryNormalized);
+  const safeDelta = Number.isFinite(delta) ? delta : 1;
+  const similarity = 1 - Math.min(safeDelta, 1);
+  const deltaE = Math.round(safeDelta * 100);
   return {
     deltaE,
     similarity,
@@ -217,6 +242,68 @@ export const getCTAAccessibilityScore = (pairs: CTAAccessibilityPair[]): CTAAcce
   return {
     minLc: Number.isFinite(minLc) ? minLc : 0,
     failing,
+  };
+};
+
+export const getCTAValidationResult = ({
+  config,
+  primary,
+  secondary,
+  mode,
+  harmony,
+  style,
+}: {
+  config: CTAConfig;
+  primary: string;
+  secondary: string;
+  mode: BrandMode;
+  harmony: CTAHarmony;
+  style: CTAStyle;
+}) => {
+  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const styleNormalized = normalizeCTAStyle(style);
+  const harmonyNormalized = normalizeCTAHarmony(harmony);
+
+  const tokens = getCTAColors({
+    primary: primaryNormalized,
+    secondary,
+    mode,
+    harmony: harmonyNormalized,
+    style: styleNormalized,
+  });
+
+  const resolvedSecondary = resolveSecondaryColor(primaryNormalized, secondary, mode, harmonyNormalized);
+  const harmonyStatus = getHarmonyStatus(primaryNormalized, resolvedSecondary);
+  const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient') ? primaryNormalized : tokens.sectionBg;
+  const secondaryButtonBgForCheck = !tokens.secondaryButtonBg || tokens.secondaryButtonBg === 'transparent'
+    ? sectionBgForCheck
+    : tokens.secondaryButtonBg;
+
+  const hasBadge = Boolean(config.badge?.trim());
+  const hasSecondaryButton = Boolean(config.secondaryButtonText?.trim());
+  const descriptionFontSize = styleNormalized === 'banner' ? 18 : 16;
+
+  const accessibilityPairs: CTAAccessibilityPair[] = [
+    { background: sectionBgForCheck, text: tokens.title, fontSize: 32, fontWeight: 700, label: 'title' },
+    { background: sectionBgForCheck, text: tokens.description, fontSize: descriptionFontSize, fontWeight: 500, label: 'description' },
+    { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 700, label: 'primaryButton' },
+  ];
+
+  if (hasBadge) {
+    accessibilityPairs.push({ background: tokens.badgeBg, text: tokens.badgeText, fontSize: 12, fontWeight: 600, label: 'badge' });
+  }
+
+  if (hasSecondaryButton) {
+    accessibilityPairs.push({ background: secondaryButtonBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 700, label: 'secondaryButton' });
+  }
+
+  const accessibility = getCTAAccessibilityScore(accessibilityPairs);
+
+  return {
+    accessibility,
+    harmonyStatus,
+    resolvedSecondary,
+    tokens,
   };
 };
 
@@ -247,8 +334,8 @@ export const getCTAAccentBalance = (style: CTAStyle): CTAAccentBalance => {
 const applyAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
 
 const getGradientBg = (from: string, to: string) => {
-  const fromColor = getOKLCH(from);
-  const toColor = getOKLCH(to);
+  const fromColor = getOKLCH(from, DEFAULT_BRAND_COLOR);
+  const toColor = getOKLCH(to, from);
   const fromTint = formatHex(oklch({ ...fromColor, l: clampLightness(fromColor.l + 0.12), c: fromColor.c * 0.85 }));
   const toTint = formatHex(oklch({ ...toColor, l: clampLightness(toColor.l + 0.1), c: toColor.c * 0.85 }));
   return `linear-gradient(135deg, ${fromTint} 0%, ${toTint} 100%)`;
@@ -267,9 +354,12 @@ export const getCTAColors = ({
   harmony?: CTAHarmony;
   style: CTAStyle;
 }): CTAStyleTokens => {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
-  const primaryPalette = generatePalette(primary);
-  const secondaryPalette = generatePalette(secondaryColor);
+  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const styleNormalized = normalizeCTAStyle(style);
+  const harmonyNormalized = normalizeCTAHarmony(harmony);
+  const secondaryColor = resolveSecondaryColor(primaryNormalized, secondary, mode, harmonyNormalized);
+  const primaryPalette = generatePalette(primaryNormalized);
+  const secondaryPalette = generatePalette(secondaryColor, primaryPalette.solid);
 
   const base: CTAStyleTokens = {
     sectionBg: '#ffffff',
@@ -290,7 +380,7 @@ export const getCTAColors = ({
     accentLine: secondaryPalette.solid,
   };
 
-  if (style === 'banner') {
+  if (styleNormalized === 'banner') {
     return {
       ...base,
       sectionBg: primaryPalette.solid,
@@ -317,7 +407,7 @@ export const getCTAColors = ({
     };
   }
 
-  if (style === 'centered') {
+  if (styleNormalized === 'centered') {
     return {
       ...base,
       sectionBg: '#ffffff',
@@ -329,7 +419,7 @@ export const getCTAColors = ({
     };
   }
 
-  if (style === 'split') {
+  if (styleNormalized === 'split') {
     return {
       ...base,
       sectionBg: '#f8fafc',
@@ -341,7 +431,7 @@ export const getCTAColors = ({
     };
   }
 
-  if (style === 'floating') {
+  if (styleNormalized === 'floating') {
     return {
       ...base,
       sectionBg: '#f8fafc',
@@ -351,7 +441,7 @@ export const getCTAColors = ({
     };
   }
 
-  if (style === 'gradient') {
+  if (styleNormalized === 'gradient') {
     const gradientBg = getGradientBg(primaryPalette.solid, secondaryPalette.solid);
     const textOnGradient = getTextOnGradient(primaryPalette.solid, secondaryPalette.solid, 24, 700);
 

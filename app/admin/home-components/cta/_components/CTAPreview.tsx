@@ -6,11 +6,8 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
-  getCTAAccessibilityScore,
   getCTAAccentBalance,
-  getCTAColors,
-  getHarmonyStatus,
-  resolveSecondaryColor,
+  getCTAValidationResult,
 } from '../_lib/colors';
 import { CTASectionShared } from './CTASectionShared';
 import type { CTAConfig, CTAHarmony, CTAStyle } from '../_types';
@@ -44,47 +41,19 @@ export const CTAPreview = ({
   const { device, setDevice } = usePreviewDevice();
   const style = selectedStyle;
 
-  const tokens = getCTAColors({
+  const {
+    accessibility,
+    harmonyStatus,
+    resolvedSecondary,
+    tokens,
+  } = getCTAValidationResult({
+    config,
     primary: brandColor,
     secondary,
     mode,
     harmony,
     style,
   });
-
-  const resolvedSecondary = resolveSecondaryColor(brandColor, secondary, mode, harmony);
-  const harmonyStatus = getHarmonyStatus(brandColor, resolvedSecondary);
-  const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient') ? brandColor : tokens.sectionBg;
-  const secondaryButtonBgForCheck = !tokens.secondaryButtonBg || tokens.secondaryButtonBg === 'transparent'
-    ? sectionBgForCheck
-    : tokens.secondaryButtonBg;
-
-  const hasBadge = Boolean(config.badge?.trim());
-  const hasSecondaryButton = Boolean(config.secondaryButtonText?.trim());
-
-  const descriptionFontSize = style === 'banner' ? 18 : 16;
-
-  const accessibilityPairs: Array<{
-    background: string;
-    text: string;
-    fontSize: number;
-    fontWeight: number;
-    label: string;
-  }> = [
-    { background: sectionBgForCheck, text: tokens.title, fontSize: 32, fontWeight: 700, label: 'title' },
-    { background: sectionBgForCheck, text: tokens.description, fontSize: descriptionFontSize, fontWeight: 500, label: 'description' },
-    { background: tokens.primaryButtonBg, text: tokens.primaryButtonText, fontSize: 14, fontWeight: 700, label: 'primaryButton' },
-  ];
-
-  if (hasBadge) {
-    accessibilityPairs.push({ background: tokens.badgeBg, text: tokens.badgeText, fontSize: 12, fontWeight: 600, label: 'badge' });
-  }
-
-  if (hasSecondaryButton) {
-    accessibilityPairs.push({ background: secondaryButtonBgForCheck, text: tokens.secondaryButtonText, fontSize: 14, fontWeight: 700, label: 'secondaryButton' });
-  }
-
-  const accessibility = getCTAAccessibilityScore(accessibilityPairs);
 
   const accentBalance = getCTAAccentBalance(style);
 
@@ -111,7 +80,7 @@ export const CTAPreview = ({
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-semibold">Harmony warning</p>
-              <p>deltaE = {harmonyStatus.deltaE} (&lt; 20) • Primary/Secondary đang quá giống nhau.</p>
+              <p>deltaE = {harmonyStatus.deltaE} (&lt; 20) • Primary/Secondary quá giống nhau nên sẽ bị chặn lưu.</p>
             </div>
           </div>
         </div>
@@ -123,7 +92,7 @@ export const CTAPreview = ({
             <Eye size={14} className="mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-semibold">Accessibility warning</p>
-              <p>minLc: {accessibility.minLc.toFixed(1)} • fail: {accessibility.failing.map((item) => item.label ?? 'pair').join(', ')}</p>
+              <p>minLc: {accessibility.minLc.toFixed(1)} • fail: {accessibility.failing.map((item) => item.label ?? 'pair').join(', ')} • sẽ bị chặn lưu.</p>
             </div>
           </div>
         </div>

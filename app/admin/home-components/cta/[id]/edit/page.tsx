@@ -12,15 +12,19 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { CTAForm } from '../../_components/CTAForm';
 import { CTAPreview } from '../../_components/CTAPreview';
-import { DEFAULT_CTA_CONFIG, DEFAULT_CTA_HARMONY } from '../../_lib/constants';
+import { getCTAValidationResult } from '../../_lib/colors';
+import {
+  DEFAULT_CTA_CONFIG,
+  DEFAULT_CTA_HARMONY,
+  normalizeCTAHarmony,
+  normalizeCTAStyle,
+} from '../../_lib/constants';
 import type { CTAConfig, CTAHarmony, CTAStyle } from '../../_types';
 
 export default function CtaEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -30,6 +34,14 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
   const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    config: CTAConfig;
+    style: CTAStyle;
+    harmony: CTAHarmony;
+  } | null>(null);
 
   useEffect(() => {
     if (component) {
@@ -42,7 +54,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
       setActive(component.active);
 
       const config = component.config ?? {};
-      setCtaConfig({
+      const nextConfig: CTAConfig = {
         badge: (config.badge as string | undefined) ?? '',
         buttonLink: (config.buttonLink as string | undefined) ?? '',
         buttonText: (config.buttonText as string | undefined) ?? '',
@@ -50,15 +62,59 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         secondaryButtonLink: (config.secondaryButtonLink as string | undefined) ?? '',
         secondaryButtonText: (config.secondaryButtonText as string | undefined) ?? '',
         title: (config.title as string | undefined) ?? '',
+      };
+      const nextStyle = normalizeCTAStyle(config.style);
+      const nextHarmony = normalizeCTAHarmony(config.harmony);
+
+      setCtaConfig(nextConfig);
+      setCtaStyle(nextStyle);
+      setCtaHarmony(nextHarmony);
+      setInitialData({
+        title: component.title,
+        active: component.active,
+        config: nextConfig,
+        style: nextStyle,
+        harmony: nextHarmony,
       });
-      setCtaStyle((config.style as CTAStyle) || 'banner');
-      setCtaHarmony((config.harmony as CTAHarmony) || DEFAULT_CTA_HARMONY);
+      setHasChanges(false);
     }
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || JSON.stringify(ctaConfig) !== JSON.stringify(initialData.config)
+      || ctaStyle !== initialData.style
+      || ctaHarmony !== initialData.harmony;
+
+    setHasChanges(changed);
+  }, [title, active, ctaConfig, ctaStyle, ctaHarmony, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
+
+    const { accessibility, harmonyStatus } = getCTAValidationResult({
+      config: ctaConfig,
+      primary,
+      secondary,
+      mode,
+      harmony: ctaHarmony,
+      style: ctaStyle,
+    });
+
+    if (harmonyStatus.isTooSimilar) {
+      toast.error(`Không thể lưu CTA: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
+      return;
+    }
+
+    if (accessibility.failing.length > 0) {
+      const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
+      toast.error(`Không thể lưu CTA: APCA chưa đạt cho ${failedPairs}.`);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -69,6 +125,14 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         title,
       });
       toast.success('Đã cập nhật CTA');
+      setInitialData({
+        title,
+        active,
+        config: ctaConfig,
+        style: ctaStyle,
+        harmony: ctaHarmony,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -137,7 +201,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         <CTAForm
           config={ctaConfig}
           onChange={setCtaConfig}
-          brandMode={brandMode}
+          brandMode={mode}
           harmony={ctaHarmony}
           setHarmony={setCtaHarmony}
         />
@@ -149,7 +213,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
               config={ctaConfig}
               brandColor={primary}
               secondary={secondary}
-              mode={brandMode}
+              mode={mode}
               harmony={ctaHarmony}
               selectedStyle={ctaStyle}
               onStyleChange={setCtaStyle}
@@ -161,8 +225,8 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

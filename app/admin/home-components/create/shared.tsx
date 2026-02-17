@@ -98,20 +98,19 @@ export function useBrandColors() {
   const primarySetting = useQuery(api.settings.getByKey, { key: 'site_brand_primary' });
   const legacySetting = useQuery(api.settings.getByKey, { key: 'site_brand_color' });
   const secondarySetting = useQuery(api.settings.getByKey, { key: 'site_brand_secondary' });
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
 
   const primary = resolveColorSetting(primarySetting?.value)
     ?? resolveColorSetting(legacySetting?.value)
     ?? DEFAULT_BRAND_COLOR;
 
-  let secondary: string;
-  if (secondarySetting === undefined || secondarySetting === null) {
-    secondary = primary;
-  } else {
-    const secondaryValue = resolveColorSetting(secondarySetting.value);
-    secondary = secondaryValue ?? generateComplementary(primary);
-  }
+  const mode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const secondary = mode === 'single'
+    ? ''
+    : resolveColorSetting(secondarySetting?.value)
+      ?? generateComplementary(primary);
 
-  return { primary, secondary };
+  return { primary, secondary, mode };
 }
 
 // Hook lấy brandColor từ settings - dùng cho tất cả Preview components

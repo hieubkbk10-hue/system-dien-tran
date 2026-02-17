@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { toast } from 'sonner';
 import { CTAForm } from '../../cta/_components/CTAForm';
 import { CTAPreview } from '../../cta/_components/CTAPreview';
 import { DEFAULT_CTA_CONFIG, DEFAULT_CTA_HARMONY } from '../../cta/_lib/constants';
+import { getCTAValidationResult } from '../../cta/_lib/colors';
 import type { CTAConfig, CTAHarmony, CTAStyle } from '../../cta/_types';
 
 const INITIAL_CTA_CONFIG: CTAConfig = {
@@ -21,15 +21,35 @@ const INITIAL_CTA_CONFIG: CTAConfig = {
 
 export default function CTACreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Kêu gọi hành động (CTA)', 'CTA');
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { primary, secondary, mode } = useBrandColors();
 
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(INITIAL_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
   const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
 
   const onSubmit = (e: React.FormEvent) => {
+    const { accessibility, harmonyStatus } = getCTAValidationResult({
+      config: ctaConfig,
+      primary,
+      secondary,
+      mode,
+      harmony: ctaHarmony,
+      style: ctaStyle,
+    });
+
+    if (harmonyStatus.isTooSimilar) {
+      e.preventDefault();
+      toast.error(`Không thể lưu CTA: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
+      return;
+    }
+
+    if (accessibility.failing.length > 0) {
+      e.preventDefault();
+      const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
+      toast.error(`Không thể lưu CTA: APCA chưa đạt cho ${failedPairs}.`);
+      return;
+    }
+
     void handleSubmit(e, { ...ctaConfig, style: ctaStyle, harmony: ctaHarmony });
   };
 
@@ -46,7 +66,7 @@ export default function CTACreatePage() {
       <CTAForm
         config={ctaConfig}
         onChange={setCtaConfig}
-        brandMode={brandMode}
+        brandMode={mode}
         harmony={ctaHarmony}
         setHarmony={setCtaHarmony}
       />
@@ -55,7 +75,7 @@ export default function CTACreatePage() {
         config={ctaConfig}
         brandColor={primary}
         secondary={secondary}
-        mode={brandMode}
+        mode={mode}
         harmony={ctaHarmony}
         selectedStyle={ctaStyle}
         onStyleChange={setCtaStyle}
