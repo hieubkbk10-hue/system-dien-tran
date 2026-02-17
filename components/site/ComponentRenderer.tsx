@@ -31,6 +31,7 @@ import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
+import { PartnersCarouselShared } from '@/app/admin/home-components/partners/_components/PartnersCarouselShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
@@ -3296,7 +3297,6 @@ function GallerySection({ config, brandColor, secondary, title, type }: { config
   secondary: string; title: string; type: string }) {
   const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
-  const partnersCarouselId = useSafeId('partners-carousel');
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ url: string; link?: string } | null>(null);
 
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) - Only for type === 'Gallery' ============
@@ -3661,121 +3661,18 @@ function GallerySection({ config, brandColor, secondary, title, type }: { config
 
   // Style: Carousel - Horizontal scrollable với navigation và drag scroll
   if (style === 'carousel') {
-    const carouselId = partnersCarouselId;
-    const cardWidth = 180;
-    const gap = 24;
-    // Responsive: Desktop ~6 items (180px each), chỉ hiện arrows khi có > 5 items
-    const showArrowsDesktop = items.length > 5;
+    const normalizedItems = items.map((item, idx) => ({ ...item, id: idx }));
 
     return (
-      <section className="w-full py-10 bg-white border-b border-slate-200/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-6">
-          {/* Header với navigation arrows */}
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
-              {title}
-            </h2>
-            {/* Desktop arrows - chỉ hiện khi có > 5 items */}
-            {showArrowsDesktop && (
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                  }}
-                  className="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                  }}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Carousel Container */}
-          <div className="relative overflow-hidden rounded-xl">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent z-10 pointer-events-none" />
-
-            {/* Scrollable area với Mouse Drag */}
-            <div
-              id={carouselId}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-6 py-4 px-2 cursor-grab active:cursor-grabbing select-none scrollbar-hide"
-              style={{
-                WebkitOverflowScrolling: 'touch',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none'
-              }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {items.map((item, idx) => (
-                <a
-                  key={idx}
-                  href={item.link ?? '#'}
-                  className="snap-start flex-shrink-0 group flex flex-col items-center justify-center p-4 rounded-xl border transition-all w-[140px] md:w-[180px] aspect-[3/2] hover:shadow-lg"
-                  style={{ borderColor: `${secondary}15` }}
-                  draggable={false}
-                >
-                  {item.url ? (
-                    <SiteImage
-                      src={item.url}
-                      alt=""
-                      draggable={false}
-                      className="h-10 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
-                    />
-                  ) : (
-                    <ImageIcon size={36} className="text-slate-300" />
-                  )}
-                </a>
-              ))}
-              {/* End spacer */}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-          </div>
-
-          {/* CSS để ẩn scrollbar */}
-          <style>{`
-            #${carouselId}::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-        </div>
-      </section>
+      <PartnersCarouselShared
+        items={normalizedItems}
+        brandColor={brandColor}
+        title={title}
+        openInNewTab={false}
+        renderImage={(item, className) => (
+          <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   }
 

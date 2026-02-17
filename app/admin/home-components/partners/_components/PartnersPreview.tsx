@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Building2, ChevronLeft, ChevronRight, Image as ImageIcon, Plus } from 'lucide-react';
+import React from 'react';
+import { Building2, Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
@@ -9,6 +9,7 @@ import { PARTNERS_STYLES } from '../_lib/constants';
 import type { PartnerItem, PartnersStyle } from '../_types';
 import { PartnersMarqueeShared } from './PartnersMarqueeShared';
 import { PartnersBadgeShared } from './PartnersBadgeShared';
+import { PartnersCarouselShared } from './PartnersCarouselShared';
 
 export const PartnersPreview = ({
   items,
@@ -26,7 +27,6 @@ export const PartnersPreview = ({
   title?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'grid';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as PartnersStyle);
 
@@ -159,76 +159,19 @@ export const PartnersPreview = ({
     );
   };
 
-  const renderCarouselStyle = () => {
-    const itemsPerPage = device === 'mobile' ? 2 : (device === 'tablet' ? 4 : 6);
-    const totalPages = Math.ceil(items.length / itemsPerPage);
-
-    if (items.length === 0) {return renderEmptyState();}
-
-    const visibleItems = items.slice(carouselIndex * itemsPerPage, (carouselIndex + 1) * itemsPerPage);
-    const canPrev = carouselIndex > 0;
-    const canNext = carouselIndex < totalPages - 1;
-
-    return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
-              Đối tác
-            </h2>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>{  setCarouselIndex(prev => Math.max(0, prev - 1)); }}
-                  disabled={!canPrev}
-                  className="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-30"
-                  style={{ borderColor: `${brandColor}30`, color: brandColor }}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span className="text-xs font-medium text-slate-500 tabular-nums">{carouselIndex + 1}/{totalPages}</span>
-                <button
-                  onClick={() =>{  setCarouselIndex(prev => Math.min(totalPages - 1, prev + 1)); }}
-                  disabled={!canNext}
-                  className="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-30"
-                  style={{ borderColor: `${brandColor}30`, color: brandColor }}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className={cn('grid gap-3 items-center', device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-6'))}>
-            {visibleItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.link || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center p-3 rounded-lg border aspect-[3/2]"
-                style={{ backgroundColor: `${brandColor}03`, borderColor: `${brandColor}15` }}
-              >
-                {item.url ? <PreviewImage src={item.url} alt="" className="h-11 w-auto object-contain" /> : <ImageIcon size={32} className="text-slate-300" />}
-              </a>
-            ))}
-          </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1">
-              {Array.from({ length: totalPages }).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() =>{  setCarouselIndex(idx); }}
-                  className={cn('h-1.5 rounded-full', idx === carouselIndex ? 'w-5' : 'w-1.5 bg-slate-200 dark:bg-slate-700')}
-                  style={idx === carouselIndex ? { backgroundColor: brandColor } : {}}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    );
-  };
+  const renderCarouselStyle = () => (
+    <PartnersCarouselShared
+      items={items}
+      brandColor={brandColor}
+      title={title ?? 'Đối tác'}
+      device={device}
+      openInNewTab
+      renderImage={(item, className) => (
+        <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
+      )}
+      className="dark:bg-slate-900 dark:border-slate-700/40"
+    />
+  );
 
   const renderFeaturedStyle = () => {
     if (items.length === 0) {return renderEmptyState();}
