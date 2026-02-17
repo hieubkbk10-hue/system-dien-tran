@@ -12,8 +12,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { FaqForm } from '../../_components/FaqForm';
 import { FaqPreview } from '../../_components/FaqPreview';
-import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_ITEMS, FAQ_STYLES } from '../../_lib/constants';
-import type { FaqConfig, FaqItem, FaqStyle } from '../../_types';
+import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_HARMONY, DEFAULT_FAQ_ITEMS, FAQ_STYLES } from '../../_lib/constants';
+import type { FaqConfig, FaqHarmony, FaqItem, FaqStyle } from '../../_types';
 
 const FALLBACK_FAQ_ITEMS: FaqItem[] = DEFAULT_FAQ_ITEMS.map((item, idx) => ({
   ...item,
@@ -50,12 +50,17 @@ const toFaqItems = (value: unknown): FaqItem[] => {
   return mapped.length > 0 ? mapped : FALLBACK_FAQ_ITEMS;
 };
 
+const isFaqHarmony = (value: unknown): value is FaqHarmony => (
+  value === 'analogous' || value === 'complementary' || value === 'triadic'
+);
+
 const toFaqConfig = (value: Record<string, unknown> | null | undefined): FaqConfig => {
   const config = value ?? {};
   return {
     description: typeof config.description === 'string' ? config.description : DEFAULT_FAQ_CONFIG.description,
     buttonText: typeof config.buttonText === 'string' ? config.buttonText : DEFAULT_FAQ_CONFIG.buttonText,
     buttonLink: typeof config.buttonLink === 'string' ? config.buttonLink : DEFAULT_FAQ_CONFIG.buttonLink,
+    harmony: isFaqHarmony(config.harmony) ? config.harmony : DEFAULT_FAQ_HARMONY,
   };
 };
 
@@ -75,6 +80,14 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
   const [faqStyle, setFaqStyle] = useState<FaqStyle>('accordion');
   const [faqConfig, setFaqConfig] = useState<FaqConfig>(DEFAULT_FAQ_CONFIG);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    faqItems: FaqItem[];
+    faqStyle: FaqStyle;
+    faqConfig: FaqConfig;
+  } | null>(null);
 
   useEffect(() => {
     if (!component) {return;}
@@ -88,10 +101,34 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
     setActive(component.active);
 
     const config = component.config ?? {};
-    setFaqItems(toFaqItems(config.items));
-    setFaqStyle(toFaqStyle(config.style));
-    setFaqConfig(toFaqConfig(config));
+    const nextFaqItems = toFaqItems(config.items);
+    const nextFaqStyle = toFaqStyle(config.style);
+    const nextFaqConfig = toFaqConfig(config);
+
+    setFaqItems(nextFaqItems);
+    setFaqStyle(nextFaqStyle);
+    setFaqConfig(nextFaqConfig);
+    setInitialData({
+      title: component.title,
+      active: component.active,
+      faqItems: nextFaqItems,
+      faqStyle: nextFaqStyle,
+      faqConfig: nextFaqConfig,
+    });
+    setHasChanges(false);
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || faqStyle !== initialData.faqStyle
+      || JSON.stringify(faqItems) !== JSON.stringify(initialData.faqItems)
+      || JSON.stringify(faqConfig) !== JSON.stringify(initialData.faqConfig);
+
+    setHasChanges(changed);
+  }, [title, active, faqItems, faqStyle, faqConfig, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,12 +136,20 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
 
     setIsSubmitting(true);
     try {
+      const nextConfig: FaqConfig = {
+        buttonLink: faqConfig.buttonLink,
+        buttonText: faqConfig.buttonText,
+        description: faqConfig.description,
+        harmony: faqConfig.harmony ?? DEFAULT_FAQ_HARMONY,
+      };
+
       await updateMutation({
         active,
         config: {
-          buttonLink: faqConfig.buttonLink,
-          buttonText: faqConfig.buttonText,
-          description: faqConfig.description,
+          buttonLink: nextConfig.buttonLink,
+          buttonText: nextConfig.buttonText,
+          description: nextConfig.description,
+          harmony: nextConfig.harmony,
           items: faqItems.map((item) => ({ answer: item.answer, question: item.question })),
           style: faqStyle,
         },
@@ -112,6 +157,15 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
         title,
       });
       toast.success('Đã cập nhật FAQ');
+      setFaqConfig(nextConfig);
+      setInitialData({
+        title,
+        active,
+        faqItems,
+        faqStyle,
+        faqConfig: nextConfig,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -208,8 +262,8 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
           <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

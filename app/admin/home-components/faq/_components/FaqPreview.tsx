@@ -1,13 +1,29 @@
 'use client';
 
 import React from 'react';
+import { AlertTriangle, Eye } from 'lucide-react';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { FAQ_STYLES } from '../_lib/constants';
-import { getFaqColors } from '../_lib/colors';
+import { DEFAULT_FAQ_HARMONY, FAQ_STYLES } from '../_lib/constants';
+import {
+  calculateFaqAccentBalance,
+  getFaqAccessibilityScore,
+  getFaqColors,
+  getFaqHarmonyStatus,
+  resolveFaqSecondary,
+} from '../_lib/colors';
 import { FaqSectionShared } from './FaqSectionShared';
 import type { FaqBrandMode, FaqConfig, FaqItem, FaqStyle } from '../_types';
+
+const DESCRIPTION_FONT_SIZE: Record<FaqStyle, number> = {
+  accordion: 16,
+  cards: 14,
+  'two-column': 14,
+  minimal: 16,
+  timeline: 14,
+  tabbed: 16,
+};
 
 export const FaqPreview = ({
   items,
@@ -32,35 +48,106 @@ export const FaqPreview = ({
   const style = selectedStyle;
   const maxVisible = device === 'mobile' ? 4 : 6;
 
+  const harmony = config?.harmony ?? DEFAULT_FAQ_HARMONY;
+  const normalizedPrimary = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(brandColor.trim())
+    ? brandColor.trim()
+    : '#3b82f6';
+
   const tokens = getFaqColors({
-    primary: brandColor,
+    primary: normalizedPrimary,
     secondary,
     mode,
     style,
+    harmony,
   });
 
+  const resolvedSecondary = resolveFaqSecondary(normalizedPrimary, secondary, mode, harmony);
+  const harmonyStatus = getFaqHarmonyStatus(normalizedPrimary, resolvedSecondary);
+
+  const accessibility = getFaqAccessibilityScore([
+    { background: tokens.sectionBg, text: tokens.heading, fontSize: 32, fontWeight: 700, label: 'heading' },
+    { background: tokens.panelBg, text: tokens.panelTitleText, fontSize: 18, fontWeight: 600, label: 'panelTitle' },
+    { background: tokens.panelBgMuted, text: tokens.questionText, fontSize: 16, fontWeight: 500, label: 'question' },
+    {
+      background: tokens.panelBg,
+      text: tokens.body,
+      fontSize: DESCRIPTION_FONT_SIZE[style],
+      fontWeight: 500,
+      label: 'body',
+    },
+    { background: tokens.tabInactiveBg, text: tokens.tabInactiveText, fontSize: 14, fontWeight: 500, label: 'tabInactive' },
+    { background: tokens.tabActiveBg, text: tokens.tabActiveText, fontSize: 14, fontWeight: 600, label: 'tabActive' },
+    { background: tokens.ctaBg, text: tokens.ctaText, fontSize: 14, fontWeight: 700, label: 'cta' },
+  ]);
+
+  const accentBalance = calculateFaqAccentBalance(style);
+
   return (
-    <PreviewWrapper
-      title="Preview FAQ"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={style}
-      setPreviewStyle={(nextStyle) => onStyleChange?.(nextStyle as FaqStyle)}
-      styles={FAQ_STYLES}
-      info={`${items.length} câu hỏi • ${mode.toUpperCase()}`}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame url="yoursite.com/faq">
-        <FaqSectionShared
-          items={items}
-          title={title}
-          style={style}
-          config={config}
-          tokens={tokens}
-          context="preview"
-          maxVisible={maxVisible}
-        />
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview FAQ"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={style}
+        setPreviewStyle={(nextStyle) => onStyleChange?.(nextStyle as FaqStyle)}
+        styles={FAQ_STYLES}
+        info={`${items.length} câu hỏi • ${mode.toUpperCase()} • ${harmony}`}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame url="yoursite.com/faq">
+          <FaqSectionShared
+            items={items}
+            title={title}
+            style={style}
+            config={config}
+            tokens={tokens}
+            context="preview"
+            maxVisible={maxVisible}
+          />
+        </BrowserFrame>
+      </PreviewWrapper>
+
+      {harmonyStatus.isTooSimilar && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="flex items-start gap-2">
+            <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">Harmony warning</p>
+              <p>deltaE = {harmonyStatus.deltaE} (&lt; 20) • Primary/Secondary đang quá giống nhau.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {accessibility.failing.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="flex items-start gap-2">
+            <Eye size={14} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">Accessibility warning</p>
+              <p>minLc: {accessibility.minLc.toFixed(1)} • fail: {accessibility.failing.map((item) => item.label ?? 'pair').join(', ')}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/50">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500">Primary</span>
+            <span className="h-5 w-5 rounded border" style={{ backgroundColor: normalizedPrimary }} />
+            <span className="font-mono text-slate-600 dark:text-slate-300">{normalizedPrimary}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500">Secondary</span>
+            <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
+            <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
+          </div>
+          <div className="text-slate-500 dark:text-slate-400">
+            Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
+          </div>
+        </div>
+      </div>
+    </>
   );
 };

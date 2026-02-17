@@ -163,7 +163,7 @@ export function FaqSectionShared({
                       'w-full min-h-[44px] px-4 py-3 md:px-5 md:py-4 text-left flex items-center justify-between gap-3',
                       'focus-visible:outline-none focus-visible:ring-2',
                     )}
-                    style={{ backgroundColor: isOpen ? tokens.panelBgMuted : tokens.panelBg, color: '#0f172a' }}
+                    style={{ backgroundColor: isOpen ? tokens.panelBgMuted : tokens.panelBg, color: tokens.questionText }}
                   >
                     <span className="font-medium">{question}</span>
                     <ChevronDown
@@ -227,7 +227,7 @@ export function FaqSectionShared({
                     ?
                   </div>
                   <div className="space-y-2 min-w-0">
-                    <h4 className="font-semibold text-slate-900">
+                    <h4 className="font-semibold" style={{ color: tokens.panelTitleText }}>
                       {getValue(item.question) ?? `${FAQ_FALLBACKS.question} ${idx + 1}`}
                     </h4>
                     <p className="text-sm leading-relaxed" style={{ color: tokens.body }}>
@@ -283,7 +283,7 @@ export function FaqSectionShared({
                 className="pb-4 border-b"
                 style={{ borderColor: tokens.panelBorder }}
               >
-                <h4 className="font-semibold mb-2 text-slate-900">
+                <h4 className="font-semibold mb-2" style={{ color: tokens.panelTitleText }}>
                   {getValue(item.question) ?? `${FAQ_FALLBACKS.question} ${idx + 1}`}
                 </h4>
                 <p className="text-sm leading-relaxed" style={{ color: tokens.body }}>
@@ -314,7 +314,7 @@ export function FaqSectionShared({
                   {String(idx + 1).padStart(2, '0')}
                 </span>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-slate-900">
+                  <h4 className="font-semibold" style={{ color: tokens.panelTitleText }}>
                     {getValue(item.question) ?? `${FAQ_FALLBACKS.question} ${idx + 1}`}
                   </h4>
                   <p className="text-sm md:text-base leading-relaxed" style={{ color: tokens.body }}>
@@ -360,7 +360,7 @@ export function FaqSectionShared({
                       borderColor: tokens.panelBorder,
                     }}
                   >
-                    <h4 className="font-semibold text-slate-900 mb-2">
+                    <h4 className="font-semibold mb-2" style={{ color: tokens.panelTitleText }}>
                       {getValue(item.question) ?? `${FAQ_FALLBACKS.question} ${idx + 1}`}
                     </h4>
                     <p className="text-sm leading-relaxed" style={{ color: tokens.body }}>
@@ -455,7 +455,7 @@ export function FaqSectionShared({
           })}
 
           {displayedItems.length > 6 && (
-            <span className="px-3 py-2 text-sm text-slate-400 flex items-center">+{displayedItems.length - 6}</span>
+            <span className="px-3 py-2 text-sm flex items-center" style={{ color: tokens.tabOverflowText }}>+{displayedItems.length - 6}</span>
           )}
         </div>
 
@@ -470,7 +470,7 @@ export function FaqSectionShared({
               borderColor: tokens.panelBorder,
             }}
           >
-            <h4 className="text-lg md:text-xl font-semibold mb-3 text-slate-900">
+            <h4 className="text-lg md:text-xl font-semibold mb-3" style={{ color: tokens.panelTitleText }}>
               {getValue(tabItems[activeTab].question) ?? `${FAQ_FALLBACKS.question} ${activeTab + 1}`}
             </h4>
             <p className="leading-relaxed" style={{ color: tokens.body }}>

@@ -6,11 +6,13 @@ export interface FaqItem {
 
 export type FaqStyle = 'accordion' | 'cards' | 'two-column' | 'minimal' | 'timeline' | 'tabbed';
 export type FaqBrandMode = 'single' | 'dual';
+export type FaqHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface FaqConfig {
   description?: string;
   buttonText?: string;
   buttonLink?: string;
+  harmony?: FaqHarmony;
 }
 
 export interface FaqStyleOption {

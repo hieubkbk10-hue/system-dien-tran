@@ -6,7 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { FaqForm } from '../../faq/_components/FaqForm';
 import { FaqPreview } from '../../faq/_components/FaqPreview';
-import { DEFAULT_FAQ_CONFIG } from '../../faq/_lib/constants';
+import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_HARMONY } from '../../faq/_lib/constants';
 import type { FaqConfig, FaqItem, FaqStyle } from '../../faq/_types';
 
 const INITIAL_FAQ_ITEMS: FaqItem[] = [
@@ -29,6 +29,7 @@ export default function FaqCreatePage() {
       items: faqItems.map((item) => ({ answer: item.answer, question: item.question })),
       style,
       ...faqConfig,
+      harmony: faqConfig.harmony ?? DEFAULT_FAQ_HARMONY,
     });
   };
 

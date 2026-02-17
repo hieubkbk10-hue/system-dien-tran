@@ -1912,6 +1912,7 @@ function FAQSection({
     description?: string;
     buttonText?: string;
     buttonLink?: string;
+    harmony?: FaqConfig['harmony'];
   };
 
   const items: FaqItem[] = (faqConfig.items ?? []).map((item, idx) => ({
@@ -1921,10 +1922,12 @@ function FAQSection({
   }));
 
   const style: FaqStyle = faqConfig.style ?? 'accordion';
+  const harmony = faqConfig.harmony ?? 'analogous';
   const sectionConfig: FaqConfig = {
     description: faqConfig.description,
     buttonText: faqConfig.buttonText,
     buttonLink: faqConfig.buttonLink,
+    harmony,
   };
 
   const tokens = getFaqColors({
@@ -1932,6 +1935,7 @@ function FAQSection({
     secondary,
     mode,
     style,
+    harmony,
   });
 
   const faqSchema = {
