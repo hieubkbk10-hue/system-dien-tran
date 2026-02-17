@@ -93,7 +93,7 @@ export function FaqSectionShared({
       <div className="flex items-center justify-center pt-2">
         <span
           className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-          style={{ backgroundColor: tokens.panelBgMuted, color: tokens.number }}
+          style={{ backgroundColor: tokens.badgeBg, color: tokens.number }}
         >
           +{remainingCount} câu hỏi khác
         </span>
