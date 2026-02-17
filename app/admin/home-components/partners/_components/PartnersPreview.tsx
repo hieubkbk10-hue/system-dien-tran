@@ -7,6 +7,7 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { PARTNERS_STYLES } from '../_lib/constants';
 import type { PartnerItem, PartnersStyle } from '../_types';
+import { getPartnersColors, type PartnersBrandMode } from '../_lib/colors';
 import { PartnersMarqueeShared } from './PartnersMarqueeShared';
 import { PartnersBadgeShared } from './PartnersBadgeShared';
 import { PartnersCarouselShared } from './PartnersCarouselShared';
@@ -15,7 +16,8 @@ import { PartnersFeaturedShared } from './PartnersFeaturedShared';
 export const PartnersPreview = ({
   items,
   brandColor,
-  secondary: _secondary,
+  secondary,
+  mode = 'dual',
   selectedStyle = 'grid',
   onStyleChange,
   title,
@@ -23,6 +25,7 @@ export const PartnersPreview = ({
   items: PartnerItem[];
   brandColor: string;
   secondary: string;
+  mode?: PartnersBrandMode;
   selectedStyle?: PartnersStyle;
   onStyleChange?: (style: PartnersStyle) => void;
   title?: string;
@@ -30,12 +33,13 @@ export const PartnersPreview = ({
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'grid';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as PartnersStyle);
+  const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
 
   const renderEmptyState = () => (
     <section className="w-full py-6 bg-white dark:bg-slate-900">
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: `${brandColor}10` }}>
-          <Building2 size={28} style={{ color: brandColor }} />
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: colors.iconBg }}>
+          <Building2 size={28} style={{ color: colors.iconColor }} />
         </div>
         <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có đối tác nào</h3>
         <p className="text-sm text-slate-500">Thêm logo đối tác đầu tiên</p>
@@ -52,12 +56,19 @@ export const PartnersPreview = ({
 
     if (items.length <= 2) {
       return (
-        <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
+        <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
           <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center">Đối tác</h2>
+            <h2 className="text-xl font-bold tracking-tight text-center" style={{ color: colors.headingText }}>Đối tác</h2>
             <div className={cn('mx-auto flex items-center justify-center gap-6', items.length === 1 ? 'max-w-xs' : 'max-w-md')}>
               {items.map((item) => (
-                <a key={item.id} href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="p-4 rounded-lg border" style={{ borderColor: `${brandColor}15` }}>
+                <a
+                  key={item.id}
+                  href={item.link || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-4 rounded-lg border"
+                  style={{ borderColor: colors.itemBorder, backgroundColor: colors.itemBg }}
+                >
                   {item.url ? <PreviewImage src={item.url} alt="" className="h-14 w-auto object-contain" /> : <ImageIcon size={44} className="text-slate-300" />}
                 </a>
               ))}
@@ -68,10 +79,10 @@ export const PartnersPreview = ({
     }
 
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
+      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
+          <h2 className="text-xl font-bold tracking-tight relative pl-3" style={{ color: colors.headingText }}>
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: colors.headingAccent }}></span>
             Đối tác
           </h2>
           <div className={cn(
@@ -85,15 +96,18 @@ export const PartnersPreview = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center p-3 rounded-lg border"
-                style={{ borderColor: `${brandColor}10` }}
+                style={{ borderColor: colors.itemBorder, backgroundColor: colors.itemBg }}
               >
                 {item.url ? <PreviewImage src={item.url} alt="" className="h-11 w-auto object-contain" /> : <ImageIcon size={36} className="text-slate-300" />}
               </a>
             ))}
             {remainingCount > 0 && (
-              <div className="w-full flex flex-col items-center justify-center p-3 rounded-lg border" style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}20` }}>
-                <Plus size={20} style={{ color: brandColor }} />
-                <span className="text-xs font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
+              <div
+                className="w-full flex flex-col items-center justify-center p-3 rounded-lg border"
+                style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
+              >
+                <Plus size={20} style={{ color: colors.remainingText }} />
+                <span className="text-xs font-bold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
               </div>
             )}
           </div>
@@ -109,6 +123,8 @@ export const PartnersPreview = ({
       <PartnersMarqueeShared
         items={items}
         brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
         title={title ?? 'Đối tác'}
         variant="marquee"
         speed={0.8}
@@ -128,6 +144,8 @@ export const PartnersPreview = ({
       <PartnersMarqueeShared
         items={items}
         brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
         title={title ?? 'Đối tác'}
         variant="mono"
         speed={0.5}
@@ -149,6 +167,8 @@ export const PartnersPreview = ({
       <PartnersBadgeShared
         items={items}
         brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
         title={title ?? 'Đối tác'}
         maxVisible={maxVisible}
         openInNewTab
@@ -164,6 +184,8 @@ export const PartnersPreview = ({
     <PartnersCarouselShared
       items={items}
       brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
       title={title ?? 'Đối tác'}
       device={device}
       openInNewTab
@@ -182,6 +204,8 @@ export const PartnersPreview = ({
         items={items}
         title={title ?? 'Đối tác'}
         brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
         maxOthers={maxOthers}
         openInNewTab
         renderImage={(item, className) => (

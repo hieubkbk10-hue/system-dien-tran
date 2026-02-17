@@ -17,7 +17,7 @@ import type { PartnerItem, PartnersStyle } from '../../_types';
 export default function PartnersEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -162,6 +162,7 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
               items={partnersItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
               selectedStyle={partnersStyle}
               onStyleChange={setPartnersStyle}
               title={title}

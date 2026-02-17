@@ -37,7 +37,7 @@ function GalleryCreateContent() {
   };
   
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titles[type], type);
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -109,6 +109,7 @@ function GalleryCreateContent() {
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
               selectedStyle={partnersStyle}
               onStyleChange={setPartnersStyle}
             />

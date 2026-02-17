@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
+import { getPartnersColors, type PartnersBrandMode } from '../_lib/colors';
 
 type FeaturedItem = {
   id?: string | number;
@@ -15,6 +16,8 @@ export const PartnersFeaturedShared = ({
   items,
   title,
   brandColor,
+  secondary,
+  mode = 'dual',
   maxOthers = DEFAULT_MAX_OTHERS,
   openInNewTab = false,
   renderImage,
@@ -23,6 +26,8 @@ export const PartnersFeaturedShared = ({
   items: FeaturedItem[];
   title: string;
   brandColor: string;
+  secondary: string;
+  mode?: PartnersBrandMode;
   maxOthers?: number;
   openInNewTab?: boolean;
   renderImage: (item: FeaturedItem, className: string) => React.ReactNode;
@@ -33,12 +38,13 @@ export const PartnersFeaturedShared = ({
   const remainingCount = Math.max(0, items.length - 6);
   const smallSlots = Array.from({ length: 5 }, (_, index) => smallVisible[index]);
   const linkProps = openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+  const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
 
   if (items.length <= 2) {
     return (
-      <section className={cn('w-full py-7 bg-white border-b border-slate-200/40', className)}>
+      <section className={cn('w-full py-7 bg-white border-b border-slate-200', className)}>
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900 text-center">{title}</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-center" style={{ color: colors.headingText }}>{title}</h2>
           <div className={cn('mx-auto flex flex-wrap items-center justify-center gap-3', items.length === 1 ? 'max-w-xs' : 'max-w-md')}>
             {items.map((item, idx) => (
               <a
@@ -46,7 +52,7 @@ export const PartnersFeaturedShared = ({
                 href={item.link || '#'}
                 {...linkProps}
                 className="flex items-center justify-center rounded-2xl border bg-white px-4 py-3"
-                style={{ borderColor: `${brandColor}18` }}
+                style={{ borderColor: colors.itemBorder, backgroundColor: colors.itemBg }}
               >
                 {item.url ? renderImage(item, 'h-16 w-auto object-contain') : <ImageIcon size={48} className="text-slate-300" />}
               </a>
@@ -58,11 +64,11 @@ export const PartnersFeaturedShared = ({
   }
 
   return (
-    <section className={cn('w-full py-7 bg-white border-b border-slate-200/40', className)}>
+    <section className={cn('w-full py-7 bg-white border-b border-slate-200', className)}>
       <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-900 relative pl-4">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
+          <h2 className="text-2xl font-semibold tracking-tight relative pl-4" style={{ color: colors.headingText }}>
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: colors.headingAccent }}></span>
             {title}
           </h2>
         </div>
@@ -71,13 +77,13 @@ export const PartnersFeaturedShared = ({
             <a
               href={featured.link || '#'}
               {...linkProps}
-              className="relative md:row-span-2 rounded-2xl border bg-white/95 overflow-hidden flex items-center justify-center p-5 aspect-[4/3] md:aspect-auto"
-              style={{ borderColor: `${brandColor}18`, backgroundColor: `${brandColor}04` }}
+              className="relative md:row-span-2 rounded-2xl border overflow-hidden flex items-center justify-center p-5 aspect-[4/3] md:aspect-auto"
+              style={{ borderColor: colors.featuredCardBorder, backgroundColor: colors.featuredCardBg }}
             >
               <div className="absolute top-3 left-3">
                 <span
                   className="px-2 py-1 text-[10px] font-semibold rounded"
-                  style={{ backgroundColor: `${brandColor}12`, color: brandColor }}
+                  style={{ backgroundColor: colors.featuredBadgeBg, color: colors.featuredBadgeText }}
                 >
                   NỔI BẬT
                 </span>
@@ -92,7 +98,7 @@ export const PartnersFeaturedShared = ({
               <div
                 key={item?.id ?? `empty-${idx}`}
                 className={cn('flex items-center justify-center p-2.5 rounded-xl border bg-white aspect-[3/2]', !item && 'border-transparent')}
-                style={item ? { borderColor: `${brandColor}14` } : undefined}
+                style={item ? { borderColor: colors.itemBorder, backgroundColor: colors.itemBg } : undefined}
               >
                 {item ? (
                   item.url ? renderImage(item, 'h-12 w-auto object-contain') : <ImageIcon size={34} className="text-slate-300" />
@@ -102,10 +108,10 @@ export const PartnersFeaturedShared = ({
             {remainingCount > 0 ? (
               <div
                 className="flex flex-col items-center justify-center rounded-xl border aspect-[3/2]"
-                style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}18` }}
+                style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
               >
-                <Plus size={20} style={{ color: brandColor }} />
-                <span className="text-sm font-semibold" style={{ color: brandColor }}>+{remainingCount}</span>
+                <Plus size={20} style={{ color: colors.remainingText }} />
+                <span className="text-sm font-semibold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
               </div>
             ) : (
               <div className="rounded-xl border border-transparent aspect-[3/2]" />
