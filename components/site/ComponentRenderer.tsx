@@ -33,7 +33,7 @@ import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_com
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
 import { PartnersCarouselShared } from '@/app/admin/home-components/partners/_components/PartnersCarouselShared';
 import { PartnersFeaturedShared } from '@/app/admin/home-components/partners/_components/PartnersFeaturedShared';
-import { getPartnersColors } from '@/app/admin/home-components/partners/_lib/colors';
+import { PartnersGridShared } from '@/app/admin/home-components/partners/_components/PartnersGridShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
@@ -3300,7 +3300,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ url: string; link?: string } | null>(null);
-  const partnerColors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
 
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) - Only for type === 'Gallery' ============
 
@@ -3598,36 +3597,18 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   // Style: Classic Grid - Hover effect, responsive grid
   if (style === 'grid') {
     return (
-      <section className="w-full py-10 bg-white border-b border-slate-200">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <h2 className="text-2xl font-bold tracking-tight relative pl-4" style={{ color: partnerColors.headingText }}>
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: partnerColors.headingAccent }}></span>
-              {title}
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-8 items-center justify-items-center">
-            {items.map((item, idx) => (
-              <a 
-                key={idx} 
-                href={item.link ?? '#'}
-                className="w-full flex items-center justify-center p-4 rounded-xl border hover:bg-slate-100 transition-colors duration-300 cursor-pointer group"
-                style={{ borderColor: partnerColors.itemBorder, backgroundColor: partnerColors.itemBg }}
-              >
-                {item.url ? (
-                  <SiteImage 
-                    src={item.url} 
-                    alt="" 
-                    className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-110" 
-                  />
-                ) : (
-                  <ImageIcon size={40} className="text-slate-300" />
-                )}
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PartnersGridShared
+        items={items}
+        title={title}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
+        maxVisible={8}
+        columnsClassName="grid-cols-2 md:grid-cols-4 lg:grid-cols-8"
+        renderImage={(item, className) => (
+          <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   }
 

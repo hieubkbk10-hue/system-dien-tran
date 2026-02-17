@@ -1,6 +1,5 @@
 import React from 'react';
-import { Building2, Image as ImageIcon, Plus } from 'lucide-react';
-import { cn } from '../../../components/ui';
+import { Building2 } from 'lucide-react';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
@@ -12,6 +11,7 @@ import { PartnersMarqueeShared } from './PartnersMarqueeShared';
 import { PartnersBadgeShared } from './PartnersBadgeShared';
 import { PartnersCarouselShared } from './PartnersCarouselShared';
 import { PartnersFeaturedShared } from './PartnersFeaturedShared';
+import { PartnersGridShared } from './PartnersGridShared';
 
 export const PartnersPreview = ({
   items,
@@ -50,71 +50,26 @@ export const PartnersPreview = ({
   const renderGridStyle = () => {
     if (items.length === 0) {return renderEmptyState();}
 
-    const MAX_VISIBLE = device === 'mobile' ? 4 : 8;
-    const hasRemaining = items.length > MAX_VISIBLE;
-    const visibleCount = hasRemaining ? MAX_VISIBLE - 1 : MAX_VISIBLE;
-    const visibleItems = items.slice(0, visibleCount);
-    const remainingCount = items.length - visibleCount;
-
-    if (items.length <= 2) {
-      return (
-        <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-          <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-center" style={{ color: colors.headingText }}>Đối tác</h2>
-            <div className={cn('mx-auto flex items-center justify-center gap-6', items.length === 1 ? 'max-w-xs' : 'max-w-md')}>
-              {items.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.link || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 rounded-lg border"
-                  style={{ borderColor: colors.itemBorder, backgroundColor: colors.itemBg }}
-                >
-                  {item.url ? <PreviewImage src={item.url} alt="" className="h-14 w-auto object-contain" /> : <ImageIcon size={44} className="text-slate-300" />}
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
+    const maxVisible = device === 'mobile' ? 4 : 8;
+    const columnsClassName = device === 'mobile'
+      ? 'grid-cols-2'
+      : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-4 lg:grid-cols-8');
 
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight relative pl-3" style={{ color: colors.headingText }}>
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: colors.headingAccent }}></span>
-            Đối tác
-          </h2>
-          <div className={cn(
-            'grid gap-3 items-center justify-items-center',
-            device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-4 lg:grid-cols-8')
-          )}>
-            {visibleItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.link || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center p-3 rounded-lg border"
-                style={{ borderColor: colors.itemBorder, backgroundColor: colors.itemBg }}
-              >
-                {item.url ? <PreviewImage src={item.url} alt="" className="h-11 w-auto object-contain" /> : <ImageIcon size={36} className="text-slate-300" />}
-              </a>
-            ))}
-            {remainingCount > 0 && (
-              <div
-                className="w-full flex flex-col items-center justify-center p-3 rounded-lg border"
-                style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
-              >
-                <Plus size={20} style={{ color: colors.remainingText }} />
-                <span className="text-xs font-bold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <PartnersGridShared
+        items={items}
+        title={title ?? 'Đối tác'}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
+        maxVisible={maxVisible}
+        columnsClassName={columnsClassName}
+        openInNewTab
+        renderImage={(item, className) => (
+          <PreviewImage src={item.url ?? ''} alt={item.name ?? ''} className={className} />
+        )}
+        className="dark:bg-slate-900 dark:border-slate-700"
+      />
     );
   };
 
