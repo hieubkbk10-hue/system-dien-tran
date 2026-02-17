@@ -213,40 +213,6 @@ const getTriadic = (hex: string): [string, string] => {
   ];
 };
 
-const getDeltaE = (primary: string, secondary: string) => Math.round(
-  differenceEuclidean('oklch')(primary, secondary) * 100,
-);
-
-const pickSecondaryByHarmony = (primary: string, harmony: FaqHarmony) => {
-  const [analogousPlus, analogousMinus] = getAnalogous(primary);
-  const [triadicPlus, triadicMinus] = getTriadic(primary);
-  const complementary = getComplementary(primary);
-
-  const orderedCandidates = harmony === 'complementary'
-    ? [complementary, triadicPlus, triadicMinus, analogousPlus, analogousMinus]
-    : harmony === 'triadic'
-      ? [triadicPlus, triadicMinus, complementary, analogousPlus, analogousMinus]
-      : [analogousPlus, analogousMinus, complementary, triadicPlus, triadicMinus];
-
-  const uniqueCandidates = orderedCandidates.filter((candidate, index, array) => (
-    array.indexOf(candidate) === index
-  ));
-
-  let bestCandidate = uniqueCandidates[0] ?? primary;
-  let bestDelta = getDeltaE(primary, bestCandidate);
-
-  for (const candidate of uniqueCandidates) {
-    const deltaE = getDeltaE(primary, candidate);
-    if (deltaE >= 20) {return candidate;}
-    if (deltaE > bestDelta) {
-      bestCandidate = candidate;
-      bestDelta = deltaE;
-    }
-  }
-
-  return bestCandidate;
-};
-
 const getFaqHarmonyFallback = (primary: string, harmony: FaqHarmony) => {
   if (harmony === 'complementary') {return getComplementary(primary);}
   if (harmony === 'triadic') {return getTriadic(primary)[0];}
@@ -259,7 +225,7 @@ export const resolveFaqSecondary = (
   mode: FaqBrandMode,
   harmony: FaqHarmony = 'analogous',
 ) => {
-  if (mode === 'single') {return pickSecondaryByHarmony(primary, normalizeHarmony(harmony));}
+  if (mode === 'single') {return primary;}
 
   const trimmedSecondary = secondary.trim();
   if (trimmedSecondary && isValidHexColor(trimmedSecondary)) {return trimmedSecondary;}

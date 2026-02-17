@@ -62,7 +62,9 @@ export const FaqPreview = ({
   });
 
   const resolvedSecondary = resolveFaqSecondary(normalizedPrimary, secondary, mode, harmony);
-  const harmonyStatus = getFaqHarmonyStatus(normalizedPrimary, resolvedSecondary);
+  const harmonyStatus = mode === 'dual'
+    ? getFaqHarmonyStatus(normalizedPrimary, resolvedSecondary)
+    : null;
 
   const accessibilityPairs = [
     { background: tokens.sectionBg, text: tokens.heading, fontSize: 32, fontWeight: 700, label: 'heading' },
@@ -114,7 +116,7 @@ export const FaqPreview = ({
         </BrowserFrame>
       </PreviewWrapper>
 
-      {harmonyStatus.isTooSimilar && (
+      {harmonyStatus?.isTooSimilar && (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
           <div className="flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
