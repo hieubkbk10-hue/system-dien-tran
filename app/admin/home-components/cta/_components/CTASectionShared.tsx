@@ -84,18 +84,18 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'banner') {
     return (
-      <section className={cn('px-4 py-8 md:py-12 lg:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 px-4 sm:gap-6 sm:px-6 md:flex-row md:gap-8">
-          <div className="max-w-xl text-center md:text-left">
+      <section className={cn('px-4 py-8 md:py-12 lg:py-14 @max-md/preview:py-8', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 px-4 sm:gap-6 sm:px-6 md:flex-row md:gap-8 @max-md/preview:flex-col @max-md/preview:gap-5 @max-md/preview:px-4">
+          <div className="max-w-xl text-center md:text-left @max-md/preview:text-center @max-md/preview:max-w-full">
             {badgeNode}
-            <HeadingTag className="text-xl font-bold sm:text-2xl md:text-3xl" style={{ color: tokens.title }}>
+            <HeadingTag className="text-xl font-bold sm:text-2xl md:text-3xl break-words" style={{ color: tokens.title }}>
               {title}
             </HeadingTag>
-            <p className="mt-2 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
+            <p className="mt-2 text-sm leading-relaxed sm:text-base break-words" style={{ color: tokens.description }}>
               {description}
             </p>
           </div>
-          <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
+          <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3 @max-md/preview:w-full @max-md/preview:flex-col @max-md/preview:gap-4">
             {primaryButton}
             {secondaryButton}
           </div>
@@ -157,26 +157,26 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'floating') {
     return (
-      <section className={cn('bg-slate-50 px-4 py-8 md:py-14 lg:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <section className={cn('bg-slate-50 px-4 py-8 md:py-14 lg:py-16 @max-md/preview:py-8', sectionClass)} style={{ background: tokens.sectionBg }}>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 @max-md/preview:px-4">
           <div
-            className="rounded-xl border p-5 sm:p-6 md:p-8"
+            className="rounded-xl border p-5 sm:p-6 md:p-8 @max-md/preview:p-5"
             style={{
               backgroundColor: tokens.cardBg,
               borderColor: tokens.cardBorder,
             }}
           >
-            <div className="flex flex-col items-center justify-between gap-5 text-center sm:gap-6 md:flex-row md:text-left">
-              <div className="max-w-2xl">
+            <div className="flex flex-col items-center justify-between gap-5 text-center sm:gap-6 md:flex-row md:text-left @max-md/preview:flex-col @max-md/preview:text-center @max-md/preview:gap-5">
+              <div className="max-w-2xl @max-md/preview:max-w-full">
                 {badgeNode}
-                <HeadingTag className="text-lg font-bold sm:text-xl md:text-2xl lg:text-3xl" style={{ color: tokens.title }}>
+                <HeadingTag className="text-lg font-bold sm:text-xl md:text-2xl lg:text-3xl break-words" style={{ color: tokens.title }}>
                   {title}
                 </HeadingTag>
-                <p className="mt-2 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
+                <p className="mt-2 text-sm leading-relaxed sm:text-base break-words" style={{ color: tokens.description }}>
                   {description}
                 </p>
               </div>
-              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3 @max-md/preview:w-full @max-md/preview:flex-col @max-md/preview:gap-4">
                 {primaryButton}
                 {secondaryButton}
               </div>
@@ -209,25 +209,25 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   return (
     <section
-      className={cn('border-y px-4 py-6 md:py-8 lg:py-10', sectionClass)}
+      className={cn('border-y px-4 py-6 md:py-8 lg:py-10 @max-md/preview:py-6', sectionClass)}
       style={{
         background: tokens.sectionBg,
         borderColor: tokens.sectionBorder,
       }}
     >
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 sm:gap-5 sm:px-6 md:flex-row md:gap-8">
-        <div className="flex items-center gap-3 text-center sm:gap-4 md:text-left">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 sm:gap-5 sm:px-6 md:flex-row md:gap-8 @max-md/preview:flex-col @max-md/preview:gap-4 @max-md/preview:px-4">
+        <div className="flex items-center gap-3 text-center sm:gap-4 md:text-left @max-md/preview:text-center">
           <div className="block h-8 w-1 rounded-full sm:h-12 md:h-14" style={{ backgroundColor: tokens.accentLine }} />
           <div>
-            <HeadingTag className="text-lg font-bold sm:text-xl" style={{ color: tokens.title }}>
+            <HeadingTag className="text-lg font-bold sm:text-xl break-words" style={{ color: tokens.title }}>
               {title}
             </HeadingTag>
-            <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
+            <p className="mt-1 text-sm leading-relaxed sm:text-base break-words" style={{ color: tokens.description }}>
               {description}
             </p>
           </div>
         </div>
-        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
+        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3 @max-md/preview:w-full @max-md/preview:flex-col @max-md/preview:gap-4">
           {primaryButton}
           {secondaryButton}
         </div>
