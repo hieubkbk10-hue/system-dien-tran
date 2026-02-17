@@ -95,7 +95,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
               {description}
             </p>
           </div>
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
             {primaryButton}
             {secondaryButton}
           </div>
@@ -160,7 +160,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
       <section className={cn('bg-slate-50 px-4 py-8 md:py-14 lg:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div
-            className="rounded-xl border p-4 sm:p-6 md:p-8"
+            className="rounded-xl border p-5 sm:p-6 md:p-8"
             style={{
               backgroundColor: tokens.cardBg,
               borderColor: tokens.cardBorder,
@@ -176,7 +176,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
                   {description}
                 </p>
               </div>
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
                 {primaryButton}
                 {secondaryButton}
               </div>
@@ -217,7 +217,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 sm:gap-5 sm:px-6 md:flex-row md:gap-8">
         <div className="flex items-center gap-3 text-center sm:gap-4 md:text-left">
-          <div className="hidden h-12 w-1 rounded-full sm:h-14 md:block" style={{ backgroundColor: tokens.accentLine }} />
+          <div className="block h-8 w-1 rounded-full sm:h-12 md:h-14" style={{ backgroundColor: tokens.accentLine }} />
           <div>
             <HeadingTag className="text-lg font-bold sm:text-xl" style={{ color: tokens.title }}>
               {title}
@@ -227,7 +227,7 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
             </p>
           </div>
         </div>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:gap-3">
           {primaryButton}
           {secondaryButton}
         </div>
