@@ -30,6 +30,7 @@ import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/Fa
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
+import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
@@ -3851,36 +3852,16 @@ function GallerySection({ config, brandColor, secondary, title, type }: { config
 
   // Style: Badge - Compact badges with name (default fallback)
   return (
-    <section className="w-full py-10 bg-white border-b border-slate-200/40">
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
-            {title}
-          </h2>
-        </div>
-        <div className="w-full flex flex-wrap items-center justify-center gap-3">
-          {items.slice(0, 6).map((item, idx) => (
-            <a 
-              key={idx} 
-              href={item.link ?? '#'}
-              className="px-4 py-2 rounded-lg border transition-all flex items-center gap-3 group"
-              style={{ 
-                backgroundColor: `${secondary}05`,
-                borderColor: `${secondary}15`
-              }}
-            >
-              {item.url ? (
-                <SiteImage src={item.url} alt="" className="h-5 w-auto grayscale group-hover:grayscale-0 transition-all" />
-              ) : (
-                <ImageIcon size={20} className="text-slate-400" />
-              )}
-              <span className="text-xs font-semibold" style={{ color: `cc` }}>Đối tác {idx + 1}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
+    <PartnersBadgeShared
+      items={items}
+      brandColor={brandColor}
+      title={title}
+      maxVisible={6}
+      variant="site"
+      renderImage={(item, className) => (
+        <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+      )}
+    />
   );
 }
 

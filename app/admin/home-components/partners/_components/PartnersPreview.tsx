@@ -8,6 +8,7 @@ import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDe
 import { PARTNERS_STYLES } from '../_lib/constants';
 import type { PartnerItem, PartnersStyle } from '../_types';
 import { PartnersMarqueeShared } from './PartnersMarqueeShared';
+import { PartnersBadgeShared } from './PartnersBadgeShared';
 
 export const PartnersPreview = ({
   items,
@@ -141,42 +142,20 @@ export const PartnersPreview = ({
   const renderBadgeStyle = () => {
     if (items.length === 0) {return renderEmptyState();}
 
-    const MAX_VISIBLE = device === 'mobile' ? 4 : 6;
-    const visibleItems = items.slice(0, MAX_VISIBLE);
-    const remainingCount = items.length - MAX_VISIBLE;
+    const maxVisible = device === 'mobile' ? 4 : 6;
 
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
-            Đối tác
-          </h2>
-          <div className="w-full flex flex-wrap items-center justify-center gap-2">
-            {visibleItems.map((item, idx) => (
-              <a
-                key={item.id}
-                href={item.link || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-2 rounded-lg border flex items-center gap-2"
-                style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}15` }}
-              >
-                {item.url ? <PreviewImage src={item.url} alt="" className="h-6 w-auto" /> : <ImageIcon size={20} className="text-slate-400" />}
-                <span className="text-xs font-semibold truncate max-w-[100px]" style={{ color: `${brandColor}cc` }}>
-                  {item.name ?? `Đối tác ${idx + 1}`}
-                </span>
-              </a>
-            ))}
-            {remainingCount > 0 && (
-              <div className="px-3 py-2 rounded-lg border flex items-center gap-2" style={{ backgroundColor: `${brandColor}08`, borderColor: `${brandColor}20` }}>
-                <Plus size={14} style={{ color: brandColor }} />
-                <span className="text-xs font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <PartnersBadgeShared
+        items={items}
+        brandColor={brandColor}
+        title={title ?? 'Đối tác'}
+        maxVisible={maxVisible}
+        openInNewTab
+        variant="preview"
+        renderImage={(item, className) => (
+          <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   };
 
