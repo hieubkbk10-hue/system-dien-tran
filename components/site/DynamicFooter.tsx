@@ -176,9 +176,9 @@ export function DynamicFooter() {
                         <Link 
                           href={link.url || '#'} 
                           className="text-sm transition-colors block"
-                          style={{ color: colors.textMuted }}
+                          style={{ color: colors.link }}
                           onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = colors.link; }}
                         >
                           {link.label}
                         </Link>
@@ -228,9 +228,9 @@ export function DynamicFooter() {
                 key={i} 
                 href={link.url || '#'} 
                 className="text-sm font-medium underline-offset-4 transition-colors"
-                style={{ color: colors.textMuted, textDecorationColor: colors.primary }}
+                style={{ color: colors.link, textDecorationColor: colors.link }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.link; }}
               >
                 {link.label}
               </Link>
@@ -319,9 +319,9 @@ export function DynamicFooter() {
                       <Link
                         href={link.url || '#'}
                         className="text-sm transition-colors"
-                        style={{ color: colors.textMuted }}
+                        style={{ color: colors.link }}
                         onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.link; }}
                       >
                         {link.label}
                       </Link>
@@ -421,9 +421,9 @@ export function DynamicFooter() {
                       <Link 
                         href={link.url || '#'} 
                         className="text-xs transition-colors inline-block"
-                        style={{ color: colors.textMuted }}
+                        style={{ color: colors.link }}
                         onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.link; }}
                       >
                         {link.label}
                       </Link>
@@ -497,9 +497,9 @@ export function DynamicFooter() {
                 key={i} 
                 href={link.url || '#'} 
                 className="text-xs font-medium transition-colors"
-                style={{ color: colors.textMuted }}
+                style={{ color: colors.link }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.link; }}
               >
                 {link.label}
               </Link>

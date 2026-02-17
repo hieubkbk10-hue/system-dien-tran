@@ -125,6 +125,7 @@ export interface FooterLayoutColors {
   border: string;
   borderSoft: string;
   accent: string;
+  link: string;
   heading: string;
   textOnPrimary: string;
   textOnAccent: string;
@@ -168,10 +169,12 @@ export const getFooterLayoutColors = (
   const textOnPrimary = getAPCATextColor(primaryResolved, 12, 700);
   const textOnAccent = getAPCATextColor(secondaryResolved, 12, 700);
   const heading = ensureTextContrast(primaryResolved, bg, 14, 700, textPrimary);
+  const link = ensureTextContrast(secondaryResolved, bg, 12, 600, textVariants.muted);
   const linkHover = ensureTextContrast(secondaryResolved, bg, 12, 600, textPrimary);
-  const socialBg = oklchShift(primaryResolved, primaryResolved, { c: -0.06, l: 0.48 });
+  const socialBg = oklchShift(secondaryResolved, primaryResolved, { c: -0.06, l: 0.48 });
   const socialText = getAPCATextColor(socialBg, 12, 600);
   const socialIconFallback = getAPCATextColor(socialBg, 12, 600);
+  const dividerGradient = oklchShift(secondaryResolved, primaryResolved, { c: -0.06, l: 0.32 });
 
   const centeredStrength = style === 'centered' ? 0.2 : 0.18;
   const stackedStrength = style === 'stacked' ? 0.15 : 0.12;
@@ -191,6 +194,7 @@ export const getFooterLayoutColors = (
     border,
     borderSoft,
     accent: secondaryResolved,
+    link,
     heading,
     textOnPrimary,
     textOnAccent,
@@ -202,7 +206,7 @@ export const getFooterLayoutColors = (
     socialText,
     socialIconFallback,
     brandGradient: surface,
-    dividerGradient: borderSoft,
+    dividerGradient,
     centeredBrandBg,
     centeredBrandBorder,
     centeredSocialBg,

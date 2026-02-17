@@ -116,7 +116,7 @@ export const FooterPreview = ({
                     <ul className="space-y-1.5">
                       {col.links.map((link, lIdx) => (
                         <li key={lIdx}>
-                          <span className="text-xs" style={{ color: colors.textMuted }}>{link.label}</span>
+                          <span className="text-xs" style={{ color: colors.link }}>{link.label}</span>
                         </li>
                       ))}
                     </ul>
@@ -149,7 +149,7 @@ export const FooterPreview = ({
 
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
               {columns.flatMap(col => col.links).slice(0, 8).map((link, i) => (
-                <span key={i} className="text-xs font-medium" style={{ color: colors.textMuted }}>{link.label}</span>
+                <span key={i} className="text-xs font-medium" style={{ color: colors.link }}>{link.label}</span>
               ))}
             </div>
 
@@ -214,7 +214,7 @@ export const FooterPreview = ({
                   <ul className="space-y-1">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
-                        <span className="text-xs" style={{ color: colors.textMuted }}>{link.label}</span>
+                        <span className="text-xs" style={{ color: colors.link }}>{link.label}</span>
                       </li>
                     ))}
                   </ul>
@@ -281,7 +281,7 @@ export const FooterPreview = ({
                   <ul className="space-y-1">
                     {col.links.slice(0, 4).map((link, lIdx) => (
                       <li key={lIdx}>
-                        <span className="text-[10px]" style={{ color: colors.textMuted }}>{link.label}</span>
+                        <span className="text-[10px]" style={{ color: colors.link }}>{link.label}</span>
                       </li>
                     ))}
                   </ul>
@@ -329,7 +329,7 @@ export const FooterPreview = ({
           <div className="mb-4 pb-3" style={{ borderBottom: `1px solid ${colors.borderSoft}` }}>
             <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2">
               {columns.flatMap(col => col.links).slice(0, 10).map((link, i) => (
-                <span key={i} className="text-[10px] font-medium" style={{ color: colors.textMuted }}>{link.label}</span>
+                <span key={i} className="text-[10px] font-medium" style={{ color: colors.link }}>{link.label}</span>
               ))}
             </div>
           </div>
