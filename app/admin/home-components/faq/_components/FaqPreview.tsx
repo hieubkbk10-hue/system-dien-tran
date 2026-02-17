@@ -100,7 +100,7 @@ export const FaqPreview = ({
         previewStyle={style}
         setPreviewStyle={(nextStyle) => onStyleChange?.(nextStyle as FaqStyle)}
         styles={FAQ_STYLES}
-        info={`${items.length} câu hỏi • ${mode.toUpperCase()} • ${harmony}`}
+        info={`${items.length} câu hỏi • ${mode.toUpperCase()}${mode === 'dual' ? ` • ${harmony}` : ''}`}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame url="yoursite.com/faq">
@@ -148,7 +148,7 @@ export const FaqPreview = ({
             <span className="font-mono text-slate-600 dark:text-slate-300">{normalizedPrimary}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">{mode === 'single' ? `Accent (${harmony})` : 'Secondary'}</span>
+            <span className="text-slate-500">{mode === 'single' ? 'Primary (mono)' : 'Secondary'}</span>
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
           </div>

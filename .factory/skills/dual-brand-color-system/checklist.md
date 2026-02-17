@@ -55,6 +55,28 @@
 - [ ] Edit form: Save button disabled khi pristine.
 - [ ] Sau save thành công: reset về pristine (`hasChanges=false`).
 
+## F2. Single Mode Monochromatic (CRITICAL)
+
+- [ ] `resolveSecondary(primary, secondary, 'single', harmony)` PHẢI return `primary`
+- [ ] KHÔNG tạo harmony color (analogous/complementary/triadic) trong single mode
+- [ ] Preview info trong single mode: "SINGLE" (không hiển thị harmony)
+- [ ] Color box label trong single mode: "Primary (mono)" (không "Accent (analogous)")
+- [ ] Accent balance trong single mode: P=S (cùng màu)
+
+**Pattern chuẩn (Stats, Hero):**
+```typescript
+if (mode === 'single') {
+  return primary;  // ✅
+}
+```
+
+**Anti-pattern (FAQ bug):**
+```typescript
+if (mode === 'single') {
+  return getAnalogous(primary)[0];  // ❌
+}
+```
+
 ---
 
 # Accent Analysis Template

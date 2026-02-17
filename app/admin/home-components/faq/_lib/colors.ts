@@ -226,9 +226,7 @@ export const resolveFaqSecondary = (
   harmony: FaqHarmony = 'analogous',
 ) => {
   if (mode === 'single') {
-    if (harmony === 'complementary') {return getComplementary(primary);}
-    if (harmony === 'triadic') {return getTriadic(primary)[0];}
-    return getAnalogous(primary)[0];
+    return primary;
   }
 
   const trimmedSecondary = secondary.trim();

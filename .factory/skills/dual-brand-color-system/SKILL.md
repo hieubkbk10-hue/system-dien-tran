@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.2.0
+version: 11.3.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -84,10 +84,38 @@ version: 11.2.0
 - Secondary không chỉ dùng icon < 20px; phải có element đủ lớn
 - Tránh decorative accent nếu không có chức năng
 
-### 5) Harmony Auto-suggest
+### 5) Single Mode = Monochromatic (STRICT)
 
-- Single mode: auto secondary từ primary
-- Default: Analogous (+30°), options: Complementary/Triadic
+**BẮT BUỘC:**
+- Single mode: `resolveSecondary()` PHẢI return `primary` (monochromatic)
+- Dual mode: `resolveSecondary()` return `secondary` nếu hợp lệ, fallback harmony color
+
+**Harmony chỉ cho UI suggestion:**
+- UI form có thể hiển thị harmony preview (analogous/complementary/triadic)
+- Nhưng màu thực tế dùng render PHẢI là primary trong single mode
+
+**Ví dụ đúng (Stats pattern):**
+```typescript
+const resolveSecondary = (primary, secondary, mode, harmony) => {
+  if (mode === 'single') {
+    return primary;  // ✅ Monochromatic
+  }
+
+  if (secondary.trim() && isValidHexColor(secondary)) {
+    return secondary;
+  }
+
+  return getHarmonyColor(primary, harmony);
+};
+```
+
+**Anti-pattern (FAQ bug):**
+```typescript
+// ❌ CẤM: Tạo harmony color trong single mode
+if (mode === 'single') {
+  return getAnalogous(primary)[0];
+}
+```
 
 ### 6) Single Source of Truth
 
@@ -256,7 +284,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | ServiceList | 10 | 90 | brandColor chỉ trong BrandBadge | N/A | Needs Review |
 | Gallery | 5 | 95 | secondary cho borders, text, icons | N/A | Needs Review |
 | Partners | 5 | 95 | secondary cho borders, animations | N/A | Needs Review |
-| FAQ | 40 | 60 | secondary: expanded border/icon | N/A | Needs Review |
+| FAQ | 40 | 60 | secondary: expanded border/icon | 2026-02-17 | Fixed v11.3 (single mode) |
 | Testimonials | 40 | 60 | secondary: quotes, rating stars | N/A | Needs Review |
 | Services | 40 | 60 | secondary: numbers, accent bar, timeline | N/A | Needs Review |
 | Footer | 30 | 70 | secondary: logo/dividers; brandColor: bg shade | N/A | Needs Review |

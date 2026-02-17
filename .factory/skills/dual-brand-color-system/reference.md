@@ -53,11 +53,40 @@
 ## Canonical Safety Snippets
 
 ```ts
+// CRITICAL: Single mode MUST return primary (monochromatic)
 const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-) => (mode === 'single' ? primary : (secondary.trim() ? secondary : primary));
+  harmony?: 'analogous' | 'complementary' | 'triadic',
+) => {
+  if (mode === 'single') {
+    return primary;  // ✅ Monochromatic - harmony ignored
+  }
+
+  if (secondary.trim() && /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(secondary)) {
+    return secondary;
+  }
+
+  return getHarmonyColor(primary, harmony ?? 'analogous');
+};
+
+const getHarmonyColor = (
+  primary: string,
+  harmony: 'analogous' | 'complementary' | 'triadic',
+) => {
+  const color = safeParseOklch(primary, '#3b82f6');
+
+  if (harmony === 'complementary') {
+    return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
+  }
+
+  if (harmony === 'triadic') {
+    return formatHex(oklch({ ...color, h: (color.h + 120) % 360 }));
+  }
+
+  return formatHex(oklch({ ...color, h: (color.h + 30) % 360 }));
+};
 ```
 
 ```ts
