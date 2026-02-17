@@ -105,14 +105,17 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
       style: ctaStyle,
     });
 
-    if (harmonyStatus.isTooSimilar) {
+    if (mode === 'dual' && harmonyStatus.isTooSimilar) {
       toast.error(`Không thể lưu CTA: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
       return;
     }
 
     if (accessibility.failing.length > 0) {
       const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
-      toast.error(`Không thể lưu CTA: APCA chưa đạt cho ${failedPairs}.`);
+      toast.error(
+        `Không thể lưu CTA: APCA chưa đạt cho ${failedPairs}. `
+        + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
+      );
       return;
     }
 

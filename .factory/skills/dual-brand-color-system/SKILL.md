@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.3.0
+version: 11.4.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -98,6 +98,25 @@ version: 11.3.0
 - KHÔNG hiển thị secondary color info khi mode = 'single'
 - KHÔNG hiển thị accent balance (P%/S%/N%) khi mode = 'single'
 - Chỉ hiển thị Primary color swatch + hex
+
+**Harmony Validation Rules (v11.4 - NEW):**
+- PHẢI skip harmony validation (deltaE check) khi mode = 'single'
+- CHỈ validate harmony khi mode = 'dual'
+- Single mode với deltaE = 0 là expected → KHÔNG chặn lưu
+- Dual mode với deltaE < 20 → VẪN chặn lưu (too similar)
+
+**Pattern chuẩn (edit/create page validation):**
+```typescript
+if (mode === 'dual' && harmonyStatus.isTooSimilar) {
+  toast.error(`deltaE=${harmonyStatus.deltaE} < 20...`);
+  return;
+}
+
+if (accessibility.failing.length > 0) {
+  toast.error(...);
+  return;
+}
+```
 
 **Ví dụ đúng:**
 - Single mode: "Primary #00b315" (không có secondary row)
@@ -308,7 +327,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Stats | 50 | 50 | Custom implementation | N/A | Needs Review |
 | ProductList | 55 | 45 | P: titles/prices/buttons; S: labels/borders | N/A | Needs Review |
 | ProductGrid | 50 | 50 | Pass-through | N/A | Needs Review |
-| CTA | 60 | 40 | P: bg/buttons; S: title text/button text | N/A | Needs Review |
+| CTA | 60 | 40 | P: bg/buttons; S: title text/button text | 2026-02-17 | Fixed v11.4 (harmony validation) |
 | About | 50 | 50 | Cả 2 cho accent bar, icons | N/A | Needs Review |
 | Pricing | 45 | 55 | S: prices/ring; P: popular bg | N/A | Needs Review |
 | SpeedDial | 50 | 50 | Cân bằng | N/A | Needs Review |

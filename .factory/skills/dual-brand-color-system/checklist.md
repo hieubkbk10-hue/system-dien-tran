@@ -65,6 +65,8 @@
 - [ ] Accent balance trong single mode: P=S (cùng màu)
 - [ ] Single mode UI: không hiển thị secondary color info
 - [ ] Single mode UI: không hiển thị accent balance
+- [ ] [v11.4] Validation SKIP harmony check (deltaE) khi mode = 'single'
+- [ ] [v11.4] Validation CHỈ check harmony khi mode = 'dual'
 
 **Pattern chuẩn (Stats, Hero):**
 ```typescript
@@ -78,6 +80,25 @@ if (mode === 'single') {
 if (mode === 'single') {
   return getAnalogous(primary)[0];  // ❌
 }
+```
+
+**Harmony Validation Pattern (v11.4 - NEW):**
+```typescript
+const handleSubmit = async (e) => {
+  const { harmonyStatus, accessibility } = getValidationResult(...);
+
+  if (mode === 'dual' && harmonyStatus.isTooSimilar) {
+    toast.error(`deltaE < 20...`);
+    return;
+  }
+
+  if (accessibility.failing.length > 0) {
+    toast.error(...);
+    return;
+  }
+
+  await updateMutation(...);
+};
 ```
 
 ---
