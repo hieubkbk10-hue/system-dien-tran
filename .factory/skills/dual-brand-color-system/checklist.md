@@ -65,6 +65,7 @@
 - [ ] Accent balance trong single mode: P=S (cùng màu)
 - [ ] Single mode UI: không hiển thị secondary color info
 - [ ] Single mode UI: không hiển thị accent balance
+- [ ] Single mode UI: không hiển thị Harmony/Accessibility warning
 - [ ] [v11.4] Validation SKIP harmony check (deltaE) khi mode = 'single'
 - [ ] [v11.4] Validation CHỈ check harmony khi mode = 'dual'
 

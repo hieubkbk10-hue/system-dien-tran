@@ -98,6 +98,7 @@ version: 11.4.0
 - KHÔNG hiển thị secondary color info khi mode = 'single'
 - KHÔNG hiển thị accent balance (P%/S%/N%) khi mode = 'single'
 - Chỉ hiển thị Primary color swatch + hex
+- KHÔNG hiển thị Harmony/Accessibility warning khi mode = 'single'
 
 **Harmony Validation Rules (v11.4 - NEW):**
 - PHẢI skip harmony validation (deltaE check) khi mode = 'single'

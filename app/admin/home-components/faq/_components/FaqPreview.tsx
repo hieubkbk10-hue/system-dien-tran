@@ -116,7 +116,7 @@ export const FaqPreview = ({
         </BrowserFrame>
       </PreviewWrapper>
 
-      {harmonyStatus?.isTooSimilar && (
+      {mode === 'dual' && harmonyStatus?.isTooSimilar && (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
           <div className="flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
@@ -128,7 +128,7 @@ export const FaqPreview = ({
         </div>
       )}
 
-      {accessibility.failing.length > 0 && (
+      {mode === 'dual' && accessibility.failing.length > 0 && (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
           <div className="flex items-start gap-2">
             <Eye size={14} className="mt-0.5 flex-shrink-0" />
