@@ -60,8 +60,12 @@ export const PartnersMarqueeShared = ({
 }) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const normalizedItems = React.useMemo(() => normalizeItems(items), [items]);
-  const shouldAnimate = !prefersReducedMotion && normalizedItems.length > 1;
+  const itemCount = normalizedItems.length;
+  const shouldAnimate = itemCount > 1;
   const loopCount = shouldAnimate ? 2 : 1;
+  const speedMultiplier = itemCount >= 14 ? 1.35 : itemCount >= 10 ? 1.2 : itemCount >= 6 ? 1.1 : 1;
+  const adaptiveSpeed = speed * speedMultiplier;
+  const effectiveSpeed = prefersReducedMotion ? Math.min(adaptiveSpeed, 0.15) : adaptiveSpeed;
   const [isPaused, setIsPaused] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -75,7 +79,7 @@ export const PartnersMarqueeShared = ({
 
     const step = () => {
       if (!isPaused && scroller) {
-        position += speed;
+        position += effectiveSpeed;
         const maxScroll = scroller.scrollWidth / loopCount;
         if (position >= maxScroll) {
           position = 0;
@@ -89,7 +93,7 @@ export const PartnersMarqueeShared = ({
 
     animationId = requestAnimationFrame(step);
     return () =>{  cancelAnimationFrame(animationId); };
-  }, [isPaused, loopCount, shouldAnimate, speed]);
+  }, [effectiveSpeed, isPaused, loopCount, shouldAnimate]);
 
   if (normalizedItems.length === 0) {return null;}
 

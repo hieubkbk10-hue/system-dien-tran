@@ -26,6 +26,13 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
   const [partnersItems, setPartnersItems] = useState<PartnerItem[]>([]);
   const [partnersStyle, setPartnersStyle] = useState<PartnersStyle>('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+
+  const normalizeItemsForCompare = (items: PartnerItem[]) => items.map(item => ({
+    link: item.link?.trim() ?? '',
+    name: item.name?.trim() ?? '',
+    url: item.url?.trim() ?? '',
+  }));
 
   useEffect(() => {
     if (component) {
@@ -38,19 +45,36 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
       setActive(component.active);
 
       const config = component.config ?? {};
-      setPartnersItems(config.items?.map((item: { url: string; link: string; name?: string }, i: number) => ({
+      const nextItems = config.items?.map((item: { url: string; link: string; name?: string }, i: number) => ({
         id: `item-${i}`,
         link: item.link || '',
         name: item.name ?? '',
         url: item.url,
-      })) ?? [{ id: 'item-1', link: '', name: '', url: '' }]);
-      setPartnersStyle((config.style as PartnersStyle) || 'grid');
+      })) ?? [{ id: 'item-1', link: '', name: '', url: '' }];
+      const nextStyle = (config.style as PartnersStyle) || 'grid';
+
+      setPartnersItems(nextItems);
+      setPartnersStyle(nextStyle);
+      setInitialSnapshot(JSON.stringify({
+        title: component.title.trim(),
+        active: component.active,
+        style: nextStyle,
+        items: normalizeItemsForCompare(nextItems),
+      }));
     }
   }, [component, id, router]);
 
+  const currentSnapshot = JSON.stringify({
+    title: title.trim(),
+    active,
+    style: partnersStyle,
+    items: normalizeItemsForCompare(partnersItems),
+  });
+  const isDirty = initialSnapshot !== null && initialSnapshot !== currentSnapshot;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) {return;}
+    if (isSubmitting || !isDirty) {return;}
 
     setIsSubmitting(true);
     try {
@@ -149,7 +173,7 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={isSubmitting || !isDirty}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>
