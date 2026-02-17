@@ -225,7 +225,11 @@ export const resolveFaqSecondary = (
   mode: FaqBrandMode,
   harmony: FaqHarmony = 'analogous',
 ) => {
-  if (mode === 'single') {return primary;}
+  if (mode === 'single') {
+    if (harmony === 'complementary') {return getComplementary(primary);}
+    if (harmony === 'triadic') {return getTriadic(primary)[0];}
+    return getAnalogous(primary)[0];
+  }
 
   const trimmedSecondary = secondary.trim();
   if (trimmedSecondary && isValidHexColor(trimmedSecondary)) {return trimmedSecondary;}

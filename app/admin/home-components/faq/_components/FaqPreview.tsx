@@ -148,7 +148,7 @@ export const FaqPreview = ({
             <span className="font-mono text-slate-600 dark:text-slate-300">{normalizedPrimary}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Secondary</span>
+            <span className="text-slate-500">{mode === 'single' ? `Accent (${harmony})` : 'Secondary'}</span>
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
           </div>
