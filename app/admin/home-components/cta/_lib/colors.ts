@@ -202,9 +202,7 @@ export const resolveSecondaryColor = (
   const harmonyNormalized = normalizeCTAHarmony(harmony);
 
   if (mode === 'single') {
-    if (harmonyNormalized === 'complementary') {return getComplementary(primaryNormalized);}
-    if (harmonyNormalized === 'triadic') {return getTriadic(primaryNormalized)[0];}
-    return getAnalogous(primaryNormalized)[0];
+    return primaryNormalized;
   }
 
   return normalizeHex(secondary, primaryNormalized);
@@ -385,7 +383,7 @@ export const getCTAColors = ({
     primaryButtonText: primaryPalette.textOnSolid,
     primaryButtonBorder: primaryPalette.active,
     secondaryButtonBg: '#ffffff',
-    secondaryButtonText: secondaryPalette.textInteractive,
+    secondaryButtonText: ensureAPCATextColor(secondaryPalette.textInteractive, '#ffffff', 14, 700),
     secondaryButtonBorder: secondaryPalette.border,
     cardBg: '#ffffff',
     cardBorder: '#e2e8f0',

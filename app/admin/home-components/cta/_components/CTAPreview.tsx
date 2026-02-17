@@ -66,7 +66,7 @@ export const CTAPreview = ({
         previewStyle={style}
         setPreviewStyle={(s) => onStyleChange?.(s as CTAStyle)}
         styles={CTA_STYLES}
-        info={`${mode.toUpperCase()} • ${harmony}`}
+        info={mode === 'single' ? 'SINGLE' : `DUAL • ${harmony}`}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame url="yoursite.com">
@@ -101,18 +101,22 @@ export const CTAPreview = ({
       <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/50">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Primary</span>
+            <span className="text-slate-500">{mode === 'single' ? 'Primary (mono)' : 'Primary'}</span>
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: brandColor }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{brandColor}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500">Secondary</span>
-            <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
-            <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
-          </div>
-          <div className="text-slate-500 dark:text-slate-400">
-            Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
-          </div>
+          {mode === 'dual' && (
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500">Secondary</span>
+              <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
+              <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
+            </div>
+          )}
+          {mode === 'dual' && (
+            <div className="text-slate-500 dark:text-slate-400">
+              Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
+            </div>
+          )}
         </div>
       </div>
     </>
