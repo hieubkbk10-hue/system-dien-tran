@@ -69,3 +69,41 @@ paginationDotInactive: toOklchString(secondary.solid, 0.4),
 ```tsx
 <div className="w-1.5 self-stretch" style={{ backgroundColor: colors.cardAccentBar }} />
 ```
+
+## 5) Fix runtime crash `.l` undefined (single mode)
+
+**Triệu chứng**
+- Runtime error: `Cannot read properties of undefined (reading 'l')`
+- Thường xảy ra khi `secondary=''` nhưng vẫn parse `oklch(secondary)`
+
+**Fix nhanh**
+1. Resolve secondary theo mode trước: `secondaryResolved`
+2. Parse qua `safeParseOklch(secondaryResolved, primary)`
+3. Không dùng `oklch(x).l` trực tiếp
+
+**Snippet gợi ý**
+
+```ts
+const secondaryResolved = mode === 'single' ? primary : (secondary.trim() ? secondary : primary);
+const parsed = oklch(secondaryResolved) ?? oklch(primary) ?? oklch('#3b82f6');
+const border = formatHex(oklch({ ...parsed, l: Math.min(parsed.l + 0.35, 0.98) }));
+```
+
+## 6) Fix Save button luôn enable ở trang edit
+
+**Triệu chứng**
+- Vừa mở edit page đã bấm Save được dù không đổi gì
+
+**Fix nhanh**
+1. Lưu snapshot `initialData` sau khi load data
+2. Tính `hasChanges` bằng compare state hiện tại vs `initialData`
+3. Button: `disabled={isSubmitting || !hasChanges}`
+4. Sau save thành công: cập nhật `initialData` + reset `hasChanges=false`
+
+**Snippet gợi ý**
+
+```tsx
+<Button type="submit" disabled={isSubmitting || !hasChanges}>
+  {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
+</Button>
+```

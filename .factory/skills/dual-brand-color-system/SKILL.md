@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.0.0
+version: 11.1.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -93,6 +93,27 @@ version: 11.0.0
 
 - Render ≡ Preview, dùng chung helper trong `_lib/colors.ts`
 - Không hardcode màu ở site nếu preview đã dùng helper
+
+## Critical Safety Rules (v11.1)
+
+### S1) Guard parse màu trước khi dùng OKLCH/APCA
+
+- Không gọi trực tiếp `oklch(value).l` khi `value` có thể rỗng/invalid.
+- Bắt buộc có `safeParseOklch(value, fallback)` hoặc guard tương đương.
+- Rule áp dụng đặc biệt cho `site_brand_secondary` vì single mode có thể trả `''`.
+- Anti-pattern mới (cấm): `oklch(x).l` khi chưa null-check/sanitize.
+
+### S2) Resolve secondary theo mode trước khi build palette
+
+- Bắt buộc gọi `resolveSecondaryForMode(primary, secondary, mode)` trước mọi `getTint/getGradient/getContrast`.
+- `mode='single'`: dùng primary làm secondaryResolved.
+- `mode='dual'`: dùng secondary nếu hợp lệ, fallback primary.
+
+### S3) Edit page phải có dirty-state parity cho Save button
+
+- Save button phải `disabled` khi pristine (không thay đổi dữ liệu).
+- Pattern chuẩn: `initialData + hasChanges + reset sau save thành công`.
+- Label chuẩn: `Đang lưu...` / `Lưu thay đổi` / `Đã lưu`.
 
 ---
 
@@ -327,6 +348,18 @@ textOnSolid: '#ffffff'
 
 // AFTER
 textOnSolid: getAPCATextColor(primary, 16, 500)
+```
+
+### Pattern 4: Unsafe oklch parse -> safe parse
+
+```ts
+// BEFORE
+const c = oklch(secondary);
+const border = formatHex(oklch({ ...c, l: c.l + 0.35 }));
+
+// AFTER
+const c = safeParseOklch(secondary, primary);
+const border = formatHex(oklch({ ...c, l: Math.min(c.l + 0.35, 0.98) }));
 ```
 
 ---

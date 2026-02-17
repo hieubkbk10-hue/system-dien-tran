@@ -43,6 +43,14 @@
 - [ ] Flat design + border + whitespace
 - [ ] Touch targets >= 44px
 
+## F. State & Runtime Safety
+
+- [ ] Single mode với `secondary=''` không crash.
+- [ ] Helper màu có fallback parse hợp lệ (không đọc `.l` từ `undefined`).
+- [ ] Có `resolveSecondaryForMode(...)` trước mọi build palette/tint/gradient.
+- [ ] Edit form: Save button disabled khi pristine.
+- [ ] Sau save thành công: reset về pristine (`hasChanges=false`).
+
 ---
 
 # Accent Analysis Template

@@ -111,7 +111,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <HeroSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
     }
     case 'Stats': {
-      return <StatsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <StatsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'About': {
       return <AboutSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -595,15 +595,15 @@ function HeroSection({
 // ============ STATS SECTION ============
 // Professional Stats UI/UX - 6 Variants
 type StatsStyle = 'horizontal' | 'cards' | 'icons' | 'gradient' | 'minimal' | 'counter';
-function StatsSection({ config, brandColor, secondary, title: _title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
+function StatsSection({ config, brandColor, secondary, mode, title: _title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; mode: 'single' | 'dual'; title: string }) {
   void _title;
   const items = (config.items as { value: string; label: string }[]) || [];
   const style = (config.style as StatsStyle) || 'horizontal';
 
   // Style 1: Thanh ngang - Full width bar với dividers
   if (style === 'horizontal') {
-    const colors = getHorizontalColors(brandColor, secondary);
+    const colors = getHorizontalColors(brandColor, secondary, mode);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -634,7 +634,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 2: Cards - Grid cards với hover effects và accent line
   if (style === 'cards') {
-    const colors = getCardsColors(brandColor, secondary);
+    const colors = getCardsColors(brandColor, secondary, mode);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -669,7 +669,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 3: Icon Grid - Circle containers với shadow và hover scale
   if (style === 'icons') {
-    const colors = getIconsColors(brandColor, secondary);
+    const colors = getIconsColors(brandColor, secondary, mode);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -700,7 +700,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 4: Gradient - Glass morphism với gradient background
   if (style === 'gradient') {
-    const colors = getGradientColors(brandColor, secondary);
+    const colors = getGradientColors(brandColor, secondary, mode);
     return (
       <section className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -736,7 +736,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
 
   // Style 5: Minimal - Clean, simple với typography focus
   if (style === 'minimal') {
-    const colors = getMinimalColors(brandColor, secondary);
+    const colors = getMinimalColors(brandColor, secondary, mode);
     return (
       <section className="py-12 md:py-16 px-4 bg-slate-50">
         <div className="max-w-5xl mx-auto">
@@ -763,7 +763,7 @@ function StatsSection({ config, brandColor, secondary, title: _title }: { config
   }
 
   // Style 6: Counter - Big numbers với animated feel & progress indicator
-  const colors = getCounterColors(brandColor, secondary);
+  const colors = getCounterColors(brandColor, secondary, mode);
   return (
     <section className="py-12 md:py-16 px-4">
       <div className="max-w-5xl mx-auto">

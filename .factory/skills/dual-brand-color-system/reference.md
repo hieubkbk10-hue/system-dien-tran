@@ -49,3 +49,19 @@
 - Luôn 2 lớp contrast (inner bg + outer ring)
 - Secondary sáng (L >= 0.65): bg tối + icon trắng + ring trắng
 - Secondary tối (L < 0.65): bg trắng + icon secondary + ring tối
+
+## Canonical Safety Snippets
+
+```ts
+const resolveSecondaryForMode = (
+  primary: string,
+  secondary: string,
+  mode: 'single' | 'dual',
+) => (mode === 'single' ? primary : (secondary.trim() ? secondary : primary));
+```
+
+```ts
+const safeParseOklch = (value: string, fallback: string) => (
+  oklch(value) ?? oklch(fallback) ?? oklch('#3b82f6')
+);
+```

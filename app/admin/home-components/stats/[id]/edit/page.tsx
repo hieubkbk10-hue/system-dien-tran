@@ -13,12 +13,14 @@ import { useBrandColors } from '../../../create/shared';
 import { StatsForm, type StatsFormItem } from '../../_components/StatsForm';
 import { StatsPreview } from '../../_components/StatsPreview';
 import { DEFAULT_STATS_ITEMS } from '../../_lib/constants';
-import type { StatsItem, StatsStyle } from '../../_types';
+import type { StatsBrandMode, StatsItem, StatsStyle } from '../../_types';
 
 export default function StatsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { primary, secondary } = useBrandColors();
+  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const brandMode: StatsBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -27,6 +29,13 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
   const [statsItems, setStatsItems] = useState<StatsFormItem[]>([]);
   const [statsStyle, setStatsStyle] = useState<StatsStyle>('horizontal');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    items: StatsFormItem[];
+    style: StatsStyle;
+  } | null>(null);
 
   useEffect(() => {
     if (component) {
@@ -40,10 +49,33 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
 
       const config = component.config ?? {};
       const items = (config.items as StatsItem[] | undefined) ?? DEFAULT_STATS_ITEMS;
-      setStatsItems(items.map((item, idx) => ({ id: `stat-${idx}`, label: item.label, value: item.value })));
-      setStatsStyle((config.style as StatsStyle) || 'horizontal');
+      const mappedItems = items.map((item, idx) => ({ id: `stat-${idx}`, label: item.label, value: item.value }));
+      const style = (config.style as StatsStyle) || 'horizontal';
+
+      setStatsItems(mappedItems);
+      setStatsStyle(style);
+      setInitialData({
+        title: component.title,
+        active: component.active,
+        items: mappedItems,
+        style,
+      });
+      setHasChanges(false);
     }
   }, [component, id, router]);
+
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const currentItems = JSON.stringify(statsItems);
+    const initialItems = JSON.stringify(initialData.items);
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || statsStyle !== initialData.style
+      || currentItems !== initialItems;
+
+    setHasChanges(changed);
+  }, [title, active, statsItems, statsStyle, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +93,13 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
         title,
       });
       toast.success('Đã cập nhật Thống kê');
+      setInitialData({
+        title,
+        active,
+        items: statsItems,
+        style: statsStyle,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -135,6 +174,7 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
               items={statsItems.map((item) => ({ label: item.label, value: item.value }))}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
               selectedStyle={statsStyle}
               onStyleChange={setStatsStyle}
             />
@@ -145,8 +185,8 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

@@ -14,18 +14,20 @@ import {
   getIconsColors,
   getMinimalColors,
 } from '../_lib/colors';
-import type { StatsItem, StatsStyle } from '../_types';
+import type { StatsBrandMode, StatsItem, StatsStyle } from '../_types';
 
 export const StatsPreview = ({
   items,
   brandColor,
   secondary,
+  mode,
   selectedStyle,
   onStyleChange,
 }: {
   items: StatsItem[];
   brandColor: string;
   secondary: string;
+  mode: StatsBrandMode;
   selectedStyle?: StatsStyle;
   onStyleChange?: (style: StatsStyle) => void;
 }) => {
@@ -35,7 +37,7 @@ export const StatsPreview = ({
   const info = `${items.filter((item) => item.value || item.label).length} số liệu`;
 
   const renderHorizontalStyle = () => {
-    const colors = getHorizontalColors(brandColor, secondary);
+    const colors = getHorizontalColors(brandColor, secondary, mode);
     return (
     <section className="w-full rounded-lg shadow-sm overflow-hidden border" style={{ backgroundColor: 'white', borderColor: colors.border }}>
       <div className={cn(
@@ -68,7 +70,7 @@ export const StatsPreview = ({
   };
 
   const renderCardsStyle = () => {
-    const colors = getCardsColors(brandColor, secondary);
+    const colors = getCardsColors(brandColor, secondary, mode);
     return (
     <section className={cn("w-full", device === 'mobile' ? 'p-3' : 'p-4')}>
       <div className={cn("grid gap-4", device === 'mobile' ? 'grid-cols-2' : 'grid-cols-4')}>
@@ -99,7 +101,7 @@ export const StatsPreview = ({
   };
 
   const renderIconsStyle = () => {
-    const colors = getIconsColors(brandColor, secondary);
+    const colors = getIconsColors(brandColor, secondary, mode);
     return (
     <section className={cn("w-full", device === 'mobile' ? 'py-4 px-3' : 'py-6 px-4')}>
       <div className={cn("grid gap-6", device === 'mobile' ? 'grid-cols-2 gap-4' : 'grid-cols-4 md:gap-8')}>
@@ -141,7 +143,7 @@ export const StatsPreview = ({
   };
 
   const renderGradientStyle = () => {
-    const colors = getGradientColors(brandColor, secondary);
+    const colors = getGradientColors(brandColor, secondary, mode);
     return (
     <section className={cn("w-full", device === 'mobile' ? 'p-3' : 'p-6')}>
       <div
@@ -191,7 +193,7 @@ export const StatsPreview = ({
   };
 
   const renderMinimalStyle = () => {
-    const colors = getMinimalColors(brandColor, secondary);
+    const colors = getMinimalColors(brandColor, secondary, mode);
     return (
     <section className={cn("w-full bg-slate-50 dark:bg-slate-900", device === 'mobile' ? 'py-8 px-4' : 'py-12 px-6')}>
       <div className={cn(
@@ -230,7 +232,7 @@ export const StatsPreview = ({
   };
 
   const renderCounterStyle = () => {
-    const colors = getCounterColors(brandColor, secondary);
+    const colors = getCounterColors(brandColor, secondary, mode);
     return (
     <section className={cn("w-full", device === 'mobile' ? 'py-6 px-3' : 'py-10 px-6')}>
       <div className={cn(

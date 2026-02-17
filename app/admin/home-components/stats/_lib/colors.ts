@@ -2,11 +2,30 @@
 
 import { APCAcontrast } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
+import type { StatsBrandMode } from '../_types';
 
 const clampLightness = (value: number) => Math.min(Math.max(value, 0.08), 0.98);
 
-const getTint = (hex: string, lightness: number) => {
-  const color = oklch(hex);
+const isNonEmptyColor = (value: string) => value.trim().length > 0;
+
+const safeParseOklch = (input: string, fallback: string) => (
+  oklch(input) ?? oklch(fallback) ?? oklch('#3b82f6')
+);
+
+const resolveStatsSecondary = (
+  primary: string,
+  secondary: string,
+  mode: StatsBrandMode,
+) => {
+  if (mode === 'single') {
+    return primary;
+  }
+
+  return isNonEmptyColor(secondary) ? secondary : primary;
+};
+
+const getTint = (hex: string, lightness: number, fallback: string) => {
+  const color = safeParseOklch(hex, fallback);
   return formatHex(oklch({ ...color, l: clampLightness(color.l + lightness) }));
 };
 
@@ -36,35 +55,59 @@ const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fo
   return whiteMin > blackMin ? '#ffffff' : '#0f172a';
 };
 
-export const getHorizontalColors = (_primary: string, secondary: string) => ({
-  border: getTint(secondary, 0.35),
-});
+export const getHorizontalColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
 
-export const getCardsColors = (_primary: string, secondary: string) => ({
-  border: getTint(secondary, 0.35),
-  accent: secondary,
-});
+  return {
+    border: getTint(secondaryResolved, 0.35, primary),
+  };
+};
 
-export const getIconsColors = (primary: string, secondary: string) => ({
-  circleBg: primary,
-  textOnCircle: getAPCATextColor(primary, 20, 700),
-  label: secondary,
-});
+export const getCardsColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
 
-export const getGradientColors = (primary: string, secondary: string) => ({
-  background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
-  border: getTint(secondary, 0.35),
-  text: getTextOnGradient(primary, secondary, 20, 700),
-  label: getTextOnGradient(primary, secondary, 14, 500),
-});
+  return {
+    border: getTint(secondaryResolved, 0.35, primary),
+    accent: secondaryResolved,
+  };
+};
 
-export const getMinimalColors = (primary: string, secondary: string) => ({
-  accent: secondary,
-  value: primary,
-});
+export const getIconsColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
 
-export const getCounterColors = (primary: string, secondary: string) => ({
-  border: getTint(secondary, 0.35),
-  progress: secondary,
-  value: primary,
-});
+  return {
+    circleBg: primary,
+    textOnCircle: getAPCATextColor(primary, 20, 700),
+    label: secondaryResolved,
+  };
+};
+
+export const getGradientColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
+
+  return {
+    background: `linear-gradient(135deg, ${primary} 0%, ${secondaryResolved} 100%)`,
+    border: getTint(secondaryResolved, 0.35, primary),
+    text: getTextOnGradient(primary, secondaryResolved, 20, 700),
+    label: getTextOnGradient(primary, secondaryResolved, 14, 500),
+  };
+};
+
+export const getMinimalColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
+
+  return {
+    accent: secondaryResolved,
+    value: primary,
+  };
+};
+
+export const getCounterColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
+  const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
+
+  return {
+    border: getTint(secondaryResolved, 0.35, primary),
+    progress: secondaryResolved,
+    value: primary,
+  };
+};
