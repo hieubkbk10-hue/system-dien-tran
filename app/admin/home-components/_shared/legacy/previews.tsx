@@ -1849,8 +1849,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
             "grid gap-5",
             device === 'mobile' ? 'grid-cols-2 text-center' : (device === 'tablet' ? 'grid-cols-2' : 'lg:col-span-7 grid-cols-2 md:grid-cols-3')
           )}>
-            {getColumns().slice(0, 2).map((col) => (
-              <div key={col.id}>
+            {getColumns().slice(0, 2).map((col, colIdx) => (
+              <div key={`${col.id ?? 'col'}-${colIdx}`}>
                 <h3 className="font-semibold text-white text-xs tracking-wide mb-2">{col.title}</h3>
                 <ul className="space-y-1.5">
                   {col.links.map((link, lIdx) => (
@@ -1962,8 +1962,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
             <p className="text-xs leading-relaxed text-white/80">{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>
           </div>
           
-          {getColumns().slice(0, 2).map((col) => (
-            <div key={col.id}>
+          {getColumns().slice(0, 2).map((col, colIdx) => (
+            <div key={`${col.id ?? 'col'}-${colIdx}`}>
               <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
               <ul className="space-y-1">
                 {col.links.map((link, lIdx) => (
@@ -2048,8 +2048,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           "grid gap-4 mb-6",
           device === 'mobile' ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-6'
         )}>
-          {getColumns().slice(0, 4).map((col) => (
-            <div key={col.id} className="text-center">
+          {getColumns().slice(0, 4).map((col, colIdx) => (
+            <div key={`${col.id ?? 'col'}-${colIdx}`} className="text-center">
               <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
               <ul className="space-y-1">
                 {col.links.slice(0, 4).map((link, lIdx) => (
