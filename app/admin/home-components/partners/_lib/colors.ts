@@ -120,9 +120,9 @@ export const getPartnersColors = (
     itemBorder: secondarySubtle,
     itemBg: neutralSurface,
     itemBgMuted: neutralSubtle,
-    badgeBg: secondarySoft,
-    badgeBorder: secondarySubtle,
-    badgeText: getAPCATextColor(secondarySoft, 12, 600),
+    badgeBg: neutralSurface,
+    badgeBorder: neutralBorder,
+    badgeText: neutralMuted,
     remainingBg: secondarySubtle,
     remainingBorder: secondaryStrong,
     remainingText: getAPCATextColor(secondarySubtle, 12, 700),
@@ -133,7 +133,7 @@ export const getPartnersColors = (
     dotInactive: neutralBorder,
     featuredBadgeBg: primaryResolved,
     featuredBadgeText: getAPCATextColor(primaryResolved, 10, 700),
-    featuredCardBg: primarySubtle,
-    featuredCardBorder: secondarySubtle,
+    featuredCardBg: neutralSubtle,
+    featuredCardBorder: neutralBorder,
   };
 };
