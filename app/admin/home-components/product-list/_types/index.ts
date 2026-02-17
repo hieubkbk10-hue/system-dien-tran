@@ -1,5 +1,9 @@
 export type ProductListStyle = 'minimal' | 'commerce' | 'bento' | 'carousel' | 'compact' | 'showcase';
 
+export type ProductListBrandMode = 'single' | 'dual';
+
+export type ProductListHarmony = 'analogous' | 'complementary' | 'triadic';
+
 export interface ProductListPreviewItem {
   id: string | number;
   name: string;

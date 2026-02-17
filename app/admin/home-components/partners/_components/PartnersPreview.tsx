@@ -51,8 +51,10 @@ export const PartnersPreview = ({
     if (items.length === 0) {return renderEmptyState();}
 
     const MAX_VISIBLE = device === 'mobile' ? 4 : 8;
-    const visibleItems = items.slice(0, MAX_VISIBLE);
-    const remainingCount = items.length - MAX_VISIBLE;
+    const hasRemaining = items.length > MAX_VISIBLE;
+    const visibleCount = hasRemaining ? MAX_VISIBLE - 1 : MAX_VISIBLE;
+    const visibleItems = items.slice(0, visibleCount);
+    const remainingCount = items.length - visibleCount;
 
     if (items.length <= 2) {
       return (

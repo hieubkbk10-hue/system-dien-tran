@@ -18,6 +18,7 @@ interface ProductListSectionProps {
   config: Record<string, unknown>;
   brandColor: string;
   secondary: string;
+  mode?: 'single' | 'dual';
   title: string;
 }
 
