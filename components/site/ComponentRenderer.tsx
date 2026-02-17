@@ -29,6 +29,7 @@ import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CT
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
@@ -3292,7 +3293,7 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
 
 function GallerySection({ config, brandColor, secondary, title, type }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; title: string; type: string }) {
-  const items = (config.items as { url: string; link?: string }[]) || [];
+  const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
   const partnersCarouselId = useSafeId('partners-carousel');
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ url: string; link?: string } | null>(null);
@@ -3628,74 +3629,32 @@ function GallerySection({ config, brandColor, secondary, title, type }: { config
   // Style: Marquee - Auto scroll, swipeable
   if (style === 'marquee') {
     return (
-      <section className="w-full py-10 bg-white border-b border-slate-200/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
-              {title}
-            </h2>
-          </div>
-          <div className="w-full relative group py-8">
-            {/* Fade Edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-            
-            <AutoScrollSlider speed={0.8}>
-              {items.map((item, idx) => (
-                <a key={idx} href={item.link ?? '#'} className="shrink-0">
-                  {item.url ? (
-                    <SiteImage 
-                      src={item.url} 
-                      alt="" 
-                      className="h-11 w-auto object-contain hover:scale-110 transition-transform duration-300 select-none" 
-                    />
-                  ) : (
-                    <div className="h-11 w-24 bg-slate-200 rounded flex items-center justify-center">
-                      <ImageIcon size={24} className="text-slate-400" />
-                    </div>
-                  )}
-                </a>
-              ))}
-            </AutoScrollSlider>
-          </div>
-        </div>
-      </section>
+      <PartnersMarqueeShared
+        items={items}
+        brandColor={brandColor}
+        title={title}
+        variant="marquee"
+        speed={0.8}
+        renderImage={(item, className) => (
+          <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   }
 
   // Style: Mono - Grayscale, hover to color
   if (style === 'mono') {
     return (
-      <section className="w-full py-10 bg-white border-b border-slate-200/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
-              {title}
-            </h2>
-          </div>
-          <div className="w-full relative py-6">
-            <AutoScrollSlider speed={0.5}>
-              {items.map((item, idx) => (
-                <a key={idx} href={item.link ?? '#'} className="shrink-0 group">
-                  {item.url ? (
-                    <SiteImage 
-                      src={item.url} 
-                      alt="" 
-                      className="h-10 w-auto object-contain grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 select-none" 
-                    />
-                  ) : (
-                    <div className="h-10 w-24 bg-slate-200 rounded flex items-center justify-center opacity-50">
-                      <ImageIcon size={22} className="text-slate-400" />
-                    </div>
-                  )}
-                </a>
-              ))}
-            </AutoScrollSlider>
-          </div>
-        </div>
-      </section>
+      <PartnersMarqueeShared
+        items={items}
+        brandColor={brandColor}
+        title={title}
+        variant="mono"
+        speed={0.5}
+        renderImage={(item, className) => (
+          <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   }
 

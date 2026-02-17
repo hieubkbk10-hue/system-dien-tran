@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Building2, ChevronLeft, ChevronRight, Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
-import { AutoScrollSlider } from '../../_shared/components/AutoScrollSlider';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { PARTNERS_STYLES } from '../_lib/constants';
 import type { PartnerItem, PartnersStyle } from '../_types';
+import { PartnersMarqueeShared } from './PartnersMarqueeShared';
 
 export const PartnersPreview = ({
   items,
@@ -15,15 +15,16 @@ export const PartnersPreview = ({
   secondary: _secondary,
   selectedStyle = 'grid',
   onStyleChange,
+  title,
 }: {
   items: PartnerItem[];
   brandColor: string;
   secondary: string;
   selectedStyle?: PartnersStyle;
   onStyleChange?: (style: PartnersStyle) => void;
+  title?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
-  const [isPaused, setIsPaused] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'grid';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as PartnersStyle);
@@ -103,25 +104,18 @@ export const PartnersPreview = ({
     if (items.length === 0) {return renderEmptyState();}
 
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
-            Đối tác
-          </h2>
-          <div className="w-full relative py-4" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10 pointer-events-none"></div>
-            <AutoScrollSlider speed={0.8} isPaused={isPaused}>
-              {items.map((item) => (
-                <a key={`marquee-${item.id}`} href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                  {item.url ? <PreviewImage src={item.url} alt="" className="h-12 w-auto object-contain select-none" /> : <div className="h-12 w-24 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center"><ImageIcon size={24} className="text-slate-400" /></div>}
-                </a>
-              ))}
-            </AutoScrollSlider>
-          </div>
-        </div>
-      </section>
+      <PartnersMarqueeShared
+        items={items}
+        brandColor={brandColor}
+        title={title ?? 'Đối tác'}
+        variant="marquee"
+        speed={0.8}
+        openInNewTab
+        renderImage={(item, className) => (
+          <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+        className="dark:bg-slate-900 dark:border-slate-700/40"
+      />
     );
   };
 
@@ -129,23 +123,18 @@ export const PartnersPreview = ({
     if (items.length === 0) {return renderEmptyState();}
 
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
-            Đối tác
-          </h2>
-          <div className="w-full relative py-3" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-            <AutoScrollSlider speed={0.5} isPaused={isPaused}>
-              {items.map((item) => (
-                <a key={`mono-${item.id}`} href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                  {item.url ? <PreviewImage src={item.url} alt="" className="h-11 w-auto object-contain grayscale opacity-60 select-none" /> : <div className="h-11 w-24 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center opacity-50"><ImageIcon size={22} className="text-slate-400" /></div>}
-                </a>
-              ))}
-            </AutoScrollSlider>
-          </div>
-        </div>
-      </section>
+      <PartnersMarqueeShared
+        items={items}
+        brandColor={brandColor}
+        title={title ?? 'Đối tác'}
+        variant="mono"
+        speed={0.5}
+        openInNewTab
+        renderImage={(item, className) => (
+          <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+        className="dark:bg-slate-900 dark:border-slate-700/40"
+      />
     );
   };
 

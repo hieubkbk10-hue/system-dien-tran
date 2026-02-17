@@ -140,6 +140,7 @@ export default function PartnersEditPage({ params }: { params: Promise<{ id: str
               secondary={secondary}
               selectedStyle={partnersStyle}
               onStyleChange={setPartnersStyle}
+              title={title}
             />
           </div>
         </div>
