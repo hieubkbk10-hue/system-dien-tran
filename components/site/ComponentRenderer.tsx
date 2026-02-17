@@ -28,6 +28,8 @@ import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
+import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
@@ -145,7 +147,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <PricingSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'ProductList': {
-      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'ServiceList': {
       return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -190,7 +192,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <VoucherPromotionsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Footer': {
-      return <FooterSection config={config} brandColor={brandColor} secondary={secondary} />;
+      return <FooterSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
     }
     default: {
       return <PlaceholderSection type={type} title={title} />;
@@ -1912,7 +1914,6 @@ function FAQSection({
     description?: string;
     buttonText?: string;
     buttonLink?: string;
-    harmony?: FaqConfig['harmony'];
   };
 
   const items: FaqItem[] = (faqConfig.items ?? []).map((item, idx) => ({
@@ -1922,12 +1923,10 @@ function FAQSection({
   }));
 
   const style: FaqStyle = faqConfig.style ?? 'accordion';
-  const harmony = faqConfig.harmony ?? 'analogous';
   const sectionConfig: FaqConfig = {
     description: faqConfig.description,
     buttonText: faqConfig.buttonText,
     buttonLink: faqConfig.buttonLink,
-    harmony,
   };
 
   const tokens = getFaqColors({
@@ -1935,7 +1934,6 @@ function FAQSection({
     secondary,
     mode,
     style,
-    harmony,
   });
 
   const faqSchema = {
@@ -8962,11 +8960,20 @@ function VoucherPromotionsSection({ config, brandColor: _brandColor, secondary, 
 // ============ FOOTER SECTION ============
 // 6 Styles: classic, modern, corporate, minimal, centered, stacked
 // Synced with previews.tsx FooterPreview
-type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
-interface FooterColumn { title: string; links: { label: string; url: string }[] }
-interface SocialLinkItem { platform: string; url: string; icon: string }
+interface FooterColumn { id?: number | string; title: string; links: { label: string; url: string }[] }
+interface SocialLinkItem { id?: number | string; platform: string; url: string; icon: string }
 
-function FooterSection({ config, brandColor, secondary }: { config: Record<string, unknown>; brandColor: string; secondary: string }) {
+function FooterSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: FooterBrandMode;
+}) {
   const style = (config.style as FooterStyle) || 'classic';
   const logo = (config.logo as string) || '';
   const description = (config.description as string) || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.';
@@ -8974,19 +8981,7 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
   const socialLinks = (config.socialLinks as SocialLinkItem[]) || [];
   const copyright = (config.copyright as string) || '© 2024 VietAdmin. All rights reserved.';
   const showSocialLinks = config.showSocialLinks !== false;
-
-  // Best Practice: Dùng brandColor đậm làm nền thay vì màu đen cứng
-  const shadeColor = (hex: string, percent: number): string => {
-    const num = Number.parseInt(hex.replace('#', ''), 16);
-    const R = Math.round((num >> 16) * (1 - percent / 100));
-    const G = Math.round((num >> 8 & 0x00_FF) * (1 - percent / 100));
-    const B = Math.round((num & 0x00_00_FF) * (1 - percent / 100));
-    return `#${(0x1_00_00_00 + R * 0x1_00_00 + G * 0x1_00 + B).toString(16).slice(1)}`;
-  };
-
-  const bgDark = shadeColor(brandColor, 65);
-  const bgMedium = shadeColor(brandColor, 50);
-  const borderColor = shadeColor(brandColor, 30);
+  const colors: FooterLayoutColors = getFooterLayoutColors(style, brandColor, secondary, mode);
 
   const socialColors: Record<string, string> = {
     facebook: '#1877F2', instagram: '#E4405F', linkedin: '#0A66C2',
@@ -9028,24 +9023,28 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
     { links: [{ label: 'FAQ', url: '/faq' }, { label: 'Liên hệ', url: '/contact' }], title: 'Hỗ trợ' }
   ];
 
-  // Style 1: Classic Dark
   if (style === 'classic') {
     return (
-      <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-12">
             <div className="md:col-span-5 space-y-3 text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: bgMedium, border: `1px solid ${borderColor}` }}>
-                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>}
+                <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
+                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
                 </div>
-                <span className="text-base font-bold tracking-tight text-white">VietAdmin</span>
+                <span className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</span>
               </div>
-              <p className="text-xs leading-relaxed text-white/80 md:max-w-sm">{description}</p>
+              <p className="text-xs leading-relaxed md:max-w-sm" style={{ color: colors.textMuted }}>{description}</p>
               {showSocialLinks && (
                 <div className="flex gap-2 justify-center md:justify-start">
                   {getSocials().map((s, i) => (
-                    <a key={i} href={s.url} className="h-6 w-6 flex items-center justify-center rounded-full bg-white hover:opacity-80 transition-all" style={{ color: socialColors[s.platform] || '#94a3b8' }}>
+                    <a
+                      key={`${s.id ?? 'social'}-${i}`}
+                      href={s.url}
+                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                    >
                       {renderSocialIcon(s.platform, 14)}
                     </a>
                   ))}
@@ -9054,72 +9053,99 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
             </div>
             <div className="md:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-5 text-center md:text-left">
               {getColumns().slice(0, 3).map((col, i) => (
-                <div key={i}>
-                  <h3 className="font-semibold text-white text-xs tracking-wide mb-2">{col.title}</h3>
+                <div key={`${col.id ?? 'col'}-${i}`}>
+                  <h3 className="font-semibold text-xs tracking-wide mb-2" style={{ color: colors.textPrimary }}>{col.title}</h3>
                   <ul className="space-y-1.5">
                     {col.links.map((link, j) => (
-                      <li key={j}><a href={link.url} className="text-xs text-white/70 hover:text-white transition-colors">{link.label}</a></li>
+                      <li key={j}>
+                        <a
+                          href={link.url}
+                          className="text-xs transition-colors"
+                          style={{ color: colors.textMuted }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                        >
+                          {link.label}
+                        </a>
+                      </li>
                     ))}
                   </ul>
                 </div>
               ))}
             </div>
           </div>
-          <div className="mt-6 pt-3 text-center md:text-left" style={{ borderTop: `1px solid ${borderColor}50` }}>
-            <p className="text-[10px] text-white/60">{copyright}</p>
+          <div className="mt-6 pt-3 text-center md:text-left" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
+            <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
           </div>
         </div>
       </footer>
     );
   }
 
-  // Style 2: Modern Center
   if (style === 'modern') {
     return (
-      <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark }}>
+      <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg }}>
         <div className="max-w-5xl mx-auto px-3 md:px-4 flex flex-col items-center text-center space-y-3 md:space-y-4">
           <div className="flex flex-col items-center gap-2">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20 mb-1" style={{ background: `linear-gradient(to top right, ${bgMedium}, ${borderColor})` }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain drop-shadow-md" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: secondary }}>V</div>}
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
             </div>
-            <h2 className="text-base font-bold text-white tracking-tight">VietAdmin</h2>
-            <p className="text-xs leading-relaxed text-white/80 max-w-xs md:max-w-md">{description}</p>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+            <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-x-3 md:gap-x-4 gap-y-1.5">
             {getColumns().flatMap(col => col.links).slice(0, 8).map((link, i) => (
-              <a key={i} href={link.url} className="text-xs font-medium text-white/70 hover:text-white hover:underline underline-offset-4 transition-all" style={{ textDecorationColor: secondary }}>{link.label}</a>
+              <a
+                key={i}
+                href={link.url}
+                className="text-xs font-medium underline-offset-4 transition-colors"
+                style={{ color: colors.textMuted, textDecorationColor: colors.accent }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+              >
+                {link.label}
+              </a>
             ))}
           </div>
-          <div className="w-12 h-px" style={{ background: `linear-gradient(to right, transparent, ${borderColor}, transparent)` }}></div>
+          <div className="w-12 h-px" style={{ backgroundColor: colors.dividerGradient }}></div>
           {showSocialLinks && (
             <div className="flex gap-3">
               {getSocials().map((s, i) => (
-                <a key={i} href={s.url} className="h-6 w-6 flex items-center justify-center rounded-full bg-white hover:opacity-80 transition-all" style={{ color: socialColors[s.platform] || '#94a3b8' }}>
+                <a
+                  key={`${s.id ?? 'social'}-${i}`}
+                  href={s.url}
+                  className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                >
                   {renderSocialIcon(s.platform, 14)}
                 </a>
               ))}
             </div>
           )}
-          <p className="text-[10px] font-medium text-white/60">{copyright}</p>
+          <p className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{copyright}</p>
         </div>
       </footer>
     );
   }
 
-  // Style 3: Corporate
   if (style === 'corporate') {
     return (
-      <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="max-w-7xl mx-auto px-3 md:px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <div className="flex items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>}
-              <span className="text-sm font-bold text-white">VietAdmin</span>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+              <span className="text-sm font-bold" style={{ color: colors.textPrimary }}>VietAdmin</span>
             </div>
             {showSocialLinks && (
               <div className="flex gap-2">
                 {getSocials().map((s, i) => (
-                  <a key={i} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full bg-white hover:opacity-80 transition-all" style={{ color: socialColors[s.platform] || '#94a3b8' }}>
+                  <a
+                    key={`${s.id ?? 'social'}-${i}`}
+                    href={s.url}
+                    className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                    style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                  >
                     {renderSocialIcon(s.platform, 12)}
                   </a>
                 ))}
@@ -9128,45 +9154,59 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
           </div>
           <div className="py-5 grid grid-cols-1 md:grid-cols-4 gap-5 text-center md:text-left">
             <div className="md:col-span-2 md:pr-4">
-              <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">Về Công Ty</h4>
-              <p className="text-xs leading-relaxed text-white/80">{description}</p>
+              <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>Về Công Ty</h4>
+              <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{description}</p>
             </div>
             {getColumns().slice(0, 2).map((col, i) => (
-              <div key={i}>
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+              <div key={`${col.id ?? 'col'}-${i}`}>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
                 <ul className="space-y-1">
                   {col.links.map((link, j) => (
-                    <li key={j}><a href={link.url} className="text-xs text-white/70 hover:text-white transition-colors">{link.label}</a></li>
+                    <li key={j}>
+                      <a
+                        href={link.url}
+                        className="text-xs transition-colors"
+                        style={{ color: colors.textMuted }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
           <div className="pt-3 text-center md:text-left">
-            <p className="text-[10px] text-white/60">{copyright}</p>
+            <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
           </div>
         </div>
       </footer>
     );
   }
 
-  // Style 4: Minimal
   if (style === 'minimal') {
     return (
-      <footer className="w-full text-white py-3 md:py-4" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+      <footer className="w-full py-3 md:py-4" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4 opacity-80" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: secondary }}>V</div>}
-              <span className="text-[10px] font-medium text-white/60">{copyright}</span>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
+              <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{copyright}</span>
             </div>
             {showSocialLinks && (
               <div className="flex gap-2">
-                {getSocials().map((s, i) => (
-                  <a key={i} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full bg-white hover:opacity-80 transition-all" style={{ color: socialColors[s.platform] || '#94a3b8' }}>
-                    {renderSocialIcon(s.platform, 12)}
-                  </a>
-                ))}
+              {getSocials().map((s, i) => (
+                <a
+                  key={`${s.id ?? 'social'}-${i}`}
+                  href={s.url}
+                  className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                >
+                  {renderSocialIcon(s.platform, 12)}
+                </a>
+              ))}
               </div>
             )}
           </div>
@@ -9175,63 +9215,95 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
     );
   }
 
-  // Style 5: Centered
   if (style === 'centered') {
     return (
-      <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark }}>
+      <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
         <div className="max-w-6xl mx-auto px-3 md:px-4 text-center">
           <div className="flex flex-col items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${secondary}20`, border: `2px solid ${secondary}40` }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: secondary }}>V</div>}
+          <div className="h-12 w-12 rounded-2xl flex items-center justify-center border" style={{ backgroundColor: colors.centeredBrandBg, borderColor: colors.centeredBrandBorder }}>
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>}
             </div>
-            <h2 className="text-lg font-bold text-white tracking-tight">VietAdmin</h2>
-            <p className="text-xs leading-relaxed text-white/70 max-w-xs md:max-w-md">{description}</p>
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+            <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
             {getColumns().slice(0, 4).map((col, i) => (
-              <div key={i} className="text-center">
-                <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+              <div key={`${col.id ?? 'col'}-${i}`} className="text-center">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
                 <ul className="space-y-1">
                   {col.links.slice(0, 4).map((link, j) => (
-                    <li key={j}><a href={link.url} className="text-xs text-white/60 hover:text-white transition-colors">{link.label}</a></li>
+                    <li key={j}>
+                      <a
+                        href={link.url}
+                        className="text-xs transition-colors"
+                        style={{ color: colors.textSubtle }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${secondary}, transparent)` }}></div>
+          <div className="w-16 h-px mx-auto mb-5" style={{ backgroundColor: colors.dividerGradient }}></div>
           {showSocialLinks && (
             <div className="flex justify-center gap-3 mb-4">
               {getSocials().map((s, i) => (
-                <a key={i} href={s.url} className="h-8 w-8 flex items-center justify-center rounded-full transition-all hover:scale-110" style={{ backgroundColor: `${secondary}20`, border: `1px solid ${secondary}30`, color: '#fff' }}>
+                <a
+                  key={`${s.id ?? 'social'}-${i}`}
+                  href={s.url}
+                  className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: colors.centeredSocialText }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.centeredSocialHoverBg;
+                    e.currentTarget.style.borderColor = colors.centeredSocialHoverBorder;
+                    e.currentTarget.style.color = colors.textOnAccent;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.centeredSocialBg;
+                    e.currentTarget.style.borderColor = colors.centeredSocialBorder;
+                    e.currentTarget.style.color = colors.centeredSocialText;
+                  }}
+                >
                   {renderSocialIcon(s.platform, 16)}
                 </a>
               ))}
             </div>
           )}
-          <p className="text-[10px] text-white/50">{copyright}</p>
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
         </div>
       </footer>
     );
   }
 
-  // Style 6: Stacked (default)
   return (
-    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${secondary}` }}>
+    <footer className="w-full py-6" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: secondary }}>
-            {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" /> : <span className="text-white font-bold text-sm">V</span>}
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>
+            {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" /> : <span className="font-bold text-sm">V</span>}
           </div>
           <div className="md:flex-1">
-            <h3 className="text-sm font-bold text-white mb-1">VietAdmin</h3>
-            <p className="text-xs text-white/70 leading-relaxed line-clamp-2">{description}</p>
+            <h3 className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }}>VietAdmin</h3>
+            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>{description}</p>
           </div>
         </div>
-        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
+        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 md:gap-x-4 gap-y-2">
             {getColumns().flatMap(col => col.links).slice(0, 10).map((link, i) => (
-              <a key={i} href={link.url} className="text-xs font-medium text-white/60 hover:text-white transition-colors">{link.label}</a>
+              <a
+                key={i}
+                href={link.url}
+                className="text-xs font-medium transition-colors"
+                style={{ color: colors.textSubtle }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
+              >
+                {link.label}
+              </a>
             ))}
           </div>
         </div>
@@ -9239,13 +9311,26 @@ function FooterSection({ config, brandColor, secondary }: { config: Record<strin
           {showSocialLinks && (
             <div className="flex gap-2">
               {getSocials().map((s, i) => (
-                <a key={i} href={s.url} className="h-7 w-7 flex items-center justify-center rounded-lg transition-all" style={{ backgroundColor: `${secondary}15`, color: '#fff' }}>
+                <a
+                  key={`${s.id ?? 'social'}-${i}`}
+                  href={s.url}
+                  className="h-7 w-7 flex items-center justify-center rounded-lg transition-colors"
+                  style={{ backgroundColor: colors.stackedSocialBg, color: colors.stackedSocialText }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.stackedSocialHoverBg;
+                    e.currentTarget.style.color = colors.textOnAccent;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.stackedSocialBg;
+                    e.currentTarget.style.color = colors.stackedSocialText;
+                  }}
+                >
                   {renderSocialIcon(s.platform, 14)}
                 </a>
               ))}
             </div>
           )}
-          <p className="text-[10px] text-white/50">{copyright}</p>
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
         </div>
       </div>
     </footer>

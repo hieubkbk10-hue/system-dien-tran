@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, cn } from '../../../components/ui';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
+import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import type { FooterBrandMode } from '@/app/admin/home-components/footer/_types';
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
@@ -1682,7 +1684,7 @@ export const ServicesPreview = ({ items, brandColor, secondary, componentType, s
 // ============ FOOTER PREVIEW ============
 // 6 Professional Styles: Classic Dark, Modern Center, Corporate, Minimal, Centered, Stacked
 // Best Practices: Clear navigation hierarchy, Social proof, Contact accessibility, Mobile-first, Brand consistency
-interface SocialLinkItem { id: number; platform: string; url: string; icon: string }
+interface SocialLinkItem { id?: number | string; platform: string; url: string; icon: string }
 interface FooterConfig { 
   logo: string; 
   description: string; 
@@ -1692,8 +1694,8 @@ interface FooterConfig {
   showSocialLinks: boolean 
 }
 export type FooterStyle = 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
-export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string;
-  secondary: string; selectedStyle?: FooterStyle; onStyleChange?: (style: FooterStyle) => void }) => {
+export const FooterPreview = ({ config, brandColor, secondary, mode = 'dual', selectedStyle, onStyleChange }: { config: FooterConfig; brandColor: string;
+  secondary: string; mode?: FooterBrandMode; selectedStyle?: FooterStyle; onStyleChange?: (style: FooterStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const previewStyle = selectedStyle ?? 'classic';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as FooterStyle);
@@ -1706,20 +1708,7 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
     { id: 'stacked', label: '6. Stacked' }
   ];
 
-  // Best Practice: Dùng brandColor đậm làm nền thay vì màu đen cứng
-  // Tạo shade từ brandColor bằng cách blend với đen
-  const shadeColor = (hex: string, percent: number): string => {
-    const num = Number.parseInt(hex.replace('#', ''), 16);
-    const R = Math.round((num >> 16) * (1 - percent / 100));
-    const G = Math.round((num >> 8 & 0x00_FF) * (1 - percent / 100));
-    const B = Math.round((num & 0x00_00_FF) * (1 - percent / 100));
-    return `#${(0x1_00_00_00 + R * 0x1_00_00 + G * 0x1_00 + B).toString(16).slice(1)}`;
-  };
-
-  // Brand-based colors: shade của brandColor thay vì đen cứng
-  const bgDark = shadeColor(brandColor, 65);       // Đậm nhất - nền footer
-  const bgMedium = shadeColor(brandColor, 50);     // Medium - cards/sections
-  const borderColor = shadeColor(brandColor, 30); // Nhẹ - borders
+  const colors: FooterLayoutColors = getFooterLayoutColors(previewStyle, brandColor, secondary, mode);
 
   // Social media brand colors
   const socialColors: Record<string, string> = {
@@ -1811,32 +1800,35 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
 
   // Style 1: Classic Dark - Standard layout với brand column và menu columns
   const renderClassicStyle = () => (
-    <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+    <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
       <div className={cn("container max-w-7xl mx-auto", device === 'mobile' ? 'px-3' : 'px-4')}>
         <div className={cn(
           "grid gap-6",
           device === 'mobile' ? 'grid-cols-1 gap-4' : (device === 'tablet' ? 'grid-cols-2 gap-5' : 'grid-cols-12 lg:gap-5')
         )}>
-          
-          {/* Brand Column */}
           <div className={cn(device === 'mobile' ? 'text-center' : (device === 'tablet' ? 'col-span-2' : 'lg:col-span-5'), "space-y-3")}>
             <div className={cn("flex items-center gap-2", device === 'mobile' ? 'justify-center' : '')}>
-              <div className="p-1.5 rounded-lg" style={{ backgroundColor: bgMedium, border: `1px solid ${borderColor}` }}>
+              <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
                 {config.logo ? (
                   <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" />
                 ) : (
-                  <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>
+                  <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>
                 )}
               </div>
-              <span className="text-base font-bold tracking-tight text-white">VietAdmin</span>
+              <span className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</span>
             </div>
-            <p className={cn("text-xs leading-relaxed text-white/80", device === 'mobile' ? '' : 'max-w-sm')}>
+            <p className={cn("text-xs leading-relaxed", device === 'mobile' ? '' : 'max-w-sm')} style={{ color: colors.textMuted }}>
               {config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}
             </p>
             {config.showSocialLinks && (
               <div className={cn("flex gap-2", device === 'mobile' ? 'justify-center' : '')}>
                 {getSocials().map((s, index) => (
-                  <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+                  <a
+                    key={`${s.id ?? 'social'}-${index}`}
+                    href={s.url}
+                    className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                    style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                  >
                     {renderSocialIcon(s.platform, 14)}
                   </a>
                 ))}
@@ -1844,18 +1836,23 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
             )}
           </div>
 
-          {/* Dynamic Columns */}
           <div className={cn(
             "grid gap-5",
             device === 'mobile' ? 'grid-cols-2 text-center' : (device === 'tablet' ? 'grid-cols-2' : 'lg:col-span-7 grid-cols-2 md:grid-cols-3')
           )}>
             {getColumns().slice(0, 2).map((col, colIdx) => (
               <div key={`${col.id ?? 'col'}-${colIdx}`}>
-                <h3 className="font-semibold text-white text-xs tracking-wide mb-2">{col.title}</h3>
+                <h3 className="font-semibold text-xs tracking-wide mb-2" style={{ color: colors.textPrimary }}>{col.title}</h3>
                 <ul className="space-y-1.5">
                   {col.links.map((link, lIdx) => (
                     <li key={lIdx}>
-                      <a href={link.url} className="text-xs hover:text-white transition-colors block text-white/70">
+                      <a
+                        href={link.url}
+                        className="text-xs transition-colors block"
+                        style={{ color: colors.textMuted }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                      >
                         {link.label}
                       </a>
                     </li>
@@ -1866,8 +1863,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           </div>
         </div>
 
-        <div className="mt-6 pt-3" style={{ borderTop: `1px solid ${borderColor}50` }}>
-          <p className={cn("text-[10px] text-white/60", device === 'mobile' ? 'text-center' : '')}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+        <div className="mt-6 pt-3" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
+          <p className={cn("text-[10px]", device === 'mobile' ? 'text-center' : '')} style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
         </div>
       </div>
     </footer>
@@ -1875,48 +1872,55 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
 
   // Style 2: Modern Centered - Elegant centered layout
   const renderModernStyle = () => (
-    <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark }}>
+    <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg }}>
       <div className={cn("container max-w-5xl mx-auto flex flex-col items-center text-center space-y-4", device === 'mobile' ? 'px-3 space-y-3' : 'px-4')}>
-        
-        {/* Brand */}
         <div className="flex flex-col items-center gap-2">
-          <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/20 mb-1" style={{ background: `linear-gradient(to top right, ${bgMedium}, ${borderColor})` }}>
+          <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
             {config.logo ? (
-              <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain drop-shadow-md" />
+              <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain" />
             ) : (
-              <div className="h-6 w-6 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: secondary }}>V</div>
+              <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>
             )}
           </div>
-          <h2 className="text-base font-bold text-white tracking-tight">VietAdmin</h2>
-          <p className={cn("text-xs leading-relaxed text-white/80", device === 'mobile' ? 'max-w-xs' : 'max-w-md')}>
+          <h2 className="text-base font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+          <p className={cn("text-xs leading-relaxed", device === 'mobile' ? 'max-w-xs' : 'max-w-md')} style={{ color: colors.textMuted }}>
             {config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
           </p>
         </div>
 
-        {/* Navigation (Flat) */}
         <div className={cn("flex flex-wrap justify-center gap-x-4 gap-y-1.5", device === 'mobile' ? 'gap-x-3' : '')}>
           {getColumns().flatMap(col => col.links).slice(0, device === 'mobile' ? 4 : 8).map((link, i) => (
-            <a key={i} href={link.url} className="text-xs font-medium hover:text-white hover:underline underline-offset-4 transition-all text-white/70" style={{ textDecorationColor: secondary }}>
+            <a
+              key={i}
+              href={link.url}
+              className="text-xs font-medium underline-offset-4 transition-colors"
+              style={{ color: colors.textMuted, textDecorationColor: colors.accent }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+            >
               {link.label}
             </a>
           ))}
         </div>
 
-        <div className="w-12 h-px" style={{ background: `linear-gradient(to right, transparent, ${borderColor}, transparent)` }}></div>
+        <div className="w-12 h-px" style={{ backgroundColor: colors.dividerGradient }}></div>
 
-        {/* Socials */}
         {config.showSocialLinks && (
           <div className="flex gap-3">
             {getSocials().map((s, index) => (
-              <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+              <a
+                key={`${s.id ?? 'social'}-${index}`}
+                href={s.url}
+                className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+              >
                 {renderSocialIcon(s.platform, 14)}
               </a>
             ))}
           </div>
         )}
 
-        {/* Copyright */}
-        <div className="text-[10px] font-medium text-white/60">
+        <div className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
           {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
         </div>
       </div>
@@ -1925,26 +1929,29 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
 
   // Style 3: Corporate Grid - Structured professional layout
   const renderCorporateStyle = () => (
-    <footer className="w-full text-white py-6 md:py-8" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+    <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
       <div className={cn("container max-w-7xl mx-auto", device === 'mobile' ? 'px-3' : 'px-4')}>
-        
-        {/* Top Row: Logo & Socials */}
         <div className={cn(
           "flex justify-between items-start gap-3 pb-4",
           device === 'mobile' ? 'flex-col items-center text-center' : 'md:flex-row md:items-center'
-        )} style={{ borderBottom: `1px solid ${borderColor}` }}>
+        )} style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className={cn("flex items-center gap-2", device === 'mobile' ? 'justify-center' : '')}>
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain" />
             ) : (
-              <div className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: secondary }}>V</div>
+              <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>
             )}
-            <span className="text-sm font-bold text-white">VietAdmin</span>
+            <span className="text-sm font-bold" style={{ color: colors.textPrimary }}>VietAdmin</span>
           </div>
           {config.showSocialLinks && (
             <div className="flex gap-2">
               {getSocials().map((s, index) => (
-                <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+                <a
+                  key={`${s.id ?? 'social'}-${index}`}
+                  href={s.url}
+                  className="h-4 w-4 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                >
                   {renderSocialIcon(s.platform, 12)}
                 </a>
               ))}
@@ -1952,23 +1959,28 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           )}
         </div>
 
-        {/* Middle Row: Columns */}
         <div className={cn(
           "py-5 grid gap-5",
           device === 'mobile' ? 'grid-cols-1 text-center' : (device === 'tablet' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2 md:grid-cols-4')
         )}>
           <div className={cn(device === 'mobile' ? '' : 'col-span-2 md:col-span-2 pr-4')}>
-            <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">Về Công Ty</h4>
-            <p className="text-xs leading-relaxed text-white/80">{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>Về Công Ty</h4>
+            <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>
           </div>
-          
+
           {getColumns().slice(0, 2).map((col, colIdx) => (
             <div key={`${col.id ?? 'col'}-${colIdx}`}>
-              <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+              <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
               <ul className="space-y-1">
                 {col.links.map((link, lIdx) => (
                   <li key={lIdx}>
-                    <a href={link.url} className="text-xs hover:text-white transition-colors text-white/70">
+                    <a
+                      href={link.url}
+                      className="text-xs transition-colors"
+                      style={{ color: colors.textMuted }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = colors.textMuted; }}
+                    >
                       {link.label}
                     </a>
                   </li>
@@ -1978,8 +1990,7 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           ))}
         </div>
 
-        {/* Bottom Row */}
-        <div className={cn("pt-3 text-[10px] text-white/60", device === 'mobile' ? 'text-center' : '')}>
+        <div className={cn("pt-3 text-[10px]", device === 'mobile' ? 'text-center' : '')} style={{ color: colors.textSubtle }}>
           {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
         </div>
       </div>
@@ -1988,28 +1999,30 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
 
   // Style 4: Minimal - Compact single row
   const renderMinimalStyle = () => (
-    <footer className="w-full text-white py-3 md:py-4" style={{ backgroundColor: bgDark, borderTop: `1px solid ${borderColor}` }}>
+    <footer className="w-full py-3 md:py-4" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
       <div className={cn("container max-w-7xl mx-auto", device === 'mobile' ? 'px-3' : 'px-4')}>
         <div className={cn(
           "flex items-center justify-between gap-3",
           device === 'mobile' ? 'flex-col text-center' : 'md:flex-row'
         )}>
-          
-          {/* Left: Logo & Copy */}
           <div className={cn("flex items-center gap-2", device === 'mobile' ? 'flex-col' : '')}>
             {config.logo ? (
-              <PreviewImage src={config.logo} alt="Logo" className="h-4 w-4 opacity-80" />
+              <PreviewImage src={config.logo} alt="Logo" className="h-4 w-4" />
             ) : (
-              <div className="h-4 w-4 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: secondary }}>V</div>
+              <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>
             )}
-            <span className="text-[10px] font-medium text-white/60">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</span>
+            <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</span>
           </div>
 
-          {/* Right: Socials only */}
           {config.showSocialLinks && (
             <div className="flex gap-2">
               {getSocials().map((s, index) => (
-                <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+                <a
+                  key={`${s.id ?? 'social'}-${index}`}
+                  href={s.url}
+                  className="h-4 w-4 flex items-center justify-center rounded-full transition-colors"
+                  style={{ backgroundColor: colors.socialBg, color: socialColors[s.platform] || colors.socialIconFallback }}
+                >
                   {renderSocialIcon(s.platform, 12)}
                 </a>
               ))}
@@ -2022,43 +2035,41 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
 
   // Style 5: Centered - Logo + social giữa, columns dàn 2 rows
   const renderCenteredStyle = () => (
-    <footer className="w-full text-white py-8 md:py-10" style={{ backgroundColor: bgDark }}>
+    <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
       <div className={cn("container max-w-6xl mx-auto text-center", device === 'mobile' ? 'px-3' : 'px-4')}>
-        
-        {/* Brand Center */}
         <div className="flex flex-col items-center gap-3 mb-6">
-          <div 
-            className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: `${secondary}20`, border: `2px solid ${secondary}40` }}
+          <div
+            className="h-12 w-12 rounded-2xl flex items-center justify-center border"
+            style={{ backgroundColor: colors.centeredBrandBg, borderColor: colors.centeredBrandBorder }}
           >
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-7 w-7 object-contain" />
             ) : (
-              <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: secondary }}>V</div>
+              <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}>V</div>
             )}
           </div>
-          <h2 className="text-lg font-bold text-white tracking-tight">VietAdmin</h2>
-          <p className={cn("text-xs leading-relaxed text-white/70 max-w-md", device === 'mobile' ? 'max-w-xs' : '')}>
+          <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.textPrimary }}>VietAdmin</h2>
+          <p className={cn("text-xs leading-relaxed max-w-md", device === 'mobile' ? 'max-w-xs' : '')} style={{ color: colors.textMuted }}>
             {config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
           </p>
         </div>
 
-        {/* Columns in grid */}
         <div className={cn(
           "grid gap-4 mb-6",
           device === 'mobile' ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-6'
         )}>
           {getColumns().slice(0, 4).map((col, colIdx) => (
             <div key={`${col.id ?? 'col'}-${colIdx}`} className="text-center">
-              <h4 className="text-[10px] font-bold text-white uppercase tracking-wider mb-2">{col.title}</h4>
+              <h4 className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.textPrimary }}>{col.title}</h4>
               <ul className="space-y-1">
                 {col.links.slice(0, 4).map((link, lIdx) => (
                   <li key={lIdx}>
-                    <a 
-                      href={link.url} 
-                      className="text-xs hover:text-white transition-colors inline-block text-white/60"
-                      onMouseEnter={(e) => e.currentTarget.style.color = secondary}
-                      onMouseLeave={(e) => e.currentTarget.style.color = ''}
+                    <a
+                      href={link.url}
+                      className="text-xs transition-colors inline-block"
+                      style={{ color: colors.textSubtle }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
                     >
                       {link.label}
                     </a>
@@ -2069,25 +2080,25 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           ))}
         </div>
 
-        {/* Divider */}
-        <div className="w-16 h-px mx-auto mb-5" style={{ background: `linear-gradient(to right, transparent, ${secondary}, transparent)` }}></div>
+        <div className="w-16 h-px mx-auto mb-5" style={{ backgroundColor: colors.dividerGradient }}></div>
 
-        {/* Socials Center */}
         {config.showSocialLinks && (
           <div className="flex justify-center gap-3 mb-4">
             {getSocials().map((s, index) => (
-              <a 
-                key={`${s.id ?? 'social'}-${index}`} 
-                href={s.url} 
-                className="h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
-                style={{ backgroundColor: `${secondary}20`, border: `1px solid ${secondary}30`, color: '#fff' }}
+              <a
+                key={`${s.id ?? 'social'}-${index}`}
+                href={s.url}
+                className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
+                style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: colors.centeredSocialText }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = secondary;
-                  e.currentTarget.style.borderColor = secondary;
+                  e.currentTarget.style.backgroundColor = colors.centeredSocialHoverBg;
+                  e.currentTarget.style.borderColor = colors.centeredSocialHoverBorder;
+                  e.currentTarget.style.color = colors.textOnAccent;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = `${secondary}20`;
-                  e.currentTarget.style.borderColor = `${secondary}30`;
+                  e.currentTarget.style.backgroundColor = colors.centeredSocialBg;
+                  e.currentTarget.style.borderColor = colors.centeredSocialBorder;
+                  e.currentTarget.style.color = colors.centeredSocialText;
                 }}
               >
                 {renderSocialIcon(s.platform, 16)}
@@ -2096,50 +2107,47 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           </div>
         )}
 
-        {/* Copyright */}
-        <p className="text-[10px] text-white/50">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+        <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
       </div>
     </footer>
   );
 
   // Style 6: Stacked - Tất cả elements xếp chồng vertical, mobile-first compact
   const renderStackedStyle = () => (
-    <footer className="w-full text-white py-6" style={{ backgroundColor: bgDark, borderTop: `3px solid ${secondary}` }}>
+    <footer className="w-full py-6" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
       <div className={cn("container max-w-4xl mx-auto", device === 'mobile' ? 'px-4' : 'px-6')}>
-        
-        {/* Logo + Description */}
         <div className={cn("flex items-start gap-3 mb-5", device === 'mobile' ? 'flex-col items-center text-center' : '')}>
-          <div 
+          <div
             className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: secondary }}
+            style={{ backgroundColor: colors.accent, color: colors.textOnAccent }}
           >
             {config.logo ? (
               <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" />
             ) : (
-              <span className="text-white font-bold text-sm">V</span>
+              <span className="font-bold text-sm">V</span>
             )}
           </div>
           <div className={cn(device === 'mobile' ? '' : 'flex-1')}>
-            <h3 className="text-sm font-bold text-white mb-1">VietAdmin</h3>
-            <p className="text-xs text-white/70 leading-relaxed line-clamp-2">
+            <h3 className="text-sm font-bold mb-1" style={{ color: colors.textPrimary }}>VietAdmin</h3>
+            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>
               {config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
             </p>
           </div>
         </div>
 
-        {/* Links in single row (flat) */}
-        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
+        <div className="mb-5 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className={cn(
             "flex flex-wrap gap-x-4 gap-y-2",
             device === 'mobile' ? 'justify-center gap-x-3' : ''
           )}>
             {getColumns().flatMap(col => col.links).slice(0, device === 'mobile' ? 6 : 10).map((link, i) => (
-              <a 
-                key={i} 
-                href={link.url} 
-                className="text-xs font-medium text-white/60 hover:text-white transition-colors"
-                onMouseEnter={(e) => e.currentTarget.style.color = secondary}
-                onMouseLeave={(e) => e.currentTarget.style.color = ''}
+              <a
+                key={i}
+                href={link.url}
+                className="text-xs font-medium transition-colors"
+                style={{ color: colors.textSubtle }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.linkHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSubtle; }}
               >
                 {link.label}
               </a>
@@ -2147,7 +2155,6 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           </div>
         </div>
 
-        {/* Bottom: Socials + Copyright */}
         <div className={cn(
           "flex items-center justify-between",
           device === 'mobile' ? 'flex-col gap-3' : ''
@@ -2155,16 +2162,18 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           {config.showSocialLinks && (
             <div className="flex gap-2">
               {getSocials().map((s, index) => (
-                <a 
-                  key={`${s.id ?? 'social'}-${index}`} 
-                  href={s.url} 
-                  className="h-7 w-7 flex items-center justify-center rounded-lg transition-all duration-300"
-                  style={{ backgroundColor: `${secondary}15`, color: '#fff' }}
+                <a
+                  key={`${s.id ?? 'social'}-${index}`}
+                  href={s.url}
+                  className="h-7 w-7 flex items-center justify-center rounded-lg transition-colors"
+                  style={{ backgroundColor: colors.stackedSocialBg, color: colors.stackedSocialText }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = secondary;
+                    e.currentTarget.style.backgroundColor = colors.stackedSocialHoverBg;
+                    e.currentTarget.style.color = colors.textOnAccent;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = `${secondary}15`;
+                    e.currentTarget.style.backgroundColor = colors.stackedSocialBg;
+                    e.currentTarget.style.color = colors.stackedSocialText;
                   }}
                 >
                   {renderSocialIcon(s.platform, 14)}
@@ -2172,7 +2181,7 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
               ))}
             </div>
           )}
-          <p className="text-[10px] text-white/50">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
         </div>
       </div>
     </footer>
@@ -2184,7 +2193,7 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
     classic: '40×40px - Logo nhỏ trong header box',
     corporate: '40×40px - Logo inline với brand name',
     minimal: '32×32px - Logo compact',
-    modern: '48×48px - Logo trong gradient box',
+    modern: '48×48px - Logo trong box surface',
     stacked: '40×40px - Logo với secondary background'
   };
 
