@@ -29,8 +29,9 @@ export const PartnersFeaturedShared = ({
   className?: string;
 }) => {
   const featured = items[0];
-  const others = items.slice(1, 1 + maxOthers);
-  const remainingCount = Math.max(0, items.length - 1 - maxOthers);
+  const smallVisible = items.slice(1, 6);
+  const remainingCount = Math.max(0, items.length - 6);
+  const smallSlots = Array.from({ length: 5 }, (_, index) => smallVisible[index]);
   const linkProps = openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
   if (items.length <= 2) {
@@ -87,20 +88,18 @@ export const PartnersFeaturedShared = ({
             </a>
           )}
           <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-            {others.map((item, idx) => (
-              <a
-                key={item.id ?? idx}
-                href={item.link || '#'}
-                {...linkProps}
-                className="flex items-center justify-center p-2.5 rounded-xl border bg-white aspect-[3/2]"
-                style={{ borderColor: `${brandColor}14` }}
+            {smallSlots.map((item, idx) => (
+              <div
+                key={item?.id ?? `empty-${idx}`}
+                className={cn('flex items-center justify-center p-2.5 rounded-xl border bg-white aspect-[3/2]', !item && 'border-transparent')}
+                style={item ? { borderColor: `${brandColor}14` } : undefined}
               >
-                {item.url ? renderImage(item, 'h-12 w-auto object-contain') : (
-                  <ImageIcon size={34} className="text-slate-300" />
-                )}
-              </a>
+                {item ? (
+                  item.url ? renderImage(item, 'h-12 w-auto object-contain') : <ImageIcon size={34} className="text-slate-300" />
+                ) : null}
+              </div>
             ))}
-            {remainingCount > 0 && (
+            {remainingCount > 0 ? (
               <div
                 className="flex flex-col items-center justify-center rounded-xl border aspect-[3/2]"
                 style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}18` }}
@@ -108,6 +107,8 @@ export const PartnersFeaturedShared = ({
                 <Plus size={20} style={{ color: brandColor }} />
                 <span className="text-sm font-semibold" style={{ color: brandColor }}>+{remainingCount}</span>
               </div>
+            ) : (
+              <div className="rounded-xl border border-transparent aspect-[3/2]" />
             )}
           </div>
         </div>
