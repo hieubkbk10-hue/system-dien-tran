@@ -1835,8 +1835,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
             </p>
             {config.showSocialLinks && (
               <div className={cn("flex gap-2", device === 'mobile' ? 'justify-center' : '')}>
-                {getSocials().map((s) => (
-                  <a key={s.id} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+                {getSocials().map((s, index) => (
+                  <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
                     {renderSocialIcon(s.platform, 14)}
                   </a>
                 ))}
@@ -1907,8 +1907,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
         {/* Socials */}
         {config.showSocialLinks && (
           <div className="flex gap-3">
-            {getSocials().map((s) => (
-              <a key={s.id} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+            {getSocials().map((s, index) => (
+              <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-5 w-5 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
                 {renderSocialIcon(s.platform, 14)}
               </a>
             ))}
@@ -1943,8 +1943,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           </div>
           {config.showSocialLinks && (
             <div className="flex gap-2">
-              {getSocials().map((s) => (
-                <a key={s.id} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+              {getSocials().map((s, index) => (
+                <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
                   {renderSocialIcon(s.platform, 12)}
                 </a>
               ))}
@@ -2008,8 +2008,8 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
           {/* Right: Socials only */}
           {config.showSocialLinks && (
             <div className="flex gap-2">
-              {getSocials().map((s) => (
-                <a key={s.id} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
+              {getSocials().map((s, index) => (
+                <a key={`${s.id ?? 'social'}-${index}`} href={s.url} className="h-4 w-4 flex items-center justify-center rounded-full hover:opacity-80 transition-all duration-300" style={{ backgroundColor: '#ffffff', color: socialColors[s.platform] || '#94a3b8' }}>
                   {renderSocialIcon(s.platform, 12)}
                 </a>
               ))}
@@ -2075,9 +2075,9 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
         {/* Socials Center */}
         {config.showSocialLinks && (
           <div className="flex justify-center gap-3 mb-4">
-            {getSocials().map((s) => (
+            {getSocials().map((s, index) => (
               <a 
-                key={s.id} 
+                key={`${s.id ?? 'social'}-${index}`} 
                 href={s.url} 
                 className="h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
                 style={{ backgroundColor: `${secondary}20`, border: `1px solid ${secondary}30`, color: '#fff' }}
@@ -2154,9 +2154,9 @@ export const FooterPreview = ({ config, brandColor, secondary, selectedStyle, on
         )}>
           {config.showSocialLinks && (
             <div className="flex gap-2">
-              {getSocials().map((s) => (
+              {getSocials().map((s, index) => (
                 <a 
-                  key={s.id} 
+                  key={`${s.id ?? 'social'}-${index}`} 
                   href={s.url} 
                   className="h-7 w-7 flex items-center justify-center rounded-lg transition-all duration-300"
                   style={{ backgroundColor: `${secondary}15`, color: '#fff' }}
