@@ -147,14 +147,18 @@ export const FaqPreview = ({
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: normalizedPrimary }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{normalizedPrimary}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-slate-500">{mode === 'single' ? 'Primary (mono)' : 'Secondary'}</span>
-            <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
-            <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
-          </div>
-          <div className="text-slate-500 dark:text-slate-400">
-            Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
-          </div>
+          {mode === 'dual' && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">Secondary</span>
+                <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
+                <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
+              </div>
+              <div className="text-slate-500 dark:text-slate-400">
+                Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

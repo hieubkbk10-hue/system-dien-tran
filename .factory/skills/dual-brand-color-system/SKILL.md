@@ -94,6 +94,15 @@ version: 11.3.0
 - UI form có thể hiển thị harmony preview (analogous/complementary/triadic)
 - Nhưng màu thực tế dùng render PHẢI là primary trong single mode
 
+**UI Display Rules:**
+- KHÔNG hiển thị secondary color info khi mode = 'single'
+- KHÔNG hiển thị accent balance (P%/S%/N%) khi mode = 'single'
+- Chỉ hiển thị Primary color swatch + hex
+
+**Ví dụ đúng:**
+- Single mode: "Primary #00b315" (không có secondary row)
+- Dual mode: "Primary #00b315" + "Secondary #ff6b35" + "Accent: P 26% / S 14% / N 60%"
+
 **Ví dụ đúng (Stats pattern):**
 ```typescript
 const resolveSecondary = (primary, secondary, mode, harmony) => {

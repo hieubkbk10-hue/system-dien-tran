@@ -9,6 +9,7 @@
 - [ ] Dual mode có similarity check (ΔE >= 20)
 - [ ] Harmony validator (getHarmonyStatus) không báo too-similar
 - [ ] Accessibility score (getAccessibilityScore) không fail
+- [ ] APCA threshold: fontWeight >= 600 → threshold = 45 (bold)
 
 ## B. Distribution (content state)
 
@@ -62,6 +63,8 @@
 - [ ] Preview info trong single mode: "SINGLE" (không hiển thị harmony)
 - [ ] Color box label trong single mode: "Primary (mono)" (không "Accent (analogous)")
 - [ ] Accent balance trong single mode: P=S (cùng màu)
+- [ ] Single mode UI: không hiển thị secondary color info
+- [ ] Single mode UI: không hiển thị accent balance
 
 **Pattern chuẩn (Stats, Hero):**
 ```typescript

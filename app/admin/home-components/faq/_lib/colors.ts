@@ -96,7 +96,7 @@ const getAPCALc = (textHex: string, backgroundHex: string) => {
 };
 
 const getAPCAThreshold = (fontSize = 16, fontWeight = 500) => (
-  (fontSize >= 18 || fontWeight >= 700) ? 45 : 60
+  (fontSize >= 18 || fontWeight >= 600) ? 45 : 60
 );
 
 const DEFAULT_OKLCH = {
