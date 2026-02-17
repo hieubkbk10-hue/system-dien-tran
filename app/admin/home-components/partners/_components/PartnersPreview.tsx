@@ -10,6 +10,7 @@ import type { PartnerItem, PartnersStyle } from '../_types';
 import { PartnersMarqueeShared } from './PartnersMarqueeShared';
 import { PartnersBadgeShared } from './PartnersBadgeShared';
 import { PartnersCarouselShared } from './PartnersCarouselShared';
+import { PartnersFeaturedShared } from './PartnersFeaturedShared';
 
 export const PartnersPreview = ({
   items,
@@ -175,68 +176,19 @@ export const PartnersPreview = ({
 
   const renderFeaturedStyle = () => {
     if (items.length === 0) {return renderEmptyState();}
-
-    const featured = items[0];
-    const MAX_OTHERS = device === 'mobile' ? 4 : 6;
-    const others = items.slice(1, device === 'mobile' ? 5 : 7);
-    const remainingCount = Math.max(0, items.length - 1 - MAX_OTHERS);
-
-    if (items.length <= 2) {
-      return (
-        <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-          <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center">Đối tác</h2>
-            <div className={cn('mx-auto flex items-center justify-center gap-6', items.length === 1 ? 'max-w-xs' : 'max-w-md')}>
-              {items.map((item) => (
-                <a key={item.id} href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="p-5 rounded-xl border" style={{ borderColor: `${brandColor}20` }}>
-                  {item.url ? <PreviewImage src={item.url} alt="" className="h-16 w-auto object-contain" /> : <ImageIcon size={56} className="text-slate-300" />}
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-
+    const maxOthers = device === 'mobile' ? 4 : 6;
     return (
-      <section className="w-full py-6 bg-white dark:bg-slate-900 border-b border-slate-200/40 dark:border-slate-700/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 relative pl-3">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }}></span>
-            Đối tác
-          </h2>
-          <div className={cn('grid gap-3', device === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
-            <a
-              href={featured.link || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn('relative rounded-xl border overflow-hidden', device === 'mobile' ? 'aspect-video' : 'row-span-2 aspect-square')}
-              style={{ background: `linear-gradient(135deg, ${brandColor}08 0%, ${brandColor}03 100%)`, borderColor: `${brandColor}20` }}
-            >
-              <div className="absolute top-2 left-2">
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>NỔI BẬT</span>
-              </div>
-              <div className="w-full h-full flex items-center justify-center p-6">
-                {featured?.url ? <PreviewImage src={featured.url} alt="" className="max-h-28 w-auto object-contain" /> : <ImageIcon size={56} className="text-slate-300" />}
-              </div>
-            </a>
-            <div className={cn('grid gap-2', device === 'mobile' ? 'grid-cols-2' : 'col-span-2 grid-cols-3')}>
-              {others.slice(0, MAX_OTHERS).map((item) => (
-                <a key={item.id} href={item.link || '#'} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center p-3 rounded-lg border aspect-[3/2]" style={{ borderColor: `${brandColor}15` }}>
-                  {item.url ? <PreviewImage src={item.url} alt="" className="h-9 w-auto object-contain" /> : <ImageIcon size={28} className="text-slate-300" />}
-                </a>
-              ))}
-              {remainingCount > 0 && (
-                <div className="flex flex-col items-center justify-center rounded-lg border aspect-[3/2]" style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}20` }}>
-                  <Plus size={20} style={{ color: brandColor }} />
-                  <span className="text-sm font-bold" style={{ color: brandColor }}>+{remainingCount}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      <PartnersFeaturedShared
+        items={items}
+        title={title ?? 'Đối tác'}
+        brandColor={brandColor}
+        maxOthers={maxOthers}
+        openInNewTab
+        renderImage={(item, className) => (
+          <PreviewImage src={item.url ?? ''} alt={item.name ?? ''} className={className} />
+        )}
+        className="dark:bg-slate-900 dark:border-slate-700/40"
+      />
     );
   };
 

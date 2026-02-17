@@ -32,6 +32,7 @@ import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
 import { PartnersCarouselShared } from '@/app/admin/home-components/partners/_components/PartnersCarouselShared';
+import { PartnersFeaturedShared } from '@/app/admin/home-components/partners/_components/PartnersFeaturedShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
@@ -3678,72 +3679,16 @@ function GallerySection({ config, brandColor, secondary, title, type }: { config
 
   // Style: Featured - Large featured + smaller grid
   if (style === 'featured') {
-    const featured = items[0];
-    const others = items.slice(1, 7);
-    
     return (
-      <section className="w-full py-10 bg-white border-b border-slate-200/40">
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 relative pl-4">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full" style={{ backgroundColor: brandColor }}></span>
-              {title}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Featured Partner */}
-            {featured && (
-              <a
-                href={featured.link ?? '#'}
-                className="group relative md:row-span-2 rounded-2xl border overflow-hidden flex items-center justify-center p-8 aspect-square md:aspect-auto"
-                style={{ 
-                  background: `linear-gradient(135deg, 08 0%, 03 100%)`,
-                  borderColor: `${secondary}20`
-                }}
-              >
-                <div className="absolute top-3 left-3">
-                  <span 
-                    className="px-2 py-1 text-[10px] font-bold rounded"
-                    style={{ backgroundColor: `${secondary}15`, color: secondary }}
-                  >
-                    ĐỐI TÁC NỔI BẬT
-                  </span>
-                </div>
-                {featured.url ? (
-                  <SiteImage 
-                    src={featured.url} 
-                    alt=""
-                    className="max-h-24 w-auto object-contain group-hover:scale-110 transition-transform duration-500" 
-                  />
-                ) : (
-                  <ImageIcon size={64} className="text-slate-300" />
-                )}
-              </a>
-            )}
-            {/* Other Partners */}
-            <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
-              {others.map((item, idx) => (
-                <a
-                  key={idx}
-                  href={item.link ?? '#'}
-                  className="group flex items-center justify-center p-4 rounded-xl border transition-all aspect-[3/2] hover:shadow-md"
-                  style={{ borderColor: `${secondary}15` }}
-                >
-                  {item.url ? (
-                    <SiteImage 
-                      src={item.url} 
-                      alt=""
-                      className="h-8 w-auto object-contain grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300" 
-                    />
-                  ) : (
-                    <ImageIcon size={28} className="text-slate-300" />
-                  )}
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <PartnersFeaturedShared
+        items={items}
+        title={title}
+        brandColor={brandColor}
+        maxOthers={6}
+        renderImage={(item, className) => (
+          <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
+        )}
+      />
     );
   }
 
