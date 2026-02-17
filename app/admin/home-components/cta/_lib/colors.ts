@@ -27,6 +27,7 @@ export interface CTAStyleTokens {
   description: string;
   badgeBg: string;
   badgeText: string;
+  badgeBorder?: string;
   primaryButtonBg: string;
   primaryButtonText: string;
   primaryButtonBorder?: string;
@@ -333,7 +334,10 @@ export const getCTAAccentBalance = (style: CTAStyle): CTAAccentBalance => {
   };
 };
 
-const applyAlpha = (hex: string, alphaHex: string) => `${hex}${alphaHex}`;
+const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
+  const color = getOKLCH(hex, DEFAULT_BRAND_COLOR);
+  return formatHex(oklch({ ...color, l: clampLightness(color.l + lightnessIncrease) }));
+};
 
 const getGradientTints = (from: string, to: string) => {
   const fromColor = getOKLCH(from, DEFAULT_BRAND_COLOR);
@@ -371,11 +375,12 @@ export const getCTAColors = ({
 
   const base: CTAStyleTokens = {
     sectionBg: '#ffffff',
-    sectionBorder: applyAlpha(secondaryPalette.solid, '2A'),
+    sectionBorder: getSolidTint(secondaryPalette.solid, 0.45),
     title: primaryPalette.solid,
     description: '#475569',
     badgeBg: secondaryPalette.surface,
     badgeText: secondaryPalette.textInteractive,
+    badgeBorder: undefined,
     primaryButtonBg: primaryPalette.solid,
     primaryButtonText: primaryPalette.textOnSolid,
     primaryButtonBorder: primaryPalette.active,
@@ -383,12 +388,13 @@ export const getCTAColors = ({
     secondaryButtonText: secondaryPalette.textInteractive,
     secondaryButtonBorder: secondaryPalette.border,
     cardBg: '#ffffff',
-    cardBorder: applyAlpha(secondaryPalette.solid, '24'),
-    cardShadow: `0 1px 3px ${applyAlpha(secondaryPalette.solid, '1F')}`,
+    cardBorder: '#e2e8f0',
+    cardShadow: undefined,
     accentLine: secondaryPalette.solid,
   };
 
   if (styleNormalized === 'banner') {
+    const badgeBgSolid = getSolidTint(secondaryPalette.solid, 0.42);
     return {
       ...base,
       sectionBg: primaryPalette.solid,
@@ -400,14 +406,15 @@ export const getCTAColors = ({
         16,
         500,
       ),
-      badgeBg: applyAlpha(secondaryPalette.solid, '2A'),
-      badgeText: ensureAPCATextColor(getAPCATextColor(secondaryPalette.solid, 12, 600), applyAlpha(secondaryPalette.solid, '2A'), 12, 600),
+      badgeBg: badgeBgSolid,
+      badgeText: getAPCATextColor(badgeBgSolid, 12, 600),
+      badgeBorder: secondaryPalette.border,
       primaryButtonBg: '#ffffff',
       primaryButtonText: ensureAPCATextColor(primaryPalette.textInteractive, '#ffffff', 14, 700),
-      primaryButtonBorder: applyAlpha(primaryPalette.active, '80'),
+      primaryButtonBorder: primaryPalette.active,
       secondaryButtonBg: 'transparent',
       secondaryButtonText: ensureAPCATextColor(primaryPalette.textOnSolid, primaryPalette.solid, 14, 700),
-      secondaryButtonBorder: applyAlpha(primaryPalette.textOnSolid === '#ffffff' ? '#ffffff' : '#0f172a', '66'),
+      secondaryButtonBorder: primaryPalette.textOnSolid === '#ffffff' ? '#ffffff' : '#0f172a',
       cardBg: undefined,
       cardBorder: undefined,
       cardShadow: undefined,
@@ -433,8 +440,8 @@ export const getCTAColors = ({
       sectionBg: '#f8fafc',
       sectionBorder: undefined,
       cardBg: '#ffffff',
-      cardBorder: applyAlpha(secondaryPalette.solid, '1F'),
-      cardShadow: `0 1px 3px ${applyAlpha(secondaryPalette.solid, '1A')}`,
+      cardBorder: '#e2e8f0',
+      cardShadow: undefined,
       accentLine: primaryPalette.solid,
     };
   }
@@ -444,8 +451,8 @@ export const getCTAColors = ({
       ...base,
       sectionBg: '#f8fafc',
       cardBg: '#ffffff',
-      cardBorder: applyAlpha(secondaryPalette.solid, '2A'),
-      cardShadow: `0 2px 6px ${applyAlpha(secondaryPalette.solid, '26')}`,
+      cardBorder: '#e2e8f0',
+      cardShadow: undefined,
     };
   }
 
@@ -467,14 +474,15 @@ export const getCTAColors = ({
       sectionBorder: undefined,
       title: textOnGradient,
       description: descriptionColor,
-      badgeBg: applyAlpha('#ffffff', '2E'),
-      badgeText: ensureAPCATextColor(textOnGradient, '#ffffff', 12, 600),
+      badgeBg: '#f1f5f9',
+      badgeText: getAPCATextColor('#f1f5f9', 12, 600),
+      badgeBorder: '#cbd5e1',
       primaryButtonBg: '#ffffff',
       primaryButtonText: ensureAPCATextColor(secondaryPalette.textInteractive, '#ffffff', 14, 700),
-      primaryButtonBorder: applyAlpha('#ffffff', '80'),
+      primaryButtonBorder: '#ffffff',
       secondaryButtonBg: 'transparent',
       secondaryButtonText: textOnGradient,
-      secondaryButtonBorder: applyAlpha('#ffffff', '7A'),
+      secondaryButtonBorder: '#ffffff',
       cardBg: undefined,
       cardBorder: undefined,
       cardShadow: undefined,
@@ -485,7 +493,7 @@ export const getCTAColors = ({
   return {
     ...base,
     sectionBg: '#ffffff',
-    sectionBorder: applyAlpha(secondaryPalette.solid, '2A'),
+    sectionBorder: getSolidTint(secondaryPalette.solid, 0.45),
     cardBg: undefined,
     cardBorder: undefined,
     cardShadow: undefined,

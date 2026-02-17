@@ -71,9 +71,10 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   const badgeNode = badge ? (
     <span
-      className="mb-3 inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+      className="mb-3 inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
       style={{
         backgroundColor: tokens.badgeBg,
+        borderColor: tokens.badgeBorder ?? 'transparent',
         color: tokens.badgeText,
       }}
     >
@@ -83,14 +84,14 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'banner') {
     return (
-      <section className={cn('py-10 md:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 md:flex-row md:gap-8">
+      <section className={cn('px-4 py-8 md:py-12 lg:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 px-4 sm:gap-6 sm:px-6 md:flex-row md:gap-8">
           <div className="max-w-xl text-center md:text-left">
             {badgeNode}
-            <HeadingTag className="text-2xl font-bold md:text-3xl" style={{ color: tokens.title }}>
+            <HeadingTag className="text-xl font-bold sm:text-2xl md:text-3xl" style={{ color: tokens.title }}>
               {title}
             </HeadingTag>
-            <p className="mt-2 text-sm md:text-base" style={{ color: tokens.description }}>
+            <p className="mt-2 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
               {description}
             </p>
           </div>
@@ -105,16 +106,16 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'centered') {
     return (
-      <section className={cn('py-12 md:py-16', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
-        <div className="mx-auto max-w-3xl text-center">
+      <section className={cn('px-4 py-10 md:py-14 lg:py-16', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           {badgeNode}
-          <HeadingTag className="text-2xl font-bold md:text-4xl" style={{ color: tokens.title }}>
+          <HeadingTag className="text-xl font-bold sm:text-2xl md:text-3xl lg:text-4xl" style={{ color: tokens.title }}>
             {title}
           </HeadingTag>
-          <p className="mx-auto mt-3 max-w-2xl text-sm md:text-base" style={{ color: tokens.description }}>
+          <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed sm:mt-3 sm:text-base" style={{ color: tokens.description }}>
             {description}
           </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:mt-6 sm:flex-row md:mt-7">
             {primaryButton}
             {secondaryButton}
           </div>
@@ -125,23 +126,22 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'split') {
     return (
-      <section className={cn('bg-slate-50 py-10 md:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
+      <section className={cn('bg-slate-50 px-4 py-8 md:py-12 lg:py-14', sectionClass)} style={{ background: tokens.sectionBg, borderColor: tokens.sectionBorder }}>
         <div
-          className="mx-auto max-w-5xl rounded-xl border p-5 md:p-8"
+          className="mx-auto max-w-5xl rounded-xl border p-4 sm:p-6 md:p-8"
           style={{
             backgroundColor: tokens.cardBg,
             borderColor: tokens.cardBorder,
-            boxShadow: tokens.cardShadow,
           }}
         >
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-[1fr,auto]">
+          <div className="grid grid-cols-1 items-center gap-5 sm:gap-6 md:grid-cols-[1fr,auto]">
             <div>
               {badgeNode}
-              <div className="mb-4 h-1 w-16 rounded-full" style={{ backgroundColor: tokens.accentLine ?? tokens.secondaryButtonBorder }} />
-              <HeadingTag className="text-xl font-bold md:text-2xl" style={{ color: tokens.title }}>
+              <div className="mb-3 h-1 w-12 rounded-full sm:mb-4 sm:w-16" style={{ backgroundColor: tokens.accentLine ?? tokens.secondaryButtonBorder }} />
+              <HeadingTag className="text-lg font-bold sm:text-xl md:text-2xl" style={{ color: tokens.title }}>
                 {title}
               </HeadingTag>
-              <p className="mt-2 text-sm md:text-base" style={{ color: tokens.description }}>
+              <p className="mt-2 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
                 {description}
               </p>
             </div>
@@ -157,23 +157,22 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   if (normalizedStyle === 'floating') {
     return (
-      <section className={cn('bg-slate-50 py-10 md:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
-        <div className="mx-auto max-w-5xl">
+      <section className={cn('bg-slate-50 px-4 py-8 md:py-14 lg:py-16', sectionClass)} style={{ background: tokens.sectionBg }}>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div
-            className="rounded-xl border p-5 md:p-8"
+            className="rounded-xl border p-4 sm:p-6 md:p-8"
             style={{
               backgroundColor: tokens.cardBg,
               borderColor: tokens.cardBorder,
-              boxShadow: tokens.cardShadow,
             }}
           >
-            <div className="flex flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
+            <div className="flex flex-col items-center justify-between gap-5 text-center sm:gap-6 md:flex-row md:text-left">
               <div className="max-w-2xl">
                 {badgeNode}
-                <HeadingTag className="text-xl font-bold md:text-3xl" style={{ color: tokens.title }}>
+                <HeadingTag className="text-lg font-bold sm:text-xl md:text-2xl lg:text-3xl" style={{ color: tokens.title }}>
                   {title}
                 </HeadingTag>
-                <p className="mt-2 text-sm md:text-base" style={{ color: tokens.description }}>
+                <p className="mt-2 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
                   {description}
                 </p>
               </div>
@@ -210,20 +209,20 @@ export function CTASectionShared({ config, style, tokens, context }: CTASectionS
 
   return (
     <section
-      className={cn('border-y py-8 md:py-10', sectionClass)}
+      className={cn('border-y px-4 py-6 md:py-8 lg:py-10', sectionClass)}
       style={{
         background: tokens.sectionBg,
         borderColor: tokens.sectionBorder,
       }}
     >
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 md:flex-row md:gap-8">
-        <div className="flex items-center gap-4 text-center md:text-left">
-          <div className="hidden h-14 w-1 rounded-full md:block" style={{ backgroundColor: tokens.accentLine }} />
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 sm:gap-5 sm:px-6 md:flex-row md:gap-8">
+        <div className="flex items-center gap-3 text-center sm:gap-4 md:text-left">
+          <div className="hidden h-12 w-1 rounded-full sm:h-14 md:block" style={{ backgroundColor: tokens.accentLine }} />
           <div>
-            <HeadingTag className="text-xl font-bold" style={{ color: tokens.title }}>
+            <HeadingTag className="text-lg font-bold sm:text-xl" style={{ color: tokens.title }}>
               {title}
             </HeadingTag>
-            <p className="mt-1 text-sm md:text-base" style={{ color: tokens.description }}>
+            <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: tokens.description }}>
               {description}
             </p>
           </div>

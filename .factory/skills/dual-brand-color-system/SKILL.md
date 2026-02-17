@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.1.0
+version: 11.2.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -166,6 +166,8 @@ version: 11.1.0
 - NO drop-shadow-lg, shadow phức tạp nhiều lớp
 - NO animate-pulse/scale decorative
 - NO opacity layers chồng chéo
+- NO opacity decorative (chỉ disabled state)
+- NO box-shadow decorative (chỉ focus-ring nếu cần)
 - NO rainbow/flashy accent colors
 - NO group-hover:scale-105 trên text/numbers
 
@@ -187,6 +189,26 @@ version: 11.1.0
 - `focus-visible:ring-2` states
 - Keyboard navigation
 - Heading hierarchy (h1->h2->h3)
+
+### Anti Opacity/Shadow Rules (STRICT - v11.2)
+
+**CẤM tuyệt đối**:
+- `${color}XX` opacity cho decorative elements (badge bg, borders, overlays)
+- `box-shadow` nhiều lớp hoặc decorative depth
+- `backdrop-blur`, `filter: blur()` decorative
+- `opacity: 0.X` layers chồng chéo
+- Gradient overlay với opacity
+
+**CHỈ cho phép (functional only)**:
+- `opacity` cho disabled state (0.4-0.5, rõ ràng)
+- `shadow-sm` (0 1px 2px) cho focus ring nếu cần thiết
+- Border opacity CHỈ khi background KHÔNG thể dùng solid
+
+**Thay thế chuẩn**:
+- Badge bg: Solid tint với `l+0.42` (OKLCH)
+- Card border: Solid `#e2e8f0` (slate-200) hoặc tint với `l+0.45`
+- Card depth: Border 1px solid, không shadow
+- Gradient badge: White/slate-100 solid + border 1px rõ ràng
 
 ---
 

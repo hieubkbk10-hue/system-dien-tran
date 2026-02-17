@@ -40,6 +40,10 @@
 - [ ] Không hover effects phức tạp (mobile-first)
 - [ ] Không blur/shadow nhiều lớp
 - [ ] Không animate decorative (pulse, scale)
+- [ ] Không opacity cho decorative elements (badge bg, borders)
+- [ ] Không box-shadow cho card depth (chỉ border 1px)
+- [ ] Badge bg phải solid color (không opacity)
+- [ ] Card depth dùng border 1px solid (slate-200 hoặc brand tint)
 - [ ] Flat design + border + whitespace
 - [ ] Touch targets >= 44px
 
