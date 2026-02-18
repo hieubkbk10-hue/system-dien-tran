@@ -66,7 +66,7 @@ export const CTAPreview = ({
         previewStyle={style}
         setPreviewStyle={(s) => onStyleChange?.(s as CTAStyle)}
         styles={CTA_STYLES}
-        info={mode === 'single' ? 'SINGLE' : `DUAL • ${harmony}`}
+        info={mode === 'single' ? '1 màu' : '2 màu'}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame url="yoursite.com">
@@ -79,8 +79,8 @@ export const CTAPreview = ({
           <div className="flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-semibold">Harmony warning</p>
-              <p>deltaE = {harmonyStatus.deltaE} (&lt; 20) • Primary/Secondary quá giống nhau nên sẽ bị chặn lưu.</p>
+              <p className="font-semibold">Hai màu quá giống nhau</p>
+              <p>Màu chính và màu phụ đang quá giống nhau (deltaE = {harmonyStatus.deltaE}). Hệ thống sẽ chặn lưu cho đến khi bạn chọn màu khác biệt hơn.</p>
             </div>
           </div>
         </div>
@@ -91,8 +91,8 @@ export const CTAPreview = ({
           <div className="flex items-start gap-2">
             <Eye size={14} className="mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-semibold">Accessibility warning</p>
-              <p>minLc: {accessibility.minLc.toFixed(1)} • fail: {accessibility.failing.map((item) => item.label ?? 'pair').join(', ')} • sẽ bị chặn lưu.</p>
+              <p className="font-semibold">Màu chữ khó đọc</p>
+              <p>Một số cặp màu chữ/nền chưa đủ độ tương phản (minLc: {accessibility.minLc.toFixed(1)}). Hệ thống sẽ chặn lưu cho đến khi bạn chọn màu khác.</p>
             </div>
           </div>
         </div>
@@ -101,20 +101,20 @@ export const CTAPreview = ({
       <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/50">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">{mode === 'single' ? 'Primary (mono)' : 'Primary'}</span>
+            <span className="text-slate-500">{mode === 'single' ? 'Màu thương hiệu' : 'Màu chính'}</span>
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: brandColor }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{brandColor}</span>
           </div>
           {mode === 'dual' && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-500">Secondary</span>
+              <span className="text-slate-500">Màu phụ</span>
               <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
               <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
             </div>
           )}
           {mode === 'dual' && (
             <div className="text-slate-500 dark:text-slate-400">
-              Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
+              Tỉ lệ màu: Chính {accentBalance.primary}% · Phụ {accentBalance.secondary}% · Nền {accentBalance.neutral}%
             </div>
           )}
         </div>

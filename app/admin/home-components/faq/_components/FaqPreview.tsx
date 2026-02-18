@@ -100,7 +100,7 @@ export const FaqPreview = ({
         previewStyle={style}
         setPreviewStyle={(nextStyle) => onStyleChange?.(nextStyle as FaqStyle)}
         styles={FAQ_STYLES}
-        info={`${items.length} câu hỏi • ${mode.toUpperCase()}${mode === 'dual' ? ` • ${harmony}` : ''}`}
+        info={`${items.length} câu hỏi • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame url="yoursite.com/faq">
@@ -121,8 +121,8 @@ export const FaqPreview = ({
           <div className="flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-semibold">Harmony warning</p>
-              <p>deltaE = {harmonyStatus.deltaE} (&lt; 20) • Primary/Secondary đang quá giống nhau.</p>
+              <p className="font-semibold">Hai màu quá giống nhau</p>
+              <p>Màu chính và màu phụ đang quá giống nhau (deltaE = {harmonyStatus.deltaE}). Nếu lưu, màu phụ sẽ bị tự động điều chỉnh.</p>
             </div>
           </div>
         </div>
@@ -133,8 +133,8 @@ export const FaqPreview = ({
           <div className="flex items-start gap-2">
             <Eye size={14} className="mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-semibold">Accessibility warning</p>
-              <p>minLc: {accessibility.minLc.toFixed(1)} • fail: {accessibility.failing.map((item) => item.label ?? 'pair').join(', ')}</p>
+              <p className="font-semibold">Màu chữ khó đọc</p>
+              <p>Một số cặp màu chữ/nền chưa đủ độ tương phản (minLc: {accessibility.minLc.toFixed(1)}).</p>
             </div>
           </div>
         </div>
@@ -143,19 +143,19 @@ export const FaqPreview = ({
       <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800/50">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Primary</span>
+            <span className="text-slate-500">Màu chính</span>
             <span className="h-5 w-5 rounded border" style={{ backgroundColor: normalizedPrimary }} />
             <span className="font-mono text-slate-600 dark:text-slate-300">{normalizedPrimary}</span>
           </div>
           {mode === 'dual' && (
             <>
               <div className="flex items-center gap-2">
-                <span className="text-slate-500">Secondary</span>
+                <span className="text-slate-500">Màu phụ</span>
                 <span className="h-5 w-5 rounded border" style={{ backgroundColor: resolvedSecondary }} />
                 <span className="font-mono text-slate-600 dark:text-slate-300">{resolvedSecondary}</span>
               </div>
               <div className="text-slate-500 dark:text-slate-400">
-                Accent: P {accentBalance.primary}% / S {accentBalance.secondary}% / N {accentBalance.neutral}%
+                Tỉ lệ màu: Chính {accentBalance.primary}% · Phụ {accentBalance.secondary}% · Nền {accentBalance.neutral}%
               </div>
             </>
           )}
