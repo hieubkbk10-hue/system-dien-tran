@@ -66,6 +66,7 @@
 - [ ] Single mode UI: không hiển thị secondary color info
 - [ ] Single mode UI: không hiển thị accent balance
 - [ ] Single mode UI: không hiển thị Harmony/Accessibility warning
+- [ ] Dual mode UI: có ColorInfoPanel (Màu chính/Màu phụ) ngay dưới PreviewWrapper
 - [ ] [v11.4] Validation SKIP harmony check (deltaE) khi mode = 'single'
 - [ ] [v11.4] Validation CHỈ check harmony khi mode = 'dual'
 

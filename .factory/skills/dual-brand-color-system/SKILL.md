@@ -100,6 +100,11 @@ version: 11.4.0
 - Chỉ hiển thị Primary color swatch + hex
 - KHÔNG hiển thị Harmony/Accessibility warning khi mode = 'single'
 
+**ColorInfoPanel (dual mode):**
+- Panel chuẩn: hiển thị “Màu chính/Màu phụ” + mô tả áp dụng màu phụ.
+- Chỉ render khi `mode === 'dual'` và `secondary` hợp lệ.
+- Vị trí khuyến nghị: ngay dưới `PreviewWrapper` (giống Hero).
+
 **Harmony Validation Rules (v11.4 - NEW):**
 - PHẢI skip harmony validation (deltaE check) khi mode = 'single'
 - CHỈ validate harmony khi mode = 'dual'
