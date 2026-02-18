@@ -545,7 +545,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           {renderGalleryContent()}
         </BrowserFrame>
       </PreviewWrapper>
-      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+      {mode === 'dual' ? <ColorInfoPanel brandColor={brandColor} secondary={secondary} /> : null}
     </>
   );
 };

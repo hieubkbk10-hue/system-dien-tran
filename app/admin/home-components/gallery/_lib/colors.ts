@@ -50,6 +50,14 @@ export interface GalleryHarmonyStatus {
   isTooSimilar: boolean;
 }
 
+export interface GalleryAutoHealInfo {
+  didAutoHealHarmony: boolean;
+  didAutoHealText: boolean;
+  isStillSimilar: boolean;
+  resolvedSecondary: string;
+  harmonyUsed: GalleryHarmony;
+}
+
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 
 const clampLightness = (value: number) => Math.min(Math.max(value, 0.08), 0.98);
@@ -137,6 +145,96 @@ export const resolveSecondaryForMode = (
   return getHarmonyColor(normalizedPrimary, harmony);
 };
 
+const buildHarmonyFallbackOrder = (harmony: GalleryHarmony): GalleryHarmony[] => {
+  const order: GalleryHarmony[] = [harmony, 'complementary', 'triadic', 'analogous'];
+  return Array.from(new Set(order));
+};
+
+const resolveSecondaryWithHarmonyFallback = (
+  primary: string,
+  secondary: string,
+  mode: GalleryBrandMode,
+  harmony: GalleryHarmony,
+): GalleryAutoHealInfo => {
+  const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const harmonyResolved = normalizeGalleryHarmony(harmony);
+
+  if (mode === 'single') {
+    return {
+      didAutoHealHarmony: false,
+      didAutoHealText: false,
+      isStillSimilar: false,
+      resolvedSecondary: normalizedPrimary,
+      harmonyUsed: harmonyResolved,
+    };
+  }
+
+  const initialSecondary = isValidHexColor(secondary)
+    ? normalizeHex(secondary, normalizedPrimary)
+    : getHarmonyColor(normalizedPrimary, harmonyResolved);
+  const initialStatus = getHarmonyStatus(normalizedPrimary, initialSecondary);
+
+  if (!initialStatus.isTooSimilar) {
+    return {
+      didAutoHealHarmony: false,
+      didAutoHealText: false,
+      isStillSimilar: false,
+      resolvedSecondary: initialSecondary,
+      harmonyUsed: harmonyResolved,
+    };
+  }
+
+  let fallbackSecondary = initialSecondary;
+  let fallbackHarmony = harmonyResolved;
+  for (const scheme of buildHarmonyFallbackOrder(harmonyResolved)) {
+    const candidate = getHarmonyColor(normalizedPrimary, scheme);
+    const status = getHarmonyStatus(normalizedPrimary, candidate);
+    fallbackSecondary = candidate;
+    fallbackHarmony = scheme;
+    if (!status.isTooSimilar) {
+      return {
+        didAutoHealHarmony: true,
+        didAutoHealText: false,
+        isStillSimilar: false,
+        resolvedSecondary: candidate,
+        harmonyUsed: scheme,
+      };
+    }
+  }
+
+  return {
+    didAutoHealHarmony: true,
+    didAutoHealText: false,
+    isStillSimilar: true,
+    resolvedSecondary: fallbackSecondary,
+    harmonyUsed: fallbackHarmony,
+  };
+};
+
+const autoFixTextTokensForAPCA = (tokens: GalleryColorTokens, mode: GalleryBrandMode) => {
+  const heading = ensureAPCATextColor(tokens.primary, tokens.neutralSurface, 24, 700);
+  const subheading = ensureAPCATextColor(tokens.secondary, tokens.neutralSurface, 18, 600);
+  const badgeText = getAPCATextColor(tokens.badgeBg, 12, 600);
+  const lightboxText = getAPCATextColor(tokens.lightboxBg, 16, 500);
+  const didAutoHealText = (
+    heading !== tokens.heading ||
+    (mode === 'dual' && subheading !== tokens.subheading) ||
+    badgeText !== tokens.badgeText ||
+    lightboxText !== tokens.lightboxText
+  );
+
+  return {
+    didAutoHealText,
+    tokens: {
+      ...tokens,
+      heading,
+      subheading,
+      badgeText,
+      lightboxText,
+    },
+  };
+};
+
 export const getHarmonyStatus = (primary: string, secondary: string): GalleryHarmonyStatus => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
   const secondaryNormalized = normalizeHex(secondary, primaryNormalized);
@@ -173,7 +271,7 @@ export const getGalleryAccessibilityScore = (pairs: GalleryAccessibilityPair[]):
   };
 };
 
-export const getGalleryColorTokens = ({
+export const getGalleryColorTokensWithMeta = ({
   primary,
   secondary,
   mode,
@@ -183,10 +281,10 @@ export const getGalleryColorTokens = ({
   secondary: string;
   mode: GalleryBrandMode;
   harmony?: GalleryHarmony;
-}): GalleryColorTokens => {
+}): { tokens: GalleryColorTokens; autoHeal: GalleryAutoHealInfo } => {
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const harmonyResolved = normalizeGalleryHarmony(harmony);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, harmonyResolved);
+  const autoHeal = resolveSecondaryWithHarmonyFallback(primaryResolved, secondary, mode, harmony);
+  const secondaryResolved = autoHeal.resolvedSecondary;
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
   const neutralBorder = '#e2e8f0';
@@ -200,7 +298,7 @@ export const getGalleryColorTokens = ({
   const sectionAccentBar = primaryResolved;
   const cardHoverBorder = secondaryResolved;
 
-  return {
+  const tokens = {
     primary: primaryResolved,
     secondary: secondaryResolved,
     heading: ensureAPCATextColor(primaryResolved, neutralSurface, 24, 700),
@@ -224,7 +322,30 @@ export const getGalleryColorTokens = ({
     lightboxBg: '#0f172a',
     lightboxText: '#f8fafc',
   };
+
+  const autoFix = autoFixTextTokensForAPCA(tokens, mode);
+  return {
+    tokens: autoFix.tokens,
+    autoHeal: {
+      ...autoHeal,
+      didAutoHealText: autoFix.didAutoHealText,
+    },
+  };
 };
+
+export const getGalleryColorTokens = (input: {
+  primary: string;
+  secondary: string;
+  mode: GalleryBrandMode;
+  harmony?: GalleryHarmony;
+}): GalleryColorTokens => getGalleryColorTokensWithMeta(input).tokens;
+
+export const getGalleryPersistSafeColors = (input: {
+  primary: string;
+  secondary: string;
+  mode: GalleryBrandMode;
+  harmony?: GalleryHarmony;
+}) => getGalleryColorTokensWithMeta(input);
 
 export const getGalleryValidationResult = ({
   primary,
@@ -237,9 +358,8 @@ export const getGalleryValidationResult = ({
   mode: GalleryBrandMode;
   harmony?: GalleryHarmony;
 }) => {
-  const tokens = getGalleryColorTokens({ primary, secondary, mode, harmony });
-  const resolvedSecondary = resolveSecondaryForMode(tokens.primary, secondary, mode, normalizeGalleryHarmony(harmony));
-  const harmonyStatus = getHarmonyStatus(tokens.primary, resolvedSecondary);
+  const { tokens, autoHeal } = getGalleryColorTokensWithMeta({ primary, secondary, mode, harmony });
+  const harmonyStatus = getHarmonyStatus(tokens.primary, autoHeal.resolvedSecondary);
   const accessibilityPairs: GalleryAccessibilityPair[] = [
     { background: tokens.neutralSurface, text: tokens.heading, fontSize: 24, fontWeight: 700, label: 'heading' },
     ...(mode === 'dual'
@@ -251,8 +371,9 @@ export const getGalleryValidationResult = ({
 
   return {
     tokens,
-    resolvedSecondary,
+    resolvedSecondary: autoHeal.resolvedSecondary,
     harmonyStatus,
     accessibility,
+    autoHeal,
   };
 };

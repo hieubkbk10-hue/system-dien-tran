@@ -14,7 +14,7 @@ import { GalleryForm } from '../../_components/GalleryForm';
 import { GalleryPreview } from '../../_components/GalleryPreview';
 import { TrustBadgesPreview } from '../../_components/TrustBadgesPreview';
 import { DEFAULT_GALLERY_ITEMS } from '../../_lib/constants';
-import { getGalleryValidationResult, normalizeGalleryHarmony } from '../../_lib/colors';
+import { getGalleryPersistSafeColors, normalizeGalleryHarmony } from '../../_lib/colors';
 import type { GalleryItem, GalleryStyle, TrustBadgesStyle } from '../../_types';
 
 const TYPE_TITLES: Record<'Gallery' | 'TrustBadges', string> = {
@@ -89,16 +89,25 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
     if (isSubmitting) {return;}
 
     const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
-    const { harmonyStatus } = getGalleryValidationResult({
+    const { autoHeal } = getGalleryPersistSafeColors({
       primary,
       secondary,
       mode,
       harmony,
     });
 
-    if (mode === 'dual' && harmonyStatus.isTooSimilar) {
-      toast.error(`Không thể lưu Gallery: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
-      return;
+    if (autoHeal.didAutoHealHarmony || autoHeal.didAutoHealText) {
+      const messages: string[] = [];
+      if (autoHeal.didAutoHealHarmony) {
+        messages.push('Hệ thống đã tự tối ưu màu phụ để đảm bảo hài hòa.');
+      }
+      if (autoHeal.didAutoHealText) {
+        messages.push('Hệ thống đã tự điều chỉnh màu chữ để tăng độ đọc.');
+      }
+      if (autoHeal.isStillSimilar) {
+        messages.push('Màu phụ vẫn khá gần màu chính, đã chọn phương án gần nhất.');
+      }
+      toast.info(messages.join(' '));
     }
 
     setIsSubmitting(true);

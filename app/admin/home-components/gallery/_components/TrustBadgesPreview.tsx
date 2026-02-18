@@ -535,7 +535,7 @@ export const TrustBadgesPreview = ({
           {previewStyle === 'featured' && renderFeaturedStyle()}
         </BrowserFrame>
       </PreviewWrapper>
-      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+      {mode === 'dual' ? <ColorInfoPanel brandColor={brandColor} secondary={secondary} /> : null}
       {renderImageGuidelines()}
     </>
   );
