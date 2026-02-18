@@ -22,6 +22,14 @@
 - [ ] Accent balance calculator: primary >= 25%, secondary >= 5%
 - [ ] Placeholder bg luôn neutral (grid/bento cũng neutral)
 
+## B1. Color Adjacency
+
+- [ ] Primary solid không nằm trên primary tint/shade (nền phải neutral)
+- [ ] Secondary solid không nằm trên secondary tint/shade (nền phải neutral)
+- [ ] Border quanh brand-solid ưu tiên neutralBorder; tránh same-family tint/shade pairing
+- [ ] Icon container dùng neutral surface/background khi icon là brand solid
+- [ ] Hover/active accent không tạo cặp "brand solid + brand tint cùng family" trong cùng cụm nhỏ
+
 ## C. Accent Prominence
 
 - [ ] Secondary có element đủ lớn (không chỉ icon < 20px)

@@ -42,6 +42,34 @@
 - Heading / bold: Lc ≥ 45
 - Score = minLc của tất cả text pairs
 
+## Color Adjacency (v11.5)
+
+**Định nghĩa:** Khi dùng brand color ở dạng solid, nền hoặc border tiếp giáp phải là neutral (white/black/slate), không dùng tint/shade cùng family.
+
+| Case | Trạng thái |
+|---|---|
+| Primary solid + neutral bg | Good |
+| Secondary solid + neutral bg | Good |
+| Primary solid + primaryTint bg | Bad |
+| Secondary border + secondaryTint bg | Bad |
+
+**Neutral tokens gợi ý**
+- `neutralSurface #ffffff`
+- `neutralBackground #f8fafc`
+- `neutralBorder #e2e8f0`
+- `neutralText #0f172a`
+
+**Canonical fix**
+```ts
+// ❌ Anti-pattern
+iconBg: getSolidTint(primary, 0.42),
+iconColor: primary,
+
+// ✅ Canonical
+iconBg: neutralSurface,
+iconColor: primary,
+```
+
 ## Nav Button Adaptive Contrast (W3C C40)
 
 - Dual mode: base (bg/ring) = secondary, icon = primary

@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.4.0
+version: 11.5.0
 ---
 
 # Dual Brand Color System (Home Components)
@@ -173,6 +173,34 @@ if (mode === 'single') {
 
 - Render ≡ Preview, dùng chung helper trong `_lib/colors.ts`
 - Không hardcode màu ở site nếu preview đã dùng helper
+
+### 7) Color Adjacency Rule (NEW v11.5)
+
+**Quy tắc:** Khi dùng `primary` hoặc `secondary` ở dạng **solid**, nền hoặc border tiếp giáp phải là **neutral** (`#ffffff`, `#0f172a`, `#f8fafc`, `#e2e8f0`...), KHÔNG dùng tint/shade cùng family.
+
+**Hợp lệ**
+- `primary` icon/text trên `neutralSurface`
+- `secondary` text trên `neutralSurface`
+- `white` text/icon trên `primary` solid bg
+
+**Vi phạm (cấm)**
+- `primary` solid trên `primaryTint`
+- `secondary` border trên `secondaryTint` background
+
+**Ghi chú**
+- Tint/shade vẫn dùng được như **surface độc lập** nếu không chứa solid cùng family.
+- Rule này không thay thế APCA; chỉ bổ sung tính tinh tế và rõ ràng thị giác.
+
+**Snippet chuẩn hóa**
+```ts
+// ❌ Anti-pattern
+iconBg: getSolidTint(primary, 0.42),
+iconColor: primary,
+
+// ✅ Canonical
+iconBg: neutralSurface,
+iconColor: primary,
+```
 
 ## Critical Safety Rules (v11.1)
 

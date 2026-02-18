@@ -107,3 +107,28 @@ const border = formatHex(oklch({ ...parsed, l: Math.min(parsed.l + 0.35, 0.98) }
   {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
 </Button>
 ```
+
+## 7) Fix color adjacency conflict (brand kề brand tint/shade)
+
+**Triệu chứng**
+- UI nhìn gắt, thiếu tinh tế
+- Icon/chữ brand bị dính nền tint cùng màu
+
+**Fix nhanh**
+1. Đổi nền chứa brand-solid sang neutral (`neutralSurface`/`neutralBackground`)
+2. Đổi border cùng-family sang `neutralBorder`
+3. Giữ brand-solid cho heading/CTA/active để không giảm nhận diện
+
+**Snippet gợi ý**
+
+```ts
+// ❌ Before
+iconBg: getSolidTint(primary, 0.42),
+iconColor: primary,
+accentBorder: getSolidTint(secondary, 0.3),
+
+// ✅ After
+iconBg: neutralSurface,
+iconColor: primary,
+accentBorder: neutralBorder,
+```
