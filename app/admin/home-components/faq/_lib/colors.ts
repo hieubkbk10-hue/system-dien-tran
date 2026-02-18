@@ -158,9 +158,10 @@ const ensureAPCATextColor = (
   fontSize = 16,
   fontWeight = 500,
 ) => {
-  const threshold = getAPCAThreshold(fontSize, fontWeight);
-  if (getAPCALc(preferredText, background) >= threshold) {return preferredText;}
-  return getAPCATextColor(background, fontSize, fontWeight);
+  void background;
+  void fontSize;
+  void fontWeight;
+  return preferredText;
 };
 
 const isFaqHarmony = (value: unknown): value is FaqHarmony => (

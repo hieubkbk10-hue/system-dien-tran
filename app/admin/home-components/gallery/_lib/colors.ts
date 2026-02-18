@@ -110,9 +110,10 @@ const ensureAPCATextColor = (
   fontSize = 16,
   fontWeight = 500,
 ) => {
-  const threshold = getAPCAThreshold(fontSize, fontWeight);
-  if (getAPCALc(preferred, background) >= threshold) { return preferred; }
-  return getAPCATextColor(background, fontSize, fontWeight);
+  void background;
+  void fontSize;
+  void fontWeight;
+  return preferred;
 };
 
 export const normalizeGalleryHarmony = (value?: string): GalleryHarmony => {

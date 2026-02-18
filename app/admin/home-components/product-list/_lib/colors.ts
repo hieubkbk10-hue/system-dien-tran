@@ -45,10 +45,10 @@ const ensureAPCATextColor = (
   fontSize = 16,
   fontWeight = 500,
 ) => {
-  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
-  const lc = Math.abs(APCAcontrast(preferred, background));
-  if (Number.isFinite(lc) && lc >= threshold) { return preferred; }
-  return getAPCATextColor(background, fontSize, fontWeight);
+  void background;
+  void fontSize;
+  void fontWeight;
+  return preferred;
 };
 
 export const getAnalogous = (hex: string): [string, string] => {

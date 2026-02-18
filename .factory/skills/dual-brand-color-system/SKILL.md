@@ -35,7 +35,7 @@ version: 11.5.0
 1. Mở file colors: `app/admin/home-components/<component>/_lib/colors.ts`
 2. Kiểm tra HSL / getTint / getShade
 3. Đổi sang OKLCH (culori)
-4. Thay hard-coded text color bằng APCA
+4. Dùng APCA để kiểm tra contrast (không auto-fix text về neutral)
 5. Kiểm tra dual-mode + similarity (getHarmonyStatus)
 6. Tính accent balance (calculateAccentBalance)
 7. Tính accessibility score (getAccessibilityScore)
@@ -60,8 +60,9 @@ version: 11.5.0
 
 ### 2) APCA Contrast
 
-- Text/UI phải pass APCA thresholds
+- Text/UI nên pass APCA thresholds
 - Luôn dùng `Math.abs(apcaContrast(...))`
+- **Không auto-fix text về neutral** khi fail APCA; giữ màu brand theo cấu hình
 
 ### 3) 60-30-10 Distribution (đo tại content state)
 
