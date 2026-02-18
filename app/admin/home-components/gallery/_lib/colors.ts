@@ -23,6 +23,8 @@ export interface GalleryColorTokens {
   badgeBorder: string;
   accentSurface: string;
   accentBorder: string;
+  sectionAccentBar: string;
+  cardHoverBorder: string;
   placeholderBg: string;
   placeholderIcon: string;
   lightboxBg: string;
@@ -195,6 +197,8 @@ export const getGalleryColorTokens = ({
   const secondaryTint = getSolidTint(secondaryResolved, 0.42);
   const accentSurface = getSolidTint(secondaryResolved, 0.5);
   const accentBorder = getSolidTint(secondaryResolved, 0.3);
+  const sectionAccentBar = primaryResolved;
+  const cardHoverBorder = getSolidTint(secondaryResolved, 0.25);
 
   return {
     primary: primaryResolved,
@@ -213,6 +217,8 @@ export const getGalleryColorTokens = ({
     badgeBorder: accentBorder,
     accentSurface,
     accentBorder,
+    sectionAccentBar,
+    cardHoverBorder,
     placeholderBg: neutralBackground,
     placeholderIcon: primaryResolved,
     lightboxBg: '#0f172a',

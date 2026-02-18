@@ -174,6 +174,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           ) : (
             <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
           )}
+          <div
+            className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ borderColor: colors.sectionAccentBar }}
+          />
         </div>
         <div className={cn(
           "grid gap-1",
@@ -190,6 +194,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
               )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: colors.sectionAccentBar }}
+              />
             </div>
           ))}
         </div>
@@ -221,6 +229,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
             ) : (
               <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
             )}
+            <div
+              className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ borderColor: colors.sectionAccentBar }}
+            />
           </div>
         ))}
       </div>
@@ -257,6 +269,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                   <ImageIcon size={32} className="text-slate-300" />
                 </div>
               )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: colors.sectionAccentBar }}
+              />
             </div>
           );
         })}
@@ -326,6 +342,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
               )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: colors.sectionAccentBar }}
+              />
             </div>
           ))}
           {/* +N remaining */}
@@ -334,7 +354,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer"
               style={{ backgroundColor: colors.badgeBg }}
             >
-              <Plus size={28} style={{ color: colors.badgeText }} className="mb-1" />
+              <Plus size={28} style={{ color: colors.iconColor }} className="mb-1" />
               <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
               <span className="text-xs" style={{ color: colors.mutedText }}>ảnh khác</span>
             </div>
@@ -355,7 +375,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
             {items.map((photo) => (
               <div 
                 key={`gallery-marquee-${photo.id}`} 
-                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group"
+                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
@@ -365,6 +385,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                     <ImageIcon size={32} className="text-slate-300" />
                   </div>
                 )}
+                <div
+                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: colors.sectionAccentBar }}
+                />
               </div>
             ))}
           </AutoScrollSlider>
@@ -427,6 +451,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
                 )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: colors.sectionAccentBar }}
+              />
               </div>
             );
           })}

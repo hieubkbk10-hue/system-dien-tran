@@ -126,6 +126,9 @@ export const TrustBadgesPreview = ({
       )} style={{ color: colors.heading }}>
         {heading}
       </h2>
+      <div className={cn("mt-3 h-1 w-12 rounded-full", centered ? "mx-auto" : "")}
+        style={{ backgroundColor: colors.sectionAccentBar }}
+      />
     </div>
   );
 
@@ -220,7 +223,7 @@ export const TrustBadgesPreview = ({
                         <ImageIcon size={48} className="text-slate-300" />
                       )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                        <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
+                        <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.sectionAccentBar}` }}>
                           <ZoomIn size={16} /> Xem chi tiết
                         </span>
                       </div>
@@ -303,7 +306,7 @@ export const TrustBadgesPreview = ({
                     style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
                   >
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-slate-300"></div>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }}></div>
                     <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}>
                       {item.url ? (
                         <PreviewImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? 'Chứng nhận'} />
@@ -343,7 +346,7 @@ export const TrustBadgesPreview = ({
                     onClick={() =>{  setCarouselIndex(Math.max(0, carouselIndex - 1)); }}
                     disabled={carouselIndex === 0}
                     className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors", carouselIndex === 0 ? 'opacity-40 cursor-not-allowed' : '')}
-                    style={{ border: `1px solid ${colors.accentBorder}`, left: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
+                    style={{ border: `1px solid ${colors.sectionAccentBar}`, left: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
                   >
                     <ChevronLeft size={20} style={{ color: colors.heading }} />
                   </button>
@@ -351,7 +354,7 @@ export const TrustBadgesPreview = ({
                     onClick={() =>{  setCarouselIndex(Math.min(maxIndex, carouselIndex + 1)); }}
                     disabled={carouselIndex >= maxIndex}
                     className={cn("absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors", carouselIndex >= maxIndex ? 'opacity-40 cursor-not-allowed' : '')}
-                    style={{ border: `1px solid ${colors.accentBorder}`, right: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
+                    style={{ border: `1px solid ${colors.sectionAccentBar}`, right: device === 'mobile' ? '-4px' : '-16px', backgroundColor: colors.neutralSurface }}
                   >
                     <ChevronRight size={20} style={{ color: colors.heading }} />
                   </button>
@@ -410,7 +413,7 @@ export const TrustBadgesPreview = ({
               {featuredItem && (
                 <div 
                   className="group cursor-pointer rounded-2xl overflow-hidden transition-colors duration-200"
-                  style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}
+                  style={{ backgroundColor: colors.iconBg, border: `1px solid ${colors.sectionAccentBar}` }}
                 >
                   <div className={cn("flex items-center justify-center relative", device === 'mobile' ? 'aspect-[4/3] p-6' : 'aspect-[4/3] p-10')}>
                     {featuredItem.url ? (

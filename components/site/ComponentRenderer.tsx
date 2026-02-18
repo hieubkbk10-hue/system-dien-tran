@@ -2948,6 +2948,7 @@ function TrustBadgesSection({
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {items.map((item, idx) => (
@@ -2988,6 +2989,7 @@ function TrustBadgesSection({
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {items.map((item, idx) => (
@@ -3004,7 +3006,7 @@ function TrustBadgesSection({
                     <ImageIcon size={48} className="text-slate-300" />
                   )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
+                    <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.sectionAccentBar}` }}>
                       <ZoomIn size={16} /> Xem chi tiết
                     </span>
                   </div>
@@ -3030,6 +3032,7 @@ function TrustBadgesSection({
       <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
         <div className="container max-w-7xl mx-auto px-4 mb-10 text-center">
           <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+          <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
         </div>
         <TrustBadgesAutoScroll speed={0.6}>
           {items.map((item, idx) => (
@@ -3065,6 +3068,7 @@ function TrustBadgesSection({
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 justify-items-center">
             {items.map((item, idx) => (
@@ -3075,7 +3079,7 @@ function TrustBadgesSection({
                 style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
               >
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-gradient-to-b from-slate-400 to-transparent opacity-40"></div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.accentBorder }}></div>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }}></div>
                 <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}>
                   {item.url ? (
                     <SiteImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? ''} />
@@ -3108,7 +3112,10 @@ function TrustBadgesSection({
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
             {showArrowsDesktop && (
               <div className="hidden md:flex items-center gap-2">
                 <button
@@ -3118,7 +3125,7 @@ function TrustBadgesSection({
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-                  style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
+                  style={{ border: `1px solid ${colors.sectionAccentBar}`, backgroundColor: colors.neutralSurface }}
                 >
                   <ChevronLeft size={20} style={{ color: colors.heading }} />
                 </button>
@@ -3201,13 +3208,14 @@ function TrustBadgesSection({
       <div className="container max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+          <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
           {featuredItem && (
             <div 
               onClick={() =>{  setSelectedCert(featuredItem); }}
               className="group cursor-zoom-in rounded-2xl overflow-hidden transition-all duration-300"
-              style={{ backgroundColor: colors.accentSurface, border: `1px solid ${colors.accentBorder}` }}
+              style={{ backgroundColor: colors.iconBg, border: `1px solid ${colors.sectionAccentBar}` }}
             >
               <div className="aspect-[4/3] flex items-center justify-center p-6 md:p-8 relative">
                 {featuredItem.url ? (
@@ -3294,6 +3302,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
               )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: colors.sectionAccentBar }}
+              />
             </div>
             <div className="grid grid-cols-3 md:grid-cols-1 gap-1">
               {sub.map((photo, idx) => (
@@ -3307,6 +3319,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   ) : (
                     <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
                   )}
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ borderColor: colors.sectionAccentBar }}
+                  />
                 </div>
               ))}
             </div>
@@ -3351,6 +3367,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
                 )}
+                <div
+                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: colors.sectionAccentBar }}
+                />
               </div>
             ))}
           </div>
@@ -3400,6 +3420,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                       <ImageIcon size={32} className="text-slate-300" />
                     </div>
                   )}
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ borderColor: colors.sectionAccentBar }}
+                  />
                 </div>
               );
             })}
@@ -3433,7 +3457,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: colors.heading }}>{title}</h2>}
+          {title && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {items.map((photo, idx) => (
               <div 
@@ -3447,6 +3476,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                <div
+                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: colors.sectionAccentBar }}
+                />
               </div>
             ))}
           </div>
@@ -3476,7 +3509,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
 
     return (
       <section className="w-full bg-white py-8 md:py-12">
-        {title && <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.heading }}>{title}</h2>}
+        {title && (
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+          </div>
+        )}
         <div className="w-full relative">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
@@ -3484,7 +3522,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
             {items.map((photo, idx) => (
               <div 
                 key={idx} 
-                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group"
+                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
@@ -3494,6 +3532,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                     <ImageIcon size={32} className="text-slate-300" />
                   </div>
                 )}
+                <div
+                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: colors.sectionAccentBar }}
+                />
               </div>
             ))}
           </AutoScrollSlider>
@@ -3526,7 +3568,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: colors.heading }}>{title}</h2>}
+          {title && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
+          )}
           <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
             {items.map((photo, idx) => {
               const heightClass = heights[idx % heights.length];
@@ -3542,6 +3589,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                     <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ borderColor: colors.sectionAccentBar }}
+                  />
                 </div>
               );
             })}
