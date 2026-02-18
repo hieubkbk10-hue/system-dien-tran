@@ -3345,7 +3345,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ id: string; url: string; link?: string; name?: string } | null>(null);
   const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const [isPaused, setIsPaused] = React.useState(false);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const layoutAccent = colors.sectionAccentBarByStyle[style as keyof typeof colors.sectionAccentBarByStyle] ?? colors.sectionAccentBar;
   const normalizedItems = items.map((item, idx) => ({ ...item, id: item.url ? `${item.url}-${idx}` : `gallery-${idx}` }));
@@ -3574,14 +3573,27 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
 
   const renderGalleryMarqueeStyle = () => {
     if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
+    const marqueeItems = normalizedItems.length > 1 ? [...normalizedItems, ...normalizedItems] : normalizedItems;
+    const duration = Math.max(24, normalizedItems.length * 4);
+    const shouldAnimate = normalizedItems.length > 1;
 
     return (
       <div className="py-8">
-        <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-          <AutoScrollSlider speed={0.6} isPaused={isPaused}>
-            {normalizedItems.map((photo) => (
+        <style>{`
+          @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          .gallery-marquee-track { animation: gallery-marquee var(--duration, 28s) linear infinite; }
+          .gallery-marquee-container:hover .gallery-marquee-track,
+          .gallery-marquee-container:focus-within .gallery-marquee-track { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
+        `}</style>
+        <div className="gallery-marquee-container w-full relative overflow-hidden">
+          <div
+            className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
+            style={{ '--duration': `${duration}s`, width: 'max-content', animation: shouldAnimate ? undefined : 'none' } as React.CSSProperties}
+          >
+            {marqueeItems.map((photo, idx) => (
               <div 
-                key={`gallery-marquee-${photo.id}`} 
+                key={`gallery-marquee-${photo.id}-${idx}`} 
                 className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
@@ -3598,7 +3610,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 />
               </div>
             ))}
-          </AutoScrollSlider>
+          </div>
         </div>
       </div>
     );
