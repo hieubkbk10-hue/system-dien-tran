@@ -26,7 +26,7 @@ export const AutoScrollSlider = ({
     const step = () => {
       if (!isPaused && scroller) {
         position += speed;
-        if (position >= scroller.scrollWidth / 3) {
+        if (position >= scroller.scrollWidth / loopCount) {
           position = 0;
         }
         scroller.scrollLeft = position;
