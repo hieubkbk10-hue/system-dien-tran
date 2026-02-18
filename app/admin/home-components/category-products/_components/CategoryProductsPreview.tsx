@@ -3,6 +3,7 @@ import { ArrowRight, Package } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { CATEGORY_PRODUCTS_STYLES } from '../_lib/constants';
@@ -754,24 +755,27 @@ export const CategoryProductsPreview = ({
   );
 
   return (
-    <PreviewWrapper 
-      title="Preview Sản phẩm theo danh mục" 
-      device={device} 
-      setDevice={setDevice} 
-      previewStyle={previewStyle} 
-      setPreviewStyle={setPreviewStyle} 
-      styles={CATEGORY_PRODUCTS_STYLES} 
-      info={getPreviewInfo()}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame>
-        {previewStyle === 'grid' && renderGridStyle()}
-        {previewStyle === 'carousel' && renderCarouselStyle()}
-        {previewStyle === 'cards' && renderCardsStyle()}
-        {previewStyle === 'bento' && renderBentoStyle()}
-        {previewStyle === 'magazine' && renderMagazineStyle()}
-        {previewStyle === 'showcase' && renderShowcaseStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper 
+        title="Preview Sản phẩm theo danh mục" 
+        device={device} 
+        setDevice={setDevice} 
+        previewStyle={previewStyle} 
+        setPreviewStyle={setPreviewStyle} 
+        styles={CATEGORY_PRODUCTS_STYLES} 
+        info={getPreviewInfo()}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame>
+          {previewStyle === 'grid' && renderGridStyle()}
+          {previewStyle === 'carousel' && renderCarouselStyle()}
+          {previewStyle === 'cards' && renderCardsStyle()}
+          {previewStyle === 'bento' && renderBentoStyle()}
+          {previewStyle === 'magazine' && renderMagazineStyle()}
+          {previewStyle === 'showcase' && renderShowcaseStyle()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={_brandColor} secondary={secondary} />
+    </>
   );
 };

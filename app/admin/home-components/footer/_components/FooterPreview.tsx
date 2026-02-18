@@ -3,6 +3,7 @@
 import React from 'react';
 import { Globe, Facebook, Github, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { getFooterLayoutColors } from '../_lib/colors';
@@ -356,17 +357,20 @@ export const FooterPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title="Preview Footer"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={styles}
-      deviceWidthClass={deviceWidths[device]}
-      info={mode === 'dual' ? '2 màu' : '1 màu'}
-    >
-      {preview()}
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview Footer"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={styles}
+        deviceWidthClass={deviceWidths[device]}
+        info={mode === 'dual' ? '2 màu' : '1 màu'}
+      >
+        {preview()}
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };

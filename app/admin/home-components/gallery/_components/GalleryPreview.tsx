@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-r
 import { cn } from '../../../components/ui';
 import { AutoScrollSlider } from '../../_shared/components/AutoScrollSlider';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -515,6 +516,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           {renderGalleryContent()}
         </BrowserFrame>
       </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
     </>
   );
 };

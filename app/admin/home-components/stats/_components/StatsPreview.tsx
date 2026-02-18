@@ -3,6 +3,7 @@
 import React from 'react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { STATS_STYLES } from '../_lib/constants';
@@ -284,24 +285,27 @@ export const StatsPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title="Preview Stats"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={STATS_STYLES}
-      info={info}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame>
-        {previewStyle === 'horizontal' && renderHorizontalStyle()}
-        {previewStyle === 'cards' && renderCardsStyle()}
-        {previewStyle === 'icons' && renderIconsStyle()}
-        {previewStyle === 'gradient' && renderGradientStyle()}
-        {previewStyle === 'minimal' && renderMinimalStyle()}
-        {previewStyle === 'counter' && renderCounterStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview Stats"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={STATS_STYLES}
+        info={info}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame>
+          {previewStyle === 'horizontal' && renderHorizontalStyle()}
+          {previewStyle === 'cards' && renderCardsStyle()}
+          {previewStyle === 'icons' && renderIconsStyle()}
+          {previewStyle === 'gradient' && renderGradientStyle()}
+          {previewStyle === 'minimal' && renderMinimalStyle()}
+          {previewStyle === 'counter' && renderCounterStyle()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };

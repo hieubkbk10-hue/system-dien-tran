@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -610,23 +611,26 @@ export const ProductListPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title={`Preview ${isProduct ? 'Sản phẩm' : 'Dịch vụ'}`}
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={PRODUCT_LIST_STYLES}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame url={`yoursite.com/${isProduct ? 'products' : 'services'}`}>
-        {previewStyle === 'minimal' && renderMinimalStyle()}
-        {previewStyle === 'commerce' && renderCommerceStyle()}
-        {previewStyle === 'bento' && renderBentoStyle()}
-        {previewStyle === 'carousel' && renderCarouselStyle()}
-        {previewStyle === 'compact' && renderCompactStyle()}
-        {previewStyle === 'showcase' && renderShowcaseStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title={`Preview ${isProduct ? 'Sản phẩm' : 'Dịch vụ'}`}
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={PRODUCT_LIST_STYLES}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame url={`yoursite.com/${isProduct ? 'products' : 'services'}`}>
+          {previewStyle === 'minimal' && renderMinimalStyle()}
+          {previewStyle === 'commerce' && renderCommerceStyle()}
+          {previewStyle === 'bento' && renderBentoStyle()}
+          {previewStyle === 'carousel' && renderCarouselStyle()}
+          {previewStyle === 'compact' && renderCompactStyle()}
+          {previewStyle === 'showcase' && renderShowcaseStyle()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };

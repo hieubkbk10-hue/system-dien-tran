@@ -5,6 +5,7 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, Image as ImageIcon, Maximize2,
 import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -514,6 +515,7 @@ export const TrustBadgesPreview = ({
           {previewStyle === 'featured' && renderFeaturedStyle()}
         </BrowserFrame>
       </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
       {renderImageGuidelines()}
     </>
   );

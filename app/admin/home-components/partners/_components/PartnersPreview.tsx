@@ -1,6 +1,7 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -174,24 +175,27 @@ export const PartnersPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title="Preview Partners"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={PARTNERS_STYLES}
-      deviceWidthClass={deviceWidths[device]}
-      info={`${items.length} logo • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
-    >
-      <BrowserFrame>
-        {previewStyle === 'grid' && renderGridStyle()}
-        {previewStyle === 'marquee' && renderMarqueeStyle()}
-        {previewStyle === 'mono' && renderMonoStyle()}
-        {previewStyle === 'badge' && renderBadgeStyle()}
-        {previewStyle === 'carousel' && renderCarouselStyle()}
-        {previewStyle === 'featured' && renderFeaturedStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview Partners"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={PARTNERS_STYLES}
+        deviceWidthClass={deviceWidths[device]}
+        info={`${items.length} logo • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
+      >
+        <BrowserFrame>
+          {previewStyle === 'grid' && renderGridStyle()}
+          {previewStyle === 'marquee' && renderMarqueeStyle()}
+          {previewStyle === 'mono' && renderMonoStyle()}
+          {previewStyle === 'badge' && renderBadgeStyle()}
+          {previewStyle === 'carousel' && renderCarouselStyle()}
+          {previewStyle === 'featured' && renderFeaturedStyle()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };

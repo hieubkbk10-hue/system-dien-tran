@@ -4,6 +4,7 @@ import React from 'react';
 import { ArrowRight, FileText, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -14,7 +15,7 @@ import type { BlogPreviewItem, BlogStyle } from '../_types';
 // Styles: Grid, List, Featured, Magazine, Carousel, Minimal
 export const BlogPreview = ({ 
   brandColor, 
-  secondary: _secondary,
+  secondary,
   postCount, 
   selectedStyle, 
   onStyleChange,
@@ -374,24 +375,27 @@ export const BlogPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title="Preview Blog"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={BLOG_STYLES}
-      info={`${displayPosts.length} bài viết`}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame url="yoursite.com/blog">
-        {previewStyle === 'grid' && renderGridStyle()}
-        {previewStyle === 'list' && renderListStyle()}
-        {previewStyle === 'featured' && renderFeaturedStyle()}
-        {previewStyle === 'magazine' && renderMagazineStyle()}
-        {previewStyle === 'carousel' && renderCarouselStyle()}
-        {previewStyle === 'minimal' && renderMinimalStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview Blog"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={BLOG_STYLES}
+        info={`${displayPosts.length} bài viết`}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame url="yoursite.com/blog">
+          {previewStyle === 'grid' && renderGridStyle()}
+          {previewStyle === 'list' && renderListStyle()}
+          {previewStyle === 'featured' && renderFeaturedStyle()}
+          {previewStyle === 'magazine' && renderMagazineStyle()}
+          {previewStyle === 'carousel' && renderCarouselStyle()}
+          {previewStyle === 'minimal' && renderMinimalStyle()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };

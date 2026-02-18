@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, FileText, Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -13,7 +14,7 @@ import type { CaseStudyProject, CaseStudyStyle } from '../_types';
 export const CaseStudyPreview = ({
   projects,
   brandColor,
-  secondary: _secondary,
+  secondary,
   selectedStyle,
   onStyleChange,
 }: {
@@ -462,50 +463,53 @@ export const CaseStudyPreview = ({
   };
 
   return (
-    <PreviewWrapper
-      title="Preview Projects"
-      device={device}
-      setDevice={setDevice}
-      previewStyle={previewStyle}
-      setPreviewStyle={setPreviewStyle}
-      styles={CASE_STUDY_STYLES}
-      deviceWidthClass={deviceWidths[device]}
-      info={getImageSizeInfo()}
-    >
-      <BrowserFrame url="yoursite.com/projects">
-        {previewStyle === 'grid' && renderGridStyle()}
-        {previewStyle === 'featured' && renderFeaturedStyle()}
-        {previewStyle === 'list' && renderListStyle()}
-        {previewStyle === 'masonry' && renderMasonryStyle()}
-        {previewStyle === 'carousel' && renderCarouselStyle()}
-        {previewStyle === 'timeline' && renderTimelineStyle()}
-      </BrowserFrame>
+    <>
+      <PreviewWrapper
+        title="Preview Projects"
+        device={device}
+        setDevice={setDevice}
+        previewStyle={previewStyle}
+        setPreviewStyle={setPreviewStyle}
+        styles={CASE_STUDY_STYLES}
+        deviceWidthClass={deviceWidths[device]}
+        info={getImageSizeInfo()}
+      >
+        <BrowserFrame url="yoursite.com/projects">
+          {previewStyle === 'grid' && renderGridStyle()}
+          {previewStyle === 'featured' && renderFeaturedStyle()}
+          {previewStyle === 'list' && renderListStyle()}
+          {previewStyle === 'masonry' && renderMasonryStyle()}
+          {previewStyle === 'carousel' && renderCarouselStyle()}
+          {previewStyle === 'timeline' && renderTimelineStyle()}
+        </BrowserFrame>
 
-      <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-        <div className="flex items-start gap-2">
-          <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-slate-600 dark:text-slate-400">
-            {previewStyle === 'grid' && (
-              <p><strong>1200×800px</strong> (3:2) • Grid layout đều, hover scale effect</p>
-            )}
-            {previewStyle === 'featured' && (
-              <p><strong>Dự án chính:</strong> 1200×800px (3:2) • <strong>Dự án phụ:</strong> 600×600px (1:1)</p>
-            )}
-            {previewStyle === 'list' && (
-              <p><strong>800×500px</strong> (16:10) • Horizontal list, thumb bên trái</p>
-            )}
-            {previewStyle === 'masonry' && (
-              <p><strong>Pinterest-style:</strong> Ngang 800×500px • Dọc 600×900px • Vuông 800×800px</p>
-            )}
-            {previewStyle === 'carousel' && (
-              <p><strong>1000×750px</strong> (4:3) • Carousel với navigation buttons & dots</p>
-            )}
-            {previewStyle === 'timeline' && (
-              <p><strong>800×600px</strong> (4:3) • Timeline dọc, alternate left-right</p>
-            )}
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-slate-600 dark:text-slate-400">
+              {previewStyle === 'grid' && (
+                <p><strong>1200×800px</strong> (3:2) • Grid layout đều, hover scale effect</p>
+              )}
+              {previewStyle === 'featured' && (
+                <p><strong>Dự án chính:</strong> 1200×800px (3:2) • <strong>Dự án phụ:</strong> 600×600px (1:1)</p>
+              )}
+              {previewStyle === 'list' && (
+                <p><strong>800×500px</strong> (16:10) • Horizontal list, thumb bên trái</p>
+              )}
+              {previewStyle === 'masonry' && (
+                <p><strong>Pinterest-style:</strong> Ngang 800×500px • Dọc 600×900px • Vuông 800×800px</p>
+              )}
+              {previewStyle === 'carousel' && (
+                <p><strong>1000×750px</strong> (4:3) • Carousel với navigation buttons & dots</p>
+              )}
+              {previewStyle === 'timeline' && (
+                <p><strong>800×600px</strong> (4:3) • Timeline dọc, alternate left-right</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </PreviewWrapper>
+      </PreviewWrapper>
+      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+    </>
   );
 };
