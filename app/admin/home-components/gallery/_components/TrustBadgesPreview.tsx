@@ -502,7 +502,7 @@ export const TrustBadgesPreview = ({
         previewStyle={previewStyle} 
         setPreviewStyle={setPreviewStyle} 
         styles={styles} 
-        info={`${items.length} chứng nhận`}
+        info={`${items.length} chứng nhận • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame>

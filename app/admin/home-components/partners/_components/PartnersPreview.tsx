@@ -182,7 +182,7 @@ export const PartnersPreview = ({
       setPreviewStyle={setPreviewStyle}
       styles={PARTNERS_STYLES}
       deviceWidthClass={deviceWidths[device]}
-      info={`${items.length} logo`}
+      info={`${items.length} logo • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
     >
       <BrowserFrame>
         {previewStyle === 'grid' && renderGridStyle()}

@@ -644,17 +644,18 @@ export const ProductCategoriesPreview = ({
 
   const getPreviewInfo = () => {
     const count = resolvedCategories.length;
-    if (count === 0) {return 'Chưa có danh mục';}
+    const modeLabel = mode === 'dual' ? '2 màu' : '1 màu';
+    if (count === 0) {return `Chưa có danh mục • ${modeLabel}`;}
     
     const sizeRecommendations: Record<string, string> = {
-      cards: `${count} danh mục • Ảnh: 200×200px (1:1)`,
-      carousel: `${count} danh mục • Ảnh: 300×300px (1:1)`,
-      grid: `${count} danh mục • Ảnh: 400×400px (1:1)`,
-      marquee: `${count} danh mục • Ảnh: 80×80px (1:1)`,
-      minimal: `${count} danh mục • Icon/Ảnh: 48×48px`,
-      circular: `${count} danh mục • Ảnh: 500×500px (1:1, tròn)`
+      cards: `${count} danh mục • Ảnh: 200×200px (1:1) • ${modeLabel}`,
+      carousel: `${count} danh mục • Ảnh: 300×300px (1:1) • ${modeLabel}`,
+      grid: `${count} danh mục • Ảnh: 400×400px (1:1) • ${modeLabel}`,
+      marquee: `${count} danh mục • Ảnh: 80×80px (1:1) • ${modeLabel}`,
+      minimal: `${count} danh mục • Icon/Ảnh: 48×48px • ${modeLabel}`,
+      circular: `${count} danh mục • Ảnh: 500×500px (1:1, tròn) • ${modeLabel}`
     };
-    return sizeRecommendations[previewStyle] || `${count} danh mục`;
+    return sizeRecommendations[previewStyle] || `${count} danh mục • ${modeLabel}`;
   };
 
   return (

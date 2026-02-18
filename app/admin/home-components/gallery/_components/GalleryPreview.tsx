@@ -508,7 +508,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
         previewStyle={previewStyle} 
         setPreviewStyle={setPreviewStyle} 
         styles={styles} 
-        info={getGalleryImageSizeInfo()}
+        info={`${getGalleryImageSizeInfo()} • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame>

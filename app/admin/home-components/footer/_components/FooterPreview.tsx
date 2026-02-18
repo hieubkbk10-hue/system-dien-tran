@@ -364,6 +364,7 @@ export const FooterPreview = ({
       setPreviewStyle={setPreviewStyle}
       styles={styles}
       deviceWidthClass={deviceWidths[device]}
+      info={mode === 'dual' ? '2 màu' : '1 màu'}
     >
       {preview()}
     </PreviewWrapper>

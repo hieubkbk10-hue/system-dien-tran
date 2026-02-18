@@ -34,7 +34,8 @@ export const StatsPreview = ({
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'horizontal';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as StatsStyle);
-  const info = `${items.filter((item) => item.value || item.label).length} số liệu`;
+  const modeLabel = mode === 'dual' ? '2 màu' : '1 màu';
+  const info = `${items.filter((item) => item.value || item.label).length} số liệu • ${modeLabel}`;
 
   const renderHorizontalStyle = () => {
     const colors = getHorizontalColors(brandColor, secondary, mode);

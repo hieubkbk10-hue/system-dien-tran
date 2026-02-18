@@ -43,7 +43,10 @@ export const HeroPreview = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const previewStyle = selectedStyle ?? 'slider';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as HeroStyle);
-  const info = previewStyle !== 'bento' ? `Slide ${currentSlide + 1} / ${slides.length || 1}` : undefined;
+  const modeLabel = mode === 'dual' ? '2 màu' : '1 màu';
+  const info = previewStyle !== 'bento'
+    ? `Slide ${currentSlide + 1} / ${slides.length || 1} • ${modeLabel}`
+    : modeLabel;
   const brandColors = getBrandColors({
     mode,
     primary: brandColor,
