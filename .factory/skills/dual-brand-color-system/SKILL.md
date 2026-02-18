@@ -105,6 +105,24 @@ version: 11.4.0
 - Chỉ render khi `mode === 'dual'` và `secondary` hợp lệ.
 - Vị trí khuyến nghị: ngay dưới `PreviewWrapper` (giống Hero).
 
+**Ví dụ code (chuẩn hoá):**
+```tsx
+<PreviewWrapper
+  title="Preview ..."
+  device={device}
+  setDevice={setDevice}
+  previewStyle={previewStyle}
+  setPreviewStyle={setPreviewStyle}
+  styles={styles}
+  deviceWidthClass={deviceWidths[device]}
+>
+  <BrowserFrame>
+    {renderContent()}
+  </BrowserFrame>
+</PreviewWrapper>
+<ColorInfoPanel brandColor={brandColor} secondary={secondary} />
+```
+
 **Harmony Validation Rules (v11.4 - NEW):**
 - PHẢI skip harmony validation (deltaE check) khi mode = 'single'
 - CHỈ validate harmony khi mode = 'dual'
