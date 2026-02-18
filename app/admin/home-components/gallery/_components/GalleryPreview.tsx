@@ -393,11 +393,14 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   // Style 5: Gallery Marquee - Auto scroll horizontal
   const renderGalleryMarqueeStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
+    const itemCount = items.length;
+    const marqueeSpeed = itemCount <= 4 ? 0.35 : 0.6;
+    const loopCount = itemCount <= 6 ? 2 : 3;
 
     return (
       <div className="py-8">
         <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-          <AutoScrollSlider speed={0.6} isPaused={isPaused}>
+          <AutoScrollSlider speed={marqueeSpeed} isPaused={isPaused} loopCount={loopCount}>
             {items.map((photo) => (
               <div 
                 key={`gallery-marquee-${photo.id}`} 

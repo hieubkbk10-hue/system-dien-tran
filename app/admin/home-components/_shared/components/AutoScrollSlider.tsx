@@ -6,11 +6,13 @@ export const AutoScrollSlider = ({
   className,
   speed = 0.5,
   isPaused,
+  loopCount = 2,
 }: {
   children: React.ReactNode;
   className?: string;
   speed?: number;
   isPaused: boolean;
+  loopCount?: number;
 }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -45,9 +47,18 @@ export const AutoScrollSlider = ({
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
-      <div className="flex shrink-0 gap-16 items-center px-4">{children}</div>
-      <div className="flex shrink-0 gap-16 items-center px-4">{children}</div>
-      <div className="flex shrink-0 gap-16 items-center px-4">{children}</div>
+      {Array.from({ length: loopCount }).map((_, idx) => {
+        const loopChildren = React.Children.map(children, (child, childIdx) => {
+          if (React.isValidElement(child)) {
+            return React.cloneElement(child, { key: `auto-scroll-${idx}-${child.key ?? childIdx}` });
+          }
+          return child;
+        });
+
+        return (
+          <div key={`auto-scroll-loop-${idx}`} className="flex shrink-0 gap-16 items-center px-4">{loopChildren}</div>
+        );
+      })}
     </div>
   );
 };
