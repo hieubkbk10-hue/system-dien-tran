@@ -9,7 +9,7 @@ import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type { TrustBadgesStyle } from '../_types';
-import { getGalleryColorTokens } from '../_lib/colors';
+import { getGalleryColorTokens, getGalleryValidationResult } from '../_lib/colors';
 
 // Best Practices: Grayscale-to-color hover, lightbox/zoom indicator, verification links, alt text accessibility
 interface TrustBadgeItem { id: number; url: string; link: string; name?: string }
@@ -79,6 +79,7 @@ export const TrustBadgesPreview = ({
   const [isPaused, setIsPaused] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const { accessibility } = getGalleryValidationResult({ primary: brandColor, secondary, mode });
   const previewStyle = selectedStyle ?? 'cards';
   const setPreviewStyle = (s: string) => onStyleChange?.(s as TrustBadgesStyle);
   
@@ -514,6 +515,16 @@ export const TrustBadgesPreview = ({
           {previewStyle === 'featured' && renderFeaturedStyle()}
         </BrowserFrame>
       </PreviewWrapper>
+      {accessibility.failing.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="font-semibold">Accessibility warning — sẽ bị chặn lưu</div>
+          <div>
+            {accessibility.failing
+              .map((item) => `${item.label ?? 'pair'}: Lc=${item.lc.toFixed(1)} (cần ≥${item.threshold})`)
+              .join(' • ')}
+          </div>
+        </div>
+      )}
       {renderImageGuidelines()}
     </>
   );

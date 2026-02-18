@@ -9,7 +9,7 @@ import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type { GalleryItem, GalleryStyle } from '../_types';
-import { getGalleryColorTokens } from '../_lib/colors';
+import { getGalleryColorTokens, getGalleryValidationResult } from '../_lib/colors';
 
 // Lightbox Component for Gallery - with Arrow Keys Navigation
 const GalleryLightbox = ({ 
@@ -108,6 +108,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   const [isPaused, setIsPaused] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const { accessibility } = getGalleryValidationResult({ primary: brandColor, secondary, mode });
   const ONE = 1;
   const NEGATIVE_ONE = -1;
   let previewStyle = selectedStyle;
@@ -500,19 +501,31 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   };
 
   return (
-    <PreviewWrapper 
-      title="Preview Thư viện ảnh" 
-      device={device} 
-      setDevice={setDevice} 
-      previewStyle={previewStyle} 
-      setPreviewStyle={setPreviewStyle} 
-      styles={styles} 
-      info={getGalleryImageSizeInfo()}
-      deviceWidthClass={deviceWidths[device]}
-    >
-      <BrowserFrame>
-        {renderGalleryContent()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper 
+        title="Preview Thư viện ảnh" 
+        device={device} 
+        setDevice={setDevice} 
+        previewStyle={previewStyle} 
+        setPreviewStyle={setPreviewStyle} 
+        styles={styles} 
+        info={getGalleryImageSizeInfo()}
+        deviceWidthClass={deviceWidths[device]}
+      >
+        <BrowserFrame>
+          {renderGalleryContent()}
+        </BrowserFrame>
+      </PreviewWrapper>
+      {accessibility.failing.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="font-semibold">Accessibility warning — sẽ bị chặn lưu</div>
+          <div>
+            {accessibility.failing
+              .map((item) => `${item.label ?? 'pair'}: Lc=${item.lc.toFixed(1)} (cần ≥${item.threshold})`)
+              .join(' • ')}
+          </div>
+        </div>
+      )}
+    </>
   );
 };

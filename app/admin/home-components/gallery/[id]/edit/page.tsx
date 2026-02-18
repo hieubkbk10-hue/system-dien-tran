@@ -102,9 +102,11 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
     }
 
     if (accessibility.failing.length > 0) {
-      const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
+      const details = accessibility.failing
+        .map((item) => `${item.label ?? 'pair'}: Lc=${item.lc.toFixed(1)} (cần ≥${item.threshold})`)
+        .join(' • ');
       toast.error(
-        `Không thể lưu Gallery: APCA chưa đạt cho ${failedPairs}. `
+        `Không thể lưu Gallery: ${details}. `
         + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
       );
       return;
