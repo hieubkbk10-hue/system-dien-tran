@@ -416,7 +416,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
       <div className="py-8">
         <style>{`
           @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .gallery-marquee-track { animation: gallery-marquee var(--duration, 28s) linear infinite; }
           .gallery-marquee-container:hover .gallery-marquee-track,
           .gallery-marquee-container:focus-within .gallery-marquee-track { animation-play-state: paused; }
           @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
@@ -430,7 +429,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           />
           <div
             className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
-            style={{ '--duration': `${duration}s`, width: 'max-content', animation: shouldAnimate ? undefined : 'none' } as React.CSSProperties}
+            style={{ '--duration': `${duration}s`, width: 'max-content', animation: shouldAnimate ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none' } as React.CSSProperties}
           >
             {marqueeItems.map((photo, idx) => (
               <div 
