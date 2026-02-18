@@ -384,7 +384,7 @@ export const TrustBadgesPreview = ({
               {items.length > itemsPerView && (
                 <div className="flex justify-center gap-2 mt-6">
                   {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? colors.subheading : colors.badgeBorder }} />
+                    <button key={idx} onClick={() =>{  setCarouselIndex(idx); }} className={cn("h-2 rounded-full transition-all", carouselIndex === idx ? 'w-6' : 'w-2')} style={{ backgroundColor: carouselIndex === idx ? colors.subheading : colors.neutralBorder }} />
                   ))}
                 </div>
               )}

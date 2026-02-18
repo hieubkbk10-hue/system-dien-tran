@@ -151,12 +151,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   
   // Style 1: Tiêu điểm (Spotlight) - Featured image with 3 smaller
   const renderSpotlightStyle = () => {
-    if (items.length === 0) {return (
-      <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-        <ImageIcon size={48} className="opacity-20 mb-4" />
-        <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-      </div>
-    );}
+    if (items.length === 0) {return renderGalleryEmptyState();}
     const featured = items[0];
     const sub = items.slice(1, 4);
 
@@ -174,7 +169,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           onClick={() =>{  setSelectedPhoto(featured); }}
         >
           {featured.url ? (
-            <PreviewImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <PreviewImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
           ) : (
             <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
           )}
@@ -190,7 +185,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
               )}
@@ -203,12 +198,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 
   // Style 2: Khám phá (Explore) - Instagram-like grid
   const renderExploreStyle = () => {
-    if (items.length === 0) {return (
-      <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-        <ImageIcon size={48} className="opacity-20 mb-4" />
-        <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-      </div>
-    );}
+    if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
       <div className={cn(
@@ -238,12 +228,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 
   // Style 3: Câu chuyện (Stories) - Masonry-like with varying sizes
   const renderStoriesStyle = () => {
-    if (items.length === 0) {return (
-      <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-        <ImageIcon size={48} className="opacity-20 mb-4" />
-        <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-      </div>
-    );}
+    if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
       <div className={cn(
@@ -264,7 +249,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                 <PreviewImage 
                   src={photo.url} 
                   alt="" 
-                  className="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 transition-all duration-700"
+                  className="w-full h-full object-cover transition-transform duration-300"
                 />
               ) : (
                 <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">

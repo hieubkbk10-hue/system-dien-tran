@@ -235,7 +235,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
             Hủy bỏ
           </Button>
           <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>
