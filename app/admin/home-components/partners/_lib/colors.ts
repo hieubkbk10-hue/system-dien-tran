@@ -37,6 +37,18 @@ const getAnalogous = (hex: string): [string, string] => {
   return [first, second];
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+  const lc = Math.abs(APCAcontrast(preferred, background));
+  if (Number.isFinite(lc) && lc >= threshold) { return preferred; }
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 export type PartnersBrandMode = 'single' | 'dual';
 
 export const resolveSecondaryForMode = (
@@ -109,8 +121,8 @@ export const getPartnersColors = (
   return {
     primary: primaryResolved,
     secondary: secondaryResolved,
-    headingText: primaryResolved,
-    headingAccent: primaryResolved,
+    headingText: ensureAPCATextColor(primaryResolved, neutralSurface, 24, 700),
+    headingAccent: ensureAPCATextColor(primaryResolved, neutralSurface, 24, 700),
     iconBg: primarySoft,
     iconColor: primaryResolved,
     neutralSurface,
@@ -126,8 +138,8 @@ export const getPartnersColors = (
     remainingBg: secondarySubtle,
     remainingBorder: secondaryStrong,
     remainingText: getAPCATextColor(secondarySubtle, 12, 700),
-    navBorder: shiftLightness(primaryResolved, 0.45, primaryResolved),
-    navText: primaryResolved,
+    navBorder: shiftLightness(primaryResolved, 0.35, primaryResolved),
+    navText: ensureAPCATextColor(primaryResolved, neutralSurface, 14, 500),
     navBg: neutralSurface,
     dotActive: secondaryResolved,
     dotInactive: neutralBorder,

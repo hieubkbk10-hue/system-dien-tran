@@ -55,6 +55,18 @@ const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fo
   return whiteMin > blackMin ? '#ffffff' : '#0f172a';
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+  const lc = Math.abs(APCAcontrast(preferred, background));
+  if (Number.isFinite(lc) && lc >= threshold) { return preferred; }
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 export const getHorizontalColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
   const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
 
@@ -78,7 +90,7 @@ export const getIconsColors = (primary: string, secondary: string, mode: StatsBr
   return {
     circleBg: primary,
     textOnCircle: getAPCATextColor(primary, 20, 700),
-    label: secondaryResolved,
+    label: ensureAPCATextColor(secondaryResolved, '#ffffff', 14, 500),
   };
 };
 
@@ -97,8 +109,8 @@ export const getMinimalColors = (primary: string, secondary: string, mode: Stats
   const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
 
   return {
-    accent: secondaryResolved,
-    value: primary,
+    accent: ensureAPCATextColor(secondaryResolved, '#ffffff', 14, 500),
+    value: ensureAPCATextColor(primary, '#ffffff', 32, 700),
   };
 };
 
@@ -108,6 +120,6 @@ export const getCounterColors = (primary: string, secondary: string, mode: Stats
   return {
     border: getTint(secondaryResolved, 0.35, primary),
     progress: secondaryResolved,
-    value: primary,
+    value: ensureAPCATextColor(primary, '#ffffff', 32, 700),
   };
 };

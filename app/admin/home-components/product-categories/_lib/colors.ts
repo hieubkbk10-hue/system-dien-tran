@@ -97,6 +97,18 @@ const generatePalette = (hex: string, fallback = DEFAULT_BRAND_COLOR): BrandPale
   };
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = (fontSize >= 18 || fontWeight >= 700) ? 45 : 60;
+  const lc = Math.abs(APCAcontrast(preferred, background));
+  if (Number.isFinite(lc) && lc >= threshold) { return preferred; }
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 const resolveSecondaryForMode = (primary: string, secondary: string, mode: ProductCategoriesBrandMode) => {
   if (mode === 'single') {return primary;}
   return isNonEmptyColor(secondary) ? secondary : primary;
@@ -138,12 +150,12 @@ export const getProductCategoriesColors = (
     pillBorder: toOklchString(primaryPalette.solid, 0.2),
     ctaMoreBg: primaryPalette.surface,
     ctaMoreBorder: primaryPalette.border,
-    ctaMoreText: primaryPalette.solid,
+    ctaMoreText: ensureAPCATextColor(primaryPalette.solid, primaryPalette.surface, 14, 600),
     circularBg: toOklchString(primaryPalette.solid, 0.06),
     circularBorder: toOklchString(primaryPalette.solid, 0.2),
     paginationDotActive: secondaryPalette.solid,
     paginationDotInactive: toOklchString(secondaryPalette.solid, 0.4),
-    arrowIcon: primaryPalette.solid,
+    arrowIcon: ensureAPCATextColor(primaryPalette.solid, neutral.surface, 14, 500),
     emptyState: {
       background: neutral.background,
       iconBg: neutral.surface,

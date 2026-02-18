@@ -28,7 +28,7 @@ export default function CTACreatePage() {
   const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
 
   const onSubmit = (e: React.FormEvent) => {
-    const { accessibility, harmonyStatus } = getCTAValidationResult({
+    const { harmonyStatus } = getCTAValidationResult({
       config: ctaConfig,
       primary,
       secondary,
@@ -40,16 +40,6 @@ export default function CTACreatePage() {
     if (mode === 'dual' && harmonyStatus.isTooSimilar) {
       e.preventDefault();
       toast.error(`Không thể lưu CTA: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
-      return;
-    }
-
-    if (accessibility.failing.length > 0) {
-      e.preventDefault();
-      const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
-      toast.error(
-        `Không thể lưu CTA: APCA chưa đạt cho ${failedPairs}. `
-        + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
-      );
       return;
     }
 

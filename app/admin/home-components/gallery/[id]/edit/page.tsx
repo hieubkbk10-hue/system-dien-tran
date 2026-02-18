@@ -89,7 +89,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
     if (isSubmitting) {return;}
 
     const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
-    const { accessibility, harmonyStatus } = getGalleryValidationResult({
+    const { harmonyStatus } = getGalleryValidationResult({
       primary,
       secondary,
       mode,
@@ -98,17 +98,6 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
 
     if (mode === 'dual' && harmonyStatus.isTooSimilar) {
       toast.error(`Không thể lưu Gallery: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
-      return;
-    }
-
-    if (accessibility.failing.length > 0) {
-      const details = accessibility.failing
-        .map((item) => `${item.label ?? 'pair'}: Lc=${item.lc.toFixed(1)} (cần ≥${item.threshold})`)
-        .join(' • ');
-      toast.error(
-        `Không thể lưu Gallery: ${details}. `
-        + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
-      );
       return;
     }
 

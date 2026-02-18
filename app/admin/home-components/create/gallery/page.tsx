@@ -53,23 +53,13 @@ function GalleryCreateContent() {
   const onSubmit = (e: React.FormEvent) => {
     if (type !== 'Partners') {
       const harmony = normalizeGalleryHarmony(undefined);
-      const { accessibility, harmonyStatus } = getGalleryValidationResult({ primary, secondary, mode, harmony });
+      const { harmonyStatus } = getGalleryValidationResult({ primary, secondary, mode, harmony });
 
       if (mode === 'dual' && harmonyStatus.isTooSimilar) {
         toast.error(`Không thể lưu ${componentLabel}: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
         return;
       }
 
-      if (accessibility.failing.length > 0) {
-        const details = accessibility.failing
-          .map((item) => `${item.label ?? 'pair'}: Lc=${item.lc.toFixed(1)} (cần ≥${item.threshold})`)
-          .join(' • ');
-        toast.error(
-          `Không thể lưu ${componentLabel}: ${details}. `
-          + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
-        );
-        return;
-      }
     }
     const finalStyle = type === 'TrustBadges'
       ? trustBadgesStyle

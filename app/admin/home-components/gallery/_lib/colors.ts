@@ -87,6 +87,17 @@ const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
   return formatHex(oklch({ ...color, l: clampLightness((color.l ?? 0.6) + lightnessIncrease) }));
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  if (getAPCALc(preferred, background) >= threshold) { return preferred; }
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 export const normalizeGalleryHarmony = (value?: string): GalleryHarmony => {
   if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
     return value;
@@ -188,8 +199,8 @@ export const getGalleryColorTokens = ({
   return {
     primary: primaryResolved,
     secondary: secondaryResolved,
-    heading: primaryResolved,
-    subheading: secondaryResolved,
+    heading: ensureAPCATextColor(primaryResolved, neutralSurface, 24, 700),
+    subheading: ensureAPCATextColor(secondaryResolved, neutralSurface, 18, 600),
     bodyText: neutralText,
     mutedText: neutralMuted,
     neutralBackground,
