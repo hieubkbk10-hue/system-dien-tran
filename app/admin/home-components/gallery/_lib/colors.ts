@@ -2,6 +2,7 @@
 
 import { APCAcontrast } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
+import type { GalleryStyle } from '../_types';
 
 export type GalleryBrandMode = 'single' | 'dual';
 export type GalleryHarmony = 'analogous' | 'complementary' | 'triadic';
@@ -24,11 +25,17 @@ export interface GalleryColorTokens {
   accentSurface: string;
   accentBorder: string;
   sectionAccentBar: string;
+  sectionAccentBarByStyle: Record<GalleryStyle, string>;
   cardHoverBorder: string;
   placeholderBg: string;
   placeholderIcon: string;
   lightboxBg: string;
   lightboxText: string;
+  lightboxControlBg: string;
+  lightboxControlIcon: string;
+  lightboxControlBorder: string;
+  lightboxCounterBg: string;
+  lightboxCounterText: string;
 }
 
 export interface GalleryAccessibilityPair {
@@ -297,6 +304,19 @@ export const getGalleryColorTokensWithMeta = ({
   const accentBorder = neutralBorder;
   const sectionAccentBar = primaryResolved;
   const cardHoverBorder = secondaryResolved;
+  const sectionAccentBarByStyle: Record<GalleryStyle, string> = {
+    spotlight: primaryResolved,
+    explore: secondaryResolved,
+    stories: primaryResolved,
+    grid: secondaryResolved,
+    marquee: primaryResolved,
+    masonry: secondaryResolved,
+  };
+  const lightboxControlBg = '#111827';
+  const lightboxControlBorder = secondaryResolved;
+  const lightboxControlIcon = ensureAPCATextColor(primaryResolved, lightboxControlBg, 16, 600);
+  const lightboxCounterBg = '#111827';
+  const lightboxCounterText = getAPCATextColor(lightboxCounterBg, 12, 500);
 
   const tokens = {
     primary: primaryResolved,
@@ -316,11 +336,17 @@ export const getGalleryColorTokensWithMeta = ({
     accentSurface,
     accentBorder,
     sectionAccentBar,
+    sectionAccentBarByStyle,
     cardHoverBorder,
     placeholderBg: neutralBackground,
     placeholderIcon: primaryResolved,
     lightboxBg: '#0f172a',
     lightboxText: '#f8fafc',
+    lightboxControlBg,
+    lightboxControlIcon,
+    lightboxControlBorder,
+    lightboxCounterBg,
+    lightboxCounterText,
   };
 
   const autoFix = autoFixTextTokensForAPCA(tokens, mode);

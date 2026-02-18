@@ -11,6 +11,7 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type { GalleryItem, GalleryStyle } from '../_types';
 import { getGalleryColorTokens } from '../_lib/colors';
+import type { GalleryColorTokens } from '../_lib/colors';
 
 // Lightbox Component for Gallery - with Arrow Keys Navigation
 const GalleryLightbox = ({ 
@@ -18,13 +19,15 @@ const GalleryLightbox = ({
   onClose,
   photos,
   currentIndex,
-  onNavigate
+  onNavigate,
+  colors,
 }: { 
   photo: { url: string } | null; 
   onClose: () => void;
   photos?: { url: string }[];
   currentIndex?: number;
   onNavigate?: (direction: 'prev' | 'next') => void;
+  colors: GalleryColorTokens;
 }) => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,7 +56,12 @@ const GalleryLightbox = ({
     >
       <button 
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 text-slate-300 hover:text-white transition-colors z-[70]"
+        className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70]"
+        style={{
+          backgroundColor: colors.lightboxControlBg,
+          borderColor: colors.lightboxControlBorder,
+          color: colors.lightboxControlIcon,
+        }}
         aria-label="Đóng"
       >
         <X size={24} />
@@ -64,24 +72,41 @@ const GalleryLightbox = ({
         <>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors z-[70]"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            style={{
+              backgroundColor: colors.lightboxControlBg,
+              borderColor: colors.lightboxControlBorder,
+              color: colors.lightboxControlIcon,
+            }}
             aria-label="Ảnh trước"
           >
-            <ChevronLeft size={24} className="text-white" />
+            <ChevronLeft size={24} />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors z-[70]"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            style={{
+              backgroundColor: colors.lightboxControlBg,
+              borderColor: colors.lightboxControlBorder,
+              color: colors.lightboxControlIcon,
+            }}
             aria-label="Ảnh sau"
           >
-            <ChevronRight size={24} className="text-white" />
+            <ChevronRight size={24} />
           </button>
         </>
       )}
       
       {/* Counter */}
       {hasMultiple && typeof currentIndex === 'number' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-slate-200 text-sm z-[70]">
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm z-[70] px-3 py-1 rounded-full border"
+          style={{
+            backgroundColor: colors.lightboxCounterBg,
+            color: colors.lightboxCounterText,
+            borderColor: colors.lightboxControlBorder,
+          }}
+        >
           {currentIndex + 1} / {photos.length}
         </div>
       )}
@@ -115,6 +140,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   if (!previewStyle) {
     previewStyle = 'spotlight';
   }
+  const layoutAccent = colors.sectionAccentBarByStyle[previewStyle] ?? colors.sectionAccentBar;
   const setPreviewStyle = (styleKey: string): void => {
     if (onStyleChange) {
       onStyleChange(styleKey as GalleryStyle);
@@ -176,7 +202,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           )}
           <div
             className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ borderColor: colors.sectionAccentBar }}
+            style={{ borderColor: layoutAccent }}
           />
         </div>
         <div className={cn(
@@ -196,7 +222,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               )}
               <div
                 className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: colors.sectionAccentBar }}
+                style={{ borderColor: layoutAccent }}
               />
             </div>
           ))}
@@ -231,7 +257,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
             )}
             <div
               className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ borderColor: colors.sectionAccentBar }}
+              style={{ borderColor: layoutAccent }}
             />
           </div>
         ))}
@@ -271,7 +297,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               )}
               <div
                 className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: colors.sectionAccentBar }}
+                style={{ borderColor: layoutAccent }}
               />
             </div>
           );
@@ -344,7 +370,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
               )}
               <div
                 className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: colors.sectionAccentBar }}
+                style={{ borderColor: layoutAccent }}
               />
             </div>
           ))}
@@ -387,7 +413,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                 )}
                 <div
                   className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: colors.sectionAccentBar }}
+                  style={{ borderColor: layoutAccent }}
                 />
               </div>
             ))}
@@ -453,7 +479,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
                 )}
               <div
                 className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: colors.sectionAccentBar }}
+                style={{ borderColor: layoutAccent }}
               />
               </div>
             );
@@ -475,7 +501,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   const renderGalleryContent = () => (
     <section className="w-full bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-        <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+        <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}
           {previewStyle === 'explore' && renderExploreStyle()}
@@ -491,6 +517,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
         photos={items}
         currentIndex={currentPhotoIndex}
         onNavigate={handleLightboxNavigate}
+        colors={colors}
       />
     </section>
   );
