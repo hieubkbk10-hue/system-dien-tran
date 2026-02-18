@@ -3291,6 +3291,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+          {title && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-1 bg-slate-200 border border-transparent">
             <div 
               className="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-100 relative group cursor-pointer overflow-hidden"
@@ -3351,6 +3357,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+          {title && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
+          )}
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0.5 bg-slate-200">
             {items.map((photo, idx) => (
               <div 
@@ -3398,6 +3410,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+          {title && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
+              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[350px]">
             {items.map((photo, i) => {
               const isLarge = i % 4 === 0 || i % 4 === 3;
