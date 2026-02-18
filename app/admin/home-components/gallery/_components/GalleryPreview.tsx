@@ -328,7 +328,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   React.useEffect(() => {
     if (previewStyle !== 'marquee') {return;}
     const itemCount = items.length;
-    if (itemCount <= 1) {return;}
+    if (itemCount === 0) {return;}
 
     const scroller = marqueeRef.current;
     if (!scroller) {return;}
@@ -444,8 +444,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   const renderGalleryMarqueeStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
     const itemCount = items.length;
-    const shouldAnimate = itemCount > 1;
-    const loopCount = shouldAnimate ? 2 : 1;
+    const loopCount = itemCount > 0 ? 2 : 1;
 
     return (
       <div className="py-8">
