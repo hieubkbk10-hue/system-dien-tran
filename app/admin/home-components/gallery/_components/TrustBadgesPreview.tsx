@@ -117,14 +117,31 @@ export const TrustBadgesPreview = ({
     <div className={cn("mb-8 md:mb-10", centered && "text-center")}>
       {subHeading && (
         <div className="mb-3">
-          <BrandBadge text={subHeading} variant="default" brandColor={brandColor} secondary={secondary} />
+          <span
+            className="inline-flex items-center px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider"
+            style={{
+              backgroundColor: colors.neutralSurface,
+              borderColor: colors.neutralBorder,
+              color: colors.subheading,
+            }}
+          >
+            {subHeading}
+          </span>
         </div>
       )}
-      <h2 className={cn(
-        "font-bold text-slate-900 dark:text-slate-100",
-        device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl'
-      )} style={{ color: colors.heading }}>
-        {heading}
+      <h2
+        className={cn(
+          "font-bold text-slate-900 dark:text-slate-100",
+          device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl'
+        )}
+        style={{ color: colors.heading }}
+      >
+        <span
+          className="inline-block rounded-md px-2 py-1"
+          style={{ backgroundColor: colors.neutralSurface }}
+        >
+          {heading}
+        </span>
       </h2>
       <div className={cn("mt-3 h-1 w-12 rounded-full", centered ? "mx-auto" : "")}
         style={{ backgroundColor: colors.sectionAccentBar }}
