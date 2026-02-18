@@ -28,7 +28,7 @@ import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
-import { getGalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
+import { getGalleryColorTokens, type GalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
@@ -2726,9 +2726,10 @@ function ContactSection({ config, brandColor, secondary, title }: { config: Reco
 type GalleryStyle = 'spotlight' | 'explore' | 'stories' | 'grid' | 'marquee' | 'masonry' | 'mono' | 'badge' | 'carousel' | 'featured';
 
 // Auto Scroll Slider Component for Marquee/Mono styles
-const AutoScrollSlider = ({ children, speed = 0.5 }: { children: React.ReactNode; speed?: number }) => {
+const AutoScrollSlider = ({ children, speed = 0.5, isPaused }: { children: React.ReactNode; speed?: number; isPaused?: boolean }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const paused = isPaused ?? isHovered;
 
   React.useEffect(() => {
     const scroller = scrollRef.current;
@@ -2738,7 +2739,7 @@ const AutoScrollSlider = ({ children, speed = 0.5 }: { children: React.ReactNode
     let position = scroller.scrollLeft;
 
     const step = () => {
-      if (!isPaused && scroller) {
+      if (!paused && scroller) {
         position += speed;
         if (position >= scroller.scrollWidth / 3) {
           position = 0;
@@ -2752,17 +2753,17 @@ const AutoScrollSlider = ({ children, speed = 0.5 }: { children: React.ReactNode
 
     animationId = requestAnimationFrame(step);
     return () =>{  cancelAnimationFrame(animationId); };
-  }, [isPaused, speed]);
+  }, [paused, speed]);
 
   return (
     <div 
       ref={scrollRef}
       className="flex overflow-x-auto cursor-grab active:cursor-grabbing touch-pan-x"
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-      onMouseEnter={() =>{  setIsPaused(true); }}
-      onMouseLeave={() =>{  setIsPaused(false); }}
-      onTouchStart={() =>{  setIsPaused(true); }}
-      onTouchEnd={() =>{  setIsPaused(false); }}
+      onMouseEnter={() =>{  setIsHovered(true); }}
+      onMouseLeave={() =>{  setIsHovered(false); }}
+      onTouchStart={() =>{  setIsHovered(true); }}
+      onTouchEnd={() =>{  setIsHovered(false); }}
     >
       <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
       <div className="flex shrink-0 gap-16 items-center px-4">{children}</div>
@@ -2773,38 +2774,103 @@ const AutoScrollSlider = ({ children, speed = 0.5 }: { children: React.ReactNode
 };
 
 // Lightbox Component for Gallery
-const GalleryLightbox = ({ photo, onClose }: { photo: { url: string } | null; onClose: () => void }) => {
+const GalleryLightbox = ({
+  photo,
+  onClose,
+  photos,
+  currentIndex,
+  onNavigate,
+  colors,
+}: {
+  photo: { url: string } | null;
+  onClose: () => void;
+  photos?: { url: string }[];
+  currentIndex?: number;
+  onNavigate?: (direction: 'prev' | 'next') => void;
+  colors: GalleryColorTokens;
+}) => {
   React.useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {onClose();}
+      if (e.key === 'ArrowLeft' && onNavigate) {onNavigate('prev');}
+      if (e.key === 'ArrowRight' && onNavigate) {onNavigate('next');}
+    };
     if (photo) {
       document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleEsc);
+      window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [photo, onClose]);
+  }, [photo, onClose, onNavigate]);
 
   if (!photo || !photo.url) {return null;}
 
+  const hasMultiple = photos && photos.length > 1 && onNavigate;
+
   return (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200" 
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 animate-in fade-in duration-200" 
       onClick={onClose}
     >
       <button 
         onClick={onClose}
-        className="absolute top-4 right-4 md:top-8 md:right-8 p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-50"
-        aria-label="Close"
+        className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70]"
+        style={{
+          backgroundColor: colors.lightboxControlBg,
+          borderColor: colors.lightboxControlBorder,
+          color: colors.lightboxControlIcon,
+        }}
+        aria-label="Đóng"
       >
-        <X size={32} />
+        <X size={24} />
       </button>
+      {hasMultiple && (
+        <>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            style={{
+              backgroundColor: colors.lightboxControlBg,
+              borderColor: colors.lightboxControlBorder,
+              color: colors.lightboxControlIcon,
+            }}
+            aria-label="Ảnh trước"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            style={{
+              backgroundColor: colors.lightboxControlBg,
+              borderColor: colors.lightboxControlBorder,
+              color: colors.lightboxControlIcon,
+            }}
+            aria-label="Ảnh sau"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </>
+      )}
+      {hasMultiple && typeof currentIndex === 'number' && (
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm z-[70] px-3 py-1 rounded-full border"
+          style={{
+            backgroundColor: colors.lightboxCounterBg,
+            color: colors.lightboxCounterText,
+            borderColor: colors.lightboxControlBorder,
+          }}
+        >
+          {currentIndex + 1} / {photos.length}
+        </div>
+      )}
       <div className="w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
         <SiteImage 
           src={photo.url} 
           alt="Lightbox" 
-          className="max-h-[90vh] max-w-full object-contain shadow-2xl bg-white p-2 md:p-4 rounded-lg animate-in zoom-in-95 duration-300" 
+          className="max-h-[90vh] max-w-full object-contain shadow-sm animate-in zoom-in-95 duration-300" 
         />
       </div>
     </div>
@@ -3266,285 +3332,250 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   secondary: string; mode: 'single' | 'dual'; title: string; type: string }) {
   const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
-  const [selectedPhoto, setSelectedPhoto] = React.useState<{ url: string; link?: string } | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = React.useState<{ id: string; url: string; link?: string; name?: string } | null>(null);
+  const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const [isPaused, setIsPaused] = React.useState(false);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const layoutAccent = colors.sectionAccentBarByStyle[style as keyof typeof colors.sectionAccentBarByStyle] ?? colors.sectionAccentBar;
+  const normalizedItems = items.map((item, idx) => ({ ...item, id: item.url ? `${item.url}-${idx}` : `gallery-${idx}` }));
+
+  React.useEffect(() => {
+    const updateDevice = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setDevice('mobile');
+        return;
+      }
+      if (width < 1024) {
+        setDevice('tablet');
+        return;
+      }
+      setDevice('desktop');
+    };
+    updateDevice();
+    window.addEventListener('resize', updateDevice);
+    return () => window.removeEventListener('resize', updateDevice);
+  }, []);
+
+  const handleLightboxNavigate = (direction: 'prev' | 'next') => {
+    if (!selectedPhoto) {return;}
+    const currentIdx = normalizedItems.findIndex(item => item.id === selectedPhoto.id);
+    if (currentIdx === -1) {return;}
+    const nextIdx = direction === 'prev'
+      ? (currentIdx - 1 + normalizedItems.length) % normalizedItems.length
+      : (currentIdx + 1) % normalizedItems.length;
+    setSelectedPhoto(normalizedItems[nextIdx]);
+  };
+
+  const currentPhotoIndex = selectedPhoto
+    ? normalizedItems.findIndex(item => item.id === selectedPhoto.id)
+    : -1;
 
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) - Only for type === 'Gallery' ============
 
-  // Style 1: Tiêu điểm (Spotlight) - Featured image with 3 smaller
-  if (style === 'spotlight' && type === 'Gallery') {
-    if (items.length === 0) {
-      return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-              <ImageIcon size={48} className="opacity-20 mb-4" />
-              <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
-    const featured = items[0];
-    const sub = items.slice(1, 4);
+  const renderGalleryEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+        <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
+      </div>
+      <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
+      <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
+    </div>
+  );
+
+  const renderSpotlightStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
+    const featured = normalizedItems[0];
+    const sub = normalizedItems.slice(1, 4);
 
     return (
-      <section className="w-full bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-            </div>
+      <div className="grid gap-1 bg-slate-200 border border-transparent grid-cols-1 md:grid-cols-3">
+        <div 
+          className="bg-slate-100 relative group cursor-pointer overflow-hidden aspect-[4/3] md:col-span-2 md:aspect-auto md:row-span-1 md:min-h-[300px]"
+          onClick={() =>{  setSelectedPhoto(featured); }}
+        >
+          {featured.url ? (
+            <SiteImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-1 bg-slate-200 border border-transparent">
+          <div
+            className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ borderColor: layoutAccent }}
+          />
+        </div>
+        <div className="grid gap-1 grid-cols-3 md:grid-cols-1">
+          {sub.map((photo) => (
             <div 
-              className="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-100 relative group cursor-pointer overflow-hidden"
-              style={{ minHeight: '300px' }}
-              onClick={() =>{  setSelectedPhoto(featured); }}
+              key={photo.id} 
+              className="aspect-square bg-slate-100 relative group cursor-pointer overflow-hidden"
+              onClick={() =>{  setSelectedPhoto(photo); }}
             >
-              {featured.url ? (
-                <SiteImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              {photo.url ? (
+                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
               )}
               <div
                 className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: colors.sectionAccentBar }}
+                style={{ borderColor: layoutAccent }}
               />
             </div>
-            <div className="grid grid-cols-3 md:grid-cols-1 gap-1">
-              {sub.map((photo, idx) => (
-                <div 
-                  key={idx} 
-                  className="aspect-square bg-slate-100 relative group cursor-pointer overflow-hidden"
-                  onClick={() =>{  setSelectedPhoto(photo); }}
-                >
-                  {photo.url ? (
-                    <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
-                  )}
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ borderColor: colors.sectionAccentBar }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
+      </div>
     );
-  }
+  };
 
-  // Style 2: Khám phá (Explore) - Instagram-like grid
-  if (style === 'explore' && type === 'Gallery') {
-    if (items.length === 0) {
-      return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-              <ImageIcon size={48} className="opacity-20 mb-4" />
-              <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
+  const renderExploreStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <section className="w-full bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+      <div className="grid gap-0.5 bg-slate-200 grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {normalizedItems.map((photo) => (
+          <div 
+            key={photo.id} 
+            className="aspect-square relative group cursor-pointer overflow-hidden bg-slate-100"
+            onClick={() =>{  setSelectedPhoto(photo); }}
+          >
+            {photo.url ? (
+              <SiteImage 
+                src={photo.url} 
+                alt="" 
+                className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-90"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+            )}
+            <div
+              className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ borderColor: layoutAccent }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderStoriesStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
+
+    return (
+      <div className="grid gap-4 grid-cols-1 auto-rows-[200px] sm:auto-rows-[250px] md:grid-cols-3 md:auto-rows-[300px]">
+        {normalizedItems.map((photo, i) => {
+          const isLarge = i % 4 === 0 || i % 4 === 3;
+          const colSpan = isLarge ? "md:col-span-2" : "md:col-span-1";
+          
+          return (
+            <div 
+              key={photo.id} 
+              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm`}
+              onClick={() =>{  setSelectedPhoto(photo); }}
+            >
+              {photo.url ? (
+                <SiteImage 
+                  src={photo.url} 
+                  alt="" 
+                  className="w-full h-full object-cover transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                  <ImageIcon size={32} className="text-slate-300" />
+                </div>
+              )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: layoutAccent }}
+              />
             </div>
-          )}
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0.5 bg-slate-200">
-            {items.map((photo, idx) => (
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderGalleryGridStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
+
+    const maxVisible = device === 'mobile' ? 6 : (device === 'tablet' ? 9 : 12);
+    const visibleItems = normalizedItems.slice(0, maxVisible);
+    const remainingCount = normalizedItems.length - maxVisible;
+
+    if (normalizedItems.length <= 2) {
+      return (
+        <div className="py-8 px-4">
+          <div className={cn("mx-auto flex items-center justify-center gap-4", normalizedItems.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
+            {normalizedItems.map((photo) => (
               <div 
-                key={idx} 
-                className="aspect-square relative group cursor-pointer overflow-hidden bg-slate-100"
+                key={photo.id} 
+                className="flex-1 aspect-square rounded-xl overflow-hidden bg-slate-100 cursor-pointer group"
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <SiteImage 
-                    src={photo.url} 
-                    alt="" 
-                    className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-90"
-                  />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
                 )}
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: colors.sectionAccentBar }}
-                />
               </div>
             ))}
           </div>
         </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
-    );
-  }
-
-  // Style 3: Câu chuyện (Stories) - Masonry-like with varying sizes
-  if (style === 'stories' && type === 'Gallery') {
-    if (items.length === 0) {
-      return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-              <ImageIcon size={48} className="opacity-20 mb-4" />
-              <p className="text-sm font-light">Chưa có hình ảnh nào.</p>
-            </div>
-          </div>
-        </section>
       );
     }
 
     return (
-      <section className="w-full bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+      <div className="py-8 px-4">
+        <div className={cn(
+          "grid gap-2",
+          device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4')
+        )}>
+          {visibleItems.map((photo) => (
+            <div 
+              key={photo.id} 
+              className="aspect-square rounded-lg overflow-hidden bg-slate-100 cursor-pointer group relative"
+              onClick={() =>{  setSelectedPhoto(photo); }}
+            >
+              {photo.url ? (
+                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+              )}
+              <div
+                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ borderColor: layoutAccent }}
+              />
+            </div>
+          ))}
+          {remainingCount > 0 && (
+            <div 
+              className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer"
+              style={{ backgroundColor: colors.badgeBg }}
+            >
+              <Plus size={28} style={{ color: colors.iconColor }} className="mb-1" />
+              <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
+              <span className="text-xs" style={{ color: colors.mutedText }}>ảnh khác</span>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[350px]">
-            {items.map((photo, i) => {
-              const isLarge = i % 4 === 0 || i % 4 === 3;
-              const colSpan = isLarge ? "md:col-span-2" : "md:col-span-1";
-              
-              return (
-                <div 
-                  key={i} 
-                  className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm`}
-                  onClick={() =>{  setSelectedPhoto(photo); }}
-                >
-                  {photo.url ? (
-                    <SiteImage 
-                      src={photo.url} 
-                      alt="" 
-                      className="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 transition-all duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                      <ImageIcon size={32} className="text-slate-300" />
-                    </div>
-                  )}
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ borderColor: colors.sectionAccentBar }}
-                  />
-                </div>
-              );
-            })}
-          </div>
         </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
+      </div>
     );
-  }
+  };
 
-  // ============ GALLERY STYLES 4-6 (Grid, Marquee, Masonry) - Only for type === 'Gallery' ============
-
-  // Style 4: Gallery Grid - Clean equal squares grid
-  if (style === 'grid' && type === 'Gallery') {
-    if (items.length === 0) {
-      return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
-                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
-              </div>
-              <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
-              <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
+  const renderGalleryMarqueeStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <section className="w-full bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-            </div>
-          )}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {items.map((photo, idx) => (
+      <div className="py-8">
+        <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
+          <AutoScrollSlider speed={0.6} isPaused={isPaused}>
+            {normalizedItems.map((photo) => (
               <div 
-                key={idx} 
-                className="aspect-square rounded-lg overflow-hidden bg-slate-100 cursor-pointer group relative"
-                onClick={() =>{  setSelectedPhoto(photo); }}
-              >
-                {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: colors.sectionAccentBar }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
-    );
-  }
-
-  // Style 5: Gallery Marquee - Auto scroll horizontal
-  if (style === 'marquee' && type === 'Gallery') {
-    if (items.length === 0) {
-      return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
-                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
-              </div>
-              <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
-              <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    return (
-      <section className="w-full bg-white py-8 md:py-12">
-        {title && (
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-          </div>
-        )}
-        <div className="w-full relative">
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-          <AutoScrollSlider speed={0.6}>
-            {items.map((photo, idx) => (
-              <div 
-                key={idx} 
+                key={`gallery-marquee-${photo.id}`} 
                 className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                     <ImageIcon size={32} className="text-slate-300" />
@@ -3552,73 +3583,111 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 )}
                 <div
                   className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: colors.sectionAccentBar }}
+                  style={{ borderColor: layoutAccent }}
                 />
               </div>
             ))}
           </AutoScrollSlider>
         </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
+      </div>
     );
-  }
+  };
 
-  // Style 6: Gallery Masonry - Pinterest-like varying heights
-  if (style === 'masonry' && type === 'Gallery') {
-    if (items.length === 0) {
+  const renderGalleryMasonryStyle = () => {
+    if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
+
+    const maxVisible = device === 'mobile' ? 6 : 10;
+    const visibleItems = normalizedItems.slice(0, maxVisible);
+    const remainingCount = normalizedItems.length - maxVisible;
+
+    if (normalizedItems.length <= 2) {
       return (
-        <section className="w-full py-12 bg-white">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
-                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
+        <div className="py-8 px-4">
+          <div className={cn("mx-auto flex items-center justify-center gap-4", normalizedItems.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
+            {normalizedItems.map((photo, idx) => (
+              <div 
+                key={photo.id} 
+                className={cn("flex-1 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group", idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+                onClick={() =>{  setSelectedPhoto(photo); }}
+              >
+                {photo.url ? (
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
+                )}
               </div>
-              <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
-              <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
       );
     }
 
-    const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
-
     return (
-      <section className="w-full bg-white">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-            </div>
-          )}
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
-            {items.map((photo, idx) => {
-              const heightClass = heights[idx % heights.length];
-              return (
-                <div 
-                  key={idx} 
-                  className={`mb-3 break-inside-avoid rounded-xl overflow-hidden bg-slate-100 cursor-pointer group relative ${heightClass}`}
-                  onClick={() =>{  setSelectedPhoto(photo); }}
-                >
-                  {photo.url ? (
-                    <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ borderColor: colors.sectionAccentBar }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+      <div className="py-8 px-4">
+        <div className={cn(
+          "gap-3",
+          device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4')
+        )}>
+          {visibleItems.map((photo, idx) => {
+            const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
+            const heightClass = heights[idx % heights.length];
+            
+            return (
+              <div 
+                key={photo.id} 
+                className={cn("mb-3 break-inside-avoid rounded-xl overflow-hidden bg-slate-100 cursor-pointer group relative", heightClass)}
+                onClick={() =>{  setSelectedPhoto(photo); }}
+              >
+                {photo.url ? (
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+                )}
+                <div
+                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: layoutAccent }}
+                />
+              </div>
+            );
+          })}
         </div>
-        <GalleryLightbox photo={selectedPhoto} onClose={() =>{  setSelectedPhoto(null); }} />
-      </section>
+        {remainingCount > 0 && (
+          <div className="flex items-center justify-center mt-4">
+            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
+              +{remainingCount} ảnh khác
+            </span>
+          </div>
+        )}
+      </div>
     );
+  };
+
+  const renderGalleryContent = () => (
+    <section className="w-full bg-white">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+        <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
+          {style === 'spotlight' && renderSpotlightStyle()}
+          {style === 'explore' && renderExploreStyle()}
+          {style === 'stories' && renderStoriesStyle()}
+          {style === 'grid' && renderGalleryGridStyle()}
+          {style === 'marquee' && renderGalleryMarqueeStyle()}
+          {style === 'masonry' && renderGalleryMasonryStyle()}
+        </div>
+      </div>
+      <GalleryLightbox 
+        photo={selectedPhoto} 
+        onClose={() =>{  setSelectedPhoto(null); }}
+        photos={normalizedItems}
+        currentIndex={currentPhotoIndex}
+        onNavigate={handleLightboxNavigate}
+        colors={colors}
+      />
+    </section>
+  );
+
+  if (type === 'Gallery') {
+    return renderGalleryContent();
   }
 
   // ============ PARTNERS STYLES (Grid, Marquee, Mono, Badge) ============
