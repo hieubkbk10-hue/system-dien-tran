@@ -3006,16 +3006,40 @@ function TrustBadgesSection({
   const carouselId = useSafeId('trustbadges-carousel');
   const [selectedCert, setSelectedCert] = React.useState<TrustBadgeItem | null>(null);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const heading = (config.heading as string) || 'Chứng nhận & Giải thưởng';
+  const subHeading = (config.subHeading as string) || 'Được công nhận bởi các tổ chức uy tín';
+
+  const renderHeader = (centered = true) => (
+    <div className={cn("mb-10", centered ? 'text-center' : '')}>
+      {subHeading ? (
+        <div className={cn('mb-3', centered ? 'flex justify-center' : '')}>
+          <span
+            className="inline-flex items-center px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider"
+            style={{
+              backgroundColor: colors.neutralSurface,
+              borderColor: colors.neutralBorder,
+              color: colors.subheading,
+            }}
+          >
+            {subHeading}
+          </span>
+        </div>
+      ) : null}
+      <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>
+        <span className="inline-block rounded-md px-2 py-1" style={{ backgroundColor: colors.neutralSurface }}>
+          {heading}
+        </span>
+      </h2>
+      <div className={cn("mt-3 h-1 w-12 rounded-full", centered ? 'mx-auto' : '')} style={{ backgroundColor: colors.sectionAccentBar }} />
+    </div>
+  );
 
   // Style 1: Square Grid - Full color, clickable to lightbox
   if (style === 'grid') {
     return (
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-          </div>
+          {renderHeader(true)}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {items.map((item, idx) => (
               <div 
@@ -3053,10 +3077,7 @@ function TrustBadgesSection({
     return (
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-          </div>
+          {renderHeader(true)}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {items.map((item, idx) => (
               <div 
@@ -3096,9 +3117,8 @@ function TrustBadgesSection({
   if (style === 'marquee') {
     return (
       <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
-        <div className="container max-w-7xl mx-auto px-4 mb-10 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-          <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
+        <div className="container max-w-7xl mx-auto px-4">
+          {renderHeader(true)}
         </div>
         <TrustBadgesAutoScroll speed={0.6}>
           {items.map((item, idx) => (
@@ -3132,10 +3152,7 @@ function TrustBadgesSection({
     return (
       <section className="w-full py-12 md:py-16" style={{ backgroundColor: colors.neutralBackground }}>
         <div className="container max-w-7xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-            <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-          </div>
+          {renderHeader(true)}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 justify-items-center">
             {items.map((item, idx) => (
               <div 
@@ -3178,10 +3195,7 @@ function TrustBadgesSection({
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-              <div className="mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-            </div>
+            {renderHeader(false)}
             {showArrowsDesktop && (
               <div className="hidden md:flex items-center gap-2">
                 <button
@@ -3271,11 +3285,8 @@ function TrustBadgesSection({
   const otherItems = items.slice(1, 7);
   return (
     <section className="w-full py-12 md:py-16 bg-white">
-      <div className="container max-w-7xl mx-auto px-4">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
-          <div className="mx-auto mt-3 h-1 w-12 rounded-full" style={{ backgroundColor: colors.sectionAccentBar }} />
-        </div>
+        <div className="container max-w-7xl mx-auto px-4">
+          {renderHeader(true)}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
           {featuredItem && (
             <div 
