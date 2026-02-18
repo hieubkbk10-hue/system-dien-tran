@@ -196,9 +196,9 @@ export const getGalleryColorTokens = ({
   const primaryTint = getSolidTint(primaryResolved, 0.42);
   const secondaryTint = getSolidTint(secondaryResolved, 0.42);
   const accentSurface = getSolidTint(secondaryResolved, 0.5);
-  const accentBorder = getSolidTint(secondaryResolved, 0.3);
+  const accentBorder = neutralBorder;
   const sectionAccentBar = primaryResolved;
-  const cardHoverBorder = getSolidTint(secondaryResolved, 0.25);
+  const cardHoverBorder = secondaryResolved;
 
   return {
     primary: primaryResolved,
@@ -210,7 +210,7 @@ export const getGalleryColorTokens = ({
     neutralBackground,
     neutralSurface,
     neutralBorder,
-    iconBg: primaryTint,
+    iconBg: neutralSurface,
     iconColor: primaryResolved,
     badgeBg: secondaryTint,
     badgeText: getAPCATextColor(secondaryTint, 12, 600),
