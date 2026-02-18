@@ -334,8 +334,9 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
     if (!scroller) {return;}
 
     const loopCount = 2;
-    const speedMultiplier = itemCount >= 14 ? 1.35 : itemCount >= 10 ? 1.2 : itemCount >= 6 ? 1.1 : 1;
-    const adaptiveSpeed = 0.8 * speedMultiplier;
+    const speedMultiplier = itemCount >= 14 ? 1.25 : itemCount >= 10 ? 1.15 : itemCount >= 6 ? 1.05 : 1;
+    const deviceMultiplier = device === 'mobile' ? 0.75 : device === 'tablet' ? 0.9 : 1;
+    const adaptiveSpeed = 0.7 * speedMultiplier * deviceMultiplier;
     const effectiveSpeed = prefersReducedMotion ? Math.min(adaptiveSpeed, 0.15) : adaptiveSpeed;
 
     let animationId: number;
@@ -357,7 +358,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 
     animationId = requestAnimationFrame(step);
     return () =>{  cancelAnimationFrame(animationId); };
-  }, [isPaused, items.length, prefersReducedMotion, previewStyle]);
+  }, [device, isPaused, items.length, prefersReducedMotion, previewStyle]);
 
   // Gallery Empty State with brandColor
   const renderGalleryEmptyState = () => (
@@ -448,7 +449,17 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 
     return (
       <div className="py-8">
-        <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
+        <div
+          className="w-full relative"
+          onMouseEnter={() =>{  setIsPaused(true); }}
+          onMouseLeave={() =>{  setIsPaused(false); }}
+        >
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-24 bg-gradient-to-r from-white via-white/70 to-transparent dark:from-slate-900 dark:via-slate-900/70 z-10"
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-24 bg-gradient-to-l from-white via-white/70 to-transparent dark:from-slate-900 dark:via-slate-900/70 z-10"
+          />
           <div
             ref={marqueeRef}
             className="flex overflow-x-auto touch-pan-x no-scrollbar"
@@ -460,20 +471,21 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           >
             <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
             {Array.from({ length: loopCount }).map((_, loopIndex) => (
-              <div key={`gallery-loop-${loopIndex}`} className="flex shrink-0 gap-16 items-center px-4">
+              <div key={`gallery-loop-${loopIndex}`} className="flex shrink-0 gap-6 md:gap-10 items-center px-4">
                 {items.map((photo) => (
                   <div 
                     key={`gallery-marquee-${loopIndex}-${photo.id}`} 
-                    className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
+                    className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden cursor-pointer group relative bg-white/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700/60 shadow-[0_10px_30px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.06)]"
                     onClick={() =>{  setSelectedPhoto(photo); }}
                   >
                     {photo.url ? (
-                      <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                      <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                     ) : (
                       <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                         <ImageIcon size={32} className="text-slate-300" />
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div
                       className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ borderColor: layoutAccent }}
