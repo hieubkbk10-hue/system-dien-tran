@@ -344,10 +344,18 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 
     const step = () => {
       if (!isPaused && scroller) {
-        position += effectiveSpeed;
-        const maxScroll = scroller.scrollWidth / loopCount;
-        if (position >= maxScroll) {
+        const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+        const loopWidth = scroller.scrollWidth / loopCount;
+        const resetAt = Math.max(0, Math.min(loopWidth, maxScrollLeft));
+        if (resetAt <= 0) {
           position = 0;
+          scroller.scrollLeft = 0;
+          animationId = requestAnimationFrame(step);
+          return;
+        }
+        position += effectiveSpeed;
+        if (position >= resetAt || position >= maxScrollLeft) {
+          position -= resetAt;
         }
         scroller.scrollLeft = position;
       } else if (scroller) {
