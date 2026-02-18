@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { cn } from '../../../components/ui';
-import { AutoScrollSlider } from '../../_shared/components/AutoScrollSlider';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
@@ -12,6 +11,21 @@ import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDe
 import type { GalleryItem, GalleryStyle } from '../_types';
 import { getGalleryColorTokens } from '../_lib/colors';
 import type { GalleryColorTokens } from '../_lib/colors';
+
+const usePrefersReducedMotion = () => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () =>{  setPrefersReducedMotion(mediaQuery.matches); };
+
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () =>{  mediaQuery.removeEventListener('change', update); };
+  }, []);
+
+  return prefersReducedMotion;
+};
 
 // Lightbox Component for Gallery - with Arrow Keys Navigation
 const GalleryLightbox = ({ 
@@ -133,6 +147,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   const { device, setDevice } = usePreviewDevice();
   const [isPaused, setIsPaused] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
+  const marqueeRef = React.useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const ONE = 1;
   const NEGATIVE_ONE = -1;
@@ -309,6 +325,40 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   // ============ GALLERY STYLES 4-6 (Grid, Marquee, Masonry) ============
   // Best Practices: Lightbox with keyboard nav, lazy loading, +N pattern
 
+  React.useEffect(() => {
+    if (previewStyle !== 'marquee') {return;}
+    const itemCount = items.length;
+    if (itemCount <= 1) {return;}
+
+    const scroller = marqueeRef.current;
+    if (!scroller) {return;}
+
+    const loopCount = 2;
+    const speedMultiplier = itemCount >= 14 ? 1.35 : itemCount >= 10 ? 1.2 : itemCount >= 6 ? 1.1 : 1;
+    const adaptiveSpeed = 0.8 * speedMultiplier;
+    const effectiveSpeed = prefersReducedMotion ? Math.min(adaptiveSpeed, 0.15) : adaptiveSpeed;
+
+    let animationId: number;
+    let position = scroller.scrollLeft;
+
+    const step = () => {
+      if (!isPaused && scroller) {
+        position += effectiveSpeed;
+        const maxScroll = scroller.scrollWidth / loopCount;
+        if (position >= maxScroll) {
+          position = 0;
+        }
+        scroller.scrollLeft = position;
+      } else if (scroller) {
+        position = scroller.scrollLeft;
+      }
+      animationId = requestAnimationFrame(step);
+    };
+
+    animationId = requestAnimationFrame(step);
+    return () =>{  cancelAnimationFrame(animationId); };
+  }, [isPaused, items.length, prefersReducedMotion, previewStyle]);
+
   // Gallery Empty State with brandColor
   const renderGalleryEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -393,32 +443,47 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   // Style 5: Gallery Marquee - Auto scroll horizontal
   const renderGalleryMarqueeStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
-    const loopCount = 2;
+    const itemCount = items.length;
+    const shouldAnimate = itemCount > 1;
+    const loopCount = shouldAnimate ? 2 : 1;
 
     return (
       <div className="py-8">
         <div className="w-full relative" onMouseEnter={() =>{  setIsPaused(true); }} onMouseLeave={() =>{  setIsPaused(false); }}>
-          <AutoScrollSlider speed={0.6} isPaused={isPaused} loopCount={loopCount}>
-            {items.map((photo) => (
-              <div 
-                key={`gallery-marquee-${photo.id}`} 
-                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
-                onClick={() =>{  setSelectedPhoto(photo); }}
-              >
-                {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <ImageIcon size={32} className="text-slate-300" />
+          <div
+            ref={marqueeRef}
+            className="flex overflow-x-auto touch-pan-x no-scrollbar"
+            style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+            onTouchStart={() =>{  setIsPaused(true); }}
+            onTouchEnd={() =>{  setIsPaused(false); }}
+            onFocusCapture={() =>{  setIsPaused(true); }}
+            onBlurCapture={() =>{  setIsPaused(false); }}
+          >
+            <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+            {Array.from({ length: loopCount }).map((_, loopIndex) => (
+              <div key={`gallery-loop-${loopIndex}`} className="flex shrink-0 gap-16 items-center px-4">
+                {items.map((photo) => (
+                  <div 
+                    key={`gallery-marquee-${loopIndex}-${photo.id}`} 
+                    className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
+                    onClick={() =>{  setSelectedPhoto(photo); }}
+                  >
+                    {photo.url ? (
+                      <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <ImageIcon size={32} className="text-slate-300" />
+                      </div>
+                    )}
+                    <div
+                      className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ borderColor: layoutAccent }}
+                    />
                   </div>
-                )}
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: layoutAccent }}
-                />
+                ))}
               </div>
             ))}
-          </AutoScrollSlider>
+          </div>
         </div>
       </div>
     );
