@@ -3,11 +3,13 @@
 import React, { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { GalleryPreview } from '../../gallery/_components/GalleryPreview';
 import { TrustBadgesPreview } from '../../gallery/_components/TrustBadgesPreview';
 import type { GalleryStyle, TrustBadgesStyle } from '../../gallery/_types';
+import { getGalleryValidationResult, normalizeGalleryHarmony } from '../../gallery/_lib/colors';
 import { PartnersPreview } from '../../partners/_components/PartnersPreview';
 import type { PartnersStyle } from '../../partners/_types';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -38,6 +40,7 @@ function GalleryCreateContent() {
   
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titles[type], type);
   const { primary, secondary, mode } = useBrandColors();
+  const componentLabel = titles[type];
   
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -48,6 +51,24 @@ function GalleryCreateContent() {
   const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
 
   const onSubmit = (e: React.FormEvent) => {
+    if (type !== 'Partners') {
+      const harmony = normalizeGalleryHarmony(undefined);
+      const { accessibility, harmonyStatus } = getGalleryValidationResult({ primary, secondary, mode, harmony });
+
+      if (mode === 'dual' && harmonyStatus.isTooSimilar) {
+        toast.error(`Không thể lưu ${componentLabel}: deltaE=${harmonyStatus.deltaE} < 20 (Primary/Secondary quá giống nhau).`);
+        return;
+      }
+
+      if (accessibility.failing.length > 0) {
+        const failedPairs = accessibility.failing.map((item) => item.label ?? 'pair').join(', ');
+        toast.error(
+          `Không thể lưu ${componentLabel}: APCA chưa đạt cho ${failedPairs}. `
+          + 'Gợi ý: (1) Chọn màu có contrast cao hơn, (2) Đổi harmony mode, (3) Chuyển Single mode ở /admin/system/brand.',
+        );
+        return;
+      }
+    }
     const finalStyle = type === 'TrustBadges'
       ? trustBadgesStyle
       : (type === 'Partners' ? partnersStyle : galleryStyle);

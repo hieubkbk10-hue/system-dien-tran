@@ -28,6 +28,7 @@ import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
+import { getGalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
@@ -146,7 +147,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <GallerySection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} type={type} />;
     }
     case 'TrustBadges': {
-      return <TrustBadgesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <TrustBadgesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Pricing': {
       return <PricingSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -2921,12 +2922,24 @@ const CertificateModal = ({
   );
 };
 
-function TrustBadgesSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
+function TrustBadgesSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
   const items = (config.items as TrustBadgeItem[]) || [];
   const style = (config.style as TrustBadgesStyle) || 'cards';
   const carouselId = useSafeId('trustbadges-carousel');
   const [selectedCert, setSelectedCert] = React.useState<TrustBadgeItem | null>(null);
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
 
   // Style 1: Square Grid - Full color, clickable to lightbox
   if (style === 'grid') {
@@ -2934,23 +2947,15 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {items.map((item, idx) => (
               <div 
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
-                className="group relative aspect-square bg-white rounded-xl flex items-center justify-center p-5 md:p-6 cursor-zoom-in transition-all duration-300 hover:-translate-y-1"
-                style={{ border: `1px solid ${secondary}15` }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}40`; 
-                  e.currentTarget.style.boxShadow = `0 8px 24px ${secondary}15`; 
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}15`; 
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
+                className="group relative aspect-square rounded-xl flex items-center justify-center p-5 md:p-6 cursor-zoom-in transition-all duration-300 hover:-translate-y-1"
+                style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
               >
                 {item.url ? (
                   <SiteImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? ''} />
@@ -2958,8 +2963,8 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                   <ImageIcon size={40} className="text-slate-300" />
                 )}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}>
-                    <Maximize2 size={14} style={{ color: secondary }} />
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.badgeBg }}>
+                    <Maximize2 size={14} style={{ color: colors.badgeText }} />
                   </div>
                 </div>
                 {item.name && (
@@ -2982,42 +2987,33 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {items.map((item, idx) => (
               <div 
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
-                className="group relative flex flex-col rounded-2xl overflow-hidden bg-white shadow-sm cursor-zoom-in h-full transition-all duration-300"
-                style={{ border: `1px solid ${secondary}15` }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}30`; 
-                  e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}15`; 
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                }}
+                className="group relative flex flex-col rounded-2xl overflow-hidden cursor-zoom-in h-full transition-all duration-300"
+                style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
               >
-                <div className="aspect-[5/4] bg-slate-50/50 flex items-center justify-center p-6 md:p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-colors duration-300" style={{ backgroundColor: `${secondary}08` }} />
+                <div className="aspect-[5/4] flex items-center justify-center p-6 md:p-8 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground }}>
                   {item.url ? (
                     <SiteImage src={item.url} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 z-10" alt={item.name ?? ''} />
                   ) : (
                     <ImageIcon size={48} className="text-slate-300" />
                   )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    <span className="bg-white/90 px-4 py-2 rounded-full shadow-lg font-medium flex items-center gap-2 text-sm" style={{ color: secondary }}>
+                    <span className="px-4 py-2 rounded-full font-medium flex items-center gap-2 text-sm" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
                       <ZoomIn size={16} /> Xem chi tiết
                     </span>
                   </div>
                 </div>
-                <div className="py-4 px-5 bg-white border-t flex items-center justify-between group-hover:bg-slate-50 transition-colors" style={{ borderColor: `${secondary}10` }}>
-                  <span className="font-semibold truncate text-sm" style={{ color: secondary }}>
+                <div className="py-4 px-5 border-t flex items-center justify-between transition-colors" style={{ borderColor: colors.neutralBorder, backgroundColor: colors.neutralSurface }}>
+                  <span className="font-semibold truncate text-sm" style={{ color: colors.subheading }}>
                     {item.name ?? 'Chứng nhận'}
                   </span>
-                  <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
+                  <ArrowUpRight size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: colors.subheading }} />
                 </div>
               </div>
             ))}
@@ -3031,9 +3027,9 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
   // Style 3: Marquee - Auto scroll slider with tooltip, full color
   if (style === 'marquee') {
     return (
-      <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: `${secondary}05`, borderColor: `${secondary}15` }}>
+      <section className="w-full py-14 md:py-20 border-y" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
         <div className="container max-w-7xl mx-auto px-4 mb-10 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
         </div>
         <TrustBadgesAutoScroll speed={0.6}>
           {items.map((item, idx) => (
@@ -3065,30 +3061,22 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
   // Style 4: Framed Wall - Certificate frames hanging on wall
   if (style === 'wall') {
     return (
-      <section className="w-full py-12 md:py-16" style={{ backgroundColor: `${secondary}05` }}>
+      <section className="w-full py-12 md:py-16" style={{ backgroundColor: colors.neutralBackground }}>
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 justify-items-center">
             {items.map((item, idx) => (
               <div 
                 key={idx} 
                 onClick={() =>{  setSelectedCert(item); }}
-                className="group relative bg-white p-2 md:p-3 shadow-md rounded-sm flex flex-col cursor-zoom-in w-[140px] h-[180px] md:w-[160px] md:h-[210px] transition-all duration-300"
-                style={{ border: `1px solid ${secondary}15` }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.boxShadow = `0 12px 24px ${secondary}20`; 
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
+                className="group relative p-2 md:p-3 rounded-sm flex flex-col cursor-zoom-in w-[140px] h-[180px] md:w-[160px] md:h-[210px] transition-all duration-300"
+                style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
               >
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-10 bg-gradient-to-b from-slate-400 to-transparent opacity-40"></div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: `${secondary}60` }}></div>
-                <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}10` }}>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.accentBorder }}></div>
+                <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}>
                   {item.url ? (
                     <SiteImage src={item.url} className="w-full h-full object-contain" alt={item.name ?? ''} />
                   ) : (
@@ -3096,7 +3084,7 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                   )}
                 </div>
                 <div className="h-7 md:h-8 flex items-center justify-center mt-1">
-                  <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-center truncate px-1" style={{ color: secondary }}>
+                  <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider text-center truncate px-1" style={{ color: colors.subheading }}>
                     {item.name ? (item.name.length > 18 ? item.name.slice(0, 16) + '...' : item.name) : 'Certificate'}
                   </span>
                 </div>
@@ -3120,7 +3108,7 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
       <section className="w-full py-12 md:py-16 bg-white">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
             {showArrowsDesktop && (
               <div className="hidden md:flex items-center gap-2">
                 <button
@@ -3129,10 +3117,10 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                     const container = document.querySelector(`#${carouselId}`);
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
-                  className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
-                  style={{ border: `1px solid ${secondary}20` }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ border: `1px solid ${colors.neutralBorder}`, backgroundColor: colors.neutralSurface }}
                 >
-                  <ChevronLeft size={20} style={{ color: secondary }} />
+                  <ChevronLeft size={20} style={{ color: colors.heading }} />
                 </button>
                 <button
                   type="button"
@@ -3140,8 +3128,8 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                     const container = document.querySelector(`#${carouselId}`);
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-all hover:scale-110"
-                  style={{ backgroundColor: secondary }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
+                  style={{ backgroundColor: colors.heading }}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -3150,9 +3138,6 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
           </div>
 
           <div className="relative overflow-hidden rounded-xl">
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent z-10 pointer-events-none" />
-
             <div
               id={carouselId}
               className="flex overflow-x-auto snap-x snap-mandatory gap-4 py-4 px-2 cursor-grab active:cursor-grabbing select-none"
@@ -3184,17 +3169,7 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                 >
                   <div
                     className="aspect-square rounded-xl flex items-center justify-center p-4 md:p-5 transition-all duration-300"
-                    style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15` }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = `${secondary}40`;
-                      e.currentTarget.style.boxShadow = `0 8px 20px ${secondary}15`;
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = `${secondary}15`;
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
+                    style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}
                   >
                     {item.url ? (
                       <SiteImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? ''} draggable={false} />
@@ -3225,22 +3200,14 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
     <section className="w-full py-12 md:py-16 bg-white">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: secondary }}>{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: colors.heading }}>{title}</h2>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
           {featuredItem && (
             <div 
               onClick={() =>{  setSelectedCert(featuredItem); }}
               className="group cursor-zoom-in rounded-2xl overflow-hidden transition-all duration-300"
-              style={{ backgroundColor: `${secondary}08`, border: `2px solid ${secondary}20` }}
-              onMouseEnter={(e) => { 
-                e.currentTarget.style.borderColor = `${secondary}40`; 
-                e.currentTarget.style.boxShadow = `0 12px 32px ${secondary}15`; 
-              }}
-              onMouseLeave={(e) => { 
-                e.currentTarget.style.borderColor = `${secondary}20`; 
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              style={{ backgroundColor: colors.accentSurface, border: `1px solid ${colors.accentBorder}` }}
             >
               <div className="aspect-[4/3] flex items-center justify-center p-6 md:p-8 relative">
                 {featuredItem.url ? (
@@ -3252,13 +3219,13 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                   <BrandBadge text="NỔI BẬT" variant="solid" brandColor={brandColor} secondary={secondary} />
                 </div>
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-lg" style={{ color: secondary }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ color: colors.subheading, backgroundColor: colors.neutralSurface, border: `1px solid ${colors.neutralBorder}` }}>
                     <ZoomIn size={20} />
                   </div>
                 </div>
               </div>
-              <div className="py-3 md:py-4 text-center border-t" style={{ borderColor: `${secondary}15` }}>
-                <span className="font-bold text-sm md:text-base" style={{ color: secondary }}>
+              <div className="py-3 md:py-4 text-center border-t" style={{ borderColor: colors.neutralBorder }}>
+                <span className="font-bold text-sm md:text-base" style={{ color: colors.heading }}>
                   {featuredItem.name ?? 'Chứng nhận nổi bật'}
                 </span>
               </div>
@@ -3270,15 +3237,7 @@ function TrustBadgesSection({ config, brandColor, secondary, title }: { config: 
                 key={idx}
                 onClick={() =>{  setSelectedCert(item); }}
                 className="group aspect-square rounded-xl flex items-center justify-center p-3 md:p-4 cursor-zoom-in transition-all duration-300"
-                style={{ backgroundColor: `${secondary}05`, border: `1px solid ${secondary}15` }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}40`; 
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`; 
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.borderColor = `${secondary}15`; 
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
+                style={{ backgroundColor: colors.neutralBackground, border: `1px solid ${colors.neutralBorder}` }}
               >
                 {item.url ? (
                   <SiteImage src={item.url} className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" alt={item.name ?? ''} />
@@ -3300,6 +3259,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ url: string; link?: string } | null>(null);
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
 
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) - Only for type === 'Gallery' ============
 
@@ -3459,8 +3419,8 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
-                <ImageIcon size={32} style={{ color: secondary }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -3473,7 +3433,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: secondary }}>{title}</h2>}
+          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: colors.heading }}>{title}</h2>}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {items.map((photo, idx) => (
               <div 
@@ -3503,8 +3463,8 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
-                <ImageIcon size={32} style={{ color: secondary }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -3516,7 +3476,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
 
     return (
       <section className="w-full bg-white py-8 md:py-12">
-        {title && <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: secondary }}>{title}</h2>}
+        {title && <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: colors.heading }}>{title}</h2>}
         <div className="w-full relative">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
@@ -3550,8 +3510,8 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         <section className="w-full py-12 bg-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px]">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${secondary}10` }}>
-                <ImageIcon size={32} style={{ color: secondary }} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+                <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
               </div>
               <h3 className="font-medium text-slate-900 mb-1">Chưa có hình ảnh nào</h3>
               <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
@@ -3566,7 +3526,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <section className="w-full bg-white">
         <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
-          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: secondary }}>{title}</h2>}
+          {title && <h2 className="text-2xl font-bold mb-6" style={{ color: colors.heading }}>{title}</h2>}
           <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
             {items.map((photo, idx) => {
               const heightClass = heights[idx % heights.length];

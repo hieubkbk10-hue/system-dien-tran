@@ -225,7 +225,9 @@ export const getGalleryValidationResult = ({
   const harmonyStatus = getHarmonyStatus(tokens.primary, resolvedSecondary);
   const accessibilityPairs: GalleryAccessibilityPair[] = [
     { background: tokens.neutralSurface, text: tokens.heading, fontSize: 24, fontWeight: 700, label: 'heading' },
-    { background: tokens.neutralSurface, text: tokens.subheading, fontSize: 14, fontWeight: 600, label: 'subheading' },
+    ...(mode === 'dual'
+      ? [{ background: tokens.neutralSurface, text: tokens.subheading, fontSize: 18, fontWeight: 600, label: 'subheading' }]
+      : []),
     { background: tokens.badgeBg, text: tokens.badgeText, fontSize: 12, fontWeight: 600, label: 'badge' },
   ];
   const accessibility = getGalleryAccessibilityScore(accessibilityPairs);
