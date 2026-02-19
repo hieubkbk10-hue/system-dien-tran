@@ -2439,18 +2439,20 @@ const TrustBadgesAutoScroll = ({ children, speed = 0.6 }: { children: React.Reac
   }, [isPaused, speed]);
 
   return (
-    <div 
-      ref={scrollRef}
-      className="flex overflow-hidden select-none w-full cursor-grab active:cursor-grabbing"
-      style={{ 
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-        maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
-      }}
-      onMouseEnter={() =>{  setIsPaused(true); }}
-      onMouseLeave={() =>{  setIsPaused(false); }}
-    >
-      <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
-      <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
+    <div className="w-full max-w-7xl mx-auto">
+      <div
+        ref={scrollRef}
+        className="flex overflow-hidden select-none w-full cursor-grab active:cursor-grabbing"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+          maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
+        }}
+        onMouseEnter={() =>{  setIsPaused(true); }}
+        onMouseLeave={() =>{  setIsPaused(false); }}
+      >
+        <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
+        <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
+      </div>
     </div>
   );
 };
