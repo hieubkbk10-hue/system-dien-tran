@@ -169,60 +169,86 @@ export const TestimonialsPreview = ({
 
     return (
       <section className="py-12 md:py-16 px-4 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground }}>
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 text-[120px] leading-none font-serif pointer-events-none select-none" style={{ color: colors.quoteSecondary }}>
-          “
-        </div>
+        <div className="max-w-5xl mx-auto relative">
+          <h3 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-10" style={{ color: colors.headingPrimary }}>Khách hàng nói gì về chúng tôi</h3>
 
-        <div className="max-w-4xl mx-auto relative">
-          <h3 className="text-2xl md:text-3xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>Khách hàng nói gì về chúng tôi</h3>
+          <div className="absolute right-2 top-10 text-[56px] md:text-[72px] leading-none font-serif pointer-events-none select-none opacity-60" style={{ color: colors.quoteSecondary }}>
+            “
+          </div>
 
-          <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorderStrong }}>
-            <div className="flex justify-center mb-4">{renderStars(current.rating, 16)}</div>
-            <p className="text-base md:text-lg leading-relaxed mb-6" style={{ color: colors.neutralMuted }}>“{current.content || 'Nội dung đánh giá...'}”</p>
+          <article
+            className="rounded-2xl border px-5 py-6 md:px-10 md:py-9 text-center"
+            style={{
+              backgroundColor: colors.cardSurface,
+              borderTopColor: colors.cardBorderStrong,
+              borderRightColor: colors.cardBorderStrong,
+              borderBottomColor: colors.cardBorderStrong,
+              borderLeftColor: colors.cardBorderStrong,
+            }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-5">
+              {renderStars(current.rating, 15)}
+              <span
+                className="text-xs font-medium rounded-full px-2.5 py-1 border"
+                style={{ borderColor: colors.cardBorder, color: colors.subtitleSecondary }}
+              >
+                {currentSlide + 1}/{normalizedItems.length}
+              </span>
+            </div>
+
+            <p className="mx-auto max-w-3xl text-base md:text-xl leading-8 md:leading-9 mb-7 md:mb-8" style={{ color: colors.neutralMuted }}>
+              “{current.content || 'Nội dung đánh giá...'}”
+            </p>
+
+            <div className="mx-auto h-px w-20 mb-6" style={{ backgroundColor: colors.cardBorder }} />
 
             <div className="flex items-center justify-center gap-3">
               <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
               <div className="text-left min-w-0">
-                <p className="font-semibold truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
-                <p className="text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
+                <p className="font-semibold text-sm md:text-base truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
+                <p className="text-xs md:text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
               </div>
             </div>
-          </div>
+          </article>
 
           {normalizedItems.length > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-6">
+            <div className="mt-7 flex items-center justify-center gap-3 md:gap-4">
               <button
                 type="button"
                 onClick={() => { setCurrentSlide((prev) => (prev === 0 ? normalizedItems.length - 1 : prev - 1)); }}
-                className="w-11 h-11 min-h-[44px] rounded-full border flex items-center justify-center"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border flex items-center justify-center transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                 style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
                 aria-label="Slide trước"
               >
                 <ChevronLeft size={18} />
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex items-center rounded-full border px-1 py-0.5" style={{ borderColor: colors.cardBorder, backgroundColor: colors.neutralSurface }}>
                 {normalizedItems.map((_, idx) => (
                   <button
                     key={`slider-dot-${idx}`}
                     type="button"
                     onClick={() => { setCurrentSlide(idx); }}
-                    className="h-2.5 rounded-full transition-all"
-                    style={{
-                      backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive,
-                      width: idx === currentSlide ? 28 : 10,
-                    }}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                     aria-label={`Đi tới slide ${idx + 1}`}
-                  />
+                  >
+                    <span
+                      className="block h-2.5 rounded-full transition-all"
+                      style={{
+                        backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive,
+                        width: idx === currentSlide ? 24 : 10,
+                      }}
+                    />
+                  </button>
                 ))}
               </div>
 
               <button
                 type="button"
                 onClick={() => { setCurrentSlide((prev) => (prev + 1) % normalizedItems.length); }}
-                className="w-11 h-11 min-h-[44px] rounded-full border flex items-center justify-center"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border flex items-center justify-center transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
                 style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
                 aria-label="Slide sau"
               >
@@ -276,37 +302,61 @@ export const TestimonialsPreview = ({
 
     return (
       <section className="py-12 md:py-16 px-4" style={{ backgroundColor: colors.cardAltSurface }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-[80px] leading-none font-serif mb-[-24px] select-none" style={{ color: colors.quoteSecondary }}>“</div>
-          <blockquote className="text-xl md:text-2xl leading-relaxed italic" style={{ color: colors.headingPrimary }}>
-            {current.content || 'Nội dung đánh giá...'}
-          </blockquote>
+        <div className="max-w-5xl mx-auto text-center">
+          <h3 className="text-2xl md:text-3xl font-bold mb-8 md:mb-10" style={{ color: colors.headingPrimary }}>Khách hàng nói gì về chúng tôi</h3>
 
-          <div className="mt-7 flex flex-col items-center gap-3">
-            <div className="flex justify-center">{renderStars(current.rating, 16)}</div>
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
-                {(current.name || 'U').charAt(0)}
-              </div>
-              <div className="text-left min-w-0">
-                <p className="font-semibold truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
-                <p className="text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
+          <article
+            className="rounded-2xl border px-5 py-7 md:px-10 md:py-10"
+            style={{
+              backgroundColor: colors.cardSurface,
+              borderTopColor: colors.cardBorder,
+              borderRightColor: colors.cardBorder,
+              borderBottomColor: colors.cardBorder,
+              borderLeftColor: colors.cardBorder,
+            }}
+          >
+            <div className="text-[44px] md:text-[56px] leading-none font-serif mb-3 md:mb-4 select-none opacity-70" style={{ color: colors.quoteSecondary }}>“</div>
+
+            <blockquote className="mx-auto max-w-3xl text-lg md:text-2xl leading-8 md:leading-10" style={{ color: colors.headingPrimary }}>
+              {current.content || 'Nội dung đánh giá...'}
+            </blockquote>
+
+            <div className="mt-7 md:mt-8 flex flex-col items-center gap-4">
+              <div className="flex justify-center">{renderStars(current.rating, 16)}</div>
+              <div className="h-px w-16" style={{ backgroundColor: colors.cardBorder }} />
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
+                  {(current.name || 'U').charAt(0)}
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="font-semibold text-sm md:text-base truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
+                  <p className="text-xs md:text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </article>
 
           {normalizedItems.length > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              {normalizedItems.map((_, idx) => (
-                <button
-                  key={`quote-dot-${idx}`}
-                  type="button"
-                  onClick={() => { setCurrentSlide(idx); }}
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive }}
-                  aria-label={`Đi tới quote ${idx + 1}`}
-                />
-              ))}
+            <div className="mt-7 flex justify-center">
+              <div className="flex items-center rounded-full border px-1 py-0.5" style={{ borderColor: colors.cardBorder, backgroundColor: colors.neutralSurface }}>
+                {normalizedItems.map((_, idx) => (
+                  <button
+                    key={`quote-dot-${idx}`}
+                    type="button"
+                    onClick={() => { setCurrentSlide(idx); }}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+                    aria-label={`Đi tới quote ${idx + 1}`}
+                  >
+                    <span
+                      className="block h-2.5 rounded-full transition-all"
+                      style={{
+                        backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive,
+                        width: idx === currentSlide ? 22 : 10,
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
