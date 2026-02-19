@@ -116,11 +116,13 @@ export const getCardsColors = (primary: string, secondary: string, mode: StatsBr
 
 export const getIconsColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
   const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
+  const secondaryStrong = getTint(secondaryResolved, -0.18, primary);
 
   return {
     circleBg: primary,
     textOnCircle: getAPCATextColor(primary, 20, 700),
-    label: ensureAPCATextColor(secondaryResolved, '#ffffff', 14, 500),
+    ring: getTint(secondaryResolved, -0.12, primary),
+    label: ensureAPCATextColor(secondaryStrong, '#ffffff', 14, 600),
   };
 };
 
@@ -137,9 +139,10 @@ export const getGradientColors = (primary: string, secondary: string, mode: Stat
 
 export const getMinimalColors = (primary: string, secondary: string, mode: StatsBrandMode) => {
   const secondaryResolved = resolveStatsSecondary(primary, secondary, mode);
+  const secondaryStrong = getTint(secondaryResolved, -0.18, primary);
 
   return {
-    accent: ensureAPCATextColor(secondaryResolved, '#ffffff', 14, 500),
+    accent: secondaryStrong,
     value: ensureAPCATextColor(primary, '#ffffff', 32, 700),
   };
 };

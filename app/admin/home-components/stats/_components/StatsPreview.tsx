@@ -111,11 +111,12 @@ export const StatsPreview = ({
           <div key={idx} className="flex flex-col items-center">
             <div
               className={cn(
-                "relative rounded-full flex items-center justify-center mb-3 border border-slate-200 shadow-sm",
+                "relative rounded-full flex items-center justify-center mb-3 border shadow-sm",
                 device === 'mobile' ? 'w-20 h-20' : 'w-24 h-24 md:w-28 md:h-28'
               )}
               style={{
-                backgroundColor: colors.circleBg
+                backgroundColor: colors.circleBg,
+                borderColor: colors.ring,
               }}
             >
               <span

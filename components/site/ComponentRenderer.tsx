@@ -26,10 +26,25 @@ import {
 import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
 import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
+import { BenefitsSectionShared } from '@/app/admin/home-components/benefits/_components/BenefitsSectionShared';
+import { getBenefitsSectionColors, normalizeBenefitsHarmony } from '@/app/admin/home-components/benefits/_lib/colors';
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
+import {
+  getTestimonialsSectionColors,
+  normalizeTestimonialsHarmony,
+} from '@/app/admin/home-components/testimonials/_lib/colors';
 import { getGalleryColorTokens, type GalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import type { ProcessBrandMode } from '@/app/admin/home-components/process/_types';
+import { normalizeProcessRenderSteps, normalizeProcessStyle } from '@/app/admin/home-components/process/_lib/normalize';
+import { ProcessSectionShared } from '@/app/admin/home-components/process/_components/ProcessSectionShared';
+import { FeaturesSectionShared } from '@/app/admin/home-components/features/_components/FeaturesSectionShared';
+import { normalizeFeaturesHarmony } from '@/app/admin/home-components/features/_lib/constants';
+import { ServicesSectionCore } from './ServicesSectionCore';
+import type { ServiceItem, ServicesStyle } from '@/app/admin/home-components/services/_types';
+import { getServicesColors, normalizeServicesHarmony } from '@/app/admin/home-components/services/_lib/colors';
+import type { BenefitsStyle as BenefitsSharedStyle } from '@/app/admin/home-components/benefits/_types';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
 import { PartnersCarouselShared } from '@/app/admin/home-components/partners/_components/PartnersCarouselShared';
@@ -38,16 +53,17 @@ import { PartnersGridShared } from '@/app/admin/home-components/partners/_compon
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
+import type { BenefitItem, BenefitsBrandMode, BenefitsConfig } from '@/app/admin/home-components/benefits/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
 import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
 import { ServiceListSection } from './ServiceListSection';
-import { 
-  ArrowRight, ArrowUpRight, Briefcase, 
-  Building2, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Cpu, Facebook, Globe,
-  Image as ImageIcon, Instagram, Layers, LayoutTemplate, Linkedin, Mail, MapPin, Maximize2, MessageCircle, Package, Phone, Plus, Rocket,
-  Settings, Shield, Star, Tag, Target, Twitter, Users, X, Youtube, Zap, ZoomIn
+import {
+  ArrowRight, ArrowUpRight, Briefcase,
+  Building2, ChevronLeft, ChevronRight, Clock, Facebook, Globe,
+  Image as ImageIcon, Instagram, LayoutTemplate, Linkedin, Mail, MapPin, Maximize2, MessageCircle, Package, Phone, Plus,
+  Star, Tag, Twitter, Users, X, Youtube, ZoomIn
 } from 'lucide-react';
 import { formatVoucherExpiry, normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 
@@ -125,10 +141,10 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <AboutSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Services': {
-      return <ServicesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <ServicesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Benefits': {
-      return <BenefitsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <BenefitsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'FAQ': {
       return <FAQSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
@@ -137,7 +153,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <CTASection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
     }
     case 'Testimonials': {
-      return <TestimonialsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <TestimonialsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Contact': {
       return <ContactSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -156,10 +172,10 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'ServiceList': {
-      return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Blog': {
-      return <BlogSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <BlogSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Career': {
       return <CareerSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -180,10 +196,10 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <TeamSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Features': {
-      return <FeaturesSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <FeaturesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Process': {
-      return <ProcessSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <ProcessSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Clients': {
       return <ClientsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
@@ -685,10 +701,11 @@ function StatsSection({ config, brandColor, secondary, mode, title: _title }: { 
             {items.map((item, idx) => (
               <div key={idx} className="flex flex-col items-center">
                 {/* Circle Container with shadow and border */}
-                <div 
-                  className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 border border-slate-200 shadow-sm"
-                  style={{ 
-                    backgroundColor: colors.circleBg
+                <div
+                  className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-3 border shadow-sm"
+                  style={{
+                    backgroundColor: colors.circleBg,
+                    borderColor: colors.ring,
                   }}
                 >
                   <span className="text-2xl md:text-3xl font-bold tracking-tight z-10 tabular-nums" style={{ color: colors.textOnCircle }}>
@@ -1239,664 +1256,103 @@ function AboutSection({ config, brandColor, secondary, title }: { config: Record
 }
 
 // ============ SERVICES SECTION ============
-// Professional Services UI/UX - 6 Variants: Elegant Grid, Modern List, Big Number, Cards, Carousel, Timeline
-type ServicesStyle = 'elegantGrid' | 'modernList' | 'bigNumber' | 'cards' | 'carousel' | 'timeline';
-
-// Dynamic Icon for Services
-const ServiceIconRenderer = ({ name, size = 24, style }: { name?: string; size?: number; style?: React.CSSProperties }) => {
-  const icons: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
-    Briefcase, Building2, Check, Clock, Cpu, Globe, Layers, Mail, MapPin, Package, Phone, Rocket, Settings, Shield, Star, Target, Users, Zap
-  };
-  const IconComponent = icons[name ?? 'Star'] || Star;
-  return <IconComponent size={size} style={style} />;
-};
-
-function ServicesSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
+function ServicesSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
+  const items = (config.items as ServiceItem[]) || [];
   const style = (config.style as ServicesStyle) || 'elegantGrid';
-  const carouselId = useSafeId('services-carousel');
+  const harmony = normalizeServicesHarmony(config.harmony as string | undefined);
+  const colors = getServicesColors(brandColor, secondary, mode, harmony);
 
-  // Empty state
-  if (items.length === 0) {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${secondary}10` }}>
-            <Briefcase size={32} style={{ color: secondary }} />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Dịch vụ'}</h2>
-          <p className="text-slate-500">Chưa có dịch vụ nào</p>
-        </div>
-      </section>
-    );
-  }
-
-  const MAX_VISIBLE = 6;
-  const visibleItems = items.slice(0, MAX_VISIBLE);
-  const remainingCount = Math.max(0, items.length - MAX_VISIBLE);
-
-  // Style 1: Elegant Grid - Clean cards with top accent line
-  if (style === 'elegantGrid') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-10">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-              {title}
-            </h2>
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="bg-white p-6 pt-8 rounded-xl shadow-sm border border-slate-200/60 relative overflow-hidden"
-              >
-                {/* Top Accent Line with gradient */}
-                <div 
-                  className="absolute top-0 left-0 right-0 h-1.5 w-full"
-                  style={{ background: `linear-gradient(to right, ${brandColor}, ${secondary})` }}
-                />
-                
-                <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2 tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="text-slate-500 leading-relaxed text-sm">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 2: Modern List - Clean horizontal layout
-  if (style === 'modernList') {
-    return (
-      <section className="py-10 md:py-12 px-4">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="border-b border-slate-200 pb-3">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-              {title}
-            </h2>
-          </div>
-
-          {/* List */}
-          <div className="space-y-0">
-            {items.map((item, idx) => (
-              <div 
-                key={idx}
-                className="flex items-baseline gap-3 md:gap-5 py-4 border-b border-slate-100 last:border-b-0"
-              >
-                {/* Number */}
-                <span 
-                  className="text-2xl md:text-3xl font-bold tabular-nums flex-shrink-0 w-10 md:w-12"
-                  style={{ color: secondary }}
-                >
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-                
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-0.5">
-                    {item.title}
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 3: Big Number Tiles
-  if (style === 'bigNumber') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visibleItems.map((item, idx) => {
-              const isHighlighted = idx === 1;
-              return (
-                <div key={idx} className={`relative overflow-hidden rounded-xl p-6 min-h-[180px] flex flex-col justify-end border ${isHighlighted ? 'text-white border-transparent' : 'bg-slate-100/50 text-slate-900 border-slate-200/50'}`}
-                  style={isHighlighted ? { backgroundColor: brandColor } : {}}>
-                  <span className={`absolute -top-6 -right-3 text-[8rem] font-black leading-none select-none pointer-events-none ${isHighlighted ? 'text-white opacity-[0.15]' : 'text-slate-900 opacity-[0.07]'}`}>{idx + 1}</span>
-                  <div className="relative z-10 space-y-2">
-                    <div className="w-6 h-1 mb-3 opacity-50 rounded-full" style={{ backgroundColor: isHighlighted ? 'white' : secondary }} />
-                    <h3 className="text-lg md:text-xl font-bold tracking-tight">{item.title || 'Tiêu đề'}</h3>
-                    <p className={`text-sm leading-relaxed ${isHighlighted ? 'text-white/90' : 'text-slate-500'}`}>{item.description || 'Mô tả...'}</p>
-                  </div>
-                </div>
-              );
-            })}
-            {remainingCount > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 min-h-[180px]" style={{ borderColor: `${secondary}30` }}>
-                <span className="text-2xl font-bold" style={{ color: secondary }}>+{remainingCount}</span>
-                <span className="text-sm text-slate-500">dịch vụ khác</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Icon Cards - Cards with prominent icon
-  if (style === 'cards') {
-    if (items.length <= 2) {
-      return (
-        <section className="py-12 md:py-16 px-4">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 text-center">{title}</h2>
-            <div className={`mx-auto flex justify-center gap-6 ${items.length === 1 ? 'max-w-sm' : 'max-w-2xl'}`}>
-              {items.map((item, idx) => (
-                <div key={idx} className="flex-1 bg-white rounded-2xl p-6 border shadow-sm" style={{ borderColor: `${secondary}15` }}>
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                    <ServiceIconRenderer name={item.icon} size={28} style={{ color: brandColor }} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title || 'Tiêu đề'}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.description || 'Mô tả...'}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-10">
-          <div className="text-center space-y-2">
-            <BrandBadge text="Dịch vụ" variant="default" brandColor={brandColor} secondary={secondary} />
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleItems.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 border shadow-sm transition-shadow hover:shadow-md" style={{ borderColor: `${secondary}15` }}>
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-                  <ServiceIconRenderer name={item.icon} size={28} style={{ color: brandColor }} />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title || 'Tiêu đề'}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{item.description || 'Mô tả...'}</p>
-              </div>
-            ))}
-            {remainingCount > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6" style={{ borderColor: `${secondary}30` }}>
-                <span className="text-2xl font-bold" style={{ color: secondary }}>+{remainingCount}</span>
-                <span className="text-sm text-slate-500">dịch vụ khác</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Carousel - Horizontal scroll với navigation và drag
-  if (style === 'carousel') {
-    const cardWidth = 300;
-    const gap = 20;
-    // Responsive: Desktop ~3-4 items, chỉ hiện arrows khi có nhiều items
-    const showArrowsDesktop = visibleItems.length > 3;
-
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Header với navigation arrows */}
-          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-            {showArrowsDesktop && (
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                  }}
-                  className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                  }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Carousel Container */}
-          <div className="relative overflow-hidden rounded-xl">
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent z-10 pointer-events-none" />
-
-            <div
-              id={carouselId}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-5 py-4 px-2 cursor-grab active:cursor-grabbing select-none"
-              style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseUp={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {visibleItems.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="snap-start flex-shrink-0 w-[280px] md:w-[300px] bg-white rounded-xl overflow-hidden border shadow-sm"
-                  style={{ borderColor: `${secondary}15` }}
-                  draggable={false}
-                >
-                  <div className="h-2 w-full" style={{ background: `linear-gradient(to right, ${brandColor}, ${secondary})` }} />
-                  <div className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${brandColor}10` }}>
-                        <ServiceIconRenderer name={item.icon} size={24} style={{ color: brandColor }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-slate-900 mb-1">{item.title || 'Tiêu đề'}</h3>
-                        <p className="text-sm text-slate-500 line-clamp-2">{item.description || 'Mô tả...'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-          </div>
-
-          <style>{`#${carouselId}::-webkit-scrollbar { display: none; }`}</style>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Timeline - Vertical timeline layout
-  if (style === 'timeline') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto space-y-10">
-          <div className="text-center">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          <div className="relative">
-            <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${secondary}20` }} />
-            <div className="space-y-8">
-              {visibleItems.map((item, idx) => (
-                <div key={idx} className={`relative flex ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
-                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-4 bg-white flex items-center justify-center z-10" style={{ borderColor: secondary }}>
-                    <ServiceIconRenderer name={item.icon} size={18} style={{ color: secondary }} />
-                  </div>
-                  <div className={`ml-20 md:ml-0 md:w-5/12 bg-white rounded-xl p-5 border shadow-sm ${idx % 2 === 0 ? 'md:mr-auto md:ml-8' : 'md:ml-auto md:mr-8'}`} style={{ borderColor: `${secondary}15` }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-bold tabular-nums" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
-                      <h3 className="font-bold text-slate-900">{item.title || 'Tiêu đề'}</h3>
-                    </div>
-                    <p className="text-sm text-slate-500">{item.description || 'Mô tả...'}</p>
-                  </div>
-                </div>
-              ))}
-              {remainingCount > 0 && (
-                <div className="relative flex">
-                  <div className="absolute left-4 md:left-1/2 md:-translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed bg-white flex items-center justify-center z-10" style={{ borderColor: `${secondary}40` }}>
-                    <span className="text-xs font-bold" style={{ color: secondary }}>+{remainingCount}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Default fallback - elegantGrid
   return (
-    <section className="py-12 md:py-16 px-4">
-      <div className="max-w-6xl mx-auto space-y-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-4">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item, idx) => (
-            <div key={idx} className="bg-white p-6 pt-8 rounded-xl shadow-sm border border-slate-200/60 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 w-full" style={{ background: `linear-gradient(to right, ${brandColor}, ${secondary})` }} />
-              <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2 tracking-tight">{item.title || 'Tiêu đề'}</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">{item.description || 'Mô tả...'}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <ServicesSectionCore
+      items={items}
+      style={style}
+      title={title}
+      colors={colors}
+      isPreview={false}
+    />
   );
 }
 
 // ============ BENEFITS SECTION ============
-// 6 Professional Styles: Solid Cards, Accent List, Bold Bento, Icon Row, Carousel, Timeline
-type BenefitsStyle = 'cards' | 'list' | 'bento' | 'row' | 'carousel' | 'timeline';
-function BenefitsSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
-  const style = (config.style as BenefitsStyle) || 'cards';
-  const carouselId = useSafeId('benefits-carousel');
-  const subHeading = (config.subHeading as string) || 'Vì sao chọn chúng tôi?';
-  const heading = (config.heading as string) || title;
-  const buttonText = (config.buttonText as string) || '';
-  const buttonLink = (config.buttonLink as string) || '';
+function BenefitsSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
+  const benefitsConfig = config as {
+    items?: Array<{ icon?: string; title?: string; description?: string }>;
+    style?: BenefitsSharedStyle;
+    subHeading?: string;
+    heading?: string;
+    buttonText?: string;
+    buttonLink?: string;
+    harmony?: unknown;
+  };
 
-  // Empty state
-  if (items.length === 0) {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: `${secondary}10` }}>
-            <Check size={32} style={{ color: secondary }} />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Lợi ích'}</h2>
-          <p className="text-slate-500">Chưa có lợi ích nào</p>
-        </div>
-      </section>
-    );
-  }
+  const items: BenefitItem[] = (benefitsConfig.items ?? []).map((item, idx) => ({
+    description: item.description ?? '',
+    icon: item.icon ?? 'Check',
+    id: `benefits-site-${idx}`,
+    title: item.title ?? '',
+  }));
 
-  // Reusable Header
-  const renderBenefitsHeader = () => (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2" style={{ borderColor: `${secondary}20` }}>
-      <div className="space-y-2">
-        <BrandBadge text={subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{heading}</h2>
-      </div>
-    </div>
-  );
+  const style: BenefitsSharedStyle = (
+    benefitsConfig.style === 'cards'
+    || benefitsConfig.style === 'list'
+    || benefitsConfig.style === 'bento'
+    || benefitsConfig.style === 'row'
+    || benefitsConfig.style === 'carousel'
+    || benefitsConfig.style === 'timeline'
+  )
+    ? benefitsConfig.style
+    : 'cards';
 
-  // Style 1: Solid Cards - Corporate style với icon đậm màu chủ đạo
-  if (style === 'cards') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {renderBenefitsHeader()}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {items.map((item, idx) => (
-              <div key={idx} className="rounded-xl p-5 md:p-6 shadow-sm flex flex-col items-start border" style={{ backgroundColor: `${secondary}08`, borderColor: `${secondary}20` }}>
-                <div className="w-11 h-11 md:w-12 md:h-12 rounded-lg flex items-center justify-center mb-4 text-white" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px -1px ${secondary}30` }}>
-                  <Check size={18} strokeWidth={3} />
-                </div>
-                <h3 className="font-bold text-base md:text-lg mb-2 line-clamp-2" style={{ color: secondary }}>{item.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 min-h-[3.75rem]">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const harmony = normalizeBenefitsHarmony(benefitsConfig.harmony);
 
-  // Style 2: Accent List - Thanh màu bên trái nhấn mạnh
-  if (style === 'list') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {renderBenefitsHeader()}
-          <div className="flex flex-col gap-3">
-            {items.map((item, idx) => (
-              <div key={idx} className="relative bg-white border border-slate-200/60 rounded-lg p-4 md:p-5 pl-5 md:pl-6 overflow-hidden shadow-sm">
-                <div className="absolute top-0 bottom-0 left-0 w-1.5" style={{ backgroundColor: brandColor }} />
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-3">
-                  <div className="flex items-start gap-3 md:gap-4">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ backgroundColor: `${secondary}15`, borderColor: `${secondary}30` }}>
-                        <span className="text-[11px] font-bold" style={{ color: secondary }}>{idx + 1}</span>
-                      </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-slate-900 text-sm md:text-base line-clamp-1">{item.title}</h3>
-                      <p className="text-xs md:text-sm text-slate-500 mt-1 md:mt-1.5 leading-normal line-clamp-2">{item.description}</p>
-                    </div>
-                  </div>
-                  <div className="hidden md:block flex-shrink-0">
-                    <svg className="w-[18px] h-[18px] opacity-60" style={{ color: secondary }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const tokens = getBenefitsSectionColors({
+    harmony,
+    mode,
+    primary: brandColor,
+    secondary,
+  });
 
-  // Style 3: Bold Bento - Typography focused với layout 2-1 / 1-2
-  if (style === 'bento') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {renderBenefitsHeader()}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {items.slice(0, 4).map((item, idx) => {
-              const isWide = idx === 0 || idx === 3;
-              const isPrimary = idx === 0;
-              return (
-                <div key={idx} className={`flex flex-col justify-between p-5 md:p-6 lg:p-8 rounded-2xl transition-colors min-h-[160px] md:min-h-[180px] ${isWide ? 'md:col-span-2' : 'md:col-span-1'} ${isPrimary ? 'text-white border border-transparent' : 'bg-white border border-slate-200/60'}`} style={isPrimary ? { backgroundColor: brandColor, boxShadow: `0 10px 15px -3px ${secondary}30` } : {}}>
-                  <div className="flex justify-between items-start mb-3 md:mb-4">
-                    <span className={`text-xs font-bold uppercase tracking-widest px-2 py-1 rounded ${isPrimary ? 'bg-white/20 text-white' : ''}`} style={!isPrimary ? { backgroundColor: `${secondary}15`, color: secondary } : {}}>
-                      0{idx + 1}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className={`font-bold text-lg md:text-xl lg:text-2xl mb-2 md:mb-3 tracking-tight line-clamp-2 ${isPrimary ? 'text-white' : 'text-slate-900'}`}>{item.title}</h3>
-                    <p className={`text-sm md:text-base leading-relaxed font-medium line-clamp-3 ${isPrimary ? 'text-white/90' : 'text-slate-500'}`}>{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const sectionConfig: Pick<BenefitsConfig, 'subHeading' | 'heading' | 'buttonText' | 'buttonLink'> = {
+    buttonLink: benefitsConfig.buttonLink,
+    buttonText: benefitsConfig.buttonText,
+    heading: benefitsConfig.heading,
+    subHeading: benefitsConfig.subHeading,
+  };
 
-  // Style 4: Icon Row - Horizontal layout với dividers
-  if (style === 'row') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {renderBenefitsHeader()}
-          <div className="bg-white border-y-2 rounded-lg overflow-hidden" style={{ borderColor: `${secondary}15` }}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x" style={{ borderColor: `${secondary}15` }}>
-              {items.slice(0, 4).map((item, idx) => (
-                <div key={idx} className="p-5 md:p-6 lg:p-8 flex flex-col items-center text-center">
-                  <div className="mb-3 md:mb-4 p-3 rounded-full" style={{ backgroundColor: `${secondary}15`, boxShadow: `0 0 0 4px ${secondary}08`, color: secondary }}>
-                    <Check size={22} strokeWidth={3} />
-                  </div>
-                  <h3 className="font-bold text-slate-900 mb-1.5 md:mb-2 text-sm md:text-base line-clamp-2 min-h-[2.5rem]">{item.title}</h3>
-                  <p className="text-xs md:text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Carousel - Horizontal scroll với navigation arrows và drag scroll
-  if (style === 'carousel') {
-    const cardWidth = 320;
-    const gap = 16;
-    // Responsive: Desktop ~3 items (320px each), chỉ hiện arrows khi có > 3 items
-    const showArrowsDesktop = items.length > 3;
-
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Header với navigation arrows */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="flex-1">
-              {renderBenefitsHeader()}
-            </div>
-            {/* Desktop arrows - chỉ hiện khi có > 3 items */}
-            {showArrowsDesktop && (
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                  }}
-                  className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-slate-50 transition-colors"
-                  style={{ borderColor: `${secondary}20` }}
-                >
-                  <ChevronLeft size={20} style={{ color: secondary }} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                  }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Carousel Container */}
-          <div className="relative overflow-hidden rounded-xl">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent z-10 pointer-events-none" />
-
-            {/* Scrollable area với Mouse Drag */}
-            <div
-              id={carouselId}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-4 py-4 px-2 cursor-grab active:cursor-grabbing select-none scrollbar-hide"
-              style={{
-                WebkitOverflowScrolling: 'touch',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none'
-              }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="snap-start w-[280px] md:w-[320px] flex-shrink-0 rounded-xl p-5 md:p-6 border shadow-sm"
-                  style={{ backgroundColor: idx === 0 ? brandColor : `${secondary}08`, borderColor: `${secondary}20` }}
-                  draggable={false}
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${idx === 0 ? 'bg-white/20' : ''}`} style={idx !== 0 ? { backgroundColor: brandColor } : {}}>
-                    <Check size={18} strokeWidth={3} className="text-white" />
-                  </div>
-                  <h3 className={`font-bold text-base mb-2 line-clamp-2 ${idx === 0 ? 'text-white' : ''}`} style={idx !== 0 ? { color: secondary } : {}}>{item.title}</h3>
-                  <p className={`text-sm leading-relaxed line-clamp-3 ${idx === 0 ? 'text-white/80' : 'text-slate-500'}`}>{item.description}</p>
-                </div>
-              ))}
-              {/* End spacer */}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-          </div>
-
-          {/* CSS để ẩn scrollbar */}
-          <style>{`
-            #${carouselId}::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Timeline - Vertical timeline với milestones (default)
   return (
-    <section className="py-12 md:py-16 px-4">
-      <div className="max-w-3xl mx-auto space-y-8">
-        {renderBenefitsHeader()}
-        <div className="relative">
-          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${secondary}20` }} />
-          <div className="space-y-6 md:space-y-8">
-            {items.map((item, idx) => (
-              <div key={idx} className={`relative flex items-start pl-12 md:pl-0 ${idx % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold z-10" style={{ borderColor: secondary, color: secondary }}>
-                  {idx + 1}
-                </div>
-                <div className="bg-white rounded-xl p-4 md:p-5 border shadow-sm w-full md:w-5/12" style={{ borderColor: `${secondary}15` }}>
-                  <h3 className="font-bold text-slate-900 mb-2 line-clamp-2" style={{ color: secondary }}>{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {buttonText && (
-          <div className="text-center">
-            <a href={buttonLink || '#'} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: brandColor }}>
-              {buttonText}
-              <ArrowRight size={16} />
-            </a>
-          </div>
-        )}
-      </div>
-    </section>
+    <BenefitsSectionShared
+      context="site"
+      style={style}
+      title={title}
+      config={sectionConfig}
+      items={items}
+      tokens={tokens}
+      mode={mode as BenefitsBrandMode}
+    />
   );
 }
 
@@ -2028,37 +1484,73 @@ function CTASection({
 // 6 Professional Styles: Cards, Slider, Masonry, Quote, Carousel, Minimal
 // Best Practices: Authenticity, Credibility indicators, Diverse formats, Mobile responsive
 type TestimonialsStyle = 'cards' | 'slider' | 'masonry' | 'quote' | 'carousel' | 'minimal';
-function TestimonialsSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const items = (config.items as { name: string; role: string; content: string; rating: number }[]) || [];
+
+type TestimonialsRuntimeItem = {
+  id?: string;
+  avatar?: string;
+  content?: string;
+  name?: string;
+  rating?: number;
+  role?: string;
+};
+function TestimonialsSection({ config, brandColor, secondary, mode, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; mode: 'single' | 'dual'; title: string }) {
+  const items = (config.items as TestimonialsRuntimeItem[]) || [];
+  const normalizedItems = React.useMemo(() => items.map((item, idx) => ({
+    avatar: item.avatar ?? '',
+    content: item.content ?? '',
+    id: item.id ?? `testimonial-${idx + 1}`,
+    name: item.name ?? '',
+    rating: typeof item.rating === 'number' && Number.isFinite(item.rating)
+      ? Math.max(1, Math.min(5, item.rating))
+      : 5,
+    role: item.role ?? '',
+  })), [items]);
   const style = (config.style as TestimonialsStyle) || 'cards';
+  const harmony = normalizeTestimonialsHarmony((config as { harmony?: unknown }).harmony);
+  const colors = getTestimonialsSectionColors({
+    primary: brandColor,
+    secondary,
+    mode,
+    harmony,
+  });
   const carouselId = useSafeId('testimonials-carousel');
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const heading = title || 'Khách hàng nói gì về chúng tôi';
+  const buildFallbackKey = (item: { id: string; name: string; role: string }, idx: number) => `${item.id}-${item.name}-${item.role}-${idx}`;
 
   // Auto slide for slider/quote styles
   React.useEffect(() => {
-    if ((style !== 'slider' && style !== 'quote') || items.length <= 1) {return;}
+    if ((style !== 'slider' && style !== 'quote') || normalizedItems.length <= 1) {return;}
     const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % items.length);
+      setCurrentSlide(prev => (prev + 1) % normalizedItems.length);
     }, 5000);
     return () =>{  clearInterval(timer); };
-  }, [items.length, style]);
+  }, [normalizedItems.length, style]);
 
   const renderStars = (rating: number, size: number = 16) => (
     <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map(star => (
-        <Star key={star} size={size} className={star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'} />
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={`star-${star}`}
+          size={size}
+          className={star <= rating ? 'fill-current' : 'text-slate-300'}
+          style={star <= rating ? { color: colors.ratingSecondary } : undefined}
+        />
       ))}
     </div>
   );
 
   // Empty state
-  if (items.length === 0) {
+  if (normalizedItems.length === 0) {
     return (
-      <section className="py-16 px-4 bg-slate-50">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4 text-slate-900">{title}</h2>
-          <p className="text-slate-500">Chưa có đánh giá nào</p>
+      <section className="py-12 px-4" style={{ backgroundColor: colors.neutralBackground }}>
+        <div className="max-w-3xl mx-auto flex flex-col items-center justify-center rounded-xl border p-10 text-center" style={{ backgroundColor: colors.neutralSurface, borderColor: colors.cardBorder }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: colors.iconSurface }}>
+            <Star size={28} style={{ color: colors.quoteSecondary }} />
+          </div>
+          <p className="font-semibold" style={{ color: colors.headingPrimary }}>Chưa có đánh giá nào</p>
+          <p className="text-sm mt-1" style={{ color: colors.neutralMuted }}>Thêm đánh giá đầu tiên để xem preview</p>
         </div>
       </section>
     );
@@ -2067,24 +1559,30 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
   // Style 1: Cards - Grid layout with equal height
   if (style === 'cards') {
     return (
-      <section className="py-16 px-4 bg-slate-50">
+      <section className="py-12 px-4" style={{ backgroundColor: colors.neutralBackground }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-full">
-                {renderStars(item.rating)}
-                <p className="text-slate-600 my-4 line-clamp-4 flex-1 min-h-[5rem]">“{item.content}”</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-auto">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+          <h2 className="text-2xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {normalizedItems.map((item, idx) => (
+              <article
+                key={buildFallbackKey(item, idx)}
+                className="rounded-xl border p-5 flex flex-col h-full"
+                style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorder }}
+              >
+                {renderStars(item.rating, 14)}
+                <p className="mt-3 text-sm leading-relaxed flex-1 min-h-[64px]" style={{ color: colors.neutralMuted }}>
+                  “{item.content || 'Nội dung đánh giá...'}”
+                </p>
+                <div className="mt-4 pt-4 border-t flex items-center gap-3" style={{ borderColor: colors.cardBorder }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-slate-900 truncate">{item.name}</div>
-                    <div className="text-sm text-slate-500 truncate">{item.role}</div>
+                    <p className="font-medium text-sm truncate" style={{ color: colors.headingPrimary }}>{item.name || 'Tên khách hàng'}</p>
+                    <p className="text-xs truncate" style={{ color: colors.subtitleSecondary }}>{item.role || 'Chức vụ'}</p>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -2094,53 +1592,69 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
 
   // Style 2: Slider - Single testimonial with navigation
   if (style === 'slider') {
-    const current = items[currentSlide] || items[0];
+    const current = normalizedItems[currentSlide] || normalizedItems[0];
     if (!current) {return null;}
 
     return (
-      <section className="py-16 md:py-20 px-4 bg-slate-50 relative overflow-hidden">
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 text-[120px] md:text-[180px] leading-none font-serif opacity-5 pointer-events-none select-none" style={{ color: secondary }}>“</div>
-        
+      <section className="py-12 md:py-16 px-4 relative overflow-hidden" style={{ backgroundColor: colors.neutralBackground }}>
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 text-[120px] leading-none font-serif pointer-events-none select-none" style={{ color: colors.quoteSecondary }}>
+          “
+        </div>
+
         <div className="max-w-4xl mx-auto relative">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center relative" style={{ borderTop: `4px solid ${secondary}` }}>
-            <div className="flex justify-center mb-6">{renderStars(current.rating, 18)}</div>
-            <p className="text-lg md:text-xl text-slate-700 leading-relaxed mb-8">“{current.content}”</p>
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg flex-shrink-0" style={{ backgroundColor: brandColor }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
+
+          <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorderStrong }}>
+            <div className="flex justify-center mb-4">{renderStars(current.rating, 16)}</div>
+            <p className="text-base md:text-lg leading-relaxed mb-6" style={{ color: colors.neutralMuted }}>“{current.content || 'Nội dung đánh giá...'}”</p>
+
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-slate-900">{current.name}</div>
-                <div className="text-sm text-slate-500">{current.role}</div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
+                <p className="text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
               </div>
             </div>
           </div>
 
-          {items.length > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button 
-                onClick={() =>{  setCurrentSlide(prev => prev === 0 ? items.length - 1 : prev - 1); }} 
-                className="w-10 h-10 min-h-[44px] rounded-full bg-white shadow-md flex items-center justify-center hover:bg-slate-50 hover:scale-105 transition-all"
+          {normalizedItems.length > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <button
+                type="button"
+                onClick={() => { setCurrentSlide((prev) => (prev === 0 ? normalizedItems.length - 1 : prev - 1)); }}
+                className="w-11 h-11 min-h-[44px] rounded-full border flex items-center justify-center"
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
+                aria-label="Slide trước"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
+
               <div className="flex gap-2">
-                {items.map((_, idx) => (
-                  <button 
-                    key={idx} 
-                    onClick={() =>{  setCurrentSlide(idx); }} 
-                    className={`h-2.5 rounded-full transition-all ${idx === currentSlide ? 'w-8' : 'w-2.5 bg-slate-300 hover:bg-slate-400'}`}
-                    style={idx === currentSlide ? { backgroundColor: secondary } : {}}
+                {normalizedItems.map((_, idx) => (
+                  <button
+                    key={`slider-dot-${idx}`}
+                    type="button"
+                    onClick={() => { setCurrentSlide(idx); }}
+                    className="h-2.5 rounded-full transition-all"
+                    style={{
+                      backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive,
+                      width: idx === currentSlide ? 28 : 10,
+                    }}
+                    aria-label={`Đi tới slide ${idx + 1}`}
                   />
                 ))}
               </div>
-              <button 
-                onClick={() =>{  setCurrentSlide(prev => (prev + 1) % items.length); }} 
-                className="w-10 h-10 min-h-[44px] rounded-full bg-white shadow-md flex items-center justify-center hover:bg-slate-50 hover:scale-105 transition-all"
+
+              <button
+                type="button"
+                onClick={() => { setCurrentSlide((prev) => (prev + 1) % normalizedItems.length); }}
+                className="w-11 h-11 min-h-[44px] rounded-full border flex items-center justify-center"
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
+                aria-label="Slide sau"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             </div>
           )}
@@ -2152,24 +1666,28 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
   // Style 3: Masonry - Pinterest-like layout
   if (style === 'masonry') {
     return (
-      <section className="py-16 px-4 bg-slate-50">
+      <section className="py-12 px-4" style={{ backgroundColor: colors.neutralBackground }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
-            {items.map((item, idx) => (
-              <div key={idx} className={`break-inside-avoid mb-6 bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${idx % 2 === 1 ? 'pt-8' : ''}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+          <h2 className="text-2xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4">
+            {normalizedItems.map((item, idx) => (
+              <article
+                key={buildFallbackKey(item, idx)}
+                className="break-inside-avoid mb-4 rounded-xl border p-5"
+                style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorder }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-slate-900 truncate">{item.name}</div>
-                    <div className="text-sm text-slate-500 truncate">{item.role}</div>
+                    <p className="font-medium text-sm truncate" style={{ color: colors.headingPrimary }}>{item.name || 'Tên khách hàng'}</p>
+                    <p className="text-xs truncate" style={{ color: colors.subtitleSecondary }}>{item.role || 'Chức vụ'}</p>
                   </div>
                 </div>
-                {renderStars(item.rating)}
-                <p className="mt-4 text-slate-600">“{item.content}”</p>
-              </div>
+                {renderStars(item.rating, 13)}
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: colors.neutralMuted }}>“{item.content || 'Nội dung đánh giá...'}”</p>
+              </article>
             ))}
           </div>
         </div>
@@ -2179,41 +1697,41 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
 
   // Style 4: Quote - Big quote focused, elegant typography
   if (style === 'quote') {
-    const current = items[currentSlide] || items[0];
+    const current = normalizedItems[currentSlide] || normalizedItems[0];
     if (!current) {return null;}
 
     return (
-      <section className="py-16 md:py-20 px-4" style={{ backgroundColor: `${secondary}05` }}>
+      <section className="py-12 md:py-16 px-4" style={{ backgroundColor: colors.cardAltSurface }}>
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8 text-slate-900">{title}</h2>
-          
-          <div className="text-[80px] md:text-[120px] leading-none font-serif mb-[-30px] md:mb-[-50px] select-none" style={{ color: secondary }}>“</div>
-          
-          <blockquote className="text-xl md:text-2xl lg:text-3xl text-slate-800 leading-relaxed font-medium italic">
-            {current.content}
+          <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
+          <div className="text-[80px] leading-none font-serif mb-[-24px] select-none" style={{ color: colors.quoteSecondary }}>“</div>
+          <blockquote className="text-xl md:text-2xl leading-relaxed italic" style={{ color: colors.headingPrimary }}>
+            {current.content || 'Nội dung đánh giá...'}
           </blockquote>
-          
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="flex justify-center">{renderStars(current.rating, 20)}</div>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: brandColor }}>
+
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <div className="flex justify-center">{renderStars(current.rating, 16)}</div>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-lg text-slate-900">{current.name}</div>
-                <div className="text-slate-500">{current.role}</div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold truncate" style={{ color: colors.headingPrimary }}>{current.name || 'Tên khách hàng'}</p>
+                <p className="text-sm truncate" style={{ color: colors.subtitleSecondary }}>{current.role || 'Chức vụ'}</p>
               </div>
             </div>
           </div>
-          
-          {items.length > 1 && (
-            <div className="flex justify-center gap-3 mt-10">
-              {items.map((_, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() =>{  setCurrentSlide(idx); }} 
-                  className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? '' : 'bg-slate-300 hover:bg-slate-400'}`}
-                  style={idx === currentSlide ? { backgroundColor: secondary } : {}}
+
+          {normalizedItems.length > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              {normalizedItems.map((_, idx) => (
+                <button
+                  key={`quote-dot-${idx}`}
+                  type="button"
+                  onClick={() => { setCurrentSlide(idx); }}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: idx === currentSlide ? colors.dotActive : colors.dotInactive }}
+                  aria-label={`Đi tới quote ${idx + 1}`}
                 />
               ))}
             </div>
@@ -2227,34 +1745,36 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
   if (style === 'carousel') {
     const cardWidth = 360;
     const gap = 24;
-    // Responsive: Desktop ~3 items (360px each), chỉ hiện arrows khi có > 3 items
-    const showArrowsDesktop = items.length > 3;
+    const showArrowsDesktop = normalizedItems.length > 3;
 
     return (
-      <section className="py-16 px-4 bg-slate-50">
+      <section className="py-12 px-4" style={{ backgroundColor: colors.neutralBackground }}>
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-bold text-slate-900">{title}</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold" style={{ color: colors.headingPrimary }}>{heading}</h2>
             {showArrowsDesktop && (
               <div className="hidden md:flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
+                    const container = document.querySelector<HTMLElement>(`#${carouselId}`);
                     if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                   }}
-                  className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-white transition-colors"
+                  className="w-10 h-10 rounded-full border flex items-center justify-center"
+                  style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
+                  aria-label="Scroll testimonials trước"
                 >
                   <ChevronLeft size={18} />
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    const container = document.querySelector(`#${carouselId}`);
+                    const container = document.querySelector<HTMLElement>(`#${carouselId}`);
                     if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                   }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                  style={{ backgroundColor: secondary }}
+                  className="w-10 h-10 rounded-full border flex items-center justify-center"
+                  style={{ backgroundColor: colors.neutralSurface, borderColor: colors.buttonSecondaryBorder, color: colors.buttonSecondaryText }}
+                  aria-label="Scroll testimonials sau"
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -2263,52 +1783,36 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
           </div>
 
           <div className="relative overflow-hidden rounded-xl">
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-slate-50/80 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-slate-50/80 to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 z-10 pointer-events-none" style={{ backgroundImage: `linear-gradient(to right, ${colors.neutralBackground}, transparent)` }} />
+            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 z-10 pointer-events-none" style={{ backgroundImage: `linear-gradient(to left, ${colors.neutralBackground}, transparent)` }} />
 
             <div
               id={carouselId}
-              className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none"
+              className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory"
               style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseUp={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
             >
-              {items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex-shrink-0 snap-start w-[320px] md:w-[360px] bg-white rounded-xl p-6 shadow-md border flex flex-col"
-                  style={{ borderColor: `${secondary}15` }}
-                  draggable={false}
+              {normalizedItems.map((item, idx) => (
+                <article
+                  key={buildFallbackKey(item, idx)}
+                  className="flex-shrink-0 snap-start w-[300px] rounded-xl border p-5"
+                  style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorderStrong }}
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
                       {(item.name || 'U').charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold text-slate-900 truncate">{item.name}</div>
-                      <div className="text-sm text-slate-500 truncate">{item.role}</div>
+                      <p className="font-medium text-sm truncate" style={{ color: colors.headingPrimary }}>{item.name || 'Tên khách hàng'}</p>
+                      <p className="text-xs truncate" style={{ color: colors.subtitleSecondary }}>{item.role || 'Chức vụ'}</p>
                     </div>
                   </div>
-                  {renderStars(item.rating)}
-                  <p className="mt-4 text-slate-600 line-clamp-4 flex-1">“{item.content}”</p>
-                </div>
+
+                  {renderStars(item.rating, 13)}
+                  <p className="mt-3 text-sm leading-relaxed line-clamp-4" style={{ color: colors.neutralMuted }}>
+                    “{item.content || 'Nội dung đánh giá...'}”
+                  </p>
+                </article>
               ))}
-              <div className="flex-shrink-0 w-4" />
             </div>
           </div>
 
@@ -2320,30 +1824,52 @@ function TestimonialsSection({ config, brandColor, secondary, title }: { config:
 
   // Style 6: Minimal - Clean list with accent line
   return (
-    <section className="py-16 px-4 bg-slate-50">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
+    <section className="py-12 px-4" style={{ backgroundColor: colors.neutralBackground }}>
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
         <div className="space-y-4">
-          {items.map((item, idx) => (
-            <div 
-              key={idx} 
-              className="flex gap-4 p-5 rounded-lg bg-white border-l-4 shadow-sm"
-              style={{ borderLeftColor: secondary }}
+          {normalizedItems.map((item, idx) => (
+            <article
+              key={buildFallbackKey(item, idx)}
+              className="rounded-lg border-l-4 border p-4 flex gap-3"
+              style={{
+                backgroundColor: colors.cardSurface,
+                borderLeftColor: colors.quoteSecondary,
+                borderTopColor: colors.cardBorder,
+                borderRightColor: colors.cardBorder,
+                borderBottomColor: colors.cardBorder,
+              }}
             >
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: brandColor }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: colors.primary }}>
                 {(item.name || 'U').charAt(0)}
               </div>
+
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <span className="font-medium text-slate-900">{item.name}</span>
-                  <span className="text-slate-400">•</span>
-                  <span className="text-sm text-slate-500 truncate">{item.role}</span>
-                  <div className="ml-auto">{renderStars(item.rating, 12)}</div>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-medium text-sm truncate" style={{ color: colors.headingPrimary }}>{item.name || 'Tên khách hàng'}</span>
+                  <span className="text-xs" style={{ color: colors.neutralMuted }}>•</span>
+                  <span className="text-xs truncate" style={{ color: colors.subtitleSecondary }}>{item.role || 'Chức vụ'}</span>
+                  <div className="ml-auto">{renderStars(item.rating, 11)}</div>
                 </div>
-                <p className="text-slate-600 line-clamp-2">“{item.content}”</p>
+                <p className="text-sm line-clamp-2" style={{ color: colors.neutralMuted }}>“{item.content || 'Nội dung đánh giá...'}”</p>
               </div>
-            </div>
+            </article>
           ))}
+        </div>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium"
+            style={{
+              backgroundColor: colors.buttonSecondaryHoverBg,
+              borderColor: colors.buttonSecondaryBorder,
+              color: colors.buttonSecondaryText,
+            }}
+          >
+            Xem thêm đánh giá
+            <ArrowRight size={14} />
+          </button>
         </div>
       </div>
     </section>
@@ -7023,546 +6549,73 @@ function TeamSection({ config, brandColor, secondary, title }: { config: Record<
 }
 
 // ============ FEATURES SECTION ============
-// 6 Professional Styles: Icon Grid, Alternating, Compact, Cards, Carousel, Timeline
-type FeaturesStyle = 'iconGrid' | 'alternating' | 'compact' | 'cards' | 'carousel' | 'timeline';
+// Shared renderer parity with admin preview (6 styles)
+function FeaturesSection({ config, brandColor, secondary, mode, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; mode: 'single' | 'dual'; title: string }) {
+  const rawItems = config.items as unknown;
+  const items = Array.isArray(rawItems)
+    ? rawItems
+      .map((item, index) => {
+        if (!item || typeof item !== 'object') {return null;}
+        const source = item as Record<string, unknown>;
+        const rawId = source.id;
+        const normalizedId = typeof rawId === 'number'
+          ? rawId
+          : (typeof rawId === 'string' ? Number.parseInt(rawId, 10) : Number.NaN);
 
-const featureIcons: Record<string, React.ElementType> = { Check, Cpu, Globe, Layers, Rocket, Settings, Shield, Star, Target, Zap };
+        return {
+          id: Number.isFinite(normalizedId) ? normalizedId : index + 1,
+          icon: typeof source.icon === 'string' && source.icon.trim().length > 0 ? source.icon : 'Zap',
+          title: typeof source.title === 'string' ? source.title : '',
+          description: typeof source.description === 'string' ? source.description : '',
+        };
+      })
+      .filter((item): item is { id: number; icon: string; title: string; description: string } => item !== null)
+    : [];
 
-function FeaturesSection({ config, brandColor: _brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const items = (config.items as { icon?: string; title: string; description: string }[]) || [];
-  const style = (config.style as FeaturesStyle) || 'iconGrid';
-  const featuresCarouselId = useSafeId('features-carousel');
-  const getIcon = (iconName?: string) => featureIcons[iconName ?? 'Zap'] || Zap;
+  const style = (() => {
+    const value = config.style;
+    if (value === 'iconGrid' || value === 'alternating' || value === 'compact' || value === 'cards' || value === 'carousel' || value === 'timeline') {
+      return value;
+    }
+    return 'iconGrid';
+  })();
 
-  // Style 1: Icon Grid
-  if (style === 'iconGrid') {
-    const MAX_ITEMS = 6;
-    const visibleItems = items.slice(0, MAX_ITEMS);
-    const remainingCount = items.length - MAX_ITEMS;
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 md:mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-3">{title}</h2>
-            <p className="text-slate-500 max-w-2xl mx-auto">Khám phá những tính năng ưu việt giúp bạn đạt hiệu quả tối đa</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleItems.map((item, idx) => {
-              const IconComponent = getIcon(item.icon);
-              return (
-                <div key={idx} className="group bg-white rounded-2xl p-6 border border-slate-200 hover:border-transparent hover:shadow-xl transition-all duration-300">
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}>
-                    <IconComponent size={24} className="text-white" strokeWidth={2} />
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{item.description}</p>
-                </div>
-              );
-            })}
-            {remainingCount > 0 && (<div className="flex items-center justify-center bg-slate-100 rounded-2xl aspect-square border-2 border-dashed border-slate-300"><div className="text-center"><span className="text-2xl font-bold text-slate-600">+{remainingCount}</span><p className="text-xs text-slate-400 mt-1">tính năng khác</p></div></div>)}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const harmony = normalizeFeaturesHarmony(config.harmony);
 
-  // Style 2: Alternating - Compact 2-column grid
-  if (style === 'alternating') {
-    const MAX_ITEMS = 6;
-    const visibleItems = items.slice(0, MAX_ITEMS);
-    const remainingCount = items.length - MAX_ITEMS;
-    return (
-      <section className="py-10 md:py-12 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {visibleItems.map((item, idx) => {
-              const IconComponent = getIcon(item.icon);
-              return (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}>
-                      <IconComponent size={18} style={{ color: secondary }} strokeWidth={2} />
-                    </div>
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: secondary }}>{idx + 1}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-slate-900 line-clamp-1">{item.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-1">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
-        </div>
-      </section>
-    );
-  }
-
-  // Style 3: Compact
-  if (style === 'compact') {
-    const MAX_ITEMS = 8;
-    const visibleItems = items.slice(0, MAX_ITEMS);
-    const remainingCount = items.length - MAX_ITEMS;
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `${secondary}20` }}>
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-            </div>
-            {remainingCount > 0 && <span className="text-sm text-slate-500">+{remainingCount} tính năng khác</span>}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {visibleItems.map((item, idx) => {
-              const IconComponent = getIcon(item.icon);
-              return (
-                <div key={idx} className="flex items-start gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-slate-900 mb-0.5 truncate">{item.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Cards
-  if (style === 'cards') {
-    const MAX_ITEMS = 6;
-    const visibleItems = items.slice(0, MAX_ITEMS);
-    const remainingCount = items.length - MAX_ITEMS;
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 md:mb-14">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-3">{title}</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {visibleItems.map((item, idx) => {
-              const IconComponent = getIcon(item.icon);
-              return (
-                <div key={idx} className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                  <div className="h-1" style={{ backgroundColor: secondary }} />
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={22} style={{ color: secondary }} strokeWidth={2} /></div>
-                      <span className="text-3xl font-bold opacity-20" style={{ color: secondary }}>{String(idx + 1).padStart(2, '0')}</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <span className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all" style={{ color: secondary }}>Tìm hiểu thêm <ArrowRight size={14} /></span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {remainingCount > 0 && (<div className="flex items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 min-h-[250px]"><div className="text-center"><span className="text-2xl font-bold text-slate-600">+{remainingCount}</span><p className="text-xs text-slate-400 mt-1">tính năng khác</p></div></div>)}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Carousel - Horizontal scroll with navigation
-  if (style === 'carousel') {
-    const cardWidth = 320;
-    const gap = 20;
-
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">{title}</h2>
-            </div>
-            {items.length > 3 && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${featuresCarouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                  }}
-                  className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${featuresCarouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                  }}
-                  className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="relative">
-            <div
-              id={featuresCarouselId}
-              className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none"
-              style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseUp={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {items.map((item, idx) => {
-                const IconComponent = getIcon(item.icon);
-                return (
-                  <div key={idx} className="snap-start flex-shrink-0 w-[280px] md:w-[320px] bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl transition-all" draggable={false}>
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}>
-                      <IconComponent size={24} className="text-white" strokeWidth={2} />
-                    </div>
-                    <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">{item.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{item.description}</p>
-                  </div>
-                );
-              })}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
-          </div>
-          <style>{`#${featuresCarouselId}::-webkit-scrollbar { display: none; }`}</style>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Timeline (default fallback) - Compact vertical timeline
-  const MAX_ITEMS = 6;
-  const visibleItems = items.slice(0, MAX_ITEMS);
-  const remainingCount = items.length - MAX_ITEMS;
   return (
-    <section className="py-10 md:py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}><Zap size={12} />Tính năng</div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-        </div>
-        <div className="relative">
-          <div className="absolute top-0 bottom-0 left-3 md:left-1/2 w-px" style={{ backgroundColor: `${secondary}30` }} />
-          <div className="relative space-y-4">
-            {visibleItems.map((item, idx) => {
-              const IconComponent = getIcon(item.icon);
-              const isEven = idx % 2 === 0;
-              return (
-                <div key={idx} className={`relative flex items-center pl-8 md:pl-0 ${isEven ? 'md:pr-[52%]' : 'md:pl-[52%] md:flex-row-reverse'}`}>
-                  <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 flex items-center justify-center w-6 h-6 rounded-full border-2 border-white shadow z-10" style={{ backgroundColor: secondary }}>
-                    <IconComponent size={12} className="text-white" strokeWidth={2.5} />
-                  </div>
-                  <div className="flex-1 bg-white rounded-lg p-3 shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${secondary}15`, color: secondary }}>{idx + 1}</span>
-                      <h3 className="font-semibold text-sm text-slate-900 line-clamp-1">{item.title}</h3>
-                    </div>
-                    <p className="text-xs text-slate-500 line-clamp-1 pl-6">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {remainingCount > 0 && (<div className="text-center mt-4"><span className="text-sm" style={{ color: secondary }}>+{remainingCount} tính năng khác</span></div>)}
-        </div>
-      </div>
-    </section>
+    <FeaturesSectionShared
+      context="site"
+      items={items}
+      style={style}
+      title={title}
+      brandColor={brandColor}
+      secondary={secondary}
+      mode={mode}
+      harmony={harmony}
+    />
   );
 }
 
 // ============ PROCESS SECTION ============
 // 6 Professional Styles: Horizontal, Stepper, Cards, Accordion, Minimal, Grid
-type ProcessStyle = 'horizontal' | 'stepper' | 'cards' | 'accordion' | 'minimal' | 'grid';
-
-function ProcessSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const steps = (config.steps as { icon: string; title: string; description: string }[]) || [];
-  const style = (config.style as ProcessStyle) || 'horizontal';
-  const [activeAccordion, setActiveAccordion] = React.useState<number>(0);
-
+function ProcessSection({ config, brandColor, secondary, mode, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; mode: ProcessBrandMode; title: string }) {
+  const steps = normalizeProcessRenderSteps(config.steps);
   if (steps.length === 0) {return null;}
 
-  // Style 1: Horizontal - Compact progress bar layout
-  if (style === 'horizontal') {
-    const visibleSteps = steps.slice(0, 5);
-    return (
-      <section className="py-10 md:py-14 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="relative flex items-center justify-between max-w-2xl mx-auto">
-              <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: `${secondary}20` }} />
-              <div className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: brandColor, width: `${((visibleSteps.length - 1) / Math.max(visibleSteps.length - 1, 1)) * 100}%` }} />
-              {visibleSteps.map((step, idx) => (
-                <div key={idx} className="relative z-10 flex flex-col items-center">
-                  <div 
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white"
-                    style={{ backgroundColor: brandColor, boxShadow: `0 2px 8px ${secondary}40` }}
-                  >
-                    {step.icon || idx + 1}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Steps Detail */}
-          <div className={`grid gap-4 grid-cols-2 md:grid-cols-${Math.min(visibleSteps.length, 5)}`}>
-            {visibleSteps.map((step, idx) => (
-              <div key={idx} className="text-center">
-                <h4 className="font-semibold text-sm text-slate-900 mb-1 line-clamp-1">{step.title || `Bước ${idx + 1}`}</h4>
-                <p className="text-xs text-slate-500 line-clamp-2">{step.description || 'Mô tả...'}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const style = normalizeProcessStyle(config.style);
 
-  // Style 2: Stepper - Dot stepper vertical
-  if (style === 'stepper') {
-    return (
-      <section className="py-10 md:py-14 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-              Quy trình
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          
-          <div className="max-w-xl mx-auto">
-            {steps.map((step, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: brandColor }}
-                  >
-                    {step.icon || idx + 1}
-                  </div>
-                  {idx < steps.length - 1 && (
-                    <div className="w-0.5 flex-1 my-2" style={{ backgroundColor: `${secondary}30` }} />
-                  )}
-                </div>
-                <div className={`flex-1 ${idx === steps.length - 1 ? 'pb-0' : 'pb-8'}`}>
-                  <h4 className="font-semibold text-base text-slate-900 mb-1">{step.title || `Bước ${idx + 1}`}</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed">{step.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 3: Cards - Grid cards với gradient header
-  if (style === 'cards') {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `${secondary}20` }}>
-            <div className="space-y-2">
-              <div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"
-                style={{ backgroundColor: `${secondary}15`, color: secondary }}
-              >
-                Quy trình
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-            </div>
-          </div>
-          
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {steps.map((step, idx) => (
-              <div 
-                key={idx} 
-                className="group bg-white rounded-xl overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow"
-              >
-                {/* Gradient Header */}
-                <div 
-                  className="h-2"
-                  style={{ background: `linear-gradient(to right, , 99)` }}
-                />
-                
-                <div className="p-5 md:p-6">
-                  {/* Step Badge */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                      style={{ backgroundColor: brandColor }}
-                    >
-                      {step.icon || idx + 1}
-                    </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                      Bước {idx + 1}
-                    </span>
-                  </div>
-                  
-                  <h3 className="font-bold text-base md:text-lg text-slate-900 mb-2">
-                    {step.title || `Bước ${idx + 1}`}
-                  </h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Accordion - Interactive expandable
-  if (style === 'accordion') {
-    return (
-      <section className="py-10 md:py-14 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-              Quy trình
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          
-          <div className="space-y-2">
-            {steps.map((step, idx) => (
-              <div key={idx} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-                <button 
-                  type="button"
-                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-50 transition-colors"
-                  onClick={() =>{  setActiveAccordion(activeAccordion === idx ? -1 : idx); }}
-                >
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: brandColor }}
-                  >
-                    {step.icon || idx + 1}
-                  </div>
-                  <span className="flex-1 font-semibold text-sm text-slate-900">{step.title || `Bước ${idx + 1}`}</span>
-                  <ChevronDown 
-                    size={18} 
-                    className={`text-slate-400 transition-transform ${activeAccordion === idx ? 'rotate-180' : ''}`} 
-                  />
-                </button>
-                {activeAccordion === idx && (
-                  <div className="px-4 pb-4 pt-0 pl-15">
-                    <p className="text-sm text-slate-500 pl-11 leading-relaxed">{step.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Minimal - Compact list
-  if (style === 'minimal') {
-    return (
-      <section className="py-10 md:py-14 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-          </div>
-          
-          <div className="space-y-2">
-            {steps.map((step, idx) => (
-              <div 
-                key={idx} 
-                className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition-colors"
-              >
-                <div 
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm text-slate-900 truncate">{step.title || `Bước ${idx + 1}`}</h4>
-                  <p className="text-xs text-slate-500 truncate">{step.description}</p>
-                </div>
-                <ArrowRight size={14} className="text-slate-300 flex-shrink-0" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Grid - Compact 2-3 column grid (default fallback)
   return (
-    <section className="py-10 md:py-14 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-            Quy trình
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{title}</h2>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {steps.map((step, idx) => (
-            <div key={idx} className="bg-white rounded-lg p-4 border border-slate-200 text-center">
-              <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm mx-auto mb-3"
-                style={{ backgroundColor: brandColor }}
-              >
-                {step.icon || idx + 1}
-              </div>
-              <h4 className="font-semibold text-sm text-slate-900 mb-1 line-clamp-1">{step.title || `Bước ${idx + 1}`}</h4>
-              <p className="text-xs text-slate-500 line-clamp-2">
-                {step.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <ProcessSectionShared
+      steps={steps}
+      sectionTitle={title}
+      style={style}
+      brandColor={brandColor}
+      secondary={secondary}
+      mode={mode}
+      context="site"
+    />
   );
 }
 
@@ -7574,10 +6627,11 @@ type ClientsStyle = 'marquee' | 'dualRow' | 'wave' | 'grid' | 'carousel' | 'feat
 function ClientsSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; title: string }) {
   const items = (config.items as { url: string; link: string; name?: string }[]) || [];
+  const normalizedItems = items;
   const style = (config.style as ClientsStyle) || 'marquee';
   const clientsCarouselId = useSafeId('clients-carousel');
 
-  if (items.length === 0) {return null;}
+  if (normalizedItems.length === 0) {return null;}
 
   // CSS keyframes với pause on hover và prefers-reduced-motion
   const marqueeStyles = `
@@ -7610,7 +6664,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
     );
   };
 
-  const baseDuration = Math.max(20, items.length * 4);
+  const baseDuration = Math.max(20, normalizedItems.length * 4);
 
   // Style 1: Simple Marquee - compact
   if (style === 'marquee') {
@@ -7625,7 +6679,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
           <div className="clients-container relative py-4 overflow-hidden" role="list" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)' }}>
             <div className="clients-track flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration}s`, width: 'max-content' } as React.CSSProperties}>
               {items.map((item, idx) => renderLogoItem(item, idx))}
-              {items.map((item, idx) => renderLogoItem(item, idx + items.length))}
+              {items.map((item, idx) => renderLogoItem(item, idx + normalizedItems.length))}
             </div>
           </div>
         </div>
@@ -7647,13 +6701,13 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
             <div className="clients-container relative py-2 overflow-hidden" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)' }}>
               <div className="clients-track flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration + 5}s`, width: 'max-content' } as React.CSSProperties}>
                 {items.map((item, idx) => renderLogoItem(item, idx))}
-                {items.map((item, idx) => renderLogoItem(item, idx + items.length))}
+                {items.map((item, idx) => renderLogoItem(item, idx + normalizedItems.length))}
               </div>
             </div>
             <div className="clients-container relative py-2 overflow-hidden" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)' }}>
               <div className="clients-track-reverse flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration + 10}s`, width: 'max-content' } as React.CSSProperties}>
                 {[...items].toReversed().map((item, idx) => renderLogoItem(item, idx))}
-                {[...items].toReversed().map((item, idx) => renderLogoItem(item, idx + items.length))}
+                {[...items].toReversed().map((item, idx) => renderLogoItem(item, idx + normalizedItems.length))}
               </div>
             </div>
           </div>
@@ -7688,7 +6742,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
                 </div>
               ))}
               {items.map((item, idx) => (
-                <div key={`wave2-${idx}`} className="shrink-0 clients-float" style={{ animationDelay: `${(idx + items.length) * 0.3}s` }} role="listitem">
+                <div key={`wave2-${idx}`} className="shrink-0 clients-float" style={{ animationDelay: `${(idx + normalizedItems.length) * 0.3}s` }} role="listitem">
                   {item.url ? (
                     <div className="p-3 bg-white rounded-lg shadow-sm border border-slate-100">
                       <SiteImage src={item.url} alt={item.name ?? `Khách hàng ${idx + 1}`} className="h-12 w-auto object-contain select-none pointer-events-none" />
@@ -7711,7 +6765,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
   if (style === 'grid') {
     const MAX_VISIBLE = 12;
     const visibleItems = items.slice(0, MAX_VISIBLE);
-    const remainingCount = Math.max(0, items.length - MAX_VISIBLE);
+    const remainingCount = Math.max(0, normalizedItems.length - MAX_VISIBLE);
     return (
       <section className="w-full py-8 bg-white border-b border-slate-200/40" aria-label={title}>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
@@ -7720,7 +6774,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full" style={{ backgroundColor: brandColor }} />
               {title}
             </h2>
-            {items.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>{items.length} đối tác</span>}
+            {normalizedItems.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}10`, color: secondary }}>{normalizedItems.length} đối tác</span>}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 py-3" role="list">
             {visibleItems.map((item, idx) => (
@@ -7765,7 +6819,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
               </h2>
               <p className="text-slate-400 pl-3 text-xs">Vuốt để xem thêm →</p>
             </div>
-            {items.length > 3 && (
+            {normalizedItems.length > 3 && (
               <div className="flex gap-1.5">
                 <button type="button" onClick={() => { const el = document.querySelector(`#${carouselId}`); if (el) {el.scrollBy({ behavior: 'smooth', left: -182 });} }} className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all border border-slate-200" aria-label="Cuộn trái"><ChevronLeft size={14} /></button>
                 <button type="button" onClick={() => { const el = document.querySelector(`#${carouselId}`); if (el) {el.scrollBy({ behavior: 'smooth', left: 182 });} }} className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all" style={{ backgroundColor: brandColor }} aria-label="Cuộn phải"><ChevronRight size={14} /></button>
