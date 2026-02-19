@@ -1,4 +1,4 @@
-export interface TestimonialItem {
+export interface TestimonialsPersistItem {
   name: string;
   role: string;
   content: string;
@@ -6,9 +6,17 @@ export interface TestimonialItem {
   rating: number;
 }
 
-export type TestimonialsStyle = 'cards' | 'carousel' | 'grid' | 'masonry' | 'minimal' | 'highlight';
+export interface TestimonialsItem extends TestimonialsPersistItem {
+  id: string;
+}
+
+export type TestimonialsStyle = 'cards' | 'slider' | 'masonry' | 'quote' | 'carousel' | 'minimal';
+
+export type TestimonialsBrandMode = 'single' | 'dual';
+export type TestimonialsHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface TestimonialsConfig {
-  items: TestimonialItem[];
+  items: TestimonialsPersistItem[];
   style: TestimonialsStyle;
+  harmony?: TestimonialsHarmony;
 }

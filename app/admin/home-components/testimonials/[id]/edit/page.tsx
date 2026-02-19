@@ -6,58 +6,177 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Star, Loader2 } from 'lucide-react';
+import { Loader2, Star, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { ColorInfoPanel } from '../../../_shared/components/ColorInfoPanel';
 import { TestimonialsPreview } from '../../_components/TestimonialsPreview';
+import { TestimonialsForm } from '../../_components/TestimonialsForm';
 import { DEFAULT_TESTIMONIALS_CONFIG } from '../../_lib/constants';
-import type { TestimonialsConfig, TestimonialsStyle } from '../../_types';
+import {
+  buildTestimonialsWarningMessages,
+  getTestimonialsValidationResult,
+  normalizeTestimonialsHarmony,
+  resolveSecondaryForMode,
+} from '../../_lib/colors';
+import type {
+  TestimonialsConfig,
+  TestimonialsItem,
+  TestimonialsPersistItem,
+  TestimonialsStyle,
+  TestimonialsBrandMode,
+} from '../../_types';
+
+const normalizeStyle = (style: unknown): TestimonialsStyle => {
+  if (
+    style === 'cards'
+    || style === 'slider'
+    || style === 'masonry'
+    || style === 'quote'
+    || style === 'carousel'
+    || style === 'minimal'
+  ) {
+    return style;
+  }
+  return 'cards';
+};
+
+const toUiItem = (item: TestimonialsPersistItem, idx: number): TestimonialsItem => ({
+  avatar: item.avatar || '',
+  content: item.content || '',
+  id: `testimonial-${idx + 1}`,
+  name: item.name || '',
+  rating: Number.isFinite(item.rating) ? Math.max(1, Math.min(5, item.rating)) : 5,
+  role: item.role || '',
+});
+
+const toPersistItem = (item: TestimonialsItem): TestimonialsPersistItem => ({
+  avatar: item.avatar,
+  content: item.content,
+  name: item.name,
+  rating: item.rating,
+  role: item.role,
+});
 
 export default function TestimonialsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
+  const brandMode: TestimonialsBrandMode = mode === 'single' ? 'single' : 'dual';
+
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<TestimonialsConfig>(DEFAULT_TESTIMONIALS_CONFIG);
+  const [items, setItems] = useState<TestimonialsItem[]>([]);
+  const [style, setStyle] = useState<TestimonialsStyle>('cards');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
+  const [warningMessages, setWarningMessages] = useState<string[]>([]);
+
+  const harmony = normalizeTestimonialsHarmony((component?.config as { harmony?: unknown } | undefined)?.harmony);
+  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, brandMode, harmony);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Testimonials') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        items: Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_TESTIMONIALS_CONFIG.items,
-        style: (rawConfig.style as TestimonialsStyle) || 'cards',
-      });
+    if (component.type !== 'Testimonials') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    setTitle(component.title);
+    setActive(component.active);
+
+    const rawConfig = (component.config ?? {}) as Partial<TestimonialsConfig> & { harmony?: unknown };
+    const loadedItems = Array.isArray(rawConfig.items)
+      ? rawConfig.items.map((item, idx) => toUiItem(item, idx))
+      : DEFAULT_TESTIMONIALS_CONFIG.items.map((item, idx) => toUiItem(item, idx));
+    const loadedStyle = normalizeStyle(rawConfig.style);
+
+    setItems(loadedItems);
+    setStyle(loadedStyle);
+
+    const snapshot = JSON.stringify({
+      active: component.active,
+      items: loadedItems,
+      style: loadedStyle,
+      title: component.title,
+      type: component.type,
+    });
+
+    setInitialSnapshot(snapshot);
+    setHasChanges(false);
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  useEffect(() => {
+    if (!component || !initialSnapshot) {return;}
+
+    const snapshot = JSON.stringify({
+      active,
+      items,
+      style,
+      title,
+      type: component.type,
+    });
+
+    setHasChanges(snapshot !== initialSnapshot);
+  }, [title, active, items, style, component, initialSnapshot]);
+
+  useEffect(() => {
+    if (!component || component.type !== 'Testimonials') {return;}
+
+    const validation = getTestimonialsValidationResult({
+      harmony,
+      mode: brandMode,
+      primary,
+      secondary: resolvedSecondary,
+      style,
+    });
+
+    setWarningMessages(buildTestimonialsWarningMessages({ mode: brandMode, validation }));
+  }, [component, primary, resolvedSecondary, brandMode, harmony, style]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
+
+    const validation = getTestimonialsValidationResult({
+      harmony,
+      mode: brandMode,
+      primary,
+      secondary: resolvedSecondary,
+      style,
+    });
+    setWarningMessages(buildTestimonialsWarningMessages({ mode: brandMode, validation }));
 
     setIsSubmitting(true);
     try {
       await updateMutation({
         active,
-        config,
+        config: {
+          items: items.map(toPersistItem),
+          style,
+        },
         id: id as Id<'homeComponents'>,
         title,
       });
+
       toast.success('Đã cập nhật Testimonials');
+
+      const snapshot = JSON.stringify({
+        active,
+        items,
+        style,
+        title,
+        type: component?.type,
+      });
+
+      setInitialSnapshot(snapshot);
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -77,8 +196,6 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
-
-  const items = Array.isArray(config.items) ? config.items : [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -100,7 +217,7 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,14 +227,14 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5'
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -125,27 +242,44 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as TestimonialsConfig); }} title="Cấu hình Testimonials" />
+        <TestimonialsForm items={items} setItems={setItems} />
+
+        {warningMessages.length > 0 && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="space-y-1">
+                {warningMessages.map((message, idx) => (
+                  <p key={`testimonials-warning-${idx}`}>{message}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <TestimonialsPreview
-              items={items as any}
+              items={items}
               brandColor={primary}
-              secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as TestimonialsStyle }); }}
+              secondary={resolvedSecondary}
+              mode={brandMode}
+              selectedStyle={style}
+              onStyleChange={setStyle}
             />
+            {brandMode === 'dual' && (
+              <ColorInfoPanel brandColor={primary} secondary={resolvedSecondary} />
+            )}
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

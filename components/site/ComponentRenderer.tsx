@@ -1495,7 +1495,7 @@ type TestimonialsRuntimeItem = {
 };
 function TestimonialsSection({ config, brandColor, secondary, mode, title }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; mode: 'single' | 'dual'; title: string }) {
-  const items = (config.items as TestimonialsRuntimeItem[]) || [];
+  const items = Array.isArray(config.items) ? (config.items as TestimonialsRuntimeItem[]) : [];
   const normalizedItems = React.useMemo(() => items.map((item, idx) => ({
     avatar: item.avatar ?? '',
     content: item.content ?? '',
@@ -1567,14 +1567,20 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
               <article
                 key={buildFallbackKey(item, idx)}
                 className="rounded-xl border p-5 flex flex-col h-full"
-                style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorder }}
+                style={{
+                  backgroundColor: colors.cardSurface,
+                  borderTopColor: colors.cardBorder,
+                  borderRightColor: colors.cardBorder,
+                  borderBottomColor: colors.cardBorder,
+                  borderLeftColor: colors.cardBorder,
+                }}
               >
                 {renderStars(item.rating, 14)}
                 <p className="mt-3 text-sm leading-relaxed flex-1 min-h-[64px]" style={{ color: colors.neutralMuted }}>
                   “{item.content || 'Nội dung đánh giá...'}”
                 </p>
                 <div className="mt-4 pt-4 border-t flex items-center gap-3" style={{ borderColor: colors.cardBorder }}>
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -1604,12 +1610,21 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
         <div className="max-w-4xl mx-auto relative">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-8" style={{ color: colors.headingPrimary }}>{heading}</h2>
 
-          <div className="rounded-2xl border p-8 text-center" style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorderStrong }}>
+          <div
+            className="rounded-2xl border p-8 text-center"
+            style={{
+              backgroundColor: colors.cardSurface,
+              borderTopColor: colors.cardBorderStrong,
+              borderRightColor: colors.cardBorderStrong,
+              borderBottomColor: colors.cardBorderStrong,
+              borderLeftColor: colors.cardBorderStrong,
+            }}
+          >
             <div className="flex justify-center mb-4">{renderStars(current.rating, 16)}</div>
             <p className="text-base md:text-lg leading-relaxed mb-6" style={{ color: colors.neutralMuted }}>“{current.content || 'Nội dung đánh giá...'}”</p>
 
             <div className="flex items-center justify-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
               <div className="text-left min-w-0">
@@ -1674,10 +1689,16 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
               <article
                 key={buildFallbackKey(item, idx)}
                 className="break-inside-avoid mb-4 rounded-xl border p-5"
-                style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorder }}
+                style={{
+                  backgroundColor: colors.cardSurface,
+                  borderTopColor: colors.cardBorder,
+                  borderRightColor: colors.cardBorder,
+                  borderBottomColor: colors.cardBorder,
+                  borderLeftColor: colors.cardBorder,
+                }}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                     {(item.name || 'U').charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -1712,7 +1733,7 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
           <div className="mt-7 flex flex-col items-center gap-3">
             <div className="flex justify-center">{renderStars(current.rating, 16)}</div>
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
+              <div className="w-11 h-11 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                 {(current.name || 'U').charAt(0)}
               </div>
               <div className="text-left min-w-0">
@@ -1795,10 +1816,16 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
                 <article
                   key={buildFallbackKey(item, idx)}
                   className="flex-shrink-0 snap-start w-[300px] rounded-xl border p-5"
-                  style={{ backgroundColor: colors.cardSurface, borderColor: colors.cardBorderStrong }}
+                  style={{
+                    backgroundColor: colors.cardSurface,
+                    borderTopColor: colors.cardBorderStrong,
+                    borderRightColor: colors.cardBorderStrong,
+                    borderBottomColor: colors.cardBorderStrong,
+                    borderLeftColor: colors.cardBorderStrong,
+                  }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: colors.primary }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                       {(item.name || 'U').charAt(0)}
                     </div>
                     <div className="min-w-0">
@@ -1840,7 +1867,7 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
                 borderBottomColor: colors.cardBorder,
               }}
             >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: colors.primary }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0" style={{ backgroundColor: colors.primary, color: colors.avatarTextOnPrimary }}>
                 {(item.name || 'U').charAt(0)}
               </div>
 

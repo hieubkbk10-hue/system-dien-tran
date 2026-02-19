@@ -3,7 +3,7 @@
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 import { getAccessibilityThreshold, getAccessibilityScore as getSharedAccessibilityScore, getHarmonyStatus as getSharedHarmonyStatus } from '@/lib/home-components/color-system';
-import type { TestimonialsBrandMode, TestimonialsHarmony } from '../_types';
+import type { TestimonialsBrandMode, TestimonialsHarmony, TestimonialsStyle } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 const FALLBACK_PRIMARY = '#1d4ed8';
@@ -135,6 +135,7 @@ export interface TestimonialsColorTokens {
   cardBorderHover: string;
   iconSurface: string;
   iconSurfaceStrong: string;
+  avatarTextOnPrimary: string;
   buttonPrimaryBg: string;
   buttonPrimaryText: string;
   buttonSecondaryBorder: string;
@@ -183,6 +184,7 @@ export const getTestimonialsColorTokens = ({
     cardBorderHover: setLightness(secondaryResolved, 0.79, primaryResolved),
     iconSurface: setLightness(primaryResolved, 0.96, primaryResolved),
     iconSurfaceStrong: setLightness(secondaryResolved, 0.93, primaryResolved),
+    avatarTextOnPrimary: getAPCATextColor(primaryResolved, 16, 600),
     buttonPrimaryBg,
     buttonPrimaryText: getAPCATextColor(buttonPrimaryBg, 14, 600),
     buttonSecondaryBorder: setLightness(secondaryResolved, 0.78, secondaryResolved),
@@ -197,7 +199,13 @@ export const getTestimonialsColorTokens = ({
   };
 };
 
-export const calculateAccentBalance = (mode: TestimonialsBrandMode) => {
+export const calculateAccentBalance = ({
+  mode,
+  style,
+}: {
+  mode: TestimonialsBrandMode;
+  style: TestimonialsStyle;
+}) => {
   if (mode === 'single') {
     return {
       neutral: 62,
@@ -206,10 +214,26 @@ export const calculateAccentBalance = (mode: TestimonialsBrandMode) => {
     };
   }
 
+  if (style === 'cards' || style === 'slider') {
+    return {
+      neutral: 60,
+      primary: 28,
+      secondary: 12,
+    };
+  }
+
+  if (style === 'masonry' || style === 'minimal') {
+    return {
+      neutral: 62,
+      primary: 26,
+      secondary: 12,
+    };
+  }
+
   return {
-    neutral: 60,
-    primary: 28,
-    secondary: 12,
+    neutral: 58,
+    primary: 26,
+    secondary: 16,
   };
 };
 
@@ -246,14 +270,18 @@ export const getTestimonialsValidationResult = ({
   secondary,
   mode,
   harmony,
+  style,
 }: {
   primary: string;
   secondary: string;
   mode: TestimonialsBrandMode;
   harmony: TestimonialsHarmony;
+  style: TestimonialsStyle;
 }) => {
   const tokens = getTestimonialsColorTokens({ primary, secondary, mode, harmony });
-  const harmonyStatus = getHarmonyStatus(tokens.primary, tokens.secondary);
+  const harmonyStatus = mode === 'single'
+    ? { deltaE: 100, isTooSimilar: false }
+    : getHarmonyStatus(tokens.primary, tokens.secondary);
 
   const accessibility = getAccessibilityScore([
     { name: 'Heading / Neutral Surface', text: tokens.headingPrimary, background: tokens.neutralSurface },
@@ -262,7 +290,7 @@ export const getTestimonialsValidationResult = ({
     { name: 'Primary Button / Primary BG', text: tokens.buttonPrimaryText, background: tokens.buttonPrimaryBg },
   ]);
 
-  const accentBalance = calculateAccentBalance(mode);
+  const accentBalance = calculateAccentBalance({ mode, style });
 
   return {
     accessibility,
@@ -287,10 +315,6 @@ export const buildTestimonialsWarningMessages = ({
 
   if (validation.harmonyStatus.isTooSimilar) {
     warnings.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
-  }
-
-  if (validation.accessibility.failing.length > 0) {
-    warnings.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
   }
 
   if (validation.accentBalance.primary < 25) {
