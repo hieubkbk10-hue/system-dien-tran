@@ -1,69 +1,155 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { User, Loader2 } from 'lucide-react';
+import { Eye, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { AboutForm } from '../../_components/AboutForm';
 import { AboutPreview } from '../../_components/AboutPreview';
-import { DEFAULT_ABOUT_CONFIG } from '../../_lib/constants';
-import type { AboutConfig, AboutStyle } from '../../_types';
+import {
+  createAboutEditorStat,
+  DEFAULT_ABOUT_EDITOR_STATE,
+  normalizeAboutEditorStats,
+  normalizeAboutHarmony,
+  normalizeAboutStyle,
+  toAboutPersistStats,
+} from '../../_lib/constants';
+import {
+  buildAboutWarningMessages,
+  getAboutValidationResult,
+} from '../../_lib/colors';
+import type { AboutEditorState, AboutHarmony, AboutStyle } from '../../_types';
+
+const buildAboutSnapshot = (payload: {
+  title: string;
+  active: boolean;
+  state: AboutEditorState;
+}) => JSON.stringify({
+  title: payload.title,
+  active: payload.active,
+  subHeading: payload.state.subHeading,
+  heading: payload.state.heading,
+  description: payload.state.description,
+  image: payload.state.image,
+  imageCaption: payload.state.imageCaption,
+  buttonText: payload.state.buttonText,
+  buttonLink: payload.state.buttonLink,
+  style: payload.state.style,
+  harmony: payload.state.harmony,
+  stats: toAboutPersistStats(payload.state.stats),
+});
+
+const normalizeEditorState = (rawConfig: Record<string, unknown>): AboutEditorState => {
+  const normalizedStats = normalizeAboutEditorStats(rawConfig.stats);
+
+  return {
+    subHeading: typeof rawConfig.subHeading === 'string' ? rawConfig.subHeading : DEFAULT_ABOUT_EDITOR_STATE.subHeading,
+    heading: typeof rawConfig.heading === 'string' ? rawConfig.heading : DEFAULT_ABOUT_EDITOR_STATE.heading,
+    description: typeof rawConfig.description === 'string' ? rawConfig.description : DEFAULT_ABOUT_EDITOR_STATE.description,
+    image: typeof rawConfig.image === 'string' ? rawConfig.image : '',
+    imageCaption: typeof rawConfig.imageCaption === 'string' ? rawConfig.imageCaption : '',
+    buttonText: typeof rawConfig.buttonText === 'string' ? rawConfig.buttonText : DEFAULT_ABOUT_EDITOR_STATE.buttonText,
+    buttonLink: typeof rawConfig.buttonLink === 'string' ? rawConfig.buttonLink : DEFAULT_ABOUT_EDITOR_STATE.buttonLink,
+    style: normalizeAboutStyle(rawConfig.style),
+    harmony: normalizeAboutHarmony(rawConfig.harmony),
+    stats: normalizedStats.length > 0
+      ? normalizedStats
+      : [
+        createAboutEditorStat({ value: '10+', label: 'Năm kinh nghiệm' }),
+      ],
+  };
+};
 
 export default function AboutEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<AboutConfig>(DEFAULT_ABOUT_CONFIG);
+  const [state, setState] = useState<AboutEditorState>(DEFAULT_ABOUT_EDITOR_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'About') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        buttonLink: (rawConfig.buttonLink as string | undefined) ?? '',
-        buttonText: (rawConfig.buttonText as string | undefined) ?? '',
-        description: (rawConfig.description as string | undefined) ?? '',
-        heading: (rawConfig.heading as string | undefined) ?? '',
-        image: (rawConfig.image as string | undefined) ?? '',
-        imageCaption: (rawConfig.imageCaption as string | undefined) ?? '',
-        stats: Array.isArray(rawConfig.stats) ? rawConfig.stats : [],
-        style: (rawConfig.style as AboutStyle) || 'bento',
-        subHeading: (rawConfig.subHeading as string | undefined) ?? '',
-      });
+    if (component.type !== 'About') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const rawConfig = (component.config ?? {}) as Record<string, unknown>;
+    const nextState = normalizeEditorState(rawConfig);
+
+    setTitle(component.title);
+    setActive(component.active);
+    setState(nextState);
+
+    setInitialSnapshot(buildAboutSnapshot({
+      title: component.title,
+      active: component.active,
+      state: nextState,
+    }));
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  const currentSnapshot = buildAboutSnapshot({ title, active, state });
+  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
+  const harmony = normalizeAboutHarmony(state.harmony);
+
+  const validation = useMemo(
+    () => getAboutValidationResult({
+      primary,
+      secondary,
+      mode,
+      harmony,
+      style: state.style,
+    }),
+    [primary, secondary, mode, harmony, state.style],
+  );
+
+  const warningMessages = useMemo(
+    () => buildAboutWarningMessages({ mode, validation }),
+    [mode, validation],
+  );
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const normalizedStyle = normalizeAboutStyle(state.style) as AboutStyle;
+      const normalizedHarmony = normalizeAboutHarmony(state.harmony) as AboutHarmony;
+
       await updateMutation({
-        active,
-        config,
         id: id as Id<'homeComponents'>,
         title,
+        active,
+        config: {
+          subHeading: state.subHeading,
+          heading: state.heading,
+          description: state.description,
+          image: state.image,
+          imageCaption: state.imageCaption,
+          buttonText: state.buttonText,
+          buttonLink: state.buttonLink,
+          stats: toAboutPersistStats(state.stats),
+          style: normalizedStyle,
+          harmony: normalizedHarmony,
+        },
       });
+
+      setInitialSnapshot(buildAboutSnapshot({ title, active, state: { ...state, style: normalizedStyle, harmony: normalizedHarmony } }));
       toast.success('Đã cập nhật About');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -105,7 +191,7 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -115,14 +201,14 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5',
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -130,26 +216,48 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as AboutConfig); }} title="Cấu hình About" />
+        <AboutForm state={state} onChange={setState} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
-            <AboutPreview
-              config={config as any}
-              brandColor={primary}
-              secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as AboutStyle }); }}
-            />
+        {mode === 'dual' && warningMessages.length > 0 ? (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="space-y-2">
+              {warningMessages.map((message, idx) => (
+                <div key={`${idx}-${message}`} className="flex items-start gap-2">
+                  <Eye size={14} className="mt-0.5 flex-shrink-0" />
+                  <p>{message}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
+
+        <AboutPreview
+          config={{
+            subHeading: state.subHeading,
+            heading: state.heading,
+            description: state.description,
+            image: state.image,
+            imageCaption: state.imageCaption,
+            buttonText: state.buttonText,
+            buttonLink: state.buttonLink,
+            stats: toAboutPersistStats(state.stats),
+            style: state.style,
+            harmony,
+          }}
+          brandColor={validation.tokens.primary}
+          secondary={validation.tokens.secondary}
+          mode={mode}
+          selectedStyle={state.style}
+          onStyleChange={(style) => {
+            setState((prev) => ({ ...prev, style }));
+          }}
+        />
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={!hasChanges || isSubmitting}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

@@ -4,9 +4,17 @@ export interface ClientItem {
   name?: string;
 }
 
+export interface ClientEditorItem extends ClientItem {
+  id: string;
+  inputMode: 'upload' | 'url';
+}
+
 export type ClientsStyle = 'marquee' | 'dualRow' | 'wave' | 'grid' | 'carousel' | 'featured';
+export type ClientsBrandMode = 'single' | 'dual';
+export type ClientsHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface ClientsConfig {
   items: ClientItem[];
   style: ClientsStyle;
+  harmony?: ClientsHarmony;
 }

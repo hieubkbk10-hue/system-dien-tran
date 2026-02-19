@@ -14,6 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle, cn } from '../../../component
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import type { FooterBrandMode } from '@/app/admin/home-components/footer/_types';
+import { ProcessPreview as ProcessPreviewModern } from '../../process/_components/ProcessPreview';
+import { AboutPreview } from '../../about/_components/AboutPreview';
+import { useBrandColors } from '../../create/shared';
+
+export { AboutPreview };
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
@@ -2598,520 +2603,7 @@ export const CTAPreview = ({ config, brandColor, secondary, selectedStyle, onSty
   );
 };
 
-// ============ ABOUT PREVIEW ============
-// Brand Story UI/UX - 6 Variants: classic, bento, minimal, split, timeline, showcase
-interface AboutConfig {
-  layout?: string;
-  subHeading: string;
-  heading: string;
-  description: string;
-  image: string;
-  stats: { id: number; value: string; label: string }[];
-  buttonText: string;
-  buttonLink: string;
-  style?: AboutStyle;
-  imageCaption?: string; // Configurable caption for bento style image overlay
-}
 export type AboutStyle = 'classic' | 'bento' | 'minimal' | 'split' | 'timeline' | 'showcase';
-
-export const AboutPreview = ({ config, brandColor, secondary, selectedStyle, onStyleChange }: { config: AboutConfig; brandColor: string;
-  secondary: string; selectedStyle?: AboutStyle; onStyleChange?: (style: AboutStyle) => void }) => {
-  const [device, setDevice] = useState<PreviewDevice>('desktop');
-  const previewStyle = (selectedStyle ?? config.style) ?? 'bento';
-  const setPreviewStyle = (s: string) => onStyleChange?.(s as AboutStyle);
-  const styles = [
-    { id: 'classic', label: 'Classic' }, 
-    { id: 'bento', label: 'Bento Grid' }, 
-    { id: 'minimal', label: 'Minimal' },
-    { id: 'split', label: 'Split' },
-    { id: 'timeline', label: 'Timeline' },
-    { id: 'showcase', label: 'Showcase' }
-  ];
-
-  // Empty state
-  const hasContent = config.heading || config.description || config.image || config.stats.length > 0;
-  if (!hasContent) {
-    return (
-      <PreviewWrapper title="Preview About" device={device} setDevice={setDevice} previewStyle={previewStyle} setPreviewStyle={setPreviewStyle} styles={styles}>
-        <BrowserFrame url="yoursite.com/about">
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-              <Users size={32} style={{ color: brandColor }} />
-            </div>
-            <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có nội dung</h3>
-            <p className="text-sm text-slate-500">Nhập tiêu đề và mô tả để bắt đầu</p>
-          </div>
-        </BrowserFrame>
-      </PreviewWrapper>
-    );
-  }
-
-  // Style 1: Classic - Open Layout, Image Left, Typography Focused
-  const renderClassicStyle = () => (
-    <section className={cn("py-10 md:py-16", device === 'mobile' ? 'px-4' : 'px-6 md:px-8')}>
-      <div className={cn(
-        "grid gap-8 md:gap-12 lg:gap-20 items-center",
-        device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
-      )}>
-        {/* Image Side (Left on desktop) */}
-        <div className={cn("relative rounded-2xl overflow-hidden shadow-2xl", device === 'mobile' ? 'order-2 aspect-[4/3]' : 'order-1 aspect-[4/3]')}>
-          {config.image ? (
-            <PreviewImage 
-              src={config.image} 
-              alt="Brand Story" 
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800">
-              <ImageIcon size={48} className="text-slate-300" />
-            </div>
-          )}
-        </div>
-
-        {/* Text Side (Right on desktop) */}
-        <div className={cn("flex flex-col justify-center space-y-8 md:space-y-10", device === 'mobile' ? 'order-1' : 'order-2')}>
-          <div className="space-y-4 md:space-y-6">
-            {config.subHeading && (
-              <BrandBadge text={config.subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
-            )}
-            <h2 className={cn(
-              "font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-[1.1]",
-              device === 'mobile' ? 'text-3xl' : 'text-4xl md:text-5xl lg:text-6xl'
-            )}>
-              {config.heading || 'Mang đến giá trị thực'}
-            </h2>
-            <p className={cn(
-              "text-slate-600 dark:text-slate-400 leading-relaxed",
-              device === 'mobile' ? 'text-base' : 'text-lg md:text-xl'
-            )}>
-              {config.description || 'Mô tả về công ty...'}
-            </p>
-          </div>
-          
-          {/* Stats - Horizontal row */}
-          {config.stats.length > 0 && (
-            <div className={cn(
-              "flex flex-row gap-8 md:gap-12 border-t border-slate-200 dark:border-slate-700 pt-6 md:pt-8",
-              device === 'mobile' ? 'gap-6' : ''
-            )}>
-              {config.stats.slice(0, 2).map((stat) => (
-                <StatBox key={stat.id} stat={stat} variant="default" brandColor={brandColor} secondary={secondary} />
-              ))}
-            </div>
-          )}
-
-          {config.buttonText && (
-            <div>
-              <button 
-                className="inline-flex items-center gap-2 p-0 h-auto text-lg font-semibold hover:opacity-80 transition-opacity group"
-                style={{ color: brandColor }}
-              >
-                {config.buttonText} 
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-
-  // Style 2: Bento Grid - Modern Tech Grid
-  const renderBentoStyle = () => (
-    <section className={cn(
-      "rounded-3xl",
-      device === 'mobile' ? 'p-3' : 'p-4 md:p-8'
-    )} style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
-      <div className={cn(
-        "grid gap-3 md:gap-6",
-        device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'
-      )}>
-        {/* Cell 1: Main Content */}
-        <div className={cn(
-          "bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 lg:p-12 border border-slate-200/50 dark:border-slate-700/50 shadow-sm flex flex-col justify-center space-y-4 md:space-y-6",
-          device === 'mobile' ? '' : 'md:col-span-2'
-        )}>
-          <div className="space-y-3 md:space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: brandColor }}>
-                {config.subHeading || 'Câu chuyện thương hiệu'}
-              </span>
-            </div>
-            <h2 className={cn(
-              "font-bold text-slate-900 dark:text-slate-100",
-              device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl lg:text-5xl'
-            )}>
-              {config.heading || 'Mang đến giá trị thực'}
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              {config.description || 'Mô tả về công ty...'}
-            </p>
-          </div>
-          {config.buttonText && (
-            <div className="pt-2 md:pt-4">
-              <button 
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border-2 font-medium transition-colors hover:text-white"
-                style={{ borderColor: brandColor, color: brandColor }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = brandColor; e.currentTarget.style.color = 'white'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = brandColor; }}
-              >
-                {config.buttonText} <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Cell 2 & 3: Stats Stacked */}
-        <div className={cn(
-          "grid gap-3 md:gap-6",
-          device === 'mobile' ? 'grid-cols-2' : 'grid-cols-1'
-        )}>
-          {config.stats.slice(0, 2).map((stat) => (
-            <StatBox key={stat.id} stat={stat} variant="card" brandColor={brandColor} secondary={secondary} />
-          ))}
-        </div>
-
-        {/* Cell 4: Wide Image */}
-        <div className={cn(
-          "h-48 md:h-64 lg:h-80 rounded-2xl overflow-hidden relative group",
-          device === 'mobile' ? '' : 'md:col-span-3'
-        )}>
-          {config.image ? (
-            <PreviewImage 
-              src={config.image} 
-              alt="Office" 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-            />
-          ) : (
-            <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-              <ImageIcon size={48} className="text-slate-300" />
-            </div>
-          )}
-          {(config.imageCaption ?? config.image) && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:p-8">
-              <p className="text-white font-medium text-base md:text-lg">
-                {config.imageCaption ?? 'Kiến tạo không gian làm việc hiện đại & bền vững.'}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-
-  // Style 3: Minimal - Safe/Boring Design, Boxed Layout
-  const renderMinimalStyle = () => (
-    <section className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-      <div className={cn(
-        "flex h-full min-h-[400px] md:min-h-[500px]",
-        device === 'mobile' ? 'flex-col' : 'flex-col lg:flex-row'
-      )}>
-        {/* Left: Content */}
-        <div className={cn(
-          "flex-1 p-6 md:p-10 lg:p-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700",
-          device === 'mobile' ? '' : ''
-        )}>
-          <div className="max-w-xl space-y-6 md:space-y-8">
-            {config.subHeading && (
-              <BrandBadge text={config.subHeading} variant="minimal" brandColor={brandColor} secondary={secondary} />
-            )}
-            
-            <div className="space-y-3 md:space-y-4">
-              <h2 className={cn(
-                "font-semibold tracking-tight text-slate-900 dark:text-slate-100",
-                device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl'
-              )}>
-                {config.heading || 'Mang đến giá trị thực'}
-              </h2>
-              <p className={cn(
-                "text-slate-600 dark:text-slate-400 leading-relaxed",
-                device === 'mobile' ? 'text-base' : 'text-lg'
-              )}>
-                {config.description || 'Mô tả về công ty...'}
-              </p>
-            </div>
-
-            {/* Stats with vertical bar */}
-            {config.stats.length > 0 && (
-              <div className={cn("flex gap-6 md:gap-8 py-4", device === 'mobile' ? 'gap-4' : '')}>
-                {config.stats.slice(0, 2).map((stat) => (
-                  <StatBox key={stat.id} stat={stat} variant="minimal" brandColor={brandColor} secondary={secondary} />
-                ))}
-              </div>
-            )}
-
-            {config.buttonText && (
-              <div>
-                <button 
-                  className="h-12 px-6 rounded-md font-medium transition-colors hover:opacity-90"
-                  style={{ backgroundColor: brandColor, color: 'white' }}
-                >
-                  {config.buttonText}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Image */}
-        <div className={cn(
-          "relative bg-slate-100 dark:bg-slate-900",
-          device === 'mobile' ? 'h-64' : 'lg:w-[45%] h-64 lg:h-auto'
-        )}>
-          {config.image ? (
-            <PreviewImage 
-              src={config.image} 
-              alt="Brand" 
-              className="absolute inset-0 w-full h-full object-cover" 
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <ImageIcon size={48} className="text-slate-300" />
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-
-  // Style 4: Split - Layout chia đôi (Content trái, Image phải)
-  const renderSplitStyle = () => (
-    <section className="relative w-full bg-white dark:bg-slate-900 overflow-hidden">
-      <div className={cn(
-        "flex",
-        device === 'mobile' ? 'flex-col h-auto' : 'flex-row min-h-[400px] md:min-h-[500px]'
-      )}>
-        {/* Content Side */}
-        <div className={cn(
-          "flex flex-col justify-center bg-slate-50 dark:bg-slate-800/50",
-          device === 'mobile' ? 'p-6 order-2' : 'w-1/2 p-8 lg:p-12'
-        )}>
-          <div className={cn("space-y-4", device === 'mobile' ? '' : 'max-w-md')}>
-            {config.subHeading && (
-              <BrandBadge text={config.subHeading} variant="outline" brandColor={brandColor} secondary={secondary} />
-            )}
-            <h2 className={cn("font-bold text-slate-900 dark:text-white leading-tight", device === 'mobile' ? 'text-xl' : 'text-2xl lg:text-3xl')}>
-              {config.heading || 'Câu chuyện của chúng tôi'}
-            </h2>
-            <p className={cn("text-slate-600 dark:text-slate-300 leading-relaxed", device === 'mobile' ? 'text-sm' : 'text-base')}>
-              {config.description || 'Mô tả về công ty...'}
-            </p>
-            {/* Stats inline */}
-            {config.stats.length > 0 && (
-              <div className="flex gap-6 pt-4 border-t border-slate-200 dark:border-slate-700">
-                {config.stats.slice(0, 2).map((stat) => (
-                  <div key={stat.id} className="flex flex-col">
-                    <span className="text-2xl font-bold" style={{ color: brandColor }}>{stat.value || '0'}</span>
-                    <span className="text-xs text-slate-500">{stat.label || 'Label'}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {config.buttonText && (
-              <div className="pt-2">
-                <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: brandColor }}>
-                  {config.buttonText}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Image Side */}
-        <div className={cn(
-          "relative overflow-hidden",
-          device === 'mobile' ? 'w-full h-[200px] order-1' : 'w-1/2'
-        )}>
-          {config.image ? (
-            <PreviewImage src={config.image} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700">
-              <ImageIcon size={40} className="text-slate-400" />
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-
-  // Style 5: Timeline - Vertical timeline với milestones
-  const renderTimelineStyle = () => (
-    <section className={cn("py-10", device === 'mobile' ? 'px-4' : 'px-6 md:px-8')}>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          {config.subHeading && (
-            <div className="flex justify-center mb-3">
-              <BrandBadge text={config.subHeading} variant="default" brandColor={brandColor} secondary={secondary} />
-            </div>
-          )}
-          <h2 className={cn("font-bold text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>
-            {config.heading || 'Hành trình phát triển'}
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl mx-auto text-sm">
-            {config.description || 'Mô tả về công ty...'}
-          </p>
-        </div>
-
-        {/* Timeline */}
-        <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-0.5" style={{ backgroundColor: `${brandColor}20` }} />
-          
-          <div className="space-y-8">
-            {config.stats.slice(0, 4).map((stat, idx) => (
-              <div key={stat.id} className={cn("relative flex", device === 'mobile' ? 'pl-12' : (idx % 2 === 0 ? 'md:flex-row-reverse' : ''))}>
-                {/* Dot */}
-                <div className={cn(
-                  "absolute w-8 h-8 rounded-full border-4 bg-white dark:bg-slate-900 flex items-center justify-center text-xs font-bold",
-                  device === 'mobile' ? 'left-0' : 'left-1/2 -translate-x-1/2'
-                )} style={{ borderColor: brandColor, color: brandColor }}>
-                  {idx + 1}
-                </div>
-                {/* Content card */}
-                <div className={cn(
-                  "bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm",
-                  device === 'mobile' ? 'w-full' : 'w-5/12'
-                )} style={{ borderColor: `${brandColor}15` }}>
-                  <span className="text-2xl font-bold" style={{ color: brandColor }}>{stat.value || '0'}</span>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{stat.label || 'Milestone'}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Image at bottom */}
-        {config.image && (
-          <div className="mt-10 rounded-2xl overflow-hidden aspect-[16/9] max-h-[300px]">
-            <PreviewImage src={config.image} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        {config.buttonText && (
-          <div className="text-center mt-8">
-            <button className="px-6 py-2.5 rounded-lg font-medium text-white" style={{ backgroundColor: brandColor }}>
-              {config.buttonText}
-            </button>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-
-  // Style 6: Showcase - Card nổi bật với ảnh lớn và stats gradient
-  const renderShowcaseStyle = () => (
-    <section className={cn("py-8", device === 'mobile' ? 'px-3' : 'py-10 px-6')}>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          {config.subHeading && (
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-3" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-              {config.subHeading}
-            </span>
-          )}
-          <h2 className={cn("font-bold text-slate-900 dark:text-slate-100 mb-2", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>
-            {config.heading || 'Câu chuyện thương hiệu'}
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-sm">
-            {config.description || 'Mô tả về công ty...'}
-          </p>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className={cn("grid gap-4", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 gap-5')}>
-          {/* Image Card */}
-          <div className={cn("relative rounded-2xl overflow-hidden group", device === 'mobile' ? 'aspect-[4/3]' : 'aspect-auto min-h-[320px]')}>
-            {config.image ? (
-              <>
-                <PreviewImage src={config.image} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-              </>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800">
-                <ImageIcon size={48} className="text-slate-300" />
-              </div>
-            )}
-            {config.buttonText && (
-              <div className="absolute bottom-3 left-3 right-3">
-                <button 
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm backdrop-blur-sm transition-all hover:scale-105"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {config.buttonText}
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Stats Cards Grid */}
-          <div className={cn("grid gap-3", device === 'mobile' ? 'grid-cols-2' : 'grid-cols-2 gap-4')}>
-            {config.stats.slice(0, 4).map((stat, idx) => (
-              <div 
-                key={stat.id} 
-                className="rounded-xl p-4 flex flex-col justify-center text-center transition-all hover:scale-[1.02]"
-                style={{ 
-                  backgroundColor: idx === 0 ? brandColor : `${brandColor}${10 + idx * 5}`,
-                }}
-              >
-                <span className={cn("font-bold mb-1", device === 'mobile' ? 'text-2xl' : 'text-3xl')} style={{ color: idx === 0 ? 'white' : brandColor }}>
-                  {stat.value || '0'}
-                </span>
-                <span className={cn("text-xs font-medium", idx === 0 ? 'text-white/80' : 'text-slate-600 dark:text-slate-400')}>
-                  {stat.label || 'Label'}
-                </span>
-              </div>
-            ))}
-            {/* Fill empty slots */}
-            {config.stats.length < 4 && Array.from({ length: 4 - config.stats.length }).map((_, idx) => (
-              <div 
-                key={`empty-${idx}`} 
-                className="rounded-xl p-4 flex items-center justify-center"
-                style={{ backgroundColor: `${brandColor}08` }}
-              >
-                <Plus size={16} className="text-slate-300" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
-  // Image size guidelines component
-  const renderImageGuidelines = () => (
-    <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-      <div className="flex items-start gap-2">
-        <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
-        <div className="text-xs text-slate-600 dark:text-slate-400">
-          {previewStyle === 'classic' && <p><strong>1200×800px</strong> (3:2) • Ảnh bên trái, subject đặt giữa</p>}
-          {previewStyle === 'bento' && <p><strong>1920×600px</strong> (16:5) • Banner ngang, góc dưới có caption overlay</p>}
-          {previewStyle === 'minimal' && <p><strong>800×600px</strong> (4:3) • Ảnh bên phải chiếm 45%, object-cover</p>}
-          {previewStyle === 'split' && <p><strong>960×600px</strong> (8:5) • Ảnh bên phải 50%, subject đặt giữa/trái</p>}
-          {previewStyle === 'timeline' && <p><strong>1200×400px</strong> (3:1) • Banner ngang cuối section, optional</p>}
-          {previewStyle === 'showcase' && <p><strong>800×600px</strong> (4:3) • Ảnh trái card lớn, subject đặt giữa/trái</p>}
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <>
-      <PreviewWrapper title="Preview About" device={device} setDevice={setDevice} previewStyle={previewStyle} setPreviewStyle={setPreviewStyle} styles={styles}>
-        <BrowserFrame url="yoursite.com/about">
-          {previewStyle === 'classic' && renderClassicStyle()}
-          {previewStyle === 'bento' && renderBentoStyle()}
-          {previewStyle === 'minimal' && renderMinimalStyle()}
-          {previewStyle === 'split' && renderSplitStyle()}
-          {previewStyle === 'timeline' && renderTimelineStyle()}
-          {previewStyle === 'showcase' && renderShowcaseStyle()}
-        </BrowserFrame>
-      </PreviewWrapper>
-      {renderImageGuidelines()}
-    </>
-  );
-};
 
 // ============ BENEFITS PREVIEW (Why Choose Us) ============
 // 6 Professional Styles: Solid Cards, Accent List, Bold Bento, Icon Row, Carousel, Timeline
@@ -5308,8 +4800,8 @@ export type FeaturesStyle = 'iconGrid' | 'alternating' | 'compact' | 'cards' | '
 
 const featureIcons: Record<string, React.ElementType> = { Check, Cpu, Globe, Layers, Rocket, Settings, Shield, Star, Target, Zap };
 
-export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string;
-  secondary: string; selectedStyle?: FeaturesStyle; onStyleChange?: (style: FeaturesStyle) => void }) => {
+export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, mode: _mode, selectedStyle, onStyleChange }: { items: FeatureItem[]; brandColor: string;
+  secondary: string; mode?: 'single' | 'dual'; selectedStyle?: FeaturesStyle; onStyleChange?: (style: FeaturesStyle) => void }) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const previewStyle = selectedStyle ?? 'iconGrid';
@@ -5343,10 +4835,10 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
           <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Khám phá những tính năng ưu việt giúp bạn đạt hiệu quả tối đa</p>
         </div>
         <div className={gridClass}>
-          {visibleItems.map((item) => {
+          {visibleItems.map((item, idx) => {
             const IconComponent = getIcon(item.icon);
             return (
-              <div key={item.id} className="group bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+              <div key={`${item.id ?? 'feature'}-${idx}`} className="group bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:border-transparent hover:shadow-xl transition-all duration-300 flex flex-col h-full">
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-300" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
                 <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 min-h-[2.5rem]">{item.description || 'Mô tả tính năng...'}</p>
@@ -5374,7 +4866,7 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
           {visibleItems.map((item, idx) => {
             const IconComponent = getIcon(item.icon);
             return (
-              <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+              <div key={`${item.id ?? 'feature'}-${idx}`} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
                 <div className="relative flex-shrink-0">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
                   <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center" style={{ backgroundColor: secondary }}>{idx + 1}</span>
@@ -5407,10 +4899,10 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
           {remainingCount > 0 && <span className="text-sm text-slate-500">+{remainingCount} tính năng khác</span>}
         </div>
         <div className={cn("grid gap-3", device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'))}>
-          {visibleItems.map((item) => {
+          {visibleItems.map((item, idx) => {
             const IconComponent = getIcon(item.icon);
             return (
-              <div key={item.id} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div key={`${item.id ?? 'feature'}-${idx}`} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${secondary}15` }}><IconComponent size={18} style={{ color: secondary }} strokeWidth={2} /></div>
                 <div className="flex-1 min-w-0"><h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-0.5 truncate">{item.title || 'Tính năng'}</h3><p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[2rem]">{item.description || 'Mô tả...'}</p></div>
               </div>
@@ -5435,7 +4927,7 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
           {visibleItems.map((item, idx) => {
             const IconComponent = getIcon(item.icon);
             return (
-              <div key={item.id} className="group relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col">
+              <div key={`${item.id ?? 'feature'}-${idx}`} className="group relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col">
                 <div className="h-1" style={{ backgroundColor: secondary }} />
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-start justify-between mb-4">
@@ -5473,10 +4965,10 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
         </div>
         <div className="overflow-hidden">
           <div className="flex gap-5 transition-transform duration-300" style={{ transform: `translateX(-${carouselIndex * (100 / itemsPerView)}%)`, width: `${(items.length / itemsPerView) * 100}%` }}>
-            {items.map((item) => {
+            {items.map((item, idx) => {
               const IconComponent = getIcon(item.icon);
               return (
-                <div key={item.id} className="flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
+                <div key={`${item.id ?? 'feature'}-${idx}`} className="flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 h-full flex flex-col">
                     <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style={{ background: `linear-gradient(135deg, ${secondary} 0%, ${secondary}cc 100%)`, boxShadow: `0 8px 16px -4px ${secondary}40` }}><IconComponent size={24} className="text-white" strokeWidth={2} /></div>
                     <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-1">{item.title || 'Tên tính năng'}</h3>
@@ -5510,7 +5002,7 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
               const IconComponent = getIcon(item.icon);
               const isEven = idx % 2 === 0;
               return (
-                <div key={item.id} className={cn("relative flex items-center", device === 'mobile' ? 'pl-8' : (isEven ? 'flex-row pr-[52%]' : 'flex-row-reverse pl-[52%]'))}>
+                <div key={`${item.id ?? 'feature'}-${idx}`} className={cn("relative flex items-center", device === 'mobile' ? 'pl-8' : (isEven ? 'flex-row pr-[52%]' : 'flex-row-reverse pl-[52%]'))}>
                   <div className={cn("absolute flex items-center justify-center w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 shadow z-10", device === 'mobile' ? 'left-0' : 'left-1/2 -translate-x-1/2')} style={{ backgroundColor: secondary }}><IconComponent size={12} className="text-white" strokeWidth={2.5} /></div>
                   <div className="flex-1 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-2 mb-1">
@@ -5545,426 +5037,32 @@ export const FeaturesPreview = ({ items, brandColor: _brandColor, secondary, sel
 
 // ============ PROCESS/HOW IT WORKS PREVIEW ============
 // 6 Professional Styles: Horizontal, Stepper, Cards, Accordion, Minimal, Grid
-interface ProcessStep { id: number; icon: string; title: string; description: string }
 export type ProcessStyle = 'horizontal' | 'stepper' | 'cards' | 'accordion' | 'minimal' | 'grid';
 
-export const ProcessPreview = ({ 
-  steps, 
-  brandColor, 
-  secondary: _secondary,
-  selectedStyle, 
-  onStyleChange 
-}: { 
-  steps: ProcessStep[]; 
+export const ProcessPreview = ({
+  steps,
+  brandColor,
+  secondary,
+  selectedStyle,
+  onStyleChange,
+}: {
+  steps: unknown;
   brandColor: string;
-  secondary: string; 
-  selectedStyle?: ProcessStyle; 
+  secondary: string;
+  selectedStyle?: ProcessStyle;
   onStyleChange?: (style: ProcessStyle) => void;
 }) => {
-  const [device, setDevice] = useState<PreviewDevice>('desktop');
-  const [activeAccordion, setActiveAccordion] = useState<number>(0);
-  const previewStyle = selectedStyle ?? 'horizontal';
-  const setPreviewStyle = (s: string) => onStyleChange?.(s as ProcessStyle);
-  const styles = [
-    { id: 'horizontal', label: 'Horizontal' },
-    { id: 'stepper', label: 'Stepper' },
-    { id: 'cards', label: 'Cards' },
-    { id: 'accordion', label: 'Accordion' },
-    { id: 'minimal', label: 'Minimal' },
-    { id: 'grid', label: 'Grid' },
-  ];
-
-  const MAX_VISIBLE = device === 'mobile' ? 4 : 6;
-
-  // Dynamic info based on style
-  const getInfoText = () => {
-    const count = steps.length;
-    if (count === 0) {return 'Chưa có bước nào';}
-    switch (previewStyle) {
-      case 'horizontal': { return `${count} bước • Progress bar ngang`;
-      }
-      case 'stepper': { return `${count} bước • Dot stepper`;
-      }
-      case 'cards': { return `${Math.min(count, 4)} bước • Grid cards`;
-      }
-      case 'accordion': { return `${count} bước • Expandable`;
-      }
-      case 'minimal': { return `${count} bước • Compact list`;
-      }
-      case 'grid': { return `${count} bước • Grid ${device === 'mobile' ? '1 col' : '2-3 cols'}`;
-      }
-      default: { return `${count} bước`;
-      }
-    }
-  };
-
-  // Empty State
-  const renderEmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <Layers size={32} style={{ color: brandColor }} />
-      </div>
-      <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có bước nào</h3>
-      <p className="text-sm text-slate-500">Thêm bước đầu tiên để bắt đầu</p>
-    </div>
-  );
-
-  // Style 1: Horizontal - Compact progress bar layout
-  const renderHorizontalStyle = () => {
-    if (steps.length === 0) {return renderEmptyState();}
-    const visibleSteps = steps.slice(0, device === 'mobile' ? 4 : 5);
-    const remainingCount = steps.length - visibleSteps.length;
-    
-    return (
-      <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-10 md:px-6')}>
-        <div className="text-center mb-6">
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
-            Quy trình làm việc
-          </h2>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="max-w-3xl mx-auto mb-6">
-          <div className="relative flex items-center justify-between">
-            {/* Background Line */}
-            <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: `${brandColor}20` }} />
-            {/* Progress Line */}
-            <div className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2" style={{ backgroundColor: brandColor, width: `${((visibleSteps.length - 1) / Math.max(visibleSteps.length - 1, 1)) * 100}%` }} />
-            
-            {visibleSteps.map((step, idx) => (
-              <div key={step.id} className="relative z-10 flex flex-col items-center">
-                <div 
-                  className={cn(
-                    "flex items-center justify-center rounded-full text-white font-bold text-xs border-2 border-white dark:border-slate-900",
-                    device === 'mobile' ? 'w-8 h-8' : 'w-10 h-10'
-                  )}
-                  style={{ backgroundColor: brandColor, boxShadow: `0 2px 8px ${brandColor}40` }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Steps Detail */}
-        <div className={cn("grid gap-3", device === 'mobile' ? 'grid-cols-2' : `grid-cols-${Math.min(visibleSteps.length, 5)}`)}>
-          {visibleSteps.map((step, idx) => (
-            <div key={step.id} className="text-center">
-              <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-1 line-clamp-1">
-                {step.title || `Bước ${idx + 1}`}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                {step.description || 'Mô tả...'}
-              </p>
-            </div>
-          ))}
-        </div>
-        {remainingCount > 0 && (
-          <div className="text-center mt-4">
-            <span className="text-xs" style={{ color: brandColor }}>+{remainingCount} bước khác</span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Style 2: Stepper - Dot stepper with expandable content
-  const renderStepperStyle = () => {
-    if (steps.length === 0) {return renderEmptyState();}
-    const visibleSteps = steps.slice(0, MAX_VISIBLE);
-    const remainingCount = steps.length - MAX_VISIBLE;
-    
-    return (
-      <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-10 md:px-6')}>
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            Quy trình
-          </div>
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
-            Các bước thực hiện
-          </h2>
-        </div>
-        
-        <div className={cn("mx-auto", device === 'mobile' ? 'max-w-sm' : 'max-w-2xl')}>
-          {visibleSteps.map((step, idx) => (
-            <div key={step.id} className="flex gap-4">
-              {/* Stepper Line */}
-              <div className="flex flex-col items-center">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-                {idx < visibleSteps.length - 1 && (
-                  <div className="w-0.5 flex-1 my-2" style={{ backgroundColor: `${brandColor}30` }} />
-                )}
-              </div>
-              {/* Content */}
-              <div className={cn("flex-1 pb-6", idx === visibleSteps.length - 1 && 'pb-0')}>
-                <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-1">
-                  {step.title || `Bước ${idx + 1}`}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  {step.description || 'Mô tả bước này...'}
-                </p>
-              </div>
-            </div>
-          ))}
-          {remainingCount > 0 && (
-            <div className="text-center mt-4">
-              <span className="text-xs" style={{ color: brandColor }}>+{remainingCount} bước khác</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Style 3: Cards - Grid cards với gradient header
-  const renderCardsStyle = () => (
-    <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-12 md:px-6')}>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b-2 mb-8" style={{ borderColor: `${brandColor}20` }}>
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            Quy trình
-          </div>
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')}>
-            Cách chúng tôi làm việc
-          </h2>
-        </div>
-      </div>
-      
-      {/* Cards Grid */}
-      <div className={cn(
-        "grid gap-4 md:gap-6",
-        device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-2 lg:grid-cols-4')
-      )}>
-        {steps.slice(0, 4).map((step, idx) => (
-          <div 
-            key={step.id} 
-            className="group bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow"
-          >
-            {/* Gradient Header */}
-            <div 
-              className="h-2"
-              style={{ background: `linear-gradient(to right, ${brandColor}, ${brandColor}99)` }}
-            />
-            
-            <div className="p-5 md:p-6">
-              {/* Step Badge */}
-              <div className="flex items-center gap-3 mb-4">
-                <div 
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Bước {idx + 1}
-                </span>
-              </div>
-              
-              <h3 className="font-bold text-base md:text-lg text-slate-900 dark:text-slate-100 mb-2">
-                {step.title || `Bước ${idx + 1}`}
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                {step.description || 'Mô tả bước này...'}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Style 4: Accordion - Interactive expandable style
-  const renderAccordionStyle = () => {
-    if (steps.length === 0) {return renderEmptyState();}
-    const visibleSteps = steps.slice(0, MAX_VISIBLE);
-    const remainingCount = steps.length - MAX_VISIBLE;
-    
-    return (
-      <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-10 md:px-6')}>
-        <div className="text-center mb-6">
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
-            Quy trình làm việc
-          </h2>
-        </div>
-        
-        <div className={cn("mx-auto space-y-2", device === 'mobile' ? 'max-w-sm' : 'max-w-xl')}>
-          {visibleSteps.map((step, idx) => {
-            const isActive = activeAccordion === idx;
-            return (
-              <div 
-                key={step.id} 
-                className={cn(
-                  "rounded-lg border transition-all cursor-pointer overflow-hidden",
-                  isActive 
-                    ? "border-transparent shadow-md" 
-                    : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                )}
-                style={isActive ? { borderColor: brandColor, boxShadow: `0 4px 12px ${brandColor}20` } : {}}
-                onClick={() =>{  setActiveAccordion(isActive ? -1 : idx); }}
-              >
-                <div className={cn("flex items-center gap-3 p-3", isActive && "pb-2")}>
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                    style={{ backgroundColor: brandColor }}
-                  >
-                    {step.icon || idx + 1}
-                  </div>
-                  <h4 className="flex-1 font-semibold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">
-                    {step.title || `Bước ${idx + 1}`}
-                  </h4>
-                  <ChevronDown 
-                    size={16} 
-                    className={cn("text-slate-400 transition-transform", isActive && "rotate-180")}
-                    style={isActive ? { color: brandColor } : {}}
-                  />
-                </div>
-                {isActive && (
-                  <div className="px-3 pb-3 pt-0">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pl-11">
-                      {step.description || 'Mô tả bước này...'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {remainingCount > 0 && (
-            <div className="text-center mt-4">
-              <span className="text-xs" style={{ color: brandColor }}>+{remainingCount} bước khác</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Style 5: Minimal - Compact list with subtle styling
-  const renderMinimalStyle = () => {
-    if (steps.length === 0) {return renderEmptyState();}
-    const visibleSteps = steps.slice(0, MAX_VISIBLE);
-    const remainingCount = steps.length - MAX_VISIBLE;
-    
-    return (
-      <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-10 md:px-6')}>
-        <div className="text-center mb-6">
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
-            Quy trình làm việc
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">Đơn giản • Hiệu quả • Chuyên nghiệp</p>
-        </div>
-        
-        <div className={cn("mx-auto", device === 'mobile' ? 'max-w-sm' : 'max-w-lg')}>
-          <div className="space-y-2">
-            {visibleSteps.map((step, idx) => (
-              <div 
-                key={step.id} 
-                className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-              >
-                <div 
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">
-                    {step.title || `Bước ${idx + 1}`}
-                  </h4>
-                </div>
-                <ArrowRight size={14} className="text-slate-300 flex-shrink-0" />
-              </div>
-            ))}
-          </div>
-          {remainingCount > 0 && (
-            <div className="text-center mt-3">
-              <span className="text-xs" style={{ color: brandColor }}>+{remainingCount} bước khác</span>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Style 6: Grid - Compact 2-3 column grid
-  const renderGridStyle = () => {
-    if (steps.length === 0) {return renderEmptyState();}
-    const visibleSteps = steps.slice(0, MAX_VISIBLE);
-    const remainingCount = steps.length - MAX_VISIBLE;
-    
-    return (
-      <div className={cn("py-8 px-4", device === 'mobile' ? 'py-6 px-3' : 'md:py-10 md:px-6')}>
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-            Quy trình
-          </div>
-          <h2 className={cn("font-bold tracking-tight text-slate-900 dark:text-slate-100", device === 'mobile' ? 'text-xl' : 'text-2xl')}>
-            Quy trình làm việc
-          </h2>
-        </div>
-        
-        <div className={cn(
-          "grid gap-3 max-w-3xl mx-auto",
-          device === 'mobile' ? 'grid-cols-1' : (steps.length <= 2 ? 'grid-cols-2 max-w-lg' : 'grid-cols-2 md:grid-cols-3')
-        )}>
-          {visibleSteps.map((step, idx) => (
-            <div 
-              key={step.id} 
-              className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start gap-3">
-                <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {step.icon || idx + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-1 line-clamp-1">
-                    {step.title || `Bước ${idx + 1}`}
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                    {step.description || 'Mô tả...'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {remainingCount > 0 && (
-          <div className="text-center mt-4">
-            <span className="text-xs" style={{ color: brandColor }}>+{remainingCount} bước khác</span>
-          </div>
-        )}
-      </div>
-    );
-  };
+  const { mode } = useBrandColors();
 
   return (
-    <PreviewWrapper 
-      title="Preview Process" 
-      device={device} 
-      setDevice={setDevice} 
-      previewStyle={previewStyle} 
-      setPreviewStyle={setPreviewStyle} 
-      styles={styles} 
-      info={getInfoText()}
-    >
-      <BrowserFrame>
-        {previewStyle === 'horizontal' && renderHorizontalStyle()}
-        {previewStyle === 'stepper' && renderStepperStyle()}
-        {previewStyle === 'cards' && renderCardsStyle()}
-        {previewStyle === 'accordion' && renderAccordionStyle()}
-        {previewStyle === 'minimal' && renderMinimalStyle()}
-        {previewStyle === 'grid' && renderGridStyle()}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <ProcessPreviewModern
+      steps={steps}
+      brandColor={brandColor}
+      secondary={secondary}
+      mode={mode}
+      selectedStyle={selectedStyle}
+      onStyleChange={onStyleChange}
+    />
   );
 };
 

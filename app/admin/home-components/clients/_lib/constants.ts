@@ -1,4 +1,26 @@
-import type { ClientsConfig } from '../_types';
+import type {
+  ClientsConfig,
+  ClientsHarmony,
+  ClientsStyle,
+} from '../_types';
+
+export const CLIENTS_STYLES: Array<{ id: ClientsStyle; label: string }> = [
+  { id: 'marquee', label: 'Marquee' },
+  { id: 'dualRow', label: 'Dual Row' },
+  { id: 'wave', label: 'Wave' },
+  { id: 'grid', label: 'Grid' },
+  { id: 'carousel', label: 'Carousel' },
+  { id: 'featured', label: 'Featured' },
+];
+
+export const DEFAULT_CLIENTS_HARMONY: ClientsHarmony = 'analogous';
+
+export const normalizeClientsHarmony = (value?: string): ClientsHarmony => {
+  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
+    return value;
+  }
+  return DEFAULT_CLIENTS_HARMONY;
+};
 
 export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
   items: [
@@ -9,4 +31,5 @@ export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
     },
   ],
   style: 'marquee',
+  harmony: DEFAULT_CLIENTS_HARMONY,
 };
