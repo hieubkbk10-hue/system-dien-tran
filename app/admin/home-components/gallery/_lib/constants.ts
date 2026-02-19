@@ -24,3 +24,24 @@ export const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
   { id: 'item-1', link: '', name: '', url: '' },
   { id: 'item-2', link: '', name: '', url: '' },
 ];
+
+type GalleryMarqueeItemLike = {
+  url?: string;
+  link?: string;
+  name?: string;
+};
+
+export const getGalleryMarqueeBaseItems = <T extends GalleryMarqueeItemLike>(items: T[]): T[] => {
+  const seen = new Set<string>();
+
+  return items
+    .filter((item) => item.url?.trim())
+    .filter((item) => {
+      const dedupeKey = `${item.url ?? ''}::${item.link ?? ''}::${item.name ?? ''}`;
+      if (seen.has(dedupeKey)) {
+        return false;
+      }
+      seen.add(dedupeKey);
+      return true;
+    });
+};

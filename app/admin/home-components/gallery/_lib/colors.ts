@@ -429,3 +429,27 @@ export const getGalleryValidationResult = ({
     autoHeal,
   };
 };
+
+export const buildGalleryWarningMessages = ({
+  mode,
+  validation,
+}: {
+  mode: GalleryBrandMode;
+  validation: ReturnType<typeof getGalleryValidationResult>;
+}) => {
+  if (mode !== 'dual') {
+    return [];
+  }
+
+  const messages: string[] = [];
+
+  if (validation.harmonyStatus.isTooSimilar) {
+    messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
+  }
+
+  if (validation.accessibility.failing.length > 0) {
+    messages.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+  }
+
+  return messages;
+};

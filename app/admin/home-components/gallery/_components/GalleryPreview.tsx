@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Pause, Play, Plus, X } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
+import { getGalleryMarqueeBaseItems } from '../_lib/constants';
 import type { GalleryItem, GalleryStyle } from '../_types';
 import { getGalleryColorTokens } from '../_lib/colors';
 import type { GalleryColorTokens } from '../_lib/colors';
@@ -146,6 +147,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
+  const [isMarqueeManuallyPaused, setIsMarqueeManuallyPaused] = useState(false);
+  const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const ONE = 1;
@@ -155,28 +158,30 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
     previewStyle = 'spotlight';
   }
   const layoutAccent = colors.sectionAccentBarByStyle[previewStyle] ?? colors.sectionAccentBar;
+  const marqueeBaseItems = React.useMemo(() => getGalleryMarqueeBaseItems(items), [items]);
+  const lightboxItems = previewStyle === 'marquee' ? marqueeBaseItems : items;
   const setPreviewStyle = (styleKey: string): void => {
     if (onStyleChange) {
       onStyleChange(styleKey as GalleryStyle);
     }
   };
-  
+
   // Lightbox navigation handler
   const handleLightboxNavigate = (direction: 'prev' | 'next'): void => {
-    if (!selectedPhoto) {return;}
-    const currentIdx = items.findIndex(item => item.id === selectedPhoto.id);
+    if (!selectedPhoto || lightboxItems.length === 0) {return;}
+    const currentIdx = lightboxItems.findIndex(item => item.id === selectedPhoto.id);
     if (currentIdx === NEGATIVE_ONE) {return;}
     let newIdx = currentIdx + ONE;
     if (direction === 'prev') {
-      newIdx = currentIdx - ONE + items.length;
+      newIdx = currentIdx - ONE + lightboxItems.length;
     }
-    setSelectedPhoto(items[newIdx % items.length]);
+    setSelectedPhoto(lightboxItems[newIdx % lightboxItems.length]);
   };
 
   // Get current photo index for lightbox
   let currentPhotoIndex = NEGATIVE_ONE;
   if (selectedPhoto) {
-    currentPhotoIndex = items.findIndex(item => item.id === selectedPhoto.id);
+    currentPhotoIndex = lightboxItems.findIndex(item => item.id === selectedPhoto.id);
   }
 
   const styles: { id: string; label: string }[] = [
@@ -408,19 +413,41 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   // Style 5: Gallery Marquee - Auto scroll horizontal
   const renderGalleryMarqueeStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
-    const marqueeItems = items.length > 1 ? [...items, ...items] : items;
-    const duration = Math.max(24, items.length * 4);
-    const shouldAnimate = items.length > 1 && !prefersReducedMotion;
+
+    if (marqueeBaseItems.length === 0) {return renderGalleryEmptyState();}
+
+    const marqueeItems = marqueeBaseItems.length > 1
+      ? [...marqueeBaseItems, ...marqueeBaseItems]
+      : marqueeBaseItems;
+    const duration = Math.max(24, marqueeBaseItems.length * 4);
+    const shouldAnimate = marqueeBaseItems.length > 1;
+    const isPaused = isMarqueeManuallyPaused || isMarqueeInteractionPaused || prefersReducedMotion;
 
     return (
       <div className="py-8">
         <style>{`
           @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .gallery-marquee-container:hover .gallery-marquee-track,
-          .gallery-marquee-container:focus-within .gallery-marquee-track { animation-play-state: paused; }
           @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
         `}</style>
         <div className="gallery-marquee-container w-full relative overflow-hidden">
+          <div className="mb-3 flex justify-end px-4">
+            <button
+              type="button"
+              aria-pressed={isMarqueeManuallyPaused}
+              onClick={() =>{  setIsMarqueeManuallyPaused(prev => !prev); }}
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs md:text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{
+                borderColor: colors.neutralBorder,
+                color: colors.badgeText,
+                backgroundColor: colors.badgeBg,
+                '--tw-ring-color': layoutAccent,
+              } as React.CSSProperties}
+              aria-label={isMarqueeManuallyPaused ? 'Phát lại marquee' : 'Tạm dừng marquee'}
+            >
+              {isMarqueeManuallyPaused ? <Play size={14} /> : <Pause size={14} />}
+              {isMarqueeManuallyPaused ? 'Play' : 'Pause'}
+            </button>
+          </div>
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-24 bg-gradient-to-r from-white via-white/70 to-transparent dark:from-slate-900 dark:via-slate-900/70 z-10"
           />
@@ -429,28 +456,49 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           />
           <div
             className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
-            style={{ '--duration': `${duration}s`, width: 'max-content', animation: shouldAnimate ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none' } as React.CSSProperties}
+            style={{
+              '--duration': `${duration}s`,
+              width: 'max-content',
+              animation: shouldAnimate && !isPaused ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none',
+            } as React.CSSProperties}
+            onMouseEnter={() =>{  setIsMarqueeInteractionPaused(true); }}
+            onMouseLeave={() =>{  setIsMarqueeInteractionPaused(false); }}
+            onFocusCapture={() =>{  setIsMarqueeInteractionPaused(true); }}
+            onBlurCapture={() =>{  setIsMarqueeInteractionPaused(false); }}
+            onTouchStart={() =>{  setIsMarqueeInteractionPaused(true); }}
+            onTouchEnd={() =>{  setIsMarqueeInteractionPaused(false); }}
+            onTouchCancel={() =>{  setIsMarqueeInteractionPaused(false); }}
           >
-            {marqueeItems.map((photo, idx) => (
-              <div 
-                key={`gallery-marquee-${photo.id}-${idx}`} 
-                className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden cursor-pointer group relative bg-white/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700/60 shadow-[0_10px_30px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.06)]"
-                onClick={() =>{  setSelectedPhoto(photo); }}
-              >
-                {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                    <ImageIcon size={32} className="text-slate-300" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: layoutAccent }}
-                />
-              </div>
-            ))}
+            {marqueeItems.map((photo, idx) => {
+              const visualIndex = idx % marqueeBaseItems.length;
+              const displayIndex = visualIndex + ONE;
+              const imageLabel = photo.name?.trim() || `Ảnh ${displayIndex} trong thư viện ảnh`;
+              return (
+                <button
+                  type="button"
+                  key={`gallery-marquee-${photo.id}-${idx}`}
+                  className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden group relative bg-white/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700/60 shadow-[0_10px_30px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.06)] text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  style={{
+                    '--tw-ring-color': layoutAccent,
+                  } as React.CSSProperties}
+                  onClick={() =>{  setSelectedPhoto(photo); }}
+                  aria-label={`Mở ${imageLabel}`}
+                >
+                  {photo.url ? (
+                    <PreviewImage src={photo.url} alt={imageLabel} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <ImageIcon size={32} className="text-slate-300" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ borderColor: layoutAccent }}
+                  />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -545,10 +593,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
           {previewStyle === 'masonry' && renderGalleryMasonryStyle()}
         </div>
       </div>
-      <GalleryLightbox 
-        photo={selectedPhoto} 
+      <GalleryLightbox
+        photo={selectedPhoto}
         onClose={() =>{  setSelectedPhoto(null); }}
-        photos={items}
+        photos={lightboxItems}
         currentIndex={currentPhotoIndex}
         onNavigate={handleLightboxNavigate}
         colors={colors}

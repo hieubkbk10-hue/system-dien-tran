@@ -1,26 +1,20 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Image as ImageIcon, Loader2 } from 'lucide-react';
+import { AlertTriangle, Eye, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
 import { GalleryForm } from '../../_components/GalleryForm';
 import { GalleryPreview } from '../../_components/GalleryPreview';
-import { TrustBadgesPreview } from '../../_components/TrustBadgesPreview';
 import { DEFAULT_GALLERY_ITEMS } from '../../_lib/constants';
-import { getGalleryPersistSafeColors, normalizeGalleryHarmony } from '../../_lib/colors';
-import type { GalleryItem, GalleryStyle, TrustBadgesStyle } from '../../_types';
-
-const TYPE_TITLES: Record<'Gallery' | 'TrustBadges', string> = {
-  Gallery: 'Thư viện ảnh',
-  TrustBadges: 'Chứng nhận'
-};
+import { buildGalleryWarningMessages, getGalleryPersistSafeColors, getGalleryValidationResult, normalizeGalleryHarmony } from '../../_lib/colors';
+import type { GalleryItem, GalleryStyle } from '../../_types';
 
 export default function GalleryEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -33,18 +27,36 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
   const [active, setActive] = useState(true);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(DEFAULT_GALLERY_ITEMS);
   const [galleryStyle, setGalleryStyle] = useState<GalleryStyle>('grid');
-  const [trustBadgesStyle, setTrustBadgesStyle] = useState<TrustBadgesStyle>('cards');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
 
+  const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
+
+  const validation = useMemo(
+    () => getGalleryValidationResult({ primary, secondary, mode, harmony }),
+    [primary, secondary, mode, harmony],
+  );
+
+  const warningMessages = useMemo(
+    () => buildGalleryWarningMessages({ mode, validation }),
+    [mode, validation],
+  );
+
   useEffect(() => {
     if (!component) {return;}
+
     if (component.type === 'Partners') {
       router.replace(`/admin/home-components/partners/${id}/edit`);
       return;
     }
-    if (component.type !== 'Gallery' && component.type !== 'TrustBadges') {
+
+    if (component.type === 'TrustBadges') {
+      router.replace(`/admin/home-components/trust-badges/${id}/edit`);
+      return;
+    }
+
+    if (component.type !== 'Gallery') {
       router.replace(`/admin/home-components/${id}/edit`);
       return;
     }
@@ -56,18 +68,16 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
     const items = (config.items as { url: string; link: string; name?: string }[] | undefined) ?? DEFAULT_GALLERY_ITEMS;
     const normalizedItems = items.map((item, idx) => ({ id: `item-${idx + 1}`, link: item.link || '', name: item.name ?? '', url: item.url }));
     setGalleryItems(normalizedItems);
-    const nextTrustBadgesStyle = (config.style as TrustBadgesStyle) || 'cards';
+
     const nextGalleryStyle = (config.style as GalleryStyle) || 'grid';
-    if (component.type === 'TrustBadges') {
-      setTrustBadgesStyle(nextTrustBadgesStyle);
-    } else {
-      setGalleryStyle(nextGalleryStyle);
-    }
+    setGalleryStyle(nextGalleryStyle);
+
     setInitialSnapshot(JSON.stringify({
       title: component.title,
       active: component.active,
       items: normalizedItems,
-      style: component.type === 'TrustBadges' ? nextTrustBadgesStyle : nextGalleryStyle,
+      style: nextGalleryStyle,
+      harmony,
       type: component.type,
     }));
   }, [component, id, router]);
@@ -78,23 +88,18 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
       title,
       active,
       items: galleryItems,
-      style: component.type === 'TrustBadges' ? trustBadgesStyle : galleryStyle,
+      style: galleryStyle,
+      harmony,
       type: component.type,
     });
     setHasChanges(snapshot !== initialSnapshot);
-  }, [title, active, galleryItems, galleryStyle, trustBadgesStyle, component, initialSnapshot]);
+  }, [title, active, galleryItems, galleryStyle, harmony, component, initialSnapshot]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
 
-    const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
-    const { autoHeal } = getGalleryPersistSafeColors({
-      primary,
-      secondary,
-      mode,
-      harmony,
-    });
+    const { autoHeal } = getGalleryPersistSafeColors({ primary, secondary, mode, harmony });
 
     if (autoHeal.didAutoHealHarmony || autoHeal.didAutoHealText) {
       const messages: string[] = [];
@@ -115,8 +120,9 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
       await updateMutation({
         active,
         config: {
+          harmony,
           items: galleryItems.map((item) => ({ link: item.link, name: item.name, url: item.url })),
-          style: component?.type === 'TrustBadges' ? trustBadgesStyle : galleryStyle,
+          style: galleryStyle,
         },
         id: id as Id<'homeComponents'>,
         title,
@@ -126,7 +132,8 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
         title,
         active,
         items: galleryItems,
-        style: component?.type === 'TrustBadges' ? trustBadgesStyle : galleryStyle,
+        style: galleryStyle,
+        harmony,
         type: component?.type,
       }));
       setHasChanges(false);
@@ -150,13 +157,10 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  const componentType = component.type as 'Gallery' | 'TrustBadges';
-  const titleLabel = TYPE_TITLES[componentType];
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa {titleLabel}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa Thư viện ảnh</h1>
         <Link href="/admin/home-components" className="text-sm text-blue-600 hover:underline">Quay lại danh sách</Link>
       </div>
 
@@ -165,7 +169,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ImageIcon size={20} />
-              {titleLabel}
+              Thư viện ảnh
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -183,14 +187,14 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
                 )}
                 onClick={() =>{  setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5'
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -201,23 +205,13 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
         <GalleryForm
           galleryItems={galleryItems}
           setGalleryItems={setGalleryItems}
-          componentType={componentType}
+          componentType="Gallery"
           style={galleryStyle}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
-              {componentType === 'TrustBadges' ? (
-            <TrustBadgesPreview
-              items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
-              selectedStyle={trustBadgesStyle}
-              onStyleChange={setTrustBadgesStyle}
-            />
-              ) : (
             <GalleryPreview
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
               brandColor={primary}
@@ -226,9 +220,21 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
               selectedStyle={galleryStyle}
               onStyleChange={setGalleryStyle}
             />
-              )}
           </div>
         </div>
+
+        {warningMessages.length > 0 && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="space-y-2">
+              {warningMessages.map((message, idx) => (
+                <div key={`${idx}-${message}`} className="flex items-start gap-2">
+                  {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
+                  <p>{message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>

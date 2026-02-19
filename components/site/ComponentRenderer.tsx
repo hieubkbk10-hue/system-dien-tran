@@ -34,13 +34,14 @@ import {
   getTestimonialsSectionColors,
   normalizeTestimonialsHarmony,
 } from '@/app/admin/home-components/testimonials/_lib/colors';
-import { getGalleryColorTokens, type GalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
+import { getGalleryColorTokens, normalizeGalleryHarmony, type GalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import type { ProcessBrandMode } from '@/app/admin/home-components/process/_types';
 import { normalizeProcessRenderSteps, normalizeProcessStyle } from '@/app/admin/home-components/process/_lib/normalize';
 import { ProcessSectionShared } from '@/app/admin/home-components/process/_components/ProcessSectionShared';
 import { FeaturesSectionShared } from '@/app/admin/home-components/features/_components/FeaturesSectionShared';
 import { normalizeFeaturesHarmony } from '@/app/admin/home-components/features/_lib/constants';
+import { getGalleryMarqueeBaseItems } from '@/app/admin/home-components/gallery/_lib/constants';
 import { ServicesSectionCore } from './ServicesSectionCore';
 import type { ServiceItem, ServicesStyle } from '@/app/admin/home-components/services/_types';
 import { getServicesColors, normalizeServicesHarmony } from '@/app/admin/home-components/services/_lib/colors';
@@ -2940,11 +2941,17 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   secondary: string; mode: 'single' | 'dual'; title: string; type: string }) {
   const items = (config.items as { url: string; link?: string; name?: string }[]) || [];
   const style = (config.style as GalleryStyle) || (type === 'Gallery' ? 'spotlight' : 'grid');
+  const harmony = normalizeGalleryHarmony((config.harmony as string | undefined));
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ id: string; url: string; link?: string; name?: string } | null>(null);
   const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const [isMarqueeManuallyPaused, setIsMarqueeManuallyPaused] = React.useState(false);
+  const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = React.useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
   const layoutAccent = colors.sectionAccentBarByStyle[style as keyof typeof colors.sectionAccentBarByStyle] ?? colors.sectionAccentBar;
   const normalizedItems = items.map((item, idx) => ({ ...item, id: item.url ? `${item.url}-${idx}` : `gallery-${idx}` }));
+  const marqueeBaseItems = React.useMemo(() => getGalleryMarqueeBaseItems(normalizedItems), [normalizedItems]);
+  const lightboxItems = style === 'marquee' ? marqueeBaseItems : normalizedItems;
 
   React.useEffect(() => {
     const updateDevice = () => {
@@ -2964,18 +2971,31 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return () => window.removeEventListener('resize', updateDevice);
   }, []);
 
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotion = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updateMotion();
+    mediaQuery.addEventListener('change', updateMotion);
+    return () => {
+      mediaQuery.removeEventListener('change', updateMotion);
+    };
+  }, []);
+
   const handleLightboxNavigate = (direction: 'prev' | 'next') => {
-    if (!selectedPhoto) {return;}
-    const currentIdx = normalizedItems.findIndex(item => item.id === selectedPhoto.id);
+    if (!selectedPhoto || lightboxItems.length === 0) {return;}
+    const currentIdx = lightboxItems.findIndex(item => item.id === selectedPhoto.id);
     if (currentIdx === -1) {return;}
     const nextIdx = direction === 'prev'
-      ? (currentIdx - 1 + normalizedItems.length) % normalizedItems.length
-      : (currentIdx + 1) % normalizedItems.length;
-    setSelectedPhoto(normalizedItems[nextIdx]);
+      ? (currentIdx - 1 + lightboxItems.length) % lightboxItems.length
+      : (currentIdx + 1) % lightboxItems.length;
+    setSelectedPhoto(lightboxItems[nextIdx]);
   };
 
   const currentPhotoIndex = selectedPhoto
-    ? normalizedItems.findIndex(item => item.id === selectedPhoto.id)
+    ? lightboxItems.findIndex(item => item.id === selectedPhoto.id)
     : -1;
 
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) - Only for type === 'Gallery' ============
@@ -3170,28 +3190,60 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
 
   const renderGalleryMarqueeStyle = () => {
     if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
-    const marqueeItems = normalizedItems.length > 1 ? [...normalizedItems, ...normalizedItems] : normalizedItems;
-    const duration = Math.max(24, normalizedItems.length * 4);
-    const shouldAnimate = normalizedItems.length > 1;
+    if (marqueeBaseItems.length === 0) {return renderGalleryEmptyState();}
+
+    const marqueeItems = marqueeBaseItems.length > 1 ? [...marqueeBaseItems, ...marqueeBaseItems] : marqueeBaseItems;
+    const duration = Math.max(24, marqueeBaseItems.length * 4);
+    const shouldAnimate = marqueeBaseItems.length > 1;
+    const isPaused = isMarqueeManuallyPaused || isMarqueeInteractionPaused || prefersReducedMotion;
 
     return (
       <div className="py-8">
         <style>{`
           @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .gallery-marquee-container:hover .gallery-marquee-track,
-          .gallery-marquee-container:focus-within .gallery-marquee-track { animation-play-state: paused; }
           @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
         `}</style>
         <div className="gallery-marquee-container w-full relative overflow-hidden">
+          <div className="mb-3 flex justify-end px-4">
+            <button
+              type="button"
+              aria-pressed={isMarqueeManuallyPaused}
+              onClick={() => { setIsMarqueeManuallyPaused((prev) => !prev); }}
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs md:text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{
+                borderColor: colors.neutralBorder,
+                color: colors.badgeText,
+                backgroundColor: colors.badgeBg,
+                '--tw-ring-color': layoutAccent,
+              } as React.CSSProperties}
+              aria-label={isMarqueeManuallyPaused ? 'Phát lại marquee' : 'Tạm dừng marquee'}
+            >
+              {isMarqueeManuallyPaused ? <Play size={14} /> : <Pause size={14} />}
+              {isMarqueeManuallyPaused ? 'Play' : 'Pause'}
+            </button>
+          </div>
           <div
             className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
-            style={{ '--duration': `${duration}s`, width: 'max-content', animation: shouldAnimate ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none' } as React.CSSProperties}
+            style={{
+              '--duration': `${duration}s`,
+              width: 'max-content',
+              animation: shouldAnimate && !isPaused ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none'
+            } as React.CSSProperties}
+            onMouseEnter={() => { setIsMarqueeInteractionPaused(true); }}
+            onMouseLeave={() => { setIsMarqueeInteractionPaused(false); }}
+            onFocusCapture={() => { setIsMarqueeInteractionPaused(true); }}
+            onBlurCapture={() => { setIsMarqueeInteractionPaused(false); }}
+            onTouchStart={() => { setIsMarqueeInteractionPaused(true); }}
+            onTouchEnd={() => { setIsMarqueeInteractionPaused(false); }}
+            onTouchCancel={() => { setIsMarqueeInteractionPaused(false); }}
           >
             {marqueeItems.map((photo, idx) => (
-              <div 
-                key={`gallery-marquee-${photo.id}-${idx}`} 
-                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative"
-                onClick={() =>{  setSelectedPhoto(photo); }}
+              <button
+                type="button"
+                key={`gallery-marquee-${photo.id}-${idx}`}
+                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative bg-transparent border-none p-0 text-left"
+                onClick={() => { setSelectedPhoto(photo); }}
+                aria-label={`Mở ảnh ${((idx % marqueeBaseItems.length) + 1)}`}
               >
                 {photo.url ? (
                   <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
@@ -3204,7 +3256,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ borderColor: layoutAccent }}
                 />
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -3294,10 +3346,10 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
           {style === 'masonry' && renderGalleryMasonryStyle()}
         </div>
       </div>
-      <GalleryLightbox 
-        photo={selectedPhoto} 
+      <GalleryLightbox
+        photo={selectedPhoto}
         onClose={() =>{  setSelectedPhoto(null); }}
-        photos={normalizedItems}
+        photos={lightboxItems}
         currentIndex={currentPhotoIndex}
         onNavigate={handleLightboxNavigate}
         colors={colors}
@@ -6650,7 +6702,7 @@ function ClientsSection({ config, brandColor, secondary, title }: { config: Reco
 
 // ============ VIDEO SECTION ============
 // 6 Styles: centered, split, fullwidth, cinema, minimal, parallax
-import { Play, Video as VideoIcon } from 'lucide-react';
+import { Pause, Play, Video as VideoIcon } from 'lucide-react';
 
 type VideoStyle = 'centered' | 'split' | 'fullwidth' | 'cinema' | 'minimal' | 'parallax';
 
