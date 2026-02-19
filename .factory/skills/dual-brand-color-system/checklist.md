@@ -3,7 +3,7 @@
 ## A. Core
 
 - [ ] OKLCH only (không HSL/getTint/getShade)
-- [ ] APCA cho text/UI, không hard-code #fff/#000
+- [ ] APCA cho text/icon/UI, không hard-code #fff/#000
 - [ ] Palette đủ: solid/surface/hover/active/border/disabled
 - [ ] Single mode auto-suggest secondary (harmony)
 - [ ] Dual mode có similarity check (ΔE >= 20)
@@ -14,6 +14,7 @@
 - [ ] Cấm dùng text token cross-context cho badge (vd interactiveText trên surface khác)
 - [ ] Badge text trên nền solid phải chọn bằng luminance/contrast (white vs `#111`), lấy màu có contrast cao hơn
 - [ ] Kết quả chọn bằng luminance phải đi qua APCA guard (`ensureAPCATextColor`) theo fontSize/fontWeight
+- [ ] Icon trên nền solid (badge/shield/cards) phải dùng token đã qua APCA guard, không dùng màu brand trực tiếp nếu chưa check LC
 - [ ] `apca-w3`: tính LC bằng `APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb))`, không truyền hex trực tiếp
 - [ ] Cấm mọi callsite `APCAcontrast(textHex, bgHex)` dạng string trực tiếp
 - [ ] `ensureAPCATextColor(...)` phải check LC của preferred theo threshold rồi mới fallback `getAPCATextColor(...)`

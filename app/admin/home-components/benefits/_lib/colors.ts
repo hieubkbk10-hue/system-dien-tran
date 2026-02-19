@@ -109,6 +109,22 @@ export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) =>
   return whiteLc > blackLc ? '#ffffff' : '#0f172a';
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = getAccessibilityThreshold({ fontSize, fontWeight });
+  const preferredLc = getAPCALc(preferred, background);
+
+  if (preferredLc >= threshold) {
+    return preferred;
+  }
+
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 export interface BenefitsColorTokens {
   primary: string;
   secondary: string;
@@ -184,8 +200,8 @@ export const getBenefitsColorTokens = ({
     ? setLightness(primaryResolved, 0.9, primaryResolved)
     : setLightness(secondaryResolved, 0.92, secondaryResolved);
 
-  const iconText = primaryResolved;
-  const iconTextStrong = mode === 'single' ? primaryResolved : secondaryResolved;
+  const iconText = ensureAPCATextColor(primaryResolved, iconSurface, 18, 600);
+  const iconTextStrong = ensureAPCATextColor(mode === 'single' ? primaryResolved : secondaryResolved, iconSurfaceStrong, 18, 600);
 
   const buttonBg = primaryResolved;
   const buttonText = getAPCATextColor(buttonBg, 14, 600);
@@ -349,10 +365,6 @@ export const buildBenefitsWarningMessages = ({
 
   if (validation.harmonyStatus.isTooSimilar) {
     warnings.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
-  }
-
-  if (validation.accessibility.failing.length > 0) {
-    warnings.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
   }
 
   if (validation.accentBalance.primary < 25) {

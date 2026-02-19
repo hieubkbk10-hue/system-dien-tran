@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.6.5
+version: 11.6.6
 ---
 
 # Dual Brand Color System (Home Components)
@@ -61,6 +61,7 @@ version: 11.6.5
 ### 2) APCA Contrast
 
 - Text/UI nên pass APCA thresholds
+- Icon trên nền solid (ví dụ icon check trong badge/shield layout Cards) phải guard APCA như text
 - Luôn dùng `Math.abs(APCAcontrast(...))`
 - Bắt buộc pipeline APCA: `hex -> rgb tuple -> sRGBtoY -> APCAcontrast`
 - **Cấm** gọi `APCAcontrast('#fff', '#000')` hoặc truyền hex/string trực tiếp vào APCA
