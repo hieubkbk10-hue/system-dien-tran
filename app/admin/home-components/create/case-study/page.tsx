@@ -1,10 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Eye, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { CaseStudyStyle } from '../../case-study/_types';
+import {
+  getCaseStudyValidationResult,
+  normalizeCaseStudyHarmony,
+} from '../../case-study/_lib/colors';
+import type {
+  CaseStudyBrandMode,
+  CaseStudyHarmony,
+  CaseStudyStyle,
+} from '../../case-study/_types';
 import { CaseStudyPreview } from '../../case-study/_components/CaseStudyPreview';
 import { SettingsImageUploader } from '../../../components/SettingsImageUploader';
 
@@ -19,7 +27,10 @@ interface Project {
 
 export default function CaseStudyCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', 'CaseStudy');
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
+  const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
+  const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
+  const [warningMessages, setWarningMessages] = useState<string[]>([]);
   const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
   
   // Reset carousel index when changing away from carousel style
@@ -56,9 +67,30 @@ export default function CaseStudyCreatePage() {
   };
 
   const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { 
+    const { harmonyStatus, accessibility } = getCaseStudyValidationResult({
+      primary,
+      secondary,
+      mode: brandMode,
+      harmony,
+      style: caseStudyStyle,
+    });
+
+    const warnings: string[] = [];
+
+    if (brandMode === 'dual' && harmonyStatus.isTooSimilar) {
+      warnings.push(`Hai màu quá giống nhau (deltaE = ${harmonyStatus.deltaE}).`);
+    }
+
+    if (accessibility.failing.length > 0) {
+      warnings.push(`Một số cặp màu chữ/nền có độ tương phản thấp (minLc = ${accessibility.minLc.toFixed(1)}).`);
+    }
+
+    setWarningMessages(warnings);
+
+    void handleSubmit(e, {
       projects: projects.map(p => ({ category: p.category, description: p.description, image: p.image, link: p.link, title: p.title })),
-      style: caseStudyStyle
+      style: caseStudyStyle,
+      harmony,
     });
   };
 
@@ -157,19 +189,44 @@ export default function CaseStudyCreatePage() {
         </CardContent>
       </Card>
 
-      <CaseStudyPreview 
-        projects={projects.map((p, idx) => ({ 
-          category: p.category, 
-          description: p.description, 
-          id: idx + 1, 
-          image: p.image, 
-          link: p.link, 
-          title: p.title 
-        }))} 
-        brandColor={primary} secondary={secondary}
+      <CaseStudyPreview
+        projects={projects.map((p, idx) => ({
+          category: p.category,
+          description: p.description,
+          id: idx + 1,
+          image: p.image,
+          link: p.link,
+          title: p.title
+        }))}
+        brandColor={primary}
+        secondary={secondary}
+        mode={brandMode}
         selectedStyle={caseStudyStyle}
         onStyleChange={setCaseStudyStyle}
       />
+
+      {brandMode === 'dual' && warningMessages.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {warningMessages.map((message, idx) => {
+            const isContrastWarning = message.includes('minLc');
+            return (
+              <div
+                key={`${message}-${idx}`}
+                className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700"
+              >
+                <div className="flex items-start gap-2">
+                  {isContrastWarning ? (
+                    <Eye size={14} className="mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+                  )}
+                  <p>{message}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </ComponentFormWrapper>
   );
 }

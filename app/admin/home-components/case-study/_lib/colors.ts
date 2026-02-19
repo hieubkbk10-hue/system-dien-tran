@@ -61,6 +61,22 @@ export const getAPCATextColor = (background: string, fontSize = 16, fontWeight =
   return whiteLc > blackLc ? '#ffffff' : '#0f172a';
 };
 
+const ensureAPCATextColor = (
+  preferred: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500,
+) => {
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  const preferredLc = getAPCALc(preferred, background);
+
+  if (preferredLc >= threshold) {
+    return preferred;
+  }
+
+  return getAPCATextColor(background, fontSize, fontWeight);
+};
+
 const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
   const color = safeParseOklch(hex, DEFAULT_BRAND_COLOR);
   return formatHex(oklch({ ...color, l: clampLightness((color.l ?? 0.62) + lightnessIncrease) }));
@@ -220,7 +236,7 @@ export const getCaseStudyColors = (
   const mutedText = '#64748b';
 
   const badgeBackground = secondaryPalette.surface;
-  const badgeText = getAPCATextColor(badgeBackground, 12, 600);
+  const badgeText = ensureAPCATextColor('#0f172a', badgeBackground, 12, 600);
 
   return {
     primary: primaryResolved,

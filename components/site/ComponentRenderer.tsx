@@ -183,7 +183,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <CareerSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'CaseStudy': {
-      return <CaseStudySection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <CaseStudySection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'SpeedDial': {
       return <SpeedDialSection config={config} brandColor={brandColor} secondary={secondary} />;
@@ -4158,384 +4158,55 @@ function CareerSection({ config, brandColor, secondary, title }: { config: Recor
 
 // ============ CASE STUDY SECTION ============
 // 6 Professional Styles following Best Practices: Grid, Featured, List, Masonry, Carousel, Timeline
-type CaseStudyStyle = 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
-function CaseStudySection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
-  const projects = (config.projects as { title: string; category: string; image: string; description: string; link: string }[]) || [];
-  const style = (config.style as CaseStudyStyle) || 'grid';
-  const caseStudyCarouselId = useSafeId('casestudy-carousel');
+function CaseStudySection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
+  const projects = ((config.projects as {
+    title?: string;
+    category?: string;
+    image?: string;
+    description?: string;
+    link?: string;
+  }[]) ?? []).map((project, idx) => ({
+    id: idx,
+    title: project.title ?? '',
+    category: project.category ?? '',
+    image: project.image ?? '',
+    description: project.description ?? '',
+    link: project.link ?? '',
+  }));
+  const style = (
+    config.style === 'grid'
+    || config.style === 'featured'
+    || config.style === 'list'
+    || config.style === 'masonry'
+    || config.style === 'carousel'
+    || config.style === 'timeline'
+  )
+    ? config.style
+    : 'grid';
+  const harmony = normalizeCaseStudyHarmony((config.harmony as string | undefined) ?? 'analogous');
+  const tokens = getCaseStudyColors(brandColor, secondary, mode, harmony);
 
-  // Empty State
-  if (projects.length === 0) {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4 text-slate-900">{title}</h2>
-          <p className="text-slate-500">Chưa có dự án nào để hiển thị</p>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 1: Grid - 3 columns with equal height cards
-  if (style === 'grid') {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project, idx) => (
-              <a 
-                key={idx} 
-                href={project.link || '#'} 
-                className="group block bg-white rounded-xl overflow-hidden transition-all border"
-                style={{ borderColor: `${secondary}15` }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}15`;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="aspect-[3/2] bg-slate-100 overflow-hidden">
-                  {project.image ? (
-                    <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon size={32} className="text-slate-300" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-5 flex flex-col h-full">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full w-fit" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-                    {project.category || 'Category'}
-                  </span>
-                  <h3 className="font-semibold text-slate-900 mt-2 mb-1 line-clamp-2 min-h-[3rem]">{project.title || 'Tên dự án'}</h3>
-                  <p className="text-slate-500 text-sm line-clamp-2 min-h-[2.5rem]">{project.description}</p>
-                  <div className="mt-3 flex items-center gap-1 text-sm font-medium" style={{ color: secondary }}>
-                    Xem chi tiết <ArrowRight size={14} />
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 2: Featured - 1 large + 2 small layout
-  if (style === 'featured') {
-    const featured = projects[0];
-    const others = projects.slice(1, 3);
-    
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Featured large card */}
-            {featured && (
-              <a href={featured.link || '#'} className="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 md:row-span-2">
-                <div className="aspect-video bg-slate-100 overflow-hidden">
-                  {featured.image ? (
-                    <SiteImage src={featured.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon size={48} className="text-slate-300" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <span className="text-xs font-medium" style={{ color: secondary }}>{featured.category || 'Category'}</span>
-                  <h3 className="text-xl font-bold text-slate-900 mt-1 mb-2">{featured.title || 'Dự án chính'}</h3>
-                  <p className="text-slate-500">{featured.description}</p>
-                </div>
-              </a>
-            )}
-            
-            {/* Other smaller cards */}
-            {others.map((project, idx) => (
-              <a key={idx} href={project.link || '#'} className="group block bg-white rounded-xl p-5 border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-                <div className="w-24 h-24 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {project.image ? (
-                    <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <ImageIcon size={24} className="text-slate-300" />
-                  )}
-                </div>
-                <div>
-                  <span className="text-xs font-medium" style={{ color: secondary }}>{project.category || 'Category'}</span>
-                  <h4 className="font-semibold text-slate-900 mt-1">{project.title || 'Tên dự án'}</h4>
-                  <p className="text-sm text-slate-500 mt-1 line-clamp-1">{project.description}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 3: List - Horizontal list layout
-  if (style === 'list') {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="space-y-4">
-            {projects.map((project, idx) => (
-              <a 
-                key={idx} 
-                href={project.link || '#'} 
-                className="group block bg-white rounded-xl overflow-hidden border flex flex-col md:flex-row md:items-center transition-all"
-                style={{ borderColor: `${secondary}15` }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}40`;
-                  e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = `${secondary}15`;
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div className="aspect-video md:aspect-auto md:w-48 md:h-28 bg-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {project.image ? (
-                    <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <ImageIcon size={24} className="text-slate-300" />
-                  )}
-                </div>
-                <div className="p-5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-                      {project.category || 'Category'}
-                    </span>
-                  </div>
-                  <h4 className="font-semibold text-slate-900 truncate">{project.title || 'Tên dự án'}</h4>
-                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">{project.description}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Masonry - Pinterest-style layout
-  if (style === 'masonry') {
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
-            {projects.map((project, idx) => {
-              const heights = ['aspect-[4/5]', 'aspect-[4/3]', 'aspect-square'];
-              const height = heights[idx % 3];
-              return (
-                <a 
-                  key={idx} 
-                  href={project.link || '#'} 
-                  className="break-inside-avoid mb-6 block bg-white rounded-xl overflow-hidden border group transition-all"
-                  style={{ borderColor: `${secondary}15` }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div className={`${height} bg-slate-100 overflow-hidden`}>
-                    {project.image ? (
-                      <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon size={32} className="text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-                      {project.category || 'Category'}
-                    </span>
-                    <h4 className="font-semibold text-slate-900 mt-2 line-clamp-2">{project.title || 'Tên dự án'}</h4>
-                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">{project.description}</p>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Carousel - Horizontal scroll carousel
-  if (style === 'carousel') {
-    const cardWidth = 320;
-    const gap = 24;
-    // Responsive: Desktop ~3 items (320px each), chỉ hiện arrows khi có > 3 items
-    const showArrows = projects.length > 3;
-
-    return (
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-slate-900">{title}</h2>
-            {showArrows && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${caseStudyCarouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                  }}
-                  className="w-10 h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                  style={{ borderColor: `${secondary}20` }}
-                >
-                  <ChevronLeft size={20} style={{ color: secondary }} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const container = document.querySelector(`#${caseStudyCarouselId}`);
-                    if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                  }}
-                  className="w-10 h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                  style={{ borderColor: `${secondary}20` }}
-                >
-                  <ChevronRight size={20} style={{ color: secondary }} />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="relative">
-            <div
-              id={caseStudyCarouselId}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-6 py-4 px-2 cursor-grab active:cursor-grabbing select-none"
-              style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseUp={(e) => { e.currentTarget.dataset.isDown = 'false'; e.currentTarget.style.scrollBehavior = 'smooth'; }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {projects.map((project, idx) => (
-                <a
-                  key={idx}
-                  href={project.link || '#'}
-                  className="snap-start flex-shrink-0 w-[320px] bg-white rounded-xl overflow-hidden border group transition-all hover:shadow-lg"
-                  style={{ borderColor: `${secondary}15` }}
-                  draggable={false}
-                >
-                  <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
-                    {project.image ? (
-                      <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" draggable={false} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon size={32} className="text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-                      {project.category || 'Category'}
-                    </span>
-                    <h4 className="font-semibold text-slate-900 mt-2 line-clamp-2 min-h-[3rem]">{project.title || 'Tên dự án'}</h4>
-                    <p className="text-sm text-slate-500 mt-1 line-clamp-2 min-h-[2.5rem]">{project.description}</p>
-                  </div>
-                </a>
-              ))}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
-          </div>
-          <style>{`#${caseStudyCarouselId}::-webkit-scrollbar { display: none; }`}</style>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Timeline - Vertical timeline
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">{title}</h2>
-        <div className="relative">
-          {/* Vertical Line */}
-          <div 
-            className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-0.5" 
-            style={{ backgroundColor: `${secondary}20` }} 
-          />
-          <div className="space-y-8">
-            {projects.map((project, idx) => (
-              <div 
-                key={idx} 
-                className={`relative flex items-start ${idx % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
-              >
-                {/* Dot */}
-                <div 
-                  className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-4 bg-white flex items-center justify-center text-xs font-bold z-10" 
-                  style={{ borderColor: brandColor, color: secondary }}
-                >
-                  {idx + 1}
-                </div>
-                {/* Content Card */}
-                <a 
-                  href={project.link || '#'} 
-                  className="w-5/12 bg-white rounded-xl overflow-hidden border transition-all group"
-                  style={{ borderColor: `${secondary}15` }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}40`;
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${secondary}10`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = `${secondary}15`;
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div className="aspect-[4/3] bg-slate-100 overflow-hidden">
-                    {project.image ? (
-                      <SiteImage src={project.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon size={32} className="text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${secondary}15`, color: secondary }}>
-                      {project.category || 'Category'}
-                    </span>
-                    <h4 className="font-bold text-slate-900 mt-2 mb-1 line-clamp-2">{project.title || 'Tên dự án'}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">{project.description}</p>
-                  </div>
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+    <CaseStudySectionShared
+      projects={projects}
+      style={style}
+      mode={mode}
+      tokens={tokens}
+      context="site"
+      title={title}
+    />
   );
 }
 

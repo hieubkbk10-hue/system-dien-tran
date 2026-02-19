@@ -1,23 +1,34 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { FileText, Loader2 } from 'lucide-react';
+import { AlertTriangle, Eye, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
+import {
+  getCaseStudyValidationResult,
+  normalizeCaseStudyHarmony,
+} from '../../_lib/colors';
 import { CaseStudyForm } from '../../_components/CaseStudyForm';
 import { CaseStudyPreview } from '../../_components/CaseStudyPreview';
-import type { CaseStudyProject, CaseStudyStyle } from '../../_types';
+import type {
+  CaseStudyBrandMode,
+  CaseStudyHarmony,
+  CaseStudyProject,
+  CaseStudyStyle,
+} from '../../_types';
 
 export default function CaseStudyEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
+  const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
+  const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -26,6 +37,9 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
   const [projects, setProjects] = useState<CaseStudyProject[]>([]);
   const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [warningMessages, setWarningMessages] = useState<string[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialState, setInitialState] = useState<string>('');
 
   useEffect(() => {
     if (component) {
@@ -46,13 +60,69 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
         description: project.description,
         link: project.link,
       })) ?? []);
-      setCaseStudyStyle((config.style as CaseStudyStyle) || 'grid');
+      const nextStyle = (config.style as CaseStudyStyle) || 'grid';
+      setCaseStudyStyle(nextStyle);
+
+      const snapshot = JSON.stringify({
+        active: component.active,
+        projects: config.projects?.map((project: { title: string; category: string; image: string; description: string; link: string }) => ({
+          category: project.category,
+          description: project.description,
+          image: project.image,
+          link: project.link,
+          title: project.title,
+        })) ?? [],
+        style: nextStyle,
+        harmony,
+        title: component.title,
+      });
+      setInitialState(snapshot);
+      setHasChanges(false);
     }
   }, [component, id, router]);
 
+  const currentState = useMemo(() => JSON.stringify({
+    active,
+    projects: projects.map((project) => ({
+      category: project.category,
+      description: project.description,
+      image: project.image,
+      link: project.link,
+      title: project.title,
+    })),
+    style: caseStudyStyle,
+    harmony,
+    title,
+  }), [active, caseStudyStyle, projects, harmony, title]);
+
+  useEffect(() => {
+    if (!initialState) {return;}
+    setHasChanges(currentState !== initialState);
+  }, [currentState, initialState]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) {return;}
+    if (isSubmitting || !hasChanges) {return;}
+
+    const { harmonyStatus, accessibility } = getCaseStudyValidationResult({
+      primary,
+      secondary,
+      mode: brandMode,
+      harmony,
+      style: caseStudyStyle,
+    });
+
+    const warnings: string[] = [];
+
+    if (brandMode === 'dual' && harmonyStatus.isTooSimilar) {
+      warnings.push(`Hai màu quá giống nhau (deltaE = ${harmonyStatus.deltaE}).`);
+    }
+
+    if (accessibility.failing.length > 0) {
+      warnings.push(`Một số cặp màu chữ/nền có độ tương phản thấp (minLc = ${accessibility.minLc.toFixed(1)}).`);
+    }
+
+    setWarningMessages(warnings);
 
     setIsSubmitting(true);
     try {
@@ -67,11 +137,14 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
             title: project.title,
           })),
           style: caseStudyStyle,
+          harmony,
         },
         id: id as Id<'homeComponents'>,
         title,
       });
       toast.success('Đã cập nhật Dự án thực tế');
+      setInitialState(currentState);
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -146,18 +219,42 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
               projects={projects}
               brandColor={primary}
               secondary={secondary}
+              mode={brandMode}
               selectedStyle={caseStudyStyle}
               onStyleChange={setCaseStudyStyle}
             />
           </div>
         </div>
 
+        {brandMode === 'dual' && warningMessages.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {warningMessages.map((message, idx) => {
+              const isContrastWarning = message.includes('minLc');
+              return (
+                <div
+                  key={`${message}-${idx}`}
+                  className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700"
+                >
+                  <div className="flex items-start gap-2">
+                    {isContrastWarning ? (
+                      <Eye size={14} className="mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+                    )}
+                    <p>{message}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : hasChanges ? 'Lưu thay đổi' : 'Đã lưu'}
           </Button>
         </div>
       </form>
