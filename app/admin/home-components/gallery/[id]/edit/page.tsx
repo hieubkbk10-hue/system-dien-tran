@@ -213,10 +213,11 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <GalleryPreview
-              items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
+              items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
               brandColor={primary}
               secondary={secondary}
               mode={mode}
+              harmony={harmony}
               selectedStyle={galleryStyle}
               onStyleChange={setGalleryStyle}
             />

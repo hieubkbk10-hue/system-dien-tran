@@ -151,10 +151,11 @@ export default function GalleryCreatePage() {
       )}
 
       <GalleryPreview
-        items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, url: item.url }))}
+        items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: '', url: item.url }))}
         brandColor={primary}
         secondary={secondary}
         mode={mode}
+        harmony={harmony}
         selectedStyle={galleryStyle}
         onStyleChange={setGalleryStyle}
       />

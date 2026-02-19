@@ -11,7 +11,7 @@ import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDe
 import { getGalleryMarqueeBaseItems } from '../_lib/constants';
 import type { GalleryItem, GalleryStyle } from '../_types';
 import { getGalleryColorTokens } from '../_lib/colors';
-import type { GalleryColorTokens } from '../_lib/colors';
+import type { GalleryColorTokens, GalleryHarmony } from '../_lib/colors';
 
 const usePrefersReducedMotion = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
@@ -137,12 +137,13 @@ const GalleryLightbox = ({
   );
 };
 
-export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedStyle, onStyleChange }: { 
-  items: GalleryItem[]; 
+export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, selectedStyle, onStyleChange }: {
+  items: GalleryItem[];
   brandColor: string;
-  secondary: string; 
+  secondary: string;
   mode: 'single' | 'dual';
-  selectedStyle?: GalleryStyle; 
+  harmony?: GalleryHarmony;
+  selectedStyle?: GalleryStyle;
   onStyleChange?: (style: GalleryStyle) => void;
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
@@ -150,7 +151,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, selectedSty
   const [isMarqueeManuallyPaused, setIsMarqueeManuallyPaused] = useState(false);
   const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
+  const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
   const ONE = 1;
   const NEGATIVE_ONE = -1;
   let previewStyle = selectedStyle;
