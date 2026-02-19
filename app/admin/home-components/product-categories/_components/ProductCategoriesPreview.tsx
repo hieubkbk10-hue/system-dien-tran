@@ -48,6 +48,7 @@ export const ProductCategoriesPreview = ({
   const [circularStartX, setCircularStartX] = useState(0);
   const [circularScrollLeft, setCircularScrollLeft] = useState(0);
   const [circularScrollPosition, setCircularScrollPosition] = useState(0);
+  const [circularPageCount, setCircularPageCount] = useState(1);
   const circularScrollRef = React.useRef<HTMLDivElement>(null);
   
   const productsData = useQuery(api.products.listAll, { limit: 100 });
@@ -503,38 +504,52 @@ export const ProductCategoriesPreview = ({
     setIsCircularDragging(false);
   };
 
-  const handleCircularScroll = () => {
+  const updateCircularPagination = React.useCallback(() => {
     if (!circularScrollRef.current) {return;}
     const { scrollLeft, scrollWidth, clientWidth } = circularScrollRef.current;
-    const maxScroll = scrollWidth - clientWidth;
+    const maxScroll = Math.max(scrollWidth - clientWidth, 0);
 
     if (maxScroll <= 0) {
+      setCircularPageCount(1);
       setCircularScrollPosition(0);
       return;
     }
 
-    const percentage = scrollLeft / maxScroll;
+    const pageWidth = Math.max(clientWidth, 1);
+    const pageCount = Math.floor(maxScroll / pageWidth) + 1;
+    const nextPage = Math.round(scrollLeft / pageWidth);
 
-    if (percentage < 0.3) {
-      setCircularScrollPosition(0);
-    } else if (percentage > 0.7) {
-      setCircularScrollPosition(2);
-    } else {
-      setCircularScrollPosition(1);
-    }
+    setCircularPageCount(pageCount);
+    setCircularScrollPosition(Math.max(0, Math.min(nextPage, pageCount - 1)));
+  }, []);
+
+  const handleCircularScroll = () => {
+    updateCircularPagination();
   };
 
   const handleCircularPageChange = (index: number) => {
     if (!circularScrollRef.current) {return;}
     const { scrollWidth, clientWidth } = circularScrollRef.current;
-    const maxScroll = scrollWidth - clientWidth;
+    const maxScroll = Math.max(scrollWidth - clientWidth, 0);
+    const pageWidth = Math.max(clientWidth, 1);
+    const targetPage = Math.max(0, Math.min(index, circularPageCount - 1));
+    const targetLeft = Math.min(targetPage * pageWidth, maxScroll);
 
-    let targetLeft = 0;
-    if (index === 1) {targetLeft = maxScroll / 2;}
-    if (index === 2) {targetLeft = maxScroll;}
-
+    setCircularScrollPosition(targetPage);
     circularScrollRef.current.scrollTo({ left: targetLeft, behavior: 'smooth' });
   };
+
+  React.useEffect(() => {
+    if (previewStyle !== 'circular') {return;}
+
+    const frameId = window.requestAnimationFrame(updateCircularPagination);
+    window.addEventListener('resize', updateCircularPagination);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', updateCircularPagination);
+    };
+  }, [previewStyle, resolvedCategories.length, device, updateCircularPagination]);
 
   const renderCircularStyle = () => (
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
@@ -616,13 +631,13 @@ export const ProductCategoriesPreview = ({
               ))}
             </div>
 
-            {resolvedCategories.length > 3 && (
+            {circularPageCount > 1 && (
               <div className="flex items-center justify-center mt-8 gap-[10px]">
-                {[0, 1, 2].map((index) => (
+                {Array.from({ length: circularPageCount }, (_, index) => index).map((index) => (
                   <button
                     key={index}
                     type="button"
-                    onClick={() =>{  handleCircularPageChange(index); }}
+                    onClick={() => { handleCircularPageChange(index); }}
                     className={cn(
                       "inline-block h-[8px] rounded-[10px] cursor-pointer transition-all duration-300",
                       circularScrollPosition === index ? 'w-[28px]' : 'w-[8px] border'
@@ -632,7 +647,7 @@ export const ProductCategoriesPreview = ({
                         ? { backgroundColor: colors.paginationDotActive }
                         : { borderColor: colors.paginationDotInactive, backgroundColor: 'transparent' }
                     }
-                    aria-label={`Go to page ${index + 1}`}
+                    aria-label={`Đi tới trang ${index + 1}`}
                   />
                 ))}
               </div>
