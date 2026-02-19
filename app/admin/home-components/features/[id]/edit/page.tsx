@@ -18,7 +18,6 @@ import {
   normalizeFeatureItems,
   normalizeFeaturesHarmony,
 } from '../../_lib/constants';
-import { getFeaturesValidationResult } from '../../_lib/colors';
 import type { FeatureItem, FeaturesConfig, FeaturesHarmony, FeaturesStyle } from '../../_types';
 
 const serializeState = (payload: {
@@ -75,16 +74,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
       harmony: nextHarmony,
     }));
   }, [component, id, router]);
-
-  const warningMessages = useMemo(() => {
-    if (mode === 'single') {return [] as string[];}
-    return getFeaturesValidationResult({
-      primary,
-      secondary,
-      mode,
-      harmony,
-    }).warningMessages;
-  }, [primary, secondary, mode, harmony]);
 
   const currentState = useMemo(() => serializeState({
     title,
@@ -184,21 +173,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
       </div>
 
       <form onSubmit={handleSubmit}>
-        {warningMessages.length > 0 && (
-          <Card className="mb-6 border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20">
-            <CardHeader>
-              <CardTitle className="text-base text-amber-700 dark:text-amber-300">Cảnh báo phối màu (warning-only)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-1 text-sm text-amber-800 dark:text-amber-200">
-                {warningMessages.map((message) => (
-                  <li key={message}>{message}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-base">Thông tin component</CardTitle>

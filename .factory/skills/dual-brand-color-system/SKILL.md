@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.6.6
+version: 11.6.7
 ---
 
 # Dual Brand Color System (Home Components)
@@ -109,7 +109,7 @@ version: 11.6.6
 **ColorInfoPanel (dual mode):**
 - Panel chuẩn: hiển thị “Màu chính/Màu phụ” + mô tả áp dụng màu phụ.
 - Chỉ render khi `mode === 'dual'` và `secondary` hợp lệ.
-- Vị trí khuyến nghị: ngay dưới `PreviewWrapper` (giống Hero).
+- Vị trí **bắt buộc**: render `ColorInfoPanel` ngay dưới `PreviewWrapper` (outside wrapper) để đồng bộ layout giữa các home-components (pattern Hero).
 
 **Ví dụ code (chuẩn hoá):**
 ```tsx

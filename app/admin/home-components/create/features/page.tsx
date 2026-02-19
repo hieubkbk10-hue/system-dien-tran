@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
@@ -11,7 +11,6 @@ import {
   FEATURE_ICON_OPTIONS,
   normalizeFeaturesHarmony,
 } from '../../features/_lib/constants';
-import { getFeaturesValidationResult } from '../../features/_lib/colors';
 import type { FeatureItem, FeaturesHarmony, FeaturesStyle } from '../../features/_types';
 
 const defaultItems: FeatureItem[] = [
@@ -33,16 +32,6 @@ export default function FeaturesCreatePage() {
 
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
-
-  const warningMessages = useMemo(() => {
-    if (mode === 'single') {return [] as string[];}
-    return getFeaturesValidationResult({
-      primary,
-      secondary,
-      mode,
-      harmony,
-    }).warningMessages;
-  }, [primary, secondary, mode, harmony]);
 
   const dragProps = (id: number) => ({
     draggable: true,
@@ -94,21 +83,6 @@ export default function FeaturesCreatePage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
     >
-      {warningMessages.length > 0 && (
-        <Card className="mb-6 border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20">
-          <CardHeader>
-            <CardTitle className="text-base text-amber-700 dark:text-amber-300">Cảnh báo phối màu (warning-only)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc pl-5 space-y-1 text-sm text-amber-800 dark:text-amber-200">
-              {warningMessages.map((message) => (
-                <li key={message}>{message}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Danh sách tính năng</CardTitle>
