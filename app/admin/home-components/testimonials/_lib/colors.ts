@@ -176,7 +176,7 @@ export const getTestimonialsColorTokens = ({
     headingPrimary: primaryResolved,
     subtitleSecondary: secondaryResolved,
     quoteSecondary: secondaryResolved,
-    ratingSecondary: secondaryResolved,
+    ratingSecondary: '#facc15',
     cardSurface: neutralSurface,
     cardAltSurface: setLightness(primaryResolved, 0.97, primaryResolved),
     cardBorder: neutralBorder,
