@@ -59,9 +59,6 @@ export default function CTACreatePage() {
       <CTAForm
         config={ctaConfig}
         onChange={setCtaConfig}
-        brandMode={mode}
-        harmony={ctaHarmony}
-        setHarmony={setCtaHarmony}
       />
 
       <CTAPreview

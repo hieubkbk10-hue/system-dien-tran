@@ -1,65 +1,163 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Layers, Loader2 } from 'lucide-react';
+import { GripVertical, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
 import { FeaturesPreview } from '../../_components/FeaturesPreview';
-import { DEFAULT_FEATURES_CONFIG } from '../../_lib/constants';
-import type { FeaturesConfig, FeaturesStyle } from '../../_types';
+import {
+  createFeatureItem,
+  DEFAULT_FEATURES_HARMONY,
+  FEATURE_ICON_OPTIONS,
+  normalizeFeatureItems,
+  normalizeFeaturesHarmony,
+} from '../../_lib/constants';
+import { getFeaturesValidationResult } from '../../_lib/colors';
+import type { FeatureItem, FeaturesConfig, FeaturesHarmony, FeaturesStyle } from '../../_types';
+
+const serializeState = (payload: {
+  title: string;
+  active: boolean;
+  items: FeatureItem[];
+  style: FeaturesStyle;
+  harmony: FeaturesHarmony;
+}) => JSON.stringify(payload);
 
 export default function FeaturesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
+
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<FeaturesConfig>(DEFAULT_FEATURES_CONFIG);
+  const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>([createFeatureItem()]);
+  const [style, setStyle] = useState<FeaturesStyle>('iconGrid');
+  const [harmony, setHarmony] = useState<FeaturesHarmony>(DEFAULT_FEATURES_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialState, setInitialState] = useState('');
+
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Features') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        items: Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_FEATURES_CONFIG.items,
-        style: (rawConfig.style as FeaturesStyle) || 'iconGrid',
-      });
+    if (component.type !== 'Features') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const rawConfig = (component.config ?? {}) as Partial<FeaturesConfig>;
+    const nextItems = normalizeFeatureItems(rawConfig.items);
+    const nextStyle = rawConfig.style ?? 'iconGrid';
+    const nextHarmony = normalizeFeaturesHarmony(rawConfig.harmony);
+
+    setTitle(component.title);
+    setActive(component.active);
+    setFeaturesItems(nextItems);
+    setStyle(nextStyle);
+    setHarmony(nextHarmony);
+
+    setInitialState(serializeState({
+      title: component.title,
+      active: component.active,
+      items: nextItems,
+      style: nextStyle,
+      harmony: nextHarmony,
+    }));
   }, [component, id, router]);
+
+  const warningMessages = useMemo(() => {
+    if (mode === 'single') {return [] as string[];}
+    return getFeaturesValidationResult({
+      primary,
+      secondary,
+      mode,
+      harmony,
+    }).warningMessages;
+  }, [primary, secondary, mode, harmony]);
+
+  const currentState = useMemo(() => serializeState({
+    title,
+    active,
+    items: featuresItems,
+    style,
+    harmony,
+  }), [title, active, featuresItems, style, harmony]);
+
+  const hasChanges = initialState.length > 0 && currentState !== initialState;
+
+  const dragProps = (itemId: number) => ({
+    draggable: true,
+    onDragStart: () => {
+      setDraggedId(itemId);
+    },
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      if (draggedId !== itemId) {
+        setDragOverId(itemId);
+      }
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      if (!draggedId || draggedId === itemId) {return;}
+
+      setFeaturesItems((prev) => {
+        const next = [...prev];
+        const fromIndex = next.findIndex((item) => item.id === draggedId);
+        const toIndex = next.findIndex((item) => item.id === itemId);
+        if (fromIndex < 0 || toIndex < 0) {return prev;}
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        return next;
+      });
+
+      setDraggedId(null);
+      setDragOverId(null);
+    },
+    onDragEnd: () => {
+      setDraggedId(null);
+      setDragOverId(null);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) {return;}
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
       await updateMutation({
-        active,
-        config,
         id: id as Id<'homeComponents'>,
         title,
+        active,
+        config: {
+          items: featuresItems,
+          style,
+          harmony: normalizeFeaturesHarmony(harmony),
+        },
       });
+
+      const nextInitialState = serializeState({
+        title,
+        active,
+        items: featuresItems,
+        style,
+        harmony,
+      });
+      setInitialState(nextInitialState);
       toast.success('Đã cập nhật Features');
     } catch (error) {
-      toast.error('Lỗi khi cập nhật');
+      toast.error('Lỗi khi cập nhật Features');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -78,8 +176,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  const items = Array.isArray(config.items) ? config.items : [];
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <div>
@@ -88,19 +184,31 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
       </div>
 
       <form onSubmit={handleSubmit}>
+        {warningMessages.length > 0 && (
+          <Card className="mb-6 border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20">
+            <CardHeader>
+              <CardTitle className="text-base text-amber-700 dark:text-amber-300">Cảnh báo phối màu (warning-only)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc pl-5 space-y-1 text-sm text-amber-800 dark:text-amber-200">
+                {warningMessages.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Layers size={20} />
-              Features
-            </CardTitle>
+            <CardTitle className="text-base">Thông tin component</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(e) => { setTitle(e.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,42 +218,130 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive((prev) => !prev); }}
               >
-                <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
-                )}></div>
+                <div
+                  className={cn(
+                    'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                    active ? 'translate-x-2.5' : '-translate-x-2.5',
+                  )}
+                />
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
+
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as FeaturesConfig); }} title="Cấu hình Features" />
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Danh sách tính năng</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => {
+                setFeaturesItems((prev) => [...prev, createFeatureItem({ icon: 'Zap' })]);
+              }}
+            >
+              <Plus size={14} />
+              Thêm
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {featuresItems.map((item, idx) => (
+              <div
+                key={item.id}
+                {...dragProps(item.id)}
+                className={cn(
+                  'p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3 cursor-grab active:cursor-grabbing transition-all',
+                  draggedId === item.id && 'opacity-50',
+                  dragOverId === item.id && 'ring-2 ring-blue-500',
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <GripVertical size={16} className="text-slate-400" />
+                    <Label>Tính năng {idx + 1}</Label>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 h-8 w-8"
+                    onClick={() => {
+                      if (featuresItems.length <= 1) {return;}
+                      setFeaturesItems((prev) => prev.filter((feature) => feature.id !== item.id));
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <select
+                    value={item.icon}
+                    onChange={(e) => {
+                      const nextIcon = e.target.value;
+                      setFeaturesItems((prev) => prev.map((feature) => feature.id === item.id ? { ...feature, icon: nextIcon } : feature));
+                    }}
+                    className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+                  >
+                    {FEATURE_ICON_OPTIONS.map((icon) => (
+                      <option key={icon} value={icon}>{icon}</option>
+                    ))}
+                  </select>
+
+                  <Input
+                    placeholder="Tiêu đề"
+                    value={item.title}
+                    onChange={(e) => {
+                      const nextTitle = e.target.value;
+                      setFeaturesItems((prev) => prev.map((feature) => feature.id === item.id ? { ...feature, title: nextTitle } : feature));
+                    }}
+                    className="md:col-span-2"
+                  />
+                </div>
+
+                <Input
+                  placeholder="Mô tả ngắn"
+                  value={item.description}
+                  onChange={(e) => {
+                    const nextDescription = e.target.value;
+                    setFeaturesItems((prev) => prev.map((feature) => feature.id === item.id ? { ...feature, description: nextDescription } : feature));
+                  }}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div></div>
+          <div />
           <div className="lg:sticky lg:top-6 lg:self-start">
             <FeaturesPreview
-              items={items as any}
+              items={featuresItems}
+              sectionTitle={title}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as FeaturesStyle }); }}
+              mode={mode}
+              harmony={harmony}
+              selectedStyle={style}
+              onStyleChange={setStyle}
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

@@ -12,28 +12,37 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ServiceListForm } from '../../_components/ServiceListForm';
 import { ServiceListPreview } from '../../_components/ServiceListPreview';
-import { DEFAULT_SERVICE_LIST_CONFIG } from '../../_lib/constants';
-import type { ServiceSelectionMode, ServiceListStyle } from '../../_types';
+import {
+  DEFAULT_SERVICE_LIST_CONFIG,
+  DEFAULT_SERVICE_LIST_HARMONY,
+  normalizeServiceListHarmony,
+} from '../../_lib/constants';
+import { getServiceListValidationResult } from '../../_lib/colors';
+import type {
+  ServiceListConfig,
+  ServiceListHarmony,
+  ServiceListStyle,
+  ServiceSelectionMode,
+} from '../../_types';
 
 export default function ServiceListEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
   const servicesData = useQuery(api.services.listAll, { limit: 100 });
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [serviceListConfig, setServiceListConfig] = useState({
-    itemCount: DEFAULT_SERVICE_LIST_CONFIG.itemCount,
-    sortBy: DEFAULT_SERVICE_LIST_CONFIG.sortBy,
-  });
+  const [serviceListConfig, setServiceListConfig] = useState<ServiceListConfig>(DEFAULT_SERVICE_LIST_CONFIG);
   const [serviceListStyle, setServiceListStyle] = useState<ServiceListStyle>('grid');
   const [serviceSelectionMode, setServiceSelectionMode] = useState<ServiceSelectionMode>('auto');
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
+  const [harmony, setHarmony] = useState<ServiceListHarmony>(DEFAULT_SERVICE_LIST_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   useEffect(() => {
     if (component) {
@@ -46,15 +55,86 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
       setActive(component.active);
 
       const config = component.config ?? {};
-      setServiceListConfig({
+      const nextConfig: ServiceListConfig = {
         itemCount: (config.itemCount as number) ?? DEFAULT_SERVICE_LIST_CONFIG.itemCount,
-        sortBy: (config.sortBy as string) ?? DEFAULT_SERVICE_LIST_CONFIG.sortBy,
-      });
-      setServiceListStyle((config.style as ServiceListStyle) || 'grid');
-      setServiceSelectionMode((config.selectionMode as ServiceSelectionMode) || DEFAULT_SERVICE_LIST_CONFIG.selectionMode);
-      setSelectedServiceIds((config.selectedServiceIds as string[]) ?? []);
+        sortBy: (config.sortBy as ServiceListConfig['sortBy']) ?? DEFAULT_SERVICE_LIST_CONFIG.sortBy,
+        selectionMode: (config.selectionMode as ServiceSelectionMode) ?? DEFAULT_SERVICE_LIST_CONFIG.selectionMode,
+        selectedServiceIds: ((config.selectedServiceIds as string[]) ?? []),
+        style: ((config.style as ServiceListStyle) ?? 'grid'),
+        harmony: normalizeServiceListHarmony((config.harmony as string | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY),
+      };
+
+      setServiceListConfig(nextConfig);
+      setServiceListStyle(nextConfig.style ?? 'grid');
+      setServiceSelectionMode(nextConfig.selectionMode);
+      setSelectedServiceIds(nextConfig.selectedServiceIds ?? []);
+      setHarmony(nextConfig.harmony ?? DEFAULT_SERVICE_LIST_HARMONY);
     }
   }, [component, id, router]);
+
+  const toSnapshot = (payload: {
+    title: string;
+    active: boolean;
+    itemCount: number;
+    sortBy: string;
+    style: ServiceListStyle;
+    selectionMode: ServiceSelectionMode;
+    selectedServiceIds: string[];
+    harmony: ServiceListHarmony;
+  }) => JSON.stringify({
+    ...payload,
+    selectedServiceIds: payload.selectedServiceIds,
+  });
+
+  useEffect(() => {
+    if (!component) {return;}
+    const config = component.config ?? {};
+
+    setInitialSnapshot(toSnapshot({
+      title: component.title,
+      active: component.active,
+      itemCount: (config.itemCount as number) ?? DEFAULT_SERVICE_LIST_CONFIG.itemCount,
+      sortBy: ((config.sortBy as string) ?? DEFAULT_SERVICE_LIST_CONFIG.sortBy),
+      style: ((config.style as ServiceListStyle) ?? 'grid'),
+      selectionMode: ((config.selectionMode as ServiceSelectionMode) ?? DEFAULT_SERVICE_LIST_CONFIG.selectionMode),
+      selectedServiceIds: ((config.selectedServiceIds as string[]) ?? []),
+      harmony: normalizeServiceListHarmony((config.harmony as string | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY),
+    }));
+  }, [component]);
+
+  const currentSnapshot = toSnapshot({
+    title,
+    active,
+    itemCount: serviceListConfig.itemCount,
+    sortBy: serviceListConfig.sortBy,
+    style: serviceListStyle,
+    selectionMode: serviceSelectionMode,
+    selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
+    harmony,
+  });
+
+  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
+  const validation = useMemo(() => getServiceListValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony,
+  }), [primary, secondary, mode, harmony]);
+
+  const warningMessages = useMemo(() => {
+    const warnings: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
 
   const filteredServices = useMemo(() => {
     if (!servicesData) {return [];}
@@ -87,18 +167,33 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
 
     setIsSubmitting(true);
     try {
+      const nextConfig: ServiceListConfig = {
+        itemCount: serviceListConfig.itemCount,
+        selectionMode: serviceSelectionMode,
+        selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
+        sortBy: serviceListConfig.sortBy,
+        style: serviceListStyle,
+        harmony,
+      };
+
       await updateMutation({
         active,
-        config: {
-          itemCount: serviceListConfig.itemCount,
-          selectionMode: serviceSelectionMode,
-          selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
-          sortBy: serviceListConfig.sortBy,
-          style: serviceListStyle,
-        },
+        config: nextConfig,
         id: id as Id<'homeComponents'>,
         title,
       });
+
+      setInitialSnapshot(toSnapshot({
+        title,
+        active,
+        itemCount: nextConfig.itemCount,
+        sortBy: nextConfig.sortBy,
+        style: nextConfig.style ?? 'grid',
+        selectionMode: nextConfig.selectionMode,
+        selectedServiceIds: nextConfig.selectedServiceIds ?? [],
+        harmony: nextConfig.harmony ?? DEFAULT_SERVICE_LIST_HARMONY,
+      }));
+
       toast.success('Đã cập nhật Danh sách Dịch vụ');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -171,13 +266,14 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
           itemCount={serviceListConfig.itemCount}
           sortBy={serviceListConfig.sortBy}
           onItemCountChange={(count) =>{  setServiceListConfig(config => ({ ...config, itemCount: count })); }}
-          onSortByChange={(value) =>{  setServiceListConfig(config => ({ ...config, sortBy: value })); }}
+          onSortByChange={(value) =>{  setServiceListConfig(config => ({ ...config, sortBy: value as ServiceListConfig['sortBy'] })); }}
           filteredServices={filteredServices}
           selectedServices={selectedServices}
           selectedServiceIds={selectedServiceIds}
           onToggleService={handleToggleService}
           serviceSearchTerm={serviceSearchTerm}
           onServiceSearchTermChange={setServiceSearchTerm}
+          warningMessages={warningMessages}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
@@ -186,6 +282,8 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
             <ServiceListPreview
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
+              harmony={harmony}
               itemCount={serviceSelectionMode === 'manual' ? selectedServiceIds.length : serviceListConfig.itemCount}
               selectedStyle={serviceListStyle}
               onStyleChange={setServiceListStyle}
@@ -202,7 +300,7 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={!hasChanges || isSubmitting}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

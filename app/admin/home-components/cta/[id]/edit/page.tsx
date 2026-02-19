@@ -195,9 +195,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         <CTAForm
           config={ctaConfig}
           onChange={setCtaConfig}
-          brandMode={mode}
-          harmony={ctaHarmony}
-          setHarmony={setCtaHarmony}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">

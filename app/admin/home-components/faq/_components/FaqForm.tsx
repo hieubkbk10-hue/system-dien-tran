@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { GripVertical, HelpCircle, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { FAQ_HARMONY_OPTIONS } from '../_lib/constants';
-import type { FaqConfig, FaqHarmony, FaqItem, FaqStyle } from '../_types';
+import type { FaqConfig, FaqItem, FaqStyle } from '../_types';
 
 export const FaqForm = ({
   faqItems,
@@ -109,26 +108,6 @@ export const FaqForm = ({
               </div>
             ))
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">Color Harmony</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label className="text-sm mb-1.5 block">Harmony màu phụ</Label>
-            <select
-              value={faqConfig.harmony ?? 'analogous'}
-              onChange={(e) => { setFaqConfig({ ...faqConfig, harmony: e.target.value as FaqHarmony }); }}
-              className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-            >
-              {FAQ_HARMONY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </div>
         </CardContent>
       </Card>
 

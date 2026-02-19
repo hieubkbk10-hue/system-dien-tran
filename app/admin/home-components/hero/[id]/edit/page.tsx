@@ -190,9 +190,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           heroStyle={heroStyle}
           heroContent={heroContent}
           setHeroContent={setHeroContent}
-          brandMode={brandMode}
-          harmony={heroHarmony}
-          setHarmony={setHeroHarmony}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
