@@ -32,6 +32,7 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
   const [productSubTitle, setProductSubTitle] = useState(DEFAULT_PRODUCT_LIST_TEXT.subTitle);
   const [productSectionTitle, setProductSectionTitle] = useState(DEFAULT_PRODUCT_LIST_TEXT.sectionTitle);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
 
@@ -76,25 +77,84 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
     }
   }, [component, id, router]);
 
+  const toSnapshot = (payload: {
+    title: string;
+    active: boolean;
+    itemCount: number;
+    sortBy: string;
+    style: ProductListStyle;
+    selectionMode: ProductSelectionMode;
+    selectedProductIds: string[];
+    subTitle: string;
+    sectionTitle: string;
+  }) => JSON.stringify(payload);
+
+  useEffect(() => {
+    if (!component) {return;}
+    const config = component.config ?? {};
+    const initialSelectionMode = ((config.selectionMode as ProductSelectionMode) || 'auto');
+
+    setInitialSnapshot(toSnapshot({
+      title: component.title,
+      active: component.active,
+      itemCount: (config.itemCount as number) ?? DEFAULT_PRODUCT_LIST_CONFIG.itemCount,
+      sortBy: (config.sortBy as string) ?? DEFAULT_PRODUCT_LIST_CONFIG.sortBy,
+      style: ((config.style as ProductListStyle) || 'commerce'),
+      selectionMode: initialSelectionMode,
+      selectedProductIds: initialSelectionMode === 'manual' ? ((config.selectedProductIds as string[]) ?? []) : [],
+      subTitle: (config.subTitle as string) || DEFAULT_PRODUCT_LIST_TEXT.subTitle,
+      sectionTitle: (config.sectionTitle as string) || DEFAULT_PRODUCT_LIST_TEXT.sectionTitle,
+    }));
+  }, [component]);
+
+  const currentSnapshot = toSnapshot({
+    title,
+    active,
+    itemCount: productListConfig.itemCount,
+    sortBy: productListConfig.sortBy,
+    style: productListStyle,
+    selectionMode: productSelectionMode,
+    selectedProductIds: productSelectionMode === 'manual' ? selectedProductIds : [],
+    subTitle: productSubTitle,
+    sectionTitle: productSectionTitle,
+  });
+
+  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
 
     setIsSubmitting(true);
     try {
+      const nextConfig = {
+        ...productListConfig,
+        selectionMode: productSelectionMode,
+        selectedProductIds: productSelectionMode === 'manual' ? selectedProductIds : [],
+        sectionTitle: productSectionTitle,
+        style: productListStyle,
+        subTitle: productSubTitle,
+      };
+
       await updateMutation({
         active,
-        config: {
-          ...productListConfig,
-          selectionMode: productSelectionMode,
-          selectedProductIds: productSelectionMode === 'manual' ? selectedProductIds : [],
-          sectionTitle: productSectionTitle,
-          style: productListStyle,
-          subTitle: productSubTitle,
-        },
+        config: nextConfig,
         id: id as Id<'homeComponents'>,
         title,
       });
+
+      setInitialSnapshot(toSnapshot({
+        title,
+        active,
+        itemCount: nextConfig.itemCount,
+        sortBy: nextConfig.sortBy,
+        style: nextConfig.style,
+        selectionMode: nextConfig.selectionMode,
+        selectedProductIds: nextConfig.selectedProductIds,
+        subTitle: nextConfig.subTitle,
+        sectionTitle: nextConfig.sectionTitle,
+      }));
+
       toast.success('Đã cập nhật danh sách sản phẩm');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -215,7 +275,12 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            variant="accent"
+            disabled={!hasChanges || isSubmitting}
+            className={!hasChanges ? 'bg-slate-300 hover:bg-slate-300 text-slate-600' : undefined}
+          >
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>
