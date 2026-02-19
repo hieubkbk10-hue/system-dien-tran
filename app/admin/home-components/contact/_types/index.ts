@@ -4,6 +4,12 @@ export interface ContactSocialLink {
   url: string;
 }
 
+export type ContactStyle = 'modern' | 'floating' | 'grid' | 'elegant' | 'minimal' | 'centered';
+
+export type ContactBrandMode = 'single' | 'dual';
+
+export type ContactHarmony = 'analogous' | 'complementary' | 'triadic';
+
 export interface ContactConfig {
   showMap: boolean;
   mapEmbed: string;
@@ -18,9 +24,8 @@ export interface ContactConfig {
   formDescription?: string;
   submitButtonText?: string;
   responseTimeText?: string;
+  harmony?: ContactHarmony;
 }
-
-export type ContactStyle = 'modern' | 'floating' | 'grid' | 'elegant' | 'minimal' | 'centered';
 
 export interface ContactConfigState extends ContactConfig {
   style: ContactStyle;

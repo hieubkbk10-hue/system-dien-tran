@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -12,13 +12,19 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
 import { ContactPreview } from '../../_components/ContactPreview';
-import { DEFAULT_CONTACT_CONFIG } from '../../_lib/constants';
+import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../_lib/constants';
+import { getContactValidationResult } from '../../_lib/colors';
+import {
+  normalizeContactConfig,
+  toContactConfigPayload,
+  toContactSnapshot,
+} from '../../_lib/normalize';
 import type { ContactConfigState, ContactStyle } from '../../_types';
 
 export default function ContactEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -26,48 +32,87 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
   const [active, setActive] = useState(true);
   const [config, setConfig] = useState<ContactConfigState>(DEFAULT_CONTACT_CONFIG);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Contact') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        address: (rawConfig.address as string | undefined) ?? '',
-        email: (rawConfig.email as string | undefined) ?? '',
-        formDescription: (rawConfig.formDescription as string | undefined) ?? '',
-        formFields: Array.isArray(rawConfig.formFields) ? rawConfig.formFields : DEFAULT_CONTACT_CONFIG.formFields,
-        formTitle: (rawConfig.formTitle as string | undefined) ?? '',
-        mapEmbed: (rawConfig.mapEmbed as string | undefined) ?? '',
-        phone: (rawConfig.phone as string | undefined) ?? '',
-        responseTimeText: (rawConfig.responseTimeText as string | undefined) ?? '',
-        showMap: rawConfig.showMap !== false,
-        socialLinks: Array.isArray(rawConfig.socialLinks) ? rawConfig.socialLinks : [],
-        submitButtonText: (rawConfig.submitButtonText as string | undefined) ?? '',
-        workingHours: (rawConfig.workingHours as string | undefined) ?? '',
-        style: (rawConfig.style as ContactStyle) || 'modern',
-      });
+    if (component.type !== 'Contact') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const normalizedConfig = normalizeContactConfig(component.config ?? {});
+
+    setTitle(component.title);
+    setActive(component.active);
+    setConfig(normalizedConfig);
+    setInitialSnapshot(toContactSnapshot({
+      title: component.title,
+      active: component.active,
+      config: normalizedConfig,
+    }));
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  const normalizedConfig = useMemo(() => normalizeContactConfig(config), [config]);
+
+  const currentSnapshot = useMemo(() => toContactSnapshot({
+    title,
+    active,
+    config: normalizedConfig,
+  }), [title, active, normalizedConfig]);
+
+  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
+  const validation = useMemo(() => getContactValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
+  }), [primary, secondary, mode, normalizedConfig.harmony]);
+
+  const warningMessages = useMemo(() => {
+    if (mode === 'single') {return [];}
+
+    const warnings: string[] = [];
+
+    if (validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const nextConfig = normalizeContactConfig(config);
+      const payload = {
+        ...toContactConfigPayload(nextConfig),
+        style: nextConfig.style,
+      };
+
       await updateMutation({
         active,
-        config,
+        config: payload,
         id: id as Id<'homeComponents'>,
         title,
       });
+
+      setConfig(nextConfig);
+      setInitialSnapshot(toContactSnapshot({
+        title,
+        active,
+        config: nextConfig,
+      }));
+
       toast.success('Đã cập nhật Contact');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -109,7 +154,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -119,14 +164,14 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5'
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -134,26 +179,44 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as ContactConfigState); }} title="Cấu hình Contact" />
+        {mode === 'dual' && warningMessages.length > 0 && (
+          <Card className="mb-6 border-amber-200 bg-amber-50/70">
+            <CardContent className="pt-6">
+              <div className="space-y-2 text-xs text-amber-800">
+                {warningMessages.map((warning) => (
+                  <p key={warning}>• {warning}</p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <ConfigJsonForm
+          value={normalizedConfig}
+          onChange={(next) => { setConfig(normalizeContactConfig(next)); }}
+          title="Cấu hình Contact"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <ContactPreview
-              config={config}
+              config={normalizedConfig}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as ContactStyle}
-              onStyleChange={(style) =>{  setConfig({ ...config, style }); }}
+              mode={mode}
+              selectedStyle={normalizedConfig.style as ContactStyle}
+              onStyleChange={(nextStyle) => { setConfig({ ...normalizedConfig, style: nextStyle }); }}
+              title={title}
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={!hasChanges || isSubmitting}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>
