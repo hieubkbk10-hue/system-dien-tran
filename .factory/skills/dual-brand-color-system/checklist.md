@@ -10,6 +10,15 @@
 - [ ] Harmony validator (getHarmonyStatus) không báo too-similar
 - [ ] Accessibility score (getAccessibilityScore) không fail
 - [ ] APCA threshold: fontWeight >= 600 → threshold = 45 (bold)
+- [ ] Badge token contract: mỗi state có đủ bg/border/text; text được tính đúng trên chính badge bg
+- [ ] Cấm dùng text token cross-context cho badge (vd interactiveText trên surface khác)
+- [ ] Badge text trên nền solid phải chọn bằng luminance/contrast (white vs `#111`), lấy màu có contrast cao hơn
+- [ ] Kết quả chọn bằng luminance phải đi qua APCA guard (`ensureAPCATextColor`) theo fontSize/fontWeight
+- [ ] `apca-w3`: tính LC bằng `APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb))`, không truyền hex trực tiếp
+- [ ] Cấm mọi callsite `APCAcontrast(textHex, bgHex)` dạng string trực tiếp
+- [ ] `ensureAPCATextColor(...)` phải check LC của preferred theo threshold rồi mới fallback `getAPCATextColor(...)`
+- [ ] Cấm `ensureAPCATextColor(...)` no-op (`void background; return preferred`)
+- [ ] Không dùng `-webkit-text-stroke`/`text-shadow` để chữa contrast cho badge text mặc định
 
 ## B. Distribution (content state)
 
@@ -47,6 +56,10 @@
 
 - [ ] Không gradient decorative (chỉ gradient style mới dùng)
 - [ ] Không hover effects phức tạp (mobile-first)
+- [ ] Không dùng hover-only reveal cho nội dung/chức năng quan trọng
+- [ ] Nội dung quan trọng hiển thị sẵn ở mobile/tablet
+- [ ] CTA/price/meta chính trong card phải always-visible (không ẩn sau hover)
+- [ ] Cảnh báo validation hiển thị inline trong form, không dùng toast cho warning
 - [ ] Không blur/shadow nhiều lớp
 - [ ] Không animate decorative (pulse, scale)
 - [ ] Không opacity cho decorative elements (badge bg, borders)
@@ -97,16 +110,17 @@ if (mode === 'single') {
 const handleSubmit = async (e) => {
   const { harmonyStatus, accessibility } = getValidationResult(...);
 
+  const warnings = [];
+
   if (mode === 'dual' && harmonyStatus.isTooSimilar) {
-    toast.error(`deltaE < 20...`);
-    return;
+    warnings.push(`deltaE < 20...`);
   }
 
   if (accessibility.failing.length > 0) {
-    toast.error(...);
-    return;
+    warnings.push(`minLc thấp...`);
   }
 
+  setWarningMessages(warnings); // inline warning
   await updateMutation(...);
 };
 ```

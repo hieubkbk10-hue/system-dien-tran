@@ -132,10 +132,14 @@ const ensureAPCATextColor = (
   fontSize = 16,
   fontWeight = 500,
 ) => {
-  void background;
-  void fontSize;
-  void fontWeight;
-  return preferredText;
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  const preferredLc = getAPCALc(preferredText, background);
+
+  if (preferredLc >= threshold) {
+    return preferredText;
+  }
+
+  return getAPCATextColor(background, fontSize, fontWeight);
 };
 
 const getTextOnGradient = (primary: string, secondary: string, fontSize = 16, fontWeight = 500) => {

@@ -1,7 +1,7 @@
 ---
 name: dual-brand-color-system
 description: Chuẩn hóa hệ thống phân phối màu cho home-components theo OKLCH + APCA + Color Harmony. Dùng khi review/refactor màu component hiện tại, hoặc tạo home-component mới cần 1 màu (tint/shade đẹp) hay 2 màu (dual brand). Có hướng dẫn auto-refactor HSL -> OKLCH, WCAG 2.0 -> APCA, Theme Engine UI, Component Color Map, và Element-Level Color Rules.
-version: 11.5.0
+version: 11.6.5
 ---
 
 # Dual Brand Color System (Home Components)
@@ -61,7 +61,11 @@ version: 11.5.0
 ### 2) APCA Contrast
 
 - Text/UI nên pass APCA thresholds
-- Luôn dùng `Math.abs(apcaContrast(...))`
+- Luôn dùng `Math.abs(APCAcontrast(...))`
+- Bắt buộc pipeline APCA: `hex -> rgb tuple -> sRGBtoY -> APCAcontrast`
+- **Cấm** gọi `APCAcontrast('#fff', '#000')` hoặc truyền hex/string trực tiếp vào APCA
+- `ensureAPCATextColor(...)` phải là guard thật: check LC của màu preferred theo threshold, fail thì fallback `getAPCATextColor(...)`
+- **Cấm** `ensureAPCATextColor` no-op kiểu `void background; return preferred`
 - **Không auto-fix text về neutral** khi fail APCA; giữ màu brand theo cấu hình
 
 ### 3) 60-30-10 Distribution (đo tại content state)
@@ -128,19 +132,28 @@ version: 11.5.0
 - PHẢI skip harmony validation (deltaE check) khi mode = 'single'
 - CHỈ validate harmony khi mode = 'dual'
 - Single mode với deltaE = 0 là expected → KHÔNG chặn lưu
-- Dual mode với deltaE < 20 → VẪN chặn lưu (too similar)
+- Dual mode với deltaE < 20 → cảnh báo inline, không chặn lưu
+
+**Validation UX Policy (v11.6 - UPDATE):**
+- Harmony/Accessibility validation trên create/edit page là **warning-only** mặc định.
+- **Không chặn lưu** khi fail APCA hoặc `deltaE < 20`.
+- Dùng warning inline ngay trong form (không dùng toast cho cảnh báo validation).
+- Chỉ chặn lưu khi dữ liệu không hợp lệ về cấu trúc (thiếu field bắt buộc, parse fail, payload invalid).
 
 **Pattern chuẩn (edit/create page validation):**
 ```typescript
+const warnings: string[] = [];
+
 if (mode === 'dual' && harmonyStatus.isTooSimilar) {
-  toast.error(`deltaE=${harmonyStatus.deltaE} < 20...`);
-  return;
+  warnings.push(`deltaE=${harmonyStatus.deltaE} < 20`);
 }
 
 if (accessibility.failing.length > 0) {
-  toast.error(...);
-  return;
+  warnings.push(`minLc=${accessibility.minLc.toFixed(1)}`);
 }
+
+setWarningMessages(warnings); // render inline trong form
+await updateMutation(...); // vẫn lưu
 ```
 
 **Ví dụ đúng:**
@@ -201,6 +214,36 @@ iconColor: primary,
 // ✅ Canonical
 iconBg: neutralSurface,
 iconColor: primary,
+```
+
+### 8) Badge Token Contract (NEW v11.6.5)
+
+**Mục tiêu:** tránh mismatch kiểu `badge bg = trắng` nhưng `badge text = trắng`, hoặc text lấy từ token của bối cảnh khác.
+
+**Bắt buộc:**
+- Mỗi badge state phải có bộ token riêng: `bg`, `border`, `text`.
+- `text` phải được validate APCA trên **chính `bg` của badge đó**.
+- Không tái dùng token text được tính cho bối cảnh khác (ví dụ `interactiveText` tính trên `secondary.surface`) cho badge đang đặt trên `neutralSurface`.
+- Với badge nền solid, chọn text bằng công thức luminance/contrast: so sánh tương phản của nền với trắng và near-black (`#111`), lấy màu có contrast cao hơn.
+- Sau khi chọn bằng luminance, vẫn phải đi qua APCA guard (`ensureAPCATextColor`) để đảm bảo ngưỡng theo font size/weight.
+- Khi dùng `apca-w3`, **không truyền hex trực tiếp vào `APCAcontrast`**. Bắt buộc parse sang RGB và gọi `APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb))`.
+- Không dùng stroke/glow cho badge text theo mặc định; readability đến từ color pairing đúng và APCA pass.
+
+**Anti-pattern (cấm):**
+```ts
+const lc = APCAcontrast('#ffffff', '#fef08a'); // sai input shape, dễ ra 0
+badgeNewText: secondaryPalette.interactiveText, // interactiveText được tính trên secondary surface khác context
+badgeNewText: '#000000', // black tuyệt đối gây gắt
+textShadow: '0 0 4px rgba(0,0,0,0.8)' // thêm glow để chữa contrast
+```
+
+**Canonical pattern:**
+```ts
+const badgeNewBg = secondaryPalette.surface;
+const badgeTextCandidate = pickReadableTextOnSolid(badgeNewBg); // '#fff' hoặc '#111'
+const badgeNewText = ensureAPCATextColor(badgeTextCandidate, badgeNewBg, 12, 600);
+
+const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb))); // ✅
 ```
 
 ## Critical Safety Rules (v11.1)
@@ -271,6 +314,7 @@ iconColor: primary,
 ### CẤM (AI Styling)
 - NO gradient backgrounds loang màu (trừ gradient style có chủ đích)
 - NO hover effects phức tạp (mobile không có hover)
+- NO hover-only reveal cho nội dung/chức năng quan trọng
 - NO blur/backdrop-blur decorative
 - NO drop-shadow-lg, shadow phức tạp nhiều lớp
 - NO animate-pulse/scale decorative
@@ -287,6 +331,9 @@ iconColor: primary,
 - Border-radius nhất quán: `rounded-lg` hoặc `rounded-xl`
 - Contrast: Text >= 4.5:1, UI >= 3:1 (APCA)
 - Skeleton loading thay spinner
+- Nội dung/chức năng quan trọng phải hiển thị sẵn (không phụ thuộc hover)
+- Trên mobile/tablet, interaction trọng yếu dùng tap/click hoặc always-visible
+- Với card ecommerce, CTA/price/meta chính phải always-visible; hover chỉ dùng cho enhancement không thiết yếu
 - Transitions chỉ 150-300ms, chỉ cho state changes thật sự
 
 ### Scrollbar
@@ -427,8 +474,8 @@ promotions-list, menu, account-profile, account-orders, search
 | Section label/subtitle | `secondary` | Phân biệt với heading |
 | Prices, số liệu nổi bật | `secondary` | Data highlight, contrast với heading |
 | Data count/badge | `secondary` | Tăng focus cho dữ liệu |
-| Badge outline (NEW, tag) | `secondary` border + text | Qua BrandBadge component |
-| Badge solid (HOT, discount) | `brandColor` bg | Qua BrandBadge component |
+| Badge outline (NEW, tag) | `secondary` border + text (APCA-pass trên badge bg) | Qua BrandBadge component |
+| Badge solid (HOT, discount) | `brandColor` bg + APCA text | Qua BrandBadge component |
 | Card borders, hover glow | `secondary` (10-40% opacity) | Subtle accent |
 | Divider/section line | `secondary` (10-30% opacity) | Structural separator |
 | Timeline/process dots | `secondary` | Decorative, không dominant |

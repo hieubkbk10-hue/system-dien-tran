@@ -1,6 +1,6 @@
 'use client';
 
-import { APCAcontrast } from 'apca-w3';
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
 import type { GalleryStyle } from '../_types';
 
@@ -84,8 +84,29 @@ const getAPCAThreshold = (fontSize = 16, fontWeight = 500) => (
   (fontSize >= 18 || fontWeight >= 700) ? 45 : 60
 );
 
+const toRgbTuple = (value: string, fallback: string): [number, number, number] | null => {
+  const parsed = safeParseOklch(value, fallback);
+  const normalized = formatHex(parsed).replace('#', '');
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+
+  if ([r, g, b].some((channel) => Number.isNaN(channel))) {
+    return null;
+  }
+
+  return [r, g, b];
+};
+
 const getAPCALc = (text: string, background: string) => {
-  const lc = Math.abs(APCAcontrast(text, background));
+  const textRgb = toRgbTuple(text, '#ffffff');
+  const backgroundRgb = toRgbTuple(background, '#0f172a');
+
+  if (!textRgb || !backgroundRgb) {
+    return 0;
+  }
+
+  const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(backgroundRgb)));
   return Number.isFinite(lc) ? lc : 0;
 };
 
@@ -110,10 +131,14 @@ const ensureAPCATextColor = (
   fontSize = 16,
   fontWeight = 500,
 ) => {
-  void background;
-  void fontSize;
-  void fontWeight;
-  return preferred;
+  const threshold = getAPCAThreshold(fontSize, fontWeight);
+  const preferredLc = getAPCALc(preferred, background);
+
+  if (preferredLc >= threshold) {
+    return preferred;
+  }
+
+  return getAPCATextColor(background, fontSize, fontWeight);
 };
 
 export const normalizeGalleryHarmony = (value?: string): GalleryHarmony => {
