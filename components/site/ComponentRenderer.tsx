@@ -1597,7 +1597,6 @@ const GalleryLightbox = ({
 }) => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {onClose();}
       if (e.key === 'ArrowLeft' && onNavigate) {onNavigate('prev');}
       if (e.key === 'ArrowRight' && onNavigate) {onNavigate('next');}
     };
@@ -1618,6 +1617,7 @@ const GalleryLightbox = ({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center animate-in fade-in duration-200"
+      onClick={onClose}
     >
       <div className="absolute inset-0 bg-slate-950" onClick={onClose} />
       <button
@@ -1750,7 +1750,7 @@ const CertificateModal = ({
 }) => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {onClose();}
+      // Removed ESC key handling as per user request
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
