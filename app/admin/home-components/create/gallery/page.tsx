@@ -52,6 +52,12 @@ export default function GalleryCreatePage() {
           <CardTitle className="text-base">Thư viện ảnh</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="mb-3 text-sm font-semibold" style={{ color: primary }}>
+            <span className="underline underline-offset-4" style={{ textDecorationColor: secondary }}>
+              Những hình ảnh
+            </span>
+          </p>
+
           <MultiImageUploader<GalleryItem>
             items={galleryItems}
             onChange={setGalleryItems}

@@ -11,11 +11,15 @@ export const GalleryForm = ({
   setGalleryItems,
   componentType,
   style,
+  headerPrimary,
+  headerSecondary,
 }: {
   galleryItems: GalleryItem[];
   setGalleryItems: (items: GalleryItem[]) => void;
   componentType: 'Gallery' | 'Partners' | 'TrustBadges';
   style?: string;
+  headerPrimary?: string;
+  headerSecondary?: string;
 }) => {
   const folders: Record<'Gallery' | 'Partners' | 'TrustBadges', string> = {
     Gallery: 'gallery',
@@ -32,6 +36,17 @@ export const GalleryForm = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {componentType === 'Gallery' && (
+            <p className="mb-3 text-sm font-semibold" style={{ color: headerPrimary ?? '#2563eb' }}>
+              <span
+                className="underline underline-offset-4"
+                style={{ textDecorationColor: headerSecondary ?? '#60a5fa' }}
+              >
+                Những hình ảnh
+              </span>
+            </p>
+          )}
+
           <MultiImageUploader<GalleryItem>
             items={galleryItems}
             onChange={setGalleryItems}

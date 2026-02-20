@@ -1616,11 +1616,12 @@ const GalleryLightbox = ({
   const hasMultiple = photos && photos.length > 1 && onNavigate;
 
   return (
-    <div 
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 animate-in fade-in duration-200" 
-      onClick={onClose}
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center animate-in fade-in duration-200"
     >
-      <button 
+      <div className="absolute inset-0 bg-slate-950" onClick={onClose} />
+      <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70]"
         style={{
@@ -1672,7 +1673,7 @@ const GalleryLightbox = ({
           {currentIndex + 1} / {photos.length}
         </div>
       )}
-      <div className="w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
+      <div className="relative z-[70] w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
         <SiteImage 
           src={photo.url} 
           alt="Lightbox" 
@@ -2306,7 +2307,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
             <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={48} style={{ color: colors.placeholderIcon }} /></div>
           )}
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-          {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className="grid gap-1 grid-cols-3 md:grid-cols-1">
@@ -2323,7 +2323,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2354,7 +2353,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
             )}
             <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-            {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
@@ -2393,7 +2391,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
@@ -2426,7 +2423,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -2453,7 +2449,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2550,7 +2545,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                       </div>
                     )}
                     <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                    {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                     <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
                   </button>
                 ))}
@@ -2586,7 +2580,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -2617,7 +2610,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );

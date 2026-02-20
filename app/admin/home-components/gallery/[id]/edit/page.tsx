@@ -198,6 +198,8 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
           setGalleryItems={setGalleryItems}
           componentType="Gallery"
           style={galleryStyle}
+          headerPrimary={primary}
+          headerSecondary={secondary}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">

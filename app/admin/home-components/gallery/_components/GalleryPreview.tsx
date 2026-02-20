@@ -65,11 +65,12 @@ const GalleryLightbox = ({
   const hasMultiple = photos && photos.length > 1 && onNavigate;
 
   return (
-    <div 
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950 animate-in fade-in duration-200" 
-      onClick={onClose}
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center animate-in fade-in duration-200"
     >
-      <button 
+      <div className="absolute inset-0 bg-slate-950" onClick={onClose} />
+      <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70]"
         style={{
@@ -126,7 +127,7 @@ const GalleryLightbox = ({
         </div>
       )}
       
-      <div className="w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
+      <div className="relative z-[70] w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
         <PreviewImage 
           src={photo.url} 
           alt="Lightbox" 
@@ -296,7 +297,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             </div>
           )}
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-          {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className={cn('grid gap-1', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')}>
@@ -315,7 +315,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -352,7 +351,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               </div>
             )}
             <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-            {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
@@ -395,7 +393,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
@@ -447,7 +444,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -476,7 +472,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -580,7 +575,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                         </div>
                       )}
                       <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                      {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                       <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
                     </button>
                   );
@@ -621,7 +615,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -656,7 +649,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
