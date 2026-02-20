@@ -15,7 +15,7 @@ export default function CountdownCreatePage() {
   const [config, setConfig] = React.useState<CountdownConfigState>(() => normalizeCountdownConfig(DEFAULT_COUNTDOWN_CONFIG));
 
   const onSubmit = (event: React.FormEvent) => {
-    void handleSubmit(event, toCountdownPersistConfig(config));
+    void handleSubmit(event, toCountdownPersistConfig(config) as unknown as Record<string, unknown>);
   };
 
   return (
