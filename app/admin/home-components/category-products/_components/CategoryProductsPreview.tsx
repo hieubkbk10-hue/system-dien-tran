@@ -7,12 +7,20 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { CATEGORY_PRODUCTS_STYLES } from '../_lib/constants';
-import type { CategoryProductsConfig, CategoryProductsProduct, CategoryProductsSection, CategoryProductsStyle } from '../_types';
+import { getCategoryProductsColors } from '../_lib/colors';
+import type {
+  CategoryProductsBrandMode,
+  CategoryProductsConfig,
+  CategoryProductsProduct,
+  CategoryProductsSection,
+  CategoryProductsStyle,
+} from '../_types';
 
 interface CategoryProductsPreviewProps {
   config: CategoryProductsConfig;
   brandColor: string;
   secondary: string;
+  mode: CategoryProductsBrandMode;
   selectedStyle: CategoryProductsStyle;
   onStyleChange: (style: CategoryProductsStyle) => void;
   categoriesData: { _id: string; name: string; slug?: string; image?: string }[];
@@ -23,7 +31,8 @@ export const CategoryProductsPreview = ({
   config, 
   brandColor: _brandColor, 
   secondary,
-  selectedStyle, 
+  mode,
+  selectedStyle,
   onStyleChange, 
   categoriesData,
   productsData,
@@ -31,6 +40,10 @@ export const CategoryProductsPreview = ({
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle || 'grid';
   const setPreviewStyle = (s: string) =>{  onStyleChange(s as CategoryProductsStyle); };
+  const colors = React.useMemo(
+    () => getCategoryProductsColors(_brandColor, secondary, mode),
+    [_brandColor, secondary, mode]
+  );
 
   // Resolve sections with category and products data
   const resolvedSections = config.sections
@@ -109,56 +122,61 @@ export const CategoryProductsPreview = ({
 
   // Empty State Component with brandColor
   const EmptyState = ({ message, size = 'normal' }: { message: string; size?: 'small' | 'normal' }) => (
-    <div 
+    <div
       className={cn(
         'text-center rounded-xl flex flex-col items-center justify-center',
         size === 'small' ? 'py-6' : 'py-12'
       )}
-      style={{ backgroundColor: `${secondary}05` }}
+      style={{ backgroundColor: colors.emptyStateBackground }}
     >
-      <div 
+      <div
         className={cn(
           'rounded-full flex items-center justify-center mb-3',
           size === 'small' ? 'w-12 h-12' : 'w-16 h-16'
         )}
-        style={{ backgroundColor: `${secondary}10` }}
+        style={{ backgroundColor: colors.emptyStateIconBackground }}
       >
-        <Package size={size === 'small' ? 24 : 32} style={{ color: `${secondary}50` }} />
+        <Package size={size === 'small' ? 24 : 32} style={{ color: colors.emptyStateIcon }} />
       </div>
-      <p className="text-sm text-slate-500">{message}</p>
+      <p className="text-sm" style={{ color: colors.emptyStateText }}>{message}</p>
     </div>
   );
 
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: CategoryProductsProduct }) => (
     <div className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${secondary}08` }}>
+      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
         {product.image ? (
-          <PreviewImage 
-            src={product.image} 
-            alt={product.name} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+          <PreviewImage
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package size={24} style={{ color: `${secondary}40` }} />
+            <Package size={24} style={{ color: colors.emptyStateIcon }} />
           </div>
         )}
       </div>
-      <h4 className={cn(
-        'font-medium line-clamp-2',
-        device === 'mobile' ? 'text-xs min-h-[2rem]' : 'text-sm min-h-[2.5rem]'
-      )}>{product.name || 'Tên sản phẩm'}</h4>
+      <h4
+        className={cn(
+          'font-medium line-clamp-2',
+          device === 'mobile' ? 'text-xs min-h-[2rem]' : 'text-sm min-h-[2.5rem]'
+        )}
+        style={{ color: colors.bodyText }}
+      >
+        {product.name || 'Tên sản phẩm'}
+      </h4>
       <div className="flex flex-col mt-auto">
         {product.salePrice && product.salePrice < (product.price ?? 0) ? (
           <>
-            <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: secondary }}>
+            <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: colors.priceText }}>
               {formatPrice(product.salePrice)}
             </span>
             <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
           </>
         ) : (
-          <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: secondary }}>
+          <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: colors.priceText }}>
             {formatPrice(product.price)}
           </span>
         )}
@@ -178,14 +196,19 @@ export const CategoryProductsPreview = ({
           <section key={section.id} className="px-4">
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-4 md:mb-6">
-                <h2 className={cn(
-                  'font-bold',
-                  device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
-                )}>{section.category.name}</h2>
+                <h2
+                  className={cn(
+                    'font-bold',
+                    device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
+                  )}
+                  style={{ color: colors.heading }}
+                >
+                  {section.category.name}
+                </h2>
                 {config.showViewAll && (
-                  <button 
-                    className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg border transition-colors"
-                    style={{ borderColor: `${secondary}30`, color: secondary }}
+                  <button
+                    className="text-sm font-medium flex items-center gap-1 underline px-3 py-1.5 rounded-lg border"
+                    style={{ borderColor: colors.buttonBorder, color: colors.buttonText }}
                   >
                     Xem danh mục <ArrowRight size={16} />
                   </button>
@@ -220,14 +243,19 @@ export const CategoryProductsPreview = ({
           <section key={section.id}>
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between px-4 mb-4">
-                <h2 className={cn(
-                  'font-bold',
-                  device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
-                )}>{section.category.name}</h2>
+                <h2
+                  className={cn(
+                    'font-bold',
+                    device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
+                  )}
+                  style={{ color: colors.heading }}
+                >
+                  {section.category.name}
+                </h2>
                 {config.showViewAll && (
                   <button 
-                    className="text-sm font-medium flex items-center gap-1 hover:underline"
-                    style={{ color: secondary }}
+                    className="text-sm font-medium flex items-center gap-1 underline"
+                    style={{ color: colors.buttonText }}
                   >
                     Xem danh mục <ArrowRight size={16} />
                   </button>
@@ -254,7 +282,7 @@ export const CategoryProductsPreview = ({
                             <PreviewImage 
                               src={product.image} 
                               alt={product.name} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                              className="w-full h-full object-cover" 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -266,7 +294,7 @@ export const CategoryProductsPreview = ({
                           'font-medium line-clamp-2 mb-1',
                           device === 'mobile' ? 'text-xs' : 'text-sm'
                         )}>{product.name}</h4>
-                        <span className={cn('font-bold', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: secondary }}>
+                        <span className={cn('font-bold', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: colors.buttonText }}>
                           {formatPrice(product.salePrice ?? product.price)}
                         </span>
                       </div>
@@ -292,13 +320,13 @@ export const CategoryProductsPreview = ({
         resolvedSections.map((section) => (
           <section key={section.id} className="px-4">
             <div className="max-w-7xl mx-auto">
-              <div 
+              <div
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${secondary}20` }}
+                style={{ border: `1px solid ${colors.cardBorder}` }}
               >
-                <div 
+                <div
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: `${secondary}08` }}
+                  style={{ backgroundColor: colors.neutralBackground }}
                 >
                   <div className="flex items-center gap-3">
                     {section.category.image && (
@@ -310,15 +338,20 @@ export const CategoryProductsPreview = ({
                         />
                       </div>
                     )}
-                    <h2 className={cn(
-                      'font-bold',
-                      device === 'mobile' ? 'text-base' : 'text-lg'
-                    )}>{section.category.name}</h2>
+                    <h2
+                      className={cn(
+                        'font-bold',
+                        device === 'mobile' ? 'text-base' : 'text-lg'
+                      )}
+                      style={{ color: colors.heading }}
+                    >
+                      {section.category.name}
+                    </h2>
                   </div>
                   {config.showViewAll && (
-                    <button 
-                      className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ backgroundColor: `${secondary}15`, color: secondary }}
+                    <button
+                      className="text-sm font-medium flex items-center gap-1 underline px-3 py-1.5 rounded-lg"
+                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                     >
                       Xem danh mục <ArrowRight size={14} />
                     </button>
@@ -364,20 +397,25 @@ export const CategoryProductsPreview = ({
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       className="w-1 h-8 rounded-full"
-                        style={{ backgroundColor: secondary }}
+                      style={{ backgroundColor: colors.sectionAccent }}
                     />
-                    <h2 className={cn(
-                      'font-bold',
-                      device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
-                    )}>{section.category.name}</h2>
+                    <h2
+                      className={cn(
+                        'font-bold',
+                        device === 'mobile' ? 'text-lg' : 'text-xl md:text-2xl'
+                      )}
+                      style={{ color: colors.heading }}
+                    >
+                      {section.category.name}
+                    </h2>
                   </div>
                   {config.showViewAll && (
-                    <button 
-                      className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full transition-all hover:shadow-md"
-                      style={{ backgroundColor: `${secondary}10`, color: secondary }}
-                    >
+                    <button
+                    className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full"
+                    style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                  >
                       Xem danh mục <ArrowRight size={14} />
                     </button>
                   )}
@@ -402,7 +440,7 @@ export const CategoryProductsPreview = ({
                           <PreviewImage 
                             src={featured.image} 
                             alt={featured.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                            className="w-full h-full object-cover" 
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -411,9 +449,9 @@ export const CategoryProductsPreview = ({
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                          <span 
+                          <span
                             className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-2"
-                            style={{ backgroundColor: secondary }}
+                            style={{ backgroundColor: colors.featuredBadgeBackground, color: colors.featuredBadgeText }}
                           >
                             Nổi bật
                           </span>
@@ -438,15 +476,14 @@ export const CategoryProductsPreview = ({
                           <PreviewImage 
                             src={product.image} 
                             alt={product.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                            className="w-full h-full object-cover" 
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Package size={24} className="text-slate-300" />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform">
+                        <div className="absolute inset-x-0 bottom-0 p-3 text-white bg-black/55">
                           <h4 className="font-medium text-xs line-clamp-1">{product.name}</h4>
                           <span className="font-bold text-xs">{formatPrice(product.salePrice ?? product.price)}</span>
                         </div>
@@ -477,26 +514,31 @@ export const CategoryProductsPreview = ({
           return (
             <section key={section.id} className="px-4">
               <div className="max-w-7xl mx-auto">
-                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${secondary}20` }}>
+                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: colors.neutralBorder }}>
                   <div>
                     <span 
                       className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: secondary }}
+                      style={{ color: colors.buttonText }}
                     >
                       Bộ sưu tập
                     </span>
-                    <h2 className={cn(
-                      'font-bold tracking-tight mt-1',
-                      device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl'
-                    )}>{section.category.name}</h2>
+                    <h2
+                      className={cn(
+                        'font-bold tracking-tight mt-1',
+                        device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl'
+                      )}
+                      style={{ color: colors.heading }}
+                    >
+                      {section.category.name}
+                    </h2>
                   </div>
                   {config.showViewAll && (
                     <button 
                       className={cn(
-                        'font-semibold flex items-center gap-2 transition-all hover:gap-3',
+                        'font-semibold flex items-center gap-2',
                         device === 'mobile' ? 'text-sm' : 'text-base'
                       )}
-                      style={{ color: secondary }}
+                      style={{ color: colors.buttonText }}
                     >
                       Xem tất cả <ArrowRight size={device === 'mobile' ? 16 : 18} />
                     </button>
@@ -514,23 +556,23 @@ export const CategoryProductsPreview = ({
                 ) : (
                   <div className="grid grid-cols-2 gap-6">
                     {featured && (
-                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]" style={{ backgroundColor: `${secondary}08` }}>
+                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]" style={{ backgroundColor: colors.imageBackground }}>
                         {featured.image ? (
                           <PreviewImage 
                             src={featured.image} 
                             alt={featured.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                            className="w-full h-full object-cover" 
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Package size={48} style={{ color: `${secondary}30` }} />
+                            <Package size={48} style={{ color: colors.emptyStateIcon }} />
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                          <span 
+                          <span
                             className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3"
-                            style={{ backgroundColor: secondary }}
+                            style={{ backgroundColor: colors.featuredBadgeBackground, color: colors.featuredBadgeText }}
                           >
                             Nổi bật
                           </span>
@@ -554,26 +596,25 @@ export const CategoryProductsPreview = ({
                         <div key={product._id} className="group cursor-pointer">
                           <div 
                             className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                          style={{ backgroundColor: `${secondary}08` }}
+                          style={{ backgroundColor: colors.imageBackground }}
                           >
                             {product.image ? (
                               <PreviewImage 
                                 src={product.image} 
                                 alt={product.name} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                className="w-full h-full object-cover" 
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Package size={24} style={{ color: `${secondary}30` }} />
+                                <Package size={24} style={{ color: colors.emptyStateIcon }} />
                               </div>
                             )}
-                            <div 
-                              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              style={{ backgroundColor: `${secondary}20` }}
+                            <div
+                              className="absolute inset-x-2 bottom-2 flex items-center justify-center"
                             >
-                              <span 
-                                className="px-4 py-2 rounded-full text-sm font-medium text-white"
-                                style={{ backgroundColor: secondary }}
+                              <span
+                                className="px-4 py-2 rounded-full text-sm font-medium"
+                                style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                               >
                                 Xem nhanh
                               </span>
@@ -583,13 +624,13 @@ export const CategoryProductsPreview = ({
                           <div className="flex items-baseline gap-2 mt-1">
                             {product.salePrice && product.salePrice < (product.price ?? 0) ? (
                               <>
-                                <span className="font-bold text-sm" style={{ color: secondary }}>
+                                <span className="font-bold text-sm" style={{ color: colors.buttonText }}>
                                   {formatPrice(product.salePrice)}
                                 </span>
                                 <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
                               </>
                             ) : (
-                              <span className="font-bold text-sm" style={{ color: secondary }}>
+                              <span className="font-bold text-sm" style={{ color: colors.buttonText }}>
                                 {formatPrice(product.price)}
                               </span>
                             )}
@@ -598,12 +639,12 @@ export const CategoryProductsPreview = ({
                       ))}
 
                       {gridItems.length < 4 && Array.from({ length: 4 - gridItems.length }).map((_, i) => (
-                        <div 
-                          key={`empty-${i}`} 
+                        <div
+                          key={`empty-${i}`}
                           className="aspect-square rounded-xl flex items-center justify-center"
-                          style={{ backgroundColor: `${secondary}05`, border: `2px dashed ${secondary}20` }}
+                          style={{ backgroundColor: colors.emptyStateBackground, border: `2px dashed ${colors.neutralBorder}` }}
                         >
-                          <Package size={24} style={{ color: `${secondary}20` }} />
+                          <Package size={24} style={{ color: colors.emptyStateIcon }} />
                         </div>
                       ))}
                     </div>
@@ -617,7 +658,7 @@ export const CategoryProductsPreview = ({
     </div>
   );
 
-  // Style 6: Showcase - Gradient overlay với hover effects lung linh
+  // Style 6: Showcase - always-visible mobile-first cards
   const renderShowcaseStyle = () => (
     <div className="w-full py-4 space-y-10 md:space-y-16">
       {resolvedSections.length === 0 ? (
@@ -630,30 +671,35 @@ export const CategoryProductsPreview = ({
             <div className="max-w-7xl mx-auto px-4">
               <div className="flex items-end justify-between mb-8">
                 <div>
-                  <span 
+                  <span
                     className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: secondary }}
+                    style={{ color: colors.buttonText }}
                   >
                     Bộ sưu tập
                   </span>
-                  <h2 className={cn(
-                    'font-bold mt-1',
-                    device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl'
-                  )}>{section.category.name}</h2>
-                  <div 
+                  <h2
+                    className={cn(
+                      'font-bold mt-1',
+                      device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl'
+                    )}
+                    style={{ color: colors.heading }}
+                  >
+                    {section.category.name}
+                  </h2>
+                  <div
                     className="h-1 w-16 rounded-full mt-2"
-                    style={{ background: `linear-gradient(to right, ${secondary}, ${secondary}40)` }}
+                    style={{ backgroundColor: colors.sectionAccent }}
                   />
                 </div>
                 {config.showViewAll && (
-                  <button 
-                    className="group flex items-center gap-2 text-sm font-medium transition-colors"
-                    style={{ color: secondary }}
+                  <button
+                    className="flex items-center gap-2 text-sm font-medium"
+                    style={{ color: colors.buttonText }}
                   >
-                    Xem tất cả 
-                    <span 
-                      className="w-8 h-8 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform"
-                      style={{ backgroundColor: `${secondary}15` }}
+                    Xem tất cả
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}` }}
                     >
                       <ArrowRight size={14} />
                     </span>
@@ -668,80 +714,61 @@ export const CategoryProductsPreview = ({
                 </div>
               ) : (
                 <div className={cn(
-                  'grid gap-5',
+                  'grid gap-4',
                   device === 'mobile' ? 'grid-cols-2' : 'grid-cols-4'
                 )}>
                   {section.products.map((product) => (
-                    <div 
-                      key={product._id} 
-                      className="group cursor-pointer"
-                    >
-                      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-3">
-                        <div 
-                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ 
-                            background: `linear-gradient(135deg, ${secondary}20 0%, transparent 50%, ${secondary}10 100%)`,
-                          }}
-                        />
-
+                    <div key={product._id} className="cursor-pointer">
+                      <div
+                        className="relative aspect-[3/4] rounded-2xl overflow-hidden border"
+                        style={{ borderColor: colors.cardBorder, backgroundColor: colors.imageBackground }}
+                      >
                         {product.image ? (
-                          <PreviewImage 
-                            src={product.image} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                          <PreviewImage
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                            <Package size={32} className="text-slate-300" />
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package size={32} style={{ color: colors.emptyStateIcon }} />
                           </div>
                         )}
 
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 via-black/45 to-transparent" />
 
-                        <div className="absolute bottom-3 left-3 right-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                          <button 
-                            className="w-full py-2.5 rounded-xl text-sm font-medium text-white backdrop-blur-sm transition-colors"
-                            style={{ backgroundColor: `${secondary}dd` }}
-                          >
-                            Xem chi tiết
-                          </button>
+                        <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                          <h4 className={cn('font-medium line-clamp-2', device === 'mobile' ? 'text-xs' : 'text-sm')}>
+                            {product.name}
+                          </h4>
+                          <div className="flex flex-col mt-1">
+                            {product.salePrice && product.salePrice < (product.price ?? 0) ? (
+                              <>
+                                <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')}>
+                                  {formatPrice(product.salePrice)}
+                                </span>
+                                <span className="text-[10px] text-white/70 line-through">{formatPrice(product.price)}</span>
+                              </>
+                            ) : (
+                              <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')}>
+                                {formatPrice(product.price)}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
+                        <span
+                          className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] font-medium"
+                          style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                        >
+                          Chi tiết
+                        </span>
+
                         {product.salePrice && product.salePrice < (product.price ?? 0) && (
-                          <div 
-                            className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white"
-                            style={{ backgroundColor: '#ef4444' }}
-                          >
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white bg-red-500">
                             -{Math.round((1 - product.salePrice / (product.price ?? 1)) * 100)}%
                           </div>
                         )}
-                      </div>
-
-                      <div className="space-y-1">
-                        <h4 className={cn(
-                          'font-medium line-clamp-2 group-hover:text-opacity-80 transition-colors',
-                          device === 'mobile' ? 'text-xs' : 'text-sm'
-                        )}>{product.name}</h4>
-                        <div className="flex flex-col">
-                          {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-                            <>
-                              <span 
-                                className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} 
-                              style={{ color: secondary }}
-                              >
-                                {formatPrice(product.salePrice)}
-                              </span>
-                              <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
-                            </>
-                          ) : (
-                            <span 
-                              className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} 
-                              style={{ color: secondary }}
-                            >
-                              {formatPrice(product.price)}
-                            </span>
-                          )}
-                        </div>
                       </div>
                     </div>
                   ))}
@@ -775,7 +802,7 @@ export const CategoryProductsPreview = ({
           {previewStyle === 'showcase' && renderShowcaseStyle()}
         </BrowserFrame>
       </PreviewWrapper>
-      <ColorInfoPanel brandColor={_brandColor} secondary={secondary} />
+      <ColorInfoPanel brandColor={_brandColor} secondary={colors.secondary} />
     </>
   );
 };

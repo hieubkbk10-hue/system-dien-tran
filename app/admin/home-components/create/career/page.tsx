@@ -1,24 +1,105 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import type { CareerStyle } from '../../_shared/legacy/previews';
-import { CareerPreview } from '../../_shared/legacy/previews';
+import { CareerPreview } from '../../career/_components/CareerPreview';
+import {
+  createCareerJob,
+  DEFAULT_CAREER_HARMONY,
+} from '../../career/_lib/constants';
+import { getCareerValidationResult } from '../../career/_lib/colors';
+import { normalizeCareerJobs, toCareerJobsForConfig } from '../../career/_lib/normalize';
+import type {
+  CareerHarmony,
+  CareerStyle,
+  JobPosition,
+} from '../../career/_types';
+
+const DEFAULT_CREATE_JOBS: JobPosition[] = [
+  createCareerJob({
+    id: 'career-job-1',
+    title: 'Frontend Developer',
+    department: 'Engineering',
+    location: 'Hà Nội',
+    type: 'Full-time',
+    salary: '15-25 triệu',
+    description: '',
+  }),
+  createCareerJob({
+    id: 'career-job-2',
+    title: 'UI/UX Designer',
+    department: 'Design',
+    location: 'Remote',
+    type: 'Full-time',
+    salary: '12-20 triệu',
+    description: '',
+  }),
+];
 
 export default function CareerCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', 'Career');
-  const { primary, secondary } = useBrandColors();
-  
-  const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
-  const [jobPositions, setJobPositions] = useState([
-    { department: 'Engineering', description: '', id: 1, location: 'Hà Nội', salary: '15-25 triệu', title: 'Frontend Developer', type: 'Full-time' },
-    { department: 'Design', description: '', id: 2, location: 'Remote', salary: '12-20 triệu', title: 'UI/UX Designer', type: 'Full-time' }
-  ]);
+  const { primary, secondary, mode } = useBrandColors();
 
-  const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { jobs: jobPositions.map(j => ({ department: j.department, description: j.description, location: j.location, salary: j.salary, title: j.title, type: j.type })), style: careerStyle });
+  const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
+  const [jobPositions, setJobPositions] = useState<JobPosition[]>(DEFAULT_CREATE_JOBS);
+  const [harmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
+
+  const normalizedJobs = useMemo(() => normalizeCareerJobs(jobPositions), [jobPositions]);
+
+  const validation = useMemo(() => getCareerValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony,
+  }), [primary, secondary, mode, harmony]);
+
+  const warningMessages = useMemo(() => {
+    const warnings: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
+
+  const handleAddJob = () => {
+    setJobPositions((prev) => ([
+      ...prev,
+      createCareerJob({
+        id: `career-job-${Date.now()}-${prev.length}`,
+        type: 'Full-time',
+      }),
+    ]));
+  };
+
+  const handleRemoveJob = (index: number) => {
+    setJobPositions((prev) => {
+      if (prev.length <= 1) {
+        return prev;
+      }
+      return prev.filter((_, idx) => idx !== index);
+    });
+  };
+
+  const updateJob = (index: number, field: keyof JobPosition, value: string) => {
+    setJobPositions((prev) => prev.map((job, idx) => (
+      idx === index ? { ...job, [field]: value } : job
+    )));
+  };
+
+  const onSubmit = (event: React.FormEvent) => {
+    void handleSubmit(event, {
+      jobs: toCareerJobsForConfig(normalizedJobs),
+      style: careerStyle,
+      harmony,
+    });
   };
 
   return (
@@ -34,11 +115,11 @@ export default function CareerCreatePage() {
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Vị trí tuyển dụng</CardTitle>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={() =>{  setJobPositions([...jobPositions, { department: '', description: '', id: Date.now(), location: '', salary: '', title: '', type: 'Full-time' }]); }} 
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAddJob}
             className="gap-2"
           >
             <Plus size={14} /> Thêm vị trí
@@ -46,64 +127,93 @@ export default function CareerCreatePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {jobPositions.map((job, idx) => (
-            <div key={job.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3">
+            <div
+              key={normalizedJobs[idx]?.key ?? `${job.id ?? 'career-job'}-${idx}`}
+              className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3"
+            >
               <div className="flex items-center justify-between">
                 <Label>Vị trí {idx + 1}</Label>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-red-500 h-8 w-8" 
-                  onClick={() => jobPositions.length > 1 && setJobPositions(jobPositions.filter(j => j.id !== job.id))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 h-8 w-8"
+                  onClick={() => { handleRemoveJob(idx); }}
+                  disabled={jobPositions.length <= 1}
                 >
                   <Trash2 size={14} />
                 </Button>
               </div>
+
               <div className="grid grid-cols-2 gap-3">
-                <Input 
-                  placeholder="Vị trí tuyển dụng" 
-                  value={job.title} 
-                  onChange={(e) =>{  setJobPositions(jobPositions.map(j => j.id === job.id ? {...j, title: e.target.value} : j)); }} 
+                <Input
+                  placeholder="Vị trí tuyển dụng"
+                  value={job.title}
+                  onChange={(event) => { updateJob(idx, 'title', event.target.value); }}
                 />
-                <Input 
-                  placeholder="Phòng ban" 
-                  value={job.department} 
-                  onChange={(e) =>{  setJobPositions(jobPositions.map(j => j.id === job.id ? {...j, department: e.target.value} : j)); }} 
+                <Input
+                  placeholder="Phòng ban"
+                  value={job.department}
+                  onChange={(event) => { updateJob(idx, 'department', event.target.value); }}
                 />
               </div>
+
               <div className="grid grid-cols-3 gap-3">
-                <Input 
-                  placeholder="Địa điểm" 
-                  value={job.location} 
-                  onChange={(e) =>{  setJobPositions(jobPositions.map(j => j.id === job.id ? {...j, location: e.target.value} : j)); }} 
+                <Input
+                  placeholder="Địa điểm"
+                  value={job.location}
+                  onChange={(event) => { updateJob(idx, 'location', event.target.value); }}
                 />
-                <select 
-                  className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" 
-                  value={job.type} 
-                  onChange={(e) =>{  setJobPositions(jobPositions.map(j => j.id === job.id ? {...j, type: e.target.value} : j)); }}
+                <select
+                  className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  value={job.type}
+                  onChange={(event) => { updateJob(idx, 'type', event.target.value); }}
                 >
                   <option>Full-time</option>
                   <option>Part-time</option>
                   <option>Contract</option>
                   <option>Internship</option>
                 </select>
-                <Input 
-                  placeholder="Mức lương" 
-                  value={job.salary} 
-                  onChange={(e) =>{  setJobPositions(jobPositions.map(j => j.id === job.id ? {...j, salary: e.target.value} : j)); }} 
+                <Input
+                  placeholder="Mức lương"
+                  value={job.salary}
+                  onChange={(event) => { updateJob(idx, 'salary', event.target.value); }}
                 />
               </div>
+
+              <Input
+                placeholder="Mô tả ngắn (tuỳ chọn)"
+                value={job.description}
+                onChange={(event) => { updateJob(idx, 'description', event.target.value); }}
+              />
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <CareerPreview 
-        jobs={jobPositions} 
-        brandColor={primary} secondary={secondary}
+      <CareerPreview
+        jobs={toCareerJobsForConfig(normalizedJobs)}
+        brandColor={primary}
+        secondary={secondary}
+        mode={mode}
+        harmony={harmony}
         selectedStyle={careerStyle}
         onStyleChange={setCareerStyle}
+        title={title}
       />
+
+      {warningMessages.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {warningMessages.map((message) => (
+            <div
+              key={message}
+              className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700"
+            >
+              <p>{message}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </ComponentFormWrapper>
   );
 }

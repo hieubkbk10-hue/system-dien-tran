@@ -1,4 +1,5 @@
 export interface SpeedDialAction {
+  id?: string | number;
   icon: string;
   label: string;
   url: string;
@@ -7,10 +8,17 @@ export interface SpeedDialAction {
 
 export type SpeedDialStyle = 'fab' | 'sidebar' | 'pills' | 'stack' | 'dock' | 'minimal';
 
+export type SpeedDialPosition = 'bottom-right' | 'bottom-left';
+
+export type SpeedDialBrandMode = 'single' | 'dual';
+
+export type SpeedDialHarmony = 'analogous' | 'complementary' | 'triadic';
+
 export interface SpeedDialConfig {
   actions: SpeedDialAction[];
   style: SpeedDialStyle;
-  position: 'bottom-right' | 'bottom-left';
-  mainButtonColor: string;
+  position: SpeedDialPosition;
+  harmony?: SpeedDialHarmony;
+  mainButtonColor?: string;
   alwaysOpen?: boolean;
 }

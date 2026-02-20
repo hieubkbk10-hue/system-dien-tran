@@ -1,63 +1,49 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Briefcase, Building2, Check, Clock, Cpu, Globe, GripVertical, Layers, Mail, MapPin, Package, Phone, Plus, Rocket, Settings, Shield, Star, Target, Trash2, Users, Zap } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
+import React, { useMemo, useState } from 'react';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { ServicesPreview, type ServicesStyle } from '../../_shared/legacy/previews';
+import { ServicesForm } from '../../services/_components/ServicesForm';
+import { ServicesPreview } from '../../services/_components/ServicesPreview';
+import { getServicesValidationResult, normalizeServicesHarmony } from '../../services/_lib/colors';
+import { toServicesPersistItems } from '../../services/_lib/items';
+import type { ServiceEditorItem, ServicesStyle } from '../../services/_types';
+import { AlertTriangle, Eye } from 'lucide-react';
 
-// Available icons for services
-const AVAILABLE_ICONS = ['Briefcase', 'Shield', 'Star', 'Users', 'Phone', 'Target', 'Zap', 'Globe', 'Rocket', 'Settings', 'Layers', 'Cpu', 'Clock', 'MapPin', 'Mail', 'Building2', 'Check', 'Package'];
+const DEFAULT_EDITOR_ITEMS: ServiceEditorItem[] = [
+  { id: 1, icon: 'Briefcase', title: 'Tư vấn chiến lược', description: 'Đội ngũ chuyên gia giàu kinh nghiệm.' },
+  { id: 2, icon: 'Shield', title: 'Bảo hành trọn đời', description: 'Cam kết chất lượng sản phẩm.' },
+  { id: 3, icon: 'Package', title: 'Giao hàng nhanh', description: 'Miễn phí vận chuyển toàn quốc.' },
+];
 
 export default function ServicesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', 'Services');
-  const { primary, secondary } = useBrandColors();
-  
-  const [servicesItems, setServicesItems] = useState([
-    { description: 'Đội ngũ chuyên gia giàu kinh nghiệm', icon: 'Briefcase', id: 1, title: 'Tư vấn chiến lược' },
-    { description: 'Cam kết chất lượng sản phẩm', icon: 'Shield', id: 2, title: 'Bảo hành trọn đời' },
-    { description: 'Miễn phí vận chuyển toàn quốc', icon: 'Package', id: 3, title: 'Giao hàng nhanh' }
-  ]);
+  const { primary, secondary, mode } = useBrandColors();
+
+  const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(DEFAULT_EDITOR_ITEMS);
   const [style, setStyle] = useState<ServicesStyle>('elegantGrid');
 
-  // Drag & Drop state
-  const [draggedId, setDraggedId] = useState<number | null>(null);
-  const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const harmony = normalizeServicesHarmony(undefined);
+  const validation = useMemo(() => getServicesValidationResult({ primary, secondary, mode, harmony }), [primary, secondary, mode, harmony]);
 
-  const handleAddService = () =>{  setServicesItems([...servicesItems, { description: '', icon: 'Star', id: Date.now(), title: '' }]); };
-  const handleRemoveService = (id: number) => servicesItems.length > 1 && setServicesItems(servicesItems.filter(s => s.id !== id));
-  const handleUpdateService = (id: number, field: string, value: string) => {
-    setServicesItems(servicesItems.map(s => s.id === id ? { ...s, [field]: value } : s));
-  };
+  const warningMessages = useMemo(() => {
+    const messages: string[] = [];
 
-  // Drag handlers
-  const handleDragStart = (id: number) =>{  setDraggedId(id); };
-  const handleDragEnd = () => { setDraggedId(null); setDragOverId(null); };
-  const handleDragOver = (e: React.DragEvent, id: number) => {
-    e.preventDefault();
-    if (draggedId !== id) {setDragOverId(id);}
-  };
-  const handleDrop = (e: React.DragEvent, targetId: number) => {
-    e.preventDefault();
-    if (!draggedId || draggedId === targetId) {return;}
-    const newItems = [...servicesItems];
-    const draggedIdx = newItems.findIndex(i => i.id === draggedId);
-    const targetIdx = newItems.findIndex(i => i.id === targetId);
-    const [moved] = newItems.splice(draggedIdx, 1);
-    newItems.splice(targetIdx, 0, moved);
-    setServicesItems(newItems);
-    setDraggedId(null);
-    setDragOverId(null);
-  };
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
+    }
 
-  const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { items: servicesItems.map(s => ({ description: s.description, icon: s.icon, title: s.title })), style });
-  };
+    if (validation.accessibility.failing.length > 0) {
+      messages.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+    }
 
-  // Get icon component
-  const getIconComponent = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = { Briefcase, Building2, Check, Clock, Cpu, Globe, Layers, Mail, MapPin, Package, Phone, Rocket, Settings, Shield, Star, Target, Users, Zap };
-    return icons[iconName] || Star;
+    return messages;
+  }, [mode, validation]);
+
+  const onSubmit = (event: React.FormEvent) => {
+    void handleSubmit(event, {
+      items: toServicesPersistItems(servicesItems),
+      style,
+    });
   };
 
   return (
@@ -70,79 +56,30 @@ export default function ServicesCreatePage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
     >
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Dịch vụ ({servicesItems.length})</CardTitle>
-          <Button type="button" variant="outline" size="sm" onClick={handleAddService} className="gap-2">
-            <Plus size={14} /> Thêm
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {servicesItems.map((item, idx) => {
-            const IconComponent = getIconComponent(item.icon);
-            return (
-              <div 
-                key={item.id} 
-                draggable
-                onDragStart={() =>{  handleDragStart(item.id); }}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) =>{  handleDragOver(e, item.id); }}
-                onDrop={(e) =>{  handleDrop(e, item.id); }}
-                className={cn(
-                  "p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3 border-2 transition-all cursor-grab active:cursor-grabbing",
-                  draggedId === item.id && "opacity-50",
-                  dragOverId === item.id && "border-blue-500",
-                  !draggedId && !dragOverId && "border-transparent"
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <GripVertical size={16} className="text-slate-400 flex-shrink-0" />
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${secondary}15` }}>
-                      <IconComponent size={16} style={{ color: secondary }} />
-                    </div>
-                    <Label className="font-medium">Dịch vụ {idx + 1}</Label>
-                  </div>
-                  <Button type="button" variant="ghost" size="icon" className="text-red-500 h-8 w-8 flex-shrink-0" onClick={() => handleRemoveService(item.id)}>
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <select 
-                    value={item.icon} 
-                    onChange={(e) =>{  handleUpdateService(item.id, 'icon', e.target.value); }}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    {AVAILABLE_ICONS.map((icon) => (
-                      <option key={icon} value={icon}>{icon}</option>
-                    ))}
-                  </select>
-                  <Input 
-                    placeholder="Tiêu đề" 
-                    value={item.title} 
-                    onChange={(e) =>{  handleUpdateService(item.id, 'title', e.target.value); }}
-                    className="md:col-span-1"
-                  />
-                  <Input 
-                    placeholder="Mô tả ngắn" 
-                    value={item.description} 
-                    onChange={(e) =>{  handleUpdateService(item.id, 'description', e.target.value); }}
-                    className="md:col-span-2"
-                  />
-                </div>
-              </div>
-            );
-          })}
-          {servicesItems.length === 0 && (
-            <div className="text-center py-8 text-slate-500">
-              <Briefcase size={32} className="mx-auto mb-2 opacity-50" />
-              <p>Chưa có dịch vụ nào. Nhấn “Thêm” để bắt đầu.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ServicesForm items={servicesItems} onChange={setServicesItems} brandColor={validation.colors.primary} />
 
-      <ServicesPreview items={servicesItems} brandColor={primary} secondary={secondary} componentType="Services" selectedStyle={style} onStyleChange={setStyle} />
+      {warningMessages.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+          <div className="space-y-2">
+            {warningMessages.map((message, idx) => (
+              <div key={`${idx}-${message}`} className="flex items-start gap-2">
+                {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
+                <p>{message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <ServicesPreview
+        items={toServicesPersistItems(servicesItems)}
+        brandColor={validation.colors.primary}
+        secondary={validation.colors.secondary}
+        mode={mode}
+        selectedStyle={style}
+        onStyleChange={setStyle}
+        title={title}
+      />
     </ComponentFormWrapper>
   );
 }

@@ -80,7 +80,7 @@ const EDIT_ROUTE_MAP: Record<string, string> = {
   Stats: 'stats',
   Team: 'team',
   Testimonials: 'testimonials',
-  TrustBadges: 'gallery',
+  TrustBadges: 'trust-badges',
   Video: 'video',
   VoucherPromotions: 'voucher-promotions',
 };

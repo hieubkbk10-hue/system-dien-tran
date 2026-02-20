@@ -52,11 +52,6 @@ export default function GalleryCreatePage() {
           <CardTitle className="text-base">Thư viện ảnh</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-3 text-sm font-semibold" style={{ color: primary }}>
-            <span className="underline underline-offset-4" style={{ textDecorationColor: secondary }}>
-              Những hình ảnh
-            </span>
-          </p>
 
           <MultiImageUploader<GalleryItem>
             items={galleryItems}
@@ -84,6 +79,7 @@ export default function GalleryCreatePage() {
         selectedStyle={galleryStyle}
         onStyleChange={setGalleryStyle}
       />
+   title={title}  // Thêm dòng này
 
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <div className="flex items-start gap-3">

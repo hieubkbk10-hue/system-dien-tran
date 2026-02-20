@@ -5,23 +5,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
 import { BlogForm, type BlogPostItem } from '../../_components/BlogForm';
 import { BlogPreview } from '../../_components/BlogPreview';
-import { DEFAULT_BLOG_CONFIG } from '../../_lib/constants';
+import { getBlogValidationResult } from '../../_lib/colors';
+import { DEFAULT_BLOG_CONFIG, sortBlogPosts } from '../../_lib/constants';
 import type { BlogSelectionMode, BlogStyle } from '../../_types';
 
 export default function BlogEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
   const postsData = useQuery(api.posts.listAll, { limit: 100 });
+  const postCategoriesData = useQuery(api.postCategories.listAll, { limit: 200 });
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
@@ -34,6 +36,8 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
     sortBy: DEFAULT_BLOG_CONFIG.sortBy
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [warningMessages, setWarningMessages] = useState<string[]>([]);
+  const [initialState, setInitialState] = useState('');
 
   const filteredPosts = useMemo(() => {
     if (!postsData) {return [];}
@@ -47,10 +51,10 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
   const selectedPosts = useMemo(() => {
     if (!postsData || selectedPostIds.length === 0) {return [];}
-    const postMap = new Map(postsData.map(p => [p._id, p]));
+    const postMap = new Map(postsData.map((post) => [post._id, post]));
     return selectedPostIds
-      .map(idValue => postMap.get(idValue as Id<'posts'>))
-      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+      .map((postId) => postMap.get(postId as Id<'posts'>))
+      .filter((post): post is Doc<'posts'> => post !== undefined);
   }, [postsData, selectedPostIds]);
 
   useEffect(() => {
@@ -68,17 +72,92 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         itemCount: (config.itemCount as number) ?? DEFAULT_BLOG_CONFIG.itemCount,
         sortBy: (config.sortBy as 'newest' | 'popular' | 'random') ?? DEFAULT_BLOG_CONFIG.sortBy,
       });
-      setBlogStyle((config.style as BlogStyle) || 'grid');
-      setBlogSelectionMode((config.selectionMode as BlogSelectionMode) || 'auto');
-      setSelectedPostIds((config.selectedPostIds as string[]) || []);
+      const nextStyle = (config.style as BlogStyle) || 'grid';
+      const nextSelectionMode = (config.selectionMode as BlogSelectionMode) || 'auto';
+      const nextSelectedPostIds = (config.selectedPostIds as string[]) || [];
+
+      setBlogStyle(nextStyle);
+      setBlogSelectionMode(nextSelectionMode);
+      setSelectedPostIds(nextSelectedPostIds);
+
+      const snapshot = JSON.stringify({
+        title: component.title,
+        active: component.active,
+        itemCount: (config.itemCount as number) ?? DEFAULT_BLOG_CONFIG.itemCount,
+        sortBy: (config.sortBy as 'newest' | 'popular' | 'random') ?? DEFAULT_BLOG_CONFIG.sortBy,
+        style: nextStyle,
+        selectionMode: nextSelectionMode,
+        selectedPostIds: nextSelectionMode === 'manual' ? nextSelectedPostIds : [],
+      });
+      setInitialState(snapshot);
     }
   }, [component, id, router]);
+
+  const previewPosts = useMemo(() => {
+    if (!postsData) {return undefined;}
+
+    const published = postsData.filter((post) => post.status === 'Published');
+
+    if (blogSelectionMode === 'manual') {
+      if (selectedPostIds.length === 0) {return [];}
+      const postMap = new Map(published.map((post) => [post._id, post]));
+      return selectedPostIds
+        .map((postId) => postMap.get(postId as Id<'posts'>))
+        .filter((post): post is Doc<'posts'> => post !== undefined);
+    }
+
+    const sorted = sortBlogPosts(published, blogConfig.sortBy, title);
+
+    return sorted.slice(0, blogConfig.itemCount);
+  }, [blogConfig.itemCount, blogConfig.sortBy, blogSelectionMode, postsData, selectedPostIds, title]);
+
+  const categoryMap = useMemo(() => {
+    if (!postCategoriesData) {return undefined;}
+    const map: Record<string, string> = {};
+    postCategoriesData.forEach((category) => {
+      map[category._id] = category.name;
+    });
+    return map;
+  }, [postCategoriesData]);
+
+  const typedPreviewPosts = previewPosts as BlogPostItem[] | undefined;
+  const typedCategoryMap = categoryMap as Record<string, string> | undefined;
+
+  const currentState = useMemo(() => JSON.stringify({
+    title,
+    active,
+    itemCount: blogConfig.itemCount,
+    sortBy: blogConfig.sortBy,
+    style: blogStyle,
+    selectionMode: blogSelectionMode,
+    selectedPostIds: blogSelectionMode === 'manual' ? selectedPostIds : [],
+  }), [active, blogConfig.itemCount, blogConfig.sortBy, blogSelectionMode, blogStyle, selectedPostIds, title]);
+
+  const hasChanges = initialState.length > 0 && currentState !== initialState;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
 
     setIsSubmitting(true);
+
+    const validation = getBlogValidationResult({
+      primary,
+      secondary,
+      mode,
+    });
+
+    const warnings: string[] = [];
+    if (mode === 'dual') {
+      if (validation.harmonyStatus.isTooSimilar) {
+        warnings.push(`Độ tương phản thương hiệu thấp (ΔE=${validation.harmonyStatus.deltaE}).`);
+      }
+      if (validation.accessibility.failing.length > 0) {
+        warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+      }
+    }
+    setWarningMessages(warnings);
+
     try {
       await updateMutation({
         active,
@@ -93,6 +172,7 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         title,
       });
       toast.success('Đã cập nhật Blog');
+      setInitialState(currentState);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -100,6 +180,8 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       setIsSubmitting(false);
     }
   };
+
+  const saveDisabled = isSubmitting || !hasChanges;
 
   if (component === undefined) {
     return (
@@ -186,18 +268,32 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
             <BlogPreview
               brandColor={primary}
               secondary={secondary}
+              mode={mode}
               postCount={blogSelectionMode === 'manual' ? selectedPostIds.length : blogConfig.itemCount}
               selectedStyle={blogStyle}
               onStyleChange={setBlogStyle}
+              title={title}
+              previewItems={typedPreviewPosts}
+              categoryMap={typedCategoryMap}
             />
           </div>
         </div>
+
+        {warningMessages.length > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 mb-4">
+            <ul className="list-disc pl-4 space-y-1">
+              {warningMessages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={saveDisabled}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

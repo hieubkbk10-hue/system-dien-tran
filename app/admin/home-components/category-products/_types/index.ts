@@ -1,4 +1,6 @@
 export type CategoryProductsStyle = 'grid' | 'carousel' | 'cards' | 'bento' | 'magazine' | 'showcase';
+export type CategoryProductsBrandMode = 'single' | 'dual';
+export type CategoryProductsHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface CategoryProductsSection {
   id: number;

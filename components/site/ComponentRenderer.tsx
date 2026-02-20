@@ -2653,6 +2653,11 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
       />
     </section>
   );
+       {title && (
+         <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>
+           {title}
+         </h2>
+       )}
 
   if (type === 'Gallery') {
     return renderGalleryContent();

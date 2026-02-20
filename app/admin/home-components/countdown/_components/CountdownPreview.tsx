@@ -1,3 +1,81 @@
 'use client';
 
-export { CountdownPreview } from '../../_shared/legacy/previews';
+import React from 'react';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
+import { usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
+import { getCountdownColorTokens } from '../_lib/colors';
+import { useCountdownTimer } from '../_lib/timer';
+import { normalizeCountdownConfig } from '../_lib/normalize';
+import { CountdownSectionShared } from './CountdownSectionShared';
+import type {
+  CountdownBrandMode,
+  CountdownConfig,
+  CountdownHarmony,
+  CountdownStyle,
+} from '../_types';
+
+interface CountdownPreviewProps {
+  config: CountdownConfig;
+  brandColor: string;
+  secondary: string;
+  mode?: CountdownBrandMode;
+  selectedStyle?: CountdownStyle;
+  onStyleChange?: (style: CountdownStyle) => void;
+}
+
+export const CountdownPreview = ({
+  config,
+  brandColor,
+  secondary,
+  mode = 'dual',
+  selectedStyle,
+  onStyleChange,
+}: CountdownPreviewProps) => {
+  const { device, setDevice } = usePreviewDevice();
+
+  const normalizedConfig = React.useMemo(() => {
+    const normalized = normalizeCountdownConfig(config);
+    if (selectedStyle) {
+      normalized.style = selectedStyle;
+    }
+    return normalized;
+  }, [config, selectedStyle]);
+
+  const harmony = normalizedConfig.harmony as CountdownHarmony | undefined;
+  const tokens = React.useMemo(
+    () => getCountdownColorTokens({
+      primary: brandColor,
+      secondary,
+      mode,
+      harmony,
+    }),
+    [brandColor, secondary, mode, harmony],
+  );
+
+  const timeLeft = useCountdownTimer(normalizedConfig.endDate);
+
+  return (
+    <>
+      <CountdownSectionShared
+        config={normalizedConfig}
+        title={normalizedConfig.heading}
+        mode={mode}
+        tokens={tokens}
+        timeLeft={timeLeft}
+        context="preview"
+        includePreviewWrapper
+        previewDevice={device}
+        setPreviewDevice={setDevice}
+        previewStyle={normalizedConfig.style}
+        onPreviewStyleChange={onStyleChange}
+      />
+      {mode === 'dual' ? (
+        <ColorInfoPanel
+          brandColor={tokens.primary}
+          secondary={tokens.secondary}
+          description="Màu phụ được áp dụng cho CTA, accent timer, badge và nhấn mạnh ở 6 layout Countdown."
+        />
+      ) : null}
+    </>
+  );
+};

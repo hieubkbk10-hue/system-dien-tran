@@ -1,344 +1,457 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, FileText, Plus } from 'lucide-react';
-import { cn } from '../../../components/ui';
-import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import Image from 'next/image';
+import { ArrowRight, ChevronLeft, ChevronRight, Eye, FileText, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, cn } from '../../../components/ui';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
-import { PreviewImage } from '../../_shared/components/PreviewImage';
-import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
-import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { BLOG_STYLES } from '../_lib/constants';
-import type { BlogPreviewItem, BlogStyle } from '../_types';
+import type { BlogPostItem } from './BlogForm';
+import {
+  getBlogColorTokens,
+  getBlogValidationResult,
+  type BlogBrandMode,
+} from '../_lib/colors';
+import type { BlogStyle } from '../_types';
 
-// Modern News Feed UI/UX - 6 Variants (Best Practice compliant)
-// Styles: Grid, List, Featured, Magazine, Carousel, Minimal
-export const BlogPreview = ({ 
-  brandColor, 
-  secondary,
-  postCount, 
-  selectedStyle, 
-  onStyleChange,
-  posts,
-  title = 'Bài viết'
-}: { 
+interface BlogPreviewProps {
   brandColor: string;
-  secondary: string; 
-  postCount: number; 
-  selectedStyle?: BlogStyle; 
+  secondary: string;
+  mode?: BlogBrandMode;
+  postCount?: number;
+  selectedStyle?: BlogStyle;
   onStyleChange?: (style: BlogStyle) => void;
-  posts?: BlogPreviewItem[];
   title?: string;
-}) => {
-  const { device, setDevice } = usePreviewDevice();
-  const previewStyle = selectedStyle ?? 'grid';
-  const setPreviewStyle = (s: string) => onStyleChange?.(s as BlogStyle);
-  
-  // Mock data
-  const mockPosts: BlogPreviewItem[] = [
-    { category: 'Thiết kế', date: '12/05/2024', excerpt: 'Khám phá những phong cách thiết kế đang thống trị thế giới công nghệ hiện đại và cách áp dụng vào dự án của bạn.', id: 1, readTime: '5 phút đọc', title: 'Xu hướng thiết kế UI/UX nổi bật năm 2024', views: 1250 },
-    { category: 'Lập trình', date: '11/05/2024', excerpt: 'Những kỹ thuật và best practices để tối ưu performance cho ứng dụng React của bạn.', id: 2, readTime: '8 phút đọc', title: 'Tối ưu hóa hiệu năng React Application', views: 980 },
-    { category: 'Công nghệ', date: '10/05/2024', excerpt: 'Phân tích sâu về tác động của AI đến việc làm và cách thích nghi với xu hướng mới.', id: 3, readTime: '6 phút đọc', title: 'AI và tương lai của thị trường lao động', views: 2100 },
-    { category: 'Marketing', date: '09/05/2024', excerpt: 'Tất cả những gì developer cần biết về SEO để xây dựng website thân thiện với công cụ tìm kiếm.', id: 4, readTime: '7 phút đọc', title: 'Hướng dẫn SEO cho Developers', views: 750 },
-    { category: 'Bảo mật', date: '08/05/2024', excerpt: 'Những lỗ hổng bảo mật phổ biến và cách phòng tránh trong ứng dụng web.', id: 5, readTime: '10 phút đọc', title: 'Bảo mật Web Application 101', views: 1500 },
-    { category: 'Architecture', date: '07/05/2024', excerpt: 'So sánh chi tiết giữa hai kiến trúc phổ biến và cách đưa ra quyết định phù hợp.', id: 6, readTime: '9 phút đọc', title: 'Microservices vs Monolith: Khi nào nên chọn gì?', views: 890 }
-  ];
+  previewItems?: BlogPostItem[];
+  categoryMap?: Record<string, string>;
+}
 
-  // Use real posts if provided, otherwise mock
-  const displayPosts: BlogPreviewItem[] = posts && posts.length > 0 
-    ? posts 
-    : mockPosts.slice(0, Math.max(postCount, 6));
-  
-  const showViewAll = displayPosts.length > 3;
+const styles = [
+  { id: 'grid', label: 'Grid' },
+  { id: 'list', label: 'List' },
+  { id: 'featured', label: 'Featured' },
+  { id: 'magazine', label: 'Magazine' },
+  { id: 'carousel', label: 'Carousel' },
+  { id: 'minimal', label: 'Minimal' },
+] as const;
 
-  // Image placeholder with brandColor
-  const ImagePlaceholder = ({ size = 32 }: { size?: number }) => (
-    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `${brandColor}10` }}>
-      <FileText size={size} style={{ color: `${brandColor}40` }} />
-    </div>
-  );
+const devices = [
+  { icon: Monitor, id: 'desktop' as const, label: 'Desktop (max-w-6xl)' },
+  { icon: Tablet, id: 'tablet' as const, label: 'Tablet (768px)' },
+  { icon: Smartphone, id: 'mobile' as const, label: 'Mobile (375px)' },
+];
 
-  // Empty State
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}10` }}>
-        <FileText size={32} style={{ color: brandColor }} />
-      </div>
-      <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có bài viết nào</h3>
-      <p className="text-sm text-slate-500">Thêm bài viết để hiển thị ở đây</p>
-    </div>
-  );
+type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
-  // "+N bài viết khác" component
-  const MoreItemsCard = ({ count }: { count: number }) => (
-    <div 
-      className="flex flex-col items-center justify-center rounded-xl aspect-[16/10] border-2 border-dashed cursor-pointer"
-      style={{ backgroundColor: `${brandColor}05`, borderColor: `${brandColor}30` }}
-    >
-      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ backgroundColor: `${brandColor}15` }}>
-        <Plus size={24} style={{ color: brandColor }} />
-      </div>
-      <span className="text-lg font-bold" style={{ color: brandColor }}>+{count}</span>
-      <p className="text-xs text-slate-500">bài viết khác</p>
-    </div>
-  );
+const MOCK_POSTS: BlogPostItem[] = [
+  {
+    _id: '1',
+    _creationTime: Date.now() - 8 * 24 * 60 * 60 * 1000,
+    title: 'Xu hướng thiết kế web hiện đại năm 2026',
+    excerpt: 'Những xu hướng thiết kế website nổi bật giúp tăng trải nghiệm người dùng và hiệu quả chuyển đổi.',
+    thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop',
+    categoryId: 'cat-design',
+    slug: 'xhu-thiet-ke-web-2026',
+    status: 'Published',
+    views: 324,
+  },
+  {
+    _id: '2',
+    _creationTime: Date.now() - 7 * 24 * 60 * 60 * 1000,
+    title: 'Tối ưu SEO cho website doanh nghiệp',
+    excerpt: 'Các chiến lược SEO on-page và technical SEO để website đạt thứ hạng cao trên Google.',
+    thumbnail: 'https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&h=500&fit=crop',
+    categoryId: 'cat-seo',
+    slug: 'toi-uu-seo-doanh-nghiep',
+    status: 'Published',
+    views: 280,
+  },
+  {
+    _id: '3',
+    _creationTime: Date.now() - 6 * 24 * 60 * 60 * 1000,
+    title: 'React 19: Những tính năng mới cần biết',
+    excerpt: 'Khám phá các cập nhật quan trọng trong React 19 và cách áp dụng vào dự án thực tế.',
+    thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=500&fit=crop',
+    categoryId: 'cat-frontend',
+    slug: 'react-19-tinh-nang-moi',
+    status: 'Published',
+    views: 520,
+  },
+  {
+    _id: '4',
+    _creationTime: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    title: 'Bảo mật website: 10 lỗi phổ biến cần tránh',
+    excerpt: 'Những lỗ hổng bảo mật thường gặp và biện pháp phòng tránh hiệu quả cho website.',
+    thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&h=500&fit=crop',
+    categoryId: 'cat-security',
+    slug: 'bao-mat-website-10-loi',
+    status: 'Published',
+    views: 410,
+  },
+  {
+    _id: '5',
+    _creationTime: Date.now() - 4 * 24 * 60 * 60 * 1000,
+    title: 'Performance tối ưu: Core Web Vitals trong thực tế',
+    excerpt: 'Hướng dẫn tối ưu LCP, FID, CLS để cải thiện trải nghiệm và SEO tổng thể.',
+    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop',
+    categoryId: 'cat-performance',
+    slug: 'performance-core-web-vitals',
+    status: 'Published',
+    views: 365,
+  },
+  {
+    _id: '6',
+    _creationTime: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    title: 'Thiết kế landing page tăng tỷ lệ chuyển đổi',
+    excerpt: 'Nguyên tắc thiết kế landing page hiệu quả cho chiến dịch marketing.',
+    thumbnail: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=500&fit=crop',
+    categoryId: 'cat-marketing',
+    slug: 'landing-page-chuyen-doi',
+    status: 'Published',
+    views: 198,
+  },
+  {
+    _id: '7',
+    _creationTime: Date.now() - 2 * 24 * 60 * 60 * 1000,
+    title: 'Hướng dẫn chọn hosting phù hợp cho doanh nghiệp',
+    excerpt: 'So sánh shared hosting, VPS và cloud để chọn giải pháp phù hợp.',
+    thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=500&fit=crop',
+    categoryId: 'cat-infra',
+    slug: 'chon-hosting-doanh-nghiep',
+    status: 'Published',
+    views: 244,
+  },
+  {
+    _id: '8',
+    _creationTime: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    title: 'Chiến lược nội dung giúp tăng traffic tự nhiên',
+    excerpt: 'Lập kế hoạch content marketing bền vững để thu hút khách hàng tiềm năng.',
+    thumbnail: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=500&fit=crop',
+    categoryId: 'cat-content',
+    slug: 'chien-luoc-noi-dung-traffic',
+    status: 'Published',
+    views: 169,
+  },
+];
 
-  // Style 1: Grid - Professional card grid với brandColor hover
-  const renderGridStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    const visibleCount = device === 'mobile' ? 2 : 3;
-    const visibleItems = displayPosts.slice(0, visibleCount);
-    const remaining = displayPosts.length - visibleCount;
+export const BlogPreview = ({
+  brandColor,
+  secondary,
+  mode = 'dual',
+  postCount = 6,
+  selectedStyle = 'grid',
+  onStyleChange,
+  title = 'Bài viết',
+  previewItems,
+  categoryMap,
+}: BlogPreviewProps) => {
+  const [device, setDevice] = React.useState<PreviewDevice>('desktop');
 
-    // Centered layout for 1-2 items
-    if (displayPosts.length <= 2) {
-      return (
-        <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-          <h2 className={cn("font-bold tracking-tighter text-left mb-6 md:mb-8", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-          <div className={cn("mx-auto", displayPosts.length === 1 ? 'max-w-md' : 'max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-4')}>
-            {displayPosts.map((post) => (
-              <article 
-                key={post.id} 
-                className="group flex flex-col overflow-hidden rounded-xl border bg-white dark:bg-slate-800 transition-all duration-300 cursor-pointer"
-                style={{ borderColor: `${brandColor}15` }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}15`; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ImagePlaceholder size={32} />}
-                  <div className="absolute left-3 top-3">
-                    <span className="px-2 py-1 text-xs font-medium rounded shadow-sm backdrop-blur-sm" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{post.category ?? 'Tin tức'}</span>
-                  </div>
-                </div>
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="mb-2 text-base md:text-lg font-bold leading-tight text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h3>
-                  {post.excerpt && <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">{post.excerpt}</p>}
-                  <div className="mt-auto pt-2 flex items-center justify-between">
-                    <time className="text-xs text-slate-500">{post.date ?? 'Hôm nay'}</time>
-                    {post.readTime && <span className="text-xs text-slate-400">{post.readTime}</span>}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      );
+  const tokens = getBlogColorTokens({
+    primary: brandColor,
+    secondary,
+    mode,
+  });
+
+  const validation = getBlogValidationResult({
+    primary: brandColor,
+    secondary,
+    mode,
+  });
+
+  const displayPosts = React.useMemo(() => {
+    if (previewItems && previewItems.length > 0) {
+      return previewItems;
+    }
+    return MOCK_POSTS.slice(0, Math.max(postCount, 6));
+  }, [previewItems, postCount]);
+
+  const resolveCategory = React.useCallback((post: BlogPostItem) => {
+    if (post.categoryId && categoryMap && categoryMap[post.categoryId]) {
+      return categoryMap[post.categoryId];
+    }
+    return 'Tin tức';
+  }, [categoryMap]);
+
+  const resolveDate = React.useCallback((post: BlogPostItem) => (
+    post.publishedAt
+      ? new Date(post.publishedAt).toLocaleDateString('vi-VN')
+      : new Date(post._creationTime).toLocaleDateString('vi-VN')
+  ), []);
+
+  const deviceWidthClass =
+    device === 'desktop' ? 'max-w-6xl' : (device === 'tablet' ? 'max-w-[768px]' : 'max-w-[375px]');
+
+  const warningMessages = React.useMemo(() => {
+    if (mode === 'single') {
+      return [] as string[];
     }
 
-    return (
-      <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-        <h2 className={cn("font-bold tracking-tighter text-left mb-6 md:mb-8", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className={cn("grid gap-4 md:gap-6", device === 'mobile' ? 'grid-cols-1' : (device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'))}>
-          {visibleItems.map((post) => (
-            <article 
-              key={post.id} 
-              className="group flex flex-col overflow-hidden rounded-xl border bg-white dark:bg-slate-800 transition-all duration-300 cursor-pointer"
-              style={{ borderColor: `${brandColor}15` }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 8px 24px ${brandColor}15`; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
+    const warnings: string[] = [];
+
+    if (validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Độ tương phản thương hiệu thấp (ΔE=${validation.harmonyStatus.deltaE}). Nên tăng khác biệt giữa màu chính và màu phụ.`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA. minLc hiện tại: ${validation.accessibility.minLc.toFixed(1)}.`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
+
+  const ImagePlaceholder = ({ size = 24 }: { size?: number }) => (
+    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: tokens.imageFallbackBg }}>
+      <FileText size={size} style={{ color: tokens.imageFallbackIcon }} />
+    </div>
+  );
+
+  const renderGrid = () => (
+    <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-6" style={{ color: tokens.heading }}>{title}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {displayPosts.slice(0, 6).map((post) => (
+            <article key={post._id} className="rounded-xl border overflow-hidden flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
               <div className="relative aspect-[16/10] overflow-hidden">
-                {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ImagePlaceholder size={32} />}
-                <div className="absolute left-3 top-3">
-                  <span className="px-2 py-1 text-xs font-medium rounded shadow-sm backdrop-blur-sm" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>{post.category ?? 'Tin tức'}</span>
-                </div>
-              </div>
-              <div className="flex flex-1 flex-col p-4">
-                <h3 className="mb-2 text-base md:text-lg font-bold leading-tight text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h3>
-                {post.excerpt && <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">{post.excerpt}</p>}
-                <div className="mt-auto pt-2 flex items-center justify-between">
-                  <time className="text-xs text-slate-500">{post.date ?? 'Hôm nay'}</time>
-                  {post.readTime && <span className="text-xs text-slate-400">{post.readTime}</span>}
-                </div>
-              </div>
-            </article>
-          ))}
-          {remaining > 0 && device !== 'mobile' && <MoreItemsCard count={remaining} />}
-        </div>
-        {showViewAll && (
-          <div className="flex justify-center pt-6 md:pt-8">
-            <button className="group flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: brandColor }}>
-              Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-        )}
-      </section>
-    );
-  };
-
-  // Style 2: List - Horizontal cards với brandColor hover
-  const renderListStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    return (
-      <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-        <h2 className={cn("font-bold tracking-tighter text-left mb-6 md:mb-8", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className={cn("grid gap-4", device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 max-w-4xl mx-auto')}>
-          {displayPosts.slice(0, 4).map((post) => (
-            <article 
-              key={post.id} 
-              className={cn("group flex w-full overflow-hidden rounded-lg border bg-white dark:bg-slate-800 transition-all cursor-pointer", device === 'mobile' ? 'flex-col' : 'flex-row')}
-              style={{ borderColor: `${brandColor}15` }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              <div className={cn("overflow-hidden flex-shrink-0", device === 'mobile' ? 'aspect-[16/9] w-full' : 'aspect-[4/3] w-[220px]')}>
-                {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ImagePlaceholder size={24} />}
-              </div>
-              <div className="flex flex-1 flex-col justify-center p-4 md:px-6">
-                <div className="mb-2"><span className="text-xs font-semibold" style={{ color: brandColor }}>{post.category ?? 'Tin tức'}</span></div>
-                <h3 className="mb-2 text-base md:text-lg font-bold leading-snug text-slate-900 dark:text-slate-100 group-hover:opacity-80 transition-colors line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h3>
-                {post.excerpt && <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">{post.excerpt}</p>}
-                <div className="flex items-center gap-3">
-                  <time className="text-xs text-slate-500">{post.date ?? 'Hôm nay'}</time>
-                  {post.readTime && <span className="text-xs text-slate-400">• {post.readTime}</span>}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-        {showViewAll && (
-          <div className="flex justify-center pt-6 md:pt-8">
-            <button className="group flex items-center gap-2 text-sm font-medium transition-colors" style={{ color: brandColor }}>
-              Xem tất cả <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-        )}
-      </section>
-    );
-  };
-
-  // Style 3: Featured - Hero post + list
-  const renderFeaturedStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    const mainPost = displayPosts[0];
-    const sidePosts = displayPosts.slice(1, device === 'mobile' ? 3 : 4);
-    return (
-      <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-        <h2 className={cn("font-bold tracking-tighter text-left mb-6 md:mb-8", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className={cn(device === 'mobile' ? 'space-y-6' : 'grid grid-cols-3 gap-6')}> 
-          <article 
-            className={cn("group overflow-hidden rounded-2xl border bg-white dark:bg-slate-800 transition-all duration-300 cursor-pointer", device === 'mobile' ? '' : 'col-span-2')}
-            style={{ borderColor: `${brandColor}15` }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 12px 30px ${brandColor}15`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
-          >
-            <div className="relative aspect-[16/9] overflow-hidden">
-              {mainPost.thumbnail ? <PreviewImage src={mainPost.thumbnail} alt={mainPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ImagePlaceholder size={40} />}
-              <div className="absolute left-4 top-4">
-                <span className="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm" style={{ backgroundColor: brandColor, color: 'white' }}>
-                  {mainPost.category ?? 'Tin tức'}
-                </span>
-              </div>
-            </div>
-            <div className="p-5">
-              <h3 className={cn("font-bold mb-2", device === 'mobile' ? 'text-lg' : 'text-2xl')}>{mainPost.title || 'Tiêu đề nổi bật'}</h3>
-              <p className="text-slate-500 dark:text-slate-400 line-clamp-2">{mainPost.excerpt ?? 'Mô tả ngắn cho bài viết nổi bật...'}</p>
-              <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
-                <time>{mainPost.date ?? 'Hôm nay'}</time>
-                {mainPost.readTime && <span>• {mainPost.readTime}</span>}
-                {typeof mainPost.views === 'number' && <span>• {mainPost.views} lượt xem</span>}
-              </div>
-            </div>
-          </article>
-          <div className="space-y-4">
-            {sidePosts.map((post) => (
-              <article 
-                key={post.id}
-                className="group flex gap-4 items-center bg-white dark:bg-slate-800 border rounded-xl p-3 transition-all cursor-pointer"
-                style={{ borderColor: `${brandColor}15` }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div className="w-20 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover" /> : <ImagePlaceholder size={18} />}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold mb-1" style={{ color: brandColor }}>{post.category ?? 'Tin tức'}</div>
-                  <h4 className="text-sm font-semibold line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h4>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
-
-  // Style 4: Magazine - Magazine layout with large left column
-  const renderMagazineStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    const mainPost = displayPosts[0];
-    const restPosts = displayPosts.slice(1, device === 'mobile' ? 3 : 6);
-    return (
-      <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-        <h2 className={cn("font-bold tracking-tighter text-left mb-6 md:mb-8", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className={cn(device === 'mobile' ? 'space-y-6' : 'grid grid-cols-12 gap-6')}> 
-          <article className={cn(device === 'mobile' ? '' : 'col-span-7')}>
-            <div className="group overflow-hidden rounded-2xl border bg-white dark:bg-slate-800 transition-all duration-300 cursor-pointer"
-              style={{ borderColor: `${brandColor}15` }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 12px 30px ${brandColor}15`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              <div className="relative aspect-[16/9] overflow-hidden">
-                {mainPost.thumbnail ? <PreviewImage src={mainPost.thumbnail} alt={mainPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ImagePlaceholder size={40} />}
-              </div>
-              <div className="p-5">
-                <div className="text-xs font-semibold mb-2" style={{ color: brandColor }}>{mainPost.category ?? 'Tin tức'}</div>
-                <h3 className={cn("font-bold mb-2", device === 'mobile' ? 'text-lg' : 'text-2xl')}>{mainPost.title || 'Tiêu đề chính'}</h3>
-                <p className="text-slate-500 dark:text-slate-400 line-clamp-3">{mainPost.excerpt ?? 'Mô tả bài viết...'}</p>
-                <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
-                  <time>{mainPost.date ?? 'Hôm nay'}</time>
-                  {mainPost.readTime && <span>• {mainPost.readTime}</span>}
-                </div>
-              </div>
-            </div>
-          </article>
-          <div className={cn(device === 'mobile' ? '' : 'col-span-5 space-y-4')}>
-            {restPosts.map((post) => (
-              <article key={post.id} className="group flex gap-4 items-center bg-white dark:bg-slate-800 border rounded-xl p-3 transition-all cursor-pointer"
-                style={{ borderColor: `${brandColor}15` }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${brandColor}40`; e.currentTarget.style.boxShadow = `0 4px 12px ${brandColor}10`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${brandColor}15`; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div className="w-24 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover" /> : <ImagePlaceholder size={18} />}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold mb-1" style={{ color: brandColor }}>{post.category ?? 'Tin tức'}</div>
-                  <h4 className="text-sm font-semibold line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h4>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
-
-  // Style 5: Carousel - Horizontal scroll cards
-  const renderCarouselStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    return (
-      <section className={cn("py-8", device === 'mobile' ? 'py-6' : '')}>
-        <h2 className={cn("font-bold text-left mb-6 px-4", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className="relative">
-          <div className="flex gap-4 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-            {displayPosts.map((post) => (
-              <article 
-                key={post.id} 
-                className={cn(
-                  "flex-shrink-0 snap-center bg-white dark:bg-slate-800 rounded-xl overflow-hidden border transition-all",
-                  device === 'mobile' ? 'w-[260px]' : 'w-[320px]'
+                {post.thumbnail ? (
+                  <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" />
+                ) : (
+                  <ImagePlaceholder size={28} />
                 )}
-                style={{ borderColor: `${brandColor}15` }}
-              >
-                <div className="aspect-[16/10] overflow-hidden">
-                  {post.thumbnail ? <PreviewImage src={post.thumbnail} alt={post.title} className="w-full h-full object-cover" /> : <ImagePlaceholder size={28} />}
+                <div className="absolute left-3 top-3">
+                  <span className="px-2 py-1 text-xs font-semibold rounded border" style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}>
+                    {resolveCategory(post)}
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-semibold line-clamp-2 mb-2" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                {post.excerpt && <p className="text-sm line-clamp-2 mb-2" style={{ color: tokens.mutedText }}>{post.excerpt}</p>}
+                <time className="text-xs mt-auto" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderList = () => (
+    <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-6" style={{ color: tokens.heading }}>{title}</h2>
+        <div className="space-y-4">
+          {displayPosts.slice(0, 5).map((post) => (
+            <article key={post._id} className="rounded-lg border overflow-hidden flex flex-col sm:flex-row" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+              <div className="relative aspect-[16/9] sm:aspect-[4/3] w-full sm:w-[220px]">
+                {post.thumbnail ? (
+                  <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 640px) 220px, 100vw" />
+                ) : (
+                  <ImagePlaceholder size={24} />
+                )}
+              </div>
+              <div className="p-4 flex-1">
+                <div className="text-xs font-semibold mb-2" style={{ color: tokens.subheading }}>{resolveCategory(post)}</div>
+                <h3 className="text-base md:text-lg font-semibold line-clamp-2 mb-2" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                {post.excerpt && <p className="text-sm line-clamp-2 mb-2" style={{ color: tokens.mutedText }}>{post.excerpt}</p>}
+                <time className="text-xs" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  const renderFeatured = () => {
+    const [featured, ...others] = displayPosts;
+
+    return (
+      <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: tokens.heading }}>{title}</h2>
+            <span className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: tokens.viewAllText }}>Xem tất cả <ArrowRight size={16} /></span>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-12">
+            {featured && (
+              <article className="lg:col-span-8 rounded-xl overflow-hidden border relative min-h-[320px]" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                {featured.thumbnail ? (
+                  <Image src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 70vw, 100vw" />
+                ) : (
+                  <ImagePlaceholder size={40} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <span className="px-2.5 py-1 text-xs font-semibold rounded border" style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}>{resolveCategory(featured)}</span>
+                  <h3 className="text-2xl font-bold text-white mt-3 line-clamp-2">{featured.title}</h3>
+                  {featured.excerpt && <p className="text-sm text-slate-200 mt-2 line-clamp-2">{featured.excerpt}</p>}
+                </div>
+              </article>
+            )}
+            <div className="lg:col-span-4 space-y-3">
+              {others.slice(0, 4).map((post) => (
+                <article key={post._id} className="rounded-lg border p-3 flex gap-3" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                  <div className="relative h-14 w-14 rounded overflow-hidden flex-shrink-0">
+                    {post.thumbnail ? (
+                      <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="56px" />
+                    ) : (
+                      <ImagePlaceholder size={16} />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-bold uppercase" style={{ color: tokens.subheading }}>{resolveCategory(post)}</div>
+                    <h4 className="text-sm font-semibold line-clamp-2" style={{ color: tokens.bodyText }}>{post.title}</h4>
+                    <time className="text-[10px]" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderMagazine = () => {
+    const [featured, ...others] = displayPosts;
+
+    return (
+      <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="text-xs uppercase tracking-widest font-bold mb-1" style={{ color: tokens.subheading }}>Magazine</div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: tokens.heading }}>{title}</h2>
+            </div>
+            <span className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: tokens.viewAllText }}>Xem tất cả <ArrowRight size={16} /></span>
+          </div>
+
+          <div className="lg:hidden space-y-4">
+            {featured && (
+              <article className="rounded-xl overflow-hidden border relative aspect-[16/9]" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                {featured.thumbnail ? (
+                  <Image src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="100vw" />
+                ) : (
+                  <ImagePlaceholder size={36} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <span className="px-2 py-1 text-[10px] font-bold rounded border" style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}>{resolveCategory(featured)}</span>
+                  <h3 className="text-lg font-bold text-white mt-2 line-clamp-2">{featured.title}</h3>
+                </div>
+              </article>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              {others.slice(0, 4).map((post) => (
+                <article key={post._id} className="rounded-lg border overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                  <div className="relative aspect-[16/10]">
+                    {post.thumbnail ? (
+                      <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="50vw" />
+                    ) : (
+                      <ImagePlaceholder size={20} />
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h4 className="text-sm font-semibold line-clamp-2" style={{ color: tokens.bodyText }}>{post.title}</h4>
+                    <time className="text-[10px] block mt-1" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+            {featured && (
+              <article className="lg:row-span-2 rounded-2xl overflow-hidden border relative min-h-[420px]" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                {featured.thumbnail ? (
+                  <Image src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+                ) : (
+                  <ImagePlaceholder size={42} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <span className="px-2.5 py-1 text-xs font-bold rounded border" style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}>{resolveCategory(featured)}</span>
+                  <h3 className="text-xl font-bold text-white mt-3 line-clamp-2">{featured.title}</h3>
+                  {featured.excerpt && <p className="text-sm text-slate-200 mt-2 line-clamp-2">{featured.excerpt}</p>}
+                  <time className="text-sm text-slate-300 mt-2 block">{resolveDate(featured)}</time>
+                </div>
+              </article>
+            )}
+
+            {others.slice(0, 4).map((post) => (
+              <article key={post._id} className="rounded-xl border overflow-hidden flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                <div className="relative aspect-[16/10]">
+                  {post.thumbnail ? (
+                    <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="33vw" />
+                  ) : (
+                    <ImagePlaceholder size={24} />
+                  )}
+                </div>
+                <div className="p-4 flex-1">
+                  <div className="text-[10px] font-bold uppercase mb-1" style={{ color: tokens.subheading }}>{resolveCategory(post)}</div>
+                  <h4 className="text-base font-semibold line-clamp-2 mb-2" style={{ color: tokens.bodyText }}>{post.title}</h4>
+                  <time className="text-xs" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderCarousel = () => {
+    const displayed = displayPosts.slice(0, 6);
+    const showArrowsDesktop = displayed.length > 3;
+    const showArrowsMobile = displayed.length > 1;
+
+    return (
+      <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between">
+            <div className="flex items-end justify-between w-full md:w-auto">
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: tokens.heading }}>{title}</h2>
+              {showArrowsMobile && (
+                <div className="flex gap-2 md:hidden">
+                  <button type="button" className="w-11 h-11 rounded-full border flex items-center justify-center" style={{ borderColor: tokens.arrowButtonBorder, backgroundColor: tokens.arrowButtonBg }}>
+                    <ChevronLeft size={18} style={{ color: tokens.arrowButtonIcon }} />
+                  </button>
+                  <button type="button" className="w-11 h-11 rounded-full border flex items-center justify-center" style={{ borderColor: tokens.arrowButtonBorder, backgroundColor: tokens.arrowButtonBg }}>
+                    <ChevronRight size={18} style={{ color: tokens.arrowButtonIcon }} />
+                  </button>
+                </div>
+              )}
+            </div>
+            {showArrowsDesktop && (
+              <div className="hidden md:flex items-center gap-3">
+                <button type="button" className="w-11 h-11 rounded-full border flex items-center justify-center" style={{ borderColor: tokens.arrowButtonBorder, backgroundColor: tokens.arrowButtonBg }}>
+                  <ChevronLeft size={18} style={{ color: tokens.arrowButtonIcon }} />
+                </button>
+                <button type="button" className="w-11 h-11 rounded-full border flex items-center justify-center" style={{ borderColor: tokens.arrowButtonBorder, backgroundColor: tokens.arrowButtonBg }}>
+                  <ChevronRight size={18} style={{ color: tokens.arrowButtonIcon }} />
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-4 overflow-x-auto py-2">
+            {displayed.map((post) => (
+              <article key={post._id} className="w-[280px] md:w-[320px] lg:w-[360px] flex-shrink-0 rounded-xl border overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
+                <div className="relative aspect-[16/10]">
+                  {post.thumbnail ? (
+                    <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="320px" />
+                  ) : (
+                    <ImagePlaceholder size={30} />
+                  )}
                 </div>
                 <div className="p-4">
-                  <div className="text-xs font-semibold mb-1" style={{ color: brandColor }}>{post.category ?? 'Tin tức'}</div>
-                  <h3 className="text-base font-bold line-clamp-2">{post.title || 'Tiêu đề bài viết'}</h3>
-                  {post.excerpt && <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-2">{post.excerpt}</p>}
+                  <div className="text-[10px] font-bold uppercase mb-1" style={{ color: tokens.subheading }}>{resolveCategory(post)}</div>
+                  <h3 className="font-semibold line-clamp-2 mb-2" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                  <p className="text-sm line-clamp-2 mb-3" style={{ color: tokens.mutedText }}>{post.excerpt ?? ''}</p>
+                  <div className="flex items-center justify-between">
+                    <time className="text-xs" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
+                    <ArrowRight size={16} style={{ color: tokens.arrowButtonIcon }} />
+                  </div>
                 </div>
               </article>
             ))}
@@ -348,54 +461,119 @@ export const BlogPreview = ({
     );
   };
 
-  // Style 6: Minimal - Clean list with accent line
-  const renderMinimalStyle = () => {
-    if (displayPosts.length === 0) {return <EmptyState />;}
-    return (
-      <section className={cn("py-8 md:py-12", device === 'mobile' && 'px-3', device !== 'mobile' && 'px-4')}>
-        <h2 className={cn("font-bold tracking-tighter text-left mb-6", device === 'mobile' ? 'text-2xl' : 'text-3xl md:text-4xl')}>{title}</h2>
-        <div className="max-w-4xl mx-auto space-y-4">
-          {displayPosts.slice(0, device === 'mobile' ? 3 : 5).map((post, idx) => (
-            <article key={post.id} className="flex gap-4 items-start">
-              <div className="w-1 rounded-full" style={{ backgroundColor: brandColor }} />
-              <div className="flex-1">
-                <div className="flex items-center gap-3 text-xs text-slate-500 mb-1">
-                  <span className="font-semibold" style={{ color: brandColor }}>{post.category ?? 'Tin tức'}</span>
-                  <span>•</span>
-                  <time>{post.date ?? 'Hôm nay'}</time>
+  const renderMinimal = () => (
+    <section className="py-8 md:py-10 px-4" style={{ backgroundColor: tokens.sectionBg }}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between border-b pb-4 mb-6" style={{ borderColor: tokens.cardBorder }}>
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight" style={{ color: tokens.heading }}>{title}</h2>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: tokens.viewAllText }}>Xem tất cả <ArrowRight size={16} /></span>
+        </div>
+        <div>
+          {displayPosts.slice(0, 5).map((post, index) => (
+            <article key={post._id} className="flex items-start gap-4 py-5 border-b" style={{ borderColor: tokens.cardBorder }}>
+              <span className="text-xl md:text-2xl font-bold tabular-nums w-8 md:w-10 flex-shrink-0" style={{ color: tokens.numberText }}>{String(index + 1).padStart(2, '0')}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: tokens.subheading }}>{resolveCategory(post)}</span>
+                  <span className="text-[10px]" style={{ color: tokens.mutedText }}>•</span>
+                  <time className="text-[10px]" style={{ color: tokens.mutedText }}>{resolveDate(post)}</time>
                 </div>
-                <h3 className="text-base font-semibold line-clamp-2">{post.title || `Bài viết ${idx + 1}`}</h3>
-                {post.excerpt && <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">{post.excerpt}</p>}
+                <h3 className="text-base md:text-lg font-semibold line-clamp-2" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                {post.excerpt && <p className="text-sm line-clamp-1 mt-1" style={{ color: tokens.mutedText }}>{post.excerpt}</p>}
               </div>
+              <ArrowRight size={18} className="flex-shrink-0 mt-1" style={{ color: tokens.arrowButtonIcon }} />
             </article>
           ))}
         </div>
-      </section>
-    );
+      </div>
+    </section>
+  );
+
+  const renderByStyle = () => {
+    if (selectedStyle === 'list') {return renderList();}
+    if (selectedStyle === 'featured') {return renderFeatured();}
+    if (selectedStyle === 'magazine') {return renderMagazine();}
+    if (selectedStyle === 'carousel') {return renderCarousel();}
+    if (selectedStyle === 'minimal') {return renderMinimal();}
+    return renderGrid();
   };
 
   return (
-    <>
-      <PreviewWrapper
-        title="Preview Blog"
-        device={device}
-        setDevice={setDevice}
-        previewStyle={previewStyle}
-        setPreviewStyle={setPreviewStyle}
-        styles={BLOG_STYLES}
-        info={`${displayPosts.length} bài viết`}
-        deviceWidthClass={deviceWidths[device]}
-      >
-        <BrowserFrame url="yoursite.com/blog">
-          {previewStyle === 'grid' && renderGridStyle()}
-          {previewStyle === 'list' && renderListStyle()}
-          {previewStyle === 'featured' && renderFeaturedStyle()}
-          {previewStyle === 'magazine' && renderMagazineStyle()}
-          {previewStyle === 'carousel' && renderCarouselStyle()}
-          {previewStyle === 'minimal' && renderMinimalStyle()}
-        </BrowserFrame>
-      </PreviewWrapper>
-      <ColorInfoPanel brandColor={brandColor} secondary={secondary} />
-    </>
+    <div className="space-y-3">
+      <Card className="mt-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Eye size={18} /> Preview Blog ({postCount} bài viết)
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                {styles.map((style) => (
+                  <button
+                    key={style.id}
+                    type="button"
+                    onClick={() => {onStyleChange?.(style.id as BlogStyle);}}
+                    className={cn(
+                      'px-3 py-1 text-xs font-medium rounded-md transition-all',
+                      selectedStyle === style.id
+                        ? 'bg-white dark:bg-slate-700 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700',
+                    )}
+                  >
+                    {style.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                {devices.map((previewDevice) => (
+                  <button
+                    key={previewDevice.id}
+                    type="button"
+                    onClick={() => {setDevice(previewDevice.id);}}
+                    title={previewDevice.label}
+                    className={cn(
+                      'p-1.5 rounded-md transition-all',
+                      device === previewDevice.id
+                        ? 'bg-white dark:bg-slate-700 shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600',
+                    )}
+                  >
+                    <previewDevice.icon size={16} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className={cn('mx-auto transition-all duration-300', deviceWidthClass)}>{renderByStyle()}</div>
+          <div className="mt-3 text-xs text-slate-500">
+            Style: <strong className="text-slate-700 dark:text-slate-300">{styles.find((style) => style.id === selectedStyle)?.label}</strong>
+            {' • '}
+            {device === 'desktop' && 'max-w-6xl (1280px)'}
+            {device === 'tablet' && '768px'}
+            {device === 'mobile' && '375px'}
+          </div>
+        </CardContent>
+      </Card>
+
+      {mode === 'dual' && (
+        <ColorInfoPanel
+          brandColor={brandColor}
+          secondary={validation.resolvedSecondary}
+          description="Màu phụ áp dụng cho subtitle, badge, labels và accents."
+        />
+      )}
+
+      {warningMessages.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <ul className="list-disc pl-4 space-y-1">
+            {warningMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 };

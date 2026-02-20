@@ -146,7 +146,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   mode: 'single' | 'dual';
   harmony?: GalleryHarmony;
   selectedStyle?: GalleryStyle;
-  onStyleChange?: (style: GalleryStyle) => void;
+  onStyleChange?: (style: GalleryStyle) => void;\n  title?: string;
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
@@ -166,6 +166,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   const layoutAccent = colors.sectionAccentBarByStyle[previewStyle] ?? colors.sectionAccentBar;
   const marqueeBaseItems = React.useMemo(() => getGalleryMarqueeBaseItems(items), [items]);
   const lightboxItems = previewStyle === 'marquee' ? marqueeBaseItems : items;
+ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, selectedStyle, onStyleChange, title }: {
+   title?: string;
 
   React.useEffect(() => {
     if (previewStyle !== 'marquee') {return;}
@@ -694,6 +696,11 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
       />
     </section>
   );
+       {title && (
+         <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>
+           {title}
+         </h2>
+       )}
 
   // Generate image size info based on style and item count
   const getGalleryImageSizeInfo = () => {

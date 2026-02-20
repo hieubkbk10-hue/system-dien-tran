@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Package } from 'lucide-react';
-import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
+import { BrandBadge, SaleBadge } from '@/components/site/shared/BrandColorHelpers';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
@@ -108,7 +108,7 @@ export const ProductListPreview = ({
 
                 <div className="absolute top-3 left-3 flex flex-col gap-1">
                   {discount && (
-                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                    <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                   )}
                   {item.tag === 'new' && !discount && (
                     <BrandBadge text="NEW" variant="outline" brandColor={secondary} secondary={secondary} className="text-[10px] px-2 py-1" />
@@ -193,7 +193,7 @@ export const ProductListPreview = ({
                 )}
                 {discount && (
                   <div className="absolute top-2 right-2">
-                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                    <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                   </div>
                 )}
               </div>
@@ -270,7 +270,7 @@ export const ProductListPreview = ({
                     )}
                     {itemDiscount && (
                       <div className="absolute top-2 left-2">
-                        <BrandBadge text={itemDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        <SaleBadge text={itemDiscount} className="text-[10px] px-1.5 py-0.5" />
                       </div>
                     )}
                   </div>
@@ -301,7 +301,7 @@ export const ProductListPreview = ({
 
               {discount && (
                 <div className="absolute top-4 right-4">
-                  <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                  <SaleBadge text={discount} className="text-sm px-3 py-1" />
                 </div>
               )}
 
@@ -341,7 +341,7 @@ export const ProductListPreview = ({
 
                     {itemDiscount && (
                       <div className="absolute top-2 left-2">
-                        <BrandBadge text={itemDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        <SaleBadge text={itemDiscount} className="text-[10px] px-1.5 py-0.5" />
                       </div>
                     )}
 
@@ -432,7 +432,7 @@ export const ProductListPreview = ({
                   )}
                   {discount && (
                     <div className="absolute top-2 left-2">
-                      <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                      <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                     </div>
                   )}
                 </div>
@@ -498,7 +498,7 @@ export const ProductListPreview = ({
                 )}
                 {discount && (
                   <div className="absolute top-1 left-1">
-                    <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[9px] px-1.5 py-0.5" />
+                    <SaleBadge text={discount} className="text-[9px] px-1.5 py-0.5" />
                   </div>
                 )}
               </div>
@@ -548,7 +548,7 @@ export const ProductListPreview = ({
                     {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>}
                     {discount && (
                       <div className="absolute top-2 left-2">
-                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                       </div>
                     )}
                   </div>
@@ -560,7 +560,7 @@ export const ProductListPreview = ({
           </div>
         ) : (
           <div className={cn("grid gap-4", device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3')}>
-            <div className="relative group rounded-2xl overflow-hidden cursor-pointer h-[400px] border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors" style={{ backgroundColor: `${secondary}05` }}>
+            <div className="relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors" style={{ backgroundColor: `${secondary}05` }}>
               {showcaseFeatured?.image ? (
                 <PreviewImage src={showcaseFeatured.image} alt={showcaseFeatured.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               ) : (
@@ -569,15 +569,15 @@ export const ProductListPreview = ({
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {featuredDiscount && (
                 <div className="absolute top-4 left-4">
-                  <BrandBadge text={featuredDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                  <SaleBadge text={featuredDiscount} className="text-sm px-3 py-1" />
                 </div>
               )}
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-white" style={{ textShadow: `0 2px 8px ${secondary}40` }}>{showcaseFeatured?.price}</span>
-                  <button className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</button>
+                  <span className="text-xl font-bold text-white">{showcaseFeatured?.price}</span>
+                  <button className="h-9 px-4 rounded-lg text-white text-sm font-medium shrink-0" style={{ backgroundColor: brandColor }}>Xem chi tiết</button>
                 </div>
               </div>
             </div>
@@ -591,7 +591,7 @@ export const ProductListPreview = ({
                       {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>}
                       {discount && (
                         <div className="absolute top-2 left-2">
-                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                          <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                         </div>
                       )}
                     </div>

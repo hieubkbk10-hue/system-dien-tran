@@ -7,7 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Package } from 'lucide-react';
-import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
+import { BrandBadge, SaleBadge } from '@/components/site/shared/BrandColorHelpers';
 
 // 6 Styles theo mẫu previews.tsx
 // 'minimal' = Luxury Minimal, 'commerce' = Commerce Card, 'bento' = Bento Grid
@@ -156,7 +156,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     {/* Discount / New Badge */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
                       {discount && (
-                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                        <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                       )}
                     </div>
 
@@ -225,7 +225,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                     {discount && (
                       <div className="absolute top-2 right-2">
-                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                        <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                       </div>
                     )}
                   </div>
@@ -403,7 +403,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       )}
                       {discount && (
                         <div className="absolute top-2 left-2">
-                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
+                          <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
                         </div>
                       )}
                     </div>
@@ -460,7 +460,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                     {discount && (
                       <div className="absolute top-1 left-1">
-                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[9px] px-1.5 py-0.5" />
+                        <SaleBadge text={discount} className="text-[9px] px-1.5 py-0.5" />
                       </div>
                     )}
                   </div>
@@ -500,7 +500,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                     {discount && (
                       <div className="absolute top-2 left-2">
-                        <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                        <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                       </div>
                     )}
                   </div>
@@ -514,9 +514,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Showcase Layout - Desktop */}
           <div className="hidden md:grid grid-cols-3 gap-4">
             {/* Featured Large Item */}
-            <Link 
+            <Link
               href={`/products/${showcaseFeatured?.slug}`}
-              className="relative group rounded-2xl overflow-hidden cursor-pointer h-[400px] border border-slate-200 hover:border-slate-300 transition-colors"
+              className="relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-slate-200 hover:border-slate-300 transition-colors"
               style={{ backgroundColor: `${secondary}05` }}
             >
               {showcaseFeatured?.image ? (
@@ -533,15 +533,15 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               {showcaseDiscount && (
                 <div className="absolute top-4 left-4">
-                  <BrandBadge text={showcaseDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                  <SaleBadge text={showcaseDiscount} className="text-sm px-3 py-1" />
                 </div>
               )}
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2">{showcaseFeatured?.name}</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-white">{formatPrice(showcaseFeatured?.salePrice ?? showcaseFeatured?.price)}</span>
-                  <span className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: brandColor }}>Xem chi tiết</span>
+                  <span className="text-xl font-bold text-white line-clamp-1">{formatPrice(showcaseFeatured?.salePrice ?? showcaseFeatured?.price)}</span>
+                  <span className="h-9 px-4 rounded-lg text-white text-sm font-medium shrink-0 inline-flex items-center" style={{ backgroundColor: brandColor }}>Xem chi tiết</span>
                 </div>
               </div>
             </Link>
@@ -560,7 +560,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       )}
                       {discount && (
                         <div className="absolute top-2 left-2">
-                          <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                          <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                         </div>
                       )}
                     </div>
@@ -618,7 +618,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             {/* Discount Badge */}
             {featuredDiscount && (
               <div className="absolute top-4 right-4">
-                <BrandBadge text={featuredDiscount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-sm px-3 py-1" />
+                <SaleBadge text={featuredDiscount} className="text-sm px-3 py-1" />
               </div>
             )}
 
@@ -663,7 +663,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   {/* Discount Badge */}
                   {discount && (
                     <div className="absolute top-2 left-2">
-                      <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                     </div>
                   )}
 
@@ -710,7 +710,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   )}
                   {discount && (
                     <div className="absolute top-2 left-2">
-                      <BrandBadge text={discount} variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-1.5 py-0.5" />
+                      <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
                     </div>
                   )}
                 </div>

@@ -1,3 +1,9 @@
+export type CountdownStyle = 'banner' | 'floating' | 'minimal' | 'split' | 'sticky' | 'popup';
+
+export type CountdownBrandMode = 'single' | 'dual';
+
+export type CountdownHarmony = 'analogous' | 'complementary' | 'triadic';
+
 export interface CountdownConfig {
   heading: string;
   subHeading: string;
@@ -11,10 +17,11 @@ export interface CountdownConfig {
   showHours: boolean;
   showMinutes: boolean;
   showSeconds: boolean;
+  style?: CountdownStyle;
+  harmony?: CountdownHarmony;
 }
-
-export type CountdownStyle = 'banner' | 'floating' | 'minimal' | 'split' | 'sticky' | 'popup';
 
 export interface CountdownConfigState extends CountdownConfig {
   style: CountdownStyle;
+  harmony: CountdownHarmony;
 }

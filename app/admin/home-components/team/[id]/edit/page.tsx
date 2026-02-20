@@ -1,65 +1,168 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Users, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { TeamForm } from '../../_components/TeamForm';
 import { TeamPreview } from '../../_components/TeamPreview';
-import { DEFAULT_TEAM_CONFIG } from '../../_lib/constants';
-import type { TeamConfig, TeamStyle } from '../../_types';
+import {
+  normalizeTeamConfig,
+  normalizeTeamHarmony,
+  toTeamEditorMembers,
+  toTeamPersistMembers,
+  normalizeTeamStyle,
+} from '../../_lib/constants';
+import { getTeamValidationResult } from '../../_lib/colors';
+import type {
+  TeamBrandMode,
+  TeamConfig,
+  TeamEditorMember,
+  TeamHarmony,
+  TeamStyle,
+} from '../../_types';
+
+const serializeEditState = ({
+  title,
+  active,
+  style,
+  harmony,
+  members,
+}: {
+  title: string;
+  active: boolean;
+  style: TeamStyle;
+  harmony: TeamHarmony;
+  members: TeamEditorMember[];
+}) => JSON.stringify({
+  title,
+  active,
+  style,
+  harmony,
+  members: toTeamPersistMembers(members),
+});
 
 export default function TeamEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
+
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
-  const [title, setTitle] = useState('');
-  const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<TeamConfig>(DEFAULT_TEAM_CONFIG);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [title, setTitle] = React.useState('');
+  const [active, setActive] = React.useState(true);
+  const [style, setStyle] = React.useState<TeamStyle>('grid');
+  const [harmony, setHarmony] = React.useState<TeamHarmony>('analogous');
+  const [members, setMembers] = React.useState<TeamEditorMember[]>([]);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [initialSnapshot, setInitialSnapshot] = React.useState('');
+
+  const brandMode: TeamBrandMode = mode === 'single' ? 'single' : 'dual';
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Team') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        members: Array.isArray(rawConfig.members) ? rawConfig.members : DEFAULT_TEAM_CONFIG.members,
-        style: (rawConfig.style as TeamStyle) || 'grid',
-      });
+    if (component.type !== 'Team') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const normalizedConfig = normalizeTeamConfig(component.config);
+
+    const editorMembers = toTeamEditorMembers(normalizedConfig.members);
+    const nextStyle = normalizeTeamStyle(normalizedConfig.style);
+    const nextHarmony = normalizeTeamHarmony(normalizedConfig.harmony);
+
+    setTitle(component.title);
+    setActive(component.active);
+    setStyle(nextStyle);
+    setHarmony(nextHarmony);
+    setMembers(editorMembers);
+
+    setInitialSnapshot(serializeEditState({
+      title: component.title,
+      active: component.active,
+      style: nextStyle,
+      harmony: nextHarmony,
+      members: editorMembers,
+    }));
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  const validation = React.useMemo(() => getTeamValidationResult({
+    primary,
+    secondary,
+    mode: brandMode,
+    harmony,
+  }), [primary, secondary, brandMode, harmony]);
+
+  const warningMessages = React.useMemo(() => {
+    if (brandMode !== 'dual') {
+      return [] as string[];
+    }
+
+    const messages: string[] = [];
+
+    if (validation.harmonyStatus.isTooSimilar) {
+      messages.push(`Màu phụ đang gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      messages.push(`Một số cặp màu chữ/nền chưa đạt APCA (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return messages;
+  }, [brandMode, validation]);
+
+  const currentSnapshot = React.useMemo(() => serializeEditState({
+    title,
+    active,
+    style,
+    harmony,
+    members,
+  }), [title, active, style, harmony, members]);
+
+  const hasChanges = initialSnapshot.length > 0 && currentSnapshot !== initialSnapshot;
+
+  const saveConfig: TeamConfig = React.useMemo(() => ({
+    members: toTeamPersistMembers(members),
+    style,
+    harmony,
+  }), [members, style, harmony]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
+
     try {
       await updateMutation({
-        active,
-        config,
         id: id as Id<'homeComponents'>,
         title,
+        active,
+        config: saveConfig as unknown as Record<string, unknown>,
       });
+
+      const nextSnapshot = serializeEditState({
+        title,
+        active,
+        style,
+        harmony,
+        members,
+      });
+
+      setInitialSnapshot(nextSnapshot);
       toast.success('Đã cập nhật Team');
     } catch (error) {
-      toast.error('Lỗi khi cập nhật');
+      toast.error('Lỗi khi cập nhật Team');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -68,17 +171,15 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
 
   if (component === undefined) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
     );
   }
 
   if (component === null) {
-    return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
+    return <div className="py-8 text-center text-slate-500">Không tìm thấy component</div>;
   }
-
-  const members = Array.isArray(config.members) ? config.members : [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -90,17 +191,16 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
       <form onSubmit={handleSubmit}>
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users size={20} />
-              Team
-            </CardTitle>
+            <CardTitle className="text-base">Team</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,41 +210,67 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'inline-flex h-6 w-12 cursor-pointer items-center justify-center rounded-full transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => {
+                  setActive((prev) => !prev);
+                }}
               >
-                <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
-                )}></div>
+                <div
+                  className={cn(
+                    'h-5 w-5 rounded-full bg-white shadow transition-transform',
+                    active ? 'translate-x-2.5' : '-translate-x-2.5',
+                  )}
+                />
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as TeamConfig); }} title="Cấu hình Team" />
+        <TeamForm
+          members={members}
+          onChange={setMembers}
+          secondary={validation.resolvedSecondary}
+        />
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
-            <TeamPreview
-              members={members as any}
-              brandColor={primary}
-              secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as TeamStyle }); }}
-            />
+        {brandMode === 'dual' && warningMessages.length > 0 ? (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="space-y-1">
+                {warningMessages.map((message, idx) => (
+                  <p key={`team-edit-warning-${idx}`}>{message}</p>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+        <TeamPreview
+          members={members}
+          brandColor={primary}
+          secondary={secondary}
+          mode={brandMode}
+          harmony={harmony}
+          title={title}
+          selectedStyle={style}
+          onStyleChange={setStyle}
+        />
+
+        <div className="mt-6 flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isSubmitting}
+            onClick={() => {
+              router.push('/admin/home-components');
+            }}
+          >
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

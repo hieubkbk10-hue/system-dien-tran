@@ -17,8 +17,50 @@ interface TrustBadgeItem { id: number; url: string; link: string; name?: string 
 export interface TrustBadgesConfig { heading?: string; subHeading?: string; buttonText?: string; buttonLink?: string }
 
 // Auto Scroll Slider cho Marquee style
-const TrustBadgesAutoScroll = ({ children, speed = 0.6, isPaused }: { children: React.ReactNode; speed?: number; isPaused?: boolean }) => {
+const TrustBadgesAutoScroll = ({ children, speed = 0.6 }: { children: React.ReactNode; speed?: number }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const baseTrackRef = React.useRef<HTMLDivElement>(null);
+  const [baseTrackWidth, setBaseTrackWidth] = React.useState(0);
+  const [repeatCount, setRepeatCount] = React.useState(2);
+
+  React.useEffect(() => {
+    const scroller = scrollRef.current;
+    const baseTrack = baseTrackRef.current;
+    if (!scroller || !baseTrack) {return;}
+
+    const updateMetrics = () => {
+      const viewportWidth = scroller.clientWidth;
+      const nextBaseWidth = baseTrack.scrollWidth;
+
+      if (viewportWidth <= 1 || nextBaseWidth <= 1) {
+        setBaseTrackWidth(0);
+        setRepeatCount(2);
+        return;
+      }
+
+      const nextRepeatCount = Math.max(2, Math.ceil(viewportWidth / nextBaseWidth) + 1);
+      setRepeatCount(nextRepeatCount);
+      setBaseTrackWidth(nextBaseWidth);
+    };
+
+    updateMetrics();
+
+    const cleanupHandlers: Array<() => void> = [];
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(updateMetrics);
+      observer.observe(scroller);
+      observer.observe(baseTrack);
+      cleanupHandlers.push(() =>{  observer.disconnect(); });
+    }
+
+    window.addEventListener('resize', updateMetrics);
+    cleanupHandlers.push(() =>{  window.removeEventListener('resize', updateMetrics); });
+
+    return () => {
+      cleanupHandlers.forEach((cleanup) =>{  cleanup(); });
+    };
+  }, [children]);
 
   React.useEffect(() => {
     const scroller = scrollRef.current;
@@ -28,33 +70,46 @@ const TrustBadgesAutoScroll = ({ children, speed = 0.6, isPaused }: { children: 
     let position = scroller.scrollLeft;
 
     const step = () => {
-      if (!isPaused && scroller) {
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      const resetPoint = Math.min(baseTrackWidth, maxScrollLeft);
+
+      if (resetPoint > 1 && maxScrollLeft > 1) {
         position += speed;
-        if (position >= scroller.scrollWidth / 2) {
-          position = 0;
+        if (position >= resetPoint) {
+          position -= resetPoint;
         }
         scroller.scrollLeft = position;
-      } else if (scroller) {
+      } else {
         position = scroller.scrollLeft;
       }
+
       animationId = requestAnimationFrame(step);
     };
 
     animationId = requestAnimationFrame(step);
     return () =>{  cancelAnimationFrame(animationId); };
-  }, [isPaused, speed]);
+  }, [baseTrackWidth, speed]);
 
   return (
-    <div 
-      ref={scrollRef}
-      className="flex overflow-hidden select-none w-full cursor-grab active:cursor-grabbing"
-      style={{ 
-        WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-        maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
-      }}
-    >
-      <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
-      <div className="flex shrink-0 gap-16 md:gap-20 items-center px-4">{children}</div>
+    <div className="w-full max-w-7xl mx-auto">
+      <div
+        ref={scrollRef}
+        className="flex overflow-hidden select-none w-full cursor-grab active:cursor-grabbing"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+          maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)'
+        }}
+      >
+        {Array.from({ length: repeatCount }).map((_, index) => (
+          <div
+            key={`trust-badge-track-${index}`}
+            ref={index === 0 ? baseTrackRef : undefined}
+            className="flex shrink-0 gap-16 md:gap-20 items-center px-4"
+          >
+            {children}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -77,7 +132,6 @@ export const TrustBadgesPreview = ({
   config?: TrustBadgesConfig;
 }) => {
   const { device, setDevice } = usePreviewDevice();
-  const [isPaused, setIsPaused] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode });
   const previewStyle = selectedStyle ?? 'cards';
@@ -264,17 +318,15 @@ export const TrustBadgesPreview = ({
 
   // Style 3: Marquee - Auto scroll slider with tooltip
   const renderMarqueeStyle = () => (
-    <section 
+    <section
       className={cn("w-full border-y", device === 'mobile' ? 'py-10' : 'py-14')}
       style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
-      onMouseEnter={() =>{  setIsPaused(true); }}
-      onMouseLeave={() =>{  setIsPaused(false); }}
     >
       <div className="container max-w-7xl mx-auto px-4 mb-8 text-center">
         <SectionHeader />
       </div>
       {items.length === 0 ? <EmptyState /> : (
-        <TrustBadgesAutoScroll speed={0.6} isPaused={isPaused}>
+        <TrustBadgesAutoScroll speed={0.6}>
           {items.map((item) => (
             <div 
               key={item.id} 

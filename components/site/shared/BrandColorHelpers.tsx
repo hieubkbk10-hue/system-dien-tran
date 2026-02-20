@@ -75,7 +75,24 @@
    );
  };
  
- // ============ STAT BOX COMPONENT (10% Secondary Accent) ============
+ export interface SaleBadgeProps {
+  text: string;
+  className?: string;
+}
+
+export const SaleBadge: React.FC<SaleBadgeProps> = ({ text, className = '' }) => {
+  const baseStyles = "inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wider w-fit";
+  return (
+    <div
+      className={`${baseStyles} ${className}`}
+      style={{ backgroundColor: '#dc2626', borderColor: '#dc2626', color: '#ffffff' }}
+    >
+      {text}
+    </div>
+  );
+};
+
+// ============ STAT BOX COMPONENT (10% Secondary Accent) ============
  export interface StatBoxProps extends BrandColorProps {
    stat: { value: string; label: string };
    variant?: 'default' | 'card' | 'minimal';

@@ -10,22 +10,36 @@ import { ListChecks, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { ProcessForm } from '../../_components/ProcessForm';
 import { ProcessPreview } from '../../_components/ProcessPreview';
-import { DEFAULT_PROCESS_CONFIG } from '../../_lib/constants';
-import type { ProcessConfig, ProcessStyle } from '../../_types';
+import {
+  normalizeProcessConfig,
+  normalizeProcessFormSteps,
+  normalizeProcessRenderSteps,
+  serializeProcessFormSteps,
+  type ProcessFormStep,
+} from '../../_lib/normalize';
+import type { ProcessBrandMode, ProcessStep, ProcessStyle } from '../../_types';
 
 export default function ProcessEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<ProcessConfig>(DEFAULT_PROCESS_CONFIG);
+  const [steps, setSteps] = useState<ProcessFormStep[]>([]);
+  const [processStyle, setProcessStyle] = useState<ProcessStyle>('horizontal');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialData, setInitialData] = useState<{
+    title: string;
+    active: boolean;
+    steps: ProcessStep[];
+    style: ProcessStyle;
+  } | null>(null);
 
   useEffect(() => {
     if (component) {
@@ -34,30 +48,64 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
         return;
       }
 
+      const normalizedConfig = normalizeProcessConfig(component.config);
+      const normalizedFormSteps = normalizeProcessFormSteps(normalizedConfig.steps);
+      const serializedSteps = serializeProcessFormSteps(normalizedFormSteps);
+
       setTitle(component.title);
       setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        steps: Array.isArray(rawConfig.steps) ? rawConfig.steps : DEFAULT_PROCESS_CONFIG.steps,
-        style: (rawConfig.style as ProcessStyle) || 'horizontal',
+      setSteps(normalizedFormSteps);
+      setProcessStyle(normalizedConfig.style);
+      setInitialData({
+        title: component.title,
+        active: component.active,
+        steps: serializedSteps,
+        style: normalizedConfig.style,
       });
+      setHasChanges(false);
     }
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  useEffect(() => {
+    if (!initialData) {return;}
+
+    const currentSteps = JSON.stringify(serializeProcessFormSteps(steps));
+    const initialSteps = JSON.stringify(initialData.steps);
+
+    const changed = title !== initialData.title
+      || active !== initialData.active
+      || processStyle !== initialData.style
+      || currentSteps !== initialSteps;
+
+    setHasChanges(changed);
+  }, [title, active, steps, processStyle, initialData]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const serializedSteps = serializeProcessFormSteps(steps);
+
       await updateMutation({
         active,
-        config,
+        config: {
+          steps: serializedSteps,
+          style: processStyle,
+        },
         id: id as Id<'homeComponents'>,
         title,
       });
+
       toast.success('Đã cập nhật Process');
+      setInitialData({
+        title,
+        active,
+        steps: serializedSteps,
+        style: processStyle,
+      });
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -78,7 +126,7 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  const steps = Array.isArray(config.steps) ? config.steps : [];
+  const normalizedPreviewSteps = normalizeProcessRenderSteps(serializeProcessFormSteps(steps));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -100,7 +148,7 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,42 +158,45 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
-                <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
-                )}></div>
+                <div
+                  className={cn(
+                    'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                    active ? 'translate-x-2.5' : '-translate-x-2.5',
+                  )}
+                ></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as ProcessConfig); }} title="Cấu hình Process" />
+        <ProcessForm steps={steps} onChange={setSteps} secondary={secondary} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <ProcessPreview
-              steps={steps as any}
+              steps={normalizedPreviewSteps}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as ProcessStyle }); }}
+              mode={mode as ProcessBrandMode}
+              selectedStyle={processStyle}
+              onStyleChange={setProcessStyle}
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

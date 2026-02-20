@@ -1,6 +1,8 @@
 export type BlogStyle = 'grid' | 'list' | 'featured' | 'magazine' | 'carousel' | 'minimal';
 
 export type BlogSelectionMode = 'auto' | 'manual';
+export type BlogBrandMode = 'single' | 'dual';
+export type BlogHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface BlogConfig {
   itemCount: number;

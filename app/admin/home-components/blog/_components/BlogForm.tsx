@@ -9,7 +9,13 @@ export interface BlogPostItem {
   _id: string;
   _creationTime: number;
   title: string;
+  slug?: string;
+  excerpt?: string;
   thumbnail?: string;
+  categoryId?: string;
+  categoryName?: string;
+  publishedAt?: number;
+  status?: string;
   views?: number;
 }
 

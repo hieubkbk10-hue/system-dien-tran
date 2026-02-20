@@ -3,23 +3,31 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
-import { VoucherPromotionsPreview } from '../../_shared/legacy/previews';
-import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
+import { VoucherPromotionsPreview } from '../../voucher-promotions/_components/VoucherPromotionsPreview';
+import { normalizeVoucherLimit } from '@/lib/home-components/voucher-promotions';
+import {
+  DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
+  normalizeVoucherPromotionsHarmony,
+} from '../../voucher-promotions/_lib/constants';
+import type { VoucherPromotionsConfigState } from '../../voucher-promotions/_types';
 
 export default function VoucherPromotionsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
-  const { primary, secondary } = useBrandColors();
-  const [style, setStyle] = useState<VoucherPromotionsStyle>(DEFAULT_VOUCHER_STYLE);
-  const [limit, setLimit] = useState(4);
-  const [voucherConfig, setVoucherConfig] = useState({
+  const { primary, secondary, mode } = useBrandColors();
+  const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>({
+    ...DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
     ctaLabel: 'Xem tất cả ưu đãi',
     ctaUrl: '/promotions',
     description: 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
-    heading: 'Voucher khuyến mãi'
+    heading: 'Voucher khuyến mãi',
   });
 
   const onSubmit = (e: React.FormEvent) => {
-    void handleSubmit(e, { ...voucherConfig, limit: normalizeVoucherLimit(limit), style });
+    void handleSubmit(e, {
+      ...voucherConfig,
+      limit: normalizeVoucherLimit(voucherConfig.limit),
+      harmony: normalizeVoucherPromotionsHarmony(voucherConfig.harmony),
+    });
   };
 
   return (
@@ -79,8 +87,10 @@ export default function VoucherPromotionsCreatePage() {
                 type="number"
                 min={1}
                 max={8}
-                value={limit}
-                onChange={(e) =>{  setLimit(Number(e.target.value)); }}
+                value={voucherConfig.limit}
+                onChange={(e) => {
+                  setVoucherConfig({ ...voucherConfig, limit: Number(e.target.value) });
+                }}
                 placeholder="4"
               />
               <p className="text-xs text-slate-500">Dữ liệu tự động từ Promotions (chỉ voucher có mã).</p>
@@ -91,10 +101,15 @@ export default function VoucherPromotionsCreatePage() {
 
       <VoucherPromotionsPreview
         config={voucherConfig}
-        limit={normalizeVoucherLimit(limit)}
-        brandColor={primary} secondary={secondary}
-        selectedStyle={style}
-        onStyleChange={setStyle}
+        mode={mode}
+        limit={normalizeVoucherLimit(voucherConfig.limit)}
+        brandColor={primary}
+        secondary={secondary}
+        selectedStyle={voucherConfig.style}
+        harmony={voucherConfig.harmony}
+        onStyleChange={(nextStyle) => {
+          setVoucherConfig({ ...voucherConfig, style: nextStyle });
+        }}
       />
     </ComponentFormWrapper>
   );

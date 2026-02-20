@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -12,20 +12,24 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
 import { VoucherPromotionsPreview } from '../../_components/VoucherPromotionsPreview';
-import { DEFAULT_VOUCHER_PROMOTIONS_CONFIG } from '../../_lib/constants';
+import {
+  DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
+  normalizeVoucherPromotionsHarmony,
+} from '../../_lib/constants';
 import type { VoucherPromotionsConfigState } from '../../_types';
-import { normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
+import { normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 
 export default function VoucherPromotionsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
   const [config, setConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
+  const [initialSnapshot, setInitialSnapshot] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -35,33 +39,51 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
         return;
       }
 
-      setTitle(component.title);
-      setActive(component.active);
-
       const rawConfig = component.config ?? {};
-      setConfig({
+      const normalizedConfig: VoucherPromotionsConfigState = {
         ctaLabel: (rawConfig.ctaLabel as string | undefined) ?? '',
         ctaUrl: (rawConfig.ctaUrl as string | undefined) ?? '',
         description: (rawConfig.description as string | undefined) ?? '',
         heading: (rawConfig.heading as string | undefined) ?? '',
         limit: normalizeVoucherLimit(rawConfig.limit as number | undefined),
         style: normalizeVoucherStyle(rawConfig.style as string | undefined),
-      });
+        harmony: normalizeVoucherPromotionsHarmony(rawConfig.harmony as string | undefined),
+      };
+
+      setTitle(component.title);
+      setActive(component.active);
+      setConfig(normalizedConfig);
+      setInitialSnapshot(JSON.stringify({
+        title: component.title,
+        active: component.active,
+        config: normalizedConfig,
+      }));
     }
   }, [component, id, router]);
 
+  const currentSnapshot = useMemo(() => JSON.stringify({ title, active, config }), [title, active, config]);
+  const hasChanges = initialSnapshot !== '' && currentSnapshot !== initialSnapshot;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) {return;}
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const payloadConfig: VoucherPromotionsConfigState = {
+        ...config,
+        limit: normalizeVoucherLimit(config.limit),
+        harmony: normalizeVoucherPromotionsHarmony(config.harmony),
+      };
+
       await updateMutation({
         active,
-        config,
+        config: payloadConfig,
         id: id as Id<'homeComponents'>,
         title,
       });
+      setConfig(payloadConfig);
+      setInitialSnapshot(JSON.stringify({ title, active, config: payloadConfig }));
       toast.success('Đã cập nhật Voucher Promotions');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -137,9 +159,13 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
               config={config}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as VoucherPromotionsStyle}
+              mode={mode}
+              selectedStyle={config.style}
               limit={config.limit}
-              onStyleChange={(style) =>{  setConfig({ ...config, style }); }}
+              harmony={config.harmony}
+              onStyleChange={(style) => {
+                setConfig({ ...config, style });
+              }}
             />
           </div>
         </div>
@@ -148,7 +174,7 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

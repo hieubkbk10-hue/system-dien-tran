@@ -1,62 +1,174 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Briefcase, Loader2 } from 'lucide-react';
+import { Briefcase, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
 import { CareerPreview } from '../../_components/CareerPreview';
-import { DEFAULT_CAREER_CONFIG } from '../../_lib/constants';
-import type { CareerConfig, CareerStyle } from '../../_types';
+import {
+  createCareerJob,
+  DEFAULT_CAREER_HARMONY,
+  normalizeCareerHarmony,
+} from '../../_lib/constants';
+import { getCareerValidationResult } from '../../_lib/colors';
+import {
+  normalizeCareerConfig,
+  normalizeCareerJobs,
+  toCareerJobsForConfig,
+} from '../../_lib/normalize';
+import type {
+  CareerConfig,
+  CareerHarmony,
+  CareerStyle,
+  JobPosition,
+} from '../../_types';
+
+interface CareerSnapshotPayload {
+  title: string;
+  active: boolean;
+  jobs: JobPosition[];
+  style: CareerStyle;
+  harmony: CareerHarmony;
+}
+
+const toSnapshot = (payload: CareerSnapshotPayload) => JSON.stringify(payload);
 
 export default function CareerEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<CareerConfig>(DEFAULT_CAREER_CONFIG);
+  const [jobs, setJobs] = useState<JobPosition[]>([createCareerJob({ type: 'Full-time' })]);
+  const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
+  const [harmony, setHarmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Career') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (!component) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        jobs: Array.isArray(rawConfig.jobs) ? rawConfig.jobs : DEFAULT_CAREER_CONFIG.jobs,
-        style: (rawConfig.style as CareerStyle) || 'cards',
-      });
+    if (component.type !== 'Career') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const normalized = normalizeCareerConfig(component.config);
+    const normalizedJobs = normalized.jobs.length > 0
+      ? normalized.jobs
+      : [createCareerJob({ type: 'Full-time' })];
+
+    const normalizedHarmony = normalizeCareerHarmony(normalized.harmony);
+
+    setTitle(component.title);
+    setActive(component.active);
+    setJobs(normalizedJobs);
+    setCareerStyle(normalized.style);
+    setHarmony(normalizedHarmony);
+
+    setInitialSnapshot(toSnapshot({
+      title: component.title,
+      active: component.active,
+      jobs: normalizedJobs,
+      style: normalized.style,
+      harmony: normalizedHarmony,
+    }));
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  const normalizedJobs = useMemo(() => normalizeCareerJobs(jobs), [jobs]);
+
+  const currentSnapshot = useMemo(() => toSnapshot({
+    title,
+    active,
+    jobs: toCareerJobsForConfig(normalizedJobs),
+    style: careerStyle,
+    harmony,
+  }), [title, active, normalizedJobs, careerStyle, harmony]);
+
+  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
+  const validation = useMemo(() => getCareerValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony,
+  }), [primary, secondary, mode, harmony]);
+
+  const warningMessages = useMemo(() => {
+    const warnings: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
+
+  const updateJob = (index: number, field: keyof JobPosition, value: string) => {
+    setJobs((prev) => prev.map((job, idx) => (
+      idx === index ? { ...job, [field]: value } : job
+    )));
+  };
+
+  const handleAddJob = () => {
+    setJobs((prev) => ([
+      ...prev,
+      createCareerJob({
+        id: `career-job-${Date.now()}-${prev.length}`,
+        type: 'Full-time',
+      }),
+    ]));
+  };
+
+  const handleRemoveJob = (index: number) => {
+    setJobs((prev) => {
+      if (prev.length <= 1) {
+        return prev;
+      }
+      return prev.filter((_, idx) => idx !== index);
+    });
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const nextConfig: CareerConfig = {
+        jobs: toCareerJobsForConfig(normalizedJobs),
+        style: careerStyle,
+        harmony,
+      };
+
       await updateMutation({
         active,
-        config,
+        config: nextConfig,
         id: id as Id<'homeComponents'>,
         title,
       });
+
+      setInitialSnapshot(toSnapshot({
+        title,
+        active,
+        jobs: nextConfig.jobs,
+        style: nextConfig.style,
+        harmony: nextConfig.harmony ?? DEFAULT_CAREER_HARMONY,
+      }));
+
       toast.success('Đã cập nhật Career');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -78,8 +190,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  const jobs = Array.isArray(config.jobs) ? config.jobs : [];
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <div>
@@ -100,7 +210,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,14 +220,14 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5',
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -125,26 +235,119 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as CareerConfig); }} title="Cấu hình Career" />
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Vị trí tuyển dụng</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddJob}
+              className="gap-2"
+            >
+              <Plus size={14} /> Thêm vị trí
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {jobs.map((job, idx) => (
+              <div
+                key={normalizedJobs[idx]?.key ?? `${job.id ?? 'career-job'}-${idx}`}
+                className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <Label>Vị trí {idx + 1}</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 h-8 w-8"
+                    onClick={() => { handleRemoveJob(idx); }}
+                    disabled={jobs.length <= 1}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    placeholder="Vị trí tuyển dụng"
+                    value={job.title}
+                    onChange={(event) => { updateJob(idx, 'title', event.target.value); }}
+                  />
+                  <Input
+                    placeholder="Phòng ban"
+                    value={job.department}
+                    onChange={(event) => { updateJob(idx, 'department', event.target.value); }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <Input
+                    placeholder="Địa điểm"
+                    value={job.location}
+                    onChange={(event) => { updateJob(idx, 'location', event.target.value); }}
+                  />
+                  <select
+                    className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                    value={job.type}
+                    onChange={(event) => { updateJob(idx, 'type', event.target.value); }}
+                  >
+                    <option>Full-time</option>
+                    <option>Part-time</option>
+                    <option>Contract</option>
+                    <option>Internship</option>
+                  </select>
+                  <Input
+                    placeholder="Mức lương"
+                    value={job.salary}
+                    onChange={(event) => { updateJob(idx, 'salary', event.target.value); }}
+                  />
+                </div>
+
+                <Input
+                  placeholder="Mô tả ngắn (tuỳ chọn)"
+                  value={job.description}
+                  onChange={(event) => { updateJob(idx, 'description', event.target.value); }}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <CareerPreview
-              jobs={jobs as any}
+              jobs={toCareerJobsForConfig(normalizedJobs)}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as CareerStyle }); }}
+              mode={mode}
+              harmony={harmony}
+              selectedStyle={careerStyle}
+              onStyleChange={setCareerStyle}
+              title={title}
             />
           </div>
         </div>
 
+        {warningMessages.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {warningMessages.map((message) => (
+              <div
+                key={message}
+                className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700"
+              >
+                <p>{message}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
+          <Button type="submit" variant="accent" disabled={!hasChanges || isSubmitting}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>

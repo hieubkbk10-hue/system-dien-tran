@@ -17,10 +17,11 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ImageFieldWithUpload } from '../../../components/ImageFieldWithUpload';
-import type { AboutStyle, BenefitsStyle, CTAStyle, CareerStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, PricingConfig, PricingStyle, ProcessStyle, ServicesStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, VideoStyle
+import type { AboutStyle, BenefitsStyle, CTAStyle, CareerStyle, ClientsStyle, ContactStyle, CountdownStyle, FaqStyle, FeaturesStyle, FooterStyle, PricingConfig, PricingStyle, ProcessStyle, SpeedDialStyle, TeamStyle, TestimonialsStyle, VideoStyle
 } from './previews';
+import type { ServicesStyle } from '../../services/_types';
 import type { HeroContent, HeroStyle, HeroSlide } from '../../hero/_types';
-import { 
+import {
   AboutPreview,
   BenefitsPreview,
   CTAPreview,
@@ -31,16 +32,16 @@ import {
   FaqPreview,
   FeaturesPreview,
   FooterPreview,
-  
+
   PricingPreview,
   ProcessPreview,
-  ServicesPreview,
   SpeedDialPreview,
   TeamPreview,
   TestimonialsPreview,
   VideoPreview,
   VoucherPromotionsPreview
 } from './previews';
+import { ServicesPreview } from '../../services/_components/ServicesPreview';
 import { useBrandColors } from '../../create/shared';
 import { DEFAULT_VOUCHER_STYLE, normalizeVoucherLimit, normalizeVoucherStyle, type VoucherPromotionsStyle } from '@/lib/home-components/voucher-promotions';
 import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
@@ -92,7 +93,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const { id } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
   const brandColor = primary;
@@ -207,8 +208,12 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         router.replace(`/admin/home-components/product-list/${component._id}/edit`);
         return;
       }
-      if (component.type === 'Gallery' || component.type === 'TrustBadges') {
+      if (component.type === 'Gallery') {
         router.replace(`/admin/home-components/gallery/${component._id}/edit`);
+        return;
+      }
+      if (component.type === 'TrustBadges') {
+        router.replace(`/admin/home-components/trust-badges/${component._id}/edit`);
         return;
       }
       setTitle(component.title);
@@ -1323,12 +1328,18 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 )}
               </CardContent>
             </Card>
-            <ServicesPreview 
-              items={servicesItems} 
-              brandColor={brandColor} secondary={secondary}
-              componentType="Services"
+            <ServicesPreview
+              items={servicesItems.map((item) => ({
+                icon: item.icon,
+                title: item.title,
+                description: item.description,
+              }))}
+              brandColor={brandColor}
+              secondary={secondary}
+              mode={mode}
               selectedStyle={servicesStyle}
               onStyleChange={setServicesStyle}
+              title={component.title}
             />
           </>
         )}
@@ -1488,8 +1499,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 )}
               </CardContent>
             </Card>
-            <TestimonialsPreview 
-              items={testimonialsItems} 
+            <TestimonialsPreview
+              items={testimonialsItems}
               brandColor={brandColor} secondary={secondary}
               selectedStyle={testimonialsStyle}
               onStyleChange={setTestimonialsStyle}
@@ -2176,13 +2187,14 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
         {/* Features - Tính năng */}
         {component.type === 'Features' && (
-          <FeaturesEditSection 
-            featuresItems={featuresItems} 
-            setFeaturesItems={setFeaturesItems} 
-            brandColor={brandColor} 
-            secondary={secondary} 
-            featuresStyle={featuresStyle} 
-            setFeaturesStyle={setFeaturesStyle} 
+          <FeaturesEditSection
+            featuresItems={featuresItems}
+            setFeaturesItems={setFeaturesItems}
+            brandColor={brandColor}
+            secondary={secondary}
+            brandMode={brandMode}
+            featuresStyle={featuresStyle}
+            setFeaturesStyle={setFeaturesStyle}
           />
         )}
 
@@ -2757,18 +2769,20 @@ function FaqEditSection({
 }
 
 // Features Edit Section with Drag & Drop
-function FeaturesEditSection({ 
-  featuresItems, 
-  setFeaturesItems, 
-  brandColor, 
+function FeaturesEditSection({
+  featuresItems,
+  setFeaturesItems,
+  brandColor,
   secondary,
-  featuresStyle, 
-  setFeaturesStyle 
-}: { 
+  brandMode,
+  featuresStyle,
+  setFeaturesStyle
+}: {
   featuresItems: {id: number, icon: string, title: string, description: string}[];
   setFeaturesItems: React.Dispatch<React.SetStateAction<{id: number, icon: string, title: string, description: string}[]>>;
   brandColor: string;
   secondary: string;
+  brandMode: 'single' | 'dual';
   featuresStyle: FeaturesStyle;
   setFeaturesStyle: React.Dispatch<React.SetStateAction<FeaturesStyle>>;
 }) {
@@ -2868,9 +2882,11 @@ function FeaturesEditSection({
         </CardContent>
       </Card>
 
-      <FeaturesPreview 
-        items={featuresItems} 
-        brandColor={brandColor} secondary={secondary}
+      <FeaturesPreview
+        items={featuresItems}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={brandMode}
         selectedStyle={featuresStyle}
         onStyleChange={setFeaturesStyle}
       />

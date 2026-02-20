@@ -1,63 +1,132 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Briefcase, Loader2 } from 'lucide-react';
+import { AlertTriangle, Briefcase, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { ServicesForm } from '../../_components/ServicesForm';
 import { ServicesPreview } from '../../_components/ServicesPreview';
 import { DEFAULT_SERVICES_CONFIG } from '../../_lib/constants';
-import type { ServicesConfig, ServicesStyle } from '../../_types';
+import { getServicesValidationResult, normalizeServicesHarmony } from '../../_lib/colors';
+import { normalizeServicesItemsForEditor, toServicesPersistItems } from '../../_lib/items';
+import type { ServiceEditorItem, ServicesStyle } from '../../_types';
+
+const getDefaultEditorItems = (): ServiceEditorItem[] => {
+  return DEFAULT_SERVICES_CONFIG.items.map((item, index) => ({
+    id: 1_000_000 + index,
+    icon: item.icon,
+    title: item.title,
+    description: item.description,
+  }));
+};
 
 export default function ServicesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<ServicesConfig>(DEFAULT_SERVICES_CONFIG);
+  const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(getDefaultEditorItems);
+  const [style, setStyle] = useState<ServicesStyle>('elegantGrid');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState('');
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Services') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
-
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        items: Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_SERVICES_CONFIG.items,
-        style: (rawConfig.style as ServicesStyle) || 'elegantGrid',
-      });
+    if (!component) {return;}
+    if (component.type !== 'Services') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    const rawConfig = (component.config ?? {}) as { items?: unknown; style?: ServicesStyle };
+    const normalizedItems = normalizeServicesItemsForEditor(rawConfig.items);
+
+    setTitle(component.title);
+    setActive(component.active);
+    setServicesItems(normalizedItems.length > 0 ? normalizedItems : getDefaultEditorItems());
+    setStyle(rawConfig.style || DEFAULT_SERVICES_CONFIG.style);
+
+    const snapshot = JSON.stringify({
+      title: component.title,
+      active: component.active,
+      items: toServicesPersistItems(normalizedItems.length > 0 ? normalizedItems : getDefaultEditorItems()),
+      style: rawConfig.style || DEFAULT_SERVICES_CONFIG.style,
+      type: component.type,
+    });
+
+    setInitialSnapshot(snapshot);
+    setHasChanges(false);
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  useEffect(() => {
+    if (!component || component.type !== 'Services' || !initialSnapshot) {return;}
+
+    const snapshot = JSON.stringify({
+      title,
+      active,
+      items: toServicesPersistItems(servicesItems),
+      style,
+      type: component.type,
+    });
+
+    setHasChanges(snapshot !== initialSnapshot);
+  }, [title, active, servicesItems, style, component, initialSnapshot]);
+
+  const harmony = normalizeServicesHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
+  const validation = useMemo(() => getServicesValidationResult({ primary, secondary, mode, harmony }), [primary, secondary, mode, harmony]);
+
+  const warningMessages = useMemo(() => {
+    const messages: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      messages.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return messages;
+  }, [mode, validation]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const persistItems = toServicesPersistItems(servicesItems);
       await updateMutation({
         active,
-        config,
+        config: {
+          items: persistItems,
+          style,
+        },
         id: id as Id<'homeComponents'>,
         title,
       });
+
       toast.success('Đã cập nhật Services');
+
+      const snapshot = JSON.stringify({
+        title,
+        active,
+        items: persistItems,
+        style,
+        type: component?.type,
+      });
+      setInitialSnapshot(snapshot);
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -77,8 +146,6 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
-
-  const items = Array.isArray(config.items) ? config.items : [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -100,7 +167,7 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(e) => { setTitle(e.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -110,14 +177,14 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
                 <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
+                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                  active ? 'translate-x-2.5' : '-translate-x-2.5'
                 )}></div>
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
@@ -125,28 +192,42 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as ServicesConfig); }} title="Cấu hình Services" />
+        <ServicesForm items={servicesItems} onChange={setServicesItems} brandColor={validation.colors.primary} />
+
+        {warningMessages.length > 0 && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="space-y-2">
+              {warningMessages.map((message, idx) => (
+                <div key={`${idx}-${message}`} className="flex items-start gap-2">
+                  {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
+                  <p>{message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
             <ServicesPreview
-              items={items as any}
-              brandColor={primary}
-              secondary={secondary}
-              componentType="Services"
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as ServicesStyle }); }}
+              items={toServicesPersistItems(servicesItems)}
+              brandColor={validation.colors.primary}
+              secondary={validation.colors.secondary}
+              mode={mode}
+              selectedStyle={style}
+              onStyleChange={setStyle}
+              title={title}
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : hasChanges ? 'Lưu thay đổi' : 'Đã lưu'}
           </Button>
         </div>
       </form>

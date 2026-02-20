@@ -1,4 +1,8 @@
-import type { ServiceListConfig, ServiceListStyle } from '../_types';
+import type {
+  ServiceListConfig,
+  ServiceListHarmony,
+  ServiceListStyle,
+} from '../_types';
 
 export const SERVICE_LIST_STYLES: { id: ServiceListStyle; label: string }[] = [
   { id: 'grid', label: 'Grid' },
@@ -9,8 +13,18 @@ export const SERVICE_LIST_STYLES: { id: ServiceListStyle; label: string }[] = [
   { id: 'showcase', label: 'Showcase' }
 ];
 
+export const DEFAULT_SERVICE_LIST_HARMONY: ServiceListHarmony = 'analogous';
+
+export const normalizeServiceListHarmony = (value?: string): ServiceListHarmony => {
+  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
+    return value;
+  }
+  return DEFAULT_SERVICE_LIST_HARMONY;
+};
+
 export const DEFAULT_SERVICE_LIST_CONFIG: ServiceListConfig = {
   itemCount: 8,
   selectionMode: 'auto',
-  sortBy: 'newest'
+  sortBy: 'newest',
+  harmony: DEFAULT_SERVICE_LIST_HARMONY,
 };

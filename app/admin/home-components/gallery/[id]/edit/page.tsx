@@ -216,6 +216,7 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
             />
           </div>
         </div>
+   title={title}  // Thêm dòng này
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>

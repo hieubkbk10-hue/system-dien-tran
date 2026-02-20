@@ -1,78 +1,111 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useQuery } from 'convex/react';
+import { Loader2 } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { ArrowRight, ArrowUpRight, Briefcase, ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react';
-import { BrandBadge } from '@/components/site/shared/BrandColorHelpers';
-
-// Luxury Services Gallery UI/UX - 6 Variants (added minimal & showcase)
-type ServiceListStyle = 'grid' | 'bento' | 'list' | 'carousel' | 'minimal' | 'showcase';
+import {
+  DEFAULT_SERVICE_LIST_HARMONY,
+  normalizeServiceListHarmony,
+} from '@/app/admin/home-components/service-list/_lib/constants';
+import {
+  getServiceListColorTokens,
+} from '@/app/admin/home-components/service-list/_lib/colors';
+import { ServiceListSectionShared } from '@/app/admin/home-components/service-list/_components/ServiceListSectionShared';
+import type {
+  ServiceListBrandMode,
+  ServiceListConfig,
+  ServiceListHarmony,
+  ServiceListPreviewItem,
+  ServiceListStyle,
+} from '@/app/admin/home-components/service-list/_types';
 
 interface ServiceListSectionProps {
   config: Record<string, unknown>;
   brandColor: string;
   secondary: string;
+  mode: ServiceListBrandMode;
   title: string;
 }
 
-// Helper to strip HTML tags from description
-const stripHtml = (html?: string) => {
-  if (!html) {return '';}
-  return html.replaceAll(/<[^>]*>/g, '').trim();
+type ServiceRecord = {
+  _id: Id<'services'>;
+  title: string;
+  slug?: string;
+  excerpt?: string;
+  thumbnail?: string;
+  status?: string;
+  price?: number;
+  views: number;
 };
 
-// Format price helper (monochromatic style)
-const formatServicePrice = (price?: number) => {
-  if (!price || price === 0) {return 'Liên hệ';}
-  return new Intl.NumberFormat('vi-VN', { currency: 'VND', maximumFractionDigits: 0, style: 'currency' }).format(price);
-};
+const mapServiceToPreview = (
+  service: ServiceRecord,
+  index: number,
+): ServiceListPreviewItem & { href: string } => ({
+  id: service._id,
+  name: service.title,
+  image: service.thumbnail,
+  description: service.excerpt,
+  price: service.price,
+  tag: index === 0 ? 'hot' : (index === 1 ? 'new' : undefined),
+  href: service.slug ? `/services/${service.slug}` : '/services',
+});
 
-// Badge component for service status
-const ServiceBadge = ({ isNew, isHot, brandColor, secondary }: { isNew?: boolean; isHot?: boolean; brandColor: string; secondary: string }) => {
-  if (!isNew && !isHot) {return null;}
-  if (isHot) {
-    return (
-      <BrandBadge text="Hot" variant="solid" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />
-    );
-  }
-  return <BrandBadge text="New" variant="outline" brandColor={brandColor} secondary={secondary} className="text-[10px] px-2 py-1" />;
-};
+export function ServiceListSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title,
+}: ServiceListSectionProps) {
+  const safeConfig = config as Partial<ServiceListConfig>;
 
-export function ServiceListSection({ config, brandColor, secondary, title }: ServiceListSectionProps) {
-  const style = (config.style as ServiceListStyle) || 'grid';
-  const itemCount = (config.itemCount as number) || 8;
-  const selectionMode = (config.selectionMode as 'auto' | 'manual') || 'auto';
-  const selectedServiceIds = React.useMemo(() => (config.selectedServiceIds as string[]) || [], [config.selectedServiceIds]);
-  const carouselId = React.useId();
-  const carouselElementId = `service-carousel-${carouselId.replaceAll(':', '')}`;
-  
-  // Query services based on selection mode
+  const style = (safeConfig.style as ServiceListStyle) ?? 'grid';
+  const itemCount = Math.min(Math.max(Number(safeConfig.itemCount) || 8, 1), 20);
+  const selectionMode = safeConfig.selectionMode ?? 'auto';
+  const selectedServiceIds = React.useMemo(() => (
+    Array.isArray(safeConfig.selectedServiceIds)
+      ? safeConfig.selectedServiceIds
+      : []
+  ), [safeConfig.selectedServiceIds]);
+  const harmony = normalizeServiceListHarmony((safeConfig.harmony as ServiceListHarmony | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY);
+
   const servicesData = useQuery(
-    api.services.listAll, 
-    selectionMode === 'auto' ? { limit: Math.min(itemCount, 20) } : { limit: 100 }
+    api.services.listAll,
+    selectionMode === 'auto' ? { limit: Math.min(itemCount, 20) } : { limit: 100 },
   );
-  
-  // Get services to display based on selection mode
+
+  const sortBy = safeConfig.sortBy ?? 'newest';
+
   const services = React.useMemo(() => {
     if (!servicesData) {return [];}
-    
+
+    const published = servicesData
+      .filter((service) => service.status === 'Published') as ServiceRecord[];
+
+    const sorted = (() => {
+      if (sortBy === 'popular') {
+        return [...published].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+      }
+      if (sortBy === 'random') {
+        return [...published].sort(() => Math.random() - 0.5);
+      }
+      return published;
+    })();
+
     if (selectionMode === 'manual' && selectedServiceIds.length > 0) {
-      const serviceMap = new Map(servicesData.map(s => [s._id, s]));
+      const serviceMap = new Map(sorted.map((service) => [service._id, service]));
       return selectedServiceIds
-        .map(id => serviceMap.get(id as Id<"services">))
-        .filter((s): s is NonNullable<typeof s> => s !== undefined && s.status === 'Published');
+        .map((id) => serviceMap.get(id as Id<'services'>))
+        .filter((service): service is ServiceRecord => service !== undefined)
+        .slice(0, itemCount);
     }
-    
-    return servicesData.filter(s => s.status === 'Published').slice(0, itemCount);
-  }, [servicesData, selectionMode, selectedServiceIds, itemCount]);
 
-  const showViewAll = services.length >= 3;
+    return sorted.slice(0, itemCount);
+  }, [servicesData, selectionMode, selectedServiceIds, itemCount, sortBy]);
 
-  // Loading state
   if (servicesData === undefined) {
     return (
       <section className="py-12 md:py-16 px-4">
@@ -83,589 +116,26 @@ export function ServiceListSection({ config, brandColor, secondary, title }: Ser
     );
   }
 
-  // No services state
-  if (services.length === 0) {
-    return (
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-light tracking-tight text-slate-900 mb-4">{title}</h2>
-          <p className="text-slate-500">Chưa có dịch vụ nào.</p>
-        </div>
-      </section>
-    );
-  }
+  const tokens = getServiceListColorTokens({
+    primary: brandColor,
+    secondary,
+    mode,
+    harmony,
+  });
 
-  // Style 1: Grid - Clean cards với hover lift và arrow icon
-  if (style === 'grid') {
-    return (
-      <section className="py-12 md:py-16 px-3 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/40 pb-3 mb-6">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">
-              {title}
-            </h2>
-            {showViewAll && (
-              <Link 
-                href="/services" 
-                className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                Xem tất cả 
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            )}
-          </div>
-          
-          {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {services.slice(0, 6).map((service, idx) => (
-              <Link key={service._id} href={`/services/${service.slug}`} className="group">
-                <article 
-                  className="cursor-pointer relative bg-white border rounded-lg p-3 flex flex-col hover:-translate-y-1 transition-all duration-300 h-full"
-                  style={{ borderColor: `${secondary}10` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${secondary}10`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
-                >
-                  {/* Badge */}
-                  {idx < 2 && (
-                    <div className="absolute z-20 top-5 left-5">
-                      <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} />
-                    </div>
-                  )}
+  const items = services.map((service, index) => mapServiceToPreview(service, index));
 
-                  {/* Image Container */}
-                  <div className="relative overflow-hidden bg-slate-100 mb-3 rounded-lg aspect-[4/3] w-full">
-                    {service.thumbnail ? (
-                      <Image
-                        src={service.thumbnail}
-                        alt={service.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Briefcase size={32} className="text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex flex-col justify-between flex-shrink-0 pt-1">
-                    <h3 className="font-medium text-base text-slate-900 leading-tight group-hover:opacity-70 transition-colors line-clamp-2">
-                      {service.title}
-                    </h3>
-
-                    <div className="flex items-end justify-between mt-3">
-                      <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
-                        {formatServicePrice(service.price)}
-                      </span>
-                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 2: Bento - Asymmetric grid với featured large card
-  if (style === 'bento') {
-    const bentoServices = services.slice(0, 4);
-    const remainingCount = services.length - 4;
-    
-    return (
-      <section className="py-12 md:py-16 px-3 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/40 pb-3 mb-6">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">
-              {title}
-            </h2>
-            {showViewAll && (
-              <Link 
-                href="/services" 
-                className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                Xem tất cả 
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            )}
-          </div>
-          
-          {/* Bento Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:auto-rows-[300px]">
-            {bentoServices.map((service, i) => {
-              const isLastItem = i === 3;
-              
-              return (
-                <Link 
-                  key={service._id}
-                  href={`/services/${service.slug}`}
-                  className={`h-full min-h-[200px] md:min-h-0 relative group/bento ${
-                    i === 0 ? 'md:col-span-2 md:row-span-2' : ''
-                  } ${i === 3 ? 'md:col-span-2' : ''}`}
-                >
-                  <article 
-                    className="h-full border rounded-xl p-3 md:p-4 transition-all flex flex-col cursor-pointer"
-                    style={{ borderColor: `${secondary}15`, boxShadow: i === 0 ? `0 4px 20px ${secondary}08` : 'none' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${secondary}12`; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}15`; (e.currentTarget as HTMLElement).style.boxShadow = i === 0 ? `0 4px 20px ${secondary}08` : 'none'; }}
-                  >
-                    {/* Badge */}
-                    {i < 2 && (
-                      <div className="absolute z-20 top-5 left-5 md:top-6 md:left-6">
-                        <ServiceBadge isHot={i === 0} isNew={i === 1} brandColor={brandColor} secondary={secondary} />
-                      </div>
-                    )}
-                    
-                    {/* Image */}
-                    <div className="relative flex-1 min-h-[100px] md:min-h-[160px] w-full rounded-lg overflow-hidden bg-slate-100 mb-3">
-                      {service.thumbnail ? (
-                        <Image
-                          src={service.thumbnail}
-                          alt={service.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-cover group-hover/bento:scale-105 transition-transform duration-700 ease-out"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Briefcase size={i === 0 ? 48 : 28} className="text-slate-300" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="space-y-1">
-                      <h3 className={`font-medium text-slate-900 leading-tight group-hover/bento:opacity-70 transition-colors line-clamp-2 ${
-                        i === 0 ? 'text-base md:text-lg' : 'text-sm md:text-base'
-                      }`}>
-                        {service.title}
-                      </h3>
-                      {i === 0 && service.excerpt && (
-                        <p className="text-sm text-slate-500 line-clamp-2 mt-1 hidden md:block">
-                          {stripHtml(service.excerpt)}
-                        </p>
-                      )}
-                      <div className="flex items-end justify-between mt-2">
-                        <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
-                          {formatServicePrice(service.price)}
-                        </span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/bento:opacity-100 group-hover/bento:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
-                      </div>
-                    </div>
-                  </article>
-                  
-                  {/* "+N more" overlay on last item */}
-                  {isLastItem && remainingCount > 0 && (
-                    <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-[2px] rounded-xl flex items-center justify-center cursor-pointer transition-opacity opacity-100 md:opacity-0 md:group-hover/bento:opacity-100 z-30">
-                      <div className="text-white text-center">
-                        <span className="text-3xl md:text-4xl font-light flex items-center justify-center gap-1">
-                          <Plus className="w-6 h-6 md:w-8 md:h-8" />{remainingCount}
-                        </span>
-                        <p className="text-sm font-medium mt-1">Dịch vụ khác</p>
-                      </div>
-                    </div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 3: List - Horizontal row layout với divider
-  if (style === 'list') {
-    return (
-      <section className="py-12 md:py-16 px-3 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/40 pb-3 mb-6">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">
-              {title}
-            </h2>
-            {showViewAll && (
-              <Link 
-                href="/services" 
-                className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                Xem tất cả 
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            )}
-          </div>
-          
-          {/* List */}
-          <div className="flex flex-col gap-2">
-            {services.slice(0, 6).map((service, idx) => (
-              <Link key={service._id} href={`/services/${service.slug}`} className="group block">
-                <article 
-                  className="cursor-pointer flex flex-row items-center gap-4 md:gap-6 py-4 border-b px-2 rounded-lg transition-all"
-                  style={{ borderColor: `${secondary}10` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = `${secondary}05`; (e.currentTarget as HTMLElement).style.borderColor = `${secondary}20`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; }}
-                >
-                  {/* Image */}
-                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-md overflow-hidden bg-slate-100 relative">
-                    {service.thumbnail ? (
-                      <Image
-                        src={service.thumbnail}
-                        alt={service.title}
-                        fill
-                        sizes="96px"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Briefcase size={24} className="text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="py-1 flex-1">
-                    {idx < 2 && (
-                      <div className="mb-1">
-                      <ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} />
-                      </div>
-                    )}
-                    <h3 className="font-medium text-base md:text-lg text-slate-900 leading-tight group-hover:opacity-70 transition-colors line-clamp-2">
-                      {service.title}
-                    </h3>
-                    <div className="flex items-end justify-between mt-2">
-                      <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>
-                        {formatServicePrice(service.price)}
-                      </span>
-                      <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 4: Carousel - Horizontal scroll với snap và navigation
-  if (style === 'carousel') {
-    const cardWidth = 280;
-    const gap = 16;
-    const displayedServices = services.slice(0, 8);
-    // Responsive: Desktop ~4 items (280px each), Tablet ~2-3 items, Mobile ~1 item
-    const showArrowsDesktop = displayedServices.length > 3;
-    const showArrowsMobile = displayedServices.length > 1;
-
-    return (
-      <section className="py-12 md:py-16 px-3 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header với navigation arrows */}
-          <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between">
-            <div className="flex items-end justify-between w-full md:w-auto">
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">{title}</h2>
-              {/* Mobile arrows - chỉ hiện khi có > 1 item */}
-              {showArrowsMobile && (
-                <div className="flex gap-2 md:hidden">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const container = document.querySelector(`#${carouselElementId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                    }}
-                    className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                    const container = document.querySelector(`#${carouselElementId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                    }}
-                    className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-            {/* Desktop arrows + View All - chỉ hiện arrows khi có > 3 items */}
-            <div className="hidden md:flex items-center gap-4">
-              {showViewAll && (
-                <Link href="/services" className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                  Xem tất cả <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              )}
-              {showArrowsDesktop && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const container = document.querySelector(`#${carouselElementId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
-                    }}
-                    className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                  >
-                    <ChevronLeft size={18} style={{ color: secondary }} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                    const container = document.querySelector(`#${carouselElementId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
-                    }}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
-                    style={{ backgroundColor: secondary }}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Carousel Container */}
-          <div className="relative overflow-hidden rounded-xl">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent z-10 pointer-events-none" />
-
-            {/* Scrollable area với Mouse Drag */}
-            <div
-                    id={carouselElementId}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-4 py-4 px-2 cursor-grab active:cursor-grabbing select-none scrollbar-hide"
-              style={{
-                WebkitOverflowScrolling: 'touch',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none'
-              }}
-              onMouseDown={(e) => {
-                const el = e.currentTarget;
-                el.dataset.isDown = 'true';
-                el.dataset.startX = String(e.pageX - el.offsetLeft);
-                el.dataset.scrollLeft = String(el.scrollLeft);
-                el.style.scrollBehavior = 'auto';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.dataset.isDown = 'false';
-                e.currentTarget.style.scrollBehavior = 'smooth';
-              }}
-              onMouseMove={(e) => {
-                const el = e.currentTarget;
-                if (el.dataset.isDown !== 'true') {return;}
-                e.preventDefault();
-                const x = e.pageX - el.offsetLeft;
-                const walk = (x - Number(el.dataset.startX)) * 1.5;
-                el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
-              }}
-            >
-              {displayedServices.map((service, idx) => (
-                <Link
-                  key={service._id}
-                  href={`/services/${service.slug}`}
-                  className="snap-start flex-shrink-0 w-[75vw] sm:w-[280px] group"
-                  draggable={false}
-                >
-                  <article
-                    className="cursor-pointer relative bg-white border rounded-xl p-3 flex flex-col hover:-translate-y-1 transition-all duration-300 h-full"
-                  style={{ borderColor: `${secondary}10` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 20px ${secondary}12`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}10`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
-                  >
-                  {idx < 2 && <div className="absolute z-20 top-5 left-5"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} /></div>}
-                    <div className="relative overflow-hidden bg-slate-100 mb-3 rounded-lg aspect-[4/3] w-full">
-                      {service.thumbnail ? (
-                        <Image
-                          src={service.thumbnail}
-                          alt={service.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 280px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          draggable={false}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Briefcase size={32} className="text-slate-300" /></div>
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-between flex-shrink-0 pt-1">
-                      <h3 className="font-medium text-base text-slate-900 leading-tight group-hover:opacity-70 transition-colors line-clamp-2">{service.title}</h3>
-                      <div className="flex items-end justify-between mt-3">
-                        <span className="text-sm font-semibold tracking-wide" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" style={{ color: secondary }} />
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-              {/* End spacer */}
-              <div className="flex-shrink-0 w-4" />
-            </div>
-          </div>
-
-          {/* CSS để ẩn scrollbar */}
-          <style>{`
-            #${carouselElementId}::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 5: Minimal - Clean typography-first design
-  if (style === 'minimal') {
-    return (
-      <section className="py-12 md:py-16 px-3 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/40 pb-3 mb-8">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">{title}</h2>
-            {showViewAll && (
-              <Link href="/services" className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                Xem tất cả <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            )}
-          </div>
-          {/* Minimal Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.slice(0, 6).map((service, idx) => (
-              <Link key={service._id} href={`/services/${service.slug}`} className="group">
-                <article 
-                  className="cursor-pointer"
-                  onMouseEnter={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = `0 8px 24px ${secondary}15`;} }}
-                  onMouseLeave={(e) => { const img = e.currentTarget.querySelector('.img-wrapper'); if (img) {(img as HTMLElement).style.boxShadow = 'none';} }}
-                >
-                  {/* Image - More minimal, rounded corners */}
-                  <div className="img-wrapper relative overflow-hidden bg-slate-100 rounded-2xl aspect-[3/2] mb-5 transition-shadow duration-300">
-                    {service.thumbnail ? (
-                      <Image
-                        src={service.thumbnail}
-                        alt={service.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center"><Briefcase size={40} className="text-slate-300" /></div>
-                    )}
-                    {idx < 2 && <div className="absolute top-3 left-3"><ServiceBadge isHot={idx === 0} isNew={idx === 1} brandColor={brandColor} secondary={secondary} /></div>}
-                  </div>
-                  {/* Content - Typography focused */}
-                  <div className="space-y-2">
-                    <h3 className="font-medium text-lg text-slate-900 leading-snug group-hover:text-slate-600 transition-colors line-clamp-2">{service.title}</h3>
-                    {service.excerpt && <p className="text-sm text-slate-500 line-clamp-2">{stripHtml(service.excerpt)}</p>}
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-base font-semibold" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
-                      <span className="text-sm transition-colors flex items-center gap-1" style={{ color: `${secondary}80` }}>
-                        Chi tiết <ArrowUpRight className="w-4 h-4" style={{ color: secondary }} />
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Style 6: Showcase - Featured large item + grid of smaller items (default fallback)
-  const featuredService = services[0];
-  const otherServices = services.slice(1, 5);
-  
   return (
-    <section className="py-12 md:py-16 px-3 md:px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200/40 pb-3 mb-8">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-tight text-slate-900">{title}</h2>
-          {showViewAll && (
-            <Link href="/services" className="group flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors">
-              Xem tất cả <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          )}
-        </div>
-        
-        {/* Showcase Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Featured Large Item */}
-          {featuredService && (
-            <Link href={`/services/${featuredService.slug}`} className="lg:row-span-2 group">
-              <article className="cursor-pointer relative rounded-2xl overflow-hidden h-full min-h-[300px] lg:min-h-[500px]" style={{ boxShadow: `0 8px 30px ${secondary}20` }}>
-                {featuredService.thumbnail ? (
-                  <Image
-                    src={featuredService.thumbnail}
-                    alt={featuredService.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 66vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                ) : (
-                  <div className="absolute inset-0 w-full h-full bg-slate-100 flex items-center justify-center"><Briefcase size={64} className="text-slate-300" /></div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute top-4 left-4"><ServiceBadge isHot={true} brandColor={brandColor} secondary={secondary} /></div>
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <span className="text-xs uppercase tracking-wider font-medium" style={{ color: `${secondary}cc` }}>Dịch vụ nổi bật</span>
-                  <h3 className="text-xl md:text-2xl font-semibold text-white mt-2 leading-tight line-clamp-2">{featuredService.title}</h3>
-                  {featuredService.excerpt && <p className="text-sm text-white/80 mt-2 line-clamp-2">{stripHtml(featuredService.excerpt)}</p>}
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-lg font-semibold text-white">{formatServicePrice(featuredService.price)}</span>
-                    <span className="px-5 py-2.5 text-white text-sm font-medium rounded-lg whitespace-nowrap transition-all hover:opacity-90" style={{ backgroundColor: secondary, boxShadow: `0 4px 12px ${secondary}40` }}>Xem chi tiết</span>
-                  </div>
-                </div>
-              </article>
-            </Link>
-          )}
-          
-          {/* Right Grid - 2x2 */}
-          <div className="lg:col-span-2 grid grid-cols-2 gap-3">
-            {otherServices.map((service, idx) => (
-              <Link key={service._id} href={`/services/${service.slug}`} className="group">
-                <article 
-                  className="cursor-pointer bg-white border rounded-xl p-3 transition-all h-full hover:shadow-md" 
-                  style={{ borderColor: `${secondary}15` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}40`; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 12px ${secondary}10`; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${secondary}15`; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
-                >
-                  <div className="relative overflow-hidden bg-slate-100 rounded-lg aspect-[4/3] mb-3">
-                    {service.thumbnail ? (
-                      <Image
-                        src={service.thumbnail}
-                        alt={service.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center"><Briefcase size={28} className="text-slate-300" /></div>
-                    )}
-                    {idx === 0 && <div className="absolute top-2 left-2"><ServiceBadge isNew={true} brandColor={brandColor} secondary={secondary} /></div>}
-                  </div>
-                  <h4 className="font-medium text-sm text-slate-900 line-clamp-1 group-hover:text-slate-600 transition-colors">{service.title}</h4>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm font-semibold" style={{ color: secondary }}>{formatServicePrice(service.price)}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: secondary }} />
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+    <ServiceListSectionShared
+      context="site"
+      mode={mode}
+      style={style}
+      sectionTitle={title}
+      items={items}
+      tokens={tokens}
+      showViewAll={services.length >= 3}
+      viewAllHref="/services"
+      imagePriorityCount={2}
+    />
   );
 }

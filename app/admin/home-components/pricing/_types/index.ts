@@ -1,4 +1,11 @@
+export type PricingStyle = 'cards' | 'horizontal' | 'minimal' | 'comparison' | 'featured' | 'compact';
+
+export type PricingBrandMode = 'single' | 'dual';
+
+export type PricingHarmony = 'analogous' | 'complementary' | 'triadic';
+
 export interface PricingPlan {
+  id?: string | number;
   name: string;
   price: string;
   yearlyPrice?: string;
@@ -9,7 +16,9 @@ export interface PricingPlan {
   buttonLink: string;
 }
 
-export type PricingStyle = 'cards' | 'horizontal' | 'minimal' | 'comparison' | 'featured' | 'compact';
+export interface PricingEditorPlan extends Omit<PricingPlan, 'id'> {
+  id: number;
+}
 
 export interface PricingConfig {
   plans: PricingPlan[];
@@ -19,4 +28,5 @@ export interface PricingConfig {
   yearlySavingText?: string;
   showBillingToggle?: boolean;
   subtitle?: string;
+  harmony?: PricingHarmony;
 }

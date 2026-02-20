@@ -28,7 +28,7 @@ export default function HomeComponentRedirectPage({ params }: { params: Promise<
       CategoryProducts: 'category-products',
       ProductCategories: 'product-categories',
       Gallery: 'gallery',
-      TrustBadges: 'gallery',
+      TrustBadges: 'trust-badges',
       CTA: 'cta',
       FAQ: 'faq',
       Footer: 'footer',

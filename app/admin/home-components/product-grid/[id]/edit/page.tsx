@@ -29,6 +29,8 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
   const [active, setActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [itemCount, setItemCount] = useState(DEFAULT_PRODUCT_GRID_CONFIG.itemCount);
   const [sortBy, setSortBy] = useState(DEFAULT_PRODUCT_GRID_CONFIG.sortBy);
@@ -50,13 +52,33 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
     setActive(component.active);
 
     const config = component.config ?? {};
-    setItemCount(config.itemCount ?? DEFAULT_PRODUCT_GRID_CONFIG.itemCount);
-    setSortBy(config.sortBy ?? DEFAULT_PRODUCT_GRID_CONFIG.sortBy);
-    setSelectionMode(config.selectionMode ?? DEFAULT_PRODUCT_GRID_CONFIG.selectionMode);
-    setSelectedProductIds(config.selectedProductIds ?? []);
-    setSubTitle(config.subTitle ?? DEFAULT_PRODUCT_GRID_CONFIG.subTitle);
-    setSectionTitle(config.sectionTitle ?? DEFAULT_PRODUCT_GRID_CONFIG.sectionTitle);
-    setStyle((config.style as ProductGridStyle) ?? DEFAULT_PRODUCT_GRID_CONFIG.style);
+    const nextItemCount = config.itemCount ?? DEFAULT_PRODUCT_GRID_CONFIG.itemCount;
+    const nextSortBy = config.sortBy ?? DEFAULT_PRODUCT_GRID_CONFIG.sortBy;
+    const nextSelectionMode = config.selectionMode ?? DEFAULT_PRODUCT_GRID_CONFIG.selectionMode;
+    const nextSelectedProductIds = config.selectedProductIds ?? [];
+    const nextSubTitle = config.subTitle ?? DEFAULT_PRODUCT_GRID_CONFIG.subTitle;
+    const nextSectionTitle = config.sectionTitle ?? DEFAULT_PRODUCT_GRID_CONFIG.sectionTitle;
+    const nextStyle = (config.style as ProductGridStyle) ?? DEFAULT_PRODUCT_GRID_CONFIG.style;
+
+    setItemCount(nextItemCount);
+    setSortBy(nextSortBy);
+    setSelectionMode(nextSelectionMode);
+    setSelectedProductIds(nextSelectedProductIds);
+    setSubTitle(nextSubTitle);
+    setSectionTitle(nextSectionTitle);
+    setStyle(nextStyle);
+    setInitialSnapshot(JSON.stringify({
+      title: component.title,
+      active: component.active,
+      itemCount: nextItemCount,
+      sortBy: nextSortBy,
+      selectionMode: nextSelectionMode,
+      selectedProductIds: nextSelectionMode === 'manual' ? nextSelectedProductIds : [],
+      style: nextStyle,
+      subTitle: nextSubTitle,
+      sectionTitle: nextSectionTitle,
+    }));
+    setHasChanges(false);
     setIsInitialized(true);
   }, [component, id, isInitialized, router]);
 
@@ -96,7 +118,7 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
   })), [selectedProducts]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
-    if (!productsData) {return [];} 
+    if (!productsData) {return [];}
     return productsData
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
@@ -109,18 +131,47 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
       }));
   }, [productsData, itemCount]);
 
+  useEffect(() => {
+    if (!component || !initialSnapshot) {return;}
+    const snapshot = JSON.stringify({
+      title,
+      active,
+      itemCount,
+      sortBy,
+      selectionMode,
+      selectedProductIds: selectionMode === 'manual' ? selectedProductIds : [],
+      style,
+      subTitle,
+      sectionTitle,
+    });
+    setHasChanges(snapshot !== initialSnapshot);
+  }, [
+    title,
+    active,
+    itemCount,
+    sortBy,
+    selectionMode,
+    selectedProductIds,
+    style,
+    subTitle,
+    sectionTitle,
+    component,
+    initialSnapshot,
+  ]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) {return;}
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const savedSelectedProductIds = selectionMode === 'manual' ? selectedProductIds : [];
       await updateMutation({
         active,
         config: {
           itemCount,
           sectionTitle,
-          selectedProductIds: selectionMode === 'manual' ? selectedProductIds : [],
+          selectedProductIds: savedSelectedProductIds,
           selectionMode,
           sortBy,
           style,
@@ -130,6 +181,18 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         title,
       });
       toast.success('Đã cập nhật Sản phẩm');
+      setInitialSnapshot(JSON.stringify({
+        title,
+        active,
+        itemCount,
+        sortBy,
+        selectionMode,
+        selectedProductIds: savedSelectedProductIds,
+        style,
+        subTitle,
+        sectionTitle,
+      }));
+      setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -238,8 +301,8 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
           </Button>
         </div>
       </form>

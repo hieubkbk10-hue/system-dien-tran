@@ -1,67 +1,203 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Check, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { BenefitsForm } from '../../_components/BenefitsForm';
 import { BenefitsPreview } from '../../_components/BenefitsPreview';
-import { DEFAULT_BENEFITS_CONFIG } from '../../_lib/constants';
-import type { BenefitsConfig, BenefitsStyle } from '../../_types';
+import { DEFAULT_BENEFITS_CONFIG, DEFAULT_BENEFITS_HARMONY } from '../../_lib/constants';
+import {
+  buildBenefitsWarningMessages,
+  getBenefitsValidationResult,
+  normalizeBenefitsHarmony,
+} from '../../_lib/colors';
+import type {
+  BenefitItem,
+  BenefitPersistItem,
+  BenefitsBrandMode,
+  BenefitsConfig,
+  BenefitsEditorState,
+  BenefitsStyle,
+} from '../../_types';
+
+const buildUiId = (item: BenefitPersistItem, idx: number) => {
+  const seed = `${item.icon}|${item.title}|${item.description}|${idx}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  return `benefit-${Math.abs(hash).toString(36)}-${idx}`;
+};
+
+const toUiItem = (item: BenefitPersistItem, idx: number): BenefitItem => ({
+  description: item.description || '',
+  icon: item.icon || 'Check',
+  id: buildUiId(item, idx),
+  title: item.title || '',
+});
+
+const toUiItems = (items: BenefitPersistItem[]): BenefitItem[] => {
+  const seen = new Map<string, number>();
+
+  return items.map((item, idx) => {
+    const base = buildUiId(item, idx);
+    const count = seen.get(base) ?? 0;
+    seen.set(base, count + 1);
+
+    return {
+      ...toUiItem(item, idx),
+      id: count === 0 ? base : `${base}-${count}`,
+    };
+  });
+};
+
+const toPersistItem = (item: BenefitItem): BenefitPersistItem => ({
+  description: item.description,
+  icon: item.icon,
+  title: item.title,
+});
+
+const normalizeStyle = (value: unknown): BenefitsStyle => (
+  value === 'cards' || value === 'list' || value === 'bento' || value === 'row' || value === 'carousel' || value === 'timeline'
+    ? value
+    : 'cards'
+);
+
+const toEditorState = (config: Partial<BenefitsConfig> | undefined): BenefitsEditorState => {
+  const source = config ?? {};
+
+  const items = Array.isArray(source.items) && source.items.length > 0
+    ? toUiItems(source.items)
+    : toUiItems(DEFAULT_BENEFITS_CONFIG.items);
+
+  return {
+    buttonLink: typeof source.buttonLink === 'string' ? source.buttonLink : (DEFAULT_BENEFITS_CONFIG.buttonLink ?? ''),
+    buttonText: typeof source.buttonText === 'string' ? source.buttonText : (DEFAULT_BENEFITS_CONFIG.buttonText ?? ''),
+    harmony: normalizeBenefitsHarmony(source.harmony ?? DEFAULT_BENEFITS_HARMONY),
+    heading: typeof source.heading === 'string' ? source.heading : (DEFAULT_BENEFITS_CONFIG.heading ?? ''),
+    items,
+    style: normalizeStyle(source.style),
+    subHeading: typeof source.subHeading === 'string' ? source.subHeading : (DEFAULT_BENEFITS_CONFIG.subHeading ?? ''),
+  };
+};
+
+const toPersistConfig = (state: BenefitsEditorState): BenefitsConfig => ({
+  buttonLink: state.buttonLink,
+  buttonText: state.buttonText,
+  harmony: state.harmony,
+  heading: state.heading,
+  items: state.items.map(toPersistItem),
+  style: state.style,
+  subHeading: state.subHeading,
+});
+
+const createSnapshot = ({
+  title,
+  active,
+  state,
+}: {
+  title: string;
+  active: boolean;
+  state: BenefitsEditorState;
+}) => JSON.stringify({
+  active,
+  config: {
+    buttonLink: state.buttonLink,
+    buttonText: state.buttonText,
+    harmony: state.harmony,
+    heading: state.heading,
+    items: state.items.map((item) => ({
+      description: item.description,
+      icon: item.icon,
+      title: item.title,
+    })),
+    style: state.style,
+    subHeading: state.subHeading,
+  },
+  title,
+});
 
 export default function BenefitsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
+  const { primary, secondary, mode } = useBrandColors();
+
+  const brandMode: BenefitsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
-  const [config, setConfig] = useState<BenefitsConfig>(DEFAULT_BENEFITS_CONFIG);
+  const [editorState, setEditorState] = useState<BenefitsEditorState>(() => toEditorState(undefined));
+  const [initialSnapshot, setInitialSnapshot] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (component) {
-      if (component.type !== 'Benefits') {
-        router.replace(`/admin/home-components/${id}/edit`);
-        return;
-      }
+    if (component === undefined || component === null) {return;}
 
-      setTitle(component.title);
-      setActive(component.active);
-
-      const rawConfig = component.config ?? {};
-      setConfig({
-        buttonLink: (rawConfig.buttonLink as string | undefined) ?? '',
-        buttonText: (rawConfig.buttonText as string | undefined) ?? '',
-        heading: (rawConfig.heading as string | undefined) ?? DEFAULT_BENEFITS_CONFIG.heading,
-        items: Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_BENEFITS_CONFIG.items,
-        style: (rawConfig.style as BenefitsStyle) || 'cards',
-        subHeading: (rawConfig.subHeading as string | undefined) ?? DEFAULT_BENEFITS_CONFIG.subHeading,
-      });
+    if (component.type !== 'Benefits') {
+      router.replace(`/admin/home-components/${id}/edit`);
+      return;
     }
+
+    setTitle(component.title);
+    setActive(component.active);
+
+    const state = toEditorState(component.config as Partial<BenefitsConfig> | undefined);
+    setEditorState(state);
+
+    setInitialSnapshot(createSnapshot({
+      active: component.active,
+      state,
+      title: component.title,
+    }));
   }, [component, id, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) {return;}
+  const currentSnapshot = useMemo(
+    () => createSnapshot({ title, active, state: editorState }),
+    [title, active, editorState],
+  );
+
+  const hasChanges = initialSnapshot !== '' && currentSnapshot !== initialSnapshot;
+
+  const warningMessages = useMemo(() => {
+    const validation = getBenefitsValidationResult({
+      harmony: editorState.harmony,
+      mode: brandMode,
+      primary,
+      secondary,
+      style: editorState.style,
+    });
+
+    return buildBenefitsWarningMessages({ mode: brandMode, validation });
+  }, [primary, secondary, brandMode, editorState.harmony, editorState.style]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSubmitting || !hasChanges) {return;}
 
     setIsSubmitting(true);
     try {
+      const payload: Record<string, unknown> = {
+        ...toPersistConfig(editorState),
+      };
+
       await updateMutation({
         active,
-        config,
+        config: payload,
         id: id as Id<'homeComponents'>,
         title,
       });
-      toast.success('Đã cập nhật Benefits');
+
+      toast.success('Đã cập nhật Lợi ích');
+      setInitialSnapshot(currentSnapshot);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
       console.error(error);
@@ -82,29 +218,24 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
 
-  const items = Array.isArray(config.items) ? config.items : [];
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa Benefits</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa Lợi ích</h1>
         <Link href="/admin/home-components" className="text-sm text-blue-600 hover:underline">Quay lại danh sách</Link>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Check size={20} />
-              Benefits
-            </CardTitle>
+            <CardTitle className="text-base">Thông tin chung</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
               <Input
                 value={title}
-                onChange={(e) =>{  setTitle(e.target.value); }}
+                onChange={(event) => { setTitle(event.target.value); }}
                 required
                 placeholder="Nhập tiêu đề component..."
               />
@@ -114,43 +245,74 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
               <Label>Trạng thái:</Label>
               <div
                 className={cn(
-                  "cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors",
-                  active ? "bg-green-500" : "bg-slate-300 dark:bg-slate-600"
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
+                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600',
                 )}
-                onClick={() =>{  setActive(!active); }}
+                onClick={() => { setActive(!active); }}
               >
-                <div className={cn(
-                  "w-5 h-5 bg-white rounded-full transition-transform shadow",
-                  active ? "translate-x-2.5" : "-translate-x-2.5"
-                )}></div>
+                <div
+                  className={cn(
+                    'w-5 h-5 bg-white rounded-full transition-transform shadow',
+                    active ? 'translate-x-2.5' : '-translate-x-2.5',
+                  )}
+                />
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as BenefitsConfig); }} title="Cấu hình Benefits" />
+        <BenefitsForm
+          state={editorState}
+          onChange={(updater) => { setEditorState((prev) => updater(prev)); }}
+          mode={brandMode}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div></div>
+          <div />
           <div className="lg:sticky lg:top-6 lg:self-start">
             <BenefitsPreview
-              items={items as any}
+              items={editorState.items}
               brandColor={primary}
               secondary={secondary}
-              selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as BenefitsStyle }); }}
-              config={config as any}
+              mode={brandMode}
+              selectedStyle={editorState.style}
+              onStyleChange={(style) => {
+                setEditorState((prev) => ({
+                  ...prev,
+                  style,
+                }));
+              }}
+              config={{
+                buttonLink: editorState.buttonLink,
+                buttonText: editorState.buttonText,
+                harmony: editorState.harmony,
+                heading: editorState.heading,
+                subHeading: editorState.subHeading,
+              }}
             />
           </div>
         </div>
 
+        {brandMode === 'dual' && warningMessages.length > 0 ? (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="space-y-1">
+                {warningMessages.map((message, idx) => (
+                  <p key={`benefits-edit-warning-${idx}`}>{message}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>
+          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+            {isSubmitting ? 'Đang lưu...' : hasChanges ? 'Lưu thay đổi' : 'Đã lưu'}
           </Button>
         </div>
       </form>
