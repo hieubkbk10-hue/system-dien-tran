@@ -2155,12 +2155,78 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ id: string; url: string; link?: string; name?: string } | null>(null);
   const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = React.useState(false);
+  const [marqueeRepeatCount, setMarqueeRepeatCount] = React.useState(2);
+  const [marqueeBaseTrackWidth, setMarqueeBaseTrackWidth] = React.useState(0);
+  const marqueeScrollRef = React.useRef<HTMLDivElement>(null);
+  const marqueeBaseTrackRef = React.useRef<HTMLDivElement>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
   const layoutAccent = colors.sectionAccentBarByStyle[style as keyof typeof colors.sectionAccentBarByStyle] ?? colors.sectionAccentBar;
   const normalizedItems = items.map((item, idx) => ({ ...item, id: item.url ? `${item.url}-${idx}` : `gallery-${idx}` }));
   const marqueeBaseItems = React.useMemo(() => getGalleryMarqueeBaseItems(normalizedItems), [normalizedItems]);
   const lightboxItems = style === 'marquee' ? marqueeBaseItems : normalizedItems;
+
+  React.useEffect(() => {
+    if (style !== 'marquee') {return;}
+    const scroller = marqueeScrollRef.current;
+    const baseTrack = marqueeBaseTrackRef.current;
+    if (!scroller || !baseTrack) {return;}
+
+    const updateMetrics = () => {
+      const nextBaseWidth = baseTrack.scrollWidth;
+      const viewportWidth = scroller.clientWidth;
+      if (nextBaseWidth <= 0 || viewportWidth <= 0) {return;}
+      const nextRepeatCount = Math.max(2, Math.ceil(viewportWidth / nextBaseWidth) + 1);
+      setMarqueeRepeatCount(nextRepeatCount);
+      setMarqueeBaseTrackWidth(nextBaseWidth);
+    };
+
+    updateMetrics();
+    const cleanupHandlers: Array<() => void> = [];
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(updateMetrics);
+      observer.observe(scroller);
+      observer.observe(baseTrack);
+      cleanupHandlers.push(() =>{  observer.disconnect(); });
+    }
+
+    window.addEventListener('resize', updateMetrics);
+    cleanupHandlers.push(() =>{  window.removeEventListener('resize', updateMetrics); });
+
+    return () => {
+      cleanupHandlers.forEach((cleanup) =>{  cleanup(); });
+    };
+  }, [style, marqueeBaseItems]);
+
+  React.useEffect(() => {
+    if (style !== 'marquee') {return;}
+    const scroller = marqueeScrollRef.current;
+    if (!scroller) {return;}
+
+    let animationId = 0;
+    let position = scroller.scrollLeft;
+
+    const step = () => {
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      const resetPoint = Math.min(marqueeBaseTrackWidth, maxScrollLeft);
+
+      if (!isMarqueeInteractionPaused && !prefersReducedMotion && resetPoint > 1 && maxScrollLeft > 1) {
+        position += Math.max(0.5, marqueeBaseItems.length * 0.02);
+        if (position >= resetPoint) {
+          position -= resetPoint;
+        }
+        scroller.scrollLeft = position;
+      } else {
+        position = scroller.scrollLeft;
+      }
+
+      animationId = requestAnimationFrame(step);
+    };
+
+    animationId = requestAnimationFrame(step);
+    return () =>{  cancelAnimationFrame(animationId); };
+  }, [style, isMarqueeInteractionPaused, prefersReducedMotion, marqueeBaseTrackWidth, marqueeBaseItems.length]);
 
   React.useEffect(() => {
     const updateDevice = () => {
@@ -2240,6 +2306,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
             <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={48} style={{ color: colors.placeholderIcon }} /></div>
           )}
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className="grid gap-1 grid-cols-3 md:grid-cols-1">
@@ -2256,6 +2323,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2286,6 +2354,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
             )}
             <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
@@ -2324,6 +2393,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
@@ -2356,6 +2426,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -2382,6 +2453,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2404,17 +2476,8 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
     if (marqueeBaseItems.length === 0) {return renderGalleryEmptyState();}
 
-    const marqueeItems = marqueeBaseItems.length > 1 ? [...marqueeBaseItems, ...marqueeBaseItems] : marqueeBaseItems;
-    const duration = Math.max(24, marqueeBaseItems.length * 4);
-    const shouldAnimate = marqueeBaseItems.length > 1;
-    const isPaused = isMarqueeInteractionPaused || prefersReducedMotion;
-
     return (
       <div className="py-8">
-        <style>{`
-          @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
-        `}</style>
         <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-20 z-10"
@@ -2425,44 +2488,73 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
             style={{ background: `linear-gradient(to left, ${colors.neutralBackground} 0%, transparent 100%)` }}
           />
           <div
-            className="gallery-marquee-track flex items-center gap-6 md:gap-8"
-            style={{
-              '--duration': `${duration}s`,
-              width: 'max-content',
-              animation: shouldAnimate && !isPaused ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none'
-            } as React.CSSProperties}
+            ref={marqueeScrollRef}
+            className="flex overflow-x-auto select-none w-full cursor-grab active:cursor-grabbing touch-pan-x"
+            style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
             onMouseEnter={() => { setIsMarqueeInteractionPaused(true); }}
-            onMouseLeave={() => { setIsMarqueeInteractionPaused(false); }}
+            onMouseLeave={(e) => {
+              setIsMarqueeInteractionPaused(false);
+              e.currentTarget.dataset.isDown = 'false';
+              e.currentTarget.style.scrollBehavior = 'smooth';
+            }}
             onFocusCapture={() => { setIsMarqueeInteractionPaused(true); }}
             onBlurCapture={() => { setIsMarqueeInteractionPaused(false); }}
             onTouchStart={() => { setIsMarqueeInteractionPaused(true); }}
             onTouchEnd={() => { setIsMarqueeInteractionPaused(false); }}
             onTouchCancel={() => { setIsMarqueeInteractionPaused(false); }}
+            onMouseDown={(e) => {
+              const el = e.currentTarget;
+              el.dataset.isDown = 'true';
+              el.dataset.startX = String(e.pageX - el.offsetLeft);
+              el.dataset.scrollLeft = String(el.scrollLeft);
+              el.style.scrollBehavior = 'auto';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.dataset.isDown = 'false';
+              e.currentTarget.style.scrollBehavior = 'smooth';
+            }}
+            onMouseMove={(e) => {
+              const el = e.currentTarget;
+              if (el.dataset.isDown !== 'true') {return;}
+              e.preventDefault();
+              const x = e.pageX - el.offsetLeft;
+              const walk = (x - Number(el.dataset.startX ?? '0')) * 1.2;
+              el.scrollLeft = Number(el.dataset.scrollLeft ?? '0') - walk;
+            }}
           >
-            {marqueeItems.map((photo, idx) => (
-              <button
-                type="button"
-                key={`gallery-marquee-${photo.id}-${idx}`}
-                className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                style={{
-                  backgroundColor: colors.neutralSurface,
-                  borderColor: colors.neutralBorder,
-                  boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
-                  '--tw-ring-color': layoutAccent,
-                } as React.CSSProperties}
-                onClick={() => { setSelectedPhoto(photo); }}
-                aria-label={`Mở ảnh ${((idx % marqueeBaseItems.length) + 1)}`}
+            {Array.from({ length: marqueeRepeatCount }).map((_, loopIdx) => (
+              <div
+                key={`gallery-marquee-track-${loopIdx}`}
+                ref={loopIdx === 0 ? marqueeBaseTrackRef : undefined}
+                className="flex shrink-0 items-center gap-6 md:gap-8 px-1 py-1"
               >
-                {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
-                    <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
-                  </div>
-                )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
-              </button>
+                {marqueeBaseItems.map((photo, idx) => (
+                  <button
+                    type="button"
+                    key={`gallery-marquee-${loopIdx}-${photo.id}-${idx}`}
+                    className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    style={{
+                      backgroundColor: colors.neutralSurface,
+                      borderColor: colors.neutralBorder,
+                      boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                      '--tw-ring-color': layoutAccent,
+                    } as React.CSSProperties}
+                    onClick={() => { setSelectedPhoto(photo); }}
+                    aria-label={`Mở ảnh ${idx + 1}`}
+                  >
+                    {photo.url ? (
+                      <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                        <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                    {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
+                    <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -2494,6 +2586,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -2524,6 +2617,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
@@ -2782,8 +2876,6 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
     })
     .filter(Boolean) as { id: string; name: string; slug: string; image?: string; description?: string; displayImage?: string; displayIcon?: string; productCount: number }[];
 
-  if (resolvedCategories.length === 0) {return null;}
-
   const getGridCols = () => {
     switch (columnsDesktop) {
       case 3: { return 'md:grid-cols-3';
@@ -2850,6 +2942,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
   }, [style, resolvedCategories.length, device, updateCircularPagination]);
 
   // Helper: Render category visual (image or icon)
+  if (resolvedCategories.length === 0) {return null;}
+
   const renderCategoryVisual = (cat: typeof resolvedCategories[0], iconSize: number = 48) => {
     const iconData = cat.displayIcon ? getCategoryIcon(cat.displayIcon) : null;
     if (cat.displayIcon && iconData) {

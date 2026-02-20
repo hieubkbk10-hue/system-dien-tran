@@ -149,6 +149,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   const { device, setDevice } = usePreviewDevice();
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
   const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = useState(false);
+  const [marqueeRepeatCount, setMarqueeRepeatCount] = useState(2);
+  const [marqueeBaseTrackWidth, setMarqueeBaseTrackWidth] = useState(0);
+  const marqueeScrollRef = React.useRef<HTMLDivElement>(null);
+  const marqueeBaseTrackRef = React.useRef<HTMLDivElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
   const ONE = 1;
@@ -160,6 +164,69 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   const layoutAccent = colors.sectionAccentBarByStyle[previewStyle] ?? colors.sectionAccentBar;
   const marqueeBaseItems = React.useMemo(() => getGalleryMarqueeBaseItems(items), [items]);
   const lightboxItems = previewStyle === 'marquee' ? marqueeBaseItems : items;
+
+  React.useEffect(() => {
+    if (previewStyle !== 'marquee') {return;}
+    const scroller = marqueeScrollRef.current;
+    const baseTrack = marqueeBaseTrackRef.current;
+    if (!scroller || !baseTrack) {return;}
+
+    const updateMetrics = () => {
+      const nextBaseWidth = baseTrack.scrollWidth;
+      const viewportWidth = scroller.clientWidth;
+      if (nextBaseWidth <= 0 || viewportWidth <= 0) {return;}
+      const nextRepeatCount = Math.max(2, Math.ceil(viewportWidth / nextBaseWidth) + 1);
+      setMarqueeRepeatCount(nextRepeatCount);
+      setMarqueeBaseTrackWidth(nextBaseWidth);
+    };
+
+    updateMetrics();
+    const cleanupHandlers: Array<() => void> = [];
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(updateMetrics);
+      observer.observe(scroller);
+      observer.observe(baseTrack);
+      cleanupHandlers.push(() =>{  observer.disconnect(); });
+    }
+
+    window.addEventListener('resize', updateMetrics);
+    cleanupHandlers.push(() =>{  window.removeEventListener('resize', updateMetrics); });
+
+    return () => {
+      cleanupHandlers.forEach((cleanup) =>{  cleanup(); });
+    };
+  }, [previewStyle, marqueeBaseItems]);
+
+  React.useEffect(() => {
+    if (previewStyle !== 'marquee') {return;}
+    const scroller = marqueeScrollRef.current;
+    if (!scroller) {return;}
+
+    let animationId = 0;
+    let position = scroller.scrollLeft;
+
+    const step = () => {
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      const resetPoint = Math.min(marqueeBaseTrackWidth, maxScrollLeft);
+
+      if (!isMarqueeInteractionPaused && !prefersReducedMotion && resetPoint > 1 && maxScrollLeft > 1) {
+        position += Math.max(0.5, marqueeBaseItems.length * 0.02);
+        if (position >= resetPoint) {
+          position -= resetPoint;
+        }
+        scroller.scrollLeft = position;
+      } else {
+        position = scroller.scrollLeft;
+      }
+
+      animationId = requestAnimationFrame(step);
+    };
+
+    animationId = requestAnimationFrame(step);
+    return () =>{  cancelAnimationFrame(animationId); };
+  }, [previewStyle, isMarqueeInteractionPaused, prefersReducedMotion, marqueeBaseTrackWidth, marqueeBaseItems.length]);
+
   const setPreviewStyle = (styleKey: string): void => {
     if (onStyleChange) {
       onStyleChange(styleKey as GalleryStyle);
@@ -229,6 +296,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             </div>
           )}
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className={cn('grid gap-1', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')}>
@@ -247,6 +315,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -283,6 +352,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               </div>
             )}
             <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
@@ -325,6 +395,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
@@ -376,6 +447,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -404,6 +476,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 </div>
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -426,22 +499,12 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   // Style 5: Gallery Marquee - Auto scroll horizontal
   const renderGalleryMarqueeStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
-
     if (marqueeBaseItems.length === 0) {return renderGalleryEmptyState();}
 
-    const marqueeItems = marqueeBaseItems.length > 1
-      ? [...marqueeBaseItems, ...marqueeBaseItems]
-      : marqueeBaseItems;
-    const duration = Math.max(24, marqueeBaseItems.length * 4);
-    const shouldAnimate = marqueeBaseItems.length > 1;
-    const isPaused = isMarqueeInteractionPaused || prefersReducedMotion;
+    const visualGapClass = 'gap-6 md:gap-8';
 
     return (
       <div className="py-8">
-        <style>{`
-          @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
-        `}</style>
         <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-20 z-10"
@@ -452,50 +515,78 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             style={{ background: `linear-gradient(to left, ${colors.neutralBackground} 0%, transparent 100%)` }}
           />
           <div
-            className="gallery-marquee-track flex items-center gap-6 md:gap-8"
-            style={{
-              '--duration': `${duration}s`,
-              width: 'max-content',
-              animation: shouldAnimate && !isPaused ? 'gallery-marquee var(--duration, 28s) linear infinite' : 'none',
-            } as React.CSSProperties}
+            ref={marqueeScrollRef}
+            className="flex overflow-x-auto select-none w-full cursor-grab active:cursor-grabbing touch-pan-x"
+            style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
             onMouseEnter={() =>{  setIsMarqueeInteractionPaused(true); }}
-            onMouseLeave={() =>{  setIsMarqueeInteractionPaused(false); }}
+            onMouseLeave={(e) => {
+              setIsMarqueeInteractionPaused(false);
+              e.currentTarget.dataset.isDown = 'false';
+              e.currentTarget.style.scrollBehavior = 'smooth';
+            }}
             onFocusCapture={() =>{  setIsMarqueeInteractionPaused(true); }}
             onBlurCapture={() =>{  setIsMarqueeInteractionPaused(false); }}
             onTouchStart={() =>{  setIsMarqueeInteractionPaused(true); }}
             onTouchEnd={() =>{  setIsMarqueeInteractionPaused(false); }}
             onTouchCancel={() =>{  setIsMarqueeInteractionPaused(false); }}
+            onMouseDown={(e) => {
+              const el = e.currentTarget;
+              el.dataset.isDown = 'true';
+              el.dataset.startX = String(e.pageX - el.offsetLeft);
+              el.dataset.scrollLeft = String(el.scrollLeft);
+              el.style.scrollBehavior = 'auto';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.dataset.isDown = 'false';
+              e.currentTarget.style.scrollBehavior = 'smooth';
+            }}
+            onMouseMove={(e) => {
+              const el = e.currentTarget;
+              if (el.dataset.isDown !== 'true') {return;}
+              e.preventDefault();
+              const x = e.pageX - el.offsetLeft;
+              const walk = (x - Number(el.dataset.startX ?? '0')) * 1.2;
+              el.scrollLeft = Number(el.dataset.scrollLeft ?? '0') - walk;
+            }}
           >
-            {marqueeItems.map((photo, idx) => {
-              const visualIndex = idx % marqueeBaseItems.length;
-              const displayIndex = visualIndex + ONE;
-              const imageLabel = photo.name?.trim() || `Ảnh ${displayIndex} trong thư viện ảnh`;
-              return (
-                <button
-                  type="button"
-                  key={`gallery-marquee-${photo.id}-${idx}`}
-                  className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                  style={{
-                    backgroundColor: colors.neutralSurface,
-                    borderColor: colors.neutralBorder,
-                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
-                    '--tw-ring-color': layoutAccent,
-                  } as React.CSSProperties}
-                  onClick={() =>{  setSelectedPhoto(photo); }}
-                  aria-label={`Mở ${imageLabel}`}
-                >
-                  {photo.url ? (
-                    <PreviewImage src={photo.url} alt={imageLabel} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
-                      <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
-                    </div>
-                  )}
-                  <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
-                  <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
-                </button>
-              );
-            })}
+            {Array.from({ length: marqueeRepeatCount }).map((_, loopIdx) => (
+              <div
+                key={`gallery-marquee-track-${loopIdx}`}
+                ref={loopIdx === 0 ? marqueeBaseTrackRef : undefined}
+                className={cn('flex shrink-0 items-center px-1 py-1', visualGapClass)}
+              >
+                {marqueeBaseItems.map((photo, idx) => {
+                  const displayIndex = idx + ONE;
+                  const imageLabel = photo.name?.trim() || `Ảnh ${displayIndex} trong thư viện ảnh`;
+                  return (
+                    <button
+                      type="button"
+                      key={`gallery-marquee-${loopIdx}-${photo.id}-${idx}`}
+                      className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                      style={{
+                        backgroundColor: colors.neutralSurface,
+                        borderColor: colors.neutralBorder,
+                        boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                        '--tw-ring-color': layoutAccent,
+                      } as React.CSSProperties}
+                      onClick={() =>{  setSelectedPhoto(photo); }}
+                      aria-label={`Mở ${imageLabel}`}
+                    >
+                      {photo.url ? (
+                        <PreviewImage src={photo.url} alt={imageLabel} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                          <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
+                        </div>
+                      )}
+                      <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                      {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
+                      <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -530,6 +621,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
               </div>
             ))}
           </div>
@@ -564,6 +656,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                {mode === 'dual' ? <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full m-2" style={{ backgroundColor: colors.secondary }} /> : null}
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );

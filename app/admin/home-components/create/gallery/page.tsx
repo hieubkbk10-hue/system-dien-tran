@@ -69,6 +69,16 @@ export default function GalleryCreatePage() {
         </CardContent>
       </Card>
 
+      <GalleryPreview
+        items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: '', url: item.url }))}
+        brandColor={primary}
+        secondary={secondary}
+        mode={mode}
+        harmony={harmony}
+        selectedStyle={galleryStyle}
+        onStyleChange={setGalleryStyle}
+      />
+
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center flex-shrink-0">
@@ -111,7 +121,7 @@ export default function GalleryCreatePage() {
                 <div className="space-y-1">
                   <p><strong className="text-blue-900 dark:text-blue-100">Marquee</strong></p>
                   <p>• Tất cả ảnh: <strong>800×600px</strong> (tỷ lệ 4:3)</p>
-                  <p className="text-blue-500 dark:text-blue-400 italic">Layout: Auto scroll horizontal. Hover để dừng.</p>
+                  <p className="text-blue-500 dark:text-blue-400 italic">Layout: Auto scroll horizontal. Hover/focus/touch để tạm dừng. Có thể kéo vuốt ngang bằng chuột.</p>
                 </div>
               )}
               {galleryStyle === 'masonry' && (
@@ -127,16 +137,6 @@ export default function GalleryCreatePage() {
           </div>
         </div>
       </div>
-
-      <GalleryPreview
-        items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: '', url: item.url }))}
-        brandColor={primary}
-        secondary={secondary}
-        mode={mode}
-        harmony={harmony}
-        selectedStyle={galleryStyle}
-        onStyleChange={setGalleryStyle}
-      />
     </ComponentFormWrapper>
   );
 }
