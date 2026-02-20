@@ -2634,7 +2634,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         style === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
       )}>
         {title && (
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4 text-center" style={{ color: colors.primary }}>
             {title}
           </h2>
         )}

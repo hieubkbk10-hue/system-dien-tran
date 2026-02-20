@@ -675,7 +675,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
         previewStyle === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
       )}>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
+        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4 text-center" style={{ color: colors.primary }}>{title}</h2>}
         <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}
