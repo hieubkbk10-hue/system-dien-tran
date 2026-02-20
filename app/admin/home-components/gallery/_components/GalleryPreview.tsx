@@ -317,7 +317,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
-        <div className={cn('grid gap-1', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')}>
+        <div className={cn('grid gap-1 p-1 rounded border', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')} style={{ borderColor: colors.secondary }}>
           {sub.map((photo, idx) => (
             <div
               key={photo.id}
@@ -525,9 +525,9 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          'grid gap-2 rounded-lg border p-2',
+          'grid gap-2 rounded-lg border-2 p-2',
           device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
-        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
+        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
           {visibleItems.map((photo) => (
             <div
               key={photo.id}
@@ -711,9 +711,9 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
       <div className={cn(
-        'gap-3 rounded-lg border p-2',
+        'gap-3 rounded-lg border-2 p-2',
         device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
-      )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
+      )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
           {visibleItems.map((photo, idx) => {
             // Varying heights for masonry effect
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
