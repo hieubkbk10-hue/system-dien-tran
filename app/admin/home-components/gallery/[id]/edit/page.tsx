@@ -1,19 +1,19 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { AlertTriangle, Eye, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
 import { GalleryForm } from '../../_components/GalleryForm';
 import { GalleryPreview } from '../../_components/GalleryPreview';
 import { DEFAULT_GALLERY_ITEMS } from '../../_lib/constants';
-import { buildGalleryWarningMessages, getGalleryPersistSafeColors, getGalleryValidationResult, normalizeGalleryHarmony } from '../../_lib/colors';
+import { getGalleryPersistSafeColors, normalizeGalleryHarmony } from '../../_lib/colors';
 import type { GalleryItem, GalleryStyle } from '../../_types';
 
 export default function GalleryEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,15 +33,6 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
 
   const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
 
-  const validation = useMemo(
-    () => getGalleryValidationResult({ primary, secondary, mode, harmony }),
-    [primary, secondary, mode, harmony],
-  );
-
-  const warningMessages = useMemo(
-    () => buildGalleryWarningMessages({ mode, validation }),
-    [mode, validation],
-  );
 
   useEffect(() => {
     if (!component) {return;}
@@ -223,19 +214,6 @@ export default function GalleryEditPage({ params }: { params: Promise<{ id: stri
             />
           </div>
         </div>
-
-        {warningMessages.length > 0 && (
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-            <div className="space-y-2">
-              {warningMessages.map((message, idx) => (
-                <div key={`${idx}-${message}`} className="flex items-start gap-2">
-                  {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
-                  <p>{message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/home-components'); }} disabled={isSubmitting}>

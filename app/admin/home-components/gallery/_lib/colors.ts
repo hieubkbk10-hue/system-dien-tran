@@ -333,10 +333,10 @@ export const getGalleryColorTokensWithMeta = ({
   const sectionAccentBarByStyle: Record<GalleryStyle, string> = {
     spotlight: primaryResolved,
     explore: secondaryResolved,
-    stories: primaryResolved,
-    grid: secondaryResolved,
-    marquee: primaryResolved,
-    masonry: secondaryResolved,
+    stories: secondaryResolved,
+    grid: primaryResolved,
+    marquee: secondaryResolved,
+    masonry: primaryResolved,
   };
   const lightboxControlBg = '#111827';
   const lightboxControlBorder = secondaryResolved;

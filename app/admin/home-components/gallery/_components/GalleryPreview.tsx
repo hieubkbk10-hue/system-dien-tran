@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Pause, Play, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
@@ -148,7 +148,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
-  const [isMarqueeManuallyPaused, setIsMarqueeManuallyPaused] = useState(false);
   const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
@@ -203,47 +202,52 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     const sub = items.slice(1, 4);
 
     return (
-      <div className={cn(
-        "grid gap-1 bg-slate-200 dark:bg-slate-700 border border-transparent",
-        device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'
-      )}>
-        <div 
+      <div
+        className={cn(
+          'grid gap-1 border',
+          device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3',
+        )}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
+        <div
           className={cn(
-            "bg-slate-100 dark:bg-slate-800 relative group cursor-pointer overflow-hidden",
-            device === 'mobile' ? 'aspect-[4/3]' : 'md:col-span-2 aspect-[4/3] md:aspect-auto md:row-span-1'
+            'relative group cursor-pointer overflow-hidden border',
+            device === 'mobile' ? 'aspect-[4/3]' : 'md:col-span-2 aspect-[4/3] md:aspect-auto md:row-span-1',
           )}
-          style={device !== 'mobile' ? { minHeight: '300px' } : {}}
+          style={{
+            ...(device !== 'mobile' ? { minHeight: '300px' } : {}),
+            backgroundColor: colors.neutralSurface,
+            borderColor: colors.neutralBorder,
+          }}
           onClick={() =>{  setSelectedPhoto(featured); }}
         >
           {featured.url ? (
-            <PreviewImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <PreviewImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+              <ImageIcon size={48} style={{ color: colors.placeholderIcon }} />
+            </div>
           )}
-          <div
-            className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ borderColor: layoutAccent }}
-          />
+          <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
-        <div className={cn(
-          "grid gap-1",
-          device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1'
-        )}>
+        <div className={cn('grid gap-1', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')}>
           {sub.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="aspect-square bg-slate-100 dark:bg-slate-800 relative group cursor-pointer overflow-hidden"
+            <div
+              key={photo.id}
+              className="aspect-square relative group cursor-pointer overflow-hidden border"
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                  <ImageIcon size={24} style={{ color: colors.placeholderIcon }} />
+                </div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
         </div>
@@ -256,29 +260,30 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <div className={cn(
-        "grid gap-0.5 bg-slate-200 dark:bg-slate-700",
-        device === 'mobile' ? 'grid-cols-3' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-5')
-      )}>
+      <div
+        className={cn('grid gap-0.5 border', device === 'mobile' ? 'grid-cols-3' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-5'))}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         {items.map((photo) => (
-          <div 
-            key={photo.id} 
-            className="aspect-square relative group cursor-pointer overflow-hidden bg-slate-100 dark:bg-slate-800"
+          <div
+            key={photo.id}
+            className="aspect-square relative group cursor-pointer overflow-hidden border"
+            style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
             onClick={() =>{  setSelectedPhoto(photo); }}
           >
             {photo.url ? (
-              <PreviewImage 
-                src={photo.url} 
-                alt="" 
+              <PreviewImage
+                src={photo.url}
+                alt=""
                 className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-90"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+              <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                <ImageIcon size={24} style={{ color: colors.placeholderIcon }} />
+              </div>
             )}
-            <div
-              className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ borderColor: layoutAccent }}
-            />
+            <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
       </div>
@@ -290,35 +295,37 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <div className={cn(
-        "grid gap-4",
-        device === 'mobile' ? 'grid-cols-1 auto-rows-[200px]' : 'grid-cols-1 md:grid-cols-3 auto-rows-[250px] md:auto-rows-[300px]'
-      )}>
+      <div
+        className={cn(
+          'grid gap-4 rounded-lg border p-2',
+          device === 'mobile' ? 'grid-cols-1 auto-rows-[200px]' : 'grid-cols-1 md:grid-cols-3 auto-rows-[250px] md:auto-rows-[300px]',
+        )}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         {items.map((photo, i) => {
           const isLarge = i % 4 === 0 || i % 4 === 3;
-          const colSpan = device !== 'mobile' && isLarge ? "md:col-span-2" : "md:col-span-1";
-          
+          const colSpan = device !== 'mobile' && isLarge ? 'md:col-span-2' : 'md:col-span-1';
+
           return (
-            <div 
-              key={photo.id} 
-              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm`}
+            <div
+              key={photo.id}
+              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm border`}
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <PreviewImage 
-                  src={photo.url} 
-                  alt="" 
-                  className="w-full h-full object-cover transition-transform duration-300"
+                <PreviewImage
+                  src={photo.url}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                  <ImageIcon size={32} className="text-slate-300" />
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                  <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
         })}
@@ -353,18 +360,22 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length <= 2) {
       return (
         <div className="py-8 px-4">
-          <div className={cn("mx-auto flex items-center justify-center gap-4", items.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
+          <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
             {items.map((photo) => (
-              <div 
-                key={photo.id} 
-                className="flex-1 aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer group"
+              <div
+                key={photo.id}
+                className="flex-1 aspect-square rounded-xl overflow-hidden cursor-pointer group border relative"
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                    <ImageIcon size={40} style={{ color: colors.placeholderIcon }} />
+                  </div>
                 )}
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -375,31 +386,32 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          "grid gap-2",
-          device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4')
-        )}>
+          'grid gap-2 rounded-lg border p-2',
+          device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
+        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           {visibleItems.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer group relative"
+            <div
+              key={photo.id}
+              className="aspect-square rounded-lg overflow-hidden cursor-pointer group relative border"
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                  <ImageIcon size={28} style={{ color: colors.placeholderIcon }} />
+                </div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
           {/* +N remaining */}
           {remainingCount > 0 && (
-            <div 
-              className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer"
-              style={{ backgroundColor: colors.badgeBg }}
+            <div
+              className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer border"
+              style={{ backgroundColor: colors.badgeBg, borderColor: colors.neutralBorder }}
             >
               <Plus size={28} style={{ color: colors.iconColor }} className="mb-1" />
               <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
@@ -422,7 +434,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
       : marqueeBaseItems;
     const duration = Math.max(24, marqueeBaseItems.length * 4);
     const shouldAnimate = marqueeBaseItems.length > 1;
-    const isPaused = isMarqueeManuallyPaused || isMarqueeInteractionPaused || prefersReducedMotion;
+    const isPaused = isMarqueeInteractionPaused || prefersReducedMotion;
 
     return (
       <div className="py-8">
@@ -430,33 +442,17 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
         `}</style>
-        <div className="gallery-marquee-container w-full relative overflow-hidden">
-          <div className="mb-3 flex justify-end px-4">
-            <button
-              type="button"
-              aria-pressed={isMarqueeManuallyPaused}
-              onClick={() =>{  setIsMarqueeManuallyPaused(prev => !prev); }}
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs md:text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{
-                borderColor: colors.neutralBorder,
-                color: colors.badgeText,
-                backgroundColor: colors.badgeBg,
-                '--tw-ring-color': layoutAccent,
-              } as React.CSSProperties}
-              aria-label={isMarqueeManuallyPaused ? 'Phát lại marquee' : 'Tạm dừng marquee'}
-            >
-              {isMarqueeManuallyPaused ? <Play size={14} /> : <Pause size={14} />}
-              {isMarqueeManuallyPaused ? 'Play' : 'Pause'}
-            </button>
-          </div>
+        <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-24 bg-gradient-to-r from-white via-white/70 to-transparent dark:from-slate-900 dark:via-slate-900/70 z-10"
+            className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-20 z-10"
+            style={{ background: `linear-gradient(to right, ${colors.neutralBackground} 0%, transparent 100%)` }}
           />
           <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-24 bg-gradient-to-l from-white via-white/70 to-transparent dark:from-slate-900 dark:via-slate-900/70 z-10"
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-20 z-10"
+            style={{ background: `linear-gradient(to left, ${colors.neutralBackground} 0%, transparent 100%)` }}
           />
           <div
-            className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
+            className="gallery-marquee-track flex items-center gap-6 md:gap-8"
             style={{
               '--duration': `${duration}s`,
               width: 'max-content',
@@ -478,8 +474,11 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 <button
                   type="button"
                   key={`gallery-marquee-${photo.id}-${idx}`}
-                  className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden group relative bg-white/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700/60 shadow-[0_10px_30px_rgba(15,23,42,0.08),0_2px_6px_rgba(15,23,42,0.06)] text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                   style={{
+                    backgroundColor: colors.neutralSurface,
+                    borderColor: colors.neutralBorder,
+                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
                     '--tw-ring-color': layoutAccent,
                   } as React.CSSProperties}
                   onClick={() =>{  setSelectedPhoto(photo); }}
@@ -488,15 +487,12 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   {photo.url ? (
                     <PreviewImage src={photo.url} alt={imageLabel} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                   ) : (
-                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                      <ImageIcon size={32} className="text-slate-300" />
+                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                      <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ borderColor: layoutAccent }}
-                  />
+                  <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                  <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
                 </button>
               );
             })}
@@ -518,18 +514,22 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length <= 2) {
       return (
         <div className="py-8 px-4">
-          <div className={cn("mx-auto flex items-center justify-center gap-4", items.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
+          <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
             {items.map((photo, idx) => (
-              <div 
-                key={photo.id} 
-                className={cn("flex-1 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer group", idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+              <div
+                key={photo.id}
+                className={cn('flex-1 rounded-xl overflow-hidden cursor-pointer group border relative', idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                    <ImageIcon size={40} style={{ color: colors.placeholderIcon }} />
+                  </div>
                 )}
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -541,29 +541,30 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          "gap-3",
-          device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4')
-        )}>
+          'gap-3 rounded-lg border p-2',
+          device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
+        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           {visibleItems.map((photo, idx) => {
             // Varying heights for masonry effect
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
             const heightClass = heights[idx % heights.length];
-            
+
             return (
-              <div 
-                key={photo.id} 
-                className={cn("mb-3 break-inside-avoid rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer group relative", heightClass)}
+              <div
+                key={photo.id}
+                className={cn('mb-3 break-inside-avoid rounded-xl overflow-hidden cursor-pointer group relative border', heightClass)}
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                    <ImageIcon size={28} style={{ color: colors.placeholderIcon }} />
+                  </div>
                 )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
           })}
@@ -571,7 +572,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         {/* +N remaining */}
         {remainingCount > 0 && (
           <div className="flex items-center justify-center mt-4">
-            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
+            <span className="text-sm font-medium px-4 py-2 rounded-full border" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText, borderColor: colors.neutralBorder }}>
               +{remainingCount} ảnh khác
             </span>
           </div>
@@ -582,8 +583,11 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
 
   // Render Gallery styles with container and Lightbox (with keyboard navigation)
   const renderGalleryContent = () => (
-    <section className="w-full bg-white dark:bg-slate-900">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+    <section className="w-full" style={{ backgroundColor: colors.neutralSurface }}>
+      <div className={cn(
+        'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
+        previewStyle === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
+      )}>
         <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}

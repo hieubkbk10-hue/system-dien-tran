@@ -73,7 +73,7 @@ export default function VideoCreatePage() {
 
   const onSubmit = (e: React.FormEvent) => {
     const normalized = normalizeVideoConfig({ ...config, style: selectedStyle });
-    void handleSubmit(e, normalized as unknown as Record<string, unknown>);
+    void handleSubmit(e, normalized);
   };
 
   return (

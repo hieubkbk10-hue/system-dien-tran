@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Eye, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { GalleryPreview } from '../../gallery/_components/GalleryPreview';
 import type { GalleryStyle } from '../../gallery/_types';
-import { buildGalleryWarningMessages, getGalleryValidationResult, normalizeGalleryHarmony } from '../../gallery/_lib/colors';
+import { normalizeGalleryHarmony } from '../../gallery/_lib/colors';
 import type { ImageItem } from '../../../components/MultiImageUploader';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 
@@ -28,15 +28,6 @@ export default function GalleryCreatePage() {
 
   const harmony = normalizeGalleryHarmony(undefined);
 
-  const validation = useMemo(
-    () => getGalleryValidationResult({ primary, secondary, mode, harmony }),
-    [primary, secondary, mode, harmony],
-  );
-
-  const warningMessages = useMemo(
-    () => buildGalleryWarningMessages({ mode, validation }),
-    [mode, validation],
-  );
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, {
@@ -136,19 +127,6 @@ export default function GalleryCreatePage() {
           </div>
         </div>
       </div>
-
-      {warningMessages.length > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-          <div className="space-y-2">
-            {warningMessages.map((message, idx) => (
-              <div key={`${idx}-${message}`} className="flex items-start gap-2">
-                {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
-                <p>{message}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <GalleryPreview
         items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: '', url: item.url }))}

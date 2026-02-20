@@ -84,8 +84,8 @@ import { SpeedDialSection } from './SpeedDialSection';
 import {
   ArrowRight, ArrowUpRight,
   Building2, ChevronLeft, ChevronRight, Facebook, Globe,
-  Image as ImageIcon, Instagram, LayoutTemplate, Linkedin, Mail, Maximize2, MessageCircle, Package, Phone, Play, Plus,
-  Star, Tag, Twitter, Users, X, Youtube, ZoomIn, Pause
+  Image as ImageIcon, Instagram, LayoutTemplate, Linkedin, Mail, Maximize2, MessageCircle, Package, Phone, Plus,
+  Star, Tag, Twitter, Users, X, Youtube, ZoomIn
 } from 'lucide-react';
 
 type SiteImageProps = Omit<React.ComponentProps<typeof Image>, 'width' | 'height' | 'src'> & {
@@ -2154,7 +2154,6 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   const harmony = normalizeGalleryHarmony((config.harmony as string | undefined));
   const [selectedPhoto, setSelectedPhoto] = React.useState<{ id: string; url: string; link?: string; name?: string } | null>(null);
   const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const [isMarqueeManuallyPaused, setIsMarqueeManuallyPaused] = React.useState(false);
   const [isMarqueeInteractionPaused, setIsMarqueeInteractionPaused] = React.useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
   const colors = getGalleryColorTokens({ primary: brandColor, secondary, mode, harmony });
@@ -2226,37 +2225,38 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     const sub = normalizedItems.slice(1, 4);
 
     return (
-      <div className="grid gap-1 bg-slate-200 border border-transparent grid-cols-1 md:grid-cols-3">
-        <div 
-          className="bg-slate-100 relative group cursor-pointer overflow-hidden aspect-[4/3] md:col-span-2 md:aspect-auto md:row-span-1 md:min-h-[300px]"
+      <div
+        className="grid gap-1 border grid-cols-1 md:grid-cols-3"
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
+        <div
+          className="relative group cursor-pointer overflow-hidden border aspect-[4/3] md:col-span-2 md:aspect-auto md:row-span-1 md:min-h-[300px]"
+          style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
           onClick={() =>{  setSelectedPhoto(featured); }}
         >
           {featured.url ? (
-            <SiteImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <SiteImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><ImageIcon size={48} className="text-slate-300" /></div>
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={48} style={{ color: colors.placeholderIcon }} /></div>
           )}
-          <div
-            className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ borderColor: layoutAccent }}
-          />
+          <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className="grid gap-1 grid-cols-3 md:grid-cols-1">
           {sub.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="aspect-square bg-slate-100 relative group cursor-pointer overflow-hidden"
+            <div
+              key={photo.id}
+              className="aspect-square relative group cursor-pointer overflow-hidden border"
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
         </div>
@@ -2268,26 +2268,25 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <div className="grid gap-0.5 bg-slate-200 grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid gap-0.5 border grid-cols-3 md:grid-cols-4 lg:grid-cols-5" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
         {normalizedItems.map((photo) => (
-          <div 
-            key={photo.id} 
-            className="aspect-square relative group cursor-pointer overflow-hidden bg-slate-100"
+          <div
+            key={photo.id}
+            className="aspect-square relative group cursor-pointer overflow-hidden border"
+            style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
             onClick={() =>{  setSelectedPhoto(photo); }}
           >
             {photo.url ? (
-              <SiteImage 
-                src={photo.url} 
-                alt="" 
+              <SiteImage
+                src={photo.url}
+                alt=""
                 className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-90"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-slate-300" /></div>
+              <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
             )}
-            <div
-              className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ borderColor: layoutAccent }}
-            />
+            <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
       </div>
@@ -2298,32 +2297,34 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     if (normalizedItems.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <div className="grid gap-4 grid-cols-1 auto-rows-[200px] sm:auto-rows-[250px] md:grid-cols-3 md:auto-rows-[300px]">
+      <div
+        className="grid gap-4 grid-cols-1 auto-rows-[200px] sm:auto-rows-[250px] md:grid-cols-3 md:auto-rows-[300px] rounded-lg border p-2"
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         {normalizedItems.map((photo, i) => {
           const isLarge = i % 4 === 0 || i % 4 === 3;
-          const colSpan = isLarge ? "md:col-span-2" : "md:col-span-1";
-          
+          const colSpan = isLarge ? 'md:col-span-2' : 'md:col-span-1';
+
           return (
-            <div 
-              key={photo.id} 
-              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm`}
+            <div
+              key={photo.id}
+              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm border`}
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <SiteImage 
-                  src={photo.url} 
-                  alt="" 
-                  className="w-full h-full object-cover transition-transform duration-300"
+                <SiteImage
+                  src={photo.url}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                  <ImageIcon size={32} className="text-slate-300" />
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                  <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
         })}
@@ -2341,18 +2342,20 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     if (normalizedItems.length <= 2) {
       return (
         <div className="py-8 px-4">
-          <div className={cn("mx-auto flex items-center justify-center gap-4", normalizedItems.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
+          <div className={cn('mx-auto flex items-center justify-center gap-4', normalizedItems.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
             {normalizedItems.map((photo) => (
-              <div 
-                key={photo.id} 
-                className="flex-1 aspect-square rounded-xl overflow-hidden bg-slate-100 cursor-pointer group"
+              <div
+                key={photo.id}
+                className="flex-1 aspect-square rounded-xl overflow-hidden cursor-pointer group border relative"
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -2363,30 +2366,29 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          "grid gap-2",
-          device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4')
-        )}>
+          'grid gap-2 rounded-lg border p-2',
+          device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
+        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           {visibleItems.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="aspect-square rounded-lg overflow-hidden bg-slate-100 cursor-pointer group relative"
+            <div
+              key={photo.id}
+              className="aspect-square rounded-lg overflow-hidden cursor-pointer group relative border"
+              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
               onClick={() =>{  setSelectedPhoto(photo); }}
             >
               {photo.url ? (
-                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
               )}
-              <div
-                className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ borderColor: layoutAccent }}
-              />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
           {remainingCount > 0 && (
-            <div 
-              className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer"
-              style={{ backgroundColor: colors.badgeBg }}
+            <div
+              className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer border"
+              style={{ backgroundColor: colors.badgeBg, borderColor: colors.neutralBorder }}
             >
               <Plus size={28} style={{ color: colors.iconColor }} className="mb-1" />
               <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
@@ -2405,7 +2407,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     const marqueeItems = marqueeBaseItems.length > 1 ? [...marqueeBaseItems, ...marqueeBaseItems] : marqueeBaseItems;
     const duration = Math.max(24, marqueeBaseItems.length * 4);
     const shouldAnimate = marqueeBaseItems.length > 1;
-    const isPaused = isMarqueeManuallyPaused || isMarqueeInteractionPaused || prefersReducedMotion;
+    const isPaused = isMarqueeInteractionPaused || prefersReducedMotion;
 
     return (
       <div className="py-8">
@@ -2413,27 +2415,17 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
           @keyframes gallery-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           @media (prefers-reduced-motion: reduce) { .gallery-marquee-track { animation: none !important; } }
         `}</style>
-        <div className="gallery-marquee-container w-full relative overflow-hidden">
-          <div className="mb-3 flex justify-end px-4">
-            <button
-              type="button"
-              aria-pressed={isMarqueeManuallyPaused}
-              onClick={() => { setIsMarqueeManuallyPaused((prev) => !prev); }}
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs md:text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{
-                borderColor: colors.neutralBorder,
-                color: colors.badgeText,
-                backgroundColor: colors.badgeBg,
-                '--tw-ring-color': layoutAccent,
-              } as React.CSSProperties}
-              aria-label={isMarqueeManuallyPaused ? 'Phát lại marquee' : 'Tạm dừng marquee'}
-            >
-              {isMarqueeManuallyPaused ? <Play size={14} /> : <Pause size={14} />}
-              {isMarqueeManuallyPaused ? 'Play' : 'Pause'}
-            </button>
-          </div>
+        <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           <div
-            className="gallery-marquee-track flex items-center gap-6 md:gap-10 px-4"
+            className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-20 z-10"
+            style={{ background: `linear-gradient(to right, ${colors.neutralBackground} 0%, transparent 100%)` }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 md:w-20 z-10"
+            style={{ background: `linear-gradient(to left, ${colors.neutralBackground} 0%, transparent 100%)` }}
+          />
+          <div
+            className="gallery-marquee-track flex items-center gap-6 md:gap-8"
             style={{
               '--duration': `${duration}s`,
               width: 'max-content',
@@ -2451,21 +2443,25 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               <button
                 type="button"
                 key={`gallery-marquee-${photo.id}-${idx}`}
-                className="shrink-0 h-48 md:h-64 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group relative bg-transparent border-none p-0 text-left"
+                className="shrink-0 h-40 md:h-56 lg:h-64 aspect-[4/3] rounded-xl overflow-hidden group relative border text-left appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                style={{
+                  backgroundColor: colors.neutralSurface,
+                  borderColor: colors.neutralBorder,
+                  boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                  '--tw-ring-color': layoutAccent,
+                } as React.CSSProperties}
                 onClick={() => { setSelectedPhoto(photo); }}
                 aria-label={`Mở ảnh ${((idx % marqueeBaseItems.length) + 1)}`}
               >
                 {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                    <ImageIcon size={32} className="text-slate-300" />
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}>
+                    <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                   </div>
                 )}
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: layoutAccent }}
-                />
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </button>
             ))}
           </div>
@@ -2484,18 +2480,20 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     if (normalizedItems.length <= 2) {
       return (
         <div className="py-8 px-4">
-          <div className={cn("mx-auto flex items-center justify-center gap-4", normalizedItems.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
+          <div className={cn('mx-auto flex items-center justify-center gap-4', normalizedItems.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
             {normalizedItems.map((photo, idx) => (
-              <div 
-                key={photo.id} 
-                className={cn("flex-1 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group", idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+              <div
+                key={photo.id}
+                className={cn('flex-1 rounded-xl overflow-hidden cursor-pointer group border relative', idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={40} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -2506,35 +2504,34 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          "gap-3",
+          'gap-3 rounded-lg border p-2',
           device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4')
-        )}>
+        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           {visibleItems.map((photo, idx) => {
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
             const heightClass = heights[idx % heights.length];
-            
+
             return (
-              <div 
-                key={photo.id} 
-                className={cn("mb-3 break-inside-avoid rounded-xl overflow-hidden bg-slate-100 cursor-pointer group relative", heightClass)}
+              <div
+                key={photo.id}
+                className={cn('mb-3 break-inside-avoid rounded-xl overflow-hidden cursor-pointer group relative border', heightClass)}
+                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
                 onClick={() =>{  setSelectedPhoto(photo); }}
               >
                 {photo.url ? (
-                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500" />
+                  <SiteImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><ImageIcon size={28} className="text-slate-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
                 )}
-                <div
-                  className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ borderColor: layoutAccent }}
-                />
+                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
           })}
         </div>
         {remainingCount > 0 && (
           <div className="flex items-center justify-center mt-4">
-            <span className="text-sm font-medium px-4 py-2 rounded-full" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}>
+            <span className="text-sm font-medium px-4 py-2 rounded-full border" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText, borderColor: colors.neutralBorder }}>
               +{remainingCount} ảnh khác
             </span>
           </div>
@@ -2544,8 +2541,11 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
   };
 
   const renderGalleryContent = () => (
-    <section className="w-full bg-white">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1600px] py-8 md:py-12">
+    <section className="w-full" style={{ backgroundColor: colors.neutralSurface }}>
+      <div className={cn(
+        'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
+        style === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
+      )}>
         <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {style === 'spotlight' && renderSpotlightStyle()}
