@@ -39,12 +39,6 @@ import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home
 import type { ProcessBrandMode } from '@/app/admin/home-components/process/_types';
 import { normalizeProcessRenderSteps, normalizeProcessStyle } from '@/app/admin/home-components/process/_lib/normalize';
 import { ProcessSectionShared } from '@/app/admin/home-components/process/_components/ProcessSectionShared';
-import { CountdownSectionShared } from '@/app/admin/home-components/countdown/_components/CountdownSectionShared';
-import { getCountdownColorTokens } from '@/app/admin/home-components/countdown/_lib/colors';
-import { DEFAULT_COUNTDOWN_END_DATE as DEFAULT_COUNTDOWN_END_DATE_SHARED } from '@/app/admin/home-components/countdown/_lib/constants';
-import { normalizeCountdownConfig } from '@/app/admin/home-components/countdown/_lib/normalize';
-import { useCountdownTimer as useSharedCountdownTimer } from '@/app/admin/home-components/countdown/_lib/timer';
-import type { CountdownBrandMode } from '@/app/admin/home-components/countdown/_types';
 import { FeaturesSectionShared } from '@/app/admin/home-components/features/_components/FeaturesSectionShared';
 import { normalizeFeaturesHarmony } from '@/app/admin/home-components/features/_lib/constants';
 import { ClientsSectionShared, normalizeClientItems, normalizeClientsStyleSafe } from '@/app/admin/home-components/clients/_components/ClientsSectionShared';
@@ -74,6 +68,7 @@ import { PricingSection as PricingSectionRuntime } from './PricingSection';
 import { CareerSection as CareerSectionRuntime } from './CareerSection';
 import { VoucherPromotionsSection as VoucherPromotionsSectionRuntime } from './VoucherPromotionsSection';
 import { AboutSection } from './AboutSection';
+import { TeamSection as TeamSectionRuntime } from './TeamSection';
 import { VideoSectionShared } from '@/app/admin/home-components/video/_components/VideoSectionShared';
 import { getVideoColorTokens } from '@/app/admin/home-components/video/_lib/colors';
 import {
@@ -85,7 +80,7 @@ import {
 import type { VideoBrandMode } from '@/app/admin/home-components/video/_types';
 import { ContactSection as ContactSectionRuntime } from './ContactSection';
 import { CaseStudySection } from './CaseStudySection';
-import { SpeedDialSection as SpeedDialSectionRuntime } from './SpeedDialSection';
+import { SpeedDialSection } from './SpeedDialSection';
 import {
   ArrowRight, ArrowUpRight,
   Building2, ChevronLeft, ChevronRight, Facebook, Globe,
@@ -123,6 +118,7 @@ const useSafeId = (prefix: string) => {
   return `${prefix}-${id.replaceAll(':', '')}`;
 };
 
+const DEFAULT_COUNTDOWN_END_DATE = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
 interface HomeComponent {
   _id: string;
@@ -197,7 +193,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <CaseStudySection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'SpeedDial': {
-      return <SpeedDialSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <SpeedDialSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'ProductCategories': {
       return <ProductCategoriesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
@@ -206,7 +202,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <CategoryProductsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'Team': {
-      return <TeamSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <TeamSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Features': {
       return <FeaturesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
@@ -221,7 +217,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <VideoSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Countdown': {
-      return <CountdownSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <CountdownSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'VoucherPromotions': {
       return <VoucherPromotionsSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
@@ -4139,52 +4135,415 @@ function VideoSection({ config, brandColor, secondary, mode, title }: { config: 
 
 // ============ COUNTDOWN / PROMOTION SECTION ============
 // 6 Styles: banner, floating, minimal, split, sticky, popup
+// Best Practices: Expired state, accessibility (aria-live)
+type CountdownStyle = 'banner' | 'floating' | 'minimal' | 'split' | 'sticky' | 'popup';
 
-function CountdownSection({
-  config,
-  brandColor,
-  secondary,
-  mode,
-  title,
-}: {
-  config: Record<string, unknown>;
-  brandColor: string;
-  secondary: string;
-  mode: CountdownBrandMode;
-  title: string;
-}) {
-  const normalizedCountdownConfig = React.useMemo(() => normalizeCountdownConfig(config), [config]);
-  const countdownTokens = React.useMemo(() => getCountdownColorTokens({
-    primary: brandColor,
-    secondary,
-    mode,
-    harmony: normalizedCountdownConfig.harmony,
-  }), [brandColor, secondary, mode, normalizedCountdownConfig.harmony]);
-  const countdownTimeLeft = useSharedCountdownTimer(normalizedCountdownConfig.endDate || DEFAULT_COUNTDOWN_END_DATE_SHARED);
+// Countdown Timer Hook with expired state
+const useCountdownTimer = (endDate: string) => {
+  const [timeLeft, setTimeLeft] = React.useState({ days: 0, hours: 0, isExpired: false, minutes: 0, seconds: 0 });
 
+  React.useEffect(() => {
+    const calculateTime = () => {
+      const end = new Date(endDate).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, isExpired: true, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        isExpired: false,
+        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      });
+    };
+
+    calculateTime();
+    const timer = setInterval(calculateTime, 1000);
+    return () =>{  clearInterval(timer); };
+  }, [endDate]);
+
+  return timeLeft;
+};
+
+function CountdownSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+  secondary: string; title: string }) {
+  const heading = (config.heading as string) || title;
+  const subHeading = (config.subHeading as string) || '';
+  const description = (config.description as string) || '';
+  const endDate = (config.endDate as string) || DEFAULT_COUNTDOWN_END_DATE;
+  const buttonText = (config.buttonText as string) || '';
+  const buttonLink = (config.buttonLink as string) || '#';
+  const backgroundImage = (config.backgroundImage as string) || '';
+  const discountText = (config.discountText as string) || '';
+  const showDays = config.showDays !== false;
+  const showHours = config.showHours !== false;
+  const showMinutes = config.showMinutes !== false;
+  const showSeconds = config.showSeconds !== false;
+  const style = (config.style as CountdownStyle) || 'banner';
+
+  const timeLeft = useCountdownTimer(endDate);
+  
+  // Popup dismiss state - show once per session, dismiss on X/background/skip click
   const [isPopupDismissed, setIsPopupDismissed] = React.useState(() => {
     if (typeof window === 'undefined') {return false;}
     return sessionStorage.getItem('countdown-popup-dismissed') === 'true';
   });
-
-  const dismissPopupForSession = React.useCallback(() => {
+  
+  const dismissPopup = () => {
     setIsPopupDismissed(true);
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('countdown-popup-dismissed', 'true');
     }
-  }, []);
+  };
 
+  // Time Unit Component
+  const TimeUnit = ({ value, label, variant = 'default' }: { value: number; label: string; variant?: 'default' | 'light' | 'outlined' }) => {
+    if (variant === 'light') {
+      return (
+        <div className="flex flex-col items-center">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px]">
+            <span className="text-2xl md:text-3xl font-bold text-white tabular-nums">{String(value).padStart(2, '0')}</span>
+          </div>
+          <span className="text-xs text-white/80 mt-1 uppercase tracking-wider">{label}</span>
+        </div>
+      );
+    }
+    if (variant === 'outlined') {
+      return (
+        <div className="flex flex-col items-center">
+          <div className="border-2 rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px]" style={{ borderColor: secondary }}>
+            <span className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: secondary }}>{String(value).padStart(2, '0')}</span>
+          </div>
+          <span className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{label}</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col items-center">
+        <div className="rounded-lg px-3 py-2 min-w-[50px] md:min-w-[60px] text-white" style={{ backgroundColor: brandColor }}>
+          <span className="text-2xl md:text-3xl font-bold tabular-nums">{String(value).padStart(2, '0')}</span>
+        </div>
+        <span className="text-xs text-slate-500 mt-1 uppercase tracking-wider">{label}</span>
+      </div>
+    );
+  };
+
+  // Timer Display
+  const renderTimerDisplay = (variant: 'default' | 'light' | 'outlined' = 'default') => (
+    <div className="flex items-center gap-2 md:gap-3">
+      {showDays && (
+        <>
+          <TimeUnit value={timeLeft.days} label="Ngày" variant={variant} />
+          <span className={`text-xl font-bold ${variant === 'light' ? 'text-white/60' : 'text-slate-300'}`}>:</span>
+        </>
+      )}
+      {showHours && (
+        <>
+          <TimeUnit value={timeLeft.hours} label="Giờ" variant={variant} />
+          <span className={`text-xl font-bold ${variant === 'light' ? 'text-white/60' : 'text-slate-300'}`}>:</span>
+        </>
+      )}
+      {showMinutes && (
+        <>
+          <TimeUnit value={timeLeft.minutes} label="Phút" variant={variant} />
+          {showSeconds && <span className={`text-xl font-bold ${variant === 'light' ? 'text-white/60' : 'text-slate-300'}`}>:</span>}
+        </>
+      )}
+      {showSeconds && <TimeUnit value={timeLeft.seconds} label="Giây" variant={variant} />}
+    </div>
+  );
+
+  // Style 1: Banner
+  if (style === 'banner') {
+    return (
+      <section 
+        className="relative w-full py-10 md:py-16 px-4 overflow-hidden"
+        style={{ 
+          background: backgroundImage 
+            ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${backgroundImage}) center/cover`
+            : `linear-gradient(135deg,  0%, cc 100%)`
+        }}
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{ backgroundColor: 'white' }} />
+        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10 blur-3xl" style={{ backgroundColor: 'white' }} />
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          {discountText && (
+            <div className="inline-block mb-4">
+              <span className="bg-yellow-400 text-yellow-900 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider animate-pulse">{discountText}</span>
+            </div>
+          )}
+          {subHeading && <p className="text-white/80 text-sm md:text-base uppercase tracking-wider mb-2">{subHeading}</p>}
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">{heading}</h2>
+          {description && <p className="text-white/90 mb-6 max-w-2xl mx-auto">{description}</p>}
+          <div className="flex justify-center mb-6">{renderTimerDisplay('light')}</div>
+          {buttonText && (
+            <a href={buttonLink} className="inline-flex items-center gap-2 px-8 py-3 bg-white rounded-lg font-semibold transition-transform hover:scale-105" style={{ color: secondary }}>
+              {buttonText}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            </a>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // Style 2: Floating
+  if (style === 'floating') {
+    return (
+      <section className="py-8 md:py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div 
+            className="relative rounded-2xl overflow-hidden shadow-2xl"
+            style={{ 
+              background: backgroundImage 
+                ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backgroundImage}) center/cover`
+                : `linear-gradient(135deg, ee 0%,  100%)`
+            }}
+          >
+            {discountText && (
+              <div className="absolute -right-12 top-6 rotate-45 bg-yellow-400 text-yellow-900 px-12 py-1 text-sm font-bold shadow-lg">{discountText}</div>
+            )}
+            <div className="p-6 md:p-10 text-center">
+              {subHeading && (
+                <div className="inline-block mb-3 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                  <span className="text-xs md:text-sm text-white font-medium uppercase tracking-wider">{subHeading}</span>
+                </div>
+              )}
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-3">{heading}</h2>
+              {description && <p className="text-white/80 mb-6 text-sm md:text-base">{description}</p>}
+              <div className="flex justify-center mb-6">{renderTimerDisplay('light')}</div>
+              {buttonText && (
+                <a href={buttonLink} className="inline-flex items-center gap-2 px-6 py-2.5 bg-white rounded-full font-semibold text-sm transition-all hover:shadow-lg hover:scale-105" style={{ color: secondary }}>
+                  {buttonText}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Style 3: Minimal
+  if (style === 'minimal') {
+    return (
+      <section className="py-10 md:py-14 px-4 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 md:p-10">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1 text-center md:text-left">
+                {discountText && (
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3" style={{ backgroundColor: `${secondary}15`, color: secondary }}>{discountText}</span>
+                )}
+                {subHeading && <p className="text-sm text-slate-500 mb-1">{subHeading}</p>}
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-2">{heading}</h2>
+                {description && <p className="text-slate-500 text-sm mb-4">{description}</p>}
+                {buttonText && (
+                  <a href={buttonLink} className="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                    {buttonText}
+                  </a>
+                )}
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Kết thúc sau</p>
+                {renderTimerDisplay('outlined')}
+                {buttonText && (
+                  <a href={buttonLink} className="md:hidden inline-flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm text-white mt-4 transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                    {buttonText}
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Expired State Component
+  const renderExpiredState = (variant: 'default' | 'light' = 'default') => (
+    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold ${variant === 'light' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'}`}>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>Khuyến mãi đã kết thúc</span>
+    </div>
+  );
+
+  // Style 4: Split
+  if (style === 'split') {
+    return (
+      <section className="py-8 md:py-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="rounded-2xl overflow-hidden shadow-lg grid grid-cols-1 md:grid-cols-2">
+            <div 
+              className="relative flex items-center justify-center min-h-[200px] md:min-h-[300px]"
+              style={{ 
+                background: backgroundImage 
+                  ? `url(${backgroundImage}) center/cover`
+                  : `linear-gradient(135deg, dd 0%,  100%)`
+              }}
+            >
+              {!backgroundImage && (
+                <div className="text-center text-white p-6">
+                  {discountText && <div className="text-5xl md:text-7xl font-black mb-2">{discountText}</div>}
+                  <div className="text-lg md:text-xl font-medium opacity-90">GIẢM GIÁ</div>
+                </div>
+              )}
+              {backgroundImage && discountText && (
+                <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg font-bold text-xl">{discountText}</div>
+              )}
+            </div>
+            <div className="bg-white p-6 md:p-8 flex flex-col justify-center">
+              {subHeading && <p className="text-sm uppercase tracking-wider mb-2" style={{ color: secondary }}>{subHeading}</p>}
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">{heading}</h2>
+              {description && <p className="text-slate-500 text-sm mb-5">{description}</p>}
+              <div className="mb-5">
+                <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Còn lại</p>
+                {timeLeft.isExpired ? renderExpiredState() : renderTimerDisplay('default')}
+              </div>
+              {buttonText && !timeLeft.isExpired && (
+                <a href={buttonLink} className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90 w-full md:w-auto" style={{ backgroundColor: brandColor }}>
+                  {buttonText}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Style 5: Sticky - Compact top bar
+  if (style === 'sticky') {
+    return (
+      <section 
+        className="w-full py-3 px-4"
+        style={{ backgroundColor: brandColor }}
+        role="banner"
+        aria-label="Khuyến mãi có thời hạn"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
+            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-left">
+              {discountText && (
+                <span className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold uppercase">{discountText}</span>
+              )}
+              <span className="text-white font-semibold text-sm md:text-base">{heading}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {timeLeft.isExpired ? (
+                <span className="text-white/80 text-sm">Đã kết thúc</span>
+              ) : (
+                <div className="flex items-center gap-1.5 text-white font-mono" role="timer" aria-live="polite">
+                  {showDays && (
+                    <>
+                      <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.days).padStart(2, '0')}</span>
+                      <span className="text-white/60">:</span>
+                    </>
+                  )}
+                  {showHours && (
+                    <>
+                      <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.hours).padStart(2, '0')}</span>
+                      <span className="text-white/60">:</span>
+                    </>
+                  )}
+                  {showMinutes && (
+                    <>
+                      <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                      {showSeconds && <span className="text-white/60">:</span>}
+                    </>
+                  )}
+                  {showSeconds && (
+                    <span className="bg-white/20 px-2 py-1 rounded text-sm font-bold">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                  )}
+                </div>
+              )}
+            </div>
+            {buttonText && !timeLeft.isExpired && (
+              <a href={buttonLink} className="bg-white px-4 py-1.5 rounded-full text-sm font-semibold transition-transform hover:scale-105 whitespace-nowrap" style={{ color: secondary }}>
+                {buttonText}
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Style 6: Popup - Full screen modal overlay (default fallback)
+  // Only show once per session, can dismiss by clicking X, background, or "Để sau"
+  if (style === 'popup' && isPopupDismissed) {
+    return null; // Don't render if already dismissed this session
+  }
+  
   return (
-    <CountdownSectionShared
-      config={normalizedCountdownConfig}
-      title={title}
-      mode={mode}
-      tokens={countdownTokens}
-      timeLeft={countdownTimeLeft}
-      context="site"
-      isPopupDismissed={isPopupDismissed}
-      onDismissPopup={dismissPopupForSession}
-    />
+    <div 
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="countdown-popup-title"
+      onClick={dismissPopup} // Click background to dismiss
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl overflow-hidden relative w-full max-w-md animate-in fade-in zoom-in-95 duration-300"
+        onClick={(e) =>{  e.stopPropagation(); }} // Prevent dismiss when clicking popup content
+      >
+        {/* Close button */}
+        <button 
+          type="button" 
+          onClick={dismissPopup}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-700 z-10 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Image/Visual header */}
+        <div 
+          className="h-36 md:h-44 flex items-center justify-center"
+          style={{ 
+            background: backgroundImage 
+              ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${backgroundImage}) center/cover`
+              : `linear-gradient(135deg, ee 0%,  100%)`
+          }}
+        >
+          {discountText && (
+            <div className="text-center text-white">
+              <div className="text-5xl md:text-6xl font-black">{discountText}</div>
+              <div className="text-sm font-medium opacity-80 mt-1">{subHeading || 'GIẢM GIÁ'}</div>
+            </div>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="p-5 md:p-6 text-center">
+          <h3 id="countdown-popup-title" className="text-xl md:text-2xl font-bold text-slate-900 mb-2">{heading}</h3>
+          {description && <p className="text-slate-500 text-sm mb-4 line-clamp-2">{description}</p>}
+          <div className="mb-4">
+            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Còn lại</p>
+            {timeLeft.isExpired ? renderExpiredState() : renderTimerDisplay('default')}
+          </div>
+          {buttonText && !timeLeft.isExpired && (
+            <a href={buttonLink} className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: brandColor }}>
+              {buttonText}
+            </a>
+          )}
+          {/* Skip link */}
+          <button type="button" onClick={dismissPopup} className="text-slate-400 text-xs mt-3 hover:text-slate-600 transition-colors">
+            Để sau
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
