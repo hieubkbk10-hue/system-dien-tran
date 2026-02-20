@@ -73,7 +73,7 @@ const GalleryLightbox = ({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70]"
+        className="absolute top-4 right-4 p-2 rounded-full border transition-colors z-[70] hover:opacity-90"
         style={{
           backgroundColor: colors.lightboxControlBg,
           borderColor: colors.lightboxControlBorder,
@@ -89,7 +89,7 @@ const GalleryLightbox = ({
         <>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('prev'); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-all z-[70] hover:opacity-90"
             style={{
               backgroundColor: colors.lightboxControlBg,
               borderColor: colors.lightboxControlBorder,
@@ -101,7 +101,7 @@ const GalleryLightbox = ({
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onNavigate('next'); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-colors z-[70]"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border flex items-center justify-center transition-all z-[70] hover:opacity-90"
             style={{
               backgroundColor: colors.lightboxControlBg,
               borderColor: colors.lightboxControlBorder,
@@ -114,10 +114,10 @@ const GalleryLightbox = ({
         </>
       )}
       
-      {/* Counter */}
+      {/* Counter with brand colors */}
       {hasMultiple && typeof currentIndex === 'number' && (
         <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm z-[70] px-3 py-1 rounded-full border"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs font-medium z-[70] px-3 py-1.5 rounded-full border"
           style={{
             backgroundColor: colors.lightboxCounterBg,
             color: colors.lightboxCounterText,
@@ -263,6 +263,17 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     { id: 'masonry', label: 'Masonry' }
   ];
 
+  // Gallery Empty State with brandColor
+  const renderGalleryEmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
+        <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
+      </div>
+      <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có hình ảnh nào</h3>
+      <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
+    </div>
+  );
+
   // ============ GALLERY STYLES (Spotlight, Explore, Stories) ============
   
   // Style 1: Tiêu điểm (Spotlight) - Featured image with 3 smaller
@@ -270,6 +281,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length === 0) {return renderGalleryEmptyState();}
     const featured = items[0];
     const sub = items.slice(1, 4);
+    const showCounters = items.length > 4;
 
     return (
       <div
@@ -281,15 +293,19 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
       >
         <div
           className={cn(
-            'relative group cursor-pointer overflow-hidden border',
+            'relative group cursor-pointer overflow-hidden border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
             device === 'mobile' ? 'aspect-[4/3]' : 'md:col-span-2 aspect-[4/3] md:aspect-auto md:row-span-1',
           )}
           style={{
             ...(device !== 'mobile' ? { minHeight: '300px' } : {}),
             backgroundColor: colors.neutralSurface,
             borderColor: colors.neutralBorder,
-          }}
+            '--tw-ring-color': colors.focusRing,
+          } as React.CSSProperties}
           onClick={() =>{  setSelectedPhoto(featured); }}
+          tabIndex={0}
+          role="button"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(featured); } }}
         >
           {featured.url ? (
             <PreviewImage src={featured.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
@@ -302,12 +318,19 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className={cn('grid gap-1', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')}>
-          {sub.map((photo) => (
+          {sub.map((photo, idx) => (
             <div
               key={photo.id}
-              className="aspect-square relative group cursor-pointer overflow-hidden border"
-              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+              className="aspect-square relative group cursor-pointer overflow-hidden border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{ 
+                backgroundColor: colors.neutralSurface, 
+                borderColor: colors.neutralBorder,
+                '--tw-ring-color': colors.focusRing,
+              } as React.CSSProperties}
               onClick={() =>{  setSelectedPhoto(photo); }}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
             >
               {photo.url ? (
                 <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
@@ -318,6 +341,18 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
+              {showCounters && (
+                <div 
+                  className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full border"
+                  style={{ 
+                    backgroundColor: colors.counterBg, 
+                    color: colors.counterText,
+                    borderColor: colors.counterBorder,
+                  }}
+                >
+                  {idx + 2}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -328,18 +363,26 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   // Style 2: Khám phá (Explore) - Instagram-like grid
   const renderExploreStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
+    const showCounters = items.length > 6;
 
     return (
       <div
         className={cn('grid gap-0.5 border', device === 'mobile' ? 'grid-cols-3' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-5'))}
         style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
       >
-        {items.map((photo) => (
+        {items.map((photo, idx) => (
           <div
             key={photo.id}
-            className="aspect-square relative group cursor-pointer overflow-hidden border"
-            style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+            className="aspect-square relative group cursor-pointer overflow-hidden border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={{ 
+              backgroundColor: colors.neutralSurface, 
+              borderColor: colors.neutralBorder,
+              '--tw-ring-color': colors.focusRing,
+            } as React.CSSProperties}
             onClick={() =>{  setSelectedPhoto(photo); }}
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
           >
             {photo.url ? (
               <PreviewImage
@@ -354,6 +397,18 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             )}
             <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
+            {showCounters && (
+              <div 
+                className="absolute top-1.5 right-1.5 text-xs font-semibold px-1.5 py-0.5 rounded-full border"
+                style={{ 
+                  backgroundColor: colors.counterBg, 
+                  color: colors.counterText,
+                  borderColor: colors.counterBorder,
+                }}
+              >
+                {idx + 1}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -363,6 +418,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   // Style 3: Câu chuyện (Stories) - Masonry-like with varying sizes
   const renderStoriesStyle = () => {
     if (items.length === 0) {return renderGalleryEmptyState();}
+    const showCounters = items.length > 4;
 
     return (
       <div
@@ -379,9 +435,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           return (
             <div
               key={photo.id}
-              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm border`}
-              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+              className={`${colSpan} relative group cursor-pointer overflow-hidden rounded-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2`}
+              style={{ 
+                backgroundColor: colors.neutralSurface, 
+                borderColor: colors.neutralBorder,
+                '--tw-ring-color': colors.focusRing,
+              } as React.CSSProperties}
               onClick={() =>{  setSelectedPhoto(photo); }}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
             >
               {photo.url ? (
                 <PreviewImage
@@ -396,6 +459,18 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               )}
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
+              {showCounters && isLarge && (
+                <div 
+                  className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full border"
+                  style={{ 
+                    backgroundColor: colors.counterBg, 
+                    color: colors.counterText,
+                    borderColor: colors.counterBorder,
+                  }}
+                >
+                  {i + 1}
+                </div>
+              )}
             </div>
           );
         })}
@@ -404,19 +479,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   };
 
   // ============ GALLERY STYLES 4-6 (Grid, Marquee, Masonry) ============
-  // Best Practices: Lightbox with keyboard nav, lazy loading, +N pattern
-
-
-  // Gallery Empty State with brandColor
-  const renderGalleryEmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: colors.placeholderBg }}>
-        <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
-      </div>
-      <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-1">Chưa có hình ảnh nào</h3>
-      <p className="text-sm text-slate-500">Thêm ảnh đầu tiên để bắt đầu</p>
-    </div>
-  );
 
   // Style 4: Gallery Grid - Clean equal squares grid
   const renderGalleryGridStyle = () => {
@@ -434,9 +496,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             {items.map((photo) => (
               <div
                 key={photo.id}
-                className="flex-1 aspect-square rounded-xl overflow-hidden cursor-pointer group border relative"
-                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+                className="flex-1 aspect-square rounded-xl overflow-hidden cursor-pointer group border relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                style={{ 
+                  backgroundColor: colors.neutralSurface, 
+                  borderColor: colors.neutralBorder,
+                  '--tw-ring-color': colors.focusRing,
+                } as React.CSSProperties}
                 onClick={() =>{  setSelectedPhoto(photo); }}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
               >
                 {photo.url ? (
                   <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
@@ -462,9 +531,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           {visibleItems.map((photo) => (
             <div
               key={photo.id}
-              className="aspect-square rounded-lg overflow-hidden cursor-pointer group relative border"
-              style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+              className="aspect-square rounded-lg overflow-hidden cursor-pointer group relative border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{ 
+                backgroundColor: colors.neutralSurface, 
+                borderColor: colors.neutralBorder,
+                '--tw-ring-color': colors.focusRing,
+              } as React.CSSProperties}
               onClick={() =>{  setSelectedPhoto(photo); }}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
             >
               {photo.url ? (
                 <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
@@ -477,13 +553,13 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
-          {/* +N remaining */}
+          {/* +N remaining badge with secondary color */}
           {remainingCount > 0 && (
             <div
               className="aspect-square rounded-lg overflow-hidden flex flex-col items-center justify-center cursor-pointer border"
-              style={{ backgroundColor: colors.badgeBg, borderColor: colors.neutralBorder }}
+              style={{ backgroundColor: colors.badgeBg, borderColor: colors.counterBorder }}
             >
-              <Plus size={28} style={{ color: colors.iconColor }} className="mb-1" />
+              <Plus size={28} style={{ color: colors.secondary }} className="mb-1" />
               <span className="text-lg font-bold" style={{ color: colors.badgeText }}>+{remainingCount}</span>
               <span className="text-xs" style={{ color: colors.mutedText }}>ảnh khác</span>
             </div>
@@ -564,7 +640,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                         backgroundColor: colors.neutralSurface,
                         borderColor: colors.neutralBorder,
                         boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
-                        '--tw-ring-color': layoutAccent,
+                        '--tw-ring-color': colors.focusRing,
                       } as React.CSSProperties}
                       onClick={() =>{  setSelectedPhoto(photo); }}
                       aria-label={`Mở ${imageLabel}`}
@@ -605,9 +681,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             {items.map((photo, idx) => (
               <div
                 key={photo.id}
-                className={cn('flex-1 rounded-xl overflow-hidden cursor-pointer group border relative', idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
-                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+                className={cn('flex-1 rounded-xl overflow-hidden cursor-pointer group border relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2', idx % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
+                style={{ 
+                  backgroundColor: colors.neutralSurface, 
+                  borderColor: colors.neutralBorder,
+                  '--tw-ring-color': colors.focusRing,
+                } as React.CSSProperties}
                 onClick={() =>{  setSelectedPhoto(photo); }}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
               >
                 {photo.url ? (
                   <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
@@ -639,9 +722,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             return (
               <div
                 key={photo.id}
-                className={cn('mb-3 break-inside-avoid rounded-xl overflow-hidden cursor-pointer group relative border', heightClass)}
-                style={{ backgroundColor: colors.neutralSurface, borderColor: colors.neutralBorder }}
+                className={cn('mb-3 break-inside-avoid rounded-xl overflow-hidden cursor-pointer group relative border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2', heightClass)}
+                style={{ 
+                  backgroundColor: colors.neutralSurface, 
+                  borderColor: colors.neutralBorder,
+                  '--tw-ring-color': colors.focusRing,
+                } as React.CSSProperties}
                 onClick={() =>{  setSelectedPhoto(photo); }}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPhoto(photo); } }}
               >
                 {photo.url ? (
                   <PreviewImage src={photo.url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
@@ -656,10 +746,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             );
           })}
         </div>
-        {/* +N remaining */}
+        {/* +N remaining badge with secondary color */}
         {remainingCount > 0 && (
           <div className="flex items-center justify-center mt-4">
-            <span className="text-sm font-medium px-4 py-2 rounded-full border" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText, borderColor: colors.neutralBorder }}>
+            <span className="text-sm font-medium px-4 py-2 rounded-full border" style={{ backgroundColor: colors.badgeBg, color: colors.badgeText, borderColor: colors.counterBorder }}>
               +{remainingCount} ảnh khác
             </span>
           </div>
@@ -675,7 +765,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
         previewStyle === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
       )}>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4 text-center" style={{ color: colors.primary }}>{title}</h2>}
+        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4 text-center" style={{ color: colors.heading }}>{title}</h2>}
         <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}
@@ -712,7 +802,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
       }
       case 'stories': {
         if (count === 0) {return 'Chưa có ảnh';}
-        const largeCount = Math.ceil(count / 4) * 2; // Ảnh 1,4,5,8... chiếm 2 cột
+        const largeCount = Math.ceil(count / 4) * 2;
         const smallCount = count - largeCount;
         return `${largeCount} ảnh lớn: 1200×600px • ${smallCount} ảnh nhỏ: 800×600px`;
       }

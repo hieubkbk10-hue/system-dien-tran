@@ -36,6 +36,16 @@ export interface GalleryColorTokens {
   lightboxControlBorder: string;
   lightboxCounterBg: string;
   lightboxCounterText: string;
+  counterBg: string;
+  counterText: string;
+  counterBorder: string;
+  focusRing: string;
+  focusRingHover: string;
+  progressTrack: string;
+  progressFill: string;
+  dotInactive: string;
+  dotActive: string;
+  dotHover: string;
 }
 
 export interface GalleryAccessibilityPair {
@@ -341,8 +351,18 @@ export const getGalleryColorTokensWithMeta = ({
   const lightboxControlBg = '#111827';
   const lightboxControlBorder = secondaryResolved;
   const lightboxControlIcon = ensureAPCATextColor(primaryResolved, lightboxControlBg, 16, 600);
-  const lightboxCounterBg = '#111827';
-  const lightboxCounterText = getAPCATextColor(lightboxCounterBg, 12, 500);
+  const lightboxCounterBg = secondaryTint;
+  const lightboxCounterText = getAPCATextColor(lightboxCounterBg, 12, 600);
+  const counterBg = secondaryTint;
+  const counterText = getAPCATextColor(counterBg, 11, 600);
+  const counterBorder = neutralBorder;
+  const focusRing = secondaryResolved;
+  const focusRingHover = primaryResolved;
+  const progressTrack = getSolidTint(secondaryResolved, 0.5);
+  const progressFill = primaryResolved;
+  const dotInactive = neutralBorder;
+  const dotActive = secondaryResolved;
+  const dotHover = primaryResolved;
 
   const tokens = {
     primary: primaryResolved,
@@ -373,6 +393,16 @@ export const getGalleryColorTokensWithMeta = ({
     lightboxControlBorder,
     lightboxCounterBg,
     lightboxCounterText,
+    counterBg,
+    counterText,
+    counterBorder,
+    focusRing,
+    focusRingHover,
+    progressTrack,
+    progressFill,
+    dotInactive,
+    dotActive,
+    dotHover,
   };
 
   const autoFix = autoFixTextTokensForAPCA(tokens, mode);
