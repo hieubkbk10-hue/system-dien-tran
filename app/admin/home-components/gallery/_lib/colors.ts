@@ -341,7 +341,7 @@ export const getGalleryColorTokensWithMeta = ({
   const sectionAccentBar = primaryResolved;
   const cardHoverBorder = secondaryResolved;
   const sectionAccentBarByStyle: Record<GalleryStyle, string> = {
-    spotlight: primaryResolved,
+    spotlight: secondaryResolved,
     explore: secondaryResolved,
     stories: secondaryResolved,
     grid: primaryResolved,

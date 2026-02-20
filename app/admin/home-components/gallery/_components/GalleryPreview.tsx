@@ -317,7 +317,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
-        <div className={cn('grid gap-1 p-1 rounded border', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')} style={{ borderColor: colors.secondary }}>
+        <div className={cn('grid gap-1 p-1.5 rounded border-2', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')} style={{ borderColor: colors.secondary, backgroundColor: colors.neutralBackground }}>
           {sub.map((photo, idx) => (
             <div
               key={photo.id}
