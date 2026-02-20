@@ -525,9 +525,14 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
         <div className={cn(
-          'grid gap-2 rounded-lg border-2 p-2',
+          'grid gap-2 rounded-lg border-2 p-2 relative',
           device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
         )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
+          {/* Corner decorations with secondary color */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-4 border-l-4 rounded-tl-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-4 border-r-4 rounded-tr-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-4 border-l-4 rounded-bl-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-4 border-r-4 rounded-br-lg" style={{ borderColor: colors.secondary }} />
           {visibleItems.map((photo) => (
             <div
               key={photo.id}
@@ -711,9 +716,14 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     return (
       <div className="py-8 px-4">
       <div className={cn(
-        'gap-3 rounded-lg border-2 p-2',
+        'gap-3 rounded-lg border-2 p-2 relative',
         device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
       )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
+          {/* Corner decorations with secondary color */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-4 border-l-4 rounded-tl-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-4 border-r-4 rounded-tr-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-4 border-l-4 rounded-bl-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-4 border-r-4 rounded-br-lg z-10" style={{ borderColor: colors.secondary }} />
           {visibleItems.map((photo, idx) => {
             // Varying heights for masonry effect
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];

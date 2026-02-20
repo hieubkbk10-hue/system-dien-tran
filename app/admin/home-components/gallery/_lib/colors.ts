@@ -344,9 +344,9 @@ export const getGalleryColorTokensWithMeta = ({
     spotlight: secondaryResolved,
     explore: secondaryResolved,
     stories: secondaryResolved,
-    grid: primaryResolved,
+    grid: secondaryResolved,
     marquee: secondaryResolved,
-    masonry: primaryResolved,
+    masonry: secondaryResolved,
   };
   const lightboxControlBg = '#111827';
   const lightboxControlBorder = secondaryResolved;
