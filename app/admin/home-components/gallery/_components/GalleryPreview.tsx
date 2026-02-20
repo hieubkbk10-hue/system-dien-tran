@@ -314,7 +314,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
               <ImageIcon size={48} style={{ color: colors.placeholderIcon }} />
             </div>
           )}
-          <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className={cn('grid gap-1 p-1.5 rounded border-2', device === 'mobile' ? 'grid-cols-3' : 'grid-cols-1')} style={{ borderColor: colors.secondary, backgroundColor: colors.neutralBackground }}>
@@ -339,7 +339,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   <ImageIcon size={24} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               {showCounters && (
                 <div 
@@ -395,7 +395,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                 <ImageIcon size={24} style={{ color: colors.placeholderIcon }} />
               </div>
             )}
-            <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             {showCounters && (
               <div 
@@ -457,7 +457,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               {showCounters && isLarge && (
                 <div 
@@ -514,7 +514,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                     <ImageIcon size={40} style={{ color: colors.placeholderIcon }} />
                   </div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -529,10 +529,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
         )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
           {/* Corner decorations with secondary color */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-4 border-l-4 rounded-tl-lg" style={{ borderColor: colors.secondary }} />
-          <div className="absolute top-0 right-0 w-3 h-3 border-t-4 border-r-4 rounded-tr-lg" style={{ borderColor: colors.secondary }} />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-4 border-l-4 rounded-bl-lg" style={{ borderColor: colors.secondary }} />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-4 border-r-4 rounded-br-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 rounded-bl-lg" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 rounded-br-lg" style={{ borderColor: colors.secondary }} />
           {visibleItems.map((photo) => (
             <div
               key={photo.id}
@@ -554,7 +554,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                   <ImageIcon size={28} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -657,7 +657,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                           <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                         </div>
                       )}
-                      <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                      <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
                       <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
                     </button>
                   );
@@ -704,7 +704,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                     <ImageIcon size={40} style={{ color: colors.placeholderIcon }} />
                   </div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -720,10 +720,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
       )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.secondary }}>
           {/* Corner decorations with secondary color */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-4 border-l-4 rounded-tl-lg z-10" style={{ borderColor: colors.secondary }} />
-          <div className="absolute top-0 right-0 w-3 h-3 border-t-4 border-r-4 rounded-tr-lg z-10" style={{ borderColor: colors.secondary }} />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-4 border-l-4 rounded-bl-lg z-10" style={{ borderColor: colors.secondary }} />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-4 border-r-4 rounded-br-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 rounded-bl-lg z-10" style={{ borderColor: colors.secondary }} />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 rounded-br-lg z-10" style={{ borderColor: colors.secondary }} />
           {visibleItems.map((photo, idx) => {
             // Varying heights for masonry effect
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
@@ -750,7 +750,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
                     <ImageIcon size={28} style={{ color: colors.placeholderIcon }} />
                   </div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
@@ -775,8 +775,12 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
         previewStyle === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
       )}>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4 text-center" style={{ color: colors.heading }}>{title}</h2>}
-        <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
+        {title && (
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-3" style={{ color: colors.heading }}>{title}</h2>
+            <div className="mx-auto h-1 w-16 rounded-full" style={{ backgroundColor: layoutAccent }} />
+          </div>
+        )}
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}
           {previewStyle === 'explore' && renderExploreStyle()}

@@ -2307,7 +2307,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={48} style={{ color: colors.placeholderIcon }} /></div>
           )}
-          <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+          <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
           <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
         </div>
         <div className="grid gap-1 grid-cols-3 md:grid-cols-1">
@@ -2323,7 +2323,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               ) : (
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2353,7 +2353,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
             ) : (
               <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={24} style={{ color: colors.placeholderIcon }} /></div>
             )}
-            <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+            <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
             <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
           </div>
         ))}
@@ -2391,7 +2391,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                   <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                 </div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           );
@@ -2423,7 +2423,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 ) : (
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -2449,7 +2449,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
               ) : (
                 <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
               )}
-              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+              <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
             </div>
           ))}
@@ -2545,7 +2545,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                         <ImageIcon size={32} style={{ color: colors.placeholderIcon }} />
                       </div>
                     )}
-                    <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                    <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
                     <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
                   </button>
                 ))}
@@ -2580,7 +2580,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 ) : (
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={40} style={{ color: colors.placeholderIcon }} /></div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
               </div>
             ))}
           </div>
@@ -2610,7 +2610,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
                 ) : (
                   <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.placeholderBg }}><ImageIcon size={28} style={{ color: colors.placeholderIcon }} /></div>
                 )}
-                <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: layoutAccent }} />
+                <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: layoutAccent }} />
                 <div className="absolute inset-0 border-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: layoutAccent }} />
               </div>
             );
