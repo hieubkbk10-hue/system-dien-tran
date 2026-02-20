@@ -272,15 +272,13 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     const sub = items.slice(1, 4);
 
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div
-          className={cn(
-            'grid gap-1 border',
-            device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3',
-          )}
-          style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
-        >
+      <div
+        className={cn(
+          'grid gap-1 border',
+          device === 'mobile' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3',
+        )}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         <div
           className={cn(
             'relative group cursor-pointer overflow-hidden border',
@@ -324,7 +322,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           ))}
         </div>
       </div>
-      </>
     );
   };
 
@@ -333,12 +330,10 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div
-          className={cn('grid gap-0.5 border', device === 'mobile' ? 'grid-cols-3' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-5'))}
-          style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
-        >
+      <div
+        className={cn('grid gap-0.5 border', device === 'mobile' ? 'grid-cols-3' : (device === 'tablet' ? 'grid-cols-4' : 'grid-cols-5'))}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         {items.map((photo) => (
           <div
             key={photo.id}
@@ -362,7 +357,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           </div>
         ))}
       </div>
-      </>
     );
   };
 
@@ -371,15 +365,13 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     if (items.length === 0) {return renderGalleryEmptyState();}
 
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div
-          className={cn(
-            'grid gap-4 rounded-lg border p-2',
-            device === 'mobile' ? 'grid-cols-1 auto-rows-[200px]' : 'grid-cols-1 md:grid-cols-3 auto-rows-[250px] md:auto-rows-[300px]',
-          )}
-          style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
-        >
+      <div
+        className={cn(
+          'grid gap-4 rounded-lg border p-2',
+          device === 'mobile' ? 'grid-cols-1 auto-rows-[200px]' : 'grid-cols-1 md:grid-cols-3 auto-rows-[250px] md:auto-rows-[300px]',
+        )}
+        style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
+      >
         {items.map((photo, i) => {
           const isLarge = i % 4 === 0 || i % 4 === 3;
           const colSpan = device !== 'mobile' && isLarge ? 'md:col-span-2' : 'md:col-span-1';
@@ -408,7 +400,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           );
         })}
       </div>
-      </>
     );
   };
 
@@ -438,10 +429,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     // Centered layout for 1-2 items
     if (items.length <= 2) {
       return (
-        <>
-          {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-          <div className="py-8 px-4">
-          <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
+        <div className="py-8 px-4">
+        <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-sm' : 'max-w-xl')}>
             {items.map((photo) => (
               <div
                 key={photo.id}
@@ -461,14 +450,11 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             ))}
           </div>
         </div>
-        </>
       );
     }
 
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div className="py-8 px-4">
+      <div className="py-8 px-4">
         <div className={cn(
           'grid gap-2 rounded-lg border p-2',
           device === 'mobile' ? 'grid-cols-2' : (device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'),
@@ -504,7 +490,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           )}
         </div>
       </div>
-      </>
     );
   };
 
@@ -516,10 +501,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     const visualGapClass = 'gap-6 md:gap-8';
 
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div className="py-8">
-        <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
+      <div className="py-8">
+      <div className="w-full max-w-7xl mx-auto relative overflow-hidden rounded-2xl border p-4 md:p-6" style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-16 md:w-20 z-10"
             style={{ background: `linear-gradient(to right, ${colors.neutralBackground} 0%, transparent 100%)` }}
@@ -603,7 +586,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           </div>
         </div>
       </div>
-      </>
     );
   };
 
@@ -618,10 +600,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
     // Centered layout for 1-2 items
     if (items.length <= 2) {
       return (
-        <>
-          {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-          <div className="py-8 px-4">
-          <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
+        <div className="py-8 px-4">
+        <div className={cn('mx-auto flex items-center justify-center gap-4', items.length === 1 ? 'max-w-md' : 'max-w-2xl')}>
             {items.map((photo, idx) => (
               <div
                 key={photo.id}
@@ -641,19 +621,16 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
             ))}
           </div>
         </div>
-        </>
       );
     }
 
     // Masonry layout with CSS columns
     return (
-      <>
-        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
-        <div className="py-8 px-4">
-        <div className={cn(
-          'gap-3 rounded-lg border p-2',
-          device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
-        )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
+      <div className="py-8 px-4">
+      <div className={cn(
+        'gap-3 rounded-lg border p-2',
+        device === 'mobile' ? 'columns-2' : (device === 'tablet' ? 'columns-3' : 'columns-4'),
+      )} style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}>
           {visibleItems.map((photo, idx) => {
             // Varying heights for masonry effect
             const heights = ['h-48', 'h-64', 'h-56', 'h-72', 'h-52', 'h-60'];
@@ -688,7 +665,6 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
           </div>
         )}
       </div>
-      </>
     );
   };
 
@@ -699,6 +675,7 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         'container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12',
         previewStyle === 'marquee' ? 'max-w-7xl' : 'max-w-[1600px]',
       )}>
+        {title && <h2 className="text-2xl md:text-3xl font-bold tracking-tighter mb-4" style={{ color: colors.primary }}>{title}</h2>}
         <div className="mx-auto mb-6 h-1 w-12 rounded-full" style={{ backgroundColor: layoutAccent }} />
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
           {previewStyle === 'spotlight' && renderSpotlightStyle()}
