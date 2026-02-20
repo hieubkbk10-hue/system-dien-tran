@@ -78,8 +78,8 @@ export default function GalleryCreatePage() {
         harmony={harmony}
         selectedStyle={galleryStyle}
         onStyleChange={setGalleryStyle}
+        title={title}
       />
-   title={title}  // Thêm dòng này
 
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <div className="flex items-start gap-3">
