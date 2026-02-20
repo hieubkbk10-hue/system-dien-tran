@@ -67,6 +67,7 @@ const GalleryLightbox = ({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center animate-in fade-in duration-200"
+      onClick={onClose}
     >
       <div className="absolute inset-0 bg-slate-950" onClick={onClose} />
       <button
@@ -127,7 +128,7 @@ const GalleryLightbox = ({
         </div>
       )}
       
-      <div className="relative z-[70] w-full h-full p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
+      <div className="relative z-[70] max-w-5xl w-full max-h-[90vh] p-4 flex flex-col items-center justify-center" onClick={e =>{  e.stopPropagation(); }}>
         <PreviewImage 
           src={photo.url} 
           alt="Lightbox" 
