@@ -505,7 +505,7 @@ export function AboutSectionShared({
         </div>
 
         {sanitizeText(image) ? (
-          <div className="mt-10 rounded-2xl overflow-hidden aspect-[16/9] max-h-[320px]">
+          <div className="mt-10 rounded-2xl overflow-hidden aspect-[16/9] max-h-[320px] mx-auto max-w-4xl">
             <AboutImage
               src={sanitizeText(image)}
               alt={resolvedHeading}
