@@ -51,6 +51,55 @@
 - [ ] Site + Preview dùng cùng helper trong `_lib/colors.ts`
 - [ ] Không hardcode màu ở site nếu preview dùng helper
 
+## D1. Text Config (Convention over Configuration)
+
+- [ ] KHÔNG hardcode text trong component render (heading, subtitle, labels, hints)
+- [ ] Có `texts` config trong type interface (Record<string, string> cho mỗi layout/style)
+- [ ] Có default texts trong constants với fallback values
+- [ ] Edit page có form UI để config texts (dynamic fields dựa vào layout/style)
+- [ ] Preview và site render dùng texts từ config, không dùng hardcoded strings
+- [ ] Mỗi layout/style có TEXT_FIELDS mapping để biết field nào cần config
+
+**Pattern chuẩn (Clients component):**
+```typescript
+// Type
+interface Config {
+  texts?: Record<StyleType, Record<string, string>>;
+}
+
+// Constants
+const DEFAULT_TEXTS = {
+  layoutA: { heading: 'Default Heading', subtitle: 'Default Subtitle' },
+  layoutB: { heading: 'Default', label: 'items' },
+};
+
+// Form component
+const TextsForm = ({ style, texts, onUpdate }) => {
+  const fields = TEXT_FIELDS[style]; // dynamic fields
+  return fields.map(field => <Input key={field.key} ... />);
+};
+
+// Render
+const heading = texts.heading || DEFAULT_TEXTS[style].heading;
+<h2 style={{ color: tokens.heading }}>{heading}</h2>
+```
+
+**Anti-pattern:**
+```typescript
+// ❌ Hardcoded text
+<h2>Khách hàng tin tưởng</h2>
+<p>Được tin tưởng bởi</p>
+
+// ❌ Không có config UI
+// User không thể thay đổi text từ admin
+```
+
+**Lợi ích:**
+- User có thể customize text cho từng layout mà không cần sửa code
+- Multi-language ready (dễ extend thêm locale)
+- A/B testing friendly (đổi text để test conversion)
+- Brand consistency (text được quản lý tập trung)
+
 ---
 
 ## E. Anti AI-Styling
