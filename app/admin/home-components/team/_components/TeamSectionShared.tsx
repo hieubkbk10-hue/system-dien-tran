@@ -550,17 +550,11 @@ export function TeamSectionShared({
     return (
       <section className={basePadding} data-mode={mode}>
         {header}
-        <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-16', columns)}>
+        <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-20', columns)}>
           {visibleMembers.map((member) => (
-            <article
-              key={member.key}
-              className="relative rounded-lg p-4"
-              style={{
-                backgroundColor: tokens.cardBackground,
-              }}
-            >
+            <article key={member.key} className="relative">
               <div
-                className="w-32 h-32 rounded-full inline-block border-2 overflow-hidden -mt-20"
+                className="w-32 h-32 rounded-full mx-auto border-2 overflow-hidden -mb-16 relative z-10"
                 style={{
                   backgroundColor: tokens.cardBackground,
                   borderColor: tokens.cardBorder,
@@ -575,7 +569,12 @@ export function TeamSectionShared({
                 />
               </div>
 
-              <div className="py-4">
+              <div
+                className="rounded-lg pt-20 pb-4 px-4"
+                style={{
+                  backgroundColor: tokens.cardBackground,
+                }}
+              >
                 <h4 className="text-base font-semibold" style={{ color: tokens.neutralText }}>
                   {member.name || 'Thành viên'}
                 </h4>
