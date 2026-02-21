@@ -556,14 +556,6 @@ const renderCentered = ({
           <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
           <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
         </div>
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>Giờ làm việc</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
-        </div>
-      </div>
-      <div className={cn('mt-6 p-5 rounded-xl', currentDevice === 'mobile' ? '' : 'flex items-start gap-6')} style={{ backgroundColor: tokens.centeredSurface }}>
-        <div className="flex items-start gap-3 flex-1">
-          <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>Địa chỉ văn phòng</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
-        </div>
         {config.showMap && (
           <div className={cn('rounded-lg overflow-hidden shrink-0', currentDevice === 'mobile' ? 'w-full h-40 mt-4' : 'w-64 h-28')}>
             {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens })}
