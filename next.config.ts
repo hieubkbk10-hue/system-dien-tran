@@ -22,6 +22,18 @@ const nextConfig: NextConfig = {
         hostname: 'api.dicebear.com',
         protocol: 'https',
       },
+      {
+        hostname: 'www.youtube.com',
+        protocol: 'https',
+      },
+      {
+        hostname: 'i.ytimg.com',
+        protocol: 'https',
+      },
+      {
+        hostname: 'img.youtube.com',
+        protocol: 'https',
+      },
     ],
   },
 };
