@@ -417,6 +417,9 @@ export function TeamSectionShared({
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                   <p className="text-sm line-clamp-1" style={{ color: tokens.styleAccentByStyle.cards }}>{member.role || 'Chức vụ'}</p>
+                  {member.bio ? (
+                    <p className="text-xs mt-1.5 line-clamp-2" style={{ color: tokens.mutedText }}>{member.bio}</p>
+                  ) : null}
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
@@ -526,6 +529,9 @@ export function TeamSectionShared({
                   <div className="p-4">
                     <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                     <p className="text-sm mt-0.5 line-clamp-1" style={{ color: tokens.roleText }}>{member.role || 'Chức vụ'}</p>
+                    {member.bio ? (
+                      <p className="text-xs mt-2 line-clamp-2" style={{ color: tokens.mutedText }}>{member.bio}</p>
+                    ) : null}
                     <div className="mt-3 pt-3 border-t flex items-center gap-2" style={{ borderColor: tokens.cardBorder }}>
                       <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
                       <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
@@ -542,49 +548,150 @@ export function TeamSectionShared({
     );
   };
 
-  const renderBento = () => {
+  // const renderBento = () => {
+  //   const columns = isPreview
+  //     ? (isMobilePreview ? 'grid-cols-2' : (isTabletPreview ? 'grid-cols-3' : 'grid-cols-4'))
+  //     : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+
+  //   return (
+  //     <section className={basePadding} data-mode={mode}>
+  //       {header}
+  //       <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-24', columns)}>
+  //         {visibleMembers.map((member) => (
+  //           <article key={member.key}>
+  //             <div
+  //               className="bg-gray-200 relative rounded-sm"
+  //               style={{
+  //                 backgroundColor: tokens.cardBackground,
+  //               }}
+  //             >
+  //               <div className="w-32 h-32 rounded-full inline-block border border-gray-200 bg-gray-100 -mt-14 overflow-hidden">
+  //                 <div className="w-full h-full overflow-hidden rounded-full">
+  //                   <TeamAvatar
+  //                     member={member}
+  //                     tokens={tokens}
+  //                     context={context}
+  //                     className="w-full h-full object-cover"
+  //                     sizes="128px"
+  //                   />
+  //                 </div>
+  //               </div>
+
+  //               <div className="py-4">
+  //                 <h4 className="text-base font-semibold" style={{ color: tokens.neutralText }}>
+  //                   {member.name || 'Thành viên'}
+  //                 </h4>
+  //                 <p className="text-[13px] mt-1" style={{ color: tokens.styleAccentByStyle.bento }}>
+  //                   {member.role || 'Chức vụ'}
+  //                 </p>
+
+  //                 <div className="flex items-center justify-center gap-4 mt-4">
+  //                   <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+  //                   <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+  //                   <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+  //                   <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </article>
+  //         ))}
+  //       </div>
+  //     </section>
+  //   );
+  // };
+
+    const renderBento = () => {
     const columns = isPreview
-      ? (isMobilePreview ? 'grid-cols-2' : (isTabletPreview ? 'grid-cols-3' : 'grid-cols-4'))
+      ? isMobilePreview
+        ? 'grid-cols-2'
+        : isTabletPreview
+          ? 'grid-cols-3'
+          : 'grid-cols-4'
       : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
     return (
       <section className={basePadding} data-mode={mode}>
         {header}
-        <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-24', columns)}>
+
+        {/* giống mẫu: grid gap lớn, text center, container max */}
+        <div
+          className={cn(
+            'grid gap-8 text-center mt-16 max-w-5xl max-lg:max-w-3xl max-md:max-w-xl mx-auto',
+            columns,
+          )}
+        >
           {visibleMembers.map((member) => (
-            <article key={member.key}>
+            <article key={member.key} className="group">
+              {/* avatar tròn */}
               <div
-                className="bg-gray-200 relative rounded-sm"
-                style={{
-                  backgroundColor: tokens.cardBackground,
-                }}
+                className="w-32 h-32 rounded-full overflow-hidden inline-block"
+                style={{ backgroundColor: tokens.avatarFallbackBg }}
               >
-                <div className="w-32 h-32 rounded-full inline-block border border-gray-200 bg-gray-100 -mt-14 overflow-hidden">
-                  <div className="w-full h-full overflow-hidden rounded-full">
-                    <TeamAvatar
-                      member={member}
-                      tokens={tokens}
-                      context={context}
-                      className="w-full h-full object-cover"
-                      sizes="128px"
-                    />
-                  </div>
+                <div className="relative w-full h-full">
+                  <TeamAvatar
+                    member={member}
+                    tokens={tokens}
+                    context={context}
+                    className="h-full w-full object-cover"
+                    sizes="128px"
+                  />
                 </div>
+              </div>
 
-                <div className="py-4">
-                  <h4 className="text-base font-semibold" style={{ color: tokens.neutralText }}>
-                    {member.name || 'Thành viên'}
-                  </h4>
-                  <p className="text-[13px] mt-1" style={{ color: tokens.styleAccentByStyle.bento }}>
-                    {member.role || 'Chức vụ'}
-                  </p>
+              {/* text block */}
+              <div className="py-4">
+                <h4
+                  className="text-base font-semibold"
+                  style={{ color: tokens.neutralText }}
+                >
+                  {member.name || 'Thành viên'}
+                </h4>
 
-                  <div className="flex items-center justify-center gap-4 mt-4">
-                    <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                  </div>
+                <p
+                  className="text-[13px] mt-1.5"
+                  style={{ color: tokens.styleAccentByStyle.bento }}
+                >
+                  {member.role || 'Chức vụ'}
+                </p>
+
+                {member.bio ? (
+                  <p className="text-xs mt-2 line-clamp-2" style={{ color: tokens.mutedText }}>{member.bio}</p>
+                ) : null}
+
+                {/* socials (optional): giữ giống component của bạn */}
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <TeamSocialButton
+                    platform="facebook"
+                    value={member.facebook}
+                    context={context}
+                    tokens={tokens}
+                    sizeClass="w-7 h-7"
+                    iconSize={12}
+                  />
+                  <TeamSocialButton
+                    platform="linkedin"
+                    value={member.linkedin}
+                    context={context}
+                    tokens={tokens}
+                    sizeClass="w-7 h-7"
+                    iconSize={12}
+                  />
+                  <TeamSocialButton
+                    platform="twitter"
+                    value={member.twitter}
+                    context={context}
+                    tokens={tokens}
+                    sizeClass="w-7 h-7"
+                    iconSize={12}
+                  />
+                  <TeamSocialButton
+                    platform="email"
+                    value={member.email}
+                    context={context}
+                    tokens={tokens}
+                    sizeClass="w-7 h-7"
+                    iconSize={12}
+                  />
                 </div>
               </div>
             </article>
@@ -641,6 +748,9 @@ export function TeamSectionShared({
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                           <p className="text-sm line-clamp-1" style={{ color: tokens.styleAccentByStyle.timeline }}>{member.role || 'Chức vụ'}</p>
+                          {member.bio ? (
+                            <p className="text-xs mt-1.5 line-clamp-2" style={{ color: tokens.mutedText }}>{member.bio}</p>
+                          ) : null}
                           <div className="mt-2 flex items-center gap-2">
                             <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
                             <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
@@ -695,6 +805,9 @@ export function TeamSectionShared({
                 <div className="text-center">
                   <h3 className="text-lg font-semibold" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                   <p className="text-sm mt-0.5" style={{ color: tokens.styleAccentByStyle.spotlight }}>{member.role || 'Chức vụ'}</p>
+                  {member.bio ? (
+                    <p className="text-xs mt-2 line-clamp-3" style={{ color: tokens.mutedText }}>{member.bio}</p>
+                  ) : null}
 
                   <div className="mt-4 flex items-center justify-center gap-2">
                     <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
