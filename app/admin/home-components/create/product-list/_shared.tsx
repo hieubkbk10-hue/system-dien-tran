@@ -51,7 +51,7 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const [blogStyle, setBlogStyle] = useState<BlogStyle>('grid');
   const [productStyle, setProductStyle] = useState<ProductListStyle>('commerce');
   const [serviceStyle, setServiceStyle] = useState<ServiceListStyle>('grid');
-  const [serviceHarmony, setServiceHarmony] = useState<ServiceListHarmony>(DEFAULT_SERVICE_LIST_HARMONY);
+  const [serviceHarmony, _setServiceHarmony] = useState<ServiceListHarmony>(DEFAULT_SERVICE_LIST_HARMONY);
 
   const [subTitle, setSubTitle] = useState('Bộ sưu tập');
   const [sectionTitle, setSectionTitle] = useState('Sản phẩm nổi bật');

@@ -204,7 +204,7 @@ export const resolveSecondaryColor = (
   harmony: CTAHarmony,
 ) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const harmonyNormalized = normalizeCTAHarmony(harmony);
+  const _harmonyNormalized = normalizeCTAHarmony(harmony);
 
   if (mode === 'single') {
     return primaryNormalized;
@@ -351,7 +351,7 @@ const getGradientTints = (from: string, to: string) => {
   };
 };
 
-const getGradientBg = (from: string, to: string) => {
+const _getGradientBg = (from: string, to: string) => {
   const { fromTint, toTint } = getGradientTints(from, to);
   return `linear-gradient(135deg, ${fromTint} 0%, ${toTint} 100%)`;
 };

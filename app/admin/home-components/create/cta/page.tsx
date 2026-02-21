@@ -25,7 +25,7 @@ export default function CTACreatePage() {
 
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(INITIAL_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
-  const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
+  const [ctaHarmony, _setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
 
   const onSubmit = (e: React.FormEvent) => {
     const { harmonyStatus } = getCTAValidationResult({

@@ -45,7 +45,7 @@ const createItem = (seed: number): BenefitItem => ({
   title: '',
 });
 
-export function BenefitsForm({ state, onChange, mode }: BenefitsFormProps) {
+export function BenefitsForm({ state, onChange, mode: _mode }: BenefitsFormProps) {
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [dragOverId, setDragOverId] = React.useState<string | null>(null);
 

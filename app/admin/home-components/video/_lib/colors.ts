@@ -179,7 +179,7 @@ export const getVideoColorTokens = ({
   secondary,
   mode,
   harmony = 'analogous',
-  style,
+  style: _style,
 }: {
   primary: string;
   secondary: string;
@@ -231,7 +231,7 @@ export const getVideoColorTokens = ({
 
   // Card tokens for parallax/minimal
   const cardBackground = neutralSurface;
-  const cardBorder = neutralBorder;
+  const _cardBorder = neutralBorder;
 
   // Accent border/decorative (secondary)
   const accentBorder = formatHex(oklch({ ...secondaryColor, l: clampLightness((secondaryColor.l ?? 0.6) + 0.35) }));

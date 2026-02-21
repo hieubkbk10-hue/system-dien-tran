@@ -43,7 +43,7 @@ const shiftColor = (hex: string, lightnessDelta: number, chromaScale = 1, fallba
   }));
 };
 
-const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
+const _withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
   const color = safeParseOklch(hex, fallback);
   const l = clampLightness(color.l ?? 0.62);
   const c = clampChroma(color.c ?? 0.14);

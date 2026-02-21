@@ -214,7 +214,7 @@ const renderSidebar = ({
     <div className={wrapperClass} role="group" aria-label={groupLabel}>
       {actions.map((action, idx) => {
         const bg = resolveActionBgColor(action.bgColor, tokens, 'sidebar');
-        const text = getAPCATextColor(bg, 14, 600);
+        const _text = getAPCATextColor(bg, 14, 600);
 
         return (
           <a
@@ -261,7 +261,7 @@ const renderPills = ({
     <div className={wrapperClass} role="group" aria-label={groupLabel}>
       {actions.map((action) => {
         const bg = resolveActionBgColor(action.bgColor, tokens, 'pills');
-        const text = getAPCATextColor(bg, 14, 600);
+        const _text = getAPCATextColor(bg, 14, 600);
 
         return (
           <a
@@ -424,7 +424,7 @@ const renderMinimal = ({
       aria-label={groupLabel}
     >
       {actions.map((action, idx) => {
-        const baseColor = resolveActionBgColor(action.bgColor, tokens, 'minimal');
+        const _baseColor = resolveActionBgColor(action.bgColor, tokens, 'minimal');
 
         return (
           <React.Fragment key={action.key}>

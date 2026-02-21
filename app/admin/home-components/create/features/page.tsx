@@ -28,7 +28,7 @@ export default function FeaturesCreatePage() {
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);
   const [style, setStyle] = useState<FeaturesStyle>('iconGrid');
-  const [harmony, setHarmony] = useState<FeaturesHarmony>(DEFAULT_FEATURES_HARMONY);
+  const [harmony, _setHarmony] = useState<FeaturesHarmony>(DEFAULT_FEATURES_HARMONY);
 
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);

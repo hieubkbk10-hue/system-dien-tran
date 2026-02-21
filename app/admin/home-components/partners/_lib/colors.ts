@@ -143,8 +143,8 @@ export const getPartnersColors = (
   const neutralSubtle = '#f1f5f9';
 
   const primarySoft = shiftLightness(primaryResolved, 0.42, primaryResolved);
-  const primarySubtle = shiftLightness(primaryResolved, 0.5, primaryResolved);
-  const secondarySoft = shiftLightness(secondaryResolved, 0.42, primaryResolved);
+  const _primarySubtle = shiftLightness(primaryResolved, 0.5, primaryResolved);
+  const _secondarySoft = shiftLightness(secondaryResolved, 0.42, primaryResolved);
   const secondarySubtle = shiftLightness(secondaryResolved, 0.5, primaryResolved);
   const secondaryStrong = shiftLightness(secondaryResolved, 0.3, primaryResolved);
 

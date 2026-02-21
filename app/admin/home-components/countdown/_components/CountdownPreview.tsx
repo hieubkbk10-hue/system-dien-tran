@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { getCountdownColorTokens } from '../_lib/colors';
 import { useCountdownTimer } from '../_lib/timer';

@@ -12,7 +12,6 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { SpeedDialForm } from '../../_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../_components/SpeedDialPreview';
-import { normalizeSpeedDialHarmony } from '../../_lib/colors';
 import {
   DEFAULT_SPEED_DIAL_CONFIG,
   DEFAULT_SPEED_DIAL_HARMONY,

@@ -109,7 +109,7 @@ const renderLogoContent = (
   )
 );
 
-const renderLogoItem = (
+const _renderLogoItem = (
   item: NormalizedClientItem,
   idx: number,
   tokens: ClientsColorTokens,

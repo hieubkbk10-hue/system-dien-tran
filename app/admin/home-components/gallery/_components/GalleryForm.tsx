@@ -11,8 +11,8 @@ export const GalleryForm = ({
   setGalleryItems,
   componentType,
   style,
-  headerPrimary,
-  headerSecondary,
+  headerPrimary: _headerPrimary,
+  headerSecondary: _headerSecondary,
 }: {
   galleryItems: GalleryItem[];
   setGalleryItems: (items: GalleryItem[]) => void;

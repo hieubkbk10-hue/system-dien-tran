@@ -334,7 +334,7 @@ export const getGalleryColorTokensWithMeta = ({
   const neutralText = '#0f172a';
   const neutralMuted = '#64748b';
 
-  const primaryTint = getSolidTint(primaryResolved, 0.42);
+  const _primaryTint = getSolidTint(primaryResolved, 0.42);
   const secondaryTint = getSolidTint(secondaryResolved, 0.42);
   const accentSurface = getSolidTint(secondaryResolved, 0.5);
   const accentBorder = neutralBorder;

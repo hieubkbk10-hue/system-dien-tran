@@ -6,7 +6,6 @@ import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
-import { useBrandColors } from '../../create/shared';
 import { deviceWidths, type PreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { getProcessColors, type ProcessColorTokens } from '../_lib/colors';
 import type { ProcessBrandMode, ProcessStyle } from '../_types';

@@ -113,7 +113,7 @@ export function AboutSectionShared({
 }: AboutSectionSharedProps) {
   const isPreview = context === 'preview';
   const isMobilePreview = isPreview && device === 'mobile';
-  const isTabletPreview = isPreview && device === 'tablet';
+  const _isTabletPreview = isPreview && device === 'tablet';
 
   const resolvedHeading = sanitizeText(heading) || sanitizeText(title) || 'Về chúng tôi';
   const resolvedDescription = sanitizeText(description);

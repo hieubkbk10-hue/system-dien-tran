@@ -18,7 +18,7 @@ export const PartnersFeaturedShared = ({
   brandColor,
   secondary,
   mode = 'dual',
-  maxOthers = DEFAULT_MAX_OTHERS,
+  maxOthers: _maxOthers = DEFAULT_MAX_OTHERS,
   openInNewTab = false,
   renderImage,
   className,

@@ -60,7 +60,7 @@ import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
 import type { BenefitItem, BenefitsBrandMode, BenefitsConfig } from '@/app/admin/home-components/benefits/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
-import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
+import { BrandBadge, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
 import { ServiceListSection } from './ServiceListSection';
@@ -84,9 +84,9 @@ import { SpeedDialSection } from './SpeedDialSection';
 import { CountdownSectionWrapper } from './CountdownSectionWrapper';
 import {
   ArrowRight, ArrowUpRight,
-  Building2, ChevronLeft, ChevronRight, Facebook, Globe,
-  Image as ImageIcon, Instagram, LayoutTemplate, Linkedin, Mail, Maximize2, MessageCircle, Package, Phone, Plus,
-  Star, Tag, Twitter, Users, X, Youtube, ZoomIn
+  Building2, ChevronLeft, ChevronRight, Globe,
+  Image as ImageIcon, LayoutTemplate, Mail, Maximize2, MapPin, Package, Phone, Plus,
+  Star, Clock, X, ZoomIn
 } from 'lucide-react';
 
 type SiteImageProps = Omit<React.ComponentProps<typeof Image>, 'width' | 'height' | 'src'> & {
@@ -1533,7 +1533,7 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
 type GalleryStyle = 'spotlight' | 'explore' | 'stories' | 'grid' | 'marquee' | 'masonry' | 'mono' | 'badge' | 'carousel' | 'featured';
 
 // Auto Scroll Slider Component for Marquee/Mono styles
-const AutoScrollSlider = ({ children, speed = 0.5, isPaused }: { children: React.ReactNode; speed?: number; isPaused?: boolean }) => {
+const _AutoScrollSlider = ({ children, speed = 0.5, isPaused }: { children: React.ReactNode; speed?: number; isPaused?: boolean }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = React.useState(false);
   const paused = isPaused ?? isHovered;
@@ -1804,7 +1804,7 @@ function TrustBadgesSection({
   brandColor,
   secondary,
   mode,
-  title,
+  title: _title,
 }: {
   config: Record<string, unknown>;
   brandColor: string;
@@ -4263,7 +4263,7 @@ const useCountdownTimer = (endDate: string) => {
   return timeLeft;
 };
 
-function CountdownSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
+function _CountdownSection({ config, brandColor, secondary, title }: { config: Record<string, unknown>; brandColor: string;
   secondary: string; title: string }) {
   const heading = (config.heading as string) || title;
   const subHeading = (config.subHeading as string) || '';

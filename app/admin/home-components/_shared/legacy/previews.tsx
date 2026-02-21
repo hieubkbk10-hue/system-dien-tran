@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { BrandBadge, StatBox, IconContainer, CheckIcon, AccentLine } from '@/components/site/shared/BrandColorHelpers';
+import { BrandBadge, IconContainer, CheckIcon, AccentLine } from '@/components/site/shared/BrandColorHelpers';
 import { 
   ArrowRight, Briefcase, Building2, Check, ChevronDown, ChevronLeft,
   ChevronRight, Clock, Cpu, Eye, Facebook, FileText,
