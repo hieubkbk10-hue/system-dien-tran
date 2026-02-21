@@ -100,13 +100,19 @@ export const resolveSecondaryForMode = (
   return getHarmonyColor(primaryNormalized, harmony);
 };
 
-const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
+const getSolidTint = (hex: string, lightness: number, fallback = DEFAULT_BRAND_COLOR) => {
   const color = safeParseOklch(hex, fallback);
-  const l = clampLightness(color.l ?? 0.6);
+  const l = clampLightness((color.l ?? 0.6) + lightness);
   const c = Math.max(0, Math.min(color.c ?? 0.1, 0.4));
   const h = Number.isFinite(color.h) ? color.h : 0;
-  const a = Math.max(0, Math.min(alpha, 1));
-  return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${a.toFixed(3)})`;
+  return formatHex(oklch({ l, c, h }));
+};
+
+const pickReadableTextOnSolid = (solidBg: string) => {
+  const bgRgb = toRgbTuple(solidBg, '#ffffff');
+  const whiteLc = Math.abs(APCAcontrast(sRGBtoY([255, 255, 255]), sRGBtoY(bgRgb)));
+  const nearBlackLc = Math.abs(APCAcontrast(sRGBtoY([17, 17, 17]), sRGBtoY(bgRgb)));
+  return whiteLc >= nearBlackLc ? '#ffffff' : '#111111';
 };
 
 export interface VoucherPromotionsColorTokens {
@@ -161,6 +167,32 @@ export interface VoucherPromotionsHarmonyStatus {
   similarity: number;
   isTooSimilar: boolean;
 }
+
+export interface VoucherPromotionsAccentBalance {
+  primary: number;
+  secondary: number;
+  neutral: number;
+}
+
+export const calculateVoucherPromotionsAccentBalance = (
+  mode: VoucherPromotionsBrandMode,
+  style: VoucherPromotionsStyle,
+): VoucherPromotionsAccentBalance => {
+  if (mode === 'single') {
+    return { primary: 30, secondary: 0, neutral: 70 };
+  }
+
+  const balanceByStyle: Record<VoucherPromotionsStyle, VoucherPromotionsAccentBalance> = {
+    enterpriseCards: { primary: 28, secondary: 12, neutral: 60 },
+    ticketHorizontal: { primary: 22, secondary: 18, neutral: 60 },
+    couponGrid: { primary: 25, secondary: 15, neutral: 60 },
+    stackedBanner: { primary: 26, secondary: 14, neutral: 60 },
+    carousel: { primary: 30, secondary: 10, neutral: 60 },
+    minimal: { primary: 20, secondary: 20, neutral: 60 },
+  };
+
+  return balanceByStyle[style];
+};
 
 export const getHarmonyStatus = (primary: string, secondary: string): VoucherPromotionsHarmonyStatus => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
@@ -230,7 +262,21 @@ export const getVoucherPromotionsColorTokens = ({
   const ctaBgHover = formatHex(oklch({ ...primaryOklch, l: clampLightness((primaryOklch.l ?? 0.62) - 0.06) }));
 
   const copyButtonBg = secondaryResolved;
-  const copyButtonText = getAPCATextColor(copyButtonBg, 12, 700);
+  const copyButtonTextCandidate = pickReadableTextOnSolid(copyButtonBg);
+  const copyButtonText = ensureAPCATextColor(copyButtonTextCandidate, copyButtonBg, 12, 700);
+
+  const badgeBg = getSolidTint(secondaryResolved, 0.42, primaryNormalized);
+  const badgeTextCandidate = pickReadableTextOnSolid(badgeBg);
+  const badgeText = ensureAPCATextColor(badgeTextCandidate, badgeBg, 12, 700);
+
+  const ctaOutlineBg = getSolidTint(primaryNormalized, 0.45, primaryNormalized);
+  const ctaOutlineBorder = getSolidTint(primaryNormalized, 0.35, primaryNormalized);
+
+  const accentSoft = getSolidTint(secondaryResolved, 0.42, primaryNormalized);
+  const carouselRing = getSolidTint(secondaryResolved, 0.28, primaryNormalized);
+  const carouselDotInactive = getSolidTint(secondaryResolved, 0.38, primaryNormalized);
+  const copyButtonBorder = getSolidTint(secondaryResolved, 0.32, primaryNormalized);
+  const copyButtonGhostBg = getSolidTint(secondaryResolved, 0.45, primaryNormalized);
 
   return {
     primary: primaryNormalized,
@@ -247,22 +293,22 @@ export const getVoucherPromotionsColorTokens = ({
     ctaBg,
     ctaBgHover,
     ctaOutlineText: ensureAPCATextColor(primaryNormalized, sectionBg, 14, 700),
-    ctaOutlineBorder: withAlpha(primaryNormalized, 0.28, primaryNormalized),
-    ctaOutlineBg: withAlpha(primaryNormalized, 0.08, primaryNormalized),
+    ctaOutlineBorder,
+    ctaOutlineBg,
     ticketStripeBg: '#0f172a',
     ticketCodeText: '#ffffff',
-    badgeBg: withAlpha(secondaryResolved, 0.14, primaryNormalized),
-    badgeText: ensureAPCATextColor(secondaryResolved, sectionBg, 12, 700),
+    badgeBg,
+    badgeText,
     accentLine: secondaryResolved,
-    accentSoft: withAlpha(secondaryResolved, 0.16, primaryNormalized),
-    carouselRing: withAlpha(secondaryResolved, 0.45, primaryNormalized),
+    accentSoft,
+    carouselRing,
     carouselDotActive: secondaryResolved,
-    carouselDotInactive: withAlpha(secondaryResolved, 0.35, primaryNormalized),
+    carouselDotInactive,
     copyButtonBg,
     copyButtonText,
-    copyButtonBorder: withAlpha(secondaryResolved, 0.32, primaryNormalized),
+    copyButtonBorder,
     copyButtonGhostText: ensureAPCATextColor(secondaryResolved, sectionBg, 14, 700),
-    copyButtonGhostBg: withAlpha(secondaryResolved, 0.1, primaryNormalized),
+    copyButtonGhostBg,
     sectionAccentByStyle: {
       enterpriseCards: primaryNormalized,
       ticketHorizontal: secondaryResolved,

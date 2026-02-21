@@ -6,6 +6,7 @@ import { api } from '@/convex/_generated/api';
 import { normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 import {
   normalizeVoucherPromotionsHarmony,
+  normalizeVoucherPromotionsTexts,
   DEFAULT_VOUCHER_PROMOTIONS_HARMONY,
 } from '@/app/admin/home-components/voucher-promotions/_lib/constants';
 import { getVoucherPromotionsColorTokens } from '@/app/admin/home-components/voucher-promotions/_lib/colors';
@@ -14,6 +15,7 @@ import type {
   VoucherPromotionItem,
   VoucherPromotionsBrandMode,
   VoucherPromotionsHarmony,
+  VoucherPromotionsTexts,
 } from '@/app/admin/home-components/voucher-promotions/_types';
 
 interface VoucherPromotionsSectionProps {
@@ -31,10 +33,16 @@ export function VoucherPromotionsSection({
   mode,
   title,
 }: VoucherPromotionsSectionProps) {
-  const heading = (config.heading as string) || title || 'Voucher khuyến mãi';
-  const description = (config.description as string) || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
-  const ctaLabel = (config.ctaLabel as string) || '';
-  const ctaUrl = (config.ctaUrl as string) || '';
+  const texts = normalizeVoucherPromotionsTexts({
+    heading: (config.texts as VoucherPromotionsTexts | undefined)?.heading ?? (config.heading as string | undefined),
+    description: (config.texts as VoucherPromotionsTexts | undefined)?.description ?? (config.description as string | undefined),
+    ctaLabel: (config.texts as VoucherPromotionsTexts | undefined)?.ctaLabel ?? (config.ctaLabel as string | undefined),
+  });
+
+  const heading = texts.heading || title || 'Voucher khuyến mãi';
+  const description = texts.description;
+  const ctaLabel = texts.ctaLabel;
+  const ctaUrl = (config.ctaUrl as string) || '/promotions';
   const limit = normalizeVoucherLimit(config.limit as number | undefined);
   const style = normalizeVoucherStyle(config.style as string | undefined);
   const harmony = normalizeVoucherPromotionsHarmony((config.harmony as string | undefined) ?? DEFAULT_VOUCHER_PROMOTIONS_HARMONY);

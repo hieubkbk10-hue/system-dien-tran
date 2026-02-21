@@ -15,7 +15,9 @@ import { VoucherPromotionsPreview } from '../../_components/VoucherPromotionsPre
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
   normalizeVoucherPromotionsHarmony,
+  normalizeVoucherPromotionsTexts,
 } from '../../_lib/constants';
+import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentBalance } from '../../_lib/colors';
 import type { VoucherPromotionsConfigState } from '../../_types';
 import { normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 
@@ -41,13 +43,15 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
 
       const rawConfig = component.config ?? {};
       const normalizedConfig: VoucherPromotionsConfigState = {
-        ctaLabel: (rawConfig.ctaLabel as string | undefined) ?? '',
-        ctaUrl: (rawConfig.ctaUrl as string | undefined) ?? '',
-        description: (rawConfig.description as string | undefined) ?? '',
-        heading: (rawConfig.heading as string | undefined) ?? '',
+        ctaUrl: (rawConfig.ctaUrl as string | undefined) ?? '/promotions',
         limit: normalizeVoucherLimit(rawConfig.limit as number | undefined),
         style: normalizeVoucherStyle(rawConfig.style as string | undefined),
         harmony: normalizeVoucherPromotionsHarmony(rawConfig.harmony as string | undefined),
+        texts: normalizeVoucherPromotionsTexts({
+          heading: (rawConfig.heading as string | undefined) ?? (rawConfig.texts as { heading?: string } | undefined)?.heading,
+          description: (rawConfig.description as string | undefined) ?? (rawConfig.texts as { description?: string } | undefined)?.description,
+          ctaLabel: (rawConfig.ctaLabel as string | undefined) ?? (rawConfig.texts as { ctaLabel?: string } | undefined)?.ctaLabel,
+        }),
       };
 
       setTitle(component.title);
@@ -64,6 +68,29 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
   const currentSnapshot = useMemo(() => JSON.stringify({ title, active, config }), [title, active, config]);
   const hasChanges = initialSnapshot !== '' && currentSnapshot !== initialSnapshot;
 
+  const validation = useMemo(() => getVoucherPromotionsValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony: config.harmony,
+  }), [primary, secondary, mode, config.harmony]);
+
+  const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(mode, config.style), [mode, config.style]);
+
+  const warningMessages = useMemo(() => {
+    const warnings: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (ΔE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || !hasChanges) {return;}
@@ -74,6 +101,7 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
         ...config,
         limit: normalizeVoucherLimit(config.limit),
         harmony: normalizeVoucherPromotionsHarmony(config.harmony),
+        texts: normalizeVoucherPromotionsTexts(config.texts),
       };
 
       await updateMutation({
@@ -82,7 +110,6 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
         id: id as Id<'homeComponents'>,
         title,
       });
-      setConfig(payloadConfig);
       setInitialSnapshot(JSON.stringify({ title, active, config: payloadConfig }));
       toast.success('Đã cập nhật Voucher Promotions');
     } catch (error) {
@@ -147,6 +174,24 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
               </div>
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
+
+            {mode === 'dual' && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                <div className="font-medium mb-1">Accent Balance</div>
+                <div>Primary: {accentBalance.primary}% • Secondary: {accentBalance.secondary}% • Neutral: {accentBalance.neutral}%</div>
+              </div>
+            )}
+
+            {warningMessages.length > 0 && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <div className="font-medium mb-1">Cảnh báo màu sắc</div>
+                <ul className="list-disc pl-4 space-y-1">
+                  {warningMessages.map((message) => (
+                    <li key={message}>{message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 

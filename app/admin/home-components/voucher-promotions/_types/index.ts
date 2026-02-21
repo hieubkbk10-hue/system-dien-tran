@@ -6,6 +6,12 @@ export type VoucherPromotionsBrandMode = 'single' | 'dual';
 
 export type VoucherPromotionsHarmony = 'analogous' | 'complementary' | 'triadic';
 
+export interface VoucherPromotionsTexts {
+  heading: string;
+  description: string;
+  ctaLabel: string;
+}
+
 export interface VoucherPromotionItem {
   _id?: string;
   code: string;
@@ -21,10 +27,14 @@ export interface VoucherPromotionItem {
   thumbnail?: string;
 }
 
+export interface VoucherPromotionsTexts {
+  heading: string;
+  description: string;
+  ctaLabel: string;
+}
+
 export interface VoucherPromotionsConfig {
-  heading?: string;
-  description?: string;
-  ctaLabel?: string;
+  texts?: VoucherPromotionsTexts;
   ctaUrl?: string;
   harmony?: VoucherPromotionsHarmony;
 }
@@ -33,4 +43,5 @@ export interface VoucherPromotionsConfigState extends VoucherPromotionsConfig {
   style: VoucherPromotionsStyle;
   limit: number;
   harmony: VoucherPromotionsHarmony;
+  texts: VoucherPromotionsTexts;
 }

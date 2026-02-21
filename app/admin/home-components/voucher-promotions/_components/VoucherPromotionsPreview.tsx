@@ -109,9 +109,9 @@ export const VoucherPromotionsPreview = ({
   const previewLimit = normalizeVoucherLimit(limit);
   const resolvedHarmony = normalizeVoucherPromotionsHarmony(harmony);
 
-  const heading = config.heading?.trim() || 'Voucher khuyến mãi';
-  const description = config.description?.trim() || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
-  const ctaLabel = config.ctaLabel?.trim() || 'Xem tất cả ưu đãi';
+  const heading = config.texts?.heading || 'Voucher khuyến mãi';
+  const description = config.texts?.description || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
+  const ctaLabel = config.texts?.ctaLabel || 'Xem tất cả ưu đãi';
   const ctaUrl = config.ctaUrl?.trim() || '/promotions';
 
   const vouchers = React.useMemo(() => voucherSamples.slice(0, previewLimit), [previewLimit]);
@@ -122,20 +122,6 @@ export const VoucherPromotionsPreview = ({
     mode,
     harmony: resolvedHarmony,
   }), [brandColor, secondary, mode, resolvedHarmony]);
-
-  const warningMessages = React.useMemo(() => {
-    const warnings: string[] = [];
-
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
-      warnings.push(`Màu chính và màu phụ đang khá gần nhau (ΔE=${validation.harmonyStatus.deltaE}).`);
-    }
-
-    if (validation.accessibility.failing.length > 0) {
-      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
-    }
-
-    return warnings;
-  }, [mode, validation]);
 
   const handleCopy = React.useCallback((code: string) => {
     setCopiedCode(code);
@@ -179,16 +165,6 @@ export const VoucherPromotionsPreview = ({
           secondary={validation.resolvedSecondary}
           description="Màu phụ được áp dụng cho: copy button, badge, accent line, carousel indicators."
         />
-      )}
-
-      {warningMessages.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          <ul className="list-disc pl-4 space-y-1">
-            {warningMessages.map((message) => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   );

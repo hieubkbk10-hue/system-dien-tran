@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { VoucherPromotionsPreview } from '../../voucher-promotions/_components/VoucherPromotionsPreview';
@@ -8,25 +8,45 @@ import { normalizeVoucherLimit } from '@/lib/home-components/voucher-promotions'
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
   normalizeVoucherPromotionsHarmony,
+  normalizeVoucherPromotionsTexts,
 } from '../../voucher-promotions/_lib/constants';
+import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentBalance } from '../../voucher-promotions/_lib/colors';
 import type { VoucherPromotionsConfigState } from '../../voucher-promotions/_types';
 
 export default function VoucherPromotionsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
   const { primary, secondary, mode } = useBrandColors();
-  const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>({
-    ...DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
-    ctaLabel: 'Xem tất cả ưu đãi',
-    ctaUrl: '/promotions',
-    description: 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.',
-    heading: 'Voucher khuyến mãi',
-  });
+  const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
+
+  const validation = useMemo(() => getVoucherPromotionsValidationResult({
+    primary,
+    secondary,
+    mode,
+    harmony: voucherConfig.harmony,
+  }), [primary, secondary, mode, voucherConfig.harmony]);
+
+  const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(mode, voucherConfig.style), [mode, voucherConfig.style]);
+
+  const warningMessages = useMemo(() => {
+    const warnings: string[] = [];
+
+    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+      warnings.push(`Màu chính và màu phụ đang khá gần nhau (ΔE=${validation.harmonyStatus.deltaE}).`);
+    }
+
+    if (validation.accessibility.failing.length > 0) {
+      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    return warnings;
+  }, [mode, validation]);
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, {
       ...voucherConfig,
       limit: normalizeVoucherLimit(voucherConfig.limit),
       harmony: normalizeVoucherPromotionsHarmony(voucherConfig.harmony),
+      texts: normalizeVoucherPromotionsTexts(voucherConfig.texts),
     });
   };
 
@@ -48,16 +68,22 @@ export default function VoucherPromotionsCreatePage() {
           <div className="space-y-2">
             <Label>Tiêu đề</Label>
             <Input 
-              value={voucherConfig.heading} 
-              onChange={(e) =>{  setVoucherConfig({...voucherConfig, heading: e.target.value}); }} 
+              value={voucherConfig.texts.heading} 
+              onChange={(e) => setVoucherConfig({
+                ...voucherConfig,
+                texts: { ...voucherConfig.texts, heading: e.target.value }
+              })} 
               placeholder="Voucher khuyến mãi" 
             />
           </div>
           <div className="space-y-2">
             <Label>Mô tả</Label>
             <textarea 
-              value={voucherConfig.description} 
-              onChange={(e) =>{  setVoucherConfig({...voucherConfig, description: e.target.value}); }} 
+              value={voucherConfig.texts.description} 
+              onChange={(e) => setVoucherConfig({
+                ...voucherConfig,
+                texts: { ...voucherConfig.texts, description: e.target.value }
+              })} 
               placeholder="Áp dụng mã để nhận ưu đãi tốt nhất hôm nay."
               className="w-full min-h-[60px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" 
             />
@@ -66,8 +92,11 @@ export default function VoucherPromotionsCreatePage() {
             <div className="space-y-2">
               <Label>CTA label</Label>
               <Input 
-                value={voucherConfig.ctaLabel} 
-                onChange={(e) =>{  setVoucherConfig({...voucherConfig, ctaLabel: e.target.value}); }} 
+                value={voucherConfig.texts.ctaLabel} 
+                onChange={(e) => setVoucherConfig({
+                  ...voucherConfig,
+                  texts: { ...voucherConfig.texts, ctaLabel: e.target.value }
+                })} 
                 placeholder="Xem tất cả ưu đãi" 
               />
             </div>
@@ -75,7 +104,7 @@ export default function VoucherPromotionsCreatePage() {
               <Label>CTA link</Label>
               <Input 
                 value={voucherConfig.ctaUrl} 
-                onChange={(e) =>{  setVoucherConfig({...voucherConfig, ctaUrl: e.target.value}); }} 
+                onChange={(e) => setVoucherConfig({ ...voucherConfig, ctaUrl: e.target.value })} 
                 placeholder="/promotions" 
               />
             </div>
@@ -88,14 +117,30 @@ export default function VoucherPromotionsCreatePage() {
                 min={1}
                 max={8}
                 value={voucherConfig.limit}
-                onChange={(e) => {
-                  setVoucherConfig({ ...voucherConfig, limit: Number(e.target.value) });
-                }}
+                onChange={(e) => setVoucherConfig({ ...voucherConfig, limit: Number(e.target.value) })}
                 placeholder="4"
               />
               <p className="text-xs text-slate-500">Dữ liệu tự động từ Promotions (chỉ voucher có mã).</p>
             </div>
           </div>
+
+          {mode === 'dual' && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+              <div className="font-medium mb-1">Accent Balance</div>
+              <div>Primary: {accentBalance.primary}% • Secondary: {accentBalance.secondary}% • Neutral: {accentBalance.neutral}%</div>
+            </div>
+          )}
+
+          {warningMessages.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <div className="font-medium mb-1">Cảnh báo màu sắc</div>
+              <ul className="list-disc pl-4 space-y-1">
+                {warningMessages.map((message) => (
+                  <li key={message}>{message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -107,9 +152,7 @@ export default function VoucherPromotionsCreatePage() {
         secondary={secondary}
         selectedStyle={voucherConfig.style}
         harmony={voucherConfig.harmony}
-        onStyleChange={(nextStyle) => {
-          setVoucherConfig({ ...voucherConfig, style: nextStyle });
-        }}
+        onStyleChange={(nextStyle) => setVoucherConfig({ ...voucherConfig, style: nextStyle })}
       />
     </ComponentFormWrapper>
   );
