@@ -10,7 +10,6 @@ import { TicketPercent, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
 import { VoucherPromotionsPreview } from '../../_components/VoucherPromotionsPreview';
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
@@ -260,8 +259,6 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
             </div>
           </CardContent>
         </Card>
-
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as VoucherPromotionsConfigState); }} title="Cấu hình nâng cao (JSON)" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
