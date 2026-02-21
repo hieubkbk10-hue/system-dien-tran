@@ -1,19 +1,18 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { AlertTriangle, Loader2, PhoneCall } from 'lucide-react';
+import { Loader2, PhoneCall } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
 import { SpeedDialForm } from '../../_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../_components/SpeedDialPreview';
 import { normalizeSpeedDialHarmony } from '../../_lib/colors';
-import { useSpeedDialValidation } from '../../_hooks/useSpeedDialValidation';
 import {
   DEFAULT_SPEED_DIAL_CONFIG,
   DEFAULT_SPEED_DIAL_HARMONY,
@@ -128,14 +127,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
 
   const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
 
-  const { validation, warningMessages } = useSpeedDialValidation({
-    primary,
-    secondary,
-    mode,
-    harmony,
-    actions,
-  });
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isSubmitting) {return;}
@@ -246,20 +237,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
           onPositionChange={setPosition}
           defaultActionColor={secondary || primary}
         />
-
-        {warningMessages.length > 0 && (
-          <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <AlertTriangle size={16} />
-              Cảnh báo màu sắc
-            </div>
-            <ul className="mt-2 list-disc pl-5 text-xs space-y-1">
-              {warningMessages.map((message) => (
-                <li key={message}>{message}</li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div />

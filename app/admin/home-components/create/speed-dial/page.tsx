@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { SpeedDialForm } from '../../speed-dial/_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../speed-dial/_components/SpeedDialPreview';
 import { normalizeSpeedDialHarmony } from '../../speed-dial/_lib/colors';
-import { useSpeedDialValidation } from '../../speed-dial/_hooks/useSpeedDialValidation';
 import { DEFAULT_SPEED_DIAL_CONFIG, DEFAULT_SPEED_DIAL_HARMONY, normalizeSpeedDialStyle } from '../../speed-dial/_lib/constants';
 import type {
   SpeedDialAction,
@@ -34,14 +32,6 @@ export default function SpeedDialCreatePage() {
   const [style, setStyle] = React.useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));
   const [position, setPosition] = React.useState<SpeedDialPosition>(DEFAULT_SPEED_DIAL_CONFIG.position);
   const [harmony] = React.useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
-
-  const { validation, warningMessages } = useSpeedDialValidation({
-    primary,
-    secondary,
-    mode,
-    harmony,
-    actions,
-  });
 
   const onSubmit = (event: React.FormEvent) => {
     const payload: SpeedDialConfig = {
@@ -77,20 +67,6 @@ export default function SpeedDialCreatePage() {
         onPositionChange={setPosition}
         defaultActionColor={secondary || primary}
       />
-
-      {warningMessages.length > 0 && (
-        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <AlertTriangle size={16} />
-            Cảnh báo màu sắc
-          </div>
-          <ul className="mt-2 list-disc pl-5 text-xs space-y-1">
-            {warningMessages.map((message) => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <SpeedDialPreview
         actions={actions}
