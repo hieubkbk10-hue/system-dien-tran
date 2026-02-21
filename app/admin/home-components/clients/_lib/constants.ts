@@ -56,5 +56,5 @@ export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
       subtitle: 'Được tin tưởng bởi các thương hiệu hàng đầu',
       othersLabel: 'Và nhiều đối tác khác',
     },
-  },
+  } as Record<ClientsStyle, Record<string, string>>,
 };

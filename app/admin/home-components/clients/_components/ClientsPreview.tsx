@@ -26,6 +26,7 @@ interface ClientsPreviewProps {
   onStyleChange?: (style: ClientsStyle) => void;
   warningMessages?: string[];
   showValidationSummary?: boolean;
+  texts?: Record<string, string>;
 }
 
 const STYLES: Array<{ id: ClientsStyle; label: string }> = [
@@ -78,6 +79,7 @@ export const ClientsPreview = ({
   onStyleChange,
   warningMessages,
   showValidationSummary = false,
+  texts = {},
 }: ClientsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const normalizedHarmony = normalizeClientsHarmony(harmony);
@@ -125,6 +127,7 @@ export const ClientsPreview = ({
               items={items}
               tokens={validation.tokens}
               device={device}
+              texts={texts}
             />
           )}
         </BrowserFrame>

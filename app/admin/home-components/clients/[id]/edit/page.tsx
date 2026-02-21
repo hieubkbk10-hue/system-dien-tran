@@ -12,6 +12,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ClientsForm } from '../../_components/ClientsForm';
 import { ClientsPreview } from '../../_components/ClientsPreview';
+import { ClientsTextsForm } from '../../_components/ClientsTextsForm';
 import {
   DEFAULT_CLIENTS_CONFIG,
   DEFAULT_CLIENTS_HARMONY,
@@ -61,6 +62,7 @@ const toSnapshot = (payload: {
   style: ClientsStyle;
   harmony: ClientsHarmony;
   items: ClientsConfig['items'];
+  texts?: Record<string, string>;
 }) => JSON.stringify({
   ...payload,
   items: toPersistItems(toEditorItems(payload.items)),
@@ -80,6 +82,7 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
   const [items, setItems] = useState<ClientEditorItem[]>(toEditorItems(DEFAULT_CLIENTS_CONFIG.items));
   const [style, setStyle] = useState<ClientsStyle>(DEFAULT_CLIENTS_CONFIG.style);
   const [harmony, setHarmony] = useState<ClientsHarmony>(DEFAULT_CLIENTS_HARMONY);
+  const [texts, setTexts] = useState<Record<string, string>>({});
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
@@ -96,12 +99,14 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     const rawItems = Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_CLIENTS_CONFIG.items;
     const nextStyle = normalizeClientsStyleSafe(rawConfig.style);
     const nextHarmony = normalizeClientsHarmony(rawConfig.harmony as string | undefined);
+    const nextTexts = (rawConfig.texts?.[nextStyle] as Record<string, string>) || {};
 
     setTitle(component.title);
     setActive(component.active);
     setItems(toEditorItems(rawItems));
     setStyle(nextStyle);
     setHarmony(nextHarmony);
+    setTexts(nextTexts);
 
     setInitialSnapshot(toSnapshot({
       title: component.title,
@@ -109,6 +114,7 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
       style: nextStyle,
       harmony: nextHarmony,
       items: rawItems,
+      texts: nextTexts,
     }));
   }, [component, id, router]);
 
@@ -120,7 +126,8 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     style,
     harmony,
     items: currentItems,
-  }), [title, active, style, harmony, currentItems]);
+    texts,
+  }), [title, active, style, harmony, currentItems, texts]);
 
   const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
 
@@ -223,10 +230,22 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
 
     setIsSubmitting(true);
     try {
+      const allTexts: Record<ClientsStyle, Record<string, string>> = {
+        simpleGrid: { ...DEFAULT_CLIENTS_CONFIG.texts!.simpleGrid },
+        compactInline: { ...DEFAULT_CLIENTS_CONFIG.texts!.compactInline },
+        subtleMarquee: { ...DEFAULT_CLIENTS_CONFIG.texts!.subtleMarquee },
+        grid: { ...DEFAULT_CLIENTS_CONFIG.texts!.grid },
+        carousel: { ...DEFAULT_CLIENTS_CONFIG.texts!.carousel },
+        featured: { ...DEFAULT_CLIENTS_CONFIG.texts!.featured },
+      };
+      
+      allTexts[style] = { ...allTexts[style], ...texts };
+
       const nextConfig: ClientsConfig = {
         items: currentItems,
         style,
         harmony: normalizeClientsHarmony(harmony),
+        texts: allTexts,
       };
 
       await updateMutation({
@@ -242,6 +261,7 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
         style,
         harmony: nextConfig.harmony ?? DEFAULT_CLIENTS_HARMONY,
         items: nextConfig.items,
+        texts,
       }));
 
       setHarmony(nextConfig.harmony ?? DEFAULT_CLIENTS_HARMONY);
@@ -313,6 +333,14 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
+        <ClientsTextsForm
+          style={style}
+          texts={texts}
+          onUpdateText={(key, value) => {
+            setTexts((prev) => ({ ...prev, [key]: value }));
+          }}
+        />
+
         <ClientsForm
           items={items}
           uploadingId={uploadingId}
@@ -340,6 +368,7 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
               selectedStyle={style}
               onStyleChange={setStyle}
               warningMessages={warningMessages}
+              texts={texts}
             />
           </div>
         </div>
