@@ -176,7 +176,7 @@ const TeamSocialButton = ({
 }) => {
   const href = getSocialHref(platform, value);
 
-  if (!href && context === 'site') {
+  if (!href) {
     return null;
   }
 
@@ -188,7 +188,7 @@ const TeamSocialButton = ({
     color: tokens.socialButtonIcon,
   };
 
-  if (context === 'site' && href) {
+  if (context === 'site') {
     const isMail = href.startsWith('mailto:');
 
     return (
@@ -206,7 +206,7 @@ const TeamSocialButton = ({
   }
 
   return (
-    <span className={className} style={style} aria-hidden="true">
+    <span className={className} style={style} aria-label={platform}>
       {icon}
     </span>
   );
@@ -355,39 +355,33 @@ export function TeamSectionShared({
       <section className={basePadding} data-mode={mode}>
         {header}
         <div className={cn('max-w-7xl mx-auto grid gap-4 md:gap-6', columns)}>
-          {visibleMembers.map((member) => {
-            const hasSocial = member.facebook || member.linkedin || member.twitter || member.email;
-
-            return (
-              <article key={member.key} className="group text-center">
-                <div
-                  className="relative mb-3 overflow-hidden rounded-2xl border aspect-square"
-                  style={{
-                    backgroundColor: tokens.cardBackground,
-                    borderColor: tokens.cardBorder,
-                  }}
-                >
-                  <TeamAvatar
-                    member={member}
-                    tokens={tokens}
-                    context={context}
-                    className="h-full w-full object-cover"
-                    sizes="(max-width: 768px) 50vw, 240px"
-                  />
-                  {hasSocial ? (
-                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 pb-3 pt-8 bg-gradient-to-t from-slate-900/80 to-transparent">
-                      <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} />
-                    </div>
-                  ) : null}
+          {visibleMembers.map((member) => (
+            <article key={member.key} className="group text-center">
+              <div
+                className="relative mb-3 overflow-hidden rounded-2xl border aspect-square"
+                style={{
+                  backgroundColor: tokens.cardBackground,
+                  borderColor: tokens.cardBorder,
+                }}
+              >
+                <TeamAvatar
+                  member={member}
+                  tokens={tokens}
+                  context={context}
+                  className="h-full w-full object-cover"
+                  sizes="(max-width: 768px) 50vw, 240px"
+                />
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 pb-3 pt-8 bg-gradient-to-t from-slate-900/80 to-transparent">
+                  <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
+                  <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} />
+                  <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} />
+                  <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} />
                 </div>
-                <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
-                <p className="text-sm mt-0.5 line-clamp-1" style={{ color: tokens.styleAccentByStyle.grid }}>{member.role || 'Chức vụ'}</p>
-              </article>
-            );
-          })}
+              </div>
+              <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
+              <p className="text-sm mt-0.5 line-clamp-1" style={{ color: tokens.styleAccentByStyle.grid }}>{member.role || 'Chức vụ'}</p>
+            </article>
+          ))}
         </div>
       </section>
     );
@@ -402,44 +396,38 @@ export function TeamSectionShared({
       <section className={cn(basePadding, 'bg-slate-50/60')} data-mode={mode}>
         {header}
         <div className={cn('max-w-7xl mx-auto grid gap-4 md:gap-5', columns)}>
-          {visibleMembers.map((member) => {
-            const hasSocial = member.facebook || member.linkedin || member.twitter || member.email;
-
-            return (
-              <article
-                key={member.key}
-                className="rounded-2xl border p-4 md:p-5 h-full"
-                style={{
-                  backgroundColor: tokens.cardBackground,
-                  borderColor: tokens.cardBorder,
-                }}
-              >
-                <div className="flex items-start gap-3 md:gap-4">
-                  <div className="relative h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-xl border" style={{ borderColor: tokens.cardBorder }}>
-                    <TeamAvatar
-                      member={member}
-                      tokens={tokens}
-                      context={context}
-                      className="h-full w-full object-cover"
-                      sizes="96px"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
-                    <p className="text-sm line-clamp-1" style={{ color: tokens.styleAccentByStyle.cards }}>{member.role || 'Chức vụ'}</p>
-                  </div>
+          {visibleMembers.map((member) => (
+            <article
+              key={member.key}
+              className="rounded-2xl border p-4 md:p-5 h-full"
+              style={{
+                backgroundColor: tokens.cardBackground,
+                borderColor: tokens.cardBorder,
+              }}
+            >
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="relative h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-xl border" style={{ borderColor: tokens.cardBorder }}>
+                  <TeamAvatar
+                    member={member}
+                    tokens={tokens}
+                    context={context}
+                    className="h-full w-full object-cover"
+                    sizes="96px"
+                  />
                 </div>
-                {hasSocial ? (
-                  <div className="mt-4 flex items-center gap-2">
-                    <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
+                  <p className="text-sm line-clamp-1" style={{ color: tokens.styleAccentByStyle.cards }}>{member.role || 'Chức vụ'}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     );
@@ -515,45 +503,39 @@ export function TeamSectionShared({
                 scrollbarWidth: 'none',
               }}
             >
-              {visibleMembers.map((member) => {
-                const hasSocial = member.facebook || member.linkedin || member.twitter || member.email;
-
-                return (
-                  <article
-                    key={member.key}
-                    className="snap-start shrink-0 rounded-2xl border overflow-hidden"
-                    style={{
-                      width: cardWidth,
-                      backgroundColor: tokens.cardBackground,
-                      borderColor: tokens.cardBorder,
-                      borderBottomColor: tokens.styleAccentByStyle.carousel,
-                      borderBottomWidth: 3,
-                    }}
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden">
-                      <TeamAvatar
-                        member={member}
-                        tokens={tokens}
-                        context={context}
-                        className="h-full w-full object-cover"
-                        sizes="(max-width: 768px) 90vw, 312px"
-                      />
+              {visibleMembers.map((member) => (
+                <article
+                  key={member.key}
+                  className="snap-start shrink-0 rounded-2xl border overflow-hidden"
+                  style={{
+                    width: cardWidth,
+                    backgroundColor: tokens.cardBackground,
+                    borderColor: tokens.cardBorder,
+                    borderBottomColor: tokens.styleAccentByStyle.carousel,
+                    borderBottomWidth: 3,
+                  }}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <TeamAvatar
+                      member={member}
+                      tokens={tokens}
+                      context={context}
+                      className="h-full w-full object-cover"
+                      sizes="(max-width: 768px) 90vw, 312px"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
+                    <p className="text-sm mt-0.5 line-clamp-1" style={{ color: tokens.roleText }}>{member.role || 'Chức vụ'}</p>
+                    <div className="mt-3 pt-3 border-t flex items-center gap-2" style={{ borderColor: tokens.cardBorder }}>
+                      <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
-                      <p className="text-sm mt-0.5 line-clamp-1" style={{ color: tokens.roleText }}>{member.role || 'Chức vụ'}</p>
-                      {hasSocial ? (
-                        <div className="mt-3 pt-3 border-t flex items-center gap-2" style={{ borderColor: tokens.cardBorder }}>
-                          <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                          <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                          <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                          <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                        </div>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </div>
@@ -663,14 +645,12 @@ export function TeamSectionShared({
                     <h3 className="text-xl font-semibold" style={{ color: tokens.neutralText }}>{featured.name || 'Thành viên'}</h3>
                     <p className="text-sm mt-0.5" style={{ color: tokens.styleAccentByStyle.hexagon }}>{featured.role || 'Chức vụ'}</p>
                   </div>
-                  {(featured.facebook || featured.linkedin || featured.twitter || featured.email) ? (
-                    <div className="flex items-center gap-2">
-                      <TeamSocialButton platform="facebook" value={featured.facebook} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="linkedin" value={featured.linkedin} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="twitter" value={featured.twitter} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="email" value={featured.email} context={context} tokens={tokens} />
-                    </div>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    <TeamSocialButton platform="facebook" value={featured.facebook} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="linkedin" value={featured.linkedin} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="twitter" value={featured.twitter} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="email" value={featured.email} context={context} tokens={tokens} />
+                  </div>
                 </div>
               </article>
             </div>
@@ -727,14 +707,12 @@ export function TeamSectionShared({
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                           <p className="text-sm line-clamp-1" style={{ color: tokens.styleAccentByStyle.timeline }}>{member.role || 'Chức vụ'}</p>
-                          {(member.facebook || member.linkedin || member.twitter || member.email) ? (
-                            <div className="mt-2 flex items-center gap-2">
-                              <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                              <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                              <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                              <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                            </div>
-                          ) : null}
+                          <div className="mt-2 flex items-center gap-2">
+                            <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                            <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                            <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                            <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -784,14 +762,12 @@ export function TeamSectionShared({
                   <h3 className="text-lg font-semibold" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
                   <p className="text-sm mt-0.5" style={{ color: tokens.styleAccentByStyle.spotlight }}>{member.role || 'Chức vụ'}</p>
 
-                  {(member.facebook || member.linkedin || member.twitter || member.email) ? (
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} />
-                      <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} />
-                    </div>
-                  ) : null}
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} />
+                    <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} />
+                  </div>
                 </div>
               </div>
             </article>
