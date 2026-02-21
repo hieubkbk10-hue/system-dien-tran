@@ -171,6 +171,7 @@ export interface VideoColorTokens {
   secondaryCtaBackground: string;
   secondaryCtaText: string;
   secondaryCtaHover: string;
+  secondaryTextOnDark: string;
 }
 
 export const getVideoColorTokens = ({
@@ -225,6 +226,9 @@ export const getVideoColorTokens = ({
   const secondaryCtaText = ensureAPCATextColor(secondaryResolved, neutralSurface, 14, 600);
   const secondaryCtaHover = formatHex(oklch({ ...secondaryColor, l: clampLightness((secondaryColor.l ?? 0.6) - 0.08) }));
 
+  // Secondary text on dark background (tint để đủ sáng trên dark)
+  const secondaryTextOnDark = formatHex(oklch({ ...secondaryColor, l: clampLightness((secondaryColor.l ?? 0.6) + 0.25), c: Math.max((secondaryColor.c ?? 0.1) * 1.1, 0.08) }));
+
   // Card tokens for parallax/minimal
   const cardBackground = neutralSurface;
   const cardBorder = neutralBorder;
@@ -265,6 +269,7 @@ export const getVideoColorTokens = ({
     secondaryCtaBackground,
     secondaryCtaText,
     secondaryCtaHover,
+    secondaryTextOnDark,
   };
 };
 

@@ -372,7 +372,11 @@ export function VideoSectionShared({
                 <div className="max-w-2xl space-y-4">
                   {renderBadge()}
                   {heading ? <h2 className={cn('font-bold text-white', getHeadingClass(device))}>{heading}</h2> : null}
-                  {description ? <p className={cn('text-white/85', getCardTextClass(device))}>{description}</p> : null}
+                  {description ? (
+                    <p className={cn('leading-relaxed', getCardTextClass(device))} style={{ color: tokens.secondaryTextOnDark }}>
+                      {description}
+                    </p>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => setIsPlaying(true)}
@@ -410,7 +414,11 @@ export function VideoSectionShared({
           <div className="space-y-3 text-center">
             {renderBadge()}
             {heading ? <h2 className={cn('font-bold text-white', getHeadingClass(device))}>{heading}</h2> : null}
-            {description ? <p className={cn('mx-auto max-w-3xl text-white/80', getCardTextClass(device))}>{description}</p> : null}
+            {description ? (
+              <p className={cn('mx-auto max-w-3xl leading-relaxed', getCardTextClass(device))} style={{ color: tokens.secondaryTextOnDark }}>
+                {description}
+              </p>
+            ) : null}
           </div>
           <VideoSurface
             videoUrl={safeVideoUrl}
