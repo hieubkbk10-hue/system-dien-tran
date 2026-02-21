@@ -153,20 +153,21 @@ export interface VideoColorTokens {
   videoSurface: string;
   videoPlaceholder: string;
   sectionOverlay: string;
-  sectionOverlayStrong: string;
   badgeBackground: string;
   badgeText: string;
   badgeBorder: string;
   ctaBackground: string;
   ctaText: string;
   ctaBorder: string;
+  ctaHover: string;
   iconSurface: string;
   iconText: string;
-  frameTopBottom: string;
   frameBackground: string;
-  parallaxBackdrop: string;
   playButtonBackground: string;
   playButtonText: string;
+  playButtonHover: string;
+  cardBackground: string;
+  cardBorder: string;
 }
 
 export const getVideoColorTokens = ({
@@ -189,23 +190,38 @@ export const getVideoColorTokens = ({
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
   const neutralBorder = '#e2e8f0';
-
   const darkFrameBackground = '#0f172a';
+
+  // Text colors on neutral surfaces
   const headingOnNeutral = ensureAPCATextColor(primaryResolved, neutralSurface, 28, 700);
   const bodyOnNeutral = ensureAPCATextColor('#334155', neutralSurface, 16, 500);
   const mutedOnNeutral = ensureAPCATextColor('#64748b', neutralSurface, 14, 500);
   
+  // Badge tokens (secondary accent)
   const badgeBackground = getSolidTint(secondaryResolved, 0.42);
   const badgeTextCandidate = pickReadableTextOnSolid(badgeBackground);
   const badgeText = ensureAPCATextColor(badgeTextCandidate, badgeBackground, 12, 700);
   
+  // CTA tokens (primary action)
   const ctaBackground = primaryResolved;
   const ctaTextCandidate = pickReadableTextOnSolid(ctaBackground);
   const ctaText = ensureAPCATextColor(ctaTextCandidate, ctaBackground, 14, 600);
+  
+  // Hover states using OKLCH (no opacity)
+  const primaryColor = safeParseOklch(primaryResolved, DEFAULT_BRAND_COLOR);
+  const ctaHover = formatHex(oklch({ ...primaryColor, l: clampLightness((primaryColor.l ?? 0.6) - 0.12) }));
+  const playButtonHover = formatHex(oklch({ ...primaryColor, l: clampLightness((primaryColor.l ?? 0.6) - 0.1) }));
 
-  const parallaxBackdrop = style === 'parallax'
-    ? `linear-gradient(135deg, ${withAlpha(primaryResolved, 0.9, primaryResolved)} 0%, ${withAlpha(secondaryResolved, 0.88, primaryResolved)} 100%)`
-    : `linear-gradient(135deg, ${withAlpha(primaryResolved, 0.85, primaryResolved)} 0%, ${withAlpha(primaryResolved, 0.72, primaryResolved)} 100%)`;
+  // Play button tokens
+  const playButtonBackground = primaryResolved;
+  const playButtonText = ensureAPCATextColor(pickReadableTextOnSolid(primaryResolved), primaryResolved, 18, 700);
+
+  // Card tokens for parallax/minimal
+  const cardBackground = neutralSurface;
+  const cardBorder = neutralBorder;
+
+  // Overlay for fullwidth/cinema (functional only, reduced opacity)
+  const sectionOverlay = withAlpha('#0f172a', 0.5, '#0f172a');
 
   return {
     primary: primaryResolved,
@@ -218,21 +234,22 @@ export const getVideoColorTokens = ({
     neutralBorder,
     videoSurface: darkFrameBackground,
     videoPlaceholder: getSolidTint(secondaryResolved, 0.44),
-    sectionOverlay: withAlpha('#0f172a', 0.5, '#0f172a'),
-    sectionOverlayStrong: withAlpha('#0f172a', 0.76, '#0f172a'),
+    sectionOverlay,
     badgeBackground,
     badgeText,
     badgeBorder: neutralBorder,
     ctaBackground,
     ctaText,
     ctaBorder: neutralBorder,
+    ctaHover,
     iconSurface: neutralSurface,
     iconText: primaryResolved,
-    frameTopBottom: getSolidTint(secondaryResolved, 0.3),
     frameBackground: darkFrameBackground,
-    parallaxBackdrop,
-    playButtonBackground: primaryResolved,
-    playButtonText: ensureAPCATextColor(pickReadableTextOnSolid(primaryResolved), primaryResolved, 18, 700),
+    playButtonBackground,
+    playButtonText,
+    playButtonHover,
+    cardBackground,
+    cardBorder,
   };
 };
 
