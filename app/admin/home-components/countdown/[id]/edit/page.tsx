@@ -71,7 +71,6 @@ export default function EditCountdownPage() {
 
       setInitialSnapshot(currentSnapshot);
       toast.success('Đã lưu Countdown');
-      router.push('/admin/home-components');
     } catch (error) {
       toast.error('Lỗi khi lưu Countdown');
       console.error(error);
