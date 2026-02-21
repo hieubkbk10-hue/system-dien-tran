@@ -19,6 +19,7 @@ const TEXT_FIELDS: Record<ClientsStyle, Array<{ key: string; label: string; plac
     { key: 'heading', label: 'Heading', placeholder: 'Khách hàng tin tưởng' },
   ],
   subtleMarquee: [
+    { key: 'heading', label: 'Heading', placeholder: 'Khách hàng tin tưởng' },
     { key: 'subtitle', label: 'Subtitle', placeholder: 'Đối tác' },
   ],
   grid: [

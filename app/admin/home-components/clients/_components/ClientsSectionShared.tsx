@@ -225,14 +225,16 @@ export function ClientsSectionShared({
 
   // Layout 3: Subtle Marquee - Very slow scroll, no filters
   if (selectedStyle === 'subtleMarquee') {
+    const heading = texts.heading || sectionTitle;
     const subtitle = texts.subtitle || 'Đối tác';
     
     return (
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <style>{subtleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: tokens.secondary }}>{subtitle}</p>
+            <h2 className="text-lg md:text-xl font-bold" style={{ color: tokens.heading }}>{heading}</h2>
           </div>
           <div
             className="subtle-marquee-container relative overflow-hidden py-4"

@@ -41,6 +41,7 @@ export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
       heading: 'Khách hàng tin tưởng',
     },
     subtleMarquee: {
+      heading: 'Khách hàng tin tưởng',
       subtitle: 'Đối tác',
     },
     grid: {
