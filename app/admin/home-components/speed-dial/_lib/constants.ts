@@ -22,15 +22,14 @@ export const normalizeSpeedDialStyle = (value?: string): SpeedDialStyle => {
 export const DEFAULT_SPEED_DIAL_CONFIG: SpeedDialConfig = {
   actions: [
     {
-      bgColor: '#111827',
+      id: 'default-1',
+      bgColor: '#3b82f6',
       icon: 'phone',
       label: '',
       url: '',
     },
   ],
-  alwaysOpen: false,
   harmony: DEFAULT_SPEED_DIAL_HARMONY,
-  mainButtonColor: '#111827',
   position: 'bottom-right',
   style: 'fab',
 };

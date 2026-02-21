@@ -5,7 +5,8 @@ import { AlertTriangle } from 'lucide-react';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { SpeedDialForm } from '../../speed-dial/_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../speed-dial/_components/SpeedDialPreview';
-import { getSpeedDialValidationResult, normalizeSpeedDialHarmony } from '../../speed-dial/_lib/colors';
+import { normalizeSpeedDialHarmony } from '../../speed-dial/_lib/colors';
+import { useSpeedDialValidation } from '../../speed-dial/_hooks/useSpeedDialValidation';
 import { DEFAULT_SPEED_DIAL_CONFIG, DEFAULT_SPEED_DIAL_HARMONY, normalizeSpeedDialStyle } from '../../speed-dial/_lib/constants';
 import type {
   SpeedDialAction,
@@ -34,27 +35,13 @@ export default function SpeedDialCreatePage() {
   const [position, setPosition] = React.useState<SpeedDialPosition>(DEFAULT_SPEED_DIAL_CONFIG.position);
   const [harmony] = React.useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
 
-  const validation = React.useMemo(() => getSpeedDialValidationResult({
+  const { validation, warningMessages } = useSpeedDialValidation({
     primary,
     secondary,
     mode,
     harmony,
     actions,
-  }), [primary, secondary, mode, harmony, actions]);
-
-  const warningMessages = React.useMemo(() => {
-    const warnings: string[] = [];
-
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
-      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
-    }
-
-    if (validation.accessibility.failing.length > 0) {
-      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
-    }
-
-    return warnings;
-  }, [mode, validation]);
+  });
 
   const onSubmit = (event: React.FormEvent) => {
     const payload: SpeedDialConfig = {

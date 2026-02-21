@@ -1,5 +1,5 @@
 export interface SpeedDialAction {
-  id?: string | number;
+  id: string | number;
   icon: string;
   label: string;
   url: string;
@@ -19,6 +19,4 @@ export interface SpeedDialConfig {
   style: SpeedDialStyle;
   position: SpeedDialPosition;
   harmony?: SpeedDialHarmony;
-  mainButtonColor?: string;
-  alwaysOpen?: boolean;
 }

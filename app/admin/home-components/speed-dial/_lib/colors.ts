@@ -163,7 +163,6 @@ export interface SpeedDialColorTokens {
   actionStyleBg: Record<SpeedDialStyle, string>;
   actionStyleText: Record<SpeedDialStyle, string>;
   actionStyleBorder: Record<SpeedDialStyle, string>;
-  actionShadow: string;
   labelPillBg: string;
   labelPillText: string;
   minimalBarBg: string;
@@ -348,7 +347,7 @@ export const getSpeedDialColorTokens = ({
       pills: getAPCATextColor(secondaryResolved, 14, 600),
       stack: getAPCATextColor(secondaryResolved, 14, 600),
       dock: getAPCATextColor(secondaryResolved, 14, 600),
-      minimal: ensureAPCATextColor(secondaryResolved, neutralSurface, 14, 600),
+      minimal: getAPCATextColor(neutralSurface, 14, 600),
     },
     actionStyleBorder: {
       fab: neutralBorder,
@@ -358,7 +357,6 @@ export const getSpeedDialColorTokens = ({
       dock: neutralBorder,
       minimal: neutralBorder,
     },
-    actionShadow: getSolidTint(secondaryResolved, 0.18),
     labelPillBg: tooltipBg,
     labelPillText: tooltipText,
     minimalBarBg: neutralSurface,
@@ -368,7 +366,7 @@ export const getSpeedDialColorTokens = ({
     pageMockLine: neutralBorder,
     pageMockCard: neutralSurface,
     plusTileBg: neutralBackground,
-    plusTileIcon: primaryResolved,
+    plusTileIcon: mutedText,
   };
 };
 

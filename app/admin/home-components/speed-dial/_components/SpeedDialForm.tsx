@@ -22,6 +22,49 @@ const ICON_OPTIONS = [
 
 const HEX_6 = /^#[0-9a-fA-F]{6}$/;
 
+const URL_PATTERNS = {
+  tel: /^tel:[0-9+\-() ]+$/,
+  mailto: /^mailto:[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  http: /^https?:\/\/.+/,
+  zalo: /^https:\/\/zalo\.me\/.+/,
+};
+
+const validateUrl = (url: string): { valid: boolean; message?: string } => {
+  if (!url.trim()) {
+    return { valid: true }; // Empty is OK
+  }
+
+  const trimmed = url.trim();
+
+  if (URL_PATTERNS.tel.test(trimmed)) {
+    return { valid: true };
+  }
+
+  if (URL_PATTERNS.mailto.test(trimmed)) {
+    return { valid: true };
+  }
+
+  if (URL_PATTERNS.http.test(trimmed)) {
+    return { valid: true };
+  }
+
+  return {
+    valid: false,
+    message: 'URL không hợp lệ. Dùng tel:, mailto:, hoặc https://',
+  };
+};
+
+const validateHexColor = (color: string): { valid: boolean; message?: string } => {
+  if (HEX_6.test(color)) {
+    return { valid: true };
+  }
+
+  return {
+    valid: false,
+    message: 'Màu phải có định dạng #RRGGBB',
+  };
+};
+
 const normalizeActionColor = (value: string, fallback: string) => (
   HEX_6.test(value) ? value : fallback
 );
@@ -43,6 +86,8 @@ export function SpeedDialForm({
 }: SpeedDialFormProps) {
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [dragOverId, setDragOverId] = React.useState<string | null>(null);
+  const [urlErrors, setUrlErrors] = React.useState<Record<string, string>>({});
+  const [colorErrors, setColorErrors] = React.useState<Record<string, string>>({});
 
   const safeDefaultColor = normalizeActionColor(defaultActionColor, '#3b82f6');
 
@@ -236,17 +281,38 @@ export function SpeedDialForm({
                         value={normalizeActionColor(action.bgColor, safeDefaultColor)}
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                           handleUpdate(id, (current) => ({ ...current, bgColor: event.target.value }));
+                          setColorErrors((prev) => {
+                            const next = { ...prev };
+                            delete next[id];
+                            return next;
+                          });
                         }}
                         className="w-12 h-9 p-1 cursor-pointer"
+                        aria-label="Chọn màu nền"
                       />
                       <Input
                         value={action.bgColor}
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                          handleUpdate(id, (current) => ({ ...current, bgColor: event.target.value }));
+                          const newColor = event.target.value;
+                          handleUpdate(id, (current) => ({ ...current, bgColor: newColor }));
+                          
+                          const validation = validateHexColor(newColor);
+                          if (!validation.valid && validation.message) {
+                            setColorErrors((prev) => ({ ...prev, [id]: validation.message! }));
+                          } else {
+                            setColorErrors((prev) => {
+                              const next = { ...prev };
+                              delete next[id];
+                              return next;
+                            });
+                          }
                         }}
-                        className="flex-1"
+                        className={cn('flex-1', colorErrors[id] && 'border-red-500')}
                       />
                     </div>
+                    {colorErrors[id] && (
+                      <p className="text-xs text-red-500">{colorErrors[id]}</p>
+                    )}
                   </div>
                 </div>
 
@@ -266,10 +332,26 @@ export function SpeedDialForm({
                     <Input
                       value={action.url}
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                        handleUpdate(id, (current) => ({ ...current, url: event.target.value }));
+                        const newUrl = event.target.value;
+                        handleUpdate(id, (current) => ({ ...current, url: newUrl }));
+                        
+                        const validation = validateUrl(newUrl);
+                        if (!validation.valid && validation.message) {
+                          setUrlErrors((prev) => ({ ...prev, [id]: validation.message! }));
+                        } else {
+                          setUrlErrors((prev) => {
+                            const next = { ...prev };
+                            delete next[id];
+                            return next;
+                          });
+                        }
                       }}
                       placeholder="tel:0123456789"
+                      className={urlErrors[id] ? 'border-red-500' : ''}
                     />
+                    {urlErrors[id] && (
+                      <p className="text-xs text-red-500">{urlErrors[id]}</p>
+                    )}
                   </div>
                 </div>
               </div>

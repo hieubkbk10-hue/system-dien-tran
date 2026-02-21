@@ -157,7 +157,7 @@ const renderFab = ({
               </span>
             )}
             <span
-              className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform border"
+              className="w-11 h-11 rounded-full shadow-sm flex items-center justify-center transition-colors border"
               style={{
                 backgroundColor: bg,
                 color: text,
@@ -267,8 +267,12 @@ const renderPills = ({
           <a
             key={action.key}
             {...getLinkProps(action.url)}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-transform hover:scale-[1.02] ${isRight ? 'flex-row' : 'flex-row-reverse'}`}
-            style={{ backgroundColor: bg, color: tokens.actionStyleText.pills }}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full shadow-sm transition-colors border ${isRight ? 'flex-row' : 'flex-row-reverse'}`}
+            style={{ 
+              backgroundColor: bg, 
+              color: tokens.actionStyleText.pills,
+              borderColor: tokens.actionStyleBorder.pills,
+            }}
             aria-label={action.label || action.icon}
           >
             {getIconNode(action.icon, 17)}
@@ -308,14 +312,13 @@ const renderStack = ({
             <a
               key={action.key}
               {...getLinkProps(action.url)}
-              className="group absolute left-1/2 -translate-x-1/2 w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform border"
+              className="group absolute left-1/2 -translate-x-1/2 w-11 h-11 rounded-full shadow-sm flex items-center justify-center transition-colors border"
               style={{
                 bottom: `${idx * 34}px`,
                 zIndex: actions.length - idx,
                 backgroundColor: bg,
                 color: text,
                 borderColor: tokens.actionStyleBorder.stack,
-                boxShadow: `0 6px 14px ${tokens.actionShadow}`,
               }}
               aria-label={action.label || action.icon}
             >
@@ -356,7 +359,6 @@ const renderDock = ({
       <div
         className="flex items-end justify-center rounded-2xl p-2 gap-1.5 border"
         style={{
-          backdropFilter: 'blur(8px)',
           backgroundColor: context === 'site' ? tokens.overlayScrim : tokens.dockBackdrop,
           borderColor: tokens.neutralBorder,
         }}
@@ -369,11 +371,11 @@ const renderDock = ({
             <a
               key={action.key}
               {...getLinkProps(action.url)}
-              className="group relative w-10 h-10 rounded-xl flex items-center justify-center transition-transform hover:scale-125 hover:-translate-y-1"
+              className="group relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors border"
               style={{
                 backgroundColor: bg,
                 color: text,
-                boxShadow: `0 4px 10px ${tokens.actionShadow}`,
+                borderColor: tokens.actionStyleBorder.dock,
               }}
               aria-label={action.label || action.icon}
             >
@@ -408,8 +410,8 @@ const renderMinimal = ({
   groupLabel: string;
 }) => {
   const wrapperClass = context === 'site'
-    ? `fixed bottom-6 z-50 flex items-center rounded-full px-2 py-1.5 gap-1.5 border shadow-lg ${isRight ? 'right-6' : 'left-6'}`
-    : `absolute bottom-4 z-30 flex items-center rounded-full px-2 py-1.5 gap-1.5 border shadow-lg ${isRight ? 'right-4' : 'left-4'}`;
+    ? `fixed bottom-6 z-50 flex items-center rounded-full px-2 py-1.5 gap-1.5 border shadow-sm ${isRight ? 'right-6' : 'left-6'}`
+    : `absolute bottom-4 z-30 flex items-center rounded-full px-2 py-1.5 gap-1.5 border shadow-sm ${isRight ? 'right-4' : 'left-4'}`;
 
   return (
     <div
@@ -417,7 +419,6 @@ const renderMinimal = ({
       style={{
         backgroundColor: tokens.minimalBarBg,
         borderColor: tokens.neutralBorder,
-        boxShadow: `0 6px 16px ${tokens.actionShadow}`,
       }}
       role="group"
       aria-label={groupLabel}
@@ -429,8 +430,8 @@ const renderMinimal = ({
           <React.Fragment key={action.key}>
             <a
               {...getLinkProps(action.url)}
-              className="group relative w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
-              style={{ color: getAPCATextColor(baseColor, 14, 600) }}
+              className="group relative w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ color: tokens.minimalIconColor }}
               aria-label={action.label || action.icon}
             >
               <span

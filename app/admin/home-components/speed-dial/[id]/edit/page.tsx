@@ -12,7 +12,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { SpeedDialForm } from '../../_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../_components/SpeedDialPreview';
-import { getSpeedDialValidationResult, normalizeSpeedDialHarmony } from '../../_lib/colors';
+import { normalizeSpeedDialHarmony } from '../../_lib/colors';
+import { useSpeedDialValidation } from '../../_hooks/useSpeedDialValidation';
 import {
   DEFAULT_SPEED_DIAL_CONFIG,
   DEFAULT_SPEED_DIAL_HARMONY,
@@ -83,7 +84,7 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
   const [actions, setActions] = useState<SpeedDialAction[]>([]);
   const [style, setStyle] = useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));
   const [position, setPosition] = useState<SpeedDialPosition>(DEFAULT_SPEED_DIAL_CONFIG.position);
-  const [harmony, setHarmony] = useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
+  const [harmony] = useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
@@ -99,23 +100,19 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
     const normalizedActions = normalizeActions((rawConfig as Record<string, unknown>).actions);
     const normalizedStyle = normalizeSpeedDialStyle((rawConfig as Record<string, unknown>).style as string | undefined);
     const normalizedPosition = normalizePosition((rawConfig as Record<string, unknown>).position);
-    const normalizedHarmony = normalizeSpeedDialHarmony(
-      ((rawConfig as Record<string, unknown>).harmony as string | undefined) ?? DEFAULT_SPEED_DIAL_HARMONY,
-    );
 
     setTitle(component.title);
     setActive(component.active);
     setActions(normalizedActions);
     setStyle(normalizedStyle);
     setPosition(normalizedPosition);
-    setHarmony(normalizedHarmony);
 
     setInitialSnapshot(toSnapshot({
       title: component.title,
       active: component.active,
       style: normalizedStyle,
       position: normalizedPosition,
-      harmony: normalizedHarmony,
+      harmony: DEFAULT_SPEED_DIAL_HARMONY,
       actions: normalizedActions,
     }));
   }, [component, id, router]);
@@ -131,27 +128,13 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
 
   const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
 
-  const validation = useMemo(() => getSpeedDialValidationResult({
+  const { validation, warningMessages } = useSpeedDialValidation({
     primary,
     secondary,
     mode,
     harmony,
     actions,
-  }), [primary, secondary, mode, harmony, actions]);
-
-  const warningMessages = useMemo(() => {
-    const warnings: string[] = [];
-
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
-      warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
-    }
-
-    if (validation.accessibility.failing.length > 0) {
-      warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
-    }
-
-    return warnings;
-  }, [mode, validation]);
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
