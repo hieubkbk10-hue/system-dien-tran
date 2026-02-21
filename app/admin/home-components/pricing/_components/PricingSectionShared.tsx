@@ -107,9 +107,9 @@ const BillingToggle = ({
   }
 
   return (
-    <div className="mb-8 flex items-center justify-center gap-3">
+    <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
       <span
-        className="text-sm font-medium"
+        className="text-sm font-medium whitespace-nowrap"
         style={{ color: isYearly ? tokens.toggleInactiveLabel : tokens.toggleActiveLabel }}
       >
         {monthlyLabel}
@@ -119,26 +119,26 @@ const BillingToggle = ({
         role="switch"
         aria-checked={isYearly}
         onClick={() => { onBillingToggle?.(!isYearly); }}
-        className="relative h-6 w-11 flex-shrink-0 rounded-full transition-colors"
+        className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors"
         style={{ backgroundColor: isYearly ? tokens.toggleTrackOn : tokens.toggleTrackOff }}
       >
         <span
           className={cn(
-            'absolute top-1 h-4 w-4 rounded-full transition-transform',
+            'inline-block h-4 w-4 transform rounded-full transition-transform',
             isYearly ? 'translate-x-6' : 'translate-x-1',
           )}
           style={{ backgroundColor: tokens.toggleThumb }}
         />
       </button>
       <span
-        className="text-sm font-medium"
+        className="text-sm font-medium whitespace-nowrap"
         style={{ color: isYearly ? tokens.toggleActiveLabel : tokens.toggleInactiveLabel }}
       >
         {yearlyLabel}
       </span>
       {isYearly && yearlySavingText.trim() ? (
         <span
-          className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold"
+          className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
           style={{
             backgroundColor: tokens.badgeSoftBg,
             borderColor: tokens.badgeSoftBorder,
