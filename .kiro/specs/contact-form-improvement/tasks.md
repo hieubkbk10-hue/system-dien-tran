@@ -227,12 +227,12 @@ Thay thế JSON editor bằng structured form với validation đầy đủ, qu�
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [-] 10. Final checkpoint và cleanup
-  - [-] 10.1 Run full test suite
+  - [x] 10.1 Run full test suite
     - Chạy `bun test` để verify tất cả tests pass
     - Chạy `bunx tsc --noEmit` để verify no TypeScript errors
     - _Requirements: All_
 
-  - [ ] 10.2 Manual testing checklist
+  - [x] 10.2 Manual testing checklist
     - Test thêm/xóa/sửa social links
     - Test validation errors cho URL, email, phone
     - Test style change updates dynamic text fields
@@ -242,7 +242,7 @@ Thay thế JSON editor bằng structured form với validation đầy đủ, qu�
     - Visual verify primary color prominence trong preview
     - _Requirements: All_
 
-  - [ ] 10.3 Commit changes
+  - [-] 10.3 Commit changes
     - Commit với message: "feat(contact): replace JSON editor with structured form and balance primary/secondary colors"
     - _Requirements: All_
 
