@@ -119,13 +119,13 @@ const BillingToggle = ({
         role="switch"
         aria-checked={isYearly}
         onClick={() => { onBillingToggle?.(!isYearly); }}
-        className="relative h-6 w-12 rounded-full transition-colors"
+        className="relative h-6 w-11 flex-shrink-0 rounded-full transition-colors"
         style={{ backgroundColor: isYearly ? tokens.toggleTrackOn : tokens.toggleTrackOff }}
       >
         <span
           className={cn(
             'absolute top-1 h-4 w-4 rounded-full transition-transform',
-            isYearly ? 'translate-x-7' : 'translate-x-1',
+            isYearly ? 'translate-x-6' : 'translate-x-1',
           )}
           style={{ backgroundColor: tokens.toggleThumb }}
         />
