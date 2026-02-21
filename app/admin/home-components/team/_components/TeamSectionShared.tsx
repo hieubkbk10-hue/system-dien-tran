@@ -554,18 +554,12 @@ export function TeamSectionShared({
           {visibleMembers.map((member) => (
             <article key={member.key}>
               <div
-                className="relative rounded-sm"
+                className="relative rounded-sm bg-gray-200"
                 style={{
                   backgroundColor: tokens.cardBackground,
                 }}
               >
-                <div
-                  className="w-32 h-32 rounded-full inline-block border overflow-hidden -mt-14"
-                  style={{
-                    backgroundColor: tokens.cardBackground,
-                    borderColor: tokens.cardBorder,
-                  }}
-                >
+                <div className="w-32 h-32 rounded-full inline-block border border-gray-200 bg-gray-100 overflow-hidden -mt-14">
                   <TeamAvatar
                     member={member}
                     tokens={tokens}
