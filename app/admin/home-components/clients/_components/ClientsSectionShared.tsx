@@ -159,20 +159,17 @@ export function ClientsSectionShared({
 
   const sectionTitle = title.trim().length > 0 ? title : 'Khách hàng tin tưởng';
 
-  const grayscaleStyles = `
-    .logo-grayscale { filter: grayscale(100%) opacity(0.6); transition: all 0.3s ease; }
-    .logo-grayscale:hover { filter: grayscale(0%) opacity(1); }
+  const subtleStyles = `
     @keyframes subtle-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     .subtle-marquee-track { animation: subtle-scroll 60s linear infinite; }
     .subtle-marquee-container:hover .subtle-marquee-track { animation-play-state: paused; }
     @media (prefers-reduced-motion: reduce) { .subtle-marquee-track { animation: none !important; } }
   `;
 
-  // Layout 1: Simple Static Grid - Grayscale grid like Stripe/Vercel
+  // Layout 1: Simple Static Grid - Clean grid like Stripe/Vercel
   if (selectedStyle === 'simpleGrid') {
     return (
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{grayscaleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
           <div className="text-center">
             <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.mutedText }}>Được tin tưởng bởi</p>
@@ -180,7 +177,7 @@ export function ClientsSectionShared({
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12 items-center justify-items-center py-4" role="list">
             {normalizedItems.map((item, idx) => (
-              <div key={`sg-${item.key}-${idx}`} className="logo-grayscale" role="listitem">
+              <div key={`sg-${item.key}-${idx}`} role="listitem">
                 {renderLogoContent(item, idx, tokens, 'md')}
               </div>
             ))}
@@ -194,7 +191,6 @@ export function ClientsSectionShared({
   if (selectedStyle === 'compactInline') {
     return (
       <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{grayscaleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-base md:text-lg font-semibold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
@@ -204,7 +200,7 @@ export function ClientsSectionShared({
           </div>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 py-3" role="list">
             {normalizedItems.map((item, idx) => (
-              <div key={`ci-${item.key}-${idx}`} className="logo-grayscale" role="listitem">
+              <div key={`ci-${item.key}-${idx}`} role="listitem">
                 {renderLogoContent(item, idx, tokens, 'sm')}
               </div>
             ))}
@@ -214,11 +210,11 @@ export function ClientsSectionShared({
     );
   }
 
-  // Layout 3: Subtle Marquee - Very slow scroll, grayscale, no borders
+  // Layout 3: Subtle Marquee - Very slow scroll, no filters
   if (selectedStyle === 'subtleMarquee') {
     return (
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{grayscaleStyles}</style>
+        <style>{subtleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
           <div className="text-center">
             <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: tokens.mutedText }}>Đối tác</p>
@@ -233,12 +229,12 @@ export function ClientsSectionShared({
           >
             <div className="subtle-marquee-track flex items-center gap-12 md:gap-16" style={{ width: 'max-content' }}>
               {normalizedItems.map((item, idx) => (
-                <div key={`sm1-${item.key}-${idx}`} className="shrink-0 logo-grayscale" role="listitem">
+                <div key={`sm1-${item.key}-${idx}`} className="shrink-0" role="listitem">
                   {renderLogoContent(item, idx, tokens, 'md')}
                 </div>
               ))}
               {normalizedItems.map((item, idx) => (
-                <div key={`sm2-${item.key}-${idx}`} className="shrink-0 logo-grayscale" role="listitem">
+                <div key={`sm2-${item.key}-${idx}`} className="shrink-0" role="listitem">
                   {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
                 </div>
               ))}

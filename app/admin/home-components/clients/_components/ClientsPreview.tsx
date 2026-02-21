@@ -141,9 +141,9 @@ export const ClientsPreview = ({
         <div className="flex items-center gap-2">
           <ImageIcon size={14} className="text-slate-400 flex-shrink-0" />
           <div className="text-xs text-slate-600 dark:text-slate-400">
-            {selectedStyle === 'simpleGrid' && <span><strong>Simple Grid</strong> • Grayscale static grid, hover full color (Stripe-style)</span>}
-            {selectedStyle === 'compactInline' && <span><strong>Compact Inline</strong> • Single row flexbox, grayscale, minimal</span>}
-            {selectedStyle === 'subtleMarquee' && <span><strong>Subtle Marquee</strong> • Very slow scroll (60s), grayscale, clean</span>}
+            {selectedStyle === 'simpleGrid' && <span><strong>Simple Grid</strong> • Static grid, full color, clean minimal</span>}
+            {selectedStyle === 'compactInline' && <span><strong>Compact Inline</strong> • Single row flexbox, full color, minimal</span>}
+            {selectedStyle === 'subtleMarquee' && <span><strong>Subtle Marquee</strong> • Very slow scroll (60s), full color, clean</span>}
             {selectedStyle === 'grid' && <span><strong>216×84px</strong> PNG trong suốt • Grid tĩnh, max 12 logo</span>}
             {selectedStyle === 'carousel' && <span><strong>240×96px</strong> PNG trong suốt • Kéo/vuốt ngang</span>}
             {selectedStyle === 'featured' && <span><strong>240×96px</strong> PNG trong suốt • 4 logo featured</span>}
