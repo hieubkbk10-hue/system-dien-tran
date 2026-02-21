@@ -301,14 +301,11 @@ export const getPricingColorTokens = ({
 
   const badgeSoftBg = neutralSurface;
   const badgeSoftBorder = secondaryPalette.border;
-  const badgeSoftTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
-  const badgeSoftText = ensureAPCATextColor(badgeSoftTextCandidate, badgeSoftBg, 11, 600);
+  const badgeSoftText = ensureAPCATextColor(secondaryPalette.solid, badgeSoftBg, 11, 600);
 
-  const badgeSoftOnHeaderTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
-  const badgeSoftOnHeaderText = ensureAPCATextColor(badgeSoftOnHeaderTextCandidate, comparisonHeaderBg, 10, 600);
+  const badgeSoftOnHeaderText = ensureAPCATextColor(secondaryPalette.solid, comparisonHeaderBg, 10, 600);
 
-  const badgeSoftOnPopularTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
-  const badgeSoftOnPopularText = ensureAPCATextColor(badgeSoftOnPopularTextCandidate, comparisonPopularColumnBg, 10, 600);
+  const badgeSoftOnPopularText = ensureAPCATextColor(secondaryPalette.solid, comparisonPopularColumnBg, 10, 600);
 
   const ctaGhostBg = neutralSurface;
 
@@ -393,8 +390,11 @@ export const getPricingValidationResult = ({
     { background: tokens.neutralSurface, text: tokens.headingText, fontSize: 30, fontWeight: 700, label: 'heading' },
     { background: tokens.neutralSurface, text: tokens.subtitleText, fontSize: 14, fontWeight: 500, label: 'subtitle' },
     { background: tokens.cardBackground, text: tokens.priceText, fontSize: 24, fontWeight: 700, label: 'price' },
+    { background: tokens.neutralSurface, text: tokens.featureIcon, fontSize: 14, fontWeight: 500, label: 'feature-icon' },
     { background: tokens.badgeSolidBg, text: tokens.badgeSolidText, fontSize: 11, fontWeight: 700, label: 'badge-solid' },
     { background: tokens.badgeSoftBg, text: tokens.badgeSoftText, fontSize: 11, fontWeight: 600, label: 'badge-soft' },
+    { background: tokens.badgeSoftOnHeaderBg, text: tokens.badgeSoftOnHeaderText, fontSize: 10, fontWeight: 600, label: 'badge-soft-header' },
+    { background: tokens.badgeSoftOnPopularBg, text: tokens.badgeSoftOnPopularText, fontSize: 10, fontWeight: 600, label: 'badge-soft-popular' },
     { background: tokens.ctaSolidBg, text: tokens.ctaSolidText, fontSize: 14, fontWeight: 600, label: 'cta-solid' },
     { background: tokens.ctaGhostBg, text: tokens.ctaGhostText, fontSize: 14, fontWeight: 600, label: 'cta-ghost' },
   ]);
