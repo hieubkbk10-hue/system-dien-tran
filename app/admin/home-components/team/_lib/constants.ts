@@ -10,7 +10,7 @@ export const TEAM_STYLES: Array<{ id: TeamStyle; label: string }> = [
   { id: 'grid', label: 'Grid' },
   { id: 'cards', label: 'Cards' },
   { id: 'carousel', label: 'Carousel' },
-  { id: 'hexagon', label: 'Hexagon' },
+  { id: 'bento', label: 'Bento' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'spotlight', label: 'Spotlight' },
 ];

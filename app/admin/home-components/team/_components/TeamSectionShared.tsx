@@ -259,10 +259,10 @@ const getPreviewLimit = (style: TeamStyle, device: PreviewDevice) => {
     return 8;
   }
 
-  if (style === 'hexagon') {
+  if (style === 'bento') {
     if (device === 'mobile') {return 6;}
     if (device === 'tablet') {return 8;}
-    return 10;
+    return 9;
   }
 
   if (device === 'mobile') {return 4;}
@@ -299,7 +299,6 @@ export function TeamSectionShared({
   }, [normalizedMembers, isPreview, style, device]);
 
   const carouselIdSeed = React.useId().replaceAll(':', '');
-  const hexagonIdSeed = React.useId().replaceAll(':', '');
 
   const basePadding = isPreview
     ? cn('py-7 md:py-8', isMobilePreview ? 'px-3' : 'px-4 md:px-6')
@@ -543,66 +542,56 @@ export function TeamSectionShared({
     );
   };
 
-  const renderHexagon = () => {
-    const keyframeName = `team-hex-marquee-${hexagonIdSeed}`;
-    const cardSize = isMobilePreview ? 120 : 146;
-    const featured = visibleMembers[0];
-    const shouldAnimate = visibleMembers.length > 2;
-    const marqueeItems = shouldAnimate ? [...visibleMembers, ...visibleMembers] : visibleMembers;
+  const renderBento = () => {
+    const getBentoSpan = (index: number) => {
+      if (index === 0) {return 'col-span-2 row-span-2';}
+      if (index === 1 || index === 2) {return 'row-span-2';}
+      return '';
+    };
+
+    const getBentoSpanMobile = (index: number) => {
+      if (index === 0) {return 'col-span-2 row-span-2';}
+      return '';
+    };
 
     return (
-      <section className={cn(basePadding, 'overflow-hidden')} data-mode={mode}>
-        <style>{`
-          @keyframes ${keyframeName} {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .${keyframeName} {
-            animation: ${keyframeName} 28s linear infinite;
-          }
-          .${keyframeName}:hover {
-            animation-play-state: paused;
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .${keyframeName} { animation: none !important; }
-          }
-        `}</style>
-
+      <section className={basePadding} data-mode={mode}>
+        {header}
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-6">
-            <span
-              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{
-                backgroundColor: tokens.hexagonChipBg,
-                borderColor: tokens.socialButtonBorder,
-                color: tokens.hexagonChipText,
-              }}
-            >
-              Team Marquee
-            </span>
-            <h2 className={cn('mt-3 font-bold tracking-tight', isPreview ? 'text-2xl' : 'text-3xl md:text-4xl')} style={{ color: tokens.heading }}>
-              {heading}
-            </h2>
-          </div>
+          <div
+            className={cn(
+              'grid gap-4 auto-rows-fr',
+              isPreview
+                ? (isMobilePreview ? 'grid-cols-2' : (isTabletPreview ? 'grid-cols-3' : 'grid-cols-4'))
+                : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+            )}
+          >
+            {visibleMembers.map((member, index) => {
+              const spanClass = isPreview
+                ? (isMobilePreview ? getBentoSpanMobile(index) : getBentoSpan(index))
+                : `${getBentoSpanMobile(index)} md:${getBentoSpan(index)}`;
+              const isFeatured = index === 0;
+              const avatarSize = isFeatured ? (isMobilePreview ? 'h-32 w-32' : 'h-40 w-40') : 'h-20 w-20';
 
-          <div className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-20 z-10 pointer-events-none" style={{ backgroundImage: `linear-gradient(to right, ${tokens.neutralSurface}, transparent)` }} />
-            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-20 z-10 pointer-events-none" style={{ backgroundImage: `linear-gradient(to left, ${tokens.neutralSurface}, transparent)` }} />
-
-            <div
-              className={cn('flex w-max gap-5 py-3', shouldAnimate ? keyframeName : '')}
-              style={shouldAnimate ? ({ '--duration': '28s' } as React.CSSProperties) : undefined}
-            >
-              {marqueeItems.map((member, index) => (
-                <article key={`${member.key}-${index}`} className="text-center shrink-0" style={{ width: cardSize }}>
+              return (
+                <article
+                  key={member.key}
+                  className={cn(
+                    'group relative rounded-2xl border p-4 flex flex-col items-center justify-center text-center transition-all duration-200',
+                    'hover:shadow-lg',
+                    spanClass,
+                  )}
+                  style={{
+                    backgroundColor: tokens.cardBackground,
+                    borderColor: tokens.cardBorder,
+                  }}
+                >
                   <div
-                    className="relative mx-auto mb-3 overflow-hidden"
+                    className={cn('relative rounded-full overflow-hidden mb-3 transition-transform duration-200 group-hover:scale-105', avatarSize)}
                     style={{
-                      width: cardSize,
-                      height: cardSize,
-                      clipPath: 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)',
-                      border: `1px solid ${tokens.cardBorder}`,
-                      backgroundColor: tokens.cardBackground,
+                      borderWidth: isFeatured ? '3px' : '2px',
+                      borderStyle: 'solid',
+                      borderColor: isFeatured ? tokens.styleAccentByStyle.bento : tokens.cardBorder,
                     }}
                   >
                     <TeamAvatar
@@ -610,51 +599,35 @@ export function TeamSectionShared({
                       tokens={tokens}
                       context={context}
                       className="h-full w-full object-cover"
-                      sizes="160px"
+                      sizes={isFeatured ? '160px' : '80px'}
                     />
                   </div>
-                  <h3 className="text-sm font-semibold line-clamp-1" style={{ color: tokens.neutralText }}>{member.name || 'Thành viên'}</h3>
-                  <p className="text-xs line-clamp-1" style={{ color: tokens.styleAccentByStyle.hexagon }}>{member.role || 'Chức vụ'}</p>
-                </article>
-              ))}
-            </div>
-          </div>
 
-          {featured ? (
-            <div className="mt-8 max-w-3xl mx-auto">
-              <article
-                className="rounded-2xl border p-5 md:p-6"
-                style={{
-                  backgroundColor: tokens.cardBackground,
-                  borderColor: tokens.cardBorder,
-                  borderTopColor: tokens.hexagonFeaturedBorder,
-                  borderTopWidth: 3,
-                }}
-              >
-                <div className="flex flex-col md:flex-row items-center gap-5">
-                  <div className="relative h-24 w-24 rounded-xl overflow-hidden border" style={{ borderColor: tokens.cardBorder }}>
-                    <TeamAvatar
-                      member={featured}
-                      tokens={tokens}
-                      context={context}
-                      className="h-full w-full object-cover"
-                      sizes="96px"
-                    />
-                  </div>
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-xl font-semibold" style={{ color: tokens.neutralText }}>{featured.name || 'Thành viên'}</h3>
-                    <p className="text-sm mt-0.5" style={{ color: tokens.styleAccentByStyle.hexagon }}>{featured.role || 'Chức vụ'}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <TeamSocialButton platform="facebook" value={featured.facebook} context={context} tokens={tokens} />
-                    <TeamSocialButton platform="linkedin" value={featured.linkedin} context={context} tokens={tokens} />
-                    <TeamSocialButton platform="twitter" value={featured.twitter} context={context} tokens={tokens} />
-                    <TeamSocialButton platform="email" value={featured.email} context={context} tokens={tokens} />
-                  </div>
-                </div>
-              </article>
-            </div>
-          ) : null}
+                  <h3
+                    className={cn('font-semibold line-clamp-2', isFeatured ? 'text-lg' : 'text-sm')}
+                    style={{ color: tokens.neutralText }}
+                  >
+                    {member.name || 'Thành viên'}
+                  </h3>
+                  <p
+                    className={cn('mt-1 line-clamp-1', isFeatured ? 'text-sm' : 'text-xs')}
+                    style={{ color: isFeatured ? tokens.styleAccentByStyle.bento : tokens.roleText }}
+                  >
+                    {member.role || 'Chức vụ'}
+                  </p>
+
+                  {isFeatured ? (
+                    <div className="mt-3 flex items-center gap-2">
+                      <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                      <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
     );
@@ -787,8 +760,8 @@ export function TeamSectionShared({
     case 'carousel': {
       return renderCarousel();
     }
-    case 'hexagon': {
-      return renderHexagon();
+    case 'bento': {
+      return renderBento();
     }
     case 'timeline': {
       return renderTimeline();

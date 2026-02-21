@@ -231,9 +231,8 @@ export interface TeamColorTokens {
   spotlightRing: string;
   spotlightSectionBg: string;
 
-  hexagonChipBg: string;
-  hexagonChipText: string;
-  hexagonFeaturedBorder: string;
+  bentoBorder: string;
+  bentoFeaturedBorder: string;
 
   styleAccentByStyle: Record<TeamStyle, string>;
 }
@@ -271,10 +270,6 @@ export const getTeamColorTokens = ({
   const carouselNavBorder = secondaryPalette.border;
   const carouselNavTextCandidate = pickReadableTextOnSolid(carouselNavBg);
   const carouselNavIcon = resolveBrandTextOnBackground(carouselNavTextCandidate, carouselNavBg, 14, 700, neutralText);
-
-  const hexagonChipBg = secondaryPalette.surface;
-  const hexagonChipTextCandidate = pickReadableTextOnSolid(hexagonChipBg);
-  const hexagonChipText = resolveBrandTextOnBackground(hexagonChipTextCandidate, hexagonChipBg, 12, 600, neutralText);
 
   const timelineLine = shiftColor(secondaryPalette.solid, 0.35, 0.68, primaryResolved);
   const spotlightBorder = shiftColor(secondaryPalette.solid, 0.38, 0.72, primaryResolved);
@@ -321,15 +316,14 @@ export const getTeamColorTokens = ({
     spotlightRing: primaryPalette.border,
     spotlightSectionBg,
 
-    hexagonChipBg,
-    hexagonChipText,
-    hexagonFeaturedBorder: primaryPalette.solid,
+    bentoBorder: neutralBorder,
+    bentoFeaturedBorder: primaryPalette.solid,
 
     styleAccentByStyle: {
       grid: secondaryPalette.solid,
       cards: secondaryPalette.solid,
       carousel: primaryPalette.solid,
-      hexagon: secondaryPalette.solid,
+      bento: primaryPalette.solid,
       timeline: primaryPalette.solid,
       spotlight: secondaryPalette.solid,
     },
@@ -382,7 +376,6 @@ export const getTeamValidationResult = ({
     { key: 'role', text: tokens.roleText, bg: tokens.neutralSurface, size: 14, weight: 500 },
     { key: 'bio', text: tokens.bioText, bg: tokens.neutralSurface, size: 14, weight: 400 },
     { key: 'social', text: tokens.socialButtonIcon, bg: tokens.socialButtonBg, size: 13, weight: 600 },
-    { key: 'hex-chip', text: tokens.hexagonChipText, bg: tokens.hexagonChipBg, size: 12, weight: 600 },
   ]);
 
   const accessibility = {

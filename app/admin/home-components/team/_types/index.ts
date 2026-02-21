@@ -13,7 +13,7 @@ export interface TeamEditorMember extends TeamMember {
   id: number;
 }
 
-export type TeamStyle = 'grid' | 'cards' | 'carousel' | 'hexagon' | 'timeline' | 'spotlight';
+export type TeamStyle = 'grid' | 'cards' | 'carousel' | 'bento' | 'timeline' | 'spotlight';
 
 export type TeamBrandMode = 'single' | 'dual';
 
