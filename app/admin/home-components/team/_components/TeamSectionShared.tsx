@@ -543,91 +543,55 @@ export function TeamSectionShared({
   };
 
   const renderBento = () => {
-    const getBentoSpan = (index: number) => {
-      if (index === 0) {return 'col-span-2 row-span-2';}
-      if (index === 1 || index === 2) {return 'row-span-2';}
-      return '';
-    };
-
-    const getBentoSpanMobile = (index: number) => {
-      if (index === 0) {return 'col-span-2 row-span-2';}
-      return '';
-    };
+    const columns = isPreview
+      ? (isMobilePreview ? 'grid-cols-2' : (isTabletPreview ? 'grid-cols-3' : 'grid-cols-4'))
+      : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
     return (
       <section className={basePadding} data-mode={mode}>
         {header}
-        <div className="max-w-7xl mx-auto">
-          <div
-            className={cn(
-              'grid gap-4 auto-rows-fr',
-              isPreview
-                ? (isMobilePreview ? 'grid-cols-2' : (isTabletPreview ? 'grid-cols-3' : 'grid-cols-4'))
-                : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-            )}
-          >
-            {visibleMembers.map((member, index) => {
-              const spanClass = isPreview
-                ? (isMobilePreview ? getBentoSpanMobile(index) : getBentoSpan(index))
-                : `${getBentoSpanMobile(index)} md:${getBentoSpan(index)}`;
-              const isFeatured = index === 0;
-              const avatarSize = isFeatured ? (isMobilePreview ? 'h-32 w-32' : 'h-40 w-40') : 'h-20 w-20';
+        <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-16', columns)}>
+          {visibleMembers.map((member) => (
+            <article
+              key={member.key}
+              className="relative rounded-lg p-4"
+              style={{
+                backgroundColor: tokens.cardBackground,
+              }}
+            >
+              <div
+                className="w-32 h-32 rounded-full inline-block border-2 overflow-hidden -mt-20"
+                style={{
+                  backgroundColor: tokens.cardBackground,
+                  borderColor: tokens.cardBorder,
+                }}
+              >
+                <TeamAvatar
+                  member={member}
+                  tokens={tokens}
+                  context={context}
+                  className="w-full h-full object-cover"
+                  sizes="128px"
+                />
+              </div>
 
-              return (
-                <article
-                  key={member.key}
-                  className={cn(
-                    'group relative rounded-2xl border p-4 flex flex-col items-center justify-center text-center transition-all duration-200',
-                    'hover:shadow-lg',
-                    spanClass,
-                  )}
-                  style={{
-                    backgroundColor: tokens.cardBackground,
-                    borderColor: tokens.cardBorder,
-                  }}
-                >
-                  <div
-                    className={cn('relative rounded-full overflow-hidden mb-3 transition-transform duration-200 group-hover:scale-105', avatarSize)}
-                    style={{
-                      borderWidth: isFeatured ? '3px' : '2px',
-                      borderStyle: 'solid',
-                      borderColor: isFeatured ? tokens.styleAccentByStyle.bento : tokens.cardBorder,
-                    }}
-                  >
-                    <TeamAvatar
-                      member={member}
-                      tokens={tokens}
-                      context={context}
-                      className="h-full w-full object-cover"
-                      sizes={isFeatured ? '160px' : '80px'}
-                    />
-                  </div>
+              <div className="py-4">
+                <h4 className="text-base font-semibold" style={{ color: tokens.neutralText }}>
+                  {member.name || 'Thành viên'}
+                </h4>
+                <p className="text-xs mt-1" style={{ color: tokens.styleAccentByStyle.bento }}>
+                  {member.role || 'Chức vụ'}
+                </p>
 
-                  <h3
-                    className={cn('font-semibold line-clamp-2', isFeatured ? 'text-lg' : 'text-sm')}
-                    style={{ color: tokens.neutralText }}
-                  >
-                    {member.name || 'Thành viên'}
-                  </h3>
-                  <p
-                    className={cn('mt-1 line-clamp-1', isFeatured ? 'text-sm' : 'text-xs')}
-                    style={{ color: isFeatured ? tokens.styleAccentByStyle.bento : tokens.roleText }}
-                  >
-                    {member.role || 'Chức vụ'}
-                  </p>
-
-                  {isFeatured ? (
-                    <div className="mt-3 flex items-center gap-2">
-                      <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                      <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                      <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                      <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                  <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                  <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                  <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     );
