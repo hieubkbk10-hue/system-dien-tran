@@ -81,6 +81,7 @@ import type { VideoBrandMode } from '@/app/admin/home-components/video/_types';
 import { ContactSection as ContactSectionRuntime } from './ContactSection';
 import { CaseStudySection } from './CaseStudySection';
 import { SpeedDialSection } from './SpeedDialSection';
+import { CountdownSectionWrapper } from './CountdownSectionWrapper';
 import {
   ArrowRight, ArrowUpRight,
   Building2, ChevronLeft, ChevronRight, Facebook, Globe,
@@ -217,7 +218,7 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <VideoSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
     case 'Countdown': {
-      return <CountdownSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <CountdownSectionWrapper config={config} brandColor={brandColor} secondary={secondary} title={title} />;
     }
     case 'VoucherPromotions': {
       return <VoucherPromotionsSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
