@@ -10,7 +10,7 @@ import { Phone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
-import { ConfigJsonForm } from '../../../_shared/components/ConfigJsonForm';
+import { ConfigEditor } from '../../_components/ConfigEditor';
 import { ContactPreview } from '../../_components/ContactPreview';
 import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../_lib/constants';
 import { getContactValidationResult } from '../../_lib/colors';
@@ -19,6 +19,7 @@ import {
   toContactConfigPayload,
   toContactSnapshot,
 } from '../../_lib/normalize';
+import { validateContactConfig } from '../../_lib/validation';
 import type { ContactConfigState, ContactStyle } from '../../_types';
 
 export default function ContactEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,6 +64,8 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
   }), [title, active, normalizedConfig]);
 
   const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+
+  const hasValidationErrors = !validateContactConfig(normalizedConfig).isValid;
 
   const validation = useMemo(() => getContactValidationResult({
     primary,
@@ -191,7 +194,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
           </Card>
         )}
 
-        <ConfigJsonForm
+        <ConfigEditor
           value={normalizedConfig}
           onChange={(next) => { setConfig(normalizeContactConfig(next)); }}
           title="Cấu hình Contact"
@@ -216,7 +219,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
           <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
             Hủy bỏ
           </Button>
-          <Button type="submit" variant="accent" disabled={!hasChanges || isSubmitting}>
+          <Button type="submit" variant="accent" disabled={!hasChanges || hasValidationErrors || isSubmitting}>
             {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </div>
