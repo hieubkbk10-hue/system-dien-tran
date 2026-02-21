@@ -9,6 +9,7 @@ import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDe
 import {
   CAREER_STYLES,
   DEFAULT_CAREER_HARMONY,
+  DEFAULT_CAREER_TEXTS,
 } from '../_lib/constants';
 import { getCareerValidationResult } from '../_lib/colors';
 import { normalizeCareerJobs } from '../_lib/normalize';
@@ -17,6 +18,7 @@ import type {
   CareerBrandMode,
   CareerHarmony,
   CareerStyle,
+  CareerTexts,
   JobPosition,
 } from '../_types';
 
@@ -29,6 +31,7 @@ interface CareerPreviewProps {
   selectedStyle?: CareerStyle;
   onStyleChange?: (style: CareerStyle) => void;
   title?: string;
+  texts?: CareerTexts;
 }
 
 export function CareerPreview({
@@ -40,6 +43,7 @@ export function CareerPreview({
   selectedStyle = 'cards',
   onStyleChange,
   title = 'Tuyển dụng',
+  texts = DEFAULT_CAREER_TEXTS,
 }: CareerPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
 
@@ -94,6 +98,7 @@ export function CareerPreview({
             title={title}
             tokens={validation.tokens}
             device={device}
+            texts={texts}
           />
         </BrowserFrame>
       </PreviewWrapper>

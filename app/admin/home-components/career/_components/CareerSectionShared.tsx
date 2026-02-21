@@ -3,8 +3,9 @@
 import React from 'react';
 import { Briefcase, Clock, MapPin, Star } from 'lucide-react';
 import { cn } from '../../../components/ui';
+import { DEFAULT_CAREER_TEXTS } from '../_lib/constants';
 import type { CareerColorTokens } from '../_lib/colors';
-import type { CareerStyle } from '../_types';
+import type { CareerStyle, CareerTexts } from '../_types';
 
 type CareerSectionContext = 'preview' | 'site';
 type CareerPreviewDevice = 'mobile' | 'tablet' | 'desktop';
@@ -27,6 +28,7 @@ interface CareerSectionSharedProps {
   context: CareerSectionContext;
   title: string;
   device?: CareerPreviewDevice;
+  texts?: CareerTexts;
 }
 
 const PREVIEW_MAX_VISIBLE_BY_STYLE: Record<CareerStyle, Record<CareerPreviewDevice, number>> = {
@@ -62,7 +64,7 @@ const getGridClass = (device: CareerPreviewDevice, desktopClass: string) => {
   return desktopClass;
 };
 
-const renderEmptyState = (tokens: CareerColorTokens) => (
+const renderEmptyState = (tokens: CareerColorTokens, texts: CareerTexts) => (
   <div className="flex flex-col items-center justify-center py-14 text-center">
     <div
       className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
@@ -71,10 +73,10 @@ const renderEmptyState = (tokens: CareerColorTokens) => (
       <Briefcase size={30} style={{ color: tokens.emptyIconColor }} />
     </div>
     <h3 className="font-medium mb-1" style={{ color: tokens.neutralText }}>
-      Chưa có vị trí tuyển dụng
+      {texts.emptyTitle || DEFAULT_CAREER_TEXTS.emptyTitle}
     </h3>
     <p className="text-sm" style={{ color: tokens.mutedText }}>
-      Thêm vị trí đầu tiên để bắt đầu
+      {texts.emptyDescription || DEFAULT_CAREER_TEXTS.emptyDescription}
     </p>
   </div>
 );
@@ -85,14 +87,16 @@ const renderCards = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('cards', context, device);
   const visibleJobs = jobs.slice(0, maxVisible);
@@ -104,7 +108,9 @@ const renderCards = ({
         <h2 className={cn('font-bold tracking-tight', device === 'mobile' ? 'text-xl' : 'text-2xl md:text-3xl')} style={{ color: tokens.heading }}>
           {title}
         </h2>
-        <p className="text-sm mt-2" style={{ color: tokens.mutedText }}>Tham gia đội ngũ của chúng tôi</p>
+        <p className="text-sm mt-2" style={{ color: tokens.mutedText }}>
+          {texts.subtitle || DEFAULT_CAREER_TEXTS.subtitle}
+        </p>
       </div>
 
       <div className={cn('grid gap-4 max-w-6xl mx-auto', getGridClass(device, 'grid-cols-2 lg:grid-cols-3'))}>
@@ -160,13 +166,13 @@ const renderCards = ({
             <div className={cn('border-t mt-auto', device === 'mobile' ? 'p-3' : 'p-4')} style={{ borderColor: tokens.neutralBorder }}>
               <button
                 type="button"
-                className={cn('w-full rounded-lg font-medium', device === 'mobile' ? 'py-2 text-sm' : 'py-2.5 text-sm')}
+                className={cn('w-full rounded-lg font-medium', device === 'mobile' ? 'py-3 text-sm' : 'py-3.5 text-sm')}
                 style={{
                   backgroundColor: tokens.ctaBackground,
                   color: tokens.ctaText,
                 }}
               >
-                Ứng tuyển ngay
+                {texts.ctaButton || DEFAULT_CAREER_TEXTS.ctaButton}
               </button>
             </div>
           </article>
@@ -175,7 +181,9 @@ const renderCards = ({
 
       {remainingCount > 0 && (
         <div className="text-center mt-6">
-          <span className="text-sm font-medium" style={{ color: tokens.sectionLabel }}>+{remainingCount} vị trí khác</span>
+          <span className="text-sm font-medium" style={{ color: tokens.sectionLabel }}>
+            +{remainingCount} {texts.remainingLabel || DEFAULT_CAREER_TEXTS.remainingLabel}
+          </span>
         </div>
       )}
     </section>
@@ -188,14 +196,16 @@ const renderList = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('list', context, device);
   const visibleJobs = jobs.slice(0, maxVisible);
@@ -243,13 +253,13 @@ const renderList = ({
                   )}
                   <button
                     type="button"
-                    className={cn('rounded-lg font-medium whitespace-nowrap', device === 'mobile' ? 'flex-1 py-2.5 text-sm' : 'px-5 py-2 text-sm')}
+                    className={cn('rounded-lg font-medium whitespace-nowrap', device === 'mobile' ? 'flex-1 py-3 text-sm' : 'px-6 py-3 text-sm')}
                     style={{
                       backgroundColor: tokens.ctaBackground,
                       color: tokens.ctaText,
                     }}
                   >
-                    Ứng tuyển
+                    {texts.ctaButton || DEFAULT_CAREER_TEXTS.ctaButton}
                   </button>
                 </div>
               </article>
@@ -259,7 +269,9 @@ const renderList = ({
 
         {remainingCount > 0 && (
           <div className="text-center mt-6">
-            <span className="text-sm font-medium" style={{ color: tokens.sectionLabel }}>+{remainingCount} vị trí khác</span>
+            <span className="text-sm font-medium" style={{ color: tokens.sectionLabel }}>
+              +{remainingCount} {texts.remainingLabel || DEFAULT_CAREER_TEXTS.remainingLabel}
+            </span>
           </div>
         )}
       </div>
@@ -273,14 +285,16 @@ const renderMinimal = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('minimal', context, device);
   const visibleJobs = jobs.slice(0, maxVisible);
@@ -340,14 +354,16 @@ const renderTable = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('table', context, device);
   const visibleJobs = jobs.slice(0, maxVisible);
@@ -390,13 +406,13 @@ const renderTable = ({
                 <td className="p-4 text-right">
                   <button
                     type="button"
-                    className="px-4 py-1.5 rounded-lg text-xs font-medium"
+                    className="px-5 py-2.5 rounded-lg text-xs font-medium"
                     style={{
                       backgroundColor: tokens.ctaBackground,
                       color: tokens.ctaText,
                     }}
                   >
-                    {isCompact ? 'Ứng tuyển' : 'Xem chi tiết'}
+                    {texts.ctaButton || DEFAULT_CAREER_TEXTS.ctaButton}
                   </button>
                 </td>
               </tr>
@@ -414,14 +430,16 @@ const renderFeatured = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('featured', context, device);
   const visibleJobs = jobs.slice(0, maxVisible);
@@ -495,13 +513,13 @@ const renderFeatured = ({
 
             <button
               type="button"
-              className="px-8 py-3 rounded-lg font-semibold"
+              className="px-8 py-3.5 rounded-lg font-semibold"
               style={{
                 backgroundColor: tokens.ctaBackground,
                 color: tokens.ctaText,
               }}
             >
-              Ứng tuyển ngay
+              {texts.ctaButton || DEFAULT_CAREER_TEXTS.ctaButton}
             </button>
           </div>
         </article>
@@ -558,14 +576,16 @@ const renderTimeline = ({
   tokens,
   context,
   device,
+  texts,
 }: {
   jobs: CareerSharedJob[];
   title: string;
   tokens: CareerColorTokens;
   context: CareerSectionContext;
   device: CareerPreviewDevice;
+  texts: CareerTexts;
 }) => {
-  if (jobs.length === 0) {return renderEmptyState(tokens);}
+  if (jobs.length === 0) {return renderEmptyState(tokens, texts);}
 
   const maxVisible = getMaxVisible('timeline', context, device);
   const visibleJobs = jobs.slice(0, maxVisible).map((job, index) => ({
@@ -662,13 +682,13 @@ const renderTimeline = ({
 
                         <button
                           type="button"
-                          className={cn('rounded-lg font-medium', device === 'mobile' ? 'w-full py-2 text-sm' : 'px-5 py-2 text-sm')}
+                          className={cn('rounded-lg font-medium', device === 'mobile' ? 'w-full py-3 text-sm' : 'px-6 py-3 text-sm')}
                           style={{
                             backgroundColor: tokens.ctaBackground,
                             color: tokens.ctaText,
                           }}
                         >
-                          Ứng tuyển
+                          {texts.ctaButton || DEFAULT_CAREER_TEXTS.ctaButton}
                         </button>
                       </article>
                     </li>
@@ -690,26 +710,29 @@ export function CareerSectionShared({
   context,
   title,
   device = 'desktop',
+  texts = DEFAULT_CAREER_TEXTS,
 }: CareerSectionSharedProps) {
+  const mergedTexts = { ...DEFAULT_CAREER_TEXTS, ...texts };
+
   if (style === 'cards') {
-    return renderCards({ jobs, title, tokens, context, device });
+    return renderCards({ jobs, title, tokens, context, device, texts: mergedTexts });
   }
 
   if (style === 'list') {
-    return renderList({ jobs, title, tokens, context, device });
+    return renderList({ jobs, title, tokens, context, device, texts: mergedTexts });
   }
 
   if (style === 'minimal') {
-    return renderMinimal({ jobs, title, tokens, context, device });
+    return renderMinimal({ jobs, title, tokens, context, device, texts: mergedTexts });
   }
 
   if (style === 'table') {
-    return renderTable({ jobs, title, tokens, context, device });
+    return renderTable({ jobs, title, tokens, context, device, texts: mergedTexts });
   }
 
   if (style === 'featured') {
-    return renderFeatured({ jobs, title, tokens, context, device });
+    return renderFeatured({ jobs, title, tokens, context, device, texts: mergedTexts });
   }
 
-  return renderTimeline({ jobs, title, tokens, context, device });
+  return renderTimeline({ jobs, title, tokens, context, device, texts: mergedTexts });
 }

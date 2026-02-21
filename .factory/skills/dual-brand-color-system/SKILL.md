@@ -417,7 +417,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | Testimonials | 40 | 60 | secondary: quotes, rating stars | N/A | Needs Review |
 | Services | 40 | 60 | secondary: numbers, accent bar, timeline | N/A | Needs Review |
 | Footer | 30 | 70 | secondary: logo/dividers; brandColor: bg shade | N/A | Needs Review |
-| Career | 40 | 60 | secondary cho borders, tags | N/A | Needs Review |
+| Career | 40 | 60 | secondary cho borders, tags | 2026-02-21 | OK v11.6.7 (text config) |
 | Contact | 40 | 60 | secondary cho form elements | N/A | Needs Review |
 | Process | 40 | 60 | secondary cho timeline, dots | N/A | Needs Review |
 

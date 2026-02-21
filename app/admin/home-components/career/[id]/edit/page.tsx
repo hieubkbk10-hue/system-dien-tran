@@ -14,6 +14,7 @@ import { CareerPreview } from '../../_components/CareerPreview';
 import {
   createCareerJob,
   DEFAULT_CAREER_HARMONY,
+  DEFAULT_CAREER_TEXTS,
   normalizeCareerHarmony,
 } from '../../_lib/constants';
 import { getCareerValidationResult } from '../../_lib/colors';
@@ -26,6 +27,7 @@ import type {
   CareerConfig,
   CareerHarmony,
   CareerStyle,
+  CareerTexts,
   JobPosition,
 } from '../../_types';
 
@@ -35,6 +37,7 @@ interface CareerSnapshotPayload {
   jobs: JobPosition[];
   style: CareerStyle;
   harmony: CareerHarmony;
+  texts: CareerTexts;
 }
 
 const toSnapshot = (payload: CareerSnapshotPayload) => JSON.stringify(payload);
@@ -51,6 +54,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
   const [jobs, setJobs] = useState<JobPosition[]>([createCareerJob({ type: 'Full-time' })]);
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [harmony, setHarmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
+  const [texts, setTexts] = useState<CareerTexts>(DEFAULT_CAREER_TEXTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
@@ -68,12 +72,14 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
       : [createCareerJob({ type: 'Full-time' })];
 
     const normalizedHarmony = normalizeCareerHarmony(normalized.harmony);
+    const normalizedTexts = { ...DEFAULT_CAREER_TEXTS, ...normalized.texts };
 
     setTitle(component.title);
     setActive(component.active);
     setJobs(normalizedJobs);
     setCareerStyle(normalized.style);
     setHarmony(normalizedHarmony);
+    setTexts(normalizedTexts);
 
     setInitialSnapshot(toSnapshot({
       title: component.title,
@@ -81,6 +87,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
       jobs: normalizedJobs,
       style: normalized.style,
       harmony: normalizedHarmony,
+      texts: normalizedTexts,
     }));
   }, [component, id, router]);
 
@@ -92,7 +99,8 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     jobs: toCareerJobsForConfig(normalizedJobs),
     style: careerStyle,
     harmony,
-  }), [title, active, normalizedJobs, careerStyle, harmony]);
+    texts,
+  }), [title, active, normalizedJobs, careerStyle, harmony, texts]);
 
   const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
 
@@ -152,6 +160,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
         jobs: toCareerJobsForConfig(normalizedJobs),
         style: careerStyle,
         harmony,
+        texts,
       };
 
       await updateMutation({
@@ -167,6 +176,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
         jobs: nextConfig.jobs,
         style: nextConfig.style,
         harmony: nextConfig.harmony ?? DEFAULT_CAREER_HARMONY,
+        texts: nextConfig.texts ?? DEFAULT_CAREER_TEXTS,
       }));
 
       toast.success('Đã cập nhật Career');
@@ -314,6 +324,59 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Tùy chỉnh văn bản</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="subtitle">Phụ đề (subtitle)</Label>
+              <Input
+                id="subtitle"
+                placeholder={DEFAULT_CAREER_TEXTS.subtitle}
+                value={texts.subtitle || ''}
+                onChange={(e) => { setTexts((prev) => ({ ...prev, subtitle: e.target.value })); }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="ctaButton">Nút hành động (CTA)</Label>
+              <Input
+                id="ctaButton"
+                placeholder={DEFAULT_CAREER_TEXTS.ctaButton}
+                value={texts.ctaButton || ''}
+                onChange={(e) => { setTexts((prev) => ({ ...prev, ctaButton: e.target.value })); }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="emptyTitle">Tiêu đề trống</Label>
+              <Input
+                id="emptyTitle"
+                placeholder={DEFAULT_CAREER_TEXTS.emptyTitle}
+                value={texts.emptyTitle || ''}
+                onChange={(e) => { setTexts((prev) => ({ ...prev, emptyTitle: e.target.value })); }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="emptyDescription">Mô tả trống</Label>
+              <Input
+                id="emptyDescription"
+                placeholder={DEFAULT_CAREER_TEXTS.emptyDescription}
+                value={texts.emptyDescription || ''}
+                onChange={(e) => { setTexts((prev) => ({ ...prev, emptyDescription: e.target.value })); }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="remainingLabel">Nhãn còn lại</Label>
+              <Input
+                id="remainingLabel"
+                placeholder={DEFAULT_CAREER_TEXTS.remainingLabel}
+                value={texts.remainingLabel || ''}
+                onChange={(e) => { setTexts((prev) => ({ ...prev, remainingLabel: e.target.value })); }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start">
@@ -326,6 +389,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
               selectedStyle={careerStyle}
               onStyleChange={setCareerStyle}
               title={title}
+              texts={texts}
             />
           </div>
         </div>

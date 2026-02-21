@@ -14,8 +14,17 @@ export type CareerBrandMode = 'single' | 'dual';
 
 export type CareerHarmony = 'analogous' | 'complementary' | 'triadic';
 
+export interface CareerTexts {
+  subtitle?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  ctaButton?: string;
+  remainingLabel?: string;
+}
+
 export interface CareerConfig {
   jobs: JobPosition[];
   style: CareerStyle;
   harmony?: CareerHarmony;
+  texts?: CareerTexts;
 }

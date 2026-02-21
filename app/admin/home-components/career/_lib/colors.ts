@@ -368,3 +368,104 @@ export const getCareerValidationResult = ({
     accessibility,
   };
 };
+
+export interface AccentElement {
+  name: string;
+  tier: 'S' | 'M' | 'L';
+  areaPercent: number;
+  isInteractive: boolean;
+  color: 'primary' | 'secondary' | 'neutral';
+}
+
+export interface AccentBalance {
+  primaryPercent: number;
+  secondaryPercent: number;
+  neutralPercent: number;
+  elements: AccentElement[];
+  rule: 'Lone' | 'Dual' | 'Triple' | 'Standard';
+  warnings: string[];
+}
+
+export const calculateAccentBalance = (
+  style: string,
+  mode: CareerBrandMode,
+): AccentBalance => {
+  const elements: AccentElement[] = [];
+  
+  // Phân tích theo style
+  if (style === 'cards') {
+    elements.push(
+      { name: 'Section heading', tier: 'S', areaPercent: 8, isInteractive: false, color: 'primary' },
+      { name: 'CTA buttons', tier: 'M', areaPercent: 18, isInteractive: true, color: 'primary' },
+      { name: 'Department badges', tier: 'L', areaPercent: 6, isInteractive: false, color: 'secondary' },
+      { name: 'Salary text', tier: 'L', areaPercent: 4, isInteractive: false, color: 'secondary' },
+      { name: 'Meta text', tier: 'L', areaPercent: 4, isInteractive: false, color: 'secondary' },
+      { name: 'Card borders hover', tier: 'L', areaPercent: 2, isInteractive: true, color: 'secondary' },
+    );
+  } else if (style === 'list') {
+    elements.push(
+      { name: 'Section heading', tier: 'S', areaPercent: 8, isInteractive: false, color: 'primary' },
+      { name: 'CTA buttons', tier: 'M', areaPercent: 15, isInteractive: true, color: 'primary' },
+      { name: 'Department badges', tier: 'L', areaPercent: 5, isInteractive: false, color: 'secondary' },
+      { name: 'Salary text', tier: 'L', areaPercent: 5, isInteractive: false, color: 'secondary' },
+      { name: 'Dividers', tier: 'L', areaPercent: 2, isInteractive: false, color: 'secondary' },
+    );
+  } else if (style === 'timeline') {
+    elements.push(
+      { name: 'Section heading', tier: 'S', areaPercent: 8, isInteractive: false, color: 'primary' },
+      { name: 'Timeline dots', tier: 'M', areaPercent: 8, isInteractive: false, color: 'primary' },
+      { name: 'Department text', tier: 'L', areaPercent: 6, isInteractive: false, color: 'secondary' },
+      { name: 'Timeline dot text', tier: 'L', areaPercent: 4, isInteractive: false, color: 'secondary' },
+      { name: 'CTA buttons', tier: 'M', areaPercent: 12, isInteractive: true, color: 'primary' },
+    );
+  } else {
+    // Default estimate cho các style khác
+    elements.push(
+      { name: 'Section heading', tier: 'S', areaPercent: 8, isInteractive: false, color: 'primary' },
+      { name: 'CTA/Interactive', tier: 'M', areaPercent: 15, isInteractive: true, color: 'primary' },
+      { name: 'Badges/Labels', tier: 'L', areaPercent: 8, isInteractive: false, color: 'secondary' },
+      { name: 'Accents', tier: 'L', areaPercent: 4, isInteractive: false, color: 'secondary' },
+    );
+  }
+
+  // Tính tổng
+  const primaryPercent = elements
+    .filter((e) => e.color === 'primary')
+    .reduce((sum, e) => sum + e.areaPercent, 0);
+  
+  const secondaryPercent = mode === 'single' 
+    ? 0 
+    : elements
+        .filter((e) => e.color === 'secondary')
+        .reduce((sum, e) => sum + e.areaPercent, 0);
+  
+  const neutralPercent = 100 - primaryPercent - secondaryPercent;
+
+  // Xác định rule
+  const accentCount = elements.filter((e) => e.color !== 'neutral').length;
+  let rule: AccentBalance['rule'] = 'Standard';
+  if (accentCount === 1) {rule = 'Lone';}
+  else if (accentCount === 2) {rule = 'Dual';}
+  else if (accentCount === 3) {rule = 'Triple';}
+
+  // Warnings
+  const warnings: string[] = [];
+  if (primaryPercent < 25) {
+    warnings.push(`Primary ${primaryPercent}% < 25% (cần tăng visual weight)`);
+  }
+  if (mode === 'dual' && secondaryPercent < 5) {
+    warnings.push(`Secondary ${secondaryPercent}% < 5% (quá nhỏ, cần element lớn hơn)`);
+  }
+  if (neutralPercent < 50) {
+    warnings.push(`Neutral ${neutralPercent}% < 50% (thiếu whitespace)`);
+  }
+
+  return {
+    primaryPercent,
+    secondaryPercent,
+    neutralPercent,
+    elements,
+    rule,
+    warnings,
+  };
+};

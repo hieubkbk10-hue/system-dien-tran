@@ -8,12 +8,14 @@ import { CareerPreview } from '../../career/_components/CareerPreview';
 import {
   createCareerJob,
   DEFAULT_CAREER_HARMONY,
+  DEFAULT_CAREER_TEXTS,
 } from '../../career/_lib/constants';
 import { getCareerValidationResult } from '../../career/_lib/colors';
 import { normalizeCareerJobs, toCareerJobsForConfig } from '../../career/_lib/normalize';
 import type {
   CareerHarmony,
   CareerStyle,
+  CareerTexts,
   JobPosition,
 } from '../../career/_types';
 
@@ -45,6 +47,7 @@ export default function CareerCreatePage() {
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [jobPositions, setJobPositions] = useState<JobPosition[]>(DEFAULT_CREATE_JOBS);
   const [harmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
+  const [texts, setTexts] = useState<CareerTexts>(DEFAULT_CAREER_TEXTS);
 
   const normalizedJobs = useMemo(() => normalizeCareerJobs(jobPositions), [jobPositions]);
 
@@ -99,6 +102,7 @@ export default function CareerCreatePage() {
       jobs: toCareerJobsForConfig(normalizedJobs),
       style: careerStyle,
       harmony,
+      texts,
     });
   };
 
@@ -191,6 +195,59 @@ export default function CareerCreatePage() {
         </CardContent>
       </Card>
 
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Tùy chỉnh văn bản</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="subtitle">Phụ đề (subtitle)</Label>
+            <Input
+              id="subtitle"
+              placeholder={DEFAULT_CAREER_TEXTS.subtitle}
+              value={texts.subtitle || ''}
+              onChange={(e) => { setTexts((prev) => ({ ...prev, subtitle: e.target.value })); }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="ctaButton">Nút hành động (CTA)</Label>
+            <Input
+              id="ctaButton"
+              placeholder={DEFAULT_CAREER_TEXTS.ctaButton}
+              value={texts.ctaButton || ''}
+              onChange={(e) => { setTexts((prev) => ({ ...prev, ctaButton: e.target.value })); }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="emptyTitle">Tiêu đề trống</Label>
+            <Input
+              id="emptyTitle"
+              placeholder={DEFAULT_CAREER_TEXTS.emptyTitle}
+              value={texts.emptyTitle || ''}
+              onChange={(e) => { setTexts((prev) => ({ ...prev, emptyTitle: e.target.value })); }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="emptyDescription">Mô tả trống</Label>
+            <Input
+              id="emptyDescription"
+              placeholder={DEFAULT_CAREER_TEXTS.emptyDescription}
+              value={texts.emptyDescription || ''}
+              onChange={(e) => { setTexts((prev) => ({ ...prev, emptyDescription: e.target.value })); }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="remainingLabel">Nhãn còn lại</Label>
+            <Input
+              id="remainingLabel"
+              placeholder={DEFAULT_CAREER_TEXTS.remainingLabel}
+              value={texts.remainingLabel || ''}
+              onChange={(e) => { setTexts((prev) => ({ ...prev, remainingLabel: e.target.value })); }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <CareerPreview
         jobs={toCareerJobsForConfig(normalizedJobs)}
         brandColor={primary}
@@ -200,6 +257,7 @@ export default function CareerCreatePage() {
         selectedStyle={careerStyle}
         onStyleChange={setCareerStyle}
         title={title}
+        texts={texts}
       />
 
       {warningMessages.length > 0 && (
