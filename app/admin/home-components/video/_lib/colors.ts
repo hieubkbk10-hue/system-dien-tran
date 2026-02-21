@@ -168,6 +168,9 @@ export interface VideoColorTokens {
   playButtonHover: string;
   cardBackground: string;
   cardBorder: string;
+  secondaryCtaBackground: string;
+  secondaryCtaText: string;
+  secondaryCtaHover: string;
 }
 
 export const getVideoColorTokens = ({
@@ -212,13 +215,22 @@ export const getVideoColorTokens = ({
   const ctaHover = formatHex(oklch({ ...primaryColor, l: clampLightness((primaryColor.l ?? 0.6) - 0.12) }));
   const playButtonHover = formatHex(oklch({ ...primaryColor, l: clampLightness((primaryColor.l ?? 0.6) - 0.1) }));
 
-  // Play button tokens
+  // Play button tokens (primary)
   const playButtonBackground = primaryResolved;
   const playButtonText = ensureAPCATextColor(pickReadableTextOnSolid(primaryResolved), primaryResolved, 18, 700);
+
+  // Secondary button/link tokens (for secondary CTA if needed)
+  const secondaryColor = safeParseOklch(secondaryResolved, DEFAULT_BRAND_COLOR);
+  const secondaryCtaBackground = getSolidTint(secondaryResolved, 0.42);
+  const secondaryCtaText = ensureAPCATextColor(secondaryResolved, neutralSurface, 14, 600);
+  const secondaryCtaHover = formatHex(oklch({ ...secondaryColor, l: clampLightness((secondaryColor.l ?? 0.6) - 0.08) }));
 
   // Card tokens for parallax/minimal
   const cardBackground = neutralSurface;
   const cardBorder = neutralBorder;
+
+  // Accent border/decorative (secondary)
+  const accentBorder = formatHex(oklch({ ...secondaryColor, l: clampLightness((secondaryColor.l ?? 0.6) + 0.35) }));
 
   // Overlay for fullwidth/cinema (functional only, reduced opacity)
   const sectionOverlay = withAlpha('#0f172a', 0.5, '#0f172a');
@@ -237,7 +249,7 @@ export const getVideoColorTokens = ({
     sectionOverlay,
     badgeBackground,
     badgeText,
-    badgeBorder: neutralBorder,
+    badgeBorder: accentBorder,
     ctaBackground,
     ctaText,
     ctaBorder: neutralBorder,
@@ -249,7 +261,10 @@ export const getVideoColorTokens = ({
     playButtonText,
     playButtonHover,
     cardBackground,
-    cardBorder,
+    cardBorder: accentBorder,
+    secondaryCtaBackground,
+    secondaryCtaText,
+    secondaryCtaHover,
   };
 };
 

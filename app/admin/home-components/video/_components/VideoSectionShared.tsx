@@ -62,14 +62,18 @@ const SectionHeading = ({
   tokens,
   device,
   centered = false,
+  useSecondaryForDescription = false,
 }: {
   heading: string;
   description: string;
   tokens: VideoColorTokens;
   device: VideoSectionDevice;
   centered?: boolean;
+  useSecondaryForDescription?: boolean;
 }) => {
   if (!heading && !description) {return null;}
+
+  const descriptionColor = useSecondaryForDescription ? tokens.secondaryCtaText : tokens.mutedText;
 
   return (
     <div className={cn('space-y-2', centered ? 'text-center mx-auto max-w-3xl' : 'text-left')}>
@@ -79,7 +83,7 @@ const SectionHeading = ({
         </h2>
       ) : null}
       {description ? (
-        <p className={cn('leading-relaxed', getCardTextClass(device))} style={{ color: tokens.mutedText }}>
+        <p className={cn('leading-relaxed', getCardTextClass(device))} style={{ color: descriptionColor }}>
           {description}
         </p>
       ) : null}
@@ -313,7 +317,7 @@ export function VideoSectionShared({
     return (
       <ContainerTag className={cn('px-4', isPreview ? 'py-8' : 'py-12 md:py-16')} style={{ backgroundColor: tokens.neutralBackground }}>
         <div className="mx-auto max-w-5xl space-y-6">
-          <SectionHeading heading={heading} description={description} tokens={tokens} device={device} centered />
+          <SectionHeading heading={heading} description={description} tokens={tokens} device={device} centered useSecondaryForDescription />
           <VideoSurface
             videoUrl={safeVideoUrl}
             thumbnailUrl={thumbnail}
@@ -344,7 +348,7 @@ export function VideoSectionShared({
           />
           <div className="space-y-4">
             {renderBadge()}
-            <SectionHeading heading={heading} description={description} tokens={tokens} device={device} />
+            <SectionHeading heading={heading} description={description} tokens={tokens} device={device} useSecondaryForDescription />
             {renderButton()}
           </div>
         </div>
@@ -442,7 +446,7 @@ export function VideoSectionShared({
             {(heading || description || badge || buttonText) ? (
               <div className="space-y-3 border-t p-4 md:p-6" style={{ borderColor: tokens.cardBorder }}>
                 {renderBadge()}
-                <SectionHeading heading={heading} description={description} tokens={tokens} device={device} />
+                <SectionHeading heading={heading} description={description} tokens={tokens} device={device} useSecondaryForDescription />
                 {renderButton(true)}
               </div>
             ) : null}
@@ -468,7 +472,7 @@ export function VideoSectionShared({
                 <div className="space-y-3">
                   {renderBadge()}
                   {heading ? <h2 className={cn('font-bold', getHeadingClass(device, true))} style={{ color: tokens.heading }}>{heading}</h2> : null}
-                  {description ? <p className={cn(getCardTextClass(device, true))} style={{ color: tokens.bodyText }}>{description}</p> : null}
+                  {description ? <p className={cn(getCardTextClass(device, true))} style={{ color: tokens.secondaryCtaText }}>{description}</p> : null}
                   <button
                     type="button"
                     onClick={() => setIsPlaying(true)}
