@@ -25,16 +25,16 @@ interface ClientsSectionSharedProps {
 
 export const normalizeClientsStyleSafe = (value: unknown): ClientsStyle => {
   if (
-    value === 'marquee'
-    || value === 'dualFlow'
-    || value === 'fadeScroll'
+    value === 'simpleGrid'
+    || value === 'compactInline'
+    || value === 'subtleMarquee'
     || value === 'grid'
     || value === 'carousel'
     || value === 'featured'
   ) {
     return value;
   }
-  return 'marquee';
+  return 'simpleGrid';
 };
 
 export const normalizeClientItems = (items: unknown): NormalizedClientItem[] => {
@@ -159,150 +159,86 @@ export function ClientsSectionShared({
 
   const sectionTitle = title.trim().length > 0 ? title : 'Khách hàng tin tưởng';
 
-  const scrollStyles = `
-    @keyframes marquee-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    @keyframes marquee-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
-    @keyframes fade-scroll { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50%); opacity: 1; } }
-    .marquee-track { animation: marquee-scroll var(--duration, 30s) linear infinite; }
-    .marquee-reverse-track { animation: marquee-reverse var(--duration, 30s) linear infinite; }
-    .fade-scroll-track { animation: fade-scroll var(--duration, 40s) linear infinite; }
-    .marquee-container:hover .marquee-track,
-    .marquee-container:hover .marquee-reverse-track,
-    .marquee-container:focus-within .marquee-track,
-    .marquee-container:focus-within .marquee-reverse-track {
-      animation-play-state: paused;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .marquee-track, .marquee-reverse-track, .fade-scroll-track { animation: none !important; }
-    }
+  const grayscaleStyles = `
+    .logo-grayscale { filter: grayscale(100%) opacity(0.6); transition: all 0.3s ease; }
+    .logo-grayscale:hover { filter: grayscale(0%) opacity(1); }
+    @keyframes subtle-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .subtle-marquee-track { animation: subtle-scroll 60s linear infinite; }
+    .subtle-marquee-container:hover .subtle-marquee-track { animation-play-state: paused; }
+    @media (prefers-reduced-motion: reduce) { .subtle-marquee-track { animation: none !important; } }
   `;
 
-  // Layout 1: Compact Marquee - Single row infinite scroll, uniform size, minimal spacing
-  if (selectedStyle === 'marquee') {
-    const duration = Math.max(20, normalizedItems.length * 3);
-
+  // Layout 1: Simple Static Grid - Grayscale grid like Stripe/Vercel
+  if (selectedStyle === 'simpleGrid') {
     return (
-      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{scrollStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
-          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-          <div
-            className="marquee-container relative py-3 overflow-hidden"
-            role="list"
-            style={{
-              WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-              maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-            }}
-          >
-            <div className="marquee-track flex items-center gap-8" style={{ '--duration': `${duration}s`, width: 'max-content' } as React.CSSProperties}>
-              {normalizedItems.map((item, idx) => (
-                <div key={`m1-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                  {renderLogoContent(item, idx, tokens, 'md')}
-                </div>
-              ))}
-              {normalizedItems.map((item, idx) => (
-                <div key={`m2-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                  {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
-                </div>
-              ))}
-            </div>
+      <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{grayscaleStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.mutedText }}>Được tin tưởng bởi</p>
+            <h2 className="text-lg md:text-xl font-bold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12 items-center justify-items-center py-4" role="list">
+            {normalizedItems.map((item, idx) => (
+              <div key={`sg-${item.key}-${idx}`} className="logo-grayscale" role="listitem">
+                {renderLogoContent(item, idx, tokens, 'md')}
+              </div>
+            ))}
           </div>
         </div>
       </section>
     );
   }
 
-  // Layout 2: Dual Flow - Two rows scrolling opposite directions, compact & uniform
-  if (selectedStyle === 'dualFlow') {
-    const duration1 = Math.max(25, normalizedItems.length * 3.5);
-    const duration2 = Math.max(30, normalizedItems.length * 4);
-
-    return (
-      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{scrollStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
-          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-          <div className="space-y-3" role="list">
-            {/* Row 1: Left to Right */}
-            <div
-              className="marquee-container relative py-2 overflow-hidden"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-                maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-              }}
-            >
-              <div className="marquee-track flex items-center gap-8" style={{ '--duration': `${duration1}s`, width: 'max-content' } as React.CSSProperties}>
-                {normalizedItems.map((item, idx) => (
-                  <div key={`df1-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                    {renderLogoContent(item, idx, tokens, 'md')}
-                  </div>
-                ))}
-                {normalizedItems.map((item, idx) => (
-                  <div key={`df2-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                    {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Row 2: Right to Left */}
-            <div
-              className="marquee-container relative py-2 overflow-hidden"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-                maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
-              }}
-            >
-              <div className="marquee-reverse-track flex items-center gap-8" style={{ '--duration': `${duration2}s`, width: 'max-content' } as React.CSSProperties}>
-                {[...normalizedItems].reverse().map((item, idx) => (
-                  <div key={`dfr1-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                    {renderLogoContent(item, idx, tokens, 'md')}
-                  </div>
-                ))}
-                {[...normalizedItems].reverse().map((item, idx) => (
-                  <div key={`dfr2-${item.key}-${idx}`} className="shrink-0" role="listitem">
-                    {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Layout 3: Fade Scroll - Vertical scroll with fade effect, compact & uniform
-  if (selectedStyle === 'fadeScroll') {
-    const duration = Math.max(35, normalizedItems.length * 5);
-
+  // Layout 2: Compact Inline - Single row, flexbox wrap, minimal
+  if (selectedStyle === 'compactInline') {
     return (
       <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{scrollStyles}</style>
+        <style>{grayscaleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
-          <div className="text-center space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: tokens.waveBadgeBackground, color: tokens.waveBadgeText }}>
-              Đối tác tin cậy
-            </div>
-            <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base md:text-lg font-semibold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: tokens.countBadgeBackground, color: tokens.countBadgeText }}>
+              {normalizedItems.length}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 py-3" role="list">
+            {normalizedItems.map((item, idx) => (
+              <div key={`ci-${item.key}-${idx}`} className="logo-grayscale" role="listitem">
+                {renderLogoContent(item, idx, tokens, 'sm')}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 3: Subtle Marquee - Very slow scroll, grayscale, no borders
+  if (selectedStyle === 'subtleMarquee') {
+    return (
+      <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{grayscaleStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: tokens.mutedText }}>Đối tác</p>
           </div>
           <div
-            className="relative mx-auto overflow-hidden"
-            style={{
-              maxHeight: '320px',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
-              maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
-            }}
+            className="subtle-marquee-container relative overflow-hidden py-4"
             role="list"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+              maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+            }}
           >
-            <div className="fade-scroll-track space-y-4" style={{ '--duration': `${duration}s` } as React.CSSProperties}>
+            <div className="subtle-marquee-track flex items-center gap-12 md:gap-16" style={{ width: 'max-content' }}>
               {normalizedItems.map((item, idx) => (
-                <div key={`fs1-${item.key}-${idx}`} className="flex items-center justify-center py-2" role="listitem">
+                <div key={`sm1-${item.key}-${idx}`} className="shrink-0 logo-grayscale" role="listitem">
                   {renderLogoContent(item, idx, tokens, 'md')}
                 </div>
               ))}
               {normalizedItems.map((item, idx) => (
-                <div key={`fs2-${item.key}-${idx}`} className="flex items-center justify-center py-2" role="listitem">
+                <div key={`sm2-${item.key}-${idx}`} className="shrink-0 logo-grayscale" role="listitem">
                   {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
                 </div>
               ))}

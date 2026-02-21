@@ -9,7 +9,7 @@ export interface ClientEditorItem extends ClientItem {
   inputMode: 'upload' | 'url';
 }
 
-export type ClientsStyle = 'marquee' | 'dualFlow' | 'fadeScroll' | 'grid' | 'carousel' | 'featured';
+export type ClientsStyle = 'simpleGrid' | 'compactInline' | 'subtleMarquee' | 'grid' | 'carousel' | 'featured';
 export type ClientsBrandMode = 'single' | 'dual';
 export type ClientsHarmony = 'analogous' | 'complementary' | 'triadic';
 

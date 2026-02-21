@@ -29,9 +29,9 @@ interface ClientsPreviewProps {
 }
 
 const STYLES: Array<{ id: ClientsStyle; label: string }> = [
-  { id: 'marquee', label: 'Marquee' },
-  { id: 'dualFlow', label: 'Dual Flow' },
-  { id: 'fadeScroll', label: 'Fade Scroll' },
+  { id: 'simpleGrid', label: 'Simple Grid' },
+  { id: 'compactInline', label: 'Compact Inline' },
+  { id: 'subtleMarquee', label: 'Subtle Marquee' },
   { id: 'grid', label: 'Grid' },
   { id: 'carousel', label: 'Carousel' },
   { id: 'featured', label: 'Featured' },
@@ -39,9 +39,9 @@ const STYLES: Array<{ id: ClientsStyle; label: string }> = [
 
 const getImageInfoText = (style: ClientsStyle, count: number) => {
   if (count === 0) {return 'Chưa có logo';}
-  if (style === 'marquee') {return `${count} logo • Compact scroll`;}
-  if (style === 'dualFlow') {return `${count} logo • Dual direction`;}
-  if (style === 'fadeScroll') {return `${count} logo • Vertical fade`;}
+  if (style === 'simpleGrid') {return `${count} logo • Grayscale grid`;}
+  if (style === 'compactInline') {return `${count} logo • Inline flex`;}
+  if (style === 'subtleMarquee') {return `${count} logo • Slow scroll`;}
   if (style === 'grid') {return `${count} logo • 216×84px`;}
   if (style === 'featured') {
     return count <= 4 ? `${count} logo • 240×96px` : `4 featured + ${count - 4} khác`;
@@ -74,7 +74,7 @@ export const ClientsPreview = ({
   secondary,
   mode = 'dual',
   harmony = DEFAULT_CLIENTS_HARMONY,
-  selectedStyle = 'marquee',
+  selectedStyle = 'simpleGrid',
   onStyleChange,
   warningMessages,
   showValidationSummary = false,
@@ -141,9 +141,9 @@ export const ClientsPreview = ({
         <div className="flex items-center gap-2">
           <ImageIcon size={14} className="text-slate-400 flex-shrink-0" />
           <div className="text-xs text-slate-600 dark:text-slate-400">
-            {selectedStyle === 'marquee' && <span><strong>Marquee</strong> • Infinite scroll ngang, uniform size, pause on hover</span>}
-            {selectedStyle === 'dualFlow' && <span><strong>Dual Flow</strong> • 2 hàng scroll ngược chiều, compact spacing</span>}
-            {selectedStyle === 'fadeScroll' && <span><strong>Fade Scroll</strong> • Vertical scroll với fade effect, uniform items</span>}
+            {selectedStyle === 'simpleGrid' && <span><strong>Simple Grid</strong> • Grayscale static grid, hover full color (Stripe-style)</span>}
+            {selectedStyle === 'compactInline' && <span><strong>Compact Inline</strong> • Single row flexbox, grayscale, minimal</span>}
+            {selectedStyle === 'subtleMarquee' && <span><strong>Subtle Marquee</strong> • Very slow scroll (60s), grayscale, clean</span>}
             {selectedStyle === 'grid' && <span><strong>216×84px</strong> PNG trong suốt • Grid tĩnh, max 12 logo</span>}
             {selectedStyle === 'carousel' && <span><strong>240×96px</strong> PNG trong suốt • Kéo/vuốt ngang</span>}
             {selectedStyle === 'featured' && <span><strong>240×96px</strong> PNG trong suốt • 4 logo featured</span>}
