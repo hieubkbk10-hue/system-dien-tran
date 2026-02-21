@@ -550,36 +550,46 @@ export function TeamSectionShared({
     return (
       <section className={basePadding} data-mode={mode}>
         {header}
-        <div className={cn('max-w-7xl mx-auto grid gap-x-8 gap-y-12 text-center', columns)}>
+        <div className={cn('max-w-7xl mx-auto grid gap-x-6 gap-y-20 text-center mt-24', columns)}>
           {visibleMembers.map((member) => (
-            <article key={member.key} className="flex flex-col items-center">
+            <article key={member.key}>
               <div
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden mb-4"
+                className="relative rounded-sm"
                 style={{
                   backgroundColor: tokens.cardBackground,
                 }}
               >
-                <TeamAvatar
-                  member={member}
-                  tokens={tokens}
-                  context={context}
-                  className="w-full h-full object-cover"
-                  sizes="(max-width: 768px) 128px, 160px"
-                />
-              </div>
+                <div
+                  className="w-32 h-32 rounded-full inline-block border overflow-hidden -mt-14"
+                  style={{
+                    backgroundColor: tokens.cardBackground,
+                    borderColor: tokens.cardBorder,
+                  }}
+                >
+                  <TeamAvatar
+                    member={member}
+                    tokens={tokens}
+                    context={context}
+                    className="w-full h-full object-cover"
+                    sizes="128px"
+                  />
+                </div>
 
-              <h4 className="text-base md:text-lg font-semibold" style={{ color: tokens.neutralText }}>
-                {member.name || 'Thành viên'}
-              </h4>
-              <p className="text-sm md:text-[15px] mt-1" style={{ color: tokens.styleAccentByStyle.bento }}>
-                {member.role || 'Chức vụ'}
-              </p>
+                <div className="py-4">
+                  <h4 className="text-base font-semibold" style={{ color: tokens.neutralText }}>
+                    {member.name || 'Thành viên'}
+                  </h4>
+                  <p className="text-[13px] mt-1" style={{ color: tokens.styleAccentByStyle.bento }}>
+                    {member.role || 'Chức vụ'}
+                  </p>
 
-              <div className="flex items-center justify-center gap-3 mt-4">
-                <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-8 h-8" iconSize={14} />
-                <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-8 h-8" iconSize={14} />
-                <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-8 h-8" iconSize={14} />
-                <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-8 h-8" iconSize={14} />
+                  <div className="flex items-center justify-center gap-4 mt-4">
+                    <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                    <TeamSocialButton platform="linkedin" value={member.linkedin} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                    <TeamSocialButton platform="twitter" value={member.twitter} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                    <TeamSocialButton platform="email" value={member.email} context={context} tokens={tokens} sizeClass="w-7 h-7" iconSize={12} />
+                  </div>
+                </div>
               </div>
             </article>
           ))}
