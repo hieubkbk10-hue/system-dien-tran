@@ -81,8 +81,7 @@ export const ClientsForm = ({
                 <button
                   type="button"
                   onClick={() =>{  onRemoveItem(item.id); }}
-                  disabled={items.length <= minItems}
-                  className="w-5 h-5 bg-red-500 text-white rounded text-[10px] hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-5 h-5 bg-red-500 text-white rounded text-[10px] hover:bg-red-600"
                   aria-label="Xoá logo"
                 >
                   ×
