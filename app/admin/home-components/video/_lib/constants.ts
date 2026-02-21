@@ -9,6 +9,78 @@ export const VIDEO_STYLES: Array<{ id: VideoStyle; label: string }> = [
   { id: 'parallax', label: 'Parallax' },
 ];
 
+export const DEFAULT_TEXTS: Record<VideoStyle, Record<string, string>> = {
+  centered: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+  },
+  split: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+    badge: 'Video mới',
+    buttonText: 'Tìm hiểu thêm',
+  },
+  fullwidth: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+    badge: 'Giới thiệu',
+    buttonText: 'Xem ngay',
+  },
+  cinema: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+    badge: 'Featured',
+    buttonText: 'Khám phá',
+  },
+  minimal: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+    buttonText: 'Tìm hiểu thêm',
+  },
+  parallax: {
+    heading: 'Khám phá sản phẩm của chúng tôi',
+    description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
+    badge: 'Video mới',
+    buttonText: 'Xem ngay',
+  },
+};
+
+export const TEXT_FIELDS: Record<VideoStyle, Array<{ key: string; label: string; placeholder: string }>> = {
+  centered: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+  ],
+  split: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+    { key: 'badge', label: 'Badge / Label', placeholder: 'VD: Video mới, Giới thiệu...' },
+    { key: 'buttonText', label: 'Nút CTA - Text', placeholder: 'VD: Tìm hiểu thêm...' },
+  ],
+  fullwidth: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+    { key: 'badge', label: 'Badge / Label', placeholder: 'VD: Giới thiệu...' },
+    { key: 'buttonText', label: 'Nút CTA - Text', placeholder: 'VD: Xem ngay...' },
+  ],
+  cinema: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+    { key: 'badge', label: 'Badge / Label', placeholder: 'VD: Featured...' },
+    { key: 'buttonText', label: 'Nút CTA - Text', placeholder: 'VD: Khám phá...' },
+  ],
+  minimal: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+    { key: 'buttonText', label: 'Nút CTA - Text', placeholder: 'VD: Tìm hiểu thêm...' },
+  ],
+  parallax: [
+    { key: 'heading', label: 'Tiêu đề', placeholder: 'Tiêu đề video section' },
+    { key: 'description', label: 'Mô tả ngắn', placeholder: 'Mô tả cho video section...' },
+    { key: 'badge', label: 'Badge / Label', placeholder: 'VD: Video mới...' },
+    { key: 'buttonText', label: 'Nút CTA - Text', placeholder: 'VD: Xem ngay...' },
+  ],
+};
+
 export const DEFAULT_VIDEO_CONFIG: VideoConfig = {
   videoUrl: '',
   thumbnailUrl: '',
@@ -22,6 +94,7 @@ export const DEFAULT_VIDEO_CONFIG: VideoConfig = {
   muted: true,
   style: 'centered',
   harmony: 'analogous',
+  texts: {},
 };
 
 export const VIDEO_STYLES_WITH_CTA: VideoStyle[] = ['split', 'fullwidth', 'cinema', 'minimal', 'parallax'];
@@ -67,6 +140,7 @@ export const normalizeVideoConfig = (raw: unknown): VideoConfig => {
     muted: toBoolean(source.muted, true),
     style: normalizeVideoStyle(source.style),
     harmony: normalizeVideoHarmony(source.harmony),
+    texts: source.texts && typeof source.texts === 'object' ? source.texts : {},
   };
 };
 

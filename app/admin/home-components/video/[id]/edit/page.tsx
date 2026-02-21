@@ -17,38 +17,7 @@ import {
   normalizeVideoConfig,
   normalizeVideoStyle,
 } from '../../_lib/constants';
-import { getVideoValidationResult } from '../../_lib/colors';
-import type { VideoConfig, VideoStyle } from '../../_types';
-
-const getWarningMessages = (
-  config: VideoConfig,
-  style: VideoStyle,
-  primary: string,
-  secondary: string,
-  mode: 'single' | 'dual',
-) => {
-  if (mode !== 'dual') {return [] as string[];}
-
-  const validation = getVideoValidationResult({
-    primary,
-    secondary,
-    mode,
-    harmony: config.harmony,
-    style,
-  });
-
-  const warnings: string[] = [];
-
-  if (validation.harmonyStatus.isTooSimilar) {
-    warnings.push('Màu chính và màu phụ đang quá giống nhau (deltaE thấp), điểm nhấn dual mode có thể khó nhận thấy.');
-  }
-
-  if (validation.accessibility.failing.length > 0) {
-    warnings.push(`Một số cặp màu chưa đạt APCA tối thiểu (LC thấp nhất: ${validation.accessibility.minLc.toFixed(1)}).`);
-  }
-
-  return warnings;
-};
+import type { VideoConfig } from '../../_types';
 
 export default function VideoEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -101,11 +70,6 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
   }, [component, id, router]);
 
   const selectedStyle = normalizeVideoStyle(config.style);
-
-  const warningMessages = React.useMemo(
-    () => getWarningMessages(config, selectedStyle, primary, secondary, mode),
-    [config, selectedStyle, primary, secondary, mode],
-  );
 
   const hasChanges = React.useMemo(() => {
     const current = JSON.stringify({
@@ -206,8 +170,6 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
           config={config}
           onChange={setConfig}
           selectedStyle={selectedStyle}
-          mode={mode}
-          warningMessages={warningMessages}
         />
 
         <VideoPreview

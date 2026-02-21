@@ -11,39 +11,8 @@ import {
   normalizeVideoConfig,
   normalizeVideoStyle,
 } from '../../video/_lib/constants';
-import { getVideoValidationResult } from '../../video/_lib/colors';
 import { VideoForm } from '../../video/_components/VideoForm';
-import type { VideoConfig, VideoStyle } from '../../video/_types';
-
-const getWarningMessages = (
-  config: VideoConfig,
-  style: VideoStyle,
-  primary: string,
-  secondary: string,
-  mode: 'single' | 'dual',
-) => {
-  if (mode !== 'dual') {return [] as string[];}
-
-  const validation = getVideoValidationResult({
-    primary,
-    secondary,
-    mode,
-    harmony: config.harmony,
-    style,
-  });
-
-  const warnings: string[] = [];
-
-  if (validation.harmonyStatus.isTooSimilar) {
-    warnings.push('Màu chính và màu phụ đang quá giống nhau (deltaE thấp), điểm nhấn dual mode có thể khó nhận thấy.');
-  }
-
-  if (validation.accessibility.failing.length > 0) {
-    warnings.push(`Một số cặp màu chưa đạt APCA tối thiểu (LC thấp nhất: ${validation.accessibility.minLc.toFixed(1)}).`);
-  }
-
-  return warnings;
-};
+import type { VideoConfig } from '../../video/_types';
 
 export default function VideoCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', 'Video');
@@ -65,11 +34,6 @@ export default function VideoCreatePage() {
   }));
 
   const selectedStyle = normalizeVideoStyle(config.style);
-
-  const warningMessages = React.useMemo(
-    () => getWarningMessages(config, selectedStyle, primary, secondary, mode),
-    [config, selectedStyle, primary, secondary, mode],
-  );
 
   const onSubmit = (e: React.FormEvent) => {
     const normalized = normalizeVideoConfig({ ...config, style: selectedStyle });
@@ -104,8 +68,6 @@ export default function VideoCreatePage() {
         config={config}
         onChange={setConfig}
         selectedStyle={selectedStyle}
-        mode={mode}
-        warningMessages={warningMessages}
       />
 
       <VideoPreview

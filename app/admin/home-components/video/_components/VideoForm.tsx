@@ -4,7 +4,7 @@ import React from 'react';
 import { Video as VideoIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/app/admin/components/ui';
 import { ImageFieldWithUpload } from '@/app/admin/components/ImageFieldWithUpload';
-import { VIDEO_STYLES_WITH_CTA } from '../_lib/constants';
+import { VIDEO_STYLES_WITH_CTA, TEXT_FIELDS, DEFAULT_TEXTS } from '../_lib/constants';
 import { getVideoInfo } from '../_lib/colors';
 import type { VideoConfig, VideoStyle } from '../_types';
 
@@ -12,8 +12,6 @@ interface VideoFormProps {
   config: VideoConfig;
   onChange: (next: VideoConfig) => void;
   selectedStyle: VideoStyle;
-  mode: 'single' | 'dual';
-  warningMessages?: string[];
 }
 
 const updateConfig = (
@@ -28,11 +26,27 @@ export function VideoForm({
   config,
   onChange,
   selectedStyle,
-  mode,
-  warningMessages = [],
 }: VideoFormProps) {
   const videoType = getVideoInfo(config.videoUrl || '').type;
   const showCTAConfig = VIDEO_STYLES_WITH_CTA.includes(selectedStyle);
+  
+  const textFields = TEXT_FIELDS[selectedStyle] || [];
+  const defaultTexts = DEFAULT_TEXTS[selectedStyle] || {};
+  const currentTexts = config.texts || {};
+  
+  const getTextValue = (key: string) => {
+    return currentTexts[key] || defaultTexts[key] || '';
+  };
+  
+  const updateTextValue = (key: string, value: string) => {
+    onChange({
+      ...config,
+      texts: {
+        ...currentTexts,
+        [key]: value,
+      },
+    });
+  };
 
   return (
     <>
@@ -79,25 +93,48 @@ export function VideoForm({
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-base">Nội dung</CardTitle>
+          <p className="text-xs text-slate-500 mt-1">Tùy chỉnh text cho style {selectedStyle}</p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {textFields.map((field) => (
+            <div key={field.key} className="space-y-2">
+              <Label>{field.label}</Label>
+              {field.key === 'description' ? (
+                <textarea
+                  value={getTextValue(field.key)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateTextValue(field.key, e.target.value)}
+                  placeholder={field.placeholder}
+                  className="w-full min-h-[96px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                />
+              ) : (
+                <Input
+                  value={getTextValue(field.key)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTextValue(field.key, e.target.value)}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </div>
+          ))}
+          
           <div className="space-y-2">
-            <Label>Tiêu đề</Label>
+            <Label>Tiêu đề (legacy)</Label>
             <Input
               value={config.heading || ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateConfig(config, { heading: e.target.value }, onChange)}
-              placeholder="Tiêu đề video section"
+              placeholder="Tiêu đề video section (fallback)"
             />
+            <p className="text-xs text-slate-500">Dùng khi texts config chưa có</p>
           </div>
 
           <div className="space-y-2">
-            <Label>Mô tả ngắn</Label>
+            <Label>Mô tả ngắn (legacy)</Label>
             <textarea
               value={config.description || ''}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateConfig(config, { description: e.target.value }, onChange)}
-              placeholder="Mô tả cho video section..."
+              placeholder="Mô tả cho video section... (fallback)"
               className="w-full min-h-[96px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
             />
+            <p className="text-xs text-slate-500">Dùng khi texts config chưa có</p>
           </div>
         </CardContent>
       </Card>
@@ -179,21 +216,6 @@ export function VideoForm({
           </p>
         </CardContent>
       </Card>
-
-      {mode === 'dual' && warningMessages.length > 0 ? (
-        <Card className="mb-6 border-amber-200 bg-amber-50/60 dark:bg-amber-900/10 dark:border-amber-800">
-          <CardHeader>
-            <CardTitle className="text-sm text-amber-800 dark:text-amber-300">Cảnh báo phối màu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc pl-5 space-y-1 text-xs text-amber-700 dark:text-amber-300">
-              {warningMessages.map((message, index) => (
-                <li key={`${message}-${index}`}>{message}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      ) : null}
     </>
   );
 }

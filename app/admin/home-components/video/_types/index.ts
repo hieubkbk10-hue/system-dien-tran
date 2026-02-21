@@ -17,4 +17,5 @@ export interface VideoConfig {
   muted?: boolean;
   style?: VideoStyle;
   harmony?: VideoHarmony;
+  texts?: Record<string, string>;
 }

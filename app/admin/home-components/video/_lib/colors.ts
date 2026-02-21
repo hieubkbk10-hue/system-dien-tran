@@ -1,7 +1,7 @@
 'use client';
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
-import { differenceEuclidean, formatHex, oklch } from 'culori';
+import { formatHex, oklch } from 'culori';
 import type {
   VideoBrandMode,
   VideoHarmony,
@@ -52,6 +52,12 @@ const getAPCALc = (text: string, background: string) => {
 
   const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(backgroundRgb)));
   return Number.isFinite(lc) ? lc : 0;
+};
+
+const pickReadableTextOnSolid = (background: string): string => {
+  const whiteLc = getAPCALc('#ffffff', background);
+  const nearBlackLc = getAPCALc('#111111', background);
+  return whiteLc > nearBlackLc ? '#ffffff' : '#111111';
 };
 
 export const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
@@ -163,61 +169,6 @@ export interface VideoColorTokens {
   playButtonText: string;
 }
 
-export interface VideoAccessibilityPair {
-  background: string;
-  text: string;
-  fontSize?: number;
-  fontWeight?: number;
-  label?: string;
-}
-
-export interface VideoAccessibilityScore {
-  minLc: number;
-  failing: Array<VideoAccessibilityPair & { lc: number; threshold: number }>;
-}
-
-export interface VideoHarmonyStatus {
-  deltaE: number;
-  similarity: number;
-  isTooSimilar: boolean;
-}
-
-export const getHarmonyStatus = (primary: string, secondary: string): VideoHarmonyStatus => {
-  const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryNormalized = normalizeHex(secondary, primaryNormalized);
-  const delta = differenceEuclidean('oklch')(primaryNormalized, secondaryNormalized);
-  const safeDelta = Number.isFinite(delta) ? delta : 1;
-  const deltaE = Math.round(safeDelta * 100);
-
-  return {
-    deltaE,
-    similarity: 1 - Math.min(safeDelta, 1),
-    isTooSimilar: deltaE < 20,
-  };
-};
-
-export const getVideoAccessibilityScore = (pairs: VideoAccessibilityPair[]): VideoAccessibilityScore => {
-  const failing: VideoAccessibilityScore['failing'] = [];
-  let minLc = Number.POSITIVE_INFINITY;
-
-  pairs.forEach((pair) => {
-    const fontSize = pair.fontSize ?? 16;
-    const fontWeight = pair.fontWeight ?? 500;
-    const threshold = getAPCAThreshold(fontSize, fontWeight);
-    const lc = getAPCALc(pair.text, pair.background);
-    minLc = Math.min(minLc, lc);
-
-    if (lc < threshold) {
-      failing.push({ ...pair, lc, threshold });
-    }
-  });
-
-  return {
-    minLc: Number.isFinite(minLc) ? minLc : 0,
-    failing,
-  };
-};
-
 export const getVideoColorTokens = ({
   primary,
   secondary,
@@ -243,10 +194,14 @@ export const getVideoColorTokens = ({
   const headingOnNeutral = ensureAPCATextColor(primaryResolved, neutralSurface, 28, 700);
   const bodyOnNeutral = ensureAPCATextColor('#334155', neutralSurface, 16, 500);
   const mutedOnNeutral = ensureAPCATextColor('#64748b', neutralSurface, 14, 500);
+  
   const badgeBackground = getSolidTint(secondaryResolved, 0.42);
-  const badgeText = getAPCATextColor(badgeBackground, 12, 700);
+  const badgeTextCandidate = pickReadableTextOnSolid(badgeBackground);
+  const badgeText = ensureAPCATextColor(badgeTextCandidate, badgeBackground, 12, 700);
+  
   const ctaBackground = primaryResolved;
-  const ctaText = getAPCATextColor(ctaBackground, 14, 600);
+  const ctaTextCandidate = pickReadableTextOnSolid(ctaBackground);
+  const ctaText = ensureAPCATextColor(ctaTextCandidate, ctaBackground, 14, 600);
 
   const parallaxBackdrop = style === 'parallax'
     ? `linear-gradient(135deg, ${withAlpha(primaryResolved, 0.9, primaryResolved)} 0%, ${withAlpha(secondaryResolved, 0.88, primaryResolved)} 100%)`
@@ -272,49 +227,12 @@ export const getVideoColorTokens = ({
     ctaText,
     ctaBorder: neutralBorder,
     iconSurface: neutralSurface,
-    iconText: ensureAPCATextColor(primaryResolved, neutralSurface, 16, 700),
+    iconText: primaryResolved,
     frameTopBottom: getSolidTint(secondaryResolved, 0.3),
     frameBackground: darkFrameBackground,
     parallaxBackdrop,
     playButtonBackground: primaryResolved,
-    playButtonText: getAPCATextColor(primaryResolved, 18, 700),
-  };
-};
-
-export const getVideoValidationResult = ({
-  primary,
-  secondary,
-  mode,
-  harmony = 'analogous',
-  style,
-}: {
-  primary: string;
-  secondary: string;
-  mode: VideoBrandMode;
-  harmony?: VideoHarmony;
-  style: VideoStyle;
-}) => {
-  const colors = getVideoColorTokens({
-    primary,
-    secondary,
-    mode,
-    harmony,
-    style,
-  });
-  const harmonyStatus = getHarmonyStatus(colors.primary, colors.secondary);
-
-  const accessibilityPairs: VideoAccessibilityPair[] = [
-    { background: colors.neutralSurface, text: colors.heading, fontSize: 28, fontWeight: 700, label: 'heading' },
-    { background: colors.badgeBackground, text: colors.badgeText, fontSize: 12, fontWeight: 700, label: 'badge' },
-    { background: colors.ctaBackground, text: colors.ctaText, fontSize: 14, fontWeight: 600, label: 'button' },
-  ];
-
-  const accessibility = getVideoAccessibilityScore(accessibilityPairs);
-
-  return {
-    colors,
-    harmonyStatus,
-    accessibility,
+    playButtonText: ensureAPCATextColor(pickReadableTextOnSolid(primaryResolved), primaryResolved, 18, 700),
   };
 };
 
