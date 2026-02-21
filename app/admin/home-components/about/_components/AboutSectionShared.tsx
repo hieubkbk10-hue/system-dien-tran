@@ -353,7 +353,7 @@ export function AboutSectionShared({
                     context={context}
                     imagePriority={imagePriority}
                   />
-                  <div className="absolute inset-0 flex items-end p-6 md:p-8" style={{ background: 'linear-gradient(to top, rgba(15,23,42,0.62), transparent)' }}>
+                  <div className="absolute inset-0 flex items-end p-6 md:p-8 bg-gradient-to-t from-slate-900/75 to-transparent">
                     <p className="font-medium text-base md:text-lg" style={{ color: tokens.imageOverlayText }}>
                       {resolvedCaption}
                     </p>
@@ -572,7 +572,7 @@ export function AboutSectionShared({
                     context={context}
                     imagePriority={imagePriority}
                   />
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(15,23,42,0.45), transparent)' }} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
                 </>
               )
               : renderEmptyImage(48)}

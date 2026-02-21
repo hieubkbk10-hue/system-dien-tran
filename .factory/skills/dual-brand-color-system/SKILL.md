@@ -429,7 +429,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | ProductList | 55 | 45 | P: titles/prices/buttons; S: labels/borders | N/A | Needs Review |
 | ProductGrid | 50 | 50 | Pass-through | N/A | Needs Review |
 | CTA | 60 | 40 | P: bg/buttons; S: title text/button text | 2026-02-17 | Fixed v11.4 (harmony validation) |
-| About | 50 | 50 | Cả 2 cho accent bar, icons | N/A | Needs Review |
+| About | 50 | 50 | Cả 2 cho accent bar, icons | 2026-02-21 | OK v11.6.7 |
 | Pricing | 45 | 55 | S: prices/ring; P: popular bg | N/A | Needs Review |
 | SpeedDial | 50 | 50 | Cân bằng | N/A | Needs Review |
 | Clients | 50 | 50 | Cân bằng | 2026-02-21 | OK v11.6.7 |

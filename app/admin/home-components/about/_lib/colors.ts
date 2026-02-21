@@ -66,14 +66,13 @@ const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
+const getSolidTint = (hex: string, lightnessOffset: number, fallback = DEFAULT_BRAND_COLOR) => {
   const color = safeParseOklch(hex, fallback);
-  const l = clampLightness(color.l ?? 0.6);
+  const newL = clampLightness((color.l ?? 0.6) + lightnessOffset);
   const c = clampChroma(color.c ?? 0.1);
   const h = Number.isFinite(color.h) ? color.h : 0;
-  const a = Math.max(0, Math.min(alpha, 1));
 
-  return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${a.toFixed(3)})`;
+  return formatHex(oklch({ l: newL, c, h, mode: 'oklch' }));
 };
 
 const getHarmonyColor = (primary: string, harmony: AboutHarmony) => {
@@ -223,10 +222,17 @@ export const getAboutColorTokens = ({
   const mutedText = '#64748b';
 
   const heading = ensureAPCATextColor(primaryNormalized, sectionBg, 36, 700);
-  const badgeText = ensureAPCATextColor(secondaryResolved, sectionBg, 12, 700);
+
+  // Badge Token Contract: validate text trên chính badge bg
+  const badgeBg = neutralSurface;
+  const badgeText = ensureAPCATextColor(secondaryResolved, badgeBg, 12, 700);
 
   const ctaSolidBg = primaryNormalized;
   const ctaSolidText = getAPCATextColor(ctaSolidBg, 14, 700);
+
+  // CTA Outline: dùng solid tint thay vì opacity
+  const ctaOutlineBg = getSolidTint(primaryNormalized, 0.42);
+  const ctaOutlineBorder = getSolidTint(primaryNormalized, 0.35);
 
   const statPrimaryValue = ensureAPCATextColor(primaryNormalized, sectionBg, 30, 700);
   const statPrimaryLabel = ensureAPCATextColor(mutedText, sectionBg, 12, 500);
@@ -235,6 +241,12 @@ export const getAboutColorTokens = ({
 
   const timelineDotBg = secondaryResolved;
   const timelineDotText = getAPCATextColor(timelineDotBg, 12, 700);
+
+  // Timeline line: dùng solid tint thay vì opacity
+  const timelineLine = getSolidTint(secondaryResolved, 0.38);
+
+  // Empty stat: dùng solid tint thay vì opacity
+  const emptyStatBg = getSolidTint(primaryNormalized, 0.42);
 
   return {
     primary: primaryNormalized,
@@ -246,31 +258,38 @@ export const getAboutColorTokens = ({
     heading,
     bodyText,
     mutedText,
-    badgeBg: neutralSurface,
+    badgeBg,
     badgeText,
     badgeBorder: neutralBorder,
     ctaSolidBg,
     ctaSolidText,
-    ctaOutlineText: ensureAPCATextColor(primaryNormalized, sectionBg, 14, 700),
-    ctaOutlineBorder: withAlpha(primaryNormalized, 0.28, primaryNormalized),
-    ctaOutlineBg: withAlpha(primaryNormalized, 0.08, primaryNormalized),
+    ctaOutlineText: ensureAPCATextColor(primaryNormalized, ctaOutlineBg, 14, 700),
+    ctaOutlineBorder,
+    ctaOutlineBg,
     statPrimaryValue,
     statPrimaryLabel,
     statSecondaryValue,
     statSecondaryLabel,
     statCardBg: neutralSurface,
     statCardBorder: neutralBorder,
-    timelineLine: withAlpha(secondaryResolved, 0.22, secondaryResolved),
+    timelineLine,
     timelineDotBg,
     timelineDotText,
     imageFallbackBg: sectionAltBg,
     imageFallbackIcon: '#94a3b8',
     imageOverlayText: '#ffffff',
-    emptyStatBg: withAlpha(primaryNormalized, 0.08, primaryNormalized),
+    emptyStatBg,
     emptyStatIcon: '#cbd5e1',
   };
 };
 
+/**
+ * Calculate accent balance (estimated)
+ * 
+ * NOTE: Tỷ lệ này là ước lượng dựa trên style pattern, không đo element thực tế.
+ * Skill yêu cầu đo ở content state (data đầy đủ), nhưng static calculation có limitation.
+ * Để đo chính xác cần tool analyzer runtime.
+ */
 const calculateAboutAccentBalance = ({
   mode,
   style,
