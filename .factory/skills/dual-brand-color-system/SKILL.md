@@ -432,7 +432,7 @@ KHÔNG tính placeholder vào tỷ lệ này.
 | About | 50 | 50 | Cả 2 cho accent bar, icons | N/A | Needs Review |
 | Pricing | 45 | 55 | S: prices/ring; P: popular bg | N/A | Needs Review |
 | SpeedDial | 50 | 50 | Cân bằng | N/A | Needs Review |
-| Clients | 50 | 50 | Cân bằng | N/A | Needs Review |
+| Clients | 50 | 50 | Cân bằng | 2026-02-21 | OK v11.6.7 |
 | Video | 50 | 50 | Cân bằng | N/A | Needs Review |
 | Countdown | 50 | 50 | Cân bằng | N/A | Needs Review |
 | VoucherPromotions | 50 | 50 | Cân bằng | N/A | Needs Review |

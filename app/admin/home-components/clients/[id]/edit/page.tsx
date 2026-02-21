@@ -12,6 +12,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ClientsForm } from '../../_components/ClientsForm';
 import { ClientsPreview } from '../../_components/ClientsPreview';
+import { ColorInfoPanel } from '../../_components/ColorInfoPanel';
 import {
   DEFAULT_CLIENTS_CONFIG,
   DEFAULT_CLIENTS_HARMONY,
@@ -129,7 +130,8 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     secondary,
     mode,
     harmony,
-  }), [primary, secondary, mode, harmony]);
+    style,
+  }), [primary, secondary, mode, harmony, style]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -140,6 +142,10 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
 
     if (validation.accessibility.failing.length > 0) {
       warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    if (validation.accentBalance?.warnings.length > 0) {
+      warnings.push(...validation.accentBalance.warnings);
     }
 
     return warnings;
@@ -335,6 +341,11 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
               selectedStyle={style}
               onStyleChange={setStyle}
               warningMessages={warningMessages}
+            />
+            <ColorInfoPanel
+              brandColor={primary}
+              secondary={secondary}
+              mode={mode}
             />
           </div>
         </div>

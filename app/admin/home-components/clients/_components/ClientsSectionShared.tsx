@@ -172,7 +172,7 @@ export function ClientsSectionShared({
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.mutedText }}>Được tin tưởng bởi</p>
+            <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.secondary }}>Được tin tưởng bởi</p>
             <h2 className="text-lg md:text-xl font-bold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12 items-center justify-items-center py-4" role="list">

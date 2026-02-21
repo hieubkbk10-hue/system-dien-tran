@@ -122,7 +122,8 @@ export default function ClientsCreatePage() {
     secondary,
     mode,
     harmony,
-  }), [primary, secondary, mode, harmony]);
+    style,
+  }), [primary, secondary, mode, harmony, style]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -133,6 +134,10 @@ export default function ClientsCreatePage() {
 
     if (validation.accessibility.failing.length > 0) {
       warnings.push(`Có ${validation.accessibility.failing.length} cặp màu chưa đạt APCA (minLc=${validation.accessibility.minLc.toFixed(1)}).`);
+    }
+
+    if (validation.accentBalance?.warnings.length > 0) {
+      warnings.push(...validation.accentBalance.warnings);
     }
 
     return warnings;

@@ -9,6 +9,7 @@ import {
 import type {
   ClientsBrandMode,
   ClientsHarmony,
+  ClientsStyle,
 } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
@@ -61,6 +62,20 @@ const toRgbTuple = (value: string, fallback: string): [number, number, number] |
   }
 
   return [r, g, b];
+};
+
+const pickReadableTextOnSolid = (bgHex: string): string => {
+  const bgRgb = toRgbTuple(bgHex, '#ffffff');
+  if (!bgRgb) {return '#ffffff';}
+  
+  const bgY = sRGBtoY(bgRgb);
+  const whiteY = sRGBtoY([255, 255, 255]);
+  const nearBlackY = sRGBtoY([17, 17, 17]);
+  
+  const whiteContrast = Math.abs(APCAcontrast(whiteY, bgY));
+  const blackContrast = Math.abs(APCAcontrast(nearBlackY, bgY));
+  
+  return whiteContrast > blackContrast ? '#ffffff' : '#111111';
 };
 
 const getAPCALc = (text: string, background: string) => {
@@ -188,6 +203,13 @@ export interface ClientsAccessibilityScore {
   failing: Array<ClientsAccessibilityPair & { lc: number; threshold: number }>;
 }
 
+export interface ClientsAccentBalance {
+  primary: number;
+  secondary: number;
+  neutral: number;
+  warnings: string[];
+}
+
 export const getHarmonyStatus = (primary: string, secondary: string): ClientsHarmonyStatus => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
   const secondaryNormalized = normalizeHex(secondary, primaryNormalized);
@@ -226,6 +248,37 @@ export const getClientsAccessibilityScore = (
   };
 };
 
+export const calculateClientsAccentBalance = (
+  style: ClientsStyle,
+): ClientsAccentBalance => {
+  const distributions: Record<ClientsStyle, { primary: number; secondary: number }> = {
+    simpleGrid: { primary: 30, secondary: 8 },
+    compactInline: { primary: 28, secondary: 12 },
+    subtleMarquee: { primary: 25, secondary: 8 },
+    grid: { primary: 30, secondary: 10 },
+    carousel: { primary: 28, secondary: 12 },
+    featured: { primary: 32, secondary: 8 },
+  };
+
+  const dist = distributions[style];
+  const neutral = 100 - dist.primary - dist.secondary;
+  const warnings: string[] = [];
+
+  if (dist.primary < 25) {
+    warnings.push(`Primary < 25% (${dist.primary}%)`);
+  }
+  if (dist.secondary < 5) {
+    warnings.push(`Secondary < 5% (${dist.secondary}%)`);
+  }
+
+  return {
+    primary: dist.primary,
+    secondary: dist.secondary,
+    neutral,
+    warnings,
+  };
+};
+
 export const getClientsColorTokens = ({
   primary,
   secondary,
@@ -254,6 +307,15 @@ export const getClientsColorTokens = ({
   const navButtonBorder = shiftColor(secondaryResolved, 0.24, 0.78, primaryResolved);
   const navButtonText = ensureAPCATextColor(secondaryResolved, navButtonBackground, 14, 600);
 
+  const waveBadgeBackground = shiftColor(secondaryResolved, 0.44, 0.72, primaryResolved);
+  const waveBadgeCandidate = pickReadableTextOnSolid(waveBadgeBackground);
+  const waveBadgeText = ensureAPCATextColor(waveBadgeCandidate, waveBadgeBackground, 10, 700);
+
+  const countBadgeCandidate = pickReadableTextOnSolid(countBadgeBackground);
+  const countBadgeText = ensureAPCATextColor(countBadgeCandidate, countBadgeBackground, 11, 700);
+
+  const placeholderIcon = ensureAPCATextColor(primaryResolved, neutralSurface, 22, 400);
+
   return {
     primary: primaryResolved,
     secondary: secondaryResolved,
@@ -272,16 +334,16 @@ export const getClientsColorTokens = ({
     cardBorderHover: secondaryResolved,
 
     marqueeFade: withAlpha(primaryResolved, 0.14, primaryResolved),
-    waveBadgeBackground: shiftColor(secondaryResolved, 0.44, 0.72, primaryResolved),
-    waveBadgeText: ensureAPCATextColor(secondaryResolved, neutralSurface, 10, 700),
+    waveBadgeBackground,
+    waveBadgeText,
 
     placeholderBackground: neutralBackground,
     placeholderIconBackground: neutralSurface,
-    placeholderIcon: primaryResolved,
+    placeholderIcon,
     placeholderText: mutedText,
 
     countBadgeBackground,
-    countBadgeText: ensureAPCATextColor(secondaryResolved, countBadgeBackground, 11, 700),
+    countBadgeText,
     countBadgeBorder,
 
     navButtonBackground,
@@ -295,11 +357,13 @@ export const getClientsValidationResult = ({
   secondary,
   mode,
   harmony = DEFAULT_CLIENTS_HARMONY,
+  style,
 }: {
   primary: string;
   secondary: string;
   mode: ClientsBrandMode;
   harmony?: ClientsHarmony;
+  style: ClientsStyle;
 }) => {
   const normalizedHarmony = normalizeClientsHarmony(harmony);
   const tokens = getClientsColorTokens({
@@ -321,11 +385,14 @@ export const getClientsValidationResult = ({
 
   const accessibility = getClientsAccessibilityScore(accessibilityPairs);
 
+  const accentBalance = calculateClientsAccentBalance(style);
+
   return {
     tokens,
     resolvedSecondary: tokens.secondary,
     harmony: normalizedHarmony,
     harmonyStatus,
     accessibility,
+    accentBalance,
   };
 };

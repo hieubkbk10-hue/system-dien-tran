@@ -87,7 +87,8 @@ export const ClientsPreview = ({
     secondary,
     mode,
     harmony: normalizedHarmony,
-  }), [brandColor, secondary, mode, normalizedHarmony]);
+    style: selectedStyle,
+  }), [brandColor, secondary, mode, normalizedHarmony, selectedStyle]);
 
   const info = getImageInfoText(selectedStyle, items.length);
   const generatedWarnings = getSummaryWarnings(mode, validation.harmonyStatus, validation.accessibility);
