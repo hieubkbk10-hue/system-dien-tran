@@ -107,7 +107,7 @@ const BillingToggle = ({
   }
 
   return (
-    <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+    <div className="mb-8 flex items-center justify-center gap-3">
       <span
         className="text-sm font-medium"
         style={{ color: isYearly ? tokens.toggleInactiveLabel : tokens.toggleActiveLabel }}
