@@ -59,6 +59,7 @@ export function PricingPreview({
   const monthlyLabel = String(config?.monthlyLabel ?? 'Hàng tháng');
   const yearlyLabel = String(config?.yearlyLabel ?? 'Hàng năm');
   const yearlySavingText = String(config?.yearlySavingText ?? 'Tiết kiệm 17%');
+  const texts = config?.texts ?? {};
 
   const validation = React.useMemo(() => getPricingValidationResult({
     primary: brandColor,
@@ -104,6 +105,7 @@ export function PricingPreview({
             style={previewStyle}
             mode={mode}
             tokens={validation.tokens}
+            texts={texts}
             isYearly={isYearly}
             showBillingToggle={showBillingToggle}
             monthlyLabel={monthlyLabel}

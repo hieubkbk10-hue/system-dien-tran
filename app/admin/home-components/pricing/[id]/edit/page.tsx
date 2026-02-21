@@ -11,9 +11,11 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
 import { PricingPreview } from '../../_components/PricingPreview';
+import { TextsForm } from '../../_components/TextsForm';
 import {
   DEFAULT_PRICING_CONFIG,
   DEFAULT_PRICING_HARMONY,
+  DEFAULT_PRICING_TEXTS,
   normalizePricingConfig,
 } from '../../_lib/constants';
 import { getPricingValidationResult } from '../../_lib/colors';
@@ -66,6 +68,7 @@ const toSnapshot = (payload: {
   yearlyLabel: string;
   yearlySavingText: string;
   harmony: PricingHarmony;
+  texts: Record<string, string>;
   plans: Array<{
     name: string;
     price: string;
@@ -96,6 +99,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     yearlyLabel: DEFAULT_PRICING_CONFIG.yearlyLabel,
     yearlySavingText: DEFAULT_PRICING_CONFIG.yearlySavingText,
   });
+  const [texts, setTexts] = useState<Record<string, string>>(DEFAULT_PRICING_TEXTS);
   const [harmony] = useState<PricingHarmony>(DEFAULT_PRICING_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
@@ -118,6 +122,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     setPricingStyle(normalizedConfig.style);
     setPricingPlans(normalizedConfig.plans.map((plan, index) => toEditorPlan(plan, index)));
     setPricingConfig(normalizeMetaConfig(normalizedConfig));
+    setTexts(normalizedConfig.texts ?? DEFAULT_PRICING_TEXTS);
   }, [component, id, router]);
 
   useEffect(() => {
@@ -134,6 +139,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
       yearlyLabel: String(normalizedConfig.yearlyLabel ?? DEFAULT_PRICING_CONFIG.yearlyLabel),
       yearlySavingText: String(normalizedConfig.yearlySavingText ?? DEFAULT_PRICING_CONFIG.yearlySavingText),
       harmony: DEFAULT_PRICING_HARMONY,
+      texts: normalizedConfig.texts ?? DEFAULT_PRICING_TEXTS,
       plans: normalizedConfig.plans.map((plan) => ({
         name: plan.name,
         price: plan.price,
@@ -159,6 +165,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     yearlyLabel: String(pricingConfig.yearlyLabel ?? ''),
     yearlySavingText: String(pricingConfig.yearlySavingText ?? ''),
     harmony,
+    texts,
     plans: pricingPlans.map((plan) => ({
       name: plan.name,
       price: plan.price,
@@ -274,6 +281,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         })),
         style: pricingStyle,
         harmony,
+        texts,
         ...pricingConfig,
       };
 
@@ -294,6 +302,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         yearlyLabel: String(payload.yearlyLabel ?? ''),
         yearlySavingText: String(payload.yearlySavingText ?? ''),
         harmony,
+        texts: payload.texts ?? DEFAULT_PRICING_TEXTS,
         plans: payload.plans.map((plan) => ({
           name: plan.name,
           price: plan.price,
@@ -430,6 +439,15 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         </Card>
 
         <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Tùy chỉnh Text</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TextsForm texts={texts} onUpdate={setTexts} />
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Các gói dịch vụ ({pricingPlans.length})</CardTitle>
             <Button type="button" variant="outline" size="sm" onClick={addPlan} className="gap-2">
@@ -557,7 +575,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
               harmony={harmony}
               selectedStyle={pricingStyle}
               onStyleChange={setPricingStyle}
-              config={pricingConfig}
+              config={{ ...pricingConfig, texts }}
             />
           </div>
         </div>

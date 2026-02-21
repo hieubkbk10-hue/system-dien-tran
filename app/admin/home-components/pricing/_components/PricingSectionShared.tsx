@@ -21,6 +21,7 @@ interface PricingSectionSharedProps {
   style: PricingStyle;
   mode: PricingBrandMode;
   tokens: PricingColorTokens;
+  texts: Record<string, string>;
   isYearly: boolean;
   showBillingToggle: boolean;
   monthlyLabel: string;
@@ -151,11 +152,11 @@ const BillingToggle = ({
   );
 };
 
-const EmptyState = ({ tokens }: { tokens: PricingColorTokens }) => (
+const EmptyState = ({ tokens, texts }: { tokens: PricingColorTokens; texts: Record<string, string> }) => (
   <div className="py-14 text-center">
     <div className="mx-auto mb-3 h-12 w-12 rounded-full border" style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.neutralBackground }}></div>
-    <p className="text-sm font-medium" style={{ color: tokens.neutralText }}>Chưa có gói nào</p>
-    <p className="mt-1 text-xs" style={{ color: tokens.mutedText }}>Thêm gói để hiển thị bảng giá</p>
+    <p className="text-sm font-medium" style={{ color: tokens.neutralText }}>{texts.emptyStateTitle || 'Chưa có gói nào'}</p>
+    <p className="mt-1 text-xs" style={{ color: tokens.mutedText }}>{texts.emptyStateDescription || 'Thêm gói để hiển thị bảng giá'}</p>
   </div>
 );
 
@@ -184,6 +185,7 @@ export function PricingSectionShared({
   style,
   mode,
   tokens,
+  texts,
   isYearly,
   showBillingToggle,
   monthlyLabel,
@@ -194,7 +196,7 @@ export function PricingSectionShared({
   const renderPlanFeatures = (features: string[]) => {
     const list = sanitizeFeatures(features).slice(0, 8);
     if (list.length === 0) {
-      return ['Tính năng đang cập nhật'];
+      return [texts.defaultFeature || 'Tính năng đang cập nhật'];
     }
     return list;
   };
@@ -220,7 +222,7 @@ export function PricingSectionShared({
           onBillingToggle={onBillingToggle}
           tokens={tokens}
         />
-        {displayPlans.length === 0 ? <EmptyState tokens={tokens} /> : null}
+        {displayPlans.length === 0 ? <EmptyState tokens={tokens} texts={texts} /> : null}
       </div>
     </section>
   );
@@ -268,13 +270,13 @@ export function PricingSectionShared({
                           color: tokens.badgeSolidText,
                         }}
                       >
-                        Phổ biến
+                        {texts.popularBadge || 'Phổ biến'}
                       </span>
                     </div>
                   ) : null}
 
                   <h3 className="text-center text-lg font-semibold" style={{ color: tokens.neutralText }}>
-                    {plan.name.trim() || `Gói ${index + 1}`}
+                    {plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}
                   </h3>
                   <div className="mt-3 text-center">
                     <span className="text-3xl font-bold tabular-nums" style={{ color: tokens.priceText }}>
@@ -351,13 +353,13 @@ export function PricingSectionShared({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate text-base font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `Gói ${index + 1}`}</h3>
+                      <h3 className="truncate text-base font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}</h3>
                       {plan.isPopular ? (
                         <span
                           className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
                           style={{ backgroundColor: tokens.badgeSoftBg, borderColor: tokens.badgeSoftBorder, color: tokens.badgeSoftText }}
                         >
-                          Hot
+                          {texts.hotBadge || 'Hot'}
                         </span>
                       ) : null}
                     </div>
@@ -376,7 +378,7 @@ export function PricingSectionShared({
                       href: actionHref,
                       className: 'rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
                       style: { backgroundColor: tokens.ctaSolidBg, color: tokens.ctaSolidText },
-                      children: plan.buttonText.trim() || 'Chọn',
+                      children: plan.buttonText.trim() || texts.selectButton || 'Chọn',
                     })}
                   </div>
                 </article>
@@ -418,13 +420,13 @@ export function PricingSectionShared({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate text-lg font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `Gói ${index + 1}`}</h3>
+                      <h3 className="truncate text-lg font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}</h3>
                       {plan.isPopular ? (
                         <span
                           className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
                           style={{ backgroundColor: tokens.badgeSoftBg, borderColor: tokens.badgeSoftBorder, color: tokens.badgeSoftText }}
                         >
-                          Phổ biến
+                          {texts.popularBadge || 'Phổ biến'}
                         </span>
                       ) : null}
                     </div>
@@ -495,7 +497,7 @@ export function PricingSectionShared({
                         backgroundColor: plan.isPopular ? tokens.comparisonPopularColumnBg : tokens.neutralSurface,
                       }}
                     >
-                      <div className="text-sm font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `Gói ${index + 1}`}</div>
+                      <div className="text-sm font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}</div>
                       <div className="mt-1 text-2xl font-bold tabular-nums" style={{ color: tokens.priceText }}>
                         {getPlanPrice(plan, isYearly)}đ
                       </div>
@@ -503,9 +505,13 @@ export function PricingSectionShared({
                         <div className="mt-2">
                           <span
                             className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase"
-                            style={{ backgroundColor: tokens.badgeSoftBg, borderColor: tokens.badgeSoftBorder, color: tokens.badgeSoftText }}
+                            style={{ 
+                              backgroundColor: tokens.badgeSoftOnHeaderBg, 
+                              borderColor: tokens.badgeSoftBorder, 
+                              color: tokens.badgeSoftOnHeaderText 
+                            }}
                           >
-                            Khuyên dùng
+                            {texts.recommendedBadge || 'Khuyên dùng'}
                           </span>
                         </div>
                       ) : null}
@@ -606,12 +612,12 @@ export function PricingSectionShared({
                   className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
                   style={{ backgroundColor: tokens.badgeSolidBg, borderColor: tokens.badgeSolidBg, color: tokens.badgeSolidText }}
                 >
-                  ★ Phổ biến nhất
+                  {texts.featuredBadge || '★ Phổ biến nhất'}
                 </span>
               </div>
 
               <h3 className="mt-3 text-center text-2xl font-bold" style={{ color: tokens.neutralText }}>
-                {featuredPlan.name.trim() || 'Gói nổi bật'}
+                {featuredPlan.name.trim() || texts.defaultPlanName || 'Gói nổi bật'}
               </h3>
 
               <div className="my-6 text-center">
@@ -637,7 +643,7 @@ export function PricingSectionShared({
                 href: actionHref,
                 className: 'block w-full rounded-xl py-3 text-center text-sm font-semibold transition-colors',
                 style: { backgroundColor: tokens.ctaSolidBg, color: tokens.ctaSolidText },
-                children: featuredPlan.buttonText.trim() || 'Bắt đầu ngay',
+                children: featuredPlan.buttonText.trim() || texts.startNowButton || 'Bắt đầu ngay',
               })}
             </article>
 
@@ -651,7 +657,7 @@ export function PricingSectionShared({
                       className="flex flex-1 flex-col rounded-xl border p-4"
                       style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
                     >
-                      <h4 className="text-sm font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `Gói ${index + 1}`}</h4>
+                      <h4 className="text-sm font-semibold" style={{ color: tokens.neutralText }}>{plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}</h4>
                       <p className="mt-2 text-xl font-bold tabular-nums" style={{ color: tokens.priceText }}>
                         {getPlanPrice(plan, isYearly)}đ
                         <span className="ml-1 text-xs font-normal" style={{ color: tokens.periodText }}>{normalizePeriod(plan.period, isYearly)}</span>
@@ -665,7 +671,7 @@ export function PricingSectionShared({
                           href: sideHref,
                           className: 'block w-full rounded-lg border py-2 text-center text-xs font-semibold transition-colors',
                           style: { backgroundColor: tokens.ctaGhostBg, borderColor: tokens.ctaGhostBorder, color: tokens.ctaGhostText },
-                          children: plan.buttonText.trim() || 'Chọn',
+                          children: plan.buttonText.trim() || texts.selectButton || 'Chọn',
                         })}
                       </div>
                     </article>
@@ -713,12 +719,12 @@ export function PricingSectionShared({
                       className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold"
                       style={{ backgroundColor: tokens.badgeSolidBg, borderColor: tokens.badgeSolidBg, color: tokens.badgeSolidText }}
                     >
-                      HOT
+                      {texts.hotBadge || 'HOT'}
                     </span>
                   </div>
                 ) : null}
                 <h4 className="mt-1 truncate text-sm font-semibold" style={{ color: tokens.neutralText }}>
-                  {plan.name.trim() || `Gói ${index + 1}`}
+                  {plan.name.trim() || `${texts.defaultPlanName || 'Gói'} ${index + 1}`}
                 </h4>
                 <div className="my-2">
                   <span className="text-xl font-bold tabular-nums" style={{ color: tokens.priceText }}>{getPlanPrice(plan, isYearly)}đ</span>

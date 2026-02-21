@@ -54,6 +54,7 @@ export function PricingSection({
       style={style}
       mode={mode}
       tokens={tokens}
+      texts={safeConfig.texts ?? {}}
       isYearly={isYearly}
       showBillingToggle={safeConfig.showBillingToggle !== false}
       monthlyLabel={String(safeConfig.monthlyLabel ?? 'Hàng tháng')}

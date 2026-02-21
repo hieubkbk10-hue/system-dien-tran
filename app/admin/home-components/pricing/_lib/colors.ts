@@ -65,6 +65,12 @@ const getAPCALc = (text: string, background: string) => {
   return Number.isFinite(lc) ? lc : 0;
 };
 
+const pickReadableTextOnSolid = (solidBg: string): string => {
+  const whiteLc = getAPCALc('#ffffff', solidBg);
+  const darkLc = getAPCALc('#111111', solidBg);
+  return whiteLc >= darkLc ? '#ffffff' : '#111111';
+};
+
 export const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = getAPCALc('#ffffff', background);
   const darkLc = getAPCALc(FALLBACK_TEXT, background);
@@ -142,9 +148,12 @@ const buildPalette = (hex: string, fallback = DEFAULT_BRAND_COLOR): PricingPalet
   const hoverSurface = shiftColor(solid, 0.28, 0.82, fallback);
   const activeSurface = shiftColor(solid, 0.22, 0.88, fallback);
 
+  const textOnSolidCandidate = pickReadableTextOnSolid(solid);
+  const textOnSolid = ensureAPCATextColor(textOnSolidCandidate, solid, 14, 600);
+
   return {
     solid,
-    textOnSolid: getAPCATextColor(solid, 14, 600),
+    textOnSolid,
     surface,
     border,
     hoverSurface,
@@ -181,6 +190,10 @@ export interface PricingColorTokens {
   badgeSoftBg: string;
   badgeSoftBorder: string;
   badgeSoftText: string;
+  badgeSoftOnHeaderBg: string;
+  badgeSoftOnHeaderText: string;
+  badgeSoftOnPopularBg: string;
+  badgeSoftOnPopularText: string;
 
   ctaSolidBg: string;
   ctaSolidText: string;
@@ -283,9 +296,19 @@ export const getPricingColorTokens = ({
   const neutralText = FALLBACK_TEXT;
   const mutedText = '#64748b';
 
+  const comparisonHeaderBg = '#f1f5f9';
+  const comparisonPopularColumnBg = neutralSurface;
+
   const badgeSoftBg = neutralSurface;
   const badgeSoftBorder = secondaryPalette.border;
-  const badgeSoftText = ensureAPCATextColor(secondaryPalette.solid, badgeSoftBg, 11, 600);
+  const badgeSoftTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
+  const badgeSoftText = ensureAPCATextColor(badgeSoftTextCandidate, badgeSoftBg, 11, 600);
+
+  const badgeSoftOnHeaderTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
+  const badgeSoftOnHeaderText = ensureAPCATextColor(badgeSoftOnHeaderTextCandidate, comparisonHeaderBg, 10, 600);
+
+  const badgeSoftOnPopularTextCandidate = pickReadableTextOnSolid(secondaryPalette.solid);
+  const badgeSoftOnPopularText = ensureAPCATextColor(badgeSoftOnPopularTextCandidate, comparisonPopularColumnBg, 10, 600);
 
   const ctaGhostBg = neutralSurface;
 
@@ -310,13 +333,17 @@ export const getPricingColorTokens = ({
     periodText: mutedText,
 
     featureText: neutralText,
-    featureIcon: secondaryPalette.solid,
+    featureIcon: ensureAPCATextColor(secondaryPalette.solid, neutralSurface, 14, 500),
 
     badgeSolidBg: primaryPalette.solid,
     badgeSolidText: primaryPalette.textOnSolid,
     badgeSoftBg,
     badgeSoftBorder,
     badgeSoftText,
+    badgeSoftOnHeaderBg: comparisonHeaderBg,
+    badgeSoftOnHeaderText,
+    badgeSoftOnPopularBg: comparisonPopularColumnBg,
+    badgeSoftOnPopularText,
 
     ctaSolidBg: primaryPalette.solid,
     ctaSolidText: primaryPalette.textOnSolid,
@@ -327,9 +354,9 @@ export const getPricingColorTokens = ({
     ctaGhostText: ensureAPCATextColor(secondaryPalette.solid, ctaGhostBg, 14, 600),
     ctaGhostHoverBg: secondaryPalette.surface,
 
-    comparisonHeaderBg: '#f1f5f9',
+    comparisonHeaderBg,
     comparisonAltRowBg: '#f8fafc',
-    comparisonPopularColumnBg: secondaryPalette.surface,
+    comparisonPopularColumnBg,
 
     toggleTrackOff: '#cbd5e1',
     toggleTrackOn: primaryPalette.solid,

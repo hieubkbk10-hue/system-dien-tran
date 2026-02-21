@@ -30,6 +30,20 @@ const DEFAULT_PRICING_PLAN: PricingPlan = {
   buttonLink: '',
 };
 
+export const DEFAULT_PRICING_TEXTS: Record<string, string> = {
+  popularBadge: 'Phổ biến',
+  hotBadge: 'HOT',
+  recommendedBadge: 'Khuyên dùng',
+  featuredBadge: '★ Phổ biến nhất',
+  emptyStateTitle: 'Chưa có gói nào',
+  emptyStateDescription: 'Thêm gói để hiển thị bảng giá',
+  defaultPlanName: 'Gói',
+  defaultButtonText: 'Chọn gói',
+  defaultFeature: 'Tính năng đang cập nhật',
+  startNowButton: 'Bắt đầu ngay',
+  selectButton: 'Chọn',
+};
+
 export const DEFAULT_PRICING_CONFIG: PricingConfig = {
   monthlyLabel: 'Hàng tháng',
   plans: [DEFAULT_PRICING_PLAN],
@@ -39,6 +53,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
   yearlyLabel: 'Hàng năm',
   yearlySavingText: 'Tiết kiệm 17%',
   harmony: DEFAULT_PRICING_HARMONY,
+  texts: DEFAULT_PRICING_TEXTS,
 };
 
 export const normalizePricingHarmony = (value: unknown): PricingHarmony => {
@@ -90,6 +105,10 @@ export const normalizePricingConfig = (value: unknown): PricingConfig => {
     ? value as Partial<PricingConfig>
     : {};
 
+  const texts = (typeof raw.texts === 'object' && raw.texts !== null)
+    ? { ...DEFAULT_PRICING_TEXTS, ...raw.texts }
+    : DEFAULT_PRICING_TEXTS;
+
   return {
     style: isPricingStyle(raw.style) ? raw.style : DEFAULT_PRICING_STYLE,
     subtitle: String(raw.subtitle ?? DEFAULT_PRICING_CONFIG.subtitle),
@@ -98,6 +117,7 @@ export const normalizePricingConfig = (value: unknown): PricingConfig => {
     yearlyLabel: String(raw.yearlyLabel ?? DEFAULT_PRICING_CONFIG.yearlyLabel),
     yearlySavingText: String(raw.yearlySavingText ?? DEFAULT_PRICING_CONFIG.yearlySavingText),
     harmony: normalizePricingHarmony(raw.harmony),
+    texts,
     plans: Array.isArray(raw.plans)
       ? raw.plans.map((plan, index) => normalizePricingPlan(plan, index))
       : DEFAULT_PRICING_CONFIG.plans.map((plan, index) => normalizePricingPlan(plan, index)),

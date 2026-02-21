@@ -29,4 +29,5 @@ export interface PricingConfig {
   showBillingToggle?: boolean;
   subtitle?: string;
   harmony?: PricingHarmony;
+  texts?: Record<string, string>;
 }
