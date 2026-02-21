@@ -192,7 +192,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
   };
 
   const removeItem = (id: string) => {
-    if (items.length <= 3) {return;}
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
