@@ -55,27 +55,19 @@ export const CountdownPreview = ({
   const timeLeft = useCountdownTimer(normalizedConfig.endDate);
 
   return (
-    <>
-      <CountdownSectionShared
-        config={normalizedConfig}
-        title={normalizedConfig.heading}
-        mode={mode}
-        tokens={tokens}
-        timeLeft={timeLeft}
-        context="preview"
-        includePreviewWrapper
-        previewDevice={device}
-        setPreviewDevice={setDevice}
-        previewStyle={normalizedConfig.style}
-        onPreviewStyleChange={onStyleChange}
-      />
-      {mode === 'dual' ? (
-        <ColorInfoPanel
-          brandColor={tokens.primary}
-          secondary={tokens.secondary}
-          description="Màu phụ được áp dụng cho CTA, accent timer, badge và nhấn mạnh ở 6 layout Countdown."
-        />
-      ) : null}
-    </>
+    <CountdownSectionShared
+      config={normalizedConfig}
+      title={normalizedConfig.heading}
+      mode={mode}
+      tokens={tokens}
+      timeLeft={timeLeft}
+      context="preview"
+      includePreviewWrapper
+      previewDevice={device}
+      setPreviewDevice={setDevice}
+      previewStyle={normalizedConfig.style}
+      onPreviewStyleChange={onStyleChange}
+      showColorInfo={mode === 'dual'}
+    />
   );
 };

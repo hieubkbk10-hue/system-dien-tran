@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, X } from 'lucide-react';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
+import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, type PreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { COUNTDOWN_STYLES } from '../_lib/constants';
@@ -38,6 +39,7 @@ interface CountdownSectionSharedProps {
   setPreviewDevice?: (device: PreviewDevice) => void;
   previewStyle?: CountdownStyle;
   onPreviewStyleChange?: (style: CountdownStyle) => void;
+  showColorInfo?: boolean;
 }
 
 const safeHref = (value: string) => {
@@ -90,10 +92,9 @@ const TimeUnit = ({
     return (
       <div className="flex flex-col items-center">
         <div
-          className="rounded-lg px-3 py-2 min-w-[52px] md:min-w-[62px] border"
+          className="rounded-lg px-3 py-2 min-w-[52px] md:min-w-[62px] border border-white/20"
           style={{
             backgroundColor: tokens.stickyChipBg,
-            borderColor: tokens.sectionOverlayLight,
           }}
         >
           <span className="text-2xl md:text-3xl font-bold tabular-nums text-white">{String(value).padStart(2, '0')}</span>
@@ -562,6 +563,7 @@ export function CountdownSectionShared({
   setPreviewDevice,
   previewStyle,
   onPreviewStyleChange,
+  showColorInfo = false,
 }: CountdownSectionSharedProps) {
   const countdownContent = (
     <CountdownContent
@@ -582,19 +584,28 @@ export function CountdownSectionShared({
   const selectedStyle = previewStyle ?? config.style;
 
   return (
-    <PreviewWrapper
-      title="Preview Countdown"
-      device={previewDevice}
-      setDevice={(device) => { setPreviewDevice?.(device); }}
-      previewStyle={selectedStyle}
-      setPreviewStyle={(style) => { onPreviewStyleChange?.(style as CountdownStyle); }}
-      styles={COUNTDOWN_STYLES}
-      info={`Brand mode: ${mode === 'dual' ? '2 màu' : '1 màu'}`}
-      deviceWidthClass={deviceWidths[previewDevice]}
-    >
-      <BrowserFrame url="/countdown">
-        {countdownContent}
-      </BrowserFrame>
-    </PreviewWrapper>
+    <>
+      <PreviewWrapper
+        title="Preview Countdown"
+        device={previewDevice}
+        setDevice={(device) => { setPreviewDevice?.(device); }}
+        previewStyle={selectedStyle}
+        setPreviewStyle={(style) => { onPreviewStyleChange?.(style as CountdownStyle); }}
+        styles={COUNTDOWN_STYLES}
+        info={`Brand mode: ${mode === 'dual' ? '2 màu' : '1 màu'}`}
+        deviceWidthClass={deviceWidths[previewDevice]}
+      >
+        <BrowserFrame url="/countdown">
+          {countdownContent}
+        </BrowserFrame>
+      </PreviewWrapper>
+      {showColorInfo ? (
+        <ColorInfoPanel
+          brandColor={tokens.primary}
+          secondary={tokens.secondary}
+          description="Màu phụ được áp dụng cho CTA, accent timer, badge và nhấn mạnh ở 6 layout Countdown."
+        />
+      ) : null}
+    </>
   );
 }

@@ -47,10 +47,6 @@ export const CountdownForm = ({
       messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}).`);
     }
 
-    if (validation.accessibility.failing.length > 0) {
-      messages.push(`Một số cặp màu chữ/nền chưa đủ tương phản (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
-    }
-
     return messages;
   }, [mode, validation]);
 

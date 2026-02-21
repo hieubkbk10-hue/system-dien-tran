@@ -1,8 +1,8 @@
 'use client';
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
-import { differenceEuclidean, formatHex, oklch } from 'culori';
-import { getAccessibilityScore, getHarmonyStatus } from '@/lib/home-components/color-system';
+import { formatHex, oklch } from 'culori';
+import { getHarmonyStatus } from '@/lib/home-components/color-system';
 import { normalizeCountdownHarmony } from './normalize';
 import type {
   CountdownBrandMode,
@@ -24,15 +24,6 @@ const normalizeHex = (value: string, fallback: string) => {
 };
 
 const isValidHexColor = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
-
-const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
-  const color = safeParseOklch(hex, fallback);
-  const l = clampLightness(color.l ?? 0.62);
-  const c = clampChroma(color.c ?? 0.14);
-  const h = Number.isFinite(color.h) ? color.h : 0;
-  const a = Math.min(Math.max(alpha, 0), 1);
-  return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${a.toFixed(3)})`;
-};
 
 const shiftColor = (hex: string, lightnessDelta: number, chromaScale = 1, fallback = DEFAULT_BRAND_COLOR) => {
   const color = safeParseOklch(hex, fallback);
@@ -67,6 +58,12 @@ const getAPCALc = (text: string, background: string) => {
 
   const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(backgroundRgb)));
   return Number.isFinite(lc) ? lc : 0;
+};
+
+const pickReadableTextOnSolid = (bg: string) => {
+  const whiteLc = getAPCALc('#ffffff', bg);
+  const nearBlackLc = getAPCALc('#111111', bg);
+  return whiteLc >= nearBlackLc ? '#ffffff' : '#111111';
 };
 
 const getAPCAThreshold = (fontSize = 16, fontWeight = 500) => (
@@ -175,7 +172,9 @@ const buildTokens = (primaryResolved: string, secondaryResolved: string): Countd
   const timerCardBg = primaryResolved;
   const timerCardText = ensureAPCATextColor('#ffffff', timerCardBg, 28, 700);
   const badgeBg = shiftColor(secondaryResolved, 0.3, 0.75, primaryResolved);
-  const badgeText = ensureAPCATextColor(secondaryResolved, badgeBg, 12, 700);
+  const badgeTextCandidate = pickReadableTextOnSolid(badgeBg);
+  const badgeText = ensureAPCATextColor(badgeTextCandidate, badgeBg, 12, 700);
+  const stickyChipBg = shiftColor('#ffffff', -0.15, 0.8, primaryResolved);
 
   return {
     primary: primaryResolved,
@@ -188,10 +187,10 @@ const buildTokens = (primaryResolved: string, secondaryResolved: string): Countd
     neutralBorder,
     timerCardBg,
     timerCardText,
-    timerCardBorder: withAlpha(secondaryResolved, 0.35, primaryResolved),
+    timerCardBorder: shiftColor(secondaryResolved, 0.45, 0.7, primaryResolved),
     timerLabel: '#64748b',
     timerSeparator: '#94a3b8',
-    sectionOverlayLight: 'rgba(255,255,255,0.08)',
+    sectionOverlayLight: neutralSurface,
     sectionOverlayStrong: 'rgba(2,6,23,0.62)',
     sectionGradient: `linear-gradient(135deg, ${primaryResolved} 0%, ${secondaryResolved} 100%)`,
     floatingGradient: `linear-gradient(135deg, ${shiftColor(primaryResolved, -0.08, 1, DEFAULT_BRAND_COLOR)} 0%, ${secondaryResolved} 100%)`,
@@ -207,7 +206,7 @@ const buildTokens = (primaryResolved: string, secondaryResolved: string): Countd
     popupCloseBg: '#f1f5f9',
     popupCloseText: '#475569',
     stickyText: ensureAPCATextColor('#ffffff', primaryResolved, 14, 600),
-    stickyChipBg: withAlpha('#ffffff', 0.2, primaryResolved),
+    stickyChipBg,
     stickyChipText: '#ffffff',
   };
 };
@@ -246,33 +245,18 @@ export const getCountdownValidationResult = ({
     ? { deltaE: 100, isTooSimilar: false }
     : getHarmonyStatus(tokens.primary, tokens.secondary);
 
-  const accessibility = getAccessibilityScore([
-    { key: 'heading', bg: tokens.neutralSurface, text: tokens.heading, size: 28, weight: 700 },
-    { key: 'body', bg: tokens.neutralSurface, text: tokens.bodyText, size: 14, weight: 400 },
-    { key: 'timer', bg: tokens.timerCardBg, text: tokens.timerCardText, size: 28, weight: 700 },
-    { key: 'cta-solid', bg: tokens.ctaSolidBg, text: tokens.ctaSolidText, size: 14, weight: 600 },
-    { key: 'cta-ghost', bg: tokens.ctaGhostBg, text: tokens.ctaGhostText, size: 14, weight: 600 },
-    { key: 'badge', bg: tokens.badgeBg, text: tokens.badgeText, size: 12, weight: 700 },
-    { key: 'sticky', bg: tokens.primary, text: tokens.stickyText, size: 14, weight: 600 },
-  ]);
-
-  const failing = accessibility.items.filter((item) => !item.pass);
-
   return {
     tokens,
     harmonyStatus,
-    accessibility: {
-      minLc: accessibility.minLc,
-      failing,
-    },
   };
 };
 
 export const getCountdownSecondarySimilarity = (primary: string, secondary: string) => {
-  const delta = differenceEuclidean('oklch')(primary, secondary);
-  const safeDelta = Number.isFinite(delta) ? delta : 1;
+  const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const secondaryResolved = normalizeHex(secondary, primaryResolved);
+  const status = getHarmonyStatus(primaryResolved, secondaryResolved);
   return {
-    deltaE: Math.round(safeDelta * 100),
-    similarity: 1 - Math.min(safeDelta, 1),
+    deltaE: status.deltaE,
+    similarity: 1 - Math.min(status.deltaE / 100, 1),
   };
 };
