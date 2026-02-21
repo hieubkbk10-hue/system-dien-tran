@@ -288,11 +288,11 @@ export const getContactColorTokens = ({
   const neutralText = '#0f172a';
   const mutedText = '#64748b';
 
-  const sectionBadgeBg = secondaryPalette.surface;
+  const sectionBadgeBg = primaryPalette.surface;
   const badgeTextCandidate = pickReadableTextOnSolid(sectionBadgeBg);
   const sectionBadgeText = ensureAPCATextColor(badgeTextCandidate, sectionBadgeBg, 11, 600);
 
-  const iconBg = secondaryPalette.surface;
+  const iconBg = primaryPalette.surface;
   const iconCandidate = pickReadableTextOnSolid(iconBg);
   const iconTintColor = ensureAPCATextColor(iconCandidate, iconBg, 14, 600);
 
