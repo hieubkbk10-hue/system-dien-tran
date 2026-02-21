@@ -55,15 +55,14 @@ export const normalizeClientItems = (items: unknown): NormalizedClientItem[] => 
       const link = typeof source.link === 'string' ? source.link.trim() : '';
       const name = typeof source.name === 'string' ? source.name.trim() : '';
 
-      if (!url) {
+      // Giữ items dù url rỗng (placeholder sẽ được render)
+      // Chỉ dedupe items có url để tránh duplicate logos
+      if (url && seen.has(url)) {
         return null;
       }
-
-      const dedupeKey = `${url}__${link}__${name}`;
-      if (seen.has(dedupeKey)) {
-        return null;
+      if (url) {
+        seen.add(url);
       }
-      seen.add(dedupeKey);
 
       return {
         key: `client-${index}`,
