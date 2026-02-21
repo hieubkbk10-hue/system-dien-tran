@@ -210,7 +210,7 @@ export const ClientsForm = ({
         </div>
 
         {items.length < minItems && (
-          <p className="text-xs text-amber-600">⚠ Nên có ít nhất {minItems} logo để marquee mượt hơn.</p>
+          <p className="text-xs text-amber-600">⚠ Nên có ít nhất {minItems} logo để hiển thị đẹp hơn.</p>
         )}
 
         {warningMessages && warningMessages.length > 0 ? (

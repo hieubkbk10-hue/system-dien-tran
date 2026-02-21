@@ -25,16 +25,16 @@ interface ClientsSectionSharedProps {
 
 export const normalizeClientsStyleSafe = (value: unknown): ClientsStyle => {
   if (
-    value === 'marquee'
-    || value === 'dualRow'
-    || value === 'wave'
+    value === 'bento'
+    || value === 'staggered'
+    || value === 'spotlight'
     || value === 'grid'
     || value === 'carousel'
     || value === 'featured'
   ) {
     return value;
   }
-  return 'marquee';
+  return 'bento';
 };
 
 export const normalizeClientItems = (items: unknown): NormalizedClientItem[] => {
@@ -158,127 +158,121 @@ export function ClientsSectionShared({
   }
 
   const sectionTitle = title.trim().length > 0 ? title : 'Khách hàng tin tưởng';
-  const baseDuration = Math.max(20, normalizedItems.length * 4);
 
-  const marqueeStyles = `
-    @keyframes clients-marquee-shared { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-    @keyframes clients-marquee-reverse-shared { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
-    @keyframes clients-float-shared { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .clients-track-shared { animation: clients-marquee-shared var(--duration, 30s) linear infinite; }
-    .clients-track-reverse-shared { animation: clients-marquee-reverse-shared var(--duration, 30s) linear infinite; }
-    .clients-float-shared { animation: clients-float-shared 3s ease-in-out infinite; }
-    .clients-container-shared:hover .clients-track-shared,
-    .clients-container-shared:hover .clients-track-reverse-shared,
-    .clients-container-shared:focus-within .clients-track-shared,
-    .clients-container-shared:focus-within .clients-track-reverse-shared {
-      animation-play-state: paused;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .clients-track-shared,
-      .clients-track-reverse-shared,
-      .clients-float-shared {
-        animation: none !important;
-      }
-    }
+  const bentoStyles = `
+    @keyframes bento-scale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    @keyframes bento-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .bento-item { animation: bento-fade-in 0.4s ease-out backwards; }
+    .bento-item:hover { transform: scale(1.03); box-shadow: 0 8px 24px -4px rgba(0,0,0,0.12); }
+    @media (prefers-reduced-motion: reduce) { .bento-item, .bento-item:hover { animation: none !important; transform: none !important; } }
   `;
 
-  if (selectedStyle === 'marquee') {
-    return (
-      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{marqueeStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
-          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-          <div
-            className="clients-container-shared relative py-4 overflow-hidden"
-            role="list"
-            style={{
-              WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-              maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-            }}
-          >
-            <div className="clients-track-shared flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration}s`, width: 'max-content' } as React.CSSProperties}>
-              {normalizedItems.map((item, idx) => renderLogoItem(item, idx, tokens, 'md'))}
-              {normalizedItems.map((item, idx) => renderLogoItem(item, idx + normalizedItems.length, tokens, 'md'))}
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // Layout 1: Bento Grid - Modular asymmetric layout
+  if (selectedStyle === 'bento') {
+    const getBentoClass = (idx: number) => {
+      const patterns = ['md:col-span-2 md:row-span-2', 'md:col-span-1', 'md:col-span-1', 'md:col-span-2', 'md:col-span-1', 'md:col-span-1'];
+      return patterns[idx % patterns.length];
+    };
 
-  if (selectedStyle === 'dualRow') {
     return (
-      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{marqueeStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
-          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-          <div className="space-y-2" role="list">
-            <div
-              className="clients-container-shared relative py-2 overflow-hidden"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-                maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-              }}
-            >
-              <div className="clients-track-shared flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration + 5}s`, width: 'max-content' } as React.CSSProperties}>
-                {normalizedItems.map((item, idx) => renderLogoItem(item, idx, tokens, 'md'))}
-                {normalizedItems.map((item, idx) => renderLogoItem(item, idx + normalizedItems.length, tokens, 'md'))}
-              </div>
-            </div>
-            <div
-              className="clients-container-shared relative py-2 overflow-hidden"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-                maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
-              }}
-            >
-              <div className="clients-track-reverse-shared flex items-center gap-10 md:gap-12" style={{ '--duration': `${baseDuration + 10}s`, width: 'max-content' } as React.CSSProperties}>
-                {[...normalizedItems].toReversed().map((item, idx) => renderLogoItem(item, idx, tokens, 'md'))}
-                {[...normalizedItems].toReversed().map((item, idx) => renderLogoItem(item, idx + normalizedItems.length, tokens, 'md'))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (selectedStyle === 'wave') {
-    return (
-      <section className="w-full py-10 border-b overflow-hidden" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{marqueeStyles}</style>
+      <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{bentoStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
           <div className="text-center space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: tokens.waveBadgeBackground, color: tokens.waveBadgeText }}>
-              Đối tác & Khách hàng
+              Đối tác tin cậy
             </div>
             <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
           </div>
-          <div
-            className="clients-container-shared relative py-4 overflow-hidden"
-            role="list"
-            style={{
-              WebkitMaskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
-              maskImage: 'linear-gradient(to right, transparent, black 4%, black 96%, transparent)',
-            }}
-          >
-            <div className="clients-track-shared flex items-center gap-8 md:gap-10" style={{ '--duration': `${baseDuration + 15}s`, width: 'max-content' } as React.CSSProperties}>
-              {normalizedItems.map((item, idx) => (
-                <div key={`wave-${item.key}-${idx}`} className="shrink-0 clients-float-shared" style={{ animationDelay: `${idx * 0.3}s` }} role="listitem">
-                  <div className="p-3 rounded-lg border" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
-                    {renderLogoContent(item, idx, tokens, 'sm')}
-                  </div>
-                </div>
-              ))}
-              {normalizedItems.map((item, idx) => (
-                <div key={`wave2-${item.key}-${idx}`} className="shrink-0 clients-float-shared" style={{ animationDelay: `${(idx + normalizedItems.length) * 0.3}s` }} role="listitem">
-                  <div className="p-3 rounded-lg border" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
-                    {renderLogoContent(item, idx + normalizedItems.length, tokens, 'sm')}
-                  </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-3 md:gap-4" role="list">
+            {normalizedItems.map((item, idx) => (
+              <div
+                key={`bento-${item.key}-${idx}`}
+                className={`bento-item rounded-xl border p-4 md:p-6 flex items-center justify-center transition-all duration-300 ${getBentoClass(idx)}`}
+                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${idx * 0.05}s` }}
+                role="listitem"
+              >
+                {renderLogoContent(item, idx, tokens, idx % 6 === 0 ? 'lg' : 'md')}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 2: Staggered/Masonry - Pinterest-style waterfall
+  if (selectedStyle === 'staggered') {
+    const getStaggeredHeight = (idx: number) => {
+      const heights = ['h-24', 'h-28', 'h-32', 'h-24', 'h-28'];
+      return heights[idx % heights.length];
+    };
+
+    return (
+      <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{bentoStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
+          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4" role="list">
+            {normalizedItems.map((item, idx) => (
+              <div
+                key={`staggered-${item.key}-${idx}`}
+                className={`bento-item break-inside-avoid mb-3 md:mb-4 rounded-lg border p-4 flex items-center justify-center transition-all duration-300 ${getStaggeredHeight(idx)}`}
+                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${idx * 0.06}s` }}
+                role="listitem"
+              >
+                {renderLogoContent(item, idx, tokens, 'sm')}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 3: Spotlight - Hero center with orbit
+  if (selectedStyle === 'spotlight') {
+    const spotlightItems = normalizedItems.slice(0, 2);
+    const orbitItems = normalizedItems.slice(2);
+
+    return (
+      <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{bentoStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+            <p className="text-sm" style={{ color: tokens.mutedText }}>Đối tác chiến lược & khách hàng doanh nghiệp</p>
+          </div>
+          
+          {/* Spotlight center */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 py-6" role="list">
+            {spotlightItems.map((item, idx) => (
+              <div
+                key={`spotlight-${item.key}-${idx}`}
+                className="bento-item rounded-2xl border-2 p-8 md:p-10 flex items-center justify-center transition-all duration-300 min-w-[200px]"
+                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.primary, animationDelay: `${idx * 0.1}s` }}
+                role="listitem"
+              >
+                {renderLogoContent(item, idx, tokens, 'lg')}
+              </div>
+            ))}
+          </div>
+
+          {/* Orbit items */}
+          {orbitItems.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 pt-4" role="list">
+              {orbitItems.map((item, idx) => (
+                <div
+                  key={`orbit-${item.key}-${idx}`}
+                  className="bento-item rounded-lg border p-3 flex items-center justify-center transition-all duration-300"
+                  style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${(idx + 2) * 0.08}s` }}
+                  role="listitem"
+                >
+                  {renderLogoContent(item, idx + 2, tokens, 'sm')}
                 </div>
               ))}
             </div>
-          </div>
+          )}
         </div>
       </section>
     );

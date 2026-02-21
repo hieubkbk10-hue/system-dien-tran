@@ -5,9 +5,9 @@ import type {
 } from '../_types';
 
 export const CLIENTS_STYLES: Array<{ id: ClientsStyle; label: string }> = [
-  { id: 'marquee', label: 'Marquee' },
-  { id: 'dualRow', label: 'Dual Row' },
-  { id: 'wave', label: 'Wave' },
+  { id: 'bento', label: 'Bento Grid' },
+  { id: 'staggered', label: 'Staggered' },
+  { id: 'spotlight', label: 'Spotlight' },
   { id: 'grid', label: 'Grid' },
   { id: 'carousel', label: 'Carousel' },
   { id: 'featured', label: 'Featured' },
@@ -30,6 +30,6 @@ export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
       url: '',
     },
   ],
-  style: 'marquee',
+  style: 'bento',
   harmony: DEFAULT_CLIENTS_HARMONY,
 };

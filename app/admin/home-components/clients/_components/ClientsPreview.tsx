@@ -29,9 +29,9 @@ interface ClientsPreviewProps {
 }
 
 const STYLES: Array<{ id: ClientsStyle; label: string }> = [
-  { id: 'marquee', label: 'Marquee' },
-  { id: 'dualRow', label: 'Dual Row' },
-  { id: 'wave', label: 'Wave' },
+  { id: 'bento', label: 'Bento Grid' },
+  { id: 'staggered', label: 'Staggered' },
+  { id: 'spotlight', label: 'Spotlight' },
   { id: 'grid', label: 'Grid' },
   { id: 'carousel', label: 'Carousel' },
   { id: 'featured', label: 'Featured' },
@@ -39,10 +39,10 @@ const STYLES: Array<{ id: ClientsStyle; label: string }> = [
 
 const getImageInfoText = (style: ClientsStyle, count: number) => {
   if (count === 0) {return 'Chưa có logo';}
-  if (style === 'wave') {return `${count} logo • 192×72px`;
-  }
-  if (style === 'grid') {return `${count} logo • 216×84px`;
-  }
+  if (style === 'bento') {return `${count} logo • Bento modular`;}
+  if (style === 'staggered') {return `${count} logo • Masonry layout`;}
+  if (style === 'spotlight') {return `${count} logo • Hero spotlight`;}
+  if (style === 'grid') {return `${count} logo • 216×84px`;}
   if (style === 'featured') {
     return count <= 4 ? `${count} logo • 240×96px` : `4 featured + ${count - 4} khác`;
   }
@@ -74,7 +74,7 @@ export const ClientsPreview = ({
   secondary,
   mode = 'dual',
   harmony = DEFAULT_CLIENTS_HARMONY,
-  selectedStyle = 'marquee',
+  selectedStyle = 'bento',
   onStyleChange,
   warningMessages,
   showValidationSummary = false,
@@ -113,7 +113,7 @@ export const ClientsPreview = ({
                   <ImageIcon size={28} style={{ color: validation.tokens.placeholderIcon }} />
                 </div>
                 <p className="text-sm font-medium" style={{ color: validation.tokens.neutralText }}>Chưa có logo khách hàng</p>
-                <p className="text-xs mt-1" style={{ color: validation.tokens.placeholderText }}>Thêm ít nhất 3 logo để marquee mượt hơn</p>
+                <p className="text-xs mt-1" style={{ color: validation.tokens.placeholderText }}>Thêm ít nhất 3 logo để hiển thị đẹp hơn</p>
               </div>
             </section>
           ) : (
@@ -141,9 +141,9 @@ export const ClientsPreview = ({
         <div className="flex items-center gap-2">
           <ImageIcon size={14} className="text-slate-400 flex-shrink-0" />
           <div className="text-xs text-slate-600 dark:text-slate-400">
-            {selectedStyle === 'marquee' && <span><strong>240×96px</strong> PNG trong suốt • Hover/focus để dừng</span>}
-            {selectedStyle === 'dualRow' && <span><strong>240×96px</strong> PNG trong suốt • 2 hàng ngược chiều</span>}
-            {selectedStyle === 'wave' && <span><strong>192×72px</strong> PNG trong suốt • Card sóng nhẹ</span>}
+            {selectedStyle === 'bento' && <span><strong>Bento Grid</strong> • Modular asymmetric layout với hover scale</span>}
+            {selectedStyle === 'staggered' && <span><strong>Staggered</strong> • Masonry waterfall layout, responsive columns</span>}
+            {selectedStyle === 'spotlight' && <span><strong>Spotlight</strong> • Hero center với orbit items xung quanh</span>}
             {selectedStyle === 'grid' && <span><strong>216×84px</strong> PNG trong suốt • Grid tĩnh, max 12 logo</span>}
             {selectedStyle === 'carousel' && <span><strong>240×96px</strong> PNG trong suốt • Kéo/vuốt ngang</span>}
             {selectedStyle === 'featured' && <span><strong>240×96px</strong> PNG trong suốt • 4 logo featured</span>}
