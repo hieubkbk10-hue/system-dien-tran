@@ -32,7 +32,7 @@ export function SocialLinksManager({
     if (onValidationChange) {
       onValidationChange(errors);
     }
-  }, [links, onValidationChange]);
+  }, [links]);
 
   const handleAddLink = () => {
     // Generate unique ID: Math.max(...ids, 0) + 1
