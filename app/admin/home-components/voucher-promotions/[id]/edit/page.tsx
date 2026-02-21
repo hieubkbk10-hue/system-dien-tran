@@ -195,7 +195,73 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
           </CardContent>
         </Card>
 
-        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as VoucherPromotionsConfigState); }} title="Cấu hình Voucher Promotions" />
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Nội dung voucher khuyến mãi</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tiêu đề</Label>
+              <Input 
+                value={config.texts.heading} 
+                onChange={(e) => setConfig({
+                  ...config,
+                  texts: { ...config.texts, heading: e.target.value }
+                })} 
+                placeholder="Voucher khuyến mãi" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mô tả</Label>
+              <textarea 
+                value={config.texts.description} 
+                onChange={(e) => setConfig({
+                  ...config,
+                  texts: { ...config.texts, description: e.target.value }
+                })} 
+                placeholder="Áp dụng mã để nhận ưu đãi tốt nhất hôm nay."
+                className="w-full min-h-[60px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>CTA label</Label>
+                <Input 
+                  value={config.texts.ctaLabel} 
+                  onChange={(e) => setConfig({
+                    ...config,
+                    texts: { ...config.texts, ctaLabel: e.target.value }
+                  })} 
+                  placeholder="Xem tất cả ưu đãi" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>CTA link</Label>
+                <Input 
+                  value={config.ctaUrl} 
+                  onChange={(e) => setConfig({ ...config, ctaUrl: e.target.value })} 
+                  placeholder="/promotions" 
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Giới hạn voucher (1-8)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={8}
+                  value={config.limit}
+                  onChange={(e) => setConfig({ ...config, limit: Number(e.target.value) })}
+                  placeholder="4"
+                />
+                <p className="text-xs text-slate-500">Dữ liệu tự động từ Promotions (chỉ voucher có mã).</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <ConfigJsonForm value={config} onChange={(next) =>{  setConfig(next as VoucherPromotionsConfigState); }} title="Cấu hình nâng cao (JSON)" />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
