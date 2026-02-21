@@ -194,10 +194,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
       messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
     }
 
-    if (validation.accessibility.failing.length > 0) {
-      messages.push(`Một số cặp màu chữ/nền chưa đủ tương phản APCA (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
-    }
-
     return messages;
   }, [mode, validation]);
 
