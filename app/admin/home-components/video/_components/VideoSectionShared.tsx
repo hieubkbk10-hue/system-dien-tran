@@ -122,12 +122,19 @@ function VideoSurface({
     );
   }
 
+  const [imgError, setImgError] = React.useState(false);
+
   return (
     <div className={cn('relative overflow-hidden border', ratioClass, roundedClass)} style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.videoSurface }}>
       {!isPlaying ? (
         <>
-          {thumbnailUrl ? (
-            <img src={thumbnailUrl} alt={title || 'Video thumbnail'} className="absolute inset-0 h-full w-full object-cover" />
+          {thumbnailUrl && !imgError ? (
+            <img 
+              src={thumbnailUrl} 
+              alt={title || 'Video thumbnail'} 
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={() => setImgError(true)}
+            />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: tokens.videoPlaceholder }}>
               <VideoIcon size={54} style={{ color: tokens.iconText }} />
