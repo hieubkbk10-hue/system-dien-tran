@@ -32,4 +32,29 @@ export const DEFAULT_CLIENTS_CONFIG: ClientsConfig = {
   ],
   style: 'simpleGrid',
   harmony: DEFAULT_CLIENTS_HARMONY,
+  texts: {
+    simpleGrid: {
+      subtitle: 'Được tin tưởng bởi',
+      heading: 'Khách hàng tin tưởng',
+    },
+    compactInline: {
+      heading: 'Khách hàng tin tưởng',
+    },
+    subtleMarquee: {
+      subtitle: 'Đối tác',
+    },
+    grid: {
+      heading: 'Khách hàng tin tưởng',
+      countLabel: 'đối tác',
+    },
+    carousel: {
+      heading: 'Khách hàng tin tưởng',
+      scrollHint: 'Vuốt để xem thêm',
+    },
+    featured: {
+      heading: 'Khách hàng tin tưởng',
+      subtitle: 'Được tin tưởng bởi các thương hiệu hàng đầu',
+      othersLabel: 'Và nhiều đối tác khác',
+    },
+  },
 };

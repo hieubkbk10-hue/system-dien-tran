@@ -17,4 +17,5 @@ export interface ClientsConfig {
   items: ClientItem[];
   style: ClientsStyle;
   harmony?: ClientsHarmony;
+  texts?: Record<ClientsStyle, Record<string, string>>;
 }

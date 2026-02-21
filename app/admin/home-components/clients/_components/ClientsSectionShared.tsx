@@ -21,6 +21,13 @@ interface ClientsSectionSharedProps {
   tokens: ClientsColorTokens;
   carouselId?: string;
   device?: 'mobile' | 'tablet' | 'desktop';
+  texts?: {
+    subtitle?: string;
+    heading?: string;
+    countLabel?: string;
+    scrollHint?: string;
+    othersLabel?: string;
+  };
 }
 
 export const normalizeClientsStyleSafe = (value: unknown): ClientsStyle => {
@@ -149,6 +156,7 @@ export function ClientsSectionShared({
   tokens,
   carouselId,
   device = 'desktop',
+  texts = {},
 }: ClientsSectionSharedProps) {
   const normalizedItems = React.useMemo(() => normalizeClientItems(items), [items]);
   const selectedStyle = normalizeClientsStyleSafe(style);
@@ -168,12 +176,15 @@ export function ClientsSectionShared({
 
   // Layout 1: Simple Static Grid - Clean grid like Stripe/Vercel
   if (selectedStyle === 'simpleGrid') {
+    const subtitle = texts.subtitle || 'Được tin tưởng bởi';
+    const heading = texts.heading || sectionTitle;
+    
     return (
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.secondary }}>Được tin tưởng bởi</p>
-            <h2 className="text-lg md:text-xl font-bold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+            <p className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: tokens.secondary }}>{subtitle}</p>
+            <h2 className="text-lg md:text-xl font-bold" style={{ color: tokens.heading }}>{heading}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12 items-center justify-items-center py-4" role="list">
             {normalizedItems.map((item, idx) => (
@@ -189,11 +200,13 @@ export function ClientsSectionShared({
 
   // Layout 2: Compact Inline - Single row, flexbox wrap, minimal
   if (selectedStyle === 'compactInline') {
+    const heading = texts.heading || sectionTitle;
+    
     return (
       <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-base md:text-lg font-semibold" style={{ color: tokens.heading }}>{sectionTitle}</h2>
+            <h2 className="text-base md:text-lg font-semibold" style={{ color: tokens.heading }}>{heading}</h2>
             <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: tokens.countBadgeBackground, color: tokens.countBadgeText }}>
               {normalizedItems.length}
             </span>
@@ -212,12 +225,14 @@ export function ClientsSectionShared({
 
   // Layout 3: Subtle Marquee - Very slow scroll, no filters
   if (selectedStyle === 'subtleMarquee') {
+    const subtitle = texts.subtitle || 'Đối tác';
+    
     return (
       <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <style>{subtleStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: tokens.mutedText }}>Đối tác</p>
+            <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: tokens.secondary }}>{subtitle}</p>
           </div>
           <div
             className="subtle-marquee-container relative overflow-hidden py-4"
@@ -246,6 +261,8 @@ export function ClientsSectionShared({
   }
 
   if (selectedStyle === 'grid') {
+    const heading = texts.heading || sectionTitle;
+    const countLabel = texts.countLabel || 'đối tác';
     const maxVisible = context === 'preview' && device === 'mobile' ? 6 : 12;
     const visibleItems = normalizedItems.slice(0, maxVisible);
     const remainingCount = Math.max(0, normalizedItems.length - maxVisible);
@@ -254,9 +271,9 @@ export function ClientsSectionShared({
       <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
           <div className="flex items-center justify-between gap-3">
-            {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
+            {renderSectionTitle(heading, tokens.sectionAccent, tokens.heading)}
             <span className="text-[10px] px-2 py-0.5 rounded-full border" style={{ backgroundColor: tokens.countBadgeBackground, color: tokens.countBadgeText, borderColor: tokens.countBadgeBorder }}>
-              {normalizedItems.length} đối tác
+              {normalizedItems.length} {countLabel}
             </span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 py-3" role="list">
@@ -282,6 +299,8 @@ export function ClientsSectionShared({
   }
 
   if (selectedStyle === 'carousel') {
+    const heading = texts.heading || sectionTitle;
+    const scrollHint = texts.scrollHint || 'Vuốt để xem thêm';
     const safeCarouselId = carouselId || 'clients-shared-carousel';
 
     return (
@@ -290,8 +309,8 @@ export function ClientsSectionShared({
         <div className="w-full max-w-7xl mx-auto space-y-4">
           <div className="px-4 flex items-center justify-between gap-3">
             <div>
-              {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-              <p className="pl-3 text-xs" style={{ color: tokens.mutedText }}>Vuốt để xem thêm</p>
+              {renderSectionTitle(heading, tokens.sectionAccent, tokens.heading)}
+              <p className="pl-3 text-xs" style={{ color: tokens.secondary }}>{scrollHint}</p>
             </div>
             {normalizedItems.length > 3 && (
               <div className="flex gap-1.5">
@@ -347,6 +366,10 @@ export function ClientsSectionShared({
     );
   }
 
+  const heading = texts.heading || sectionTitle;
+  const subtitle = texts.subtitle || 'Được tin tưởng bởi các thương hiệu hàng đầu';
+  const othersLabel = texts.othersLabel || 'Và nhiều đối tác khác';
+  
   const featuredItems = normalizedItems.slice(0, 4);
   const otherItems = normalizedItems.slice(4);
   const maxOther = context === 'preview' && device === 'mobile' ? 4 : 8;
@@ -357,8 +380,8 @@ export function ClientsSectionShared({
     <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
       <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
         <div className="text-center space-y-1">
-          <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
-          <p className="text-xs" style={{ color: tokens.mutedText }}>Được tin tưởng bởi các thương hiệu hàng đầu</p>
+          <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: tokens.heading }}>{heading}</h2>
+          <p className="text-xs" style={{ color: tokens.secondary }}>{subtitle}</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="list">
           {featuredItems.map((item, idx) => (
@@ -371,7 +394,7 @@ export function ClientsSectionShared({
 
         {visibleOthers.length > 0 && (
           <div className="pt-4 border-t" style={{ borderColor: tokens.neutralBorder }}>
-            <p className="text-center mb-3 text-xs" style={{ color: tokens.mutedText }}>Và nhiều đối tác khác</p>
+            <p className="text-center mb-3 text-xs" style={{ color: tokens.secondary }}>{othersLabel}</p>
             <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6" role="list">
               {visibleOthers.map((item, idx) => (
                 <div key={`other-${item.key}-${idx}`} role="listitem">

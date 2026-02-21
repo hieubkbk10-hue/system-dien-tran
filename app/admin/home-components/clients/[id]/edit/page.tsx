@@ -12,7 +12,6 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { useBrandColors } from '../../../create/shared';
 import { ClientsForm } from '../../_components/ClientsForm';
 import { ClientsPreview } from '../../_components/ClientsPreview';
-import { ColorInfoPanel } from '../../_components/ColorInfoPanel';
 import {
   DEFAULT_CLIENTS_CONFIG,
   DEFAULT_CLIENTS_HARMONY,
@@ -341,11 +340,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
               selectedStyle={style}
               onStyleChange={setStyle}
               warningMessages={warningMessages}
-            />
-            <ColorInfoPanel
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
             />
           </div>
         </div>
