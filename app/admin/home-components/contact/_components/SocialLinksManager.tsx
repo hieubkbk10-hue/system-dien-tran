@@ -7,17 +7,15 @@ import { isValidUrl } from '../_lib/validation';
 interface SocialLinksManagerProps {
   links: ContactSocialLink[];
   onChange: (links: ContactSocialLink[]) => void;
-  onValidationChange?: (errors: Record<number, { url?: string }>) => void;
 }
 
 export function SocialLinksManager({ 
   links, 
-  onChange, 
-  onValidationChange 
+  onChange 
 }: SocialLinksManagerProps) {
   const [validationErrors, setValidationErrors] = useState<Record<number, { url?: string }>>({});
 
-  // Validate URLs và emit errors lên parent
+  // Validate URLs cho hiển thị local
   useEffect(() => {
     const errors: Record<number, { url?: string }> = {};
     
@@ -28,10 +26,6 @@ export function SocialLinksManager({
     });
 
     setValidationErrors(errors);
-    
-    if (onValidationChange) {
-      onValidationChange(errors);
-    }
   }, [links]);
 
   const handleAddLink = () => {

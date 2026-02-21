@@ -19,7 +19,6 @@ interface ValidationErrors {
   mapEmbed?: string;
   email?: string;
   phone?: string;
-  socialLinks?: Record<number, { url?: string }>;
 }
 
 export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
@@ -49,14 +48,6 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   // Helper để update formFields
   const updateFormFields = (formFields: string[]) => {
     onChange({ ...value, formFields });
-  };
-
-  // Handle social links validation errors
-  const handleSocialValidationChange = (errors: Record<number, { url?: string }>) => {
-    setValidationErrors(prev => ({
-      ...prev,
-      socialLinks: Object.keys(errors).length > 0 ? errors : undefined,
-    }));
   };
 
   return (
@@ -327,7 +318,6 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
           <SocialLinksManager
             links={value.socialLinks}
             onChange={updateSocialLinks}
-            onValidationChange={handleSocialValidationChange}
           />
         </CardContent>
       </Card>
