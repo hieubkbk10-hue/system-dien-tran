@@ -294,6 +294,9 @@ export function TeamSectionShared({
     return normalizedMembers.slice(0, getPreviewLimit(style, device));
   }, [normalizedMembers, isPreview, style, device]);
 
+  const carouselIdSeed = React.useId().replaceAll(':', '');
+  const hexagonIdSeed = React.useId().replaceAll(':', '');
+
   const basePadding = isPreview
     ? cn('py-7 md:py-8', isMobilePreview ? 'px-3' : 'px-4 md:px-6')
     : 'py-12 md:py-16 px-4 md:px-6';
@@ -431,8 +434,7 @@ export function TeamSectionShared({
   };
 
   const renderCarousel = () => {
-    const idSeed = React.useId().replaceAll(':', '');
-    const elementId = carouselId ?? `team-carousel-${idSeed}`;
+    const elementId = carouselId ?? `team-carousel-${carouselIdSeed}`;
     const cardWidth = isPreview
       ? (isMobilePreview ? 272 : (isTabletPreview ? 284 : 300))
       : 312;
@@ -545,8 +547,7 @@ export function TeamSectionShared({
   };
 
   const renderHexagon = () => {
-    const keyframeSeed = React.useId().replaceAll(':', '');
-    const keyframeName = `team-hex-marquee-${keyframeSeed}`;
+    const keyframeName = `team-hex-marquee-${hexagonIdSeed}`;
     const cardSize = isMobilePreview ? 120 : 146;
     const featured = visibleMembers[0];
     const shouldAnimate = visibleMembers.length > 2;
