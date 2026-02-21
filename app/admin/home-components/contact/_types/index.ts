@@ -25,6 +25,7 @@ export interface ContactConfig {
   submitButtonText?: string;
   responseTimeText?: string;
   harmony?: ContactHarmony;
+  texts?: Record<string, string>;
 }
 
 export interface ContactConfigState extends ContactConfig {

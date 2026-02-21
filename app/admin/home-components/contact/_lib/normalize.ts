@@ -53,6 +53,18 @@ const normalizeSocialLinks = (input: unknown): ContactSocialLink[] => {
   });
 };
 
+const normalizeTexts = (input: unknown): Record<string, string> => {
+  if (typeof input === 'object' && input !== null) {
+    const record = input as Record<string, unknown>;
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(record)) {
+      result[key] = coerceText(value);
+    }
+    return result;
+  }
+  return {};
+};
+
 export const normalizeContactConfig = (rawConfig: unknown): ContactConfigState => {
   const config = (typeof rawConfig === 'object' && rawConfig !== null)
     ? rawConfig as Record<string, unknown>
@@ -78,6 +90,7 @@ export const normalizeContactConfig = (rawConfig: unknown): ContactConfigState =
     style: normalizeStyle(config.style),
     harmony: normalizeContactHarmony(config.harmony),
     showForm: typeof config.showForm === 'boolean' ? config.showForm : undefined,
+    texts: normalizeTexts(config.texts),
   };
 };
 
@@ -98,6 +111,7 @@ export const toContactConfigPayload = (config: ContactConfigState): ContactConfi
     workingHours: normalized.workingHours,
     harmony: normalized.harmony,
     showForm: normalized.showForm,
+    texts: normalized.texts,
   };
 };
 
@@ -131,6 +145,7 @@ export const toContactSnapshot = (payload: {
       style: normalized.style,
       harmony: normalized.harmony,
       showForm: normalized.showForm,
+      texts: normalized.texts,
     },
   });
 };

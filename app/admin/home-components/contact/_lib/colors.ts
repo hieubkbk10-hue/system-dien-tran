@@ -75,6 +75,12 @@ const getAPCALc = (text: string, background: string) => {
   return Number.isFinite(lc) ? lc : 0;
 };
 
+const pickReadableTextOnSolid = (background: string): string => {
+  const whiteLc = getAPCALc('#ffffff', background);
+  const nearBlackLc = getAPCALc('#111111', background);
+  return whiteLc > nearBlackLc ? '#ffffff' : '#111111';
+};
+
 export const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = getAPCALc('#ffffff', background);
   const blackLc = getAPCALc('#000000', background);
@@ -283,7 +289,16 @@ export const getContactColorTokens = ({
   const mutedText = '#64748b';
 
   const sectionBadgeBg = secondaryPalette.surface;
-  const sectionBadgeText = ensureAPCATextColor(secondaryPalette.interactiveText, sectionBadgeBg, 11, 600);
+  const badgeTextCandidate = pickReadableTextOnSolid(sectionBadgeBg);
+  const sectionBadgeText = ensureAPCATextColor(badgeTextCandidate, sectionBadgeBg, 11, 600);
+
+  const iconBg = secondaryPalette.surface;
+  const iconCandidate = pickReadableTextOnSolid(iconBg);
+  const iconTintColor = ensureAPCATextColor(iconCandidate, iconBg, 14, 600);
+
+  const socialBg = secondaryPalette.surface;
+  const socialCandidate = pickReadableTextOnSolid(socialBg);
+  const socialIcon = ensureAPCATextColor(socialCandidate, socialBg, 14, 600);
 
   return {
     primary: primaryResolved,
@@ -305,16 +320,16 @@ export const getContactColorTokens = ({
     cardBorder: neutralBorder,
     cardHoverBorder: secondaryPalette.border,
 
-    iconTintBackground: secondaryPalette.surface,
-    iconTintColor: ensureAPCATextColor(secondaryPalette.solid, secondaryPalette.surface, 14, 600),
+    iconTintBackground: iconBg,
+    iconTintColor,
 
     labelText: ensureAPCATextColor(secondaryPalette.interactiveText, neutralSurface, 12, 600),
     valueText: neutralText,
     helperText: mutedText,
 
-    socialBackground: secondaryPalette.surface,
+    socialBackground: socialBg,
     socialBorder: secondaryPalette.border,
-    socialIcon: ensureAPCATextColor(secondaryPalette.solid, secondaryPalette.surface, 14, 600),
+    socialIcon,
 
     mapPlaceholderBg: neutralBackground,
     mapPlaceholderIcon: primaryPalette.solid,

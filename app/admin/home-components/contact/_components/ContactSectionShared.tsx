@@ -24,6 +24,7 @@ import type {
   ContactStyle,
 } from '../_types';
 import type { ContactColorTokens } from '../_lib/colors';
+import { DEFAULT_CONTACT_TEXTS } from '../_lib/constants';
 
 type ContactSectionContext = 'preview' | 'site';
 
@@ -66,6 +67,9 @@ const getRootContainerClass = (context: ContactSectionContext, currentDevice: Pr
 };
 
 const getInfo = (config: ContactConfigState, title?: string) => {
+  const texts = config.texts ?? {};
+  const defaultTexts = DEFAULT_CONTACT_TEXTS[config.style] ?? {};
+  
   const heading = (config.formTitle ?? title)?.trim() || 'Liên hệ với chúng tôi';
   const description = config.formDescription?.trim() || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn';
   const submitLabel = config.submitButtonText?.trim() || 'Gửi yêu cầu';
@@ -80,6 +84,17 @@ const getInfo = (config: ContactConfigState, title?: string) => {
     phone: config.phone?.trim() || '1900 1234',
     email: config.email?.trim() || 'contact@example.com',
     workingHours: config.workingHours?.trim() || 'Thứ 2 - Thứ 6: 8:00 - 17:00',
+    texts: {
+      badge: texts.badge || defaultTexts.badge || 'Thông tin liên hệ',
+      heading: texts.heading || defaultTexts.heading || 'Kết nối với chúng tôi',
+      addressLabel: texts.addressLabel || defaultTexts.addressLabel || 'Địa chỉ văn phòng',
+      contactLabel: texts.contactLabel || defaultTexts.contactLabel || 'Email & Điện thoại',
+      hoursLabel: texts.hoursLabel || defaultTexts.hoursLabel || 'Giờ làm việc',
+      phoneLabel: texts.phoneLabel || defaultTexts.phoneLabel || 'Điện thoại',
+      emailLabel: texts.emailLabel || defaultTexts.emailLabel || 'Email',
+      addressHeading: texts.addressHeading || defaultTexts.addressHeading || 'Trụ sở chính',
+      description: texts.description || defaultTexts.description || 'Thông tin liên hệ và vị trí bản đồ chính xác.',
+    },
   };
 };
 
@@ -194,17 +209,17 @@ const renderModern = ({
               borderColor: tokens.sectionBadgeBorder,
             }}
           >
-            Thông tin liên hệ
+            {info.texts.badge}
           </div>
           <h2 className={cn('font-bold tracking-tight mb-6', currentDevice === 'mobile' ? 'text-xl' : 'text-2xl')} style={{ color: tokens.heading }}>
-            Kết nối với chúng tôi
+            {info.texts.heading}
           </h2>
 
           <div className="space-y-5">
             <div className="flex items-start gap-3">
               <IconBadge icon={<MapPin size={16} />} tokens={tokens} className="mt-0.5" />
               <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>Địa chỉ văn phòng</h4>
+                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</h4>
                 <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
               </div>
             </div>
@@ -212,7 +227,7 @@ const renderModern = ({
             <div className="flex items-start gap-3">
               <IconBadge icon={<Mail size={16} />} tokens={tokens} className="mt-0.5" />
               <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>Email & Điện thoại</h4>
+                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.contactLabel}</h4>
                 <p className="text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
                 <p className="text-sm mt-0.5" style={{ color: tokens.valueText }}>{info.phone}</p>
               </div>
@@ -221,7 +236,7 @@ const renderModern = ({
             <div className="flex items-start gap-3">
               <IconBadge icon={<Clock size={16} />} tokens={tokens} className="mt-0.5" />
               <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>Giờ làm việc</h4>
+                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</h4>
                 <p className="text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
               </div>
             </div>
@@ -277,13 +292,13 @@ const renderFloating = ({
         className="pointer-events-auto p-6 rounded-xl shadow-lg max-w-sm w-full border"
         style={{ backgroundColor: tokens.floatingCardBg, borderColor: tokens.floatingCardBorder }}
       >
-        <h2 className="text-lg font-bold mb-5" style={{ color: tokens.heading }}>Thông tin liên hệ</h2>
+        <h2 className="text-lg font-bold mb-5" style={{ color: tokens.heading }}>{info.texts.heading}</h2>
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <MapPin size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>Địa chỉ</p>
+              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
               <p className="text-sm font-medium leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
             </div>
           </div>
@@ -291,7 +306,7 @@ const renderFloating = ({
           <div className="flex items-start gap-3">
             <Phone size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>Hotline</p>
+              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p>
               <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.phone}</p>
             </div>
           </div>
@@ -299,7 +314,7 @@ const renderFloating = ({
           <div className="flex items-start gap-3">
             <Mail size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>Email</p>
+              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p>
               <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.email}</p>
             </div>
           </div>
@@ -307,7 +322,7 @@ const renderFloating = ({
           <div className="flex items-start gap-3">
             <Clock size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>Giờ làm việc</p>
+              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
               <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.workingHours}</p>
             </div>
           </div>
@@ -332,19 +347,19 @@ const renderGrid = ({
     <div className={cn('grid gap-3 mb-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
       <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <IconBadge icon={<Phone size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>Điện thoại</h3>
+        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</h3>
         <p className="font-semibold" style={{ color: tokens.valueText }}>{info.phone}</p>
       </div>
 
       <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <IconBadge icon={<Mail size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>Email</h3>
+        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</h3>
         <p className="font-semibold text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
       </div>
 
       <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <IconBadge icon={<Clock size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>Giờ làm việc</h3>
+        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</h3>
         <p className="font-semibold text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
       </div>
     </div>
@@ -354,7 +369,7 @@ const renderGrid = ({
         <div className="flex items-start gap-3">
           <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
           <div>
-            <h3 className="font-bold text-base mb-1.5" style={{ color: tokens.heading }}>Trụ sở chính</h3>
+            <h3 className="font-bold text-base mb-1.5" style={{ color: tokens.heading }}>{info.texts.addressHeading}</h3>
             <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
           </div>
         </div>
@@ -385,17 +400,17 @@ const renderElegant = ({
         <IconBadge icon={<Building2 size={22} />} tokens={tokens} size={24} />
       </div>
       <h2 className={cn('font-bold tracking-tight', currentDevice === 'mobile' ? 'text-lg' : 'text-xl')} style={{ color: tokens.heading }}>
-        Văn phòng của chúng tôi
+        {info.texts.heading}
       </h2>
       <p className="mt-1.5 max-w-lg mx-auto text-sm" style={{ color: tokens.helperText }}>
-        Thông tin liên hệ và vị trí bản đồ chính xác.
+        {info.texts.description}
       </p>
     </div>
 
     <div className={cn('flex', currentDevice === 'mobile' ? 'flex-col' : 'flex-row')}>
       <div className={cn('p-6 space-y-0 divide-y', currentDevice === 'mobile' ? 'w-full' : 'w-5/12')} style={{ borderColor: tokens.neutralBorder }}>
         <div className="py-4 first:pt-0">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>Địa chỉ</p>
+          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
           <div className="flex items-start gap-2.5">
             <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
             <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</span>
@@ -403,7 +418,7 @@ const renderElegant = ({
         </div>
 
         <div className="py-4">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>Liên lạc</p>
+          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.contactLabel}</p>
           <div className="space-y-2">
             <div className="flex items-center gap-2.5">
               <Phone size={16} className="shrink-0" style={{ color: tokens.secondary }} />
@@ -417,7 +432,7 @@ const renderElegant = ({
         </div>
 
         <div className="py-4 last:pb-0">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>Thời gian</p>
+          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
           <div className="flex items-center gap-2.5">
             <Clock size={16} className="shrink-0" style={{ color: tokens.secondary }} />
             <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.workingHours}</span>
@@ -459,22 +474,22 @@ const renderMinimal = ({
       <div className={cn('grid gap-4', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4')}>
         <a href={`tel:${info.phone}`} className="flex flex-col items-center p-5 rounded-xl border transition-colors text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <IconBadge icon={<Phone size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>Điện thoại</span>
+          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</span>
           <span className="text-sm font-semibold" style={{ color: tokens.valueText }}>{info.phone}</span>
         </a>
         <a href={`mailto:${info.email}`} className="flex flex-col items-center p-5 rounded-xl border transition-colors text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <IconBadge icon={<Mail size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>Email</span>
+          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</span>
           <span className="text-sm font-semibold truncate max-w-full" style={{ color: tokens.valueText }}>{info.email}</span>
         </a>
         <div className="flex flex-col items-center p-5 rounded-xl border text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <IconBadge icon={<MapPin size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>Địa chỉ</span>
+          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</span>
           <span className="text-sm font-semibold line-clamp-2" style={{ color: tokens.valueText }}>{info.address}</span>
         </div>
         <div className="flex flex-col items-center p-5 rounded-xl border text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <IconBadge icon={<Clock size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>Giờ làm việc</span>
+          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</span>
           <span className="text-sm font-semibold" style={{ color: tokens.valueText }}>{info.workingHours}</span>
         </div>
       </div>
@@ -525,14 +540,22 @@ const renderCentered = ({
       <div className={cn('grid gap-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
         <a href={`tel:${info.phone}`} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
           <IconBadge icon={<Phone size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>Hotline</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.phone}</p></div>
+          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.phone}</p></div>
         </a>
         <a href={`mailto:${info.email}`} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
           <IconBadge icon={<Mail size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>Email</p><p className="text-sm font-bold truncate" style={{ color: tokens.valueText }}>{info.email}</p></div>
+          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p><p className="text-sm font-bold truncate" style={{ color: tokens.valueText }}>{info.email}</p></div>
         </a>
         <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
           <IconBadge icon={<Clock size={18} />} tokens={tokens} size={18} />
+          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
+        </div>
+      </div>
+      <div className={cn('mt-6 p-5 rounded-xl', currentDevice === 'mobile' ? '' : 'flex items-start gap-6')} style={{ backgroundColor: tokens.centeredSurface }}>
+        <div className="flex items-start gap-3 flex-1">
+          <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
+          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
+        </div>
           <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>Giờ làm việc</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
         </div>
       </div>

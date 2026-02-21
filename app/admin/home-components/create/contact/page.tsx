@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { ContactPreview } from '../../contact/_components/ContactPreview';
-import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../contact/_lib/constants';
+import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY, DEFAULT_CONTACT_TEXTS, TEXT_FIELDS } from '../../contact/_lib/constants';
 import { getContactValidationResult } from '../../contact/_lib/colors';
 import { normalizeContactConfig, toContactConfigPayload } from '../../contact/_lib/normalize';
 import type { ContactConfigState, ContactStyle } from '../../contact/_types';
@@ -96,6 +96,7 @@ export default function ContactCreatePage() {
   };
 
   const showFormConfig = style === 'minimal' || style === 'centered';
+  const textFields = TEXT_FIELDS[style] || [];
 
   return (
     <ComponentFormWrapper
@@ -254,6 +255,41 @@ export default function ContactCreatePage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {textFields.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Tùy chỉnh Text (Style: {style})</CardTitle>
+            <p className="text-xs text-muted-foreground">Tùy chỉnh các text hiển thị cho style này</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {textFields.map((field) => {
+              const currentTexts = normalizedConfig.texts ?? {};
+              const defaultTexts = DEFAULT_CONTACT_TEXTS[style] ?? {};
+              const value = currentTexts[field.key] ?? defaultTexts[field.key] ?? '';
+              
+              return (
+                <div key={field.key} className="space-y-2">
+                  <Label>{field.label}</Label>
+                  <Input
+                    value={value}
+                    onChange={(event) => {
+                      setConfig({
+                        ...normalizedConfig,
+                        texts: {
+                          ...currentTexts,
+                          [field.key]: event.target.value,
+                        },
+                      });
+                    }}
+                    placeholder={field.placeholder}
+                  />
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}
