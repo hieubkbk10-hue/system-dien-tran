@@ -205,6 +205,10 @@ function VideoEmbed({
     );
   }
 
+  if (!videoUrl) {
+    return null;
+  }
+
   return (
     <video
       src={videoUrl}
