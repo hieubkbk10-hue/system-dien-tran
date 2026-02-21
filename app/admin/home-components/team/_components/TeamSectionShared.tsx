@@ -366,7 +366,7 @@ export function TeamSectionShared({
                   sizes="(max-width: 768px) 50vw, 240px"
                 />
                 <div
-                  className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-end justify-center pb-3"
+                  className="absolute inset-0 flex items-end justify-center pb-3"
                   style={{ background: tokens.socialOverlayScrim }}
                 >
                   <div className="flex items-center gap-2">
