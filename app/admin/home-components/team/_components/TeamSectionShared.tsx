@@ -26,6 +26,7 @@ interface TeamSectionSharedProps {
   context: TeamSharedContext;
   device?: PreviewDevice;
   carouselId?: string;
+  texts?: Record<string, string>;
 }
 
 interface NormalizedTeamMember {
@@ -278,11 +279,14 @@ export function TeamSectionShared({
   context,
   device = 'desktop',
   carouselId,
+  texts = {},
 }: TeamSectionSharedProps) {
   const isPreview = context === 'preview';
   const isMobilePreview = isPreview && device === 'mobile';
   const isTabletPreview = isPreview && device === 'tablet';
   const heading = title.trim() || 'Đội ngũ của chúng tôi';
+  const subtitle = texts.subtitle || 'Đội ngũ chuyên nghiệp';
+  const emptyMessage = texts.emptyMessage || 'Chưa có thành viên nào.';
 
   const normalizedMembers = React.useMemo(() => normalizeMembers(members), [members]);
 
@@ -313,9 +317,11 @@ export function TeamSectionShared({
         >
           {heading}
         </h2>
-        <p className="text-sm" style={{ color: tokens.sectionSubtitle }}>
-          {mode === 'single' ? 'Đội ngũ giàu kinh nghiệm' : 'Đội ngũ chuyên môn đa lĩnh vực'}
-        </p>
+        {subtitle ? (
+          <p className="text-sm" style={{ color: tokens.sectionSubtitle }}>
+            {subtitle}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -333,7 +339,7 @@ export function TeamSectionShared({
           >
             <Users className="mx-auto mb-3" size={40} style={{ color: tokens.sectionAccent }} />
             <h3 className="text-xl font-semibold" style={{ color: tokens.heading }}>{heading}</h3>
-            <p className="mt-1 text-sm" style={{ color: tokens.mutedText }}>Chưa có thành viên nào.</p>
+            <p className="mt-1 text-sm" style={{ color: tokens.mutedText }}>{emptyMessage}</p>
           </div>
         </div>
       </section>
@@ -362,12 +368,12 @@ export function TeamSectionShared({
                   member={member}
                   tokens={tokens}
                   context={context}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover"
                   sizes="(max-width: 768px) 50vw, 240px"
                 />
                 <div
                   className="absolute inset-0 flex items-end justify-center pb-3"
-                  style={{ background: tokens.socialOverlayScrim }}
+                  style={{ backgroundColor: tokens.socialOverlayScrim }}
                 >
                   <div className="flex items-center gap-2">
                     <TeamSocialButton platform="facebook" value={member.facebook} context={context} tokens={tokens} />
@@ -745,18 +751,13 @@ export function TeamSectionShared({
           {visibleMembers.map((member) => (
             <article key={member.key} className="group relative">
               <div
-                className="absolute -inset-1 rounded-3xl opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
-                style={{ background: `linear-gradient(135deg, ${tokens.spotlightGlow}, transparent)` }}
-              />
-
-              <div
-                className="relative rounded-2xl border p-5"
+                className="relative rounded-2xl border-2 p-5 transition-colors duration-200"
                 style={{
                   backgroundColor: tokens.cardBackground,
                   borderColor: tokens.cardBorder,
                 }}
               >
-                <div className="relative mx-auto mb-4 h-24 w-24 rounded-full p-[2px]" style={{ background: `linear-gradient(135deg, ${tokens.spotlightRing}, transparent)` }}>
+                <div className="relative mx-auto mb-4 h-24 w-24 rounded-full p-[2px]" style={{ borderColor: tokens.spotlightRing, borderWidth: '2px', borderStyle: 'solid' }}>
                   <div className="relative h-full w-full rounded-full overflow-hidden bg-white">
                     <TeamAvatar
                       member={member}

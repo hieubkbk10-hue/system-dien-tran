@@ -30,6 +30,7 @@ interface TeamPreviewProps {
   harmony?: TeamHarmony;
   selectedStyle?: TeamStyle;
   onStyleChange?: (style: TeamStyle) => void;
+  texts?: Record<string, string>;
 }
 
 export const TeamPreview = ({
@@ -41,6 +42,7 @@ export const TeamPreview = ({
   harmony = DEFAULT_TEAM_HARMONY,
   selectedStyle = 'grid',
   onStyleChange,
+  texts = {},
 }: TeamPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const style = normalizeTeamStyle(selectedStyle);
@@ -61,11 +63,7 @@ export const TeamPreview = ({
     const messages: string[] = [];
 
     if (validation.harmonyStatus.isTooSimilar) {
-      messages.push(`Màu phụ đang gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}).`);
-    }
-
-    if (validation.accessibility.failing.length > 0) {
-      messages.push(`Một số cặp màu chữ/nền chưa đạt APCA (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+      messages.push(`Màu phụ đang gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên chọn màu khác biệt hơn.`);
     }
 
     return messages;
@@ -95,6 +93,7 @@ export const TeamPreview = ({
             tokens={validation.tokens}
             device={device}
             carouselId={`team-preview-carousel-${device}`}
+            texts={texts}
           />
         </BrowserFrame>
       </PreviewWrapper>
@@ -109,13 +108,13 @@ export const TeamPreview = ({
 
       {warningMessages.length > 0 ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          <div className="space-y-2">
-            {warningMessages.map((message) => (
-              <div key={message} className="flex items-start gap-2">
-                {message.includes('deltaE') ? <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" /> : <Eye size={14} className="mt-0.5 flex-shrink-0" />}
-                <p>{message}</p>
-              </div>
-            ))}
+          <div className="flex items-start gap-2">
+            <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+            <div className="space-y-1">
+              {warningMessages.map((message) => (
+                <p key={message}>{message}</p>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}

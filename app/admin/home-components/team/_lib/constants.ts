@@ -117,6 +117,24 @@ export const toTeamPersistMembers = (members: TeamEditorMember[]): TeamMember[] 
   }))
 );
 
+const normalizeTexts = (value: unknown): Record<string, string> => {
+  if (typeof value === 'object' && value !== null) {
+    const obj = value as Record<string, unknown>;
+    const result: Record<string, string> = {};
+    
+    for (const key of Object.keys(obj)) {
+      const val = obj[key];
+      if (typeof val === 'string') {
+        result[key] = val;
+      }
+    }
+    
+    return { ...DEFAULT_TEAM_TEXTS, ...result };
+  }
+  
+  return DEFAULT_TEAM_TEXTS;
+};
+
 export const normalizeTeamConfig = (rawConfig: unknown): TeamConfig => {
   const config = (typeof rawConfig === 'object' && rawConfig !== null)
     ? rawConfig as Record<string, unknown>
@@ -128,7 +146,13 @@ export const normalizeTeamConfig = (rawConfig: unknown): TeamConfig => {
     members: members.length > 0 ? members : DEFAULT_TEAM_CONFIG.members,
     style: normalizeTeamStyle(config.style),
     harmony: normalizeTeamHarmony(config.harmony),
+    texts: normalizeTexts(config.texts),
   };
+};
+
+export const DEFAULT_TEAM_TEXTS: Record<string, string> = {
+  subtitle: 'Đội ngũ chuyên nghiệp',
+  emptyMessage: 'Chưa có thành viên nào.',
 };
 
 export const DEFAULT_TEAM_CONFIG: TeamConfig = {
@@ -146,4 +170,5 @@ export const DEFAULT_TEAM_CONFIG: TeamConfig = {
   ],
   style: 'grid',
   harmony: DEFAULT_TEAM_HARMONY,
+  texts: DEFAULT_TEAM_TEXTS,
 };

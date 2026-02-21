@@ -23,4 +23,5 @@ export interface TeamConfig {
   members: TeamMember[];
   style: TeamStyle;
   harmony?: TeamHarmony;
+  texts?: Record<string, string>;
 }

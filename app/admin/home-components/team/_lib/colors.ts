@@ -264,7 +264,21 @@ export const getTeamColorTokens = ({
 
   const socialButtonBg = secondaryPalette.surface;
   const socialButtonBorder = secondaryPalette.border;
-  const socialButtonIcon = resolveBrandTextOnBackground(secondaryPalette.solid, socialButtonBg, 13, 600, neutralText);
+  const socialButtonTextCandidate = pickReadableTextOnSolid(socialButtonBg);
+  const socialButtonIcon = resolveBrandTextOnBackground(socialButtonTextCandidate, socialButtonBg, 13, 600, neutralText);
+
+  const carouselNavBg = secondaryPalette.surface;
+  const carouselNavBorder = secondaryPalette.border;
+  const carouselNavTextCandidate = pickReadableTextOnSolid(carouselNavBg);
+  const carouselNavIcon = resolveBrandTextOnBackground(carouselNavTextCandidate, carouselNavBg, 14, 700, neutralText);
+
+  const hexagonChipBg = secondaryPalette.surface;
+  const hexagonChipTextCandidate = pickReadableTextOnSolid(hexagonChipBg);
+  const hexagonChipText = resolveBrandTextOnBackground(hexagonChipTextCandidate, hexagonChipBg, 12, 600, neutralText);
+
+  const timelineLine = shiftColor(secondaryPalette.solid, 0.35, 0.68, primaryResolved);
+  const spotlightBorder = shiftColor(secondaryPalette.solid, 0.38, 0.72, primaryResolved);
+  const spotlightSectionBg = neutralBackground;
 
   return {
     primary: primaryResolved,
@@ -293,22 +307,22 @@ export const getTeamColorTokens = ({
     socialButtonBg,
     socialButtonBorder,
     socialButtonIcon,
-    socialOverlayScrim: 'linear-gradient(to top, rgba(2,6,23,0.72), rgba(2,6,23,0.2), rgba(2,6,23,0.04))',
+    socialOverlayScrim: 'rgba(2,6,23,0.85)',
 
-    carouselNavBg: secondaryPalette.surface,
-    carouselNavBorder: secondaryPalette.border,
-    carouselNavIcon: resolveBrandTextOnBackground(secondaryPalette.solid, secondaryPalette.surface, 14, 700, neutralText),
+    carouselNavBg,
+    carouselNavBorder,
+    carouselNavIcon,
 
-    timelineLine: withAlpha(secondaryPalette.solid, 0.32, primaryResolved),
+    timelineLine,
     timelineDotBg: primaryPalette.solid,
     timelineDotRing: '#ffffff',
 
-    spotlightGlow: withAlpha(secondaryPalette.solid, 0.28, primaryResolved),
-    spotlightRing: withAlpha(primaryPalette.solid, 0.52, primaryResolved),
-    spotlightSectionBg: `linear-gradient(135deg, ${withAlpha(primaryPalette.solid, 0.08, primaryResolved)} 0%, #f8fafc 50%, ${withAlpha(secondaryPalette.solid, 0.06, primaryResolved)} 100%)`,
+    spotlightGlow: spotlightBorder,
+    spotlightRing: primaryPalette.border,
+    spotlightSectionBg,
 
-    hexagonChipBg: secondaryPalette.surface,
-    hexagonChipText: resolveBrandTextOnBackground(secondaryPalette.solid, secondaryPalette.surface, 12, 600, neutralText),
+    hexagonChipBg,
+    hexagonChipText,
     hexagonFeaturedBorder: primaryPalette.solid,
 
     styleAccentByStyle: {

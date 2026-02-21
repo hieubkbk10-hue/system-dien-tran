@@ -34,18 +34,21 @@ const serializeEditState = ({
   style,
   harmony,
   members,
+  texts,
 }: {
   title: string;
   active: boolean;
   style: TeamStyle;
   harmony: TeamHarmony;
   members: TeamEditorMember[];
+  texts: Record<string, string>;
 }) => JSON.stringify({
   title,
   active,
   style,
   harmony,
   members: toTeamPersistMembers(members),
+  texts,
 });
 
 export default function TeamEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -61,6 +64,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
   const [style, setStyle] = React.useState<TeamStyle>('grid');
   const [harmony, setHarmony] = React.useState<TeamHarmony>('analogous');
   const [members, setMembers] = React.useState<TeamEditorMember[]>([]);
+  const [texts, setTexts] = React.useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [initialSnapshot, setInitialSnapshot] = React.useState('');
 
@@ -79,12 +83,14 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     const editorMembers = toTeamEditorMembers(normalizedConfig.members);
     const nextStyle = normalizeTeamStyle(normalizedConfig.style);
     const nextHarmony = normalizeTeamHarmony(normalizedConfig.harmony);
+    const nextTexts = normalizedConfig.texts || {};
 
     setTitle(component.title);
     setActive(component.active);
     setStyle(nextStyle);
     setHarmony(nextHarmony);
     setMembers(editorMembers);
+    setTexts(nextTexts);
 
     setInitialSnapshot(serializeEditState({
       title: component.title,
@@ -92,6 +98,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
       style: nextStyle,
       harmony: nextHarmony,
       members: editorMembers,
+      texts: nextTexts,
     }));
   }, [component, id, router]);
 
@@ -110,11 +117,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     const messages: string[] = [];
 
     if (validation.harmonyStatus.isTooSimilar) {
-      messages.push(`Màu phụ đang gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}).`);
-    }
-
-    if (validation.accessibility.failing.length > 0) {
-      messages.push(`Một số cặp màu chữ/nền chưa đạt APCA (minLc = ${validation.accessibility.minLc.toFixed(1)}).`);
+      messages.push(`Màu phụ đang gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên chọn màu khác biệt hơn.`);
     }
 
     return messages;
@@ -126,7 +129,8 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     style,
     harmony,
     members,
-  }), [title, active, style, harmony, members]);
+    texts,
+  }), [title, active, style, harmony, members, texts]);
 
   const hasChanges = initialSnapshot.length > 0 && currentSnapshot !== initialSnapshot;
 
@@ -134,7 +138,8 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     members: toTeamPersistMembers(members),
     style,
     harmony,
-  }), [members, style, harmony]);
+    texts,
+  }), [members, style, harmony, texts]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -157,6 +162,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
         style,
         harmony,
         members,
+        texts,
       });
 
       setInitialSnapshot(nextSnapshot);
@@ -203,6 +209,28 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
                 }}
                 required
                 placeholder="Nhập tiêu đề component..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Phụ đề</Label>
+              <Input
+                value={texts.subtitle || ''}
+                onChange={(event) => {
+                  setTexts((prev) => ({ ...prev, subtitle: event.target.value }));
+                }}
+                placeholder="Đội ngũ chuyên nghiệp"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thông báo khi trống</Label>
+              <Input
+                value={texts.emptyMessage || ''}
+                onChange={(event) => {
+                  setTexts((prev) => ({ ...prev, emptyMessage: event.target.value }));
+                }}
+                placeholder="Chưa có thành viên nào."
               />
             </div>
 
@@ -257,6 +285,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
           title={title}
           selectedStyle={style}
           onStyleChange={setStyle}
+          texts={texts}
         />
 
         <div className="mt-6 flex justify-end gap-3">
