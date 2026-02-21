@@ -25,16 +25,16 @@ interface ClientsSectionSharedProps {
 
 export const normalizeClientsStyleSafe = (value: unknown): ClientsStyle => {
   if (
-    value === 'bento'
-    || value === 'staggered'
-    || value === 'spotlight'
+    value === 'marquee'
+    || value === 'dualFlow'
+    || value === 'fadeScroll'
     || value === 'grid'
     || value === 'carousel'
     || value === 'featured'
   ) {
     return value;
   }
-  return 'bento';
+  return 'marquee';
 };
 
 export const normalizeClientItems = (items: unknown): NormalizedClientItem[] => {
@@ -159,24 +159,126 @@ export function ClientsSectionShared({
 
   const sectionTitle = title.trim().length > 0 ? title : 'Khách hàng tin tưởng';
 
-  const bentoStyles = `
-    @keyframes bento-scale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-    @keyframes bento-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .bento-item { animation: bento-fade-in 0.4s ease-out backwards; }
-    .bento-item:hover { transform: scale(1.03); box-shadow: 0 8px 24px -4px rgba(0,0,0,0.12); }
-    @media (prefers-reduced-motion: reduce) { .bento-item, .bento-item:hover { animation: none !important; transform: none !important; } }
+  const scrollStyles = `
+    @keyframes marquee-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @keyframes marquee-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+    @keyframes fade-scroll { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50%); opacity: 1; } }
+    .marquee-track { animation: marquee-scroll var(--duration, 30s) linear infinite; }
+    .marquee-reverse-track { animation: marquee-reverse var(--duration, 30s) linear infinite; }
+    .fade-scroll-track { animation: fade-scroll var(--duration, 40s) linear infinite; }
+    .marquee-container:hover .marquee-track,
+    .marquee-container:hover .marquee-reverse-track,
+    .marquee-container:focus-within .marquee-track,
+    .marquee-container:focus-within .marquee-reverse-track {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-track, .marquee-reverse-track, .fade-scroll-track { animation: none !important; }
+    }
   `;
 
-  // Layout 1: Bento Grid - Modular asymmetric layout
-  if (selectedStyle === 'bento') {
-    const getBentoClass = (idx: number) => {
-      const patterns = ['md:col-span-2 md:row-span-2', 'md:col-span-1', 'md:col-span-1', 'md:col-span-2', 'md:col-span-1', 'md:col-span-1'];
-      return patterns[idx % patterns.length];
-    };
+  // Layout 1: Compact Marquee - Single row infinite scroll, uniform size, minimal spacing
+  if (selectedStyle === 'marquee') {
+    const duration = Math.max(20, normalizedItems.length * 3);
+
+    return (
+      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{scrollStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
+          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
+          <div
+            className="marquee-container relative py-3 overflow-hidden"
+            role="list"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+              maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+            }}
+          >
+            <div className="marquee-track flex items-center gap-8" style={{ '--duration': `${duration}s`, width: 'max-content' } as React.CSSProperties}>
+              {normalizedItems.map((item, idx) => (
+                <div key={`m1-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                  {renderLogoContent(item, idx, tokens, 'md')}
+                </div>
+              ))}
+              {normalizedItems.map((item, idx) => (
+                <div key={`m2-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                  {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 2: Dual Flow - Two rows scrolling opposite directions, compact & uniform
+  if (selectedStyle === 'dualFlow') {
+    const duration1 = Math.max(25, normalizedItems.length * 3.5);
+    const duration2 = Math.max(30, normalizedItems.length * 4);
+
+    return (
+      <section className="w-full py-8 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
+        <style>{scrollStyles}</style>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
+          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
+          <div className="space-y-3" role="list">
+            {/* Row 1: Left to Right */}
+            <div
+              className="marquee-container relative py-2 overflow-hidden"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+                maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+              }}
+            >
+              <div className="marquee-track flex items-center gap-8" style={{ '--duration': `${duration1}s`, width: 'max-content' } as React.CSSProperties}>
+                {normalizedItems.map((item, idx) => (
+                  <div key={`df1-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                    {renderLogoContent(item, idx, tokens, 'md')}
+                  </div>
+                ))}
+                {normalizedItems.map((item, idx) => (
+                  <div key={`df2-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                    {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Row 2: Right to Left */}
+            <div
+              className="marquee-container relative py-2 overflow-hidden"
+              style={{
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+                maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)',
+              }}
+            >
+              <div className="marquee-reverse-track flex items-center gap-8" style={{ '--duration': `${duration2}s`, width: 'max-content' } as React.CSSProperties}>
+                {[...normalizedItems].reverse().map((item, idx) => (
+                  <div key={`dfr1-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                    {renderLogoContent(item, idx, tokens, 'md')}
+                  </div>
+                ))}
+                {[...normalizedItems].reverse().map((item, idx) => (
+                  <div key={`dfr2-${item.key}-${idx}`} className="shrink-0" role="listitem">
+                    {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Layout 3: Fade Scroll - Vertical scroll with fade effect, compact & uniform
+  if (selectedStyle === 'fadeScroll') {
+    const duration = Math.max(35, normalizedItems.length * 5);
 
     return (
       <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{bentoStyles}</style>
+        <style>{scrollStyles}</style>
         <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
           <div className="text-center space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: tokens.waveBadgeBackground, color: tokens.waveBadgeText }}>
@@ -184,95 +286,28 @@ export function ClientsSectionShared({
             </div>
             <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-3 md:gap-4" role="list">
-            {normalizedItems.map((item, idx) => (
-              <div
-                key={`bento-${item.key}-${idx}`}
-                className={`bento-item rounded-xl border p-4 md:p-6 flex items-center justify-center transition-all duration-300 ${getBentoClass(idx)}`}
-                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${idx * 0.05}s` }}
-                role="listitem"
-              >
-                {renderLogoContent(item, idx, tokens, idx % 6 === 0 ? 'lg' : 'md')}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Layout 2: Staggered/Masonry - Pinterest-style waterfall
-  if (selectedStyle === 'staggered') {
-    const getStaggeredHeight = (idx: number) => {
-      const heights = ['h-24', 'h-28', 'h-32', 'h-24', 'h-28'];
-      return heights[idx % heights.length];
-    };
-
-    return (
-      <section className="w-full py-10 border-b" style={{ backgroundColor: tokens.neutralSurface, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{bentoStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-5">
-          {renderSectionTitle(sectionTitle, tokens.sectionAccent, tokens.heading)}
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-4" role="list">
-            {normalizedItems.map((item, idx) => (
-              <div
-                key={`staggered-${item.key}-${idx}`}
-                className={`bento-item break-inside-avoid mb-3 md:mb-4 rounded-lg border p-4 flex items-center justify-center transition-all duration-300 ${getStaggeredHeight(idx)}`}
-                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${idx * 0.06}s` }}
-                role="listitem"
-              >
-                {renderLogoContent(item, idx, tokens, 'sm')}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Layout 3: Spotlight - Hero center with orbit
-  if (selectedStyle === 'spotlight') {
-    const spotlightItems = normalizedItems.slice(0, 2);
-    const orbitItems = normalizedItems.slice(2);
-
-    return (
-      <section className="w-full py-12 border-b" style={{ backgroundColor: tokens.neutralBackground, borderColor: tokens.neutralBorder }} aria-label={sectionTitle}>
-        <style>{bentoStyles}</style>
-        <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: tokens.heading }}>{sectionTitle}</h2>
-            <p className="text-sm" style={{ color: tokens.mutedText }}>Đối tác chiến lược & khách hàng doanh nghiệp</p>
-          </div>
-          
-          {/* Spotlight center */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 py-6" role="list">
-            {spotlightItems.map((item, idx) => (
-              <div
-                key={`spotlight-${item.key}-${idx}`}
-                className="bento-item rounded-2xl border-2 p-8 md:p-10 flex items-center justify-center transition-all duration-300 min-w-[200px]"
-                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.primary, animationDelay: `${idx * 0.1}s` }}
-                role="listitem"
-              >
-                {renderLogoContent(item, idx, tokens, 'lg')}
-              </div>
-            ))}
-          </div>
-
-          {/* Orbit items */}
-          {orbitItems.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 pt-4" role="list">
-              {orbitItems.map((item, idx) => (
-                <div
-                  key={`orbit-${item.key}-${idx}`}
-                  className="bento-item rounded-lg border p-3 flex items-center justify-center transition-all duration-300"
-                  style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder, animationDelay: `${(idx + 2) * 0.08}s` }}
-                  role="listitem"
-                >
-                  {renderLogoContent(item, idx + 2, tokens, 'sm')}
+          <div
+            className="relative mx-auto overflow-hidden"
+            style={{
+              maxHeight: '320px',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+              maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+            }}
+            role="list"
+          >
+            <div className="fade-scroll-track space-y-4" style={{ '--duration': `${duration}s` } as React.CSSProperties}>
+              {normalizedItems.map((item, idx) => (
+                <div key={`fs1-${item.key}-${idx}`} className="flex items-center justify-center py-2" role="listitem">
+                  {renderLogoContent(item, idx, tokens, 'md')}
+                </div>
+              ))}
+              {normalizedItems.map((item, idx) => (
+                <div key={`fs2-${item.key}-${idx}`} className="flex items-center justify-center py-2" role="listitem">
+                  {renderLogoContent(item, idx + normalizedItems.length, tokens, 'md')}
                 </div>
               ))}
             </div>
-          )}
+          </div>
         </div>
       </section>
     );
