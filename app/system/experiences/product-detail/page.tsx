@@ -52,12 +52,14 @@ import {
   deviceWidths,
   LayoutTabs,
   ControlCard,
+  ColorConfigCard,
   ToggleRow,
   SelectRow,
   type DeviceType,
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExampleProductSlug, EXPERIENCE_GROUP, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { useBrandColors } from '@/components/site/hooks';
 
 type ProductsDetailStyle = 'classic' | 'modern' | 'minimal';
 
@@ -284,6 +286,10 @@ export default function ProductDetailExperiencePage() {
   const setMultipleSettings = useMutation(api.settings.setMultiple);
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const [isSaving, setIsSaving] = useState(false);
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
 
   const legacyStyle = legacyStyleSetting?.value as ProductsDetailStyle | undefined;
   const legacyHighlights = (legacyHighlightsSetting?.value as boolean) ?? true;
@@ -296,6 +302,12 @@ export default function ProductDetailExperiencePage() {
   useEffect(() => {
     setClassicHighlights(serverHighlights);
   }, [serverHighlights]);
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const serverConfig = useMemo<ProductDetailExperienceConfig>(() => {
     const raw = experienceSetting?.value as Partial<ProductDetailExperienceConfig> | undefined;
@@ -383,7 +395,9 @@ export default function ProductDetailExperiencePage() {
         : false,
       classicHighlights,
       device: previewDevice,
-      brandColor: '#06b6d4',
+      brandColor,
+      secondaryColor,
+      colorMode,
     };
 
     return base;
@@ -411,7 +425,7 @@ export default function ProductDetailExperiencePage() {
             description="Hiện tính năng nổi bật"
             checked={layoutConfig.showClassicHighlights}
             onChange={(v) => updateLayoutConfig('showClassicHighlights' as keyof typeof currentLayoutConfig, v as never)}
-            accentColor="#06b6d4"
+            accentColor={brandColor}
           />
           {classicHighlights.map((item, index) => {
             const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon];
@@ -427,11 +441,10 @@ export default function ProductDetailExperiencePage() {
                         type="button"
                         aria-label={icon}
                         onClick={() => updateHighlight(index, { icon })}
-                        className={`h-7 w-7 rounded border flex items-center justify-center transition-colors ${
-                          isActive
-                            ? 'border-cyan-500 bg-cyan-50 text-cyan-600'
-                            : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                        }`}
+                        className="h-7 w-7 rounded border flex items-center justify-center transition-colors"
+                        style={isActive
+                          ? { borderColor: brandColor, color: brandColor }
+                          : { borderColor: '#e2e8f0', color: '#64748b' }}
                       >
                         <IconOption size={14} />
                       </button>
@@ -519,7 +532,7 @@ export default function ProductDetailExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-cyan-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Chi tiết sản phẩm</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -530,7 +543,8 @@ export default function ProductDetailExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={(!hasChanges && !hasHighlightsChanges) || isSaving}
-          className="bg-cyan-600 hover:bg-cyan-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: '#ffffff' }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges || hasHighlightsChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -542,33 +556,43 @@ export default function ProductDetailExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Đánh giá"
               checked={currentLayoutConfig.showRating}
               onChange={(v) => updateLayoutConfig('showRating', v)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!commentsModule?.enabled}
             />
             <ToggleRow
               label="Wishlist"
               checked={currentLayoutConfig.showWishlist}
               onChange={(v) => updateLayoutConfig('showWishlist', v)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
               label="Add to Cart"
               checked={currentLayoutConfig.showAddToCart}
               onChange={(v) => updateLayoutConfig('showAddToCart', v)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!cartModule?.enabled || !ordersModule?.enabled}
             />
             <ToggleRow
               label="Buy Now"
               checked={config.showBuyNow}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNow: v }))}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!ordersModule?.enabled}
             />
             <VariantFeatureStatus
@@ -583,21 +607,21 @@ export default function ProductDetailExperiencePage() {
               label="Hiển thị bình luận"
               checked={currentLayoutConfig.showComments}
               onChange={(v) => updateLayoutConfig('showComments' as keyof typeof currentLayoutConfig, v as never)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!commentsModule?.enabled}
             />
             <ToggleRow
               label="Nút thích"
               checked={currentLayoutConfig.showCommentLikes}
               onChange={(v) => updateLayoutConfig('showCommentLikes' as keyof typeof currentLayoutConfig, v as never)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!commentsModule?.enabled}
             />
             <ToggleRow
               label="Nút trả lời"
               checked={currentLayoutConfig.showCommentReplies}
               onChange={(v) => updateLayoutConfig('showCommentReplies' as keyof typeof currentLayoutConfig, v as never)}
-              accentColor="#06b6d4"
+              accentColor={brandColor}
               disabled={!commentsModule?.enabled}
             />
             <ModuleFeatureStatus
@@ -673,7 +697,7 @@ export default function ProductDetailExperiencePage() {
               <div className="mb-2">
                 <ExampleLinks
                   links={[{ label: 'Xem sản phẩm mẫu', url: `/products/${exampleProductSlug}` }]}
-                  color="#06b6d4"
+                  color={brandColor}
                   compact
                 />
               </div>
@@ -694,7 +718,7 @@ export default function ProductDetailExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#06b6d4"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>

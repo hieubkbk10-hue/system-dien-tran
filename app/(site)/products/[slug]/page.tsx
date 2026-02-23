@@ -7,7 +7,8 @@ import { useMutation, useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
+import { getProductDetailColors, type ProductDetailColors } from '@/components/site/products/detail/_lib/colors';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import { notifyAddToCart, useCart } from '@/lib/cart';
 import { useCartConfig, useCheckoutConfig } from '@/lib/experiences';
@@ -277,7 +278,12 @@ interface PageProps {
 
 export default function ProductDetailPage({ params }: PageProps) {
   const { slug } = use(params);
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const brandColor = brandColors.primary;
+  const tokens = useMemo(
+    () => getProductDetailColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
   const experienceConfig = useProductDetailExperienceConfig();
   const classicHighlights = useClassicHighlights();
   const classicHighlightsEnabled = useClassicHighlightsEnabled() && experienceConfig.showClassicHighlights;
@@ -600,6 +606,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const commentsSection = shouldShowComments ? (
     <ProductCommentsSection
       brandColor={brandColor}
+      tokens={tokens}
       ratingSummary={ratingSummary}
       comments={rootComments}
       replyMap={commentRepliesMap}
@@ -626,22 +633,22 @@ export default function ProductDetailPage({ params }: PageProps) {
   ) : null;
 
   if (product === undefined) {
-    return <ProductDetailSkeleton />;
+    return <ProductDetailSkeleton tokens={tokens} />;
   }
 
   if (product === null) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-            <Package size={32} className="text-slate-400" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+            <Package size={32} style={{ color: tokens.emptyStateIcon }} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Không tìm thấy sản phẩm</h1>
-          <p className="text-slate-500 mb-8 max-w-sm mx-auto">Sản phẩm này không tồn tại hoặc đã bị xóa.</p>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.headingColor }}>Không tìm thấy sản phẩm</h1>
+          <p className="mb-8 max-w-sm mx-auto" style={{ color: tokens.metaText }}>Sản phẩm này không tồn tại hoặc đã bị xóa.</p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium transition-all hover:shadow-lg hover:scale-105"
-            style={{ backgroundColor: brandColor }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all hover:shadow-lg hover:scale-105"
+            style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
           >
             <ArrowLeft size={18} />
             Xem tất cả sản phẩm
@@ -665,6 +672,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         <ClassicStyle
           product={productData}
           brandColor={brandColor}
+          tokens={tokens}
           relatedProducts={filteredRelated}
           enabledFields={enabledFields}
           variants={variants ?? []}
@@ -689,6 +697,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         <ModernStyle
           product={productData}
           brandColor={brandColor}
+          tokens={tokens}
           relatedProducts={filteredRelated}
           enabledFields={enabledFields}
           variants={variants ?? []}
@@ -712,6 +721,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         <MinimalStyle
           product={productData}
           brandColor={brandColor}
+          tokens={tokens}
           relatedProducts={filteredRelated}
           enabledFields={enabledFields}
           variants={variants ?? []}
@@ -775,6 +785,7 @@ interface CommentData {
 interface StyleProps {
   product: ProductData;
   brandColor: string;
+  tokens: ProductDetailColors;
   relatedProducts: RelatedProduct[];
   enabledFields: Set<string>;
   variants: ProductVariant[];
@@ -826,16 +837,18 @@ const findExactVariant = (variants: ProductVariant[], selection: VariantSelectio
     variant.optionValues.every((optionValue) => selection[optionValue.optionId] === optionValue.valueId)
   ) ?? null;
 
-function RatingInline({ summary }: { summary: RatingSummary }) {
+function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: ProductDetailColors }) {
   const average = summary.average ?? 0;
   return (
-    <div className="flex items-center gap-2 text-xs text-slate-500">
+    <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             size={14}
-            className={star <= Math.round(average) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'}
+            style={star <= Math.round(average)
+              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+              : { color: tokens.ratingStarInactive }}
           />
         ))}
       </div>
@@ -851,7 +864,7 @@ function RatingInline({ summary }: { summary: RatingSummary }) {
 // ====================================================================================
 // STYLE 1: CLASSIC - Standard e-commerce product page
 // ====================================================================================
-function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
+function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -908,22 +921,22 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
   const buyNowDisabled = requireStockForBuyNow && !inStock;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
       {/* Breadcrumb */}
-      <div className="border-b border-slate-100">
+      <div className="border-b" style={{ borderColor: tokens.divider }}>
         <div className="max-w-6xl mx-auto px-4 py-3">
-          <nav className="flex items-center gap-2 text-sm text-slate-500">
-            <Link href="/" className="hover:text-slate-900 transition-colors">Trang chủ</Link>
+          <nav className="flex items-center gap-2 text-sm" style={{ color: tokens.breadcrumbText }}>
+            <Link href="/" className="transition-colors">Trang chủ</Link>
             <ChevronRight size={14} />
-            <Link href="/products" className="hover:text-slate-900 transition-colors">Sản phẩm</Link>
+            <Link href="/products" className="transition-colors">Sản phẩm</Link>
             <ChevronRight size={14} />
             {product.categorySlug && (
               <>
-                <Link href={`/products?category=${product.categorySlug}`} className="hover:text-slate-900 transition-colors">{product.categoryName}</Link>
+                <Link href={`/products?category=${product.categorySlug}`} className="transition-colors">{product.categoryName}</Link>
                 <ChevronRight size={14} />
               </>
             )}
-            <span className="text-slate-900 font-medium truncate max-w-[200px]">{product.name}</span>
+            <span className="font-medium truncate max-w-[200px]" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
           </nav>
         </div>
       </div>
@@ -932,20 +945,25 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
         <div className="lg:grid lg:grid-cols-2 lg:gap-12">
           {/* Product Images */}
           <div className="mb-8 lg:mb-0">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 mb-4 relative">
+            <div className="aspect-square rounded-2xl overflow-hidden mb-4 relative" style={{ backgroundColor: tokens.surfaceMuted }}>
               {images.length > 0 ? (
                 <Image src={images[selectedImage]} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><Package size={64} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
               {showSalePrice && salePrice && (
-                <span className="absolute top-4 left-4 px-3 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg">-{discountPercent}%</span>
+                <span className="absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{discountPercent}%</span>
               )}
             </div>
             {images.length > 1 && (
               <div className="flex gap-3">
                 {images.map((img, index) => (
-                  <button key={index} onClick={() =>{  setSelectedImage(index); }} className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-orange-500' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <button
+                    key={index}
+                    onClick={() =>{  setSelectedImage(index); }}
+                    className="w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors"
+                    style={{ borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
+                  >
                     <Image src={img} alt="" width={80} height={80} className="object-cover" />
                   </button>
                 ))}
@@ -955,24 +973,28 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
 
           {/* Product Info */}
           <div>
-            <Link href={`/products?category=${product.categorySlug}`} className="inline-block px-3 py-1 text-sm font-medium rounded-full mb-4 transition-colors hover:opacity-80" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}>
+            <Link
+              href={`/products?category=${product.categorySlug}`}
+              className="inline-block px-3 py-1 text-sm font-medium rounded-full mb-4 transition-colors hover:opacity-80"
+              style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
+            >
               {product.categoryName}
             </Link>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">{product.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: tokens.headingColor }}>{product.name}</h1>
 
             <div className="flex flex-wrap items-center gap-4 mb-6">
-              {showSku && <span className="text-sm text-slate-500">SKU: <span className="font-mono">{product.sku}</span></span>}
-              {showRating && <RatingInline summary={ratingSummary} />}
+              {showSku && <span className="text-sm" style={{ color: tokens.metaText }}>SKU: <span className="font-mono">{product.sku}</span></span>}
+              {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
             </div>
 
             {showPrice && (
               <div className="flex items-end gap-3 mb-6">
-                <span className="text-3xl font-bold" style={{ color: brandColor }}>{formatPrice(displayPrice)}</span>
+                <span className="text-3xl font-bold" style={{ color: tokens.priceColor }}>{formatPrice(displayPrice)}</span>
                 {showSalePrice && salePrice && (
                   <>
-                    <span className="text-xl text-slate-400 line-through">{formatPrice(basePrice)}</span>
-                    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm font-medium rounded">Tiết kiệm {formatPrice(basePrice - salePrice)}</span>
+                    <span className="text-xl line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(basePrice)}</span>
+                    <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>Tiết kiệm {formatPrice(basePrice - salePrice)}</span>
                   </>
                 )}
               </div>
@@ -993,31 +1015,39 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
             {showStock && (
               <div className="flex items-center gap-2 mb-6">
                 {stockValue > 10 ? (
-                  <><Check size={18} className="text-green-500" /><span className="text-green-600 font-medium">Còn hàng</span></>
+                  <><Check size={18} style={{ color: tokens.stockSuccessText }} /><span className="font-medium" style={{ color: tokens.stockSuccessText }}>Còn hàng</span></>
                 ) : (stockValue > 0 ? (
-                  <><span className="w-2 h-2 bg-orange-500 rounded-full" /><span className="text-orange-600 font-medium">Chỉ còn {stockValue} sản phẩm</span></>
+                  <><span className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.stockWarningText }} /><span className="font-medium" style={{ color: tokens.stockWarningText }}>Chỉ còn {stockValue} sản phẩm</span></>
                 ) : (
-                  <><span className="w-2 h-2 bg-red-500 rounded-full" /><span className="text-red-600 font-medium">Hết hàng</span></>
+                  <><span className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.stockDangerText }} /><span className="font-medium" style={{ color: tokens.stockDangerText }}>Hết hàng</span></>
                 ))}
               </div>
             )}
 
             <div className="flex flex-wrap items-center gap-4 mb-8">
-              <div className="flex items-center border border-slate-200 rounded-lg">
-                <button onClick={() =>{  setQuantity(q => Math.max(1, q - 1)); }} className="p-3 hover:bg-slate-50 transition-colors" disabled={quantity <= 1}>
-                  <Minus size={18} className={quantity <= 1 ? 'text-slate-300' : 'text-slate-600'} />
+              <div className="flex items-center border rounded-lg" style={{ borderColor: tokens.quantityBorder }}>
+                <button
+                  onClick={() =>{  setQuantity(q => Math.max(1, q - 1)); }}
+                  className="p-3 transition-colors"
+                  disabled={quantity <= 1}
+                >
+                  <Minus size={18} style={{ color: quantity <= 1 ? tokens.quantityIconMuted : tokens.quantityIcon }} />
                 </button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
-                <button onClick={() =>{  setQuantity(q => Math.min(showStock ? stockValue : 99, q + 1)); }} className="p-3 hover:bg-slate-50 transition-colors" disabled={showStock && quantity >= stockValue}>
-                  <Plus size={18} className={showStock && quantity >= stockValue ? 'text-slate-300' : 'text-slate-600'} />
+                <span className="w-12 text-center font-medium" style={{ color: tokens.quantityText }}>{quantity}</span>
+                <button
+                  onClick={() =>{  setQuantity(q => Math.min(showStock ? stockValue : 99, q + 1)); }}
+                  className="p-3 transition-colors"
+                  disabled={showStock && quantity >= stockValue}
+                >
+                  <Plus size={18} style={{ color: showStock && quantity >= stockValue ? tokens.quantityIconMuted : tokens.quantityIcon }} />
                 </button>
               </div>
 
               <div className="flex flex-1 flex-col gap-2">
                 {showAddToCart && (
                   <button
-                    className={`py-3.5 px-8 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all ${inStock ? 'hover:shadow-lg hover:scale-[1.02]' : 'opacity-50 cursor-not-allowed'}`}
-                    style={{ backgroundColor: brandColor }}
+                    className={`py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${inStock ? 'hover:shadow-lg hover:scale-[1.02]' : 'opacity-50 cursor-not-allowed'}`}
+                    style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
                     disabled={!inStock}
                     onClick={() => { if (inStock) { onAddToCart(quantity, selectedVariant?._id); } }}
                   >
@@ -1027,8 +1057,8 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
                 )}
                 {showBuyNow && (
                   <button
-                    className={`py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'}`}
-                    style={{ borderColor: brandColor, color: brandColor }}
+                    className={`py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(quantity, selectedVariant?._id); } }}
                   >
@@ -1040,25 +1070,28 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
               {showWishlist && (
                 <button
                   onClick={onToggleWishlist}
-                  className={`p-3.5 rounded-xl border transition-colors group ${isWishlisted ? 'border-red-200 bg-red-50' : 'border-slate-200 hover:border-red-200 hover:bg-red-50'}`}
+                  className="p-3.5 rounded-xl border transition-colors group"
+                  style={isWishlisted
+                    ? { borderColor: tokens.stockDangerText, backgroundColor: tokens.discountBadgeBg }
+                    : { borderColor: tokens.wishlistBorder, backgroundColor: tokens.wishlistBg }}
                   aria-label="Thêm vào yêu thích"
                 >
-                  <Heart size={20} className={`transition-colors ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-400 group-hover:text-red-500'}`} />
+                  <Heart size={20} className={isWishlisted ? 'fill-current' : ''} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
                 </button>
               )}
-              <button className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-                <Share2 size={20} className="text-slate-400" />
+              <button className="p-3.5 rounded-xl border transition-colors" style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}>
+                <Share2 size={20} style={{ color: tokens.shareIcon }} />
               </button>
             </div>
 
             {highlightsEnabled && highlights.length > 0 && (
-              <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl mb-8">
+              <div className="grid grid-cols-3 gap-4 p-4 rounded-xl mb-8" style={{ backgroundColor: tokens.highlightBg }}>
                 {highlights.map((item, index) => {
                   const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon];
                   return (
                     <div key={`${item.icon}-${index}`} className="text-center">
-                      <Icon size={24} className="mx-auto mb-2 text-slate-600" />
-                      <p className="text-xs text-slate-600">{item.text}</p>
+                      <Icon size={24} className="mx-auto mb-2" style={{ color: tokens.highlightIcon }} />
+                      <p className="text-xs" style={{ color: tokens.highlightText }}>{item.text}</p>
                     </div>
                   );
                 })}
@@ -1066,9 +1099,9 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
             )}
 
             {showDescription && product.description && (
-              <div className="border-t border-slate-100 pt-6">
-                <h3 className="font-semibold text-slate-900 mb-4">Mô tả sản phẩm</h3>
-                <div className="prose prose-slate prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description }} />
+              <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
+                <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
+                <div className="prose prose-sm max-w-none" style={{ color: tokens.bodyText }} dangerouslySetInnerHTML={{ __html: product.description }} />
               </div>
             )}
           </div>
@@ -1076,10 +1109,17 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
 
       {commentsSection}
 
-        <RelatedProductsSection products={relatedProducts} categorySlug={product.categorySlug} brandColor={brandColor} showPrice={enabledFields.has('price') || enabledFields.size === 0} showSalePrice={enabledFields.has('salePrice')} />
+        <RelatedProductsSection
+          products={relatedProducts}
+          categorySlug={product.categorySlug}
+          brandColor={brandColor}
+          tokens={tokens}
+          showPrice={enabledFields.has('price') || enabledFields.size === 0}
+          showSalePrice={enabledFields.has('salePrice')}
+        />
 
-        <div className="mt-12 pt-8 border-t border-slate-100">
-          <Link href="/products" className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80" style={{ color: brandColor }}>
+        <div className="mt-12 pt-8 border-t" style={{ borderColor: tokens.divider }}>
+          <Link href="/products" className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80" style={{ color: tokens.primary }}>
             <ArrowLeft size={16} /> Quay lại danh sách sản phẩm
           </Link>
         </div>
@@ -1091,7 +1131,7 @@ function ClassicStyle({ product, brandColor, relatedProducts, enabledFields, var
 // ====================================================================================
 // STYLE 2: MODERN - Landing page style with hero
 // ====================================================================================
-function ModernStyle({ product, brandColor, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { heroStyle: ModernHeroStyle }) {
+function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { heroStyle: ModernHeroStyle }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -1148,10 +1188,13 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
   const maxQuantity = showStock ? Math.min(stockValue, 10) : 10;
 
   const heroContainerClass = heroStyle === 'full'
-    ? 'border border-slate-100 rounded-2xl bg-slate-50'
+    ? 'border rounded-2xl'
     : heroStyle === 'split'
-      ? 'border border-slate-200 rounded-2xl bg-white'
-      : 'border border-slate-200 rounded-xl bg-white';
+      ? 'border rounded-2xl'
+      : 'border rounded-xl';
+  const heroContainerStyle = heroStyle === 'full'
+    ? { borderColor: tokens.border, backgroundColor: tokens.surfaceMuted }
+    : { borderColor: tokens.border, backgroundColor: tokens.surface };
 
   const heroImageClass = heroStyle === 'minimal'
     ? 'max-w-full max-h-full object-contain'
@@ -1164,23 +1207,24 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
       : 'aspect-square flex items-center justify-center p-6';
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-slate-100">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
+      <header className="border-b" style={{ borderColor: tokens.divider }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <nav className="flex items-center justify-between gap-4">
-            <div className="text-sm text-slate-400 truncate">
-              <Link href="/" className="hover:text-slate-600 transition-colors">Trang chủ</Link>
+            <div className="text-sm truncate" style={{ color: tokens.breadcrumbText }}>
+              <Link href="/" className="transition-colors">Trang chủ</Link>
               {' / '}
-              <Link href="/products" className="hover:text-slate-600 transition-colors">Sản phẩm</Link>
+              <Link href="/products" className="transition-colors">Sản phẩm</Link>
               {' / '}
-              <span className="text-slate-600">{product.name}</span>
+              <span style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
             </div>
             <button
               type="button"
               onClick={onToggleWishlist}
-              className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700"
+              className="inline-flex items-center gap-2 text-sm"
+              style={{ color: tokens.metaText }}
             >
-              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={isWishlisted ? 'fill-current' : ''} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
               Yêu thích
             </button>
           </nav>
@@ -1191,9 +1235,9 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="space-y-4">
             {heroStyle === 'split' ? (
-              <div className={`overflow-hidden ${heroContainerClass}`}>
+              <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                 <div className="grid md:grid-cols-2 gap-4 items-center p-4 md:p-6">
-                  <div className="relative aspect-square rounded-xl bg-slate-50 flex items-center justify-center">
+                  <div className="relative aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
                     {images[selectedImageIndex] ? (
                       <Image
                         src={images[selectedImageIndex]}
@@ -1204,13 +1248,13 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                       />
                     ) : (
                       <div className="text-center">
-                        <div className="bg-slate-200 rounded-lg w-48 h-48 mx-auto mb-3" />
-                        <p className="text-sm text-slate-400">Chưa có hình ảnh sản phẩm</p>
+                        <div className="rounded-lg w-48 h-48 mx-auto mb-3" style={{ backgroundColor: tokens.surfaceSoft }} />
+                        <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
                       </div>
                     )}
                   </div>
-                  <div className="hidden md:flex flex-col gap-3 text-sm text-slate-500">
-                    <span className="text-xs uppercase tracking-widest text-slate-400">Điểm nổi bật</span>
+                  <div className="hidden md:flex flex-col gap-3 text-sm" style={{ color: tokens.metaText }}>
+                    <span className="text-xs uppercase tracking-widest" style={{ color: tokens.softText }}>Điểm nổi bật</span>
                     <ul className="space-y-2">
                       <li>• Thiết kế cao cấp, hoàn thiện tinh tế</li>
                       <li>• Công nghệ mới nhất, hiệu năng ổn định</li>
@@ -1220,7 +1264,7 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                 </div>
               </div>
             ) : (
-              <div className={`overflow-hidden ${heroContainerClass}`}>
+              <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                 <div className={heroImageWrapperClass}>
                   {images[selectedImageIndex] ? (
                     <Image
@@ -1232,8 +1276,8 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                     />
                   ) : (
                     <div className="text-center">
-                      <div className="bg-slate-200 rounded-lg w-64 h-64 mx-auto mb-4" />
-                      <p className="text-sm text-slate-400">Chưa có hình ảnh sản phẩm</p>
+                      <div className="rounded-lg w-64 h-64 mx-auto mb-4" style={{ backgroundColor: tokens.surfaceSoft }} />
+                      <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
                     </div>
                   )}
                 </div>
@@ -1246,9 +1290,8 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                   <button
                     key={`${image}-${index}`}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`relative aspect-square overflow-hidden rounded-xl border-2 transition-all ${
-                      selectedImageIndex === index ? 'border-slate-900' : 'border-transparent hover:border-slate-300'
-                    }`}
+                    className="relative aspect-square overflow-hidden rounded-xl border-2 transition-all"
+                    style={{ borderColor: selectedImageIndex === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
                   >
                     <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
                   </button>
@@ -1259,31 +1302,42 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
 
           <div className="space-y-6 lg:space-y-8">
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              <span
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                style={{
+                  backgroundColor: tokens.categoryBadgeBg,
+                  color: tokens.categoryBadgeText,
+                  borderColor: tokens.categoryBadgeBorder,
+                  borderWidth: 1,
+                }}
+              >
                 {product.categoryName}
               </span>
             </div>
 
-            <h1 className="text-3xl lg:text-4xl font-light tracking-tight text-slate-900">
+            <h1 className="text-3xl lg:text-4xl font-light tracking-tight" style={{ color: tokens.headingColor }}>
               {product.name}
             </h1>
 
-            {showRating && <RatingInline summary={ratingSummary} />}
+            {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
 
             {showPrice && (
               <div className="space-y-2">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl lg:text-4xl font-light" style={{ color: brandColor }}>
+                  <span className="text-3xl lg:text-4xl font-light" style={{ color: tokens.priceColor }}>
                     {formatPrice(displayPrice)}
                   </span>
                   {showSalePrice && salePrice && (
-                    <span className="text-lg text-slate-400 line-through">
+                    <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>
                       {formatPrice(basePrice)}
                     </span>
                   )}
                 </div>
                 {showSalePrice && salePrice && (
-                  <span className="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
+                  <span
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                    style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}
+                  >
                     Giảm {discountPercent}%
                   </span>
                 )}
@@ -1300,36 +1354,39 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
               />
             )}
 
-            <div className="h-px w-full bg-slate-100" />
+            <div className="h-px w-full" style={{ backgroundColor: tokens.divider }} />
 
             {showDescription && product.description && (
               <div
-                className="text-slate-600 leading-relaxed"
+                className="leading-relaxed"
+                style={{ color: tokens.bodyText }}
                 dangerouslySetInnerHTML={{ __html: product.description }}
               />
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Số lượng</label>
+              <label className="text-sm font-medium" style={{ color: tokens.bodyText }}>Số lượng</label>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() =>{  setQuantity(q => Math.max(1, q - 1)); }}
                   disabled={quantity <= 1}
-                  className="h-10 w-10 border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-50 disabled:opacity-50"
+                  className="h-10 w-10 border rounded-full flex items-center justify-center disabled:opacity-50"
+                  style={{ borderColor: tokens.quantityBorder }}
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-4 h-4" style={{ color: tokens.quantityIcon }} />
                 </button>
                 <div className="w-16 text-center">
-                  <span className="text-lg font-medium">{quantity}</span>
+                  <span className="text-lg font-medium" style={{ color: tokens.quantityText }}>{quantity}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() =>{  setQuantity(q => Math.min(maxQuantity, q + 1)); }}
                   disabled={quantity >= maxQuantity}
-                  className="h-10 w-10 border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-50 disabled:opacity-50"
+                  className="h-10 w-10 border rounded-full flex items-center justify-center disabled:opacity-50"
+                  style={{ borderColor: tokens.quantityBorder }}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" style={{ color: tokens.quantityIcon }} />
                 </button>
               </div>
             </div>
@@ -1338,8 +1395,8 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
               <div className="space-y-3">
                 {showAddToCart && (
                   <button
-                    className={`w-full h-12 text-base font-semibold text-white transition-all ${inStock ? 'hover:shadow-lg hover:scale-[1.01]' : 'opacity-50 cursor-not-allowed'}`}
-                    style={{ backgroundColor: brandColor }}
+                    className={`w-full h-12 text-base font-semibold transition-all ${inStock ? 'hover:shadow-lg hover:scale-[1.01]' : 'opacity-50 cursor-not-allowed'}`}
+                    style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
                     disabled={!inStock}
                     onClick={() => { if (inStock) { onAddToCart(quantity, selectedVariant?._id); } }}
                   >
@@ -1349,8 +1406,8 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                 )}
                 {showBuyNow && (
                   <button
-                    className={`w-full h-12 text-base font-semibold border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'}`}
-                    style={{ borderColor: brandColor, color: brandColor }}
+                    className={`w-full h-12 text-base font-semibold border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(quantity, selectedVariant?._id); } }}
                   >
@@ -1361,9 +1418,10 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
                   <button
                     type="button"
                     onClick={onToggleWishlist}
-                    className="w-full h-12 text-base border border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="w-full h-12 text-base border"
+                    style={{ borderColor: tokens.wishlistBorder, color: tokens.metaText, backgroundColor: tokens.wishlistBg }}
                   >
-                    <Heart className={`w-5 h-5 mr-2 inline-block ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
+                    <Heart className={`w-5 h-5 mr-2 inline-block ${isWishlisted ? 'fill-current' : ''}`} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
                     {isWishlisted ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
                   </button>
                 )}
@@ -1373,22 +1431,22 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
             {showStock && (
               <div className="grid grid-cols-3 gap-4 pt-2">
                 <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                    <Truck className="w-4 h-4 text-slate-500" />
+                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                    <Truck className="w-4 h-4" style={{ color: tokens.metaText }} />
                   </div>
-                  <p className="text-xs text-slate-500">Miễn phí vận chuyển</p>
+                  <p className="text-xs" style={{ color: tokens.metaText }}>Miễn phí vận chuyển</p>
                 </div>
                 <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-slate-500" />
+                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                    <Shield className="w-4 h-4" style={{ color: tokens.metaText }} />
                   </div>
-                  <p className="text-xs text-slate-500">Bảo hành 12 tháng</p>
+                  <p className="text-xs" style={{ color: tokens.metaText }}>Bảo hành 12 tháng</p>
                 </div>
                 <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                    <ShoppingBag className="w-4 h-4 text-slate-500" />
+                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                    <ShoppingBag className="w-4 h-4" style={{ color: tokens.metaText }} />
                   </div>
-                  <p className="text-xs text-slate-500">Đổi trả 30 ngày</p>
+                  <p className="text-xs" style={{ color: tokens.metaText }}>Đổi trả 30 ngày</p>
                 </div>
               </div>
             )}
@@ -1397,17 +1455,18 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
 
         <div className="mt-12 lg:mt-16">
           <div className="grid w-full grid-cols-2 gap-2">
-            <div className="text-center py-3 border border-slate-200 text-sm font-medium">Mô tả</div>
-            <div className="text-center py-3 border border-slate-200 text-sm font-medium">Thông tin</div>
+            <div className="text-center py-3 border text-sm font-medium" style={{ borderColor: tokens.border, color: tokens.bodyText }}>Mô tả</div>
+            <div className="text-center py-3 border text-sm font-medium" style={{ borderColor: tokens.border, color: tokens.bodyText }}>Thông tin</div>
           </div>
-          <div className="mt-6 border border-slate-100 rounded-2xl p-6">
+          <div className="mt-6 border rounded-2xl p-6" style={{ borderColor: tokens.border }}>
             {showDescription && product.description ? (
               <div
-                className="prose prose-sm max-w-none text-slate-600"
+                className="prose prose-sm max-w-none"
+                style={{ color: tokens.bodyText }}
                 dangerouslySetInnerHTML={{ __html: product.description }}
               />
             ) : (
-              <p className="text-slate-500">Chưa có mô tả chi tiết.</p>
+              <p style={{ color: tokens.metaText }}>Chưa có mô tả chi tiết.</p>
             )}
           </div>
         </div>
@@ -1419,6 +1478,7 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
             products={relatedProducts}
             categorySlug={product.categorySlug}
             brandColor={brandColor}
+            tokens={tokens}
             showPrice={showPrice}
             showSalePrice={showSalePrice}
           />
@@ -1431,7 +1491,7 @@ function ModernStyle({ product, brandColor, relatedProducts, enabledFields, vari
 // ====================================================================================
 // STYLE 3: MINIMAL - Clean, focused design
 // ====================================================================================
-function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { contentWidth: MinimalContentWidth }) {
+function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { contentWidth: MinimalContentWidth }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
@@ -1491,15 +1551,15 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
       : 'max-w-6xl';
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
       <main className={`${contentWidthClass} mx-auto px-0 md:px-6 py-10`}>
         <div className="px-6 md:px-0 mb-6">
-          <nav className="flex items-center gap-2 text-xs text-slate-400">
-            <Link href="/" className="hover:text-slate-600 transition-colors">Trang chủ</Link>
+          <nav className="flex items-center gap-2 text-xs" style={{ color: tokens.breadcrumbText }}>
+            <Link href="/" className="transition-colors">Trang chủ</Link>
             <ChevronRight size={12} />
-            <Link href="/products" className="hover:text-slate-600 transition-colors">Sản phẩm</Link>
+            <Link href="/products" className="transition-colors">Sản phẩm</Link>
             <ChevronRight size={12} />
-            <span className="text-slate-600 truncate max-w-[160px]">{product.name}</span>
+            <span className="truncate max-w-[160px]" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
           </nav>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 min-h-[calc(100vh-4rem)]">
@@ -1512,21 +1572,24 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
                       <button
                         key={img}
                         onClick={() =>{  setSelectedImage(index); }}
-                        className={`relative aspect-square w-20 md:w-full overflow-hidden rounded-sm transition-all duration-300 ${
-                          selectedImage === index ? 'ring-1 ring-black opacity-100' : 'opacity-70 hover:opacity-100'
+                        className={`relative aspect-square w-20 md:w-full overflow-hidden rounded-sm transition-all duration-300 border ${
+                          selectedImage === index ? 'opacity-100' : 'opacity-70 hover:opacity-100'
                         }`}
+                        style={{
+                          borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
+                        }}
                       >
                         <Image src={img} alt={product.name} fill sizes="(max-width: 768px) 80px, 96px" className="object-cover" />
                       </button>
                     ))
                   ) : (
-                    <div className="w-20 h-20 bg-slate-100 rounded-sm flex items-center justify-center">
-                      <Package size={20} className="text-slate-300" />
+                    <div className="w-20 h-20 rounded-sm flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                      <Package size={20} style={{ color: tokens.emptyStateIcon }} />
                     </div>
                   )}
                 </div>
 
-                <div className="flex-1 relative bg-slate-100 aspect-[4/5] md:aspect-auto rounded-sm overflow-hidden group">
+                <div className="flex-1 relative aspect-[4/5] md:aspect-auto rounded-sm overflow-hidden group" style={{ backgroundColor: tokens.surfaceMuted }}>
                   {images.length > 0 ? (
                     <Image
                       src={images[selectedImage]}
@@ -1537,7 +1600,7 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Package size={64} className="text-slate-300" />
+                      <Package size={64} style={{ color: tokens.emptyStateIcon }} />
                     </div>
                   )}
                 </div>
@@ -1545,14 +1608,14 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
             </div>
           </div>
 
-          <div className="lg:col-span-5 px-6 py-6 lg:py-0 bg-white flex flex-col justify-center">
+          <div className="lg:col-span-5 px-6 py-6 lg:py-0 flex flex-col justify-center" style={{ backgroundColor: tokens.surface }}>
             <div className="mb-6">
-              <h1 className="text-3xl md:text-5xl font-light text-slate-900 tracking-tight mb-4">
+              <h1 className="text-3xl md:text-5xl font-light tracking-tight mb-4" style={{ color: tokens.headingColor }}>
                 {product.name}
               </h1>
-              {showRating && <RatingInline summary={ratingSummary} />}
+              {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
               {showPrice && (
-                <p className="text-2xl text-slate-600 font-light">
+                <p className="text-2xl font-light" style={{ color: tokens.priceColor }}>
                   {formatPrice(displayPrice)}
                 </p>
               )}
@@ -1571,11 +1634,12 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
             )}
 
             {(showAddToCart || showBuyNow || showWishlist) && (
-              <div className="flex flex-col gap-3 mb-8 border-t border-slate-100 pt-6">
+              <div className="flex flex-col gap-3 mb-8 border-t pt-6" style={{ borderColor: tokens.divider }}>
                 <div className="flex gap-4">
                   {showAddToCart && (
                     <button
-                      className={`flex-1 bg-black text-white h-14 uppercase tracking-wider text-sm font-medium transition-colors ${inStock ? 'hover:bg-slate-900' : 'opacity-50 cursor-not-allowed'}`}
+                      className={`flex-1 h-14 uppercase tracking-wider text-sm font-medium transition-colors ${inStock ? '' : 'opacity-50 cursor-not-allowed'}`}
+                      style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
                       disabled={!inStock}
                       onClick={() => { if (inStock) { onAddToCart(1, selectedVariant?._id); } }}
                     >
@@ -1585,7 +1649,10 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
                   {showWishlist && (
                     <button
                       onClick={onToggleWishlist}
-                      className={`w-14 h-14 border flex items-center justify-center transition-colors ${isWishlisted ? 'border-red-200 text-red-500' : 'border-slate-200 text-slate-400 hover:text-black hover:border-black'}`}
+                      className="w-14 h-14 border flex items-center justify-center transition-colors"
+                      style={isWishlisted
+                        ? { borderColor: tokens.stockDangerText, color: tokens.stockDangerText }
+                        : { borderColor: tokens.wishlistBorder, color: tokens.wishlistIcon, backgroundColor: tokens.wishlistBg }}
                       aria-label="Thêm vào yêu thích"
                     >
                       <Heart size={20} className={isWishlisted ? 'fill-current' : ''} />
@@ -1594,8 +1661,8 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
                 </div>
                 {showBuyNow && (
                   <button
-                    className={`h-12 uppercase tracking-wider text-xs font-medium border transition-colors ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'}`}
-                    style={{ borderColor: '#0f172a', color: '#0f172a' }}
+                    className={`h-12 uppercase tracking-wider text-xs font-medium border transition-colors ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(1, selectedVariant?._id); } }}
                   >
@@ -1608,22 +1675,23 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
             <div className="space-y-5 pt-0 flex-1">
               {showDescription && product.description && (
                 <div
-                  className="text-slate-600 leading-relaxed font-light text-justify"
+                  className="leading-relaxed font-light text-justify"
+                  style={{ color: tokens.bodyText }}
                   dangerouslySetInnerHTML={{ __html: product.description }}
                 />
               )}
 
-              <div className="space-y-3 text-sm text-slate-500 font-light">
+              <div className="space-y-3 text-sm font-light" style={{ color: tokens.metaText }}>
                 {showSku && product.sku && (
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>SKU</span>
-                    <span className="font-mono text-slate-700">{product.sku}</span>
+                    <span className="font-mono" style={{ color: tokens.bodyText }}>{product.sku}</span>
                   </div>
                 )}
                 {showStock && (
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>Tình trạng</span>
-                    <span className={inStock ? 'text-emerald-600' : 'text-red-500'}>
+                    <span style={{ color: inStock ? tokens.stockSuccessText : tokens.stockDangerText }}>
                       {inStock ? 'Còn hàng' : 'Hết hàng'}
                     </span>
                   </div>
@@ -1636,12 +1704,12 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
         {commentsSection}
 
         {relatedProducts.length > 0 && (
-          <section className="px-6 py-16 border-t border-slate-100 mt-10">
-            <h2 className="text-2xl font-light mb-8 text-center">Có thể bạn sẽ thích</h2>
+          <section className="px-6 py-16 border-t mt-10" style={{ borderColor: tokens.divider }}>
+            <h2 className="text-2xl font-light mb-8 text-center" style={{ color: tokens.headingColor }}>Có thể bạn sẽ thích</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((p) => (
                 <Link key={p._id} href={`/products/${p.slug}`} className="group cursor-pointer">
-                  <div className="aspect-[3/4] bg-slate-100 mb-4 overflow-hidden relative">
+                  <div className="aspect-[3/4] mb-4 overflow-hidden relative" style={{ backgroundColor: tokens.surfaceMuted }}>
                     {p.image ? (
                       <Image
                         src={p.image}
@@ -1652,14 +1720,14 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package size={32} className="text-slate-300" />
+                        <Package size={32} style={{ color: tokens.emptyStateIcon }} />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: tokens.surfaceSoft }} />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">{p.name}</h3>
+                  <h3 className="text-sm font-medium" style={{ color: tokens.headingColor }}>{p.name}</h3>
                   {showPrice && (
-                    <p className="text-sm text-slate-500 mt-1">{formatPrice(p.salePrice ?? p.price)}</p>
+                    <p className="text-sm mt-1" style={{ color: tokens.metaText }}>{formatPrice(p.salePrice ?? p.price)}</p>
                   )}
                 </Link>
               ))}
@@ -1673,6 +1741,7 @@ function MinimalStyle({ product, brandColor, relatedProducts, enabledFields, var
 
 type ProductCommentsSectionProps = {
   brandColor: string;
+  tokens: ProductDetailColors;
   ratingSummary: RatingSummary;
   comments: CommentData[];
   replyMap: Map<string, CommentData[]>;
@@ -1697,7 +1766,7 @@ type ProductCommentsSectionProps = {
   onReplySubmit: (parentId: Id<'comments'>) => void;
 };
 
-function RatingStars({ value, size = 14, onChange }: { value: number; size?: number; onChange?: (next: number) => void }) {
+function RatingStars({ value, size = 14, onChange, tokens }: { value: number; size?: number; onChange?: (next: number) => void; tokens: ProductDetailColors }) {
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -1710,7 +1779,9 @@ function RatingStars({ value, size = 14, onChange }: { value: number; size?: num
         >
           <Star
             size={size}
-            className={star <= Math.round(value) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}
+            style={star <= Math.round(value)
+              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+              : { color: tokens.ratingStarInactive }}
           />
         </button>
       ))}
@@ -1720,6 +1791,7 @@ function RatingStars({ value, size = 14, onChange }: { value: number; size?: num
 
 function ProductCommentsSection({
   brandColor,
+  tokens,
   ratingSummary,
   comments,
   replyMap,
@@ -1749,7 +1821,13 @@ function ProductCommentsSection({
   const [openReplyIds, setOpenReplyIds] = useState<Set<string>>(new Set());
   const [openReplies, setOpenReplies] = useState<Set<string>>(new Set());
 
-  const avatarColors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'];
+  const avatarColors = [
+    tokens.primary,
+    tokens.secondary,
+    tokens.priceColor,
+    tokens.ctaSecondaryBorder,
+    tokens.discountBadgeBg,
+  ];
   const getAvatarColor = (id: string) => avatarColors[id.charCodeAt(1) % avatarColors.length];
   const visibleComments = showAllComments ? comments : comments.slice(0, 3);
 
@@ -1792,16 +1870,16 @@ function ProductCommentsSection({
   };
 
   return (
-    <section className="mt-12 border-t border-slate-100 pt-8">
-      <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-100">
+    <section className="mt-12 border-t pt-8" style={{ borderColor: tokens.divider }}>
+      <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b" style={{ borderColor: tokens.divider }}>
         <div className="flex items-start gap-3">
-          <MessageSquare className="h-5 w-5" style={{ color: brandColor }} />
+          <MessageSquare className="h-5 w-5" style={{ color: tokens.primary }} />
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Đánh giá & Bình luận</h3>
-            <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+            <h3 className="text-lg font-semibold" style={{ color: tokens.headingColor }}>Đánh giá & Bình luận</h3>
+            <div className="mt-1 flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
               {ratingSummary.average ? (
                 <>
-                  <RatingStars value={ratingSummary.average} size={14} />
+                  <RatingStars value={ratingSummary.average} size={14} tokens={tokens} />
                   <span>{ratingSummary.average.toFixed(1)} ({ratingSummary.count} đánh giá)</span>
                 </>
               ) : (
@@ -1814,48 +1892,55 @@ function ProductCommentsSection({
           type="button"
           onClick={() => setShowForm(!showForm)}
           className="text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
-          style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+          style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
         >
           {showForm ? 'Đóng' : 'Viết đánh giá'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={onSubmit} className="mt-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
+        <form
+          onSubmit={onSubmit}
+          className="mt-4 rounded-xl border p-4 space-y-3"
+          style={{ borderColor: tokens.commentBorder, backgroundColor: tokens.commentSurface }}
+        >
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             <input
               value={commentName}
               onChange={(e) => onNameChange(e.target.value)}
               placeholder="Họ và tên *"
-              className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+              className="h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none"
+              style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
               required
             />
             <input
               value={commentEmail}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="Email (không bắt buộc)"
-              className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+              className="h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none"
+              style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
               type="email"
             />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-600 mb-1">Chọn số sao</p>
-            <RatingStars value={commentRating} size={18} onChange={onRatingChange} />
+            <p className="text-xs font-medium mb-1" style={{ color: tokens.bodyText }}>Chọn số sao</p>
+            <RatingStars value={commentRating} size={18} onChange={onRatingChange} tokens={tokens} />
           </div>
           <textarea
             value={commentContent}
             onChange={(e) => onContentChange(e.target.value)}
             placeholder="Chia sẻ trải nghiệm của bạn..."
-            className="min-h-[90px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+            className="min-h-[90px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none"
+            style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
             required
           />
-          {commentMessage && <p className="text-xs text-slate-500">{commentMessage}</p>}
+          {commentMessage && <p className="text-xs" style={{ color: tokens.metaText }}>{commentMessage}</p>}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-8 rounded-full px-4 text-xs font-medium text-white"
-              style={{ backgroundColor: brandColor }}
+              className="h-8 rounded-full px-4 text-xs font-medium"
+              style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
             >
               {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
             </button>
@@ -1870,33 +1955,39 @@ function ProductCommentsSection({
             const showReplyForm = openReplyIds.has(comment._id);
             const showRepliesList = openReplies.has(comment._id);
             return (
-              <div key={comment._id} className="rounded-xl border border-slate-100 bg-white p-4">
+              <div
+                key={comment._id}
+                className="rounded-xl border p-4"
+                style={{ borderColor: tokens.commentBorder, backgroundColor: tokens.commentSurface }}
+              >
                 <div className="flex gap-3">
                   <div
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-                    style={{ backgroundColor: getAvatarColor(comment._id) }}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                    style={{ backgroundColor: getAvatarColor(comment._id), color: tokens.ctaPrimaryText }}
                   >
                     {comment.authorName.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-slate-900">{comment.authorName}</span>
-                      <span className="text-xs text-slate-400">• {new Date(comment._creationTime).toLocaleDateString('vi-VN')}</span>
+                      <span className="text-sm font-medium" style={{ color: tokens.headingColor }}>{comment.authorName}</span>
+                      <span className="text-xs" style={{ color: tokens.softText }}>• {new Date(comment._creationTime).toLocaleDateString('vi-VN')}</span>
                     </div>
                     {typeof comment.rating === 'number' && (
                       <div className="mt-1">
-                        <RatingStars value={comment.rating} size={12} />
+                        <RatingStars value={comment.rating} size={12} tokens={tokens} />
                       </div>
                     )}
-                    <p className="mt-2 text-sm text-slate-600">{comment.content}</p>
+                    <p className="mt-2 text-sm" style={{ color: tokens.commentText }}>{comment.content}</p>
                     {(showLikes || showReplies) && (
                       <div className="mt-2 flex items-center gap-3">
                         {showLikes && (
                           <button
                             type="button"
                             onClick={() => handleToggleLike(comment._id)}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-                            style={likedIds.has(comment._id) ? { color: brandColor } : undefined}
+                            className="inline-flex items-center gap-1 text-xs font-medium"
+                            style={likedIds.has(comment._id)
+                              ? { color: tokens.commentActionActive }
+                              : { color: tokens.commentAction }}
                           >
                             <ThumbsUp className={`h-3 w-3 ${likedIds.has(comment._id) ? 'fill-current' : ''}`} />
                             {(comment.likesCount ?? 0) > 0 ? comment.likesCount : 'Thích'}
@@ -1906,7 +1997,8 @@ function ProductCommentsSection({
                           <button
                             type="button"
                             onClick={() => toggleReplyForm(comment._id)}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+                            className="inline-flex items-center gap-1 text-xs font-medium"
+                            style={{ color: tokens.commentAction }}
                           >
                             <Reply className="h-3 w-3" />
                             {showReplyForm ? 'Đóng' : 'Trả lời'}
@@ -1916,7 +2008,8 @@ function ProductCommentsSection({
                           <button
                             type="button"
                             onClick={() => toggleReplies(comment._id)}
-                            className="text-xs font-medium text-slate-400 hover:text-slate-600"
+                            className="text-xs font-medium"
+                            style={{ color: tokens.commentAction }}
                           >
                             {showRepliesList ? 'Ẩn' : 'Xem'} {replies.length} phản hồi
                           </button>
@@ -1927,20 +2020,22 @@ function ProductCommentsSection({
                 </div>
 
                 {showReplies && showReplyForm && (
-                  <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-3 space-y-2">
+                  <div className="mt-4 rounded-lg border p-3 space-y-2" style={{ borderColor: tokens.replyBorder, backgroundColor: tokens.replySurface }}>
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                       <input
                         value={replyDrafts[comment._id]?.name ?? ''}
                         onChange={(e) => onReplyDraftChange(comment._id, 'name', e.target.value)}
                         placeholder="Họ và tên *"
-                        className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                        className="h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none"
+                        style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
                         required
                       />
                       <input
                         value={replyDrafts[comment._id]?.email ?? ''}
                         onChange={(e) => onReplyDraftChange(comment._id, 'email', e.target.value)}
                         placeholder="Email (không bắt buộc)"
-                        className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                        className="h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none"
+                        style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
                         type="email"
                       />
                     </div>
@@ -1948,7 +2043,8 @@ function ProductCommentsSection({
                       value={replyDrafts[comment._id]?.content ?? ''}
                       onChange={(e) => onReplyDraftChange(comment._id, 'content', e.target.value)}
                       placeholder="Nội dung phản hồi..."
-                      className="min-h-[70px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                      className="min-h-[70px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none"
+                      style={{ borderColor: tokens.inputBorder, backgroundColor: tokens.inputBg, color: tokens.inputText }}
                       required
                     />
                     <div className="flex justify-end">
@@ -1956,8 +2052,8 @@ function ProductCommentsSection({
                         type="button"
                         disabled={replySubmittingId === comment._id}
                         onClick={() => onReplySubmit(comment._id)}
-                        className="h-8 rounded-full px-4 text-xs font-medium text-white"
-                        style={{ backgroundColor: brandColor }}
+                        className="h-8 rounded-full px-4 text-xs font-medium"
+                        style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
                       >
                         {replySubmittingId === comment._id ? 'Đang gửi...' : 'Gửi phản hồi'}
                       </button>
@@ -1966,21 +2062,21 @@ function ProductCommentsSection({
                 )}
 
                 {showReplies && showRepliesList && replies.length > 0 && (
-                  <div className="mt-4 space-y-3 border-l-2 pl-4" style={{ borderColor: `${brandColor}40` }}>
+                  <div className="mt-4 space-y-3 border-l-2 pl-4" style={{ borderColor: tokens.replyBorder }}>
                     {replies.map((reply) => (
                       <div key={reply._id} className="flex gap-3">
                         <div
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                          style={{ backgroundColor: brandColor }}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
+                          style={{ backgroundColor: tokens.primary, color: tokens.ctaPrimaryText }}
                         >
                           {reply.authorName.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold" style={{ color: brandColor }}>{reply.authorName}</span>
-                            <span className="text-xs text-slate-400">• {new Date(reply._creationTime).toLocaleDateString('vi-VN')}</span>
+                            <span className="text-xs font-semibold" style={{ color: tokens.replyNameText }}>{reply.authorName}</span>
+                            <span className="text-xs" style={{ color: tokens.softText }}>• {new Date(reply._creationTime).toLocaleDateString('vi-VN')}</span>
                           </div>
-                          <p className="text-sm text-slate-600 mt-1">{reply.content}</p>
+                          <p className="text-sm mt-1" style={{ color: tokens.replyText }}>{reply.content}</p>
                         </div>
                       </div>
                     ))}
@@ -1990,7 +2086,10 @@ function ProductCommentsSection({
             );
           })
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+          <div
+            className="rounded-xl border border-dashed p-6 text-center text-sm"
+            style={{ borderColor: tokens.border, color: tokens.emptyStateText, backgroundColor: tokens.emptyStateBg }}
+          >
             Chưa có đánh giá nào cho sản phẩm này.
           </div>
         )}
@@ -2000,7 +2099,8 @@ function ProductCommentsSection({
         <button
           type="button"
           onClick={() => setShowAllComments(!showAllComments)}
-          className="mt-4 w-full rounded-lg border border-dashed border-slate-200 py-2 text-sm font-medium text-slate-500 hover:text-slate-700"
+          className="mt-4 w-full rounded-lg border border-dashed py-2 text-sm font-medium"
+          style={{ borderColor: tokens.border, color: tokens.commentAction }}
         >
           {showAllComments ? 'Thu gọn' : `Xem thêm ${comments.length - 3} đánh giá`}
         </button>
@@ -2010,13 +2110,27 @@ function ProductCommentsSection({
 }
 
 // Shared Related Products Section
-function RelatedProductsSection({ products, categorySlug, brandColor, showPrice, showSalePrice }: { products: RelatedProduct[]; categorySlug?: string; brandColor: string; showPrice: boolean; showSalePrice: boolean }) {
+function RelatedProductsSection({
+  products,
+  categorySlug,
+  brandColor,
+  tokens,
+  showPrice,
+  showSalePrice,
+}: {
+  products: RelatedProduct[];
+  categorySlug?: string;
+  brandColor: string;
+  tokens: ProductDetailColors;
+  showPrice: boolean;
+  showSalePrice: boolean;
+}) {
   if (products.length === 0) {return null;}
 
   return (
-    <section className="mt-16 pt-12 border-t border-slate-100">
+    <section className="mt-16 pt-12 border-t" style={{ borderColor: tokens.divider }}>
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-slate-900">Sản phẩm liên quan</h2>
+        <h2 className="text-2xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm liên quan</h2>
         {categorySlug && (
           <Link href={`/products?category=${categorySlug}`} className="text-sm font-medium flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: brandColor }}>
             Xem tất cả <ChevronRight size={16} />
@@ -2025,23 +2139,28 @@ function RelatedProductsSection({ products, categorySlug, brandColor, showPrice,
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {products.map((p) => (
-          <Link key={p._id} href={`/products/${p.slug}`} className="group bg-white rounded-xl overflow-hidden border border-slate-100 hover:shadow-lg hover:border-slate-200 transition-all duration-300">
-            <div className="aspect-square overflow-hidden bg-slate-100 relative">
+          <Link
+            key={p._id}
+            href={`/products/${p.slug}`}
+            className="group rounded-xl overflow-hidden border transition-all duration-300"
+            style={{ borderColor: tokens.relatedCardBorder, backgroundColor: tokens.relatedCardBg }}
+          >
+            <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.surfaceMuted }}>
               {p.image ? (
                 <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>
+                <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
               {showSalePrice && p.salePrice && (
-                <span className="absolute top-2 left-2 px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded">-{Math.round((1 - p.salePrice / p.price) * 100)}%</span>
+                <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - p.salePrice / p.price) * 100)}%</span>
               )}
             </div>
             <div className="p-4">
-              <h3 className="font-medium text-slate-900 line-clamp-2 group-hover:text-orange-600 transition-colors mb-2 text-sm">{p.name}</h3>
+              <h3 className="font-medium line-clamp-2 transition-colors mb-2 text-sm" style={{ color: tokens.headingColor }}>{p.name}</h3>
               {showPrice && (
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm" style={{ color: brandColor }}>{formatPrice(p.salePrice ?? p.price)}</span>
-                  {showSalePrice && p.salePrice && <span className="text-xs text-slate-400 line-through">{formatPrice(p.price)}</span>}
+                  <span className="font-bold text-sm" style={{ color: tokens.priceColor }}>{formatPrice(p.salePrice ?? p.price)}</span>
+                  {showSalePrice && p.salePrice && <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(p.price)}</span>}
                 </div>
               )}
             </div>
@@ -2052,25 +2171,25 @@ function RelatedProductsSection({ products, categorySlug, brandColor, showPrice,
   );
 }
 
-function ProductDetailSkeleton() {
+function ProductDetailSkeleton({ tokens }: { tokens: ProductDetailColors }) {
   return (
-    <div className="min-h-screen bg-white animate-pulse">
-      <div className="border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 py-3"><div className="h-4 w-64 bg-slate-200 rounded" /></div>
+    <div className="min-h-screen animate-pulse" style={{ backgroundColor: tokens.surface }}>
+      <div className="border-b" style={{ borderColor: tokens.divider }}>
+        <div className="max-w-6xl mx-auto px-4 py-3"><div className="h-4 w-64 rounded" style={{ backgroundColor: tokens.skeletonBase }} /></div>
       </div>
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-12">
           <div>
-            <div className="aspect-square bg-slate-200 rounded-2xl mb-4" />
-            <div className="flex gap-3">{[1, 2, 3, 4].map((i) => (<div key={i} className="w-20 h-20 bg-slate-200 rounded-lg" />))}</div>
+            <div className="aspect-square rounded-2xl mb-4" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="flex gap-3">{[1, 2, 3, 4].map((i) => (<div key={i} className="w-20 h-20 rounded-lg" style={{ backgroundColor: tokens.skeletonBase }} />))}</div>
           </div>
           <div className="mt-8 lg:mt-0 space-y-4">
-            <div className="h-6 w-24 bg-slate-200 rounded-full" />
-            <div className="h-10 w-full bg-slate-200 rounded" />
-            <div className="h-4 w-48 bg-slate-200 rounded" />
-            <div className="h-10 w-40 bg-slate-200 rounded" />
-            <div className="h-12 w-full bg-slate-200 rounded-xl" />
-            <div className="h-32 w-full bg-slate-200 rounded-xl" />
+            <div className="h-6 w-24 rounded-full" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="h-10 w-full rounded" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="h-4 w-48 rounded" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="h-10 w-40 rounded" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="h-12 w-full rounded-xl" style={{ backgroundColor: tokens.skeletonBase }} />
+            <div className="h-32 w-full rounded-xl" style={{ backgroundColor: tokens.skeletonBase }} />
           </div>
         </div>
       </div>

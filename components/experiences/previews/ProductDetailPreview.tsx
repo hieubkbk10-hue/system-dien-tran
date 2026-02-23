@@ -30,6 +30,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { CommentsPreview } from './DetailPreview';
+import { getProductDetailColors } from '@/components/site/products/detail/_lib/colors';
 
 type ProductDetailPreviewProps = {
   layoutStyle: 'classic' | 'modern' | 'minimal';
@@ -47,6 +48,8 @@ type ProductDetailPreviewProps = {
   contentWidth?: 'narrow' | 'medium' | 'wide';
   device?: 'desktop' | 'tablet' | 'mobile';
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: 'single' | 'dual';
 };
 
 const formatVND = (price: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -75,29 +78,34 @@ const CLASSIC_HIGHLIGHT_ICON_MAP: Record<string, React.ElementType> = {
   Truck,
 };
 
-function VariantPreview({ brandColor }: { brandColor: string }) {
+function VariantPreview({ tokens }: { tokens: ReturnType<typeof getProductDetailColors> }) {
   return (
     <div className="space-y-3">
       <div>
-        <p className="text-xs font-semibold text-slate-600">Màu sắc</p>
+        <p className="text-xs font-semibold" style={{ color: tokens.metaText }}>Màu sắc</p>
         <div className="flex gap-2 mt-2">
           {['#111827', '#e11d48', '#0ea5e9'].map((color, index) => (
             <span
               key={color}
-              className={`h-6 w-6 rounded-full border ${index === 0 ? 'ring-2 ring-offset-2' : 'opacity-70'}`}
-              style={{ backgroundColor: color, borderColor: index === 0 ? brandColor : '#e2e8f0', boxShadow: index === 0 ? `0 0 0 2px ${brandColor}` : undefined }}
+              className="h-6 w-6 rounded-full border"
+              style={{
+                backgroundColor: color,
+                borderColor: index === 0 ? tokens.variantRing : tokens.border,
+              }}
             />
           ))}
         </div>
       </div>
       <div>
-        <p className="text-xs font-semibold text-slate-600">Dung lượng</p>
+        <p className="text-xs font-semibold" style={{ color: tokens.metaText }}>Dung lượng</p>
         <div className="flex gap-2 mt-2">
           {['128GB', '256GB', '512GB'].map((value, index) => (
             <span
               key={value}
-              className={`px-3 py-1 rounded-full text-xs border ${index === 1 ? 'text-white' : 'text-slate-600'}`}
-              style={index === 1 ? { backgroundColor: brandColor, borderColor: brandColor } : { borderColor: '#e2e8f0' }}
+              className="px-3 py-1 rounded-full text-xs border"
+              style={index === 1
+                ? { backgroundColor: tokens.variantChipActiveBg, borderColor: tokens.variantChipActiveBorder, color: tokens.variantChipActiveText }
+                : { borderColor: tokens.variantChipBorder, color: tokens.variantChipText }}
             >
               {value}
             </span>
@@ -124,7 +132,10 @@ export function ProductDetailPreview({
   contentWidth = 'medium',
   device = 'desktop',
   brandColor = '#06b6d4',
+  secondaryColor,
+  colorMode = 'single',
 }: ProductDetailPreviewProps) {
+  const tokens = getProductDetailColors(brandColor, secondaryColor, colorMode);
   const isMobile = device === 'mobile';
   const productName = 'iPhone 15 Pro Max 256GB';
   const categoryName = 'Điện thoại';
@@ -141,10 +152,13 @@ export function ProductDetailPreview({
       ? 'max-w-7xl'
       : 'max-w-6xl';
   const heroContainerClass = heroStyle === 'full'
-    ? 'border border-slate-100 rounded-2xl bg-slate-50'
+    ? 'border rounded-2xl'
     : heroStyle === 'split'
-      ? 'border border-slate-200 rounded-2xl bg-white'
-      : 'border border-slate-200 rounded-xl bg-white';
+      ? 'border rounded-2xl'
+      : 'border rounded-xl';
+  const heroContainerStyle = heroStyle === 'full'
+    ? { borderColor: tokens.border, backgroundColor: tokens.surfaceMuted }
+    : { borderColor: tokens.border, backgroundColor: tokens.surface };
   const heroImageWrapperClass = heroStyle === 'split'
     ? 'aspect-square flex items-center justify-center p-6'
     : heroStyle === 'minimal'
@@ -158,72 +172,85 @@ export function ProductDetailPreview({
           <>
             <div className={`${isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-8'}`}>
             <div className="space-y-3">
-              <div className="aspect-square bg-slate-100 rounded-xl flex items-center justify-center">
-                <div className="w-32 h-32 bg-slate-200 rounded-lg" />
+              <div className="aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className={`aspect-square bg-slate-100 rounded-lg border-2 ${i === 1 ? '' : 'border-transparent'}`} style={i === 1 ? { borderColor: brandColor } : undefined} />
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg border-2"
+                    style={{
+                      backgroundColor: tokens.surfaceMuted,
+                      borderColor: i === 1 ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
+                    }}
+                  />
                 ))}
               </div>
             </div>
             <div className="space-y-4">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900">{productName}</h1>
+                <h1 className="text-xl md:text-2xl font-bold" style={{ color: tokens.headingColor }}>{productName}</h1>
                 {showRating && (
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={16} className={i < Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'} />
+                        <Star
+                          key={i}
+                          size={16}
+                          style={i < Math.floor(rating)
+                            ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                            : { color: tokens.ratingStarInactive }}
+                        />
                       ))}
                     </div>
-                    <span className="text-sm text-slate-500">{rating} ({reviews} đánh giá)</span>
+                    <span className="text-sm" style={{ color: tokens.ratingText }}>{rating} ({reviews} đánh giá)</span>
                   </div>
                 )}
               </div>
               <div className="flex items-baseline gap-3">
-                <span className="text-2xl font-bold" style={{ color: brandColor }}>{formatVND(price)}</span>
-                <span className="text-lg text-slate-400 line-through">{formatVND(originalPrice)}</span>
-                <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm font-medium rounded">-{Math.round((1 - price / originalPrice) * 100)}%</span>
+                <span className="text-2xl font-bold" style={{ color: tokens.priceColor }}>{formatVND(price)}</span>
+                <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(originalPrice)}</span>
+                <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - price / originalPrice) * 100)}%</span>
               </div>
-              {showVariants && <VariantPreview brandColor={brandColor} />}
+              {showVariants && <VariantPreview tokens={tokens} />}
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center border border-slate-200 rounded-lg">
+                <div className="flex items-center border rounded-lg" style={{ borderColor: tokens.quantityBorder }}>
                   <button className="p-3" disabled>
-                    <Minus size={18} className="text-slate-300" />
+                    <Minus size={18} style={{ color: tokens.quantityIconMuted }} />
                   </button>
-                  <span className="w-12 text-center font-medium">1</span>
+                  <span className="w-12 text-center font-medium" style={{ color: tokens.quantityText }}>1</span>
                   <button className="p-3" disabled>
-                    <Plus size={18} className="text-slate-300" />
+                    <Plus size={18} style={{ color: tokens.quantityIconMuted }} />
                   </button>
                 </div>
 
                 <div className="flex flex-1 flex-col gap-2">
                   {showAddToCart && (
-                    <button className="py-3.5 px-8 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: brandColor }}>
+                    <button className="py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}>
                       <ShoppingCart size={20} />
                       Thêm vào giỏ hàng
                     </button>
                   )}
                   {showBuyNow && (
-                    <button className="py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border" style={{ borderColor: brandColor, color: brandColor }}>
+                    <button className="py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border" style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}>
                       Mua ngay
                     </button>
                   )}
                 </div>
 
                 {showWishlist && (
-                  <button className="p-3.5 rounded-xl border border-slate-200">
-                    <Heart size={20} className="text-slate-400" />
+                  <button className="p-3.5 rounded-xl border" style={{ borderColor: tokens.wishlistBorder, backgroundColor: tokens.wishlistBg }}>
+                    <Heart size={20} style={{ color: tokens.wishlistIcon }} />
                   </button>
                 )}
-                <button className="p-3.5 rounded-xl border border-slate-200">
-                  <Share2 size={20} className="text-slate-400" />
+                <button className="p-3.5 rounded-xl border" style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}>
+                  <Share2 size={20} style={{ color: tokens.shareIcon }} />
                 </button>
               </div>
 
               {showClassicHighlights && (
-                <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl">
+                <div className="grid grid-cols-3 gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.highlightBg }}>
                   {(classicHighlights.length > 0 ? classicHighlights : [
                     { icon: 'Star', text: 'Chip A17 Pro mạnh mẽ' },
                     { icon: 'Star', text: 'Camera 48MP chuyên nghiệp' },
@@ -232,8 +259,8 @@ export function ProductDetailPreview({
                     const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon] ?? Star;
                     return (
                       <div key={`${item.icon}-${index}`} className="text-center">
-                        <Icon size={24} className="mx-auto mb-2 text-slate-600" />
-                        <p className="text-xs text-slate-600">{item.text}</p>
+                        <Icon size={24} className="mx-auto mb-2" style={{ color: tokens.highlightIcon }} />
+                        <p className="text-xs" style={{ color: tokens.highlightText }}>{item.text}</p>
                       </div>
                     );
                   })}
@@ -253,18 +280,18 @@ export function ProductDetailPreview({
 
         {layoutStyle === 'modern' && (
           <div className="space-y-6">
-            <header className="border-b border-slate-100 pb-4">
-              <div className="flex items-center justify-between gap-4 text-sm text-slate-400">
+            <header className="border-b pb-4" style={{ borderColor: tokens.divider }}>
+              <div className="flex items-center justify-between gap-4 text-sm" style={{ color: tokens.breadcrumbText }}>
                 <div className="flex items-center gap-2 truncate">
-                  <span className="hover:text-slate-600">Trang chủ</span>
+                  <span>Trang chủ</span>
                   <ChevronRight size={14} />
-                  <span className="hover:text-slate-600">Sản phẩm</span>
+                  <span>Sản phẩm</span>
                   <ChevronRight size={14} />
-                  <span className="text-slate-600 truncate">{productName}</span>
+                  <span className="truncate" style={{ color: tokens.breadcrumbActive }}>{productName}</span>
                 </div>
                 {showWishlist && (
-                  <button className="inline-flex items-center gap-2 text-sm text-slate-500">
-                    <Heart size={16} className="text-slate-400" />
+                  <button className="inline-flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
+                    <Heart size={16} style={{ color: tokens.wishlistIcon }} />
                     Yêu thích
                   </button>
                 )}
@@ -274,13 +301,13 @@ export function ProductDetailPreview({
             <div className="grid md:grid-cols-2 gap-6 lg:gap-10">
               <div className="space-y-4">
                 {heroStyle === 'split' ? (
-                  <div className={`overflow-hidden ${heroContainerClass}`}>
+                  <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                     <div className="grid md:grid-cols-2 gap-4 items-center p-4 md:p-6">
-                      <div className="aspect-square rounded-xl bg-slate-100 flex items-center justify-center">
-                        <div className="w-32 h-32 bg-slate-200 rounded-lg" />
+                      <div className="aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                        <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
                       </div>
-                      <div className="hidden md:flex flex-col gap-3 text-sm text-slate-500">
-                        <span className="text-xs uppercase tracking-widest text-slate-400">Điểm nổi bật</span>
+                      <div className="hidden md:flex flex-col gap-3 text-sm" style={{ color: tokens.metaText }}>
+                        <span className="text-xs uppercase tracking-widest" style={{ color: tokens.softText }}>Điểm nổi bật</span>
                         <ul className="space-y-2">
                           <li>• Thiết kế cao cấp, hoàn thiện tinh tế</li>
                           <li>• Công nghệ mới nhất, hiệu năng ổn định</li>
@@ -290,9 +317,9 @@ export function ProductDetailPreview({
                     </div>
                   </div>
                 ) : (
-                  <div className={`overflow-hidden ${heroContainerClass}`}>
+                  <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                     <div className={heroImageWrapperClass}>
-                      <div className="w-40 h-40 bg-slate-200 rounded-xl" />
+                      <div className="w-40 h-40 rounded-xl" style={{ backgroundColor: tokens.surfaceSoft }} />
                     </div>
                   </div>
                 )}
@@ -300,7 +327,11 @@ export function ProductDetailPreview({
                 {heroStyle !== 'minimal' && (
                   <div className="grid grid-cols-3 gap-3">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="aspect-square bg-slate-100 rounded-xl border-2 border-transparent" />
+                      <div
+                        key={i}
+                        className="aspect-square rounded-xl border-2"
+                        style={{ backgroundColor: tokens.surfaceMuted, borderColor: tokens.thumbnailBorder }}
+                      />
                     ))}
                   </div>
                 )}
@@ -308,18 +339,32 @@ export function ProductDetailPreview({
 
               <div className="space-y-5">
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                  <span
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                    style={{
+                      backgroundColor: tokens.categoryBadgeBg,
+                      color: tokens.categoryBadgeText,
+                      borderColor: tokens.categoryBadgeBorder,
+                      borderWidth: 1,
+                    }}
+                  >
                     {categoryName}
                   </span>
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-light tracking-tight text-slate-900">{productName}</h1>
+                <h1 className="text-2xl md:text-3xl font-light tracking-tight" style={{ color: tokens.headingColor }}>{productName}</h1>
 
                 {showRating && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} size={14} className={star <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'} />
+                        <Star
+                          key={star}
+                          size={14}
+                          style={star <= Math.round(rating)
+                            ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                            : { color: tokens.ratingStarInactive }}
+                        />
                       ))}
                     </div>
                     <span>{rating} ({reviews})</span>
@@ -328,31 +373,36 @@ export function ProductDetailPreview({
 
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-light" style={{ color: brandColor }}>{formatVND(price)}</span>
-                    <span className="text-lg text-slate-400 line-through">{formatVND(originalPrice)}</span>
+                    <span className="text-3xl font-light" style={{ color: tokens.priceColor }}>{formatVND(price)}</span>
+                    <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(originalPrice)}</span>
                   </div>
-                  <span className="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">Giảm {discountPercent}%</span>
+                  <span
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                    style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}
+                  >
+                    Giảm {discountPercent}%
+                  </span>
                 </div>
 
-                {showVariants && <VariantPreview brandColor={brandColor} />}
+                {showVariants && <VariantPreview tokens={tokens} />}
 
-                <div className="h-px w-full bg-slate-100" />
+                <div className="h-px w-full" style={{ backgroundColor: tokens.divider }} />
 
-                <div className="text-slate-600 leading-relaxed text-sm">
+                <div className="leading-relaxed text-sm" style={{ color: tokens.metaText }}>
                   Thiết kế sang trọng, màn hình sắc nét và hiệu năng mạnh mẽ cho nhu cầu cao cấp.
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Số lượng</label>
+                  <label className="text-sm font-medium" style={{ color: tokens.bodyText }}>Số lượng</label>
                   <div className="flex items-center gap-3">
-                    <button type="button" className="h-10 w-10 border border-slate-200 rounded-full flex items-center justify-center">
-                      <Minus className="w-4 h-4" />
+                    <button type="button" className="h-10 w-10 border rounded-full flex items-center justify-center" style={{ borderColor: tokens.quantityBorder }}>
+                      <Minus className="w-4 h-4" style={{ color: tokens.quantityIcon }} />
                     </button>
                     <div className="w-16 text-center">
-                      <span className="text-lg font-medium">1</span>
+                      <span className="text-lg font-medium" style={{ color: tokens.quantityText }}>1</span>
                     </div>
-                    <button type="button" className="h-10 w-10 border border-slate-200 rounded-full flex items-center justify-center">
-                      <Plus className="w-4 h-4" />
+                    <button type="button" className="h-10 w-10 border rounded-full flex items-center justify-center" style={{ borderColor: tokens.quantityBorder }}>
+                      <Plus className="w-4 h-4" style={{ color: tokens.quantityIcon }} />
                     </button>
                   </div>
                 </div>
@@ -360,19 +410,19 @@ export function ProductDetailPreview({
                 {(showAddToCart || showBuyNow || showWishlist) && (
                   <div className="space-y-3">
                     {showAddToCart && (
-                      <button className="w-full h-12 text-base font-semibold text-white" style={{ backgroundColor: brandColor }}>
+                      <button className="w-full h-12 text-base font-semibold" style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}>
                         <ShoppingBag className="w-5 h-5 mr-2 inline-block" />
                         Thêm vào giỏ hàng
                       </button>
                     )}
                     {showBuyNow && (
-                      <button className="w-full h-12 text-base font-semibold border" style={{ borderColor: brandColor, color: brandColor }}>
+                      <button className="w-full h-12 text-base font-semibold border" style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}>
                         Mua ngay
                       </button>
                     )}
                     {showWishlist && (
-                      <button className="w-full h-12 text-base border border-slate-200 text-slate-700">
-                        <Heart className="w-5 h-5 mr-2 inline-block" />
+                      <button className="w-full h-12 text-base border" style={{ borderColor: tokens.wishlistBorder, color: tokens.metaText, backgroundColor: tokens.wishlistBg }}>
+                        <Heart className="w-5 h-5 mr-2 inline-block" style={{ color: tokens.wishlistIcon }} />
                         Thêm vào yêu thích
                       </button>
                     )}
@@ -392,12 +442,12 @@ export function ProductDetailPreview({
 
         {layoutStyle === 'minimal' && (
           <div className={`space-y-6 ${contentWidthClass} mx-auto`}>
-            <div className="text-xs text-slate-400 flex items-center gap-2">
+            <div className="text-xs flex items-center gap-2" style={{ color: tokens.breadcrumbText }}>
               <span>Trang chủ</span>
               <ChevronRight size={12} />
               <span>Sản phẩm</span>
               <ChevronRight size={12} />
-              <span className="text-slate-600 truncate max-w-[160px]">{productName}</span>
+              <span className="truncate max-w-[160px]" style={{ color: tokens.breadcrumbActive }}>{productName}</span>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8">
@@ -405,13 +455,17 @@ export function ProductDetailPreview({
                 <div className="flex flex-col-reverse md:flex-row gap-4">
                   <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto md:w-24 shrink-0">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="relative aspect-square w-20 md:w-full overflow-hidden rounded-sm bg-slate-100 border border-transparent" />
+                      <div
+                        key={i}
+                        className="relative aspect-square w-20 md:w-full overflow-hidden rounded-sm border"
+                        style={{ backgroundColor: tokens.surfaceMuted, borderColor: tokens.thumbnailBorder }}
+                      />
                     ))}
                   </div>
 
-                  <div className="flex-1 relative bg-slate-100 aspect-[4/5] rounded-sm overflow-hidden">
+                  <div className="flex-1 relative aspect-[4/5] rounded-sm overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-32 h-32 bg-slate-200 rounded-lg" />
+                      <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
                     </div>
                   </div>
                 </div>
@@ -419,58 +473,64 @@ export function ProductDetailPreview({
 
               <div className="lg:col-span-5 px-0 md:px-2 py-6 lg:py-0 flex flex-col justify-center">
                 <div className="mb-6">
-                  <h1 className="text-3xl md:text-4xl font-light text-slate-900 tracking-tight mb-4">{productName}</h1>
+                  <h1 className="text-3xl md:text-4xl font-light tracking-tight mb-4" style={{ color: tokens.headingColor }}>{productName}</h1>
                   {showRating && (
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} size={14} className={star <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'} />
+                          <Star
+                            key={star}
+                            size={14}
+                            style={star <= Math.round(rating)
+                              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                              : { color: tokens.ratingStarInactive }}
+                          />
                         ))}
                       </div>
                       <span>{rating} ({reviews})</span>
                     </div>
                   )}
-                  <p className="text-2xl text-slate-600 font-light" style={{ color: brandColor }}>
+                  <p className="text-2xl font-light" style={{ color: tokens.priceColor }}>
                     {formatVND(price)}
                   </p>
                   <div className="mt-4">
-                    {showVariants && <VariantPreview brandColor={brandColor} />}
+                    {showVariants && <VariantPreview tokens={tokens} />}
                   </div>
                 </div>
 
                 {(showAddToCart || showBuyNow || showWishlist) && (
-                  <div className="flex flex-col gap-3 mb-6 border-t border-slate-100 pt-6">
+                  <div className="flex flex-col gap-3 mb-6 border-t pt-6" style={{ borderColor: tokens.divider }}>
                     <div className="flex gap-4">
                       {showAddToCart && (
-                        <button className="flex-1 bg-black text-white h-14 uppercase tracking-wider text-sm font-medium">
+                        <button className="flex-1 h-14 uppercase tracking-wider text-sm font-medium" style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}>
                           Thêm vào giỏ
                         </button>
                       )}
                       {showWishlist && (
-                        <button className="w-14 h-14 border flex items-center justify-center">
-                          <Heart size={20} className="text-slate-400" />
+                        <button className="w-14 h-14 border flex items-center justify-center" style={{ borderColor: tokens.wishlistBorder, backgroundColor: tokens.wishlistBg }}>
+                          <Heart size={20} style={{ color: tokens.wishlistIcon }} />
                         </button>
                       )}
                     </div>
                     {showBuyNow && (
-                      <button className="h-12 uppercase tracking-wider text-xs font-medium border" style={{ borderColor: '#0f172a', color: '#0f172a' }}>
+                      <button className="h-12 uppercase tracking-wider text-xs font-medium border" style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}>
                         Mua ngay
                       </button>
                     )}
                   </div>
                 )}
 
-                <div className="space-y-4 text-sm text-slate-500 font-light">
-                  <div className="text-slate-600 leading-relaxed">
+                <div className="space-y-4 text-sm font-light" style={{ color: tokens.metaText }}>
+                  <div className="leading-relaxed" style={{ color: tokens.metaText }}>
                     Thiết kế tối giản, tập trung trải nghiệm và chi tiết sản phẩm.
                   </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>SKU</span>
-                    <span className="font-mono text-slate-700">{sku}</span>
+                    <span className="font-mono" style={{ color: tokens.bodyText }}>{sku}</span>
                   </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>Tình trạng</span>
-                    <span className={stock > 0 ? 'text-emerald-600' : 'text-red-500'}>
+                    <span style={{ color: stock > 0 ? tokens.stockSuccessText : tokens.stockDangerText }}>
                       {stock > 0 ? 'Còn hàng' : 'Hết hàng'}
                     </span>
                   </div>
