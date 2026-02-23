@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown, FileText, Heart, Search, ShoppingCart, SlidersHorizontal } from 'lucide-react';
+import { getPostsListColors, type PostsListColors, type PostsListColorMode } from '@/components/site/posts/colors';
 
 type ListLayoutStyle = 'fullwidth' | 'sidebar' | 'magazine' | 'grid' | 'list' | 'masonry';
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
@@ -12,6 +13,8 @@ type PostsListPreviewProps = {
   showSearch?: boolean;
   showCategories?: boolean;
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: PostsListColorMode;
   device?: PreviewDevice;
 };
 
@@ -21,13 +24,27 @@ const normalizeLayoutStyle = (style: ListLayoutStyle): 'fullwidth' | 'sidebar' |
   return 'magazine';
 };
 
-function PaginationPreview({ paginationType, brandColor }: { paginationType: PaginationType; brandColor: string }) {
+function PaginationPreview({
+  paginationType,
+  brandColor,
+  tokens,
+}: {
+  paginationType: PaginationType;
+  brandColor: string;
+  tokens?: PostsListColors;
+}) {
+  const previewTokens = tokens ?? getPostsListColors(brandColor, undefined, 'single');
+
   if (paginationType === 'pagination') {
     return (
       <div className="text-center mt-6">
         <button
-          className="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 hover:opacity-80"
-          style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+          className="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200"
+          style={{
+            backgroundColor: previewTokens.paginationButtonHoverBg,
+            color: previewTokens.paginationButtonText,
+            borderColor: previewTokens.paginationButtonBorder,
+          }}
         >
           1 &nbsp; 2 &nbsp; 3 &nbsp; ... &nbsp; 10
         </button>
@@ -37,11 +54,11 @@ function PaginationPreview({ paginationType, brandColor }: { paginationType: Pag
   return (
     <div className="text-center mt-6 space-y-2">
       <div className="flex justify-center gap-1">
-        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-        <div className="w-2 h-2 rounded-full animate-pulse delay-100" style={{ backgroundColor: brandColor, opacity: 0.7 }} />
-        <div className="w-2 h-2 rounded-full animate-pulse delay-200" style={{ backgroundColor: brandColor, opacity: 0.5 }} />
+        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: previewTokens.loadingDotStrong }} />
+        <div className="w-2 h-2 rounded-full animate-pulse delay-100" style={{ backgroundColor: previewTokens.loadingDotMedium }} />
+        <div className="w-2 h-2 rounded-full animate-pulse delay-200" style={{ backgroundColor: previewTokens.loadingDotSoft }} />
       </div>
-      <p className="text-xs text-slate-400">Cuộn để xem thêm...</p>
+      <p className="text-xs" style={{ color: previewTokens.neutralTextLight }}>Cuộn để xem thêm...</p>
     </div>
   );
 }
@@ -52,9 +69,12 @@ export function PostsListPreview({
   showSearch = true,
   showCategories = true,
   brandColor = '#3b82f6',
+  secondaryColor,
+  colorMode = 'single',
   device = 'desktop',
 }: PostsListPreviewProps) {
   const style = normalizeLayoutStyle(layoutStyle);
+  const tokens = getPostsListColors(brandColor, secondaryColor, colorMode);
   const mockPosts = [
     { category: 'Tin tức', date: '10/01/2026', id: 1, title: 'Bài viết nổi bật số 1', views: 1234 },
     { category: 'Hướng dẫn', date: '09/01/2026', id: 2, title: 'Hướng dẫn sử dụng sản phẩm', views: 567 },
@@ -76,20 +96,29 @@ export function PostsListPreview({
       <div className="py-6 md:py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-3">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Tin tức & Bài viết</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Tin tức & Bài viết</h2>
           </div>
         {showFilterBar && (
           <div className="mb-5 space-y-2.5">
-            <div className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+            <div
+              className="rounded-lg border p-3 shadow-sm"
+              style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.cardBorder }}
+            >
               <div className="flex items-center gap-2">
                 {/* Search - Responsive width: max-w-xs on desktop, full width on mobile/tablet */}
                 {showSearch && (
                   <div className={`relative flex-1 min-w-0 ${isDesktop ? 'max-w-xs' : ''}`}>
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inputIcon }} />
                     <input
                       type="text"
                       placeholder="Tìm kiếm..."
-                      className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm placeholder:text-[var(--placeholder-color)]"
+                      style={{
+                        '--placeholder-color': tokens.inputPlaceholder,
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      } as React.CSSProperties}
                       disabled
                     />
                   </div>
@@ -99,14 +128,19 @@ export function PostsListPreview({
                 {showCategories && isDesktop && (
                   <div className="relative">
                     <select
-                      className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white min-w-[140px]"
+                      className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm min-w-[140px]"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
                       disabled
                     >
                       {categories.map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                   </div>
                 )}
                 
@@ -117,20 +151,28 @@ export function PostsListPreview({
                 {isDesktop && (
                   <div className="relative">
                     <select
-                      className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
                       disabled
                     >
                       <option>Mới nhất</option>
                       <option>Cũ nhất</option>
                       <option>Xem nhiều</option>
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                   </div>
                 )}
                 
                 {/* Mobile Filter Toggle - Mobile/Tablet only */}
                 {showMobilePanel && (
-                  <button className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm shrink-0">
+                  <button
+                    className="flex items-center gap-2 px-3 py-2 border rounded-lg text-sm shrink-0"
+                    style={{ borderColor: tokens.inputBorder, color: tokens.bodyText, backgroundColor: tokens.cardBackground }}
+                  >
                     <SlidersHorizontal className="w-4 h-4" />
                     Bộ lọc
                   </button>
@@ -139,18 +181,25 @@ export function PostsListPreview({
               
               {/* Mobile Filter Panel - Mobile/Tablet only, always visible */}
               {showMobilePanel && (
-                <div className="mt-3 pt-3 border-t border-slate-200 space-y-3">
+                <div className="mt-3 pt-3 border-t space-y-3" style={{ borderColor: tokens.cardBorder }}>
                   {showCategories && (
                     <div>
-                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5 block">
+                      <label className="text-xs font-medium uppercase tracking-wider mb-1.5 block" style={{ color: tokens.neutralTextLight }}>
                         Danh mục
                       </label>
                       <div className="flex flex-wrap gap-1.5">
                         {categories.map((cat, i) => (
                           <span
                             key={cat}
-                            className={`px-2.5 py-1 rounded-full text-sm font-medium ${i === 0 ? 'text-white' : 'bg-slate-100 text-slate-600'}`}
-                            style={i === 0 ? { backgroundColor: brandColor } : undefined}
+                            className={`px-2.5 py-1 rounded-full text-sm font-medium ${i === 0 ? 'text-white' : ''}`}
+                            style={i === 0 ? {
+                              backgroundColor: tokens.filterActiveBg,
+                              color: tokens.filterActiveText,
+                            } : {
+                              backgroundColor: tokens.filterTagBg,
+                              color: tokens.filterTagText,
+                              borderColor: tokens.filterTagBorder,
+                            }}
                           >
                             {cat}
                           </span>
@@ -159,10 +208,18 @@ export function PostsListPreview({
                     </div>
                   )}
                   <div>
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5 block">
+                    <label className="text-xs font-medium uppercase tracking-wider mb-1.5 block" style={{ color: tokens.neutralTextLight }}>
                       Sắp xếp
                     </label>
-                    <select className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" disabled>
+                    <select
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
+                      disabled
+                    >
                       <option>Mới nhất</option>
                       <option>Cũ nhất</option>
                       <option>Xem nhiều</option>
@@ -176,20 +233,24 @@ export function PostsListPreview({
             {isDesktop ? (
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-slate-500">4 bài viết</span>
+                  <span className="text-sm" style={{ color: tokens.filterCountText }}>4 bài viết</span>
                   <span
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-                    style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                    style={{
+                      backgroundColor: tokens.filterTagBg,
+                      color: tokens.filterTagText,
+                      borderColor: tokens.filterTagBorder,
+                    }}
                   >
                     Tin tức
                   </span>
                 </div>
-                <button className="text-sm hover:underline" style={{ color: brandColor }}>
+                <button className="text-sm hover:underline" style={{ color: tokens.filterClearText }}>
                   Xóa bộ lọc
                 </button>
               </div>
             ) : (
-              <div className="text-sm text-slate-500">4 bài viết</div>
+              <div className="text-sm" style={{ color: tokens.filterCountText }}>4 bài viết</div>
             )}
           </div>
         )}
@@ -197,22 +258,26 @@ export function PostsListPreview({
         {/* Grid - Explicit device-based columns */}
         <div className={`grid ${gridClass} gap-3`}>
           {mockPosts.slice(0, visiblePosts).map((post) => (
-            <div key={post.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-slate-100 h-full flex flex-col">
-              <div className="aspect-video bg-slate-100 flex items-center justify-center">
-                <FileText size={24} className="text-slate-300" />
+            <div key={post.id} className="rounded-lg overflow-hidden shadow-sm border h-full flex flex-col" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+              <div className="aspect-video flex items-center justify-center" style={{ backgroundColor: tokens.cardBorder }}>
+                <FileText size={24} style={{ color: tokens.neutralTextLight }} />
               </div>
               <div className="p-3 flex-1 flex flex-col">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <span
                     className="text-xs font-medium px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                    style={{
+                      backgroundColor: tokens.categoryBadgeBg,
+                      color: tokens.categoryBadgeText,
+                      borderColor: tokens.categoryBadgeBorder,
+                    }}
                   >
                     {post.category}
                   </span>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 flex-1">{post.title}</h3>
-                <div className="h-3 bg-slate-100 rounded mt-1.5 w-4/5" />
-                <div className="flex items-center justify-between text-xs text-slate-400 mt-2.5 pt-2.5 border-t border-slate-100">
+                <h3 className="text-sm font-semibold line-clamp-2 flex-1" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                <div className="h-3 rounded mt-1.5 w-4/5" style={{ backgroundColor: tokens.cardBorder }} />
+                <div className="flex items-center justify-between text-xs mt-2.5 pt-2.5 border-t" style={{ color: tokens.neutralTextLight, borderColor: tokens.cardBorder }}>
                   <span>{post.date}</span>
                   <span>{post.views} views</span>
                 </div>
@@ -222,7 +287,7 @@ export function PostsListPreview({
         </div>
         
         {/* Pagination */}
-        <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+        <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
         </div>
       </div>
     );
@@ -239,7 +304,7 @@ export function PostsListPreview({
       <div className={`py-6 md:py-10 px-4`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-3">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Tin tức & Bài viết</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Tin tức & Bài viết</h2>
           </div>
           
           <div className={`flex ${containerClass} gap-5`}>
@@ -248,15 +313,21 @@ export function PostsListPreview({
               <div className="space-y-3">
                 {/* Search Widget */}
                 {showSearch && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-3">
-                    <h3 className="font-semibold text-slate-900 text-sm mb-2 flex items-center gap-2">
-                      <Search size={14} style={{ color: brandColor }} />
+                  <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: tokens.bodyText }}>
+                      <Search size={14} style={{ color: tokens.sidebarWidgetIcon }} />
                       Tìm kiếm
                     </h3>
                     <input
                       type="text"
                       placeholder="Nhập từ khóa..."
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                      className="w-full px-3 py-2 border rounded-lg text-sm placeholder:text-[var(--placeholder-color)]"
+                      style={{
+                        '--placeholder-color': tokens.inputPlaceholder,
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      } as React.CSSProperties}
                       disabled
                     />
                   </div>
@@ -264,9 +335,9 @@ export function PostsListPreview({
                 
                 {/* Categories Widget */}
                 {showCategories && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-3">
-                    <h3 className="font-semibold text-slate-900 text-sm mb-2 flex items-center gap-2">
-                      <FileText size={14} style={{ color: brandColor }} />
+                  <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: tokens.bodyText }}>
+                      <FileText size={14} style={{ color: tokens.sidebarWidgetIcon }} />
                       Danh mục
                     </h3>
                     <ul className="space-y-0.5">
@@ -274,9 +345,15 @@ export function PostsListPreview({
                         <li key={cat}>
                           <button
                             className={`w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors ${
-                              i === 0 ? 'font-medium' : 'text-slate-600'
+                              i === 0 ? 'font-medium' : ''
                             }`}
-                            style={i === 0 ? { backgroundColor: `${brandColor}15`, color: brandColor } : undefined}
+                            style={i === 0 ? {
+                              backgroundColor: tokens.sidebarActiveItemBg,
+                              color: tokens.sidebarActiveItemText,
+                              borderColor: tokens.sidebarActiveItemBorder,
+                            } : {
+                              color: tokens.metaText,
+                            }}
                             disabled
                           >
                             {cat}
@@ -288,18 +365,23 @@ export function PostsListPreview({
                 )}
                 
                 {/* Sort Widget */}
-                <div className="bg-white rounded-lg border border-slate-200 p-3">
-                  <h3 className="font-semibold text-slate-900 text-sm mb-2">Sắp xếp</h3>
+                <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+                  <h3 className="font-semibold text-sm mb-2" style={{ color: tokens.bodyText }}>Sắp xếp</h3>
                   <div className="relative">
                     <select
-                      className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      className="w-full appearance-none px-3 py-2 border rounded-lg text-sm"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
                       disabled
                     >
                       <option>Mới nhất</option>
                       <option>Cũ nhất</option>
                       <option>Xem nhiều</option>
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                   </div>
                 </div>
               </div>
@@ -309,12 +391,12 @@ export function PostsListPreview({
             <main className={`flex-1 ${mainOrder}`}>
               <div className="space-y-2.5">
                 {mockPosts.slice(0, visiblePosts).map((post) => (
-                  <div key={post.id} className="bg-white rounded-lg overflow-hidden border border-slate-200">
+                  <div key={post.id} className="rounded-lg overflow-hidden border" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
                     <div className="flex flex-col sm:flex-row">
                       {/* Image */}
                       <div className={`${isMobile ? '' : 'sm:w-40 md:w-48'} flex-shrink-0`}>
-                        <div className={`${isMobile ? 'aspect-video' : 'aspect-video sm:aspect-[4/3] sm:h-full'} bg-slate-100 flex items-center justify-center relative`}>
-                          <FileText size={28} className="text-slate-300" />
+                        <div className={`${isMobile ? 'aspect-video' : 'aspect-video sm:aspect-[4/3] sm:h-full'} flex items-center justify-center relative`} style={{ backgroundColor: tokens.cardBorder }}>
+                          <FileText size={28} style={{ color: tokens.neutralTextLight }} />
                         </div>
                       </div>
                       
@@ -323,17 +405,21 @@ export function PostsListPreview({
                         <div className="flex items-center gap-2 mb-1">
                           <span
                             className="text-xs font-medium px-2 py-0.5 rounded"
-                            style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                            style={{
+                              backgroundColor: tokens.categoryBadgeBg,
+                              color: tokens.categoryBadgeText,
+                              borderColor: tokens.categoryBadgeBorder,
+                            }}
                           >
                             {post.category}
                           </span>
-                          <span className="text-xs text-slate-400">{post.date}</span>
+                          <span className="text-xs" style={{ color: tokens.neutralTextLight }}>{post.date}</span>
                         </div>
-                        <h2 className="text-sm font-semibold text-slate-900 line-clamp-2 mb-1">
+                        <h2 className="text-sm font-semibold line-clamp-2 mb-1" style={{ color: tokens.bodyText }}>
                           {post.title}
                         </h2>
-                        <div className="h-3 bg-slate-100 rounded w-4/5 mb-1.5" />
-                        <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <div className="h-3 rounded w-4/5 mb-1.5" style={{ backgroundColor: tokens.cardBorder }} />
+                        <div className="flex items-center gap-1 text-xs" style={{ color: tokens.neutralTextLight }}>
                           <span>👁</span>
                           <span>{post.views.toLocaleString()}</span>
                         </div>
@@ -342,7 +428,7 @@ export function PostsListPreview({
                   </div>
                 ))}
               </div>
-              <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+              <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
             </main>
           </div>
         </div>
@@ -355,7 +441,7 @@ export function PostsListPreview({
     <div className="py-6 md:py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-3">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Tin tức & Bài viết</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Tin tức & Bài viết</h2>
         </div>
         
         <div className="space-y-5">
@@ -363,25 +449,34 @@ export function PostsListPreview({
           {isDesktop && (
             <section className={`grid ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-3'} gap-4`}>
               {/* Main Featured */}
-              <div className={`${isMobile ? '' : 'lg:col-span-2'} group relative rounded-xl overflow-hidden bg-slate-900`}>
-                <div className={`bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center ${isMobile ? 'min-h-[280px]' : 'min-h-[280px] lg:min-h-[360px]'}`}>
-                  <FileText size={48} className="text-slate-600" />
+              <div
+                className={`${isMobile ? '' : 'lg:col-span-2'} group relative rounded-xl overflow-hidden`}
+                style={{ backgroundColor: tokens.overlaySurface }}
+              >
+                <div
+                  className={`flex items-center justify-center ${isMobile ? 'min-h-[280px]' : 'min-h-[280px] lg:min-h-[360px]'}`}
+                  style={{ background: `linear-gradient(135deg, ${tokens.overlaySurfaceMuted}, ${tokens.overlaySurface})` }}
+                >
+                  <FileText size={48} style={{ color: tokens.overlayTextSoft }} />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: `linear-gradient(to top, ${tokens.overlaySurface}, ${tokens.overlaySurfaceMuted})` }}
+                />
                 <div className={`absolute bottom-0 left-0 right-0 ${isMobile ? 'p-4' : 'p-5 lg:p-6'}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className="px-2 py-0.5 rounded text-xs font-medium text-white"
-                      style={{ backgroundColor: brandColor }}
+                    className="px-2 py-0.5 rounded text-xs font-medium"
+                    style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}
                     >
                       Nổi bật
                     </span>
                   </div>
-                  <h2 className={`${isMobile ? 'text-lg' : 'text-xl lg:text-2xl'} font-bold text-white mb-2 leading-tight line-clamp-2`}>
+                <h2 className={`${isMobile ? 'text-lg' : 'text-xl lg:text-2xl'} font-bold mb-2 leading-tight line-clamp-2`} style={{ color: tokens.overlayTextStrong }}>
                     {mockPosts[0].title}
                   </h2>
-                  <p className="text-white/70 text-sm line-clamp-2 mb-2">Mô tả bài viết nổi bật với nội dung hấp dẫn</p>
-                  <div className="flex items-center gap-3 text-xs text-white/60">
+                <p className="text-sm line-clamp-2 mb-2" style={{ color: tokens.overlayTextMuted }}>Mô tả bài viết nổi bật với nội dung hấp dẫn</p>
+                <div className="flex items-center gap-3 text-xs" style={{ color: tokens.overlayTextSoft }}>
                     <span>{mockPosts[0].date}</span>
                     <span>{mockPosts[0].views.toLocaleString()} views</span>
                   </div>
@@ -392,19 +487,25 @@ export function PostsListPreview({
               {!isMobile && (
                 <div className="flex flex-col gap-4">
                   {mockPosts.slice(1, 3).map((post) => (
-                    <div key={post.id} className="group relative flex-1 rounded-lg overflow-hidden bg-slate-900">
-                      <div className="bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center min-h-[140px]">
-                        <FileText size={24} className="text-slate-500" />
+                    <div key={post.id} className="group relative flex-1 rounded-lg overflow-hidden" style={{ backgroundColor: tokens.overlaySurface }}>
+                      <div
+                        className="flex items-center justify-center min-h-[140px]"
+                        style={{ background: `linear-gradient(135deg, ${tokens.overlaySurfaceMuted}, ${tokens.overlaySurface})` }}
+                      >
+                        <FileText size={24} style={{ color: tokens.overlayTextSoft }} />
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div
+                        className="absolute inset-0"
+                        style={{ background: `linear-gradient(to top, ${tokens.overlaySurface}, ${tokens.overlaySurfaceMuted})` }}
+                      />
                       <div className="absolute bottom-0 left-0 right-0 p-4">
                         <span
-                          className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white mb-1"
-                          style={{ backgroundColor: brandColor }}
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-1"
+                        style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}
                         >
                           {post.category}
                         </span>
-                        <h3 className="text-base font-semibold text-white line-clamp-2">{post.title}</h3>
+                      <h3 className="text-base font-semibold line-clamp-2" style={{ color: tokens.overlayTextStrong }}>{post.title}</h3>
                       </div>
                     </div>
                   ))}
@@ -414,16 +515,22 @@ export function PostsListPreview({
           )}
           
           {/* Filter Bar */}
-          <section className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+          <section className="rounded-lg border p-3 shadow-sm" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.cardBorder }}>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               {/* Search */}
               {showSearch && (
                 <div className={`relative flex-1 ${isDesktop ? 'max-w-xs' : ''}`}>
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inputIcon }} />
                   <input
                     type="text"
                     placeholder="Tìm kiếm..."
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm placeholder:text-[var(--placeholder-color)]"
+                    style={{
+                      '--placeholder-color': tokens.inputPlaceholder,
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                    } as React.CSSProperties}
                     disabled
                   />
                 </div>
@@ -433,14 +540,19 @@ export function PostsListPreview({
               {showCategories && (
                 <div className="relative">
                   <select
-                    className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white min-w-[140px]"
+                    className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm min-w-[140px]"
+                    style={{
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                    }}
                     disabled
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                 </div>
               )}
               
@@ -450,14 +562,19 @@ export function PostsListPreview({
               {/* Sort Dropdown */}
               <div className="relative">
                 <select
-                  className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                  className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm"
+                  style={{
+                    borderColor: tokens.inputBorder,
+                    backgroundColor: tokens.inputBackground,
+                    color: tokens.inputText,
+                  }}
                   disabled
                 >
                   <option>Mới nhất</option>
                   <option>Cũ nhất</option>
                   <option>Xem nhiều</option>
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
               </div>
             </div>
           </section>
@@ -465,32 +582,36 @@ export function PostsListPreview({
           {/* Main Posts Grid */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-slate-900">Bài viết mới nhất</h2>
-              <span className="text-sm text-slate-500">4 bài viết</span>
+              <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>Bài viết mới nhất</h2>
+              <span className="text-sm" style={{ color: tokens.metaText }}>4 bài viết</span>
             </div>
             
             <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'} gap-3`}>
               {mockPosts.slice(0, visiblePosts).map((post) => (
-                <div key={post.id} className="h-full flex flex-col bg-white rounded-lg overflow-hidden border border-slate-200">
-                  <div className="relative aspect-video overflow-hidden bg-slate-100">
+                <div key={post.id} className="h-full flex flex-col rounded-lg overflow-hidden border" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+                  <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: tokens.cardBorder }}>
                     <div className="w-full h-full flex items-center justify-center">
-                      <FileText size={28} className="text-slate-300" />
+                      <FileText size={28} style={{ color: tokens.neutralTextLight }} />
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col p-3">
                     <div className="flex items-center gap-2 mb-1">
                       <span
                         className="text-xs font-medium px-2 py-0.5 rounded"
-                        style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                        style={{
+                          backgroundColor: tokens.categoryBadgeBg,
+                          color: tokens.categoryBadgeText,
+                          borderColor: tokens.categoryBadgeBorder,
+                        }}
                       >
                         {post.category}
                       </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-xs text-slate-400">{post.date}</span>
+                      <span style={{ color: tokens.neutralTextLight }}>•</span>
+                      <span className="text-xs" style={{ color: tokens.neutralTextLight }}>{post.date}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 mb-1">{post.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-2 flex-1">Mô tả ngắn về bài viết</p>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <h3 className="text-sm font-semibold line-clamp-2 mb-1" style={{ color: tokens.bodyText }}>{post.title}</h3>
+                    <p className="text-xs line-clamp-2 mb-2 flex-1" style={{ color: tokens.metaText }}>Mô tả ngắn về bài viết</p>
+                    <div className="flex items-center gap-1 text-xs" style={{ color: tokens.neutralTextLight }}>
                       <span>👁</span>
                       <span>{post.views.toLocaleString()}</span>
                     </div>
@@ -499,8 +620,7 @@ export function PostsListPreview({
               ))}
             </div>
           </section>
-          
-          <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+          <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
         </div>
       </div>
     </div>

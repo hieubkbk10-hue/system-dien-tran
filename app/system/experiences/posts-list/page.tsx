@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, FileText, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -66,7 +67,10 @@ const HINTS = [
 export default function PostsListExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const postsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'posts' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const exampleCategorySlug = useExamplePostCategorySlug();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   
@@ -116,6 +120,12 @@ export default function PostsListExperiencePage() {
     additionalSettings
   );
 
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -150,9 +160,19 @@ export default function PostsListExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Hiển thị">
-            <ToggleRow label="Tìm kiếm" checked={config.showSearch} onChange={(v) => setConfig(prev => ({ ...prev, showSearch: v }))} accentColor="#3b82f6" />
-            <ToggleRow label="Danh mục" checked={config.showCategories} onChange={(v) => setConfig(prev => ({ ...prev, showCategories: v }))} accentColor="#3b82f6" />
+            <ToggleRow label="Tìm kiếm" checked={config.showSearch} onChange={(v) => setConfig(prev => ({ ...prev, showSearch: v }))} accentColor={brandColor} />
+            <ToggleRow label="Danh mục" checked={config.showCategories} onChange={(v) => setConfig(prev => ({ ...prev, showCategories: v }))} accentColor={brandColor} />
           </ControlCard>
 
           <ControlCard title="Phân trang">
@@ -184,13 +204,21 @@ export default function PostsListExperiencePage() {
             />
           </ControlCard>
 
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Link & ghi chú</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <ControlCard title="Link xem thử">
             <ExampleLinks
               links={[
                 { label: 'Trang danh sách', url: '/posts', description: 'Xem tất cả bài viết' },
                 ...(exampleCategorySlug ? [{ label: 'Lọc theo category', url: `/posts?catpost=${exampleCategorySlug}`, description: 'Ví dụ filter' }] : []),
               ]}
-              color="#3b82f6"
+              color={brandColor}
               compact
             />
           </ControlCard>
@@ -212,7 +240,7 @@ export default function PostsListExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#3b82f6"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -224,6 +252,8 @@ export default function PostsListExperiencePage() {
               <PostsListPreview
                 layoutStyle={config.layoutStyle}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 device={previewDevice}
                 showSearch={config.showSearch}
                 showCategories={config.showCategories}

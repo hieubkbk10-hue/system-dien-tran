@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, FileText } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import type { PostsListColors } from '../colors';
 
 interface Post {
   _id: Id<"posts">;
@@ -20,11 +21,12 @@ interface Post {
 interface FullWidthLayoutProps {
   posts: Post[];
   brandColor: string;
+  tokens: PostsListColors;
   categoryMap: Map<string, string>;
   enabledFields: Set<string>;
 }
 
-export function FullWidthLayout({ posts, brandColor, categoryMap, enabledFields }: FullWidthLayoutProps) {
+export function FullWidthLayout({ posts, brandColor, tokens, categoryMap, enabledFields }: FullWidthLayoutProps) {
   const showExcerpt = enabledFields.has('excerpt');
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
@@ -40,9 +42,9 @@ export function FullWidthLayout({ posts, brandColor, categoryMap, enabledFields 
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
-        <FileText size={48} className="mx-auto mb-3 text-slate-300" />
-        <h2 className="text-lg font-semibold text-slate-600 mb-2">Không tìm thấy bài viết</h2>
-        <p className="text-sm text-slate-500">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+        <FileText size={48} className="mx-auto mb-3" style={{ color: tokens.neutralTextLight }} />
+        <h2 className="text-lg font-semibold mb-2" style={{ color: tokens.metaText }}>Không tìm thấy bài viết</h2>
+        <p className="text-sm" style={{ color: tokens.neutralTextLight }}>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
       </div>
     );
   }
@@ -54,8 +56,11 @@ export function FullWidthLayout({ posts, brandColor, categoryMap, enabledFields 
 
         return (
           <Link key={post._id} href={`/posts/${post.slug}`} className="group">
-            <article className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 h-full flex flex-col">
-              <div className="relative aspect-video bg-slate-100 overflow-hidden">
+            <article
+              className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border h-full flex flex-col"
+              style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+            >
+              <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: tokens.cardBorder }}>
                 {showImage ? (
                   <Image
                     src={post.thumbnail as string}
@@ -72,7 +77,7 @@ export function FullWidthLayout({ posts, brandColor, categoryMap, enabledFields 
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <FileText size={32} className="text-slate-300" />
+                    <FileText size={32} style={{ color: tokens.neutralTextLight }} />
                   </div>
                 )}
               </div>
@@ -80,18 +85,25 @@ export function FullWidthLayout({ posts, brandColor, categoryMap, enabledFields 
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <span
                     className="text-xs font-medium px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                    style={{
+                      backgroundColor: tokens.categoryBadgeBg,
+                      color: tokens.categoryBadgeText,
+                      borderColor: tokens.categoryBadgeBorder,
+                    }}
                   >
                     {categoryMap.get(post.categoryId) ?? 'Tin tức'}
                   </span>
                 </div>
-                <h2 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:opacity-70 transition-opacity duration-200 flex-1">
+                <h2 className="text-sm font-semibold line-clamp-2 flex-1" style={{ color: tokens.bodyText }}>
                   {post.title}
                 </h2>
                 {showExcerpt && post.excerpt && (
-                  <p className="text-xs text-slate-500 line-clamp-2 mt-1.5">{post.excerpt}</p>
+                  <p className="text-xs line-clamp-2 mt-1.5" style={{ color: tokens.metaText }}>{post.excerpt}</p>
                 )}
-                <div className="flex items-center justify-between text-xs text-slate-400 mt-2.5 pt-2.5 border-t border-slate-100">
+                <div
+                  className="flex items-center justify-between text-xs mt-2.5 pt-2.5 border-t"
+                  style={{ color: tokens.neutralTextLight, borderColor: tokens.cardBorder }}
+                >
                   <span>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                   <span className="flex items-center gap-1">
                     <Eye size={11} />

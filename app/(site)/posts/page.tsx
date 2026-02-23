@@ -6,7 +6,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
+import { getPostsListColors } from '@/components/site/posts/colors';
 import { usePostsListConfig } from '@/lib/experiences';
 import type { Id } from '@/convex/_generated/dataModel';
 import {
@@ -37,15 +38,21 @@ function useEnabledPostFields(): Set<string> {
 }
 
 function PostsGridSkeleton({ count = 6 }: { count?: number }) {
+  const tokens = getPostsListColors('#3b82f6', undefined, 'single');
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white rounded-xl overflow-hidden border border-slate-100">
-          <div className="aspect-video bg-slate-200" />
+        <div
+          key={i}
+          className="rounded-xl overflow-hidden border"
+          style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+        >
+          <div className="aspect-video" style={{ backgroundColor: tokens.cardBorder }} />
           <div className="p-5 space-y-3">
-            <div className="h-5 w-20 bg-slate-200 rounded-full" />
-            <div className="h-6 w-full bg-slate-200 rounded" />
-            <div className="h-4 w-3/4 bg-slate-200 rounded" />
+            <div className="h-5 w-20 rounded-full" style={{ backgroundColor: tokens.cardBorder }} />
+            <div className="h-6 w-full rounded" style={{ backgroundColor: tokens.cardBorder }} />
+            <div className="h-4 w-3/4 rounded" style={{ backgroundColor: tokens.cardBorder }} />
           </div>
         </div>
       ))}
@@ -104,30 +111,36 @@ function generatePaginationItems(currentPage: number, totalPages: number): (numb
   return items;
 }
 function PostsListSkeleton() {
+  const tokens = getPostsListColors('#3b82f6', undefined, 'single');
+
   return (
     <div className="py-8 md:py-12 px-4 animate-pulse">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <div className="h-10 w-64 bg-slate-200 rounded mx-auto" />
+          <div className="h-10 w-64 rounded mx-auto" style={{ backgroundColor: tokens.cardBorder }} />
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-8">
+        <div className="rounded-xl border p-4 mb-8" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="h-10 flex-1 max-w-xs bg-slate-200 rounded-lg" />
+            <div className="h-10 flex-1 max-w-xs rounded-lg" style={{ backgroundColor: tokens.cardBorder }} />
             <div className="flex gap-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-8 w-20 bg-slate-200 rounded-full" />
+                <div key={i} className="h-8 w-20 rounded-full" style={{ backgroundColor: tokens.cardBorder }} />
               ))}
             </div>
           </div>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-xl overflow-hidden border border-slate-100">
-              <div className="aspect-video bg-slate-200" />
+            <div
+              key={i}
+              className="rounded-xl overflow-hidden border"
+              style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+            >
+              <div className="aspect-video" style={{ backgroundColor: tokens.cardBorder }} />
               <div className="p-5 space-y-3">
-                <div className="h-5 w-20 bg-slate-200 rounded-full" />
-                <div className="h-6 w-full bg-slate-200 rounded" />
-                <div className="h-4 w-3/4 bg-slate-200 rounded" />
+                <div className="h-5 w-20 rounded-full" style={{ backgroundColor: tokens.cardBorder }} />
+                <div className="h-6 w-full rounded" style={{ backgroundColor: tokens.cardBorder }} />
+                <div className="h-4 w-3/4 rounded" style={{ backgroundColor: tokens.cardBorder }} />
               </div>
             </div>
           ))}
@@ -146,7 +159,12 @@ export default function PostsPage() {
 }
 
 function PostsContent() {
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const brandColor = brandColors.primary;
+  const tokens = useMemo(
+    () => getPostsListColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
   const layout = usePostsLayout();
   const enabledFields = useEnabledPostFields();
   const listConfig = usePostsListConfig();
@@ -352,7 +370,7 @@ function PostsContent() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-3">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>
             Tin tức & Bài viết
           </h1>
         </div>
@@ -372,7 +390,7 @@ function PostsContent() {
                   sortBy={sortBy}
                   onSortChange={handleSortChange}
                   totalResults={totalCount ?? (posts?.length ?? 0)}
-                  brandColor={brandColor}
+                  tokens={tokens}
                   showSearch={listConfig.showSearch}
                   showCategories={listConfig.showCategories}
                 />
@@ -386,6 +404,7 @@ function PostsContent() {
               <FullWidthLayout
                 posts={posts}
                 brandColor={brandColor}
+                tokens={tokens}
                 categoryMap={categoryMap}
                 enabledFields={enabledFields}
               />
@@ -400,6 +419,7 @@ function PostsContent() {
             <SidebarLayout
               posts={posts}
               brandColor={brandColor}
+              tokens={tokens}
               categoryMap={categoryMap}
               categories={categories}
               selectedCategory={selectedCategory}
@@ -422,6 +442,7 @@ function PostsContent() {
             <MagazineLayout
               posts={posts}
               brandColor={brandColor}
+              tokens={tokens}
               categoryMap={categoryMap}
               categories={categories}
               selectedCategory={selectedCategory}
@@ -441,14 +462,18 @@ function PostsContent() {
         {/* Pagination / Infinite Scroll */}
         {listConfig.paginationType === 'pagination' && totalPages > 1 && (
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="order-2 flex w-full items-center justify-between text-sm text-slate-500 sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
+            <div className="order-2 flex w-full items-center justify-between text-sm sm:order-1 sm:w-auto sm:justify-start sm:gap-6">
               <div className="flex items-center gap-2">
-                <span className="text-slate-600">Hiển thị</span>
+                <span style={{ color: tokens.metaText }}>Hiển thị</span>
                 <select
                   value={postsPerPage}
                   onChange={(event) => handlePageSizeChange(Number(event.target.value))}
-                  className="h-8 w-[70px] appearance-none rounded-md border border-slate-200 bg-white px-2 text-sm font-medium text-slate-900 shadow-sm focus:border-slate-300 focus:outline-none"
-                  style={{ borderColor: brandColor }}
+                  className="h-8 w-[70px] appearance-none rounded-md border px-2 text-sm font-medium shadow-sm focus:outline-none"
+                  style={{
+                    borderColor: tokens.inputBorder,
+                    backgroundColor: tokens.inputBackground,
+                    color: tokens.inputText,
+                  }}
                   aria-label="Số bài mỗi trang"
                 >
                   {[12, 20, 24, 48, 100].map((size) => (
@@ -459,12 +484,12 @@ function PostsContent() {
               </div>
 
               <div className="text-right sm:text-left">
-                <span className="font-medium text-slate-900">
+                <span className="font-medium" style={{ color: tokens.bodyText }}>
                   {totalCount ? ((urlPage - 1) * postsPerPage) + 1 : 0}–{Math.min(urlPage * postsPerPage, totalCount ?? 0)}
                 </span>
-                <span className="mx-1 text-slate-300">/</span>
-                <span className="font-medium text-slate-900">{totalCount ?? 0}</span>
-                <span className="ml-1 text-slate-500">bài viết</span>
+                <span className="mx-1" style={{ color: tokens.neutralTextLight }}>/</span>
+                <span className="font-medium" style={{ color: tokens.bodyText }}>{totalCount ?? 0}</span>
+                <span className="ml-1" style={{ color: tokens.metaText }}>bài viết</span>
               </div>
             </div>
 
@@ -473,8 +498,8 @@ function PostsContent() {
                 <button
                   onClick={() => handlePageChange(urlPage - 1)}
                   disabled={urlPage === 1}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={urlPage === 1 ? undefined : { color: brandColor, borderColor: brandColor }}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={urlPage === 1 ? undefined : { color: tokens.paginationButtonText, borderColor: tokens.paginationButtonBorder }}
                   aria-label="Trang trước"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -483,7 +508,7 @@ function PostsContent() {
                 {generatePaginationItems(urlPage, totalPages).map((item, index) => {
                   if (item === 'ellipsis') {
                     return (
-                      <div key={`ellipsis-${index}`} className="flex h-8 w-8 items-center justify-center text-slate-400">
+                      <div key={`ellipsis-${index}`} className="flex h-8 w-8 items-center justify-center" style={{ color: tokens.paginationEllipsisText }}>
                         …
                       </div>
                     );
@@ -500,9 +525,15 @@ function PostsContent() {
                       className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm transition-all duration-200 ${
                         isActive
                           ? 'text-white shadow-sm border font-medium'
-                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                          : ''
                       } ${isMobileHidden ? 'hidden sm:inline-flex' : ''}`}
-                      style={isActive ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
+                      style={isActive ? {
+                        backgroundColor: tokens.paginationActiveBg,
+                        borderColor: tokens.paginationActiveBorder,
+                        color: tokens.paginationActiveText,
+                      } : {
+                        color: tokens.paginationButtonText,
+                      }}
                       aria-current={isActive ? 'page' : undefined}
                     >
                       {pageNum}
@@ -513,8 +544,8 @@ function PostsContent() {
                 <button
                   onClick={() => handlePageChange(urlPage + 1)}
                   disabled={urlPage === totalPages}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={urlPage === totalPages ? undefined : { color: brandColor, borderColor: brandColor }}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={urlPage === totalPages ? undefined : { color: tokens.paginationButtonText, borderColor: tokens.paginationButtonBorder }}
                   aria-label="Trang sau"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -529,12 +560,12 @@ function PostsContent() {
           <div ref={loadMoreRef} className="text-center mt-6 py-8">
             {infiniteStatus === 'LoadingMore' ? (
               <div className="flex justify-center gap-1">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor, opacity: 0.7 }} />
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor, opacity: 0.5 }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotStrong }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotMedium }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotSoft }} />
               </div>
             ) : infiniteStatus === 'CanLoadMore' ? (
-              <p className="text-sm text-slate-400">Cuộn để xem thêm...</p>
+              <p className="text-sm" style={{ color: tokens.neutralTextLight }}>Cuộn để xem thêm...</p>
             ) : null}
           </div>
         )}
@@ -542,7 +573,7 @@ function PostsContent() {
         {/* Show "All loaded" message for infinite scroll */}
         {listConfig.paginationType === 'infiniteScroll' && infiniteStatus === 'Exhausted' && posts.length > 0 && (
           <div className="text-center mt-6">
-            <p className="text-sm text-slate-400">Đã hiển thị tất cả {posts.length} bài viết</p>
+            <p className="text-sm" style={{ color: tokens.neutralTextLight }}>Đã hiển thị tất cả {posts.length} bài viết</p>
           </div>
         )}
       </div>

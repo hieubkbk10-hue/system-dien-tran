@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Bookmark, ChevronDown, Eye, FileText, Search } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { SortOption } from '../PostsFilter';
+import type { PostsListColors } from '../colors';
 
 interface Post {
   _id: Id<"posts">;
@@ -27,6 +28,7 @@ interface Category {
 interface MagazineLayoutProps {
   posts: Post[];
   brandColor: string;
+  tokens: PostsListColors;
   categoryMap: Map<string, string>;
   categories: Category[];
   selectedCategory: Id<"postCategories"> | null;
@@ -51,6 +53,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 export function MagazineLayout({
   posts,
   brandColor,
+  tokens,
   categoryMap,
   categories,
   selectedCategory,
@@ -87,7 +90,10 @@ export function MagazineLayout({
         <section className="grid lg:grid-cols-3 gap-4">
           {/* Main Featured - Large Card */}
           <Link href={`/posts/${mainFeatured.slug}`} className="lg:col-span-2 group">
-            <article className="relative h-full min-h-[280px] lg:min-h-[360px] rounded-xl overflow-hidden bg-slate-900">
+            <article
+              className="relative h-full min-h-[280px] lg:min-h-[360px] rounded-xl overflow-hidden"
+              style={{ backgroundColor: tokens.overlaySurface }}
+            >
               {mainFeatured.thumbnail && !brokenThumbnails.has(String(mainFeatured._id)) ? (
                 <Image
                   src={mainFeatured.thumbnail}
@@ -103,24 +109,30 @@ export function MagazineLayout({
                   onError={() =>{  markThumbnailBroken(mainFeatured._id); }}
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                  <FileText size={56} className="text-slate-500" />
+                <div
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{ background: `linear-gradient(135deg, ${tokens.overlaySurfaceMuted}, ${tokens.overlaySurface})` }}
+                >
+                  <FileText size={56} style={{ color: tokens.overlayTextSoft }} />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div
+                className="absolute inset-0"
+                style={{ background: `linear-gradient(to top, ${tokens.overlaySurface}, ${tokens.overlaySurfaceMuted})` }}
+              />
               <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-6">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-0.5 rounded text-xs font-medium text-white" style={{ backgroundColor: brandColor }}>
+                  <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}>
                     {categoryMap.get(mainFeatured.categoryId) ?? 'Nổi bật'}
                   </span>
                 </div>
-                <h2 className="text-xl lg:text-2xl font-bold text-white mb-2 leading-tight line-clamp-2">
+                <h2 className="text-xl lg:text-2xl font-bold mb-2 leading-tight line-clamp-2" style={{ color: tokens.overlayTextStrong }}>
                   {mainFeatured.title}
                 </h2>
                 {showExcerpt && mainFeatured.excerpt && (
-                  <p className="text-white/70 text-sm line-clamp-2 mb-2">{mainFeatured.excerpt}</p>
+                  <p className="text-sm line-clamp-2 mb-2" style={{ color: tokens.overlayTextMuted }}>{mainFeatured.excerpt}</p>
                 )}
-                <div className="flex items-center gap-3 text-xs text-white/60">
+                <div className="flex items-center gap-3 text-xs" style={{ color: tokens.overlayTextSoft }}>
                   <span>{mainFeatured.publishedAt ? new Date(mainFeatured.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                   <span className="flex items-center gap-1"><Eye size={12} />{mainFeatured.views.toLocaleString()}</span>
                 </div>
@@ -132,7 +144,10 @@ export function MagazineLayout({
           <div className="flex flex-col gap-4">
             {secondaryFeatured.map((post) => (
               <Link key={post._id} href={`/posts/${post.slug}`} className="group flex-1">
-                <article className="relative h-full min-h-[140px] lg:min-h-0 rounded-lg overflow-hidden bg-slate-900">
+                <article
+                  className="relative h-full min-h-[140px] lg:min-h-0 rounded-lg overflow-hidden"
+                  style={{ backgroundColor: tokens.overlaySurface }}
+                >
                   {post.thumbnail && !brokenThumbnails.has(String(post._id)) ? (
                     <Image
                       src={post.thumbnail}
@@ -148,16 +163,22 @@ export function MagazineLayout({
                       onError={() =>{  markThumbnailBroken(post._id); }}
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                      <FileText size={28} className="text-slate-500" />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ background: `linear-gradient(135deg, ${tokens.overlaySurfaceMuted}, ${tokens.overlaySurface})` }}
+                    >
+                      <FileText size={28} style={{ color: tokens.overlayTextSoft }} />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(to top, ${tokens.overlaySurface}, ${tokens.overlaySurfaceMuted})` }}
+                  />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white mb-1" style={{ backgroundColor: brandColor }}>
+                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-1" style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}>
                       {categoryMap.get(post.categoryId) ?? 'Tin tức'}
                     </span>
-                    <h3 className="text-base font-semibold text-white line-clamp-2">{post.title}</h3>
+                    <h3 className="text-base font-semibold line-clamp-2" style={{ color: tokens.overlayTextStrong }}>{post.title}</h3>
                   </div>
                 </article>
               </Link>
@@ -167,19 +188,25 @@ export function MagazineLayout({
       )}
 
       {/* Filter Bar - Search, Category, Sort */}
-      <section className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+      <section className="rounded-lg border p-3 shadow-sm" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.cardBorder }}>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           {/* Search Input */}
           {showSearch && (
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inputIcon }} />
               <input
                 type="text"
                 placeholder="Tìm kiếm..."
                 value={searchQuery}
                 onChange={(e) =>{  onSearchChange(e.target.value); }}
-                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 text-sm"
-                style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                className="w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm placeholder:text-[var(--placeholder-color)]"
+                style={{
+                  '--tw-ring-color': tokens.inputRing,
+                  '--placeholder-color': tokens.inputPlaceholder,
+                  borderColor: tokens.inputBorder,
+                  backgroundColor: tokens.inputBackground,
+                  color: tokens.inputText,
+                } as React.CSSProperties}
               />
             </div>
           )}
@@ -190,8 +217,13 @@ export function MagazineLayout({
               <select
                 value={selectedCategory ?? ''}
                 onChange={(e) =>{  onCategoryChange(e.target.value ? e.target.value as Id<"postCategories"> : null); }}
-                className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 cursor-pointer min-w-[140px]"
-                style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 cursor-pointer min-w-[140px]"
+                style={{
+                  '--tw-ring-color': tokens.inputRing,
+                  borderColor: tokens.inputBorder,
+                  backgroundColor: tokens.inputBackground,
+                  color: tokens.inputText,
+                } as React.CSSProperties}
               >
                 <option value="">Tất cả danh mục</option>
                 {categories.map((category) => (
@@ -200,7 +232,7 @@ export function MagazineLayout({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
             </div>
           )}
 
@@ -212,8 +244,13 @@ export function MagazineLayout({
             <select
               value={sortBy}
               onChange={(e) =>{  onSortChange(e.target.value as SortOption); }}
-              className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 cursor-pointer"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 cursor-pointer"
+              style={{
+                '--tw-ring-color': tokens.inputRing,
+                borderColor: tokens.inputBorder,
+                backgroundColor: tokens.inputBackground,
+                color: tokens.inputText,
+              } as React.CSSProperties}
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -221,31 +258,34 @@ export function MagazineLayout({
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
           </div>
         </div>
       </section>
 
       {/* Main Posts Grid - Clean Card Design */}
       {posts.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-lg border border-slate-200">
-          <Bookmark size={40} className="mx-auto mb-2 text-slate-300" />
-          <h2 className="text-base font-semibold text-slate-600 mb-1">Không tìm thấy bài viết</h2>
-          <p className="text-sm text-slate-500">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+        <div className="text-center py-10 rounded-lg border" style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}>
+          <Bookmark size={40} className="mx-auto mb-2" style={{ color: tokens.neutralTextLight }} />
+          <h2 className="text-base font-semibold mb-1" style={{ color: tokens.bodyText }}>Không tìm thấy bài viết</h2>
+          <p className="text-sm" style={{ color: tokens.metaText }}>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
         </div>
       ) : (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
               {selectedCategory ? categoryMap.get(selectedCategory) : 'Bài viết mới nhất'}
             </h2>
-            <span className="text-sm text-slate-500">{posts.length} bài viết</span>
+            <span className="text-sm" style={{ color: tokens.metaText }}>{posts.length} bài viết</span>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {posts.map((post) => (
               <Link key={post._id} href={`/posts/${post.slug}`} className="group">
-                <article className="h-full flex flex-col bg-white rounded-lg overflow-hidden border border-slate-200 hover:shadow-md transition-shadow duration-200">
-                  <div className="relative aspect-video overflow-hidden bg-slate-100">
+                <article
+                  className="h-full flex flex-col rounded-lg overflow-hidden border hover:shadow-md transition-shadow duration-200"
+                  style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+                >
+                  <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: tokens.cardBorder }}>
                     {post.thumbnail && !brokenThumbnails.has(String(post._id)) ? (
                       <Image
                         src={post.thumbnail}
@@ -262,29 +302,36 @@ export function MagazineLayout({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <FileText size={28} className="text-slate-300" />
+                        <FileText size={28} style={{ color: tokens.neutralTextLight }} />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 flex flex-col p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                      <span
+                        className="text-xs font-medium px-2 py-0.5 rounded"
+                        style={{
+                          backgroundColor: tokens.categoryBadgeBg,
+                          color: tokens.categoryBadgeText,
+                          borderColor: tokens.categoryBadgeBorder,
+                        }}
+                      >
                         {categoryMap.get(post.categoryId) ?? 'Tin tức'}
                       </span>
                       {post.publishedAt && (
                         <>
-                          <span className="text-slate-300">•</span>
-                          <span className="text-xs text-slate-400">{new Date(post.publishedAt).toLocaleDateString('vi-VN')}</span>
+                          <span style={{ color: tokens.neutralTextLight }}>•</span>
+                          <span className="text-xs" style={{ color: tokens.neutralTextLight }}>{new Date(post.publishedAt).toLocaleDateString('vi-VN')}</span>
                         </>
                       )}
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:text-opacity-70 transition-colors duration-200 mb-1">
+                    <h3 className="text-sm font-semibold line-clamp-2 mb-1" style={{ color: tokens.bodyText }}>
                       {post.title}
                     </h3>
                     {showExcerpt && post.excerpt && (
-                      <p className="text-xs text-slate-500 line-clamp-2 mb-2 flex-1">{post.excerpt}</p>
+                      <p className="text-xs line-clamp-2 mb-2 flex-1" style={{ color: tokens.metaText }}>{post.excerpt}</p>
                     )}
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-1 text-xs" style={{ color: tokens.neutralTextLight }}>
                       <Eye size={12} />
                       <span>{post.views.toLocaleString()}</span>
                     </div>
