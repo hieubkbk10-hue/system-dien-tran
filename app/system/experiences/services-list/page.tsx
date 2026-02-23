@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Briefcase, Eye, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -79,7 +80,10 @@ const HINTS = [
 export default function ServicesListExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const servicesModule = useQuery(api.admin.modules.getModuleByKey, { key: 'services' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<ServicesListExperienceConfig>(() => {
@@ -120,6 +124,12 @@ export default function ServicesListExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const currentLayoutConfig = config.layouts[config.layoutStyle];
 
@@ -175,19 +185,29 @@ export default function ServicesListExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Tìm kiếm"
               checked={currentLayoutConfig.showSearch}
               onChange={(v) => updateLayoutConfig('showSearch', v)}
-              accentColor="#8b5cf6"
+              accentColor={brandColor}
               disabled={!servicesModule?.enabled}
             />
             <ToggleRow
               label="Danh mục"
               checked={currentLayoutConfig.showCategories}
               onChange={(v) => updateLayoutConfig('showCategories', v)}
-              accentColor="#8b5cf6"
+              accentColor={brandColor}
               disabled={!servicesModule?.enabled}
             />
           </ControlCard>
@@ -237,7 +257,7 @@ export default function ServicesListExperiencePage() {
           <ControlCard title="Link xem thử">
             <ExampleLinks
               links={[{ label: 'Trang danh sách', url: '/services' }]}
-              color="#8b5cf6"
+              color={brandColor}
               compact
             />
           </ControlCard>
@@ -259,7 +279,7 @@ export default function ServicesListExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#8b5cf6"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -274,6 +294,8 @@ export default function ServicesListExperiencePage() {
                 showCategories={currentLayoutConfig.showCategories}
                 paginationType={currentLayoutConfig.paginationType}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 device={previewDevice}
               />
             </BrowserFrame>
