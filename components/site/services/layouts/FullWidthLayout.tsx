@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Briefcase, Clock, Star } from 'lucide-react';
 import React from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { getSolidTint, resolveSecondaryColor } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -23,6 +24,7 @@ interface Service {
 interface FullWidthLayoutProps {
   services: Service[];
   brandColor: string;
+  secondaryColor?: string;
   categoryMap: Map<string, string>;
   viewMode: 'grid' | 'list';
   enabledFields: Set<string>;
@@ -33,11 +35,13 @@ const formatPrice = (price?: number): string => {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 };
 
-export const FullWidthLayout = ({ services, brandColor, categoryMap, viewMode, enabledFields }: FullWidthLayoutProps): React.ReactElement => {
+export const FullWidthLayout = ({ services, brandColor, secondaryColor, categoryMap, viewMode, enabledFields }: FullWidthLayoutProps): React.ReactElement => {
   const showExcerpt = enabledFields.has('excerpt');
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
+  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
+  const badgeTint = getSolidTint(secondaryResolved, brandColor, 0.42);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
   const markThumbnailBroken = React.useCallback((id: Id<"services">) => {
@@ -107,7 +111,7 @@ export const FullWidthLayout = ({ services, brandColor, categoryMap, viewMode, e
                   <div className="flex items-center gap-2 mb-1.5">
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded"
-                      style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                      style={{ backgroundColor: badgeTint, color: secondaryResolved }}
                     >
                       {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                     </span>
@@ -130,7 +134,7 @@ export const FullWidthLayout = ({ services, brandColor, categoryMap, viewMode, e
                     </div>
                     <div className="flex items-center gap-3">
                       {showPrice && (
-                        <span className="text-lg font-bold" style={{ color: brandColor }}>
+                        <span className="text-lg font-bold" style={{ color: secondaryResolved }}>
                           {formatPrice(service.price)}
                         </span>
                       )}
@@ -196,7 +200,7 @@ export const FullWidthLayout = ({ services, brandColor, categoryMap, viewMode, e
               <div className="flex items-center gap-2 mb-2">
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded"
-                  style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+                  style={{ backgroundColor: badgeTint, color: secondaryResolved }}
                 >
                   {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                 </span>
@@ -218,7 +222,7 @@ export const FullWidthLayout = ({ services, brandColor, categoryMap, viewMode, e
                 </div>
                 <div className="flex items-center gap-2">
                   {showPrice && (
-                    <span className="text-base font-bold" style={{ color: brandColor }}>
+                  <span className="text-base font-bold" style={{ color: secondaryResolved }}>
                       {formatPrice(service.price)}
                     </span>
                   )}

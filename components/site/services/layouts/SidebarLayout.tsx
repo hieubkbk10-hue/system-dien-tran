@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Briefcase, ChevronDown, Clock, Eye, Folder, Search, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
+import { getSolidTint, resolveSecondaryColor } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -30,6 +31,7 @@ interface Category {
 interface SidebarLayoutProps {
   services: Service[];
   brandColor: string;
+  secondaryColor?: string;
   categoryMap: Map<string, string>;
   categories: Category[];
   selectedCategory: Id<"serviceCategories"> | null;
@@ -60,6 +62,7 @@ const SORT_OPTIONS: { value: ServiceSortOption; label: string }[] = [
 export function SidebarLayout({
   services,
   brandColor,
+  secondaryColor,
   categoryMap,
   categories,
   selectedCategory,
@@ -78,6 +81,8 @@ export function SidebarLayout({
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
+  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
+  const badgeTint = getSolidTint(secondaryResolved, brandColor, 0.42);
   const [localSearch, setLocalSearch] = React.useState(searchQuery);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
@@ -140,7 +145,7 @@ export function SidebarLayout({
                     !selectedCategory ? 'font-medium' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                   style={
-                    ringStyle(!selectedCategory ? { backgroundColor: `${brandColor}15`, color: brandColor } : undefined)
+                    ringStyle(!selectedCategory ? { backgroundColor: badgeTint, color: secondaryResolved } : undefined)
                   }
                 >
                   Tất cả
@@ -154,7 +159,7 @@ export function SidebarLayout({
                       selectedCategory === category._id ? 'font-medium' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                     style={
-                      ringStyle(selectedCategory === category._id ? { backgroundColor: `${brandColor}15`, color: brandColor } : undefined)
+                      ringStyle(selectedCategory === category._id ? { backgroundColor: badgeTint, color: secondaryResolved } : undefined)
                     }
                   >
                     {category.name}
@@ -240,7 +245,7 @@ export function SidebarLayout({
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: badgeTint, color: secondaryResolved }}>
                             {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                           </span>
                           <span className="text-xs text-slate-400">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
@@ -259,7 +264,7 @@ export function SidebarLayout({
                             )}
                           </div>
                           {showPrice && (
-                            <span className="text-base font-bold" style={{ color: brandColor }}>
+                            <span className="text-base font-bold" style={{ color: secondaryResolved }}>
                               {formatPrice(service.price)}
                             </span>
                           )}

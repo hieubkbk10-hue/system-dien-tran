@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Briefcase, ChevronDown, Clock, Eye, Search, Star, TrendingUp } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
+import { resolveSecondaryColor } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -30,6 +31,7 @@ interface Category {
 interface MagazineLayoutProps {
   services: Service[];
   brandColor: string;
+  secondaryColor?: string;
   categoryMap: Map<string, string>;
   categories: Category[];
   selectedCategory: Id<"serviceCategories"> | null;
@@ -59,6 +61,7 @@ const SORT_OPTIONS: { value: ServiceSortOption; label: string }[] = [
 export function MagazineLayout({
   services,
   brandColor,
+  secondaryColor,
   categoryMap,
   categories,
   selectedCategory,
@@ -74,6 +77,7 @@ export function MagazineLayout({
   const showExcerpt = enabledFields.has('excerpt');
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
+  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
   const [localSearch, setLocalSearch] = React.useState(searchQuery);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
@@ -283,10 +287,10 @@ export function MagazineLayout({
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium" style={{ color: brandColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                  <span className="text-xs font-medium" style={{ color: secondaryResolved }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
                   <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:opacity-70 transition-opacity duration-200 mt-0.5">{service.title}</h3>
                   {showPrice && (
-                    <span className="text-xs font-bold mt-1 block" style={{ color: brandColor }}>{formatPrice(service.price)}</span>
+                    <span className="text-xs font-bold mt-1 block" style={{ color: secondaryResolved }}>{formatPrice(service.price)}</span>
                   )}
                 </div>
               </Link>
@@ -347,7 +351,7 @@ export function MagazineLayout({
                   </div>
                   <div className="flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium" style={{ color: brandColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                      <span className="text-sm font-medium" style={{ color: secondaryResolved }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
                       <span className="text-slate-300">•</span>
                       <span className="text-sm text-slate-500">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                     </div>
@@ -365,7 +369,7 @@ export function MagazineLayout({
                         )}
                       </div>
                       {showPrice && (
-                        <span className="text-base font-bold" style={{ color: brandColor }}>{formatPrice(service.price)}</span>
+                        <span className="text-base font-bold" style={{ color: secondaryResolved }}>{formatPrice(service.price)}</span>
                       )}
                     </div>
                   </div>

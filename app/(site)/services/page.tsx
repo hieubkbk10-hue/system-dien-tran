@@ -5,7 +5,7 @@ import { usePaginatedQuery, useQuery } from 'convex/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { useServicesListConfig } from '@/lib/experiences';
 import { ChevronDown } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -139,7 +139,8 @@ export default function ServicesPage() {
 }
 
 function ServicesContent() {
-  const brandColor = useBrandColor();
+  const { primary: brandColor, secondary } = useBrandColors();
+  const secondaryColor = secondary || brandColor;
   const listConfig = useServicesListConfig();
    const layout: ServicesListLayout = listConfig.layoutStyle === 'masonry'
      ? 'magazine'
@@ -355,6 +356,7 @@ function ServicesContent() {
               <FullWidthLayout
                 services={services}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
                 categoryMap={categoryMap}
                 viewMode="grid"
                 enabledFields={enabledFields}
@@ -370,6 +372,7 @@ function ServicesContent() {
             <SidebarLayout
               services={services}
               brandColor={brandColor}
+              secondaryColor={secondaryColor}
               categoryMap={categoryMap}
               categories={categories ?? []}
               selectedCategory={selectedCategory}
@@ -392,6 +395,7 @@ function ServicesContent() {
             <MagazineLayout
               services={services}
               brandColor={brandColor}
+              secondaryColor={secondaryColor}
               categoryMap={categoryMap}
               categories={categories ?? []}
               selectedCategory={selectedCategory}

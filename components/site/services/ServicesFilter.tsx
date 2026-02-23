@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { getSolidTint } from './colors';
 
 export type ServiceSortOption = 'newest' | 'oldest' | 'popular' | 'title' | 'price_asc' | 'price_desc';
 
@@ -46,6 +47,7 @@ export function ServicesFilter({
 }: ServicesFilterProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const badgeTint = getSolidTint(brandColor, brandColor, 0.42);
   
   // Debounce search
   useEffect(() => {
@@ -208,7 +210,7 @@ export function ServicesFilter({
           {selectedCategoryName && (
             <span
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-              style={{ backgroundColor: `${brandColor}15`, color: brandColor }}
+              style={{ backgroundColor: badgeTint, color: brandColor }}
             >
               {selectedCategoryName}
               <button
