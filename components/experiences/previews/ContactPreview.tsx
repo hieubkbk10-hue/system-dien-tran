@@ -158,8 +158,8 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }
       <h3 className="font-semibold text-slate-900 mb-4">Thông tin liên hệ</h3>
       <div className="space-y-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-            <Phone size={18} style={{ color: brandColor }} />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
+            <Phone size={18} style={{ color: secondaryColor || brandColor }} />
           </div>
           <div>
             <div className="font-medium text-slate-900">Điện thoại</div>
@@ -167,8 +167,8 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-            <Mail size={18} style={{ color: brandColor }} />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
+            <Mail size={18} style={{ color: secondaryColor || brandColor }} />
           </div>
           <div>
             <div className="font-medium text-slate-900">Email</div>
@@ -176,8 +176,8 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-            <MapPin size={18} style={{ color: brandColor }} />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
+            <MapPin size={18} style={{ color: secondaryColor || brandColor }} />
           </div>
           <div>
             <div className="font-medium text-slate-900">Địa chỉ</div>
@@ -234,8 +234,8 @@ export function ContactPreview({
       <div className="max-w-5xl mx-auto">
         {layoutStyle !== 'form-only' && (
           <div className="text-center mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Liên hệ với chúng tôi</h1>
-            <p className="text-slate-500 mt-1 text-sm">Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
+            <h1 className="text-xl md:text-2xl font-bold" style={{ color: brandColor }}>Liên hệ với chúng tôi</h1>
+            <p className="mt-1 text-sm" style={{ color: resolvedSecondary }}>Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
           </div>
         )}
 
@@ -256,7 +256,7 @@ export function ContactPreview({
                   <div className="space-y-6">
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">
-                        <Phone size={20} style={{ color: brandColor }} />
+                        <Phone size={20} style={{ color: resolvedSecondary }} />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-white">Điện thoại</h3>
@@ -266,7 +266,7 @@ export function ContactPreview({
                     </div>
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">
-                        <Mail size={20} style={{ color: brandColor }} />
+                        <Mail size={20} style={{ color: resolvedSecondary }} />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-white">Email</h3>
@@ -276,7 +276,7 @@ export function ContactPreview({
                     </div>
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">
-                        <MapPin size={20} style={{ color: brandColor }} />
+                        <MapPin size={20} style={{ color: resolvedSecondary }} />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-white">Văn phòng</h3>

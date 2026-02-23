@@ -9,7 +9,7 @@ import {
   parseContactExperienceConfig,
   type ContactExperienceConfig,
 } from '@/lib/experiences/contact/config';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { TikTokIcon, ZaloIcon } from './SocialIcons';
 
 type SocialLinkItem = {
@@ -31,11 +31,13 @@ type ContactData = {
 export function useContactPageData(): {
   isLoading: boolean;
   brandColor: string;
+  secondaryColor: string;
+  colorMode: 'single' | 'dual';
   config: ContactExperienceConfig;
   contactData: ContactData;
   socialLinks: SocialLinkItem[];
 } {
-  const brandColor = useBrandColor();
+  const { primary: brandColor, secondary: secondaryColor, mode: colorMode } = useBrandColors();
   const experienceSetting = useQuery(api.settings.getByKey, { key: CONTACT_EXPERIENCE_KEY });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   const socialSettings = useQuery(api.settings.listByGroup, { group: 'social' });
@@ -84,6 +86,8 @@ export function useContactPageData(): {
 
   return {
     brandColor,
+    secondaryColor,
+    colorMode,
     config,
     contactData,
     isLoading,

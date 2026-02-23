@@ -37,14 +37,26 @@ const withAlpha = (hex: string, alpha: number) => {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
 };
 
-function ContactForm({ brandColor }: { brandColor: string }) {
+const isValidHexColor = (value: string) => /^#[0-9A-Fa-f]{6}$/.test(value.trim());
+
+const resolveSecondary = (primary: string, secondary: string, mode: 'single' | 'dual') => {
+  if (mode === 'single') {
+    return primary;
+  }
+  if (secondary && isValidHexColor(secondary)) {
+    return secondary;
+  }
+  return primary;
+};
+
+function ContactForm({ brandColor, secondaryColor }: { brandColor: string; secondaryColor: string }) {
   return (
     <form
       onSubmit={(event) => event.preventDefault()}
       className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm"
     >
       <div className="flex items-center gap-2 mb-4">
-        <MessageSquare size={20} style={{ color: brandColor }} />
+        <MessageSquare size={20} style={{ color: secondaryColor }} />
         <h3 className="font-semibold text-slate-900">Gửi tin nhắn cho chúng tôi</h3>
       </div>
       <div className="space-y-3">
@@ -68,7 +80,7 @@ function ContactForm({ brandColor }: { brandColor: string }) {
   );
 }
 
-function CorporateContactForm({ brandColor }: { brandColor: string }) {
+function CorporateContactForm({ brandColor, secondaryColor }: { brandColor: string; secondaryColor: string }) {
   return (
     <form
       onSubmit={(event) => event.preventDefault()}
@@ -133,6 +145,7 @@ function CorporateContactForm({ brandColor }: { brandColor: string }) {
 
 function ContactInfoCard({
   brandColor,
+  secondaryColor,
   address,
   email,
   phone,
@@ -141,6 +154,7 @@ function ContactInfoCard({
   socialLinks,
 }: {
   brandColor: string;
+  secondaryColor: string;
   address: string;
   email: string;
   phone: string;
@@ -157,15 +171,15 @@ function ContactInfoCard({
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-      <h3 className="font-semibold text-slate-900 mb-4">Thông tin liên hệ</h3>
+      <h3 className="font-semibold mb-4" style={{ color: brandColor }}>Thông tin liên hệ</h3>
       <div className="space-y-4">
         {infoItems.length === 0 ? (
           <div className="text-sm text-slate-500">Chưa có dữ liệu liên hệ.</div>
         ) : (
           infoItems.map((item) => (
             <div key={item.label} className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${brandColor}15` }}>
-                <item.icon size={18} style={{ color: brandColor }} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
+                <item.icon size={18} style={{ color: secondaryColor }} />
               </div>
               <div>
                 <div className="font-medium text-slate-900">{item.label}</div>
@@ -177,7 +191,7 @@ function ContactInfoCard({
       </div>
       {showSocialLinks && socialLinks.length > 0 && (
         <div className="pt-4 mt-4 border-t border-slate-200">
-          <div className="text-sm font-medium text-slate-700 mb-2">Theo dõi chúng tôi</div>
+          <div className="text-sm font-medium mb-2" style={{ color: secondaryColor }}>Theo dõi chúng tôi</div>
           <div className="flex flex-wrap gap-2">
             {socialLinks.map((item) => (
               <a
@@ -207,6 +221,7 @@ function CorporateSidebar({
   showSocialLinks,
   socialLinks,
   brandColor,
+  secondaryColor,
 }: {
   address: string;
   email: string;
@@ -215,6 +230,7 @@ function CorporateSidebar({
   showSocialLinks: boolean;
   socialLinks: SocialLinkItem[];
   brandColor: string;
+  secondaryColor: string;
 }) {
   const sidebarColor = darkenColor(brandColor, 0.5);
   const glowColor = withAlpha(brandColor, 0.18);
@@ -244,7 +260,7 @@ function CorporateSidebar({
             infoItems.map((item) => (
               <div key={item.label} className="flex items-start gap-4">
                 <div className="bg-white/10 p-3 rounded-lg">
-                  <item.icon size={20} style={{ color: brandColor }} />
+                  <item.icon size={20} style={{ color: secondaryColor }} />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white">{item.label}</h3>
@@ -291,7 +307,8 @@ function MapPreview({ address, lat, lng }: { address: string; lat: number; lng: 
 }
 
 export default function ContactPage() {
-  const { isLoading, brandColor, config, contactData, socialLinks } = useContactPageData();
+  const { isLoading, brandColor, secondaryColor, colorMode, config, contactData, socialLinks } = useContactPageData();
+  const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
 
   if (isLoading) {
     return (
@@ -306,8 +323,8 @@ export default function ContactPage() {
     <div className="max-w-6xl mx-auto px-4 py-10">
       {config.layoutStyle !== 'form-only' && (
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Liên hệ với chúng tôi</h1>
-          <p className="text-slate-500 mt-2">Chúng tôi luôn sẵn sàng hỗ trợ bạn.</p>
+          <h1 className="text-3xl font-bold" style={{ color: brandColor }}>Liên hệ với chúng tôi</h1>
+          <p className="mt-2" style={{ color: resolvedSecondary }}>Chúng tôi luôn sẵn sàng hỗ trợ bạn.</p>
         </div>
       )}
 
@@ -322,10 +339,11 @@ export default function ContactPage() {
               showSocialLinks={config.showSocialLinks}
               socialLinks={socialLinks}
               brandColor={brandColor}
+              secondaryColor={resolvedSecondary}
             />
           )}
           <div className={`${config.showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
-            <CorporateContactForm brandColor={brandColor} />
+            <CorporateContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
             {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
           </div>
         </div>
@@ -335,10 +353,11 @@ export default function ContactPage() {
         <div className="space-y-4">
           {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ContactForm brandColor={brandColor} />
+            <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
             {config.showContactInfo && (
               <ContactInfoCard
                 brandColor={brandColor}
+                secondaryColor={resolvedSecondary}
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
@@ -354,12 +373,13 @@ export default function ContactPage() {
       {config.layoutStyle === 'with-info' && (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3">
-            <ContactForm brandColor={brandColor} />
+            <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
           </div>
           <div className="lg:col-span-2 space-y-6">
             {config.showContactInfo && (
               <ContactInfoCard
                 brandColor={brandColor}
+                secondaryColor={resolvedSecondary}
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
