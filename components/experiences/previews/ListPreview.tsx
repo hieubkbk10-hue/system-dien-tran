@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown, FileText, Heart, Search, ShoppingCart, SlidersHorizontal } from 'lucide-react';
-import { getPostsListColors, type PostsListColors, type PostsListColorMode } from '@/components/site/posts/colors';
+import { getPostsListColors, type PostsListColorMode } from '@/components/site/posts/colors';
+import { getProductsListColors, type ProductsListColorMode, type ProductsListColors } from '@/components/site/products/colors';
 
 type ListLayoutStyle = 'fullwidth' | 'sidebar' | 'magazine' | 'grid' | 'list' | 'masonry';
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
@@ -18,6 +19,16 @@ type PostsListPreviewProps = {
   device?: PreviewDevice;
 };
 
+type PaginationTokens = {
+  paginationButtonHoverBg: string;
+  paginationButtonText: string;
+  paginationButtonBorder: string;
+  loadingDotStrong: string;
+  loadingDotMedium: string;
+  loadingDotSoft: string;
+  neutralTextLight: string;
+};
+
 const normalizeLayoutStyle = (style: ListLayoutStyle): 'fullwidth' | 'sidebar' | 'magazine' => {
   if (style === 'grid' || style === 'fullwidth') {return 'fullwidth';}
   if (style === 'list' || style === 'sidebar') {return 'sidebar';}
@@ -31,7 +42,7 @@ function PaginationPreview({
 }: {
   paginationType: PaginationType;
   brandColor: string;
-  tokens?: PostsListColors;
+  tokens?: PaginationTokens;
 }) {
   const previewTokens = tokens ?? getPostsListColors(brandColor, undefined, 'single');
 
@@ -191,7 +202,7 @@ export function PostsListPreview({
                         {categories.map((cat, i) => (
                           <span
                             key={cat}
-                            className={`px-2.5 py-1 rounded-full text-sm font-medium ${i === 0 ? 'text-white' : ''}`}
+                            className="px-2.5 py-1 rounded-full text-sm font-medium"
                             style={i === 0 ? {
                               backgroundColor: tokens.filterActiveBg,
                               color: tokens.filterActiveText,
@@ -633,6 +644,8 @@ type ProductsListPreviewProps = {
   showSearch?: boolean;
   showCategories?: boolean;
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: ProductsListColorMode;
   device?: PreviewDevice;
   showWishlistButton?: boolean;
   showAddToCartButton?: boolean;
@@ -655,6 +668,8 @@ export function ProductsListPreview({
   showSearch = true,
   showCategories = true,
   brandColor = '#10b981',
+  secondaryColor,
+  colorMode = 'single',
   device = 'desktop',
   showWishlistButton = true,
   showAddToCartButton = true,
@@ -667,47 +682,69 @@ export function ProductsListPreview({
   const isCompact = device !== 'desktop';
   const visibleProducts = isMobile ? 2 : 4;
   const gridClass = isMobile ? 'grid-cols-1' : 'sm:grid-cols-2 lg:grid-cols-3';
+  const tokens = getProductsListColors(brandColor, secondaryColor, colorMode);
 
   const ProductCard = ({ product }: { product: typeof mockProducts[0] }) => (
-    <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-slate-100 h-full flex flex-col group">
-      <div className="aspect-square bg-slate-100 flex items-center justify-center relative">
-        <div className="w-16 h-16 bg-slate-200 rounded-lg" />
+    <div
+      className="rounded-lg overflow-hidden border h-full flex flex-col group"
+      style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+    >
+      <div
+        className="aspect-square flex items-center justify-center relative"
+        style={{ backgroundColor: tokens.filterChipBg }}
+      >
+        <div className="w-16 h-16 rounded-lg" style={{ backgroundColor: tokens.filterChipBg }} />
         {showPromotionBadge && product.originalPrice && (
-          <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 text-white text-xs font-medium rounded">
+          <span
+            className="absolute top-2 left-2 px-1.5 py-0.5 text-xs font-medium rounded"
+            style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
+          >
             -{Math.round((1 - product.price / product.originalPrice) * 100)}%
           </span>
         )}
         {!product.inStock && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="bg-slate-800 text-white text-xs px-2 py-1 rounded">Hết hàng</span>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: tokens.overlaySurface }}>
+            <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: tokens.overlaySurface, color: tokens.overlayText }}>Hết hàng</span>
           </div>
         )}
         {showWishlistButton && (
-          <button className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-sm hover:bg-white transition-colors">
-            <Heart size={14} className="text-slate-400 hover:text-red-500" />
+          <button
+            className="absolute top-2 right-2 p-1.5 rounded-full border transition-colors"
+            style={{ backgroundColor: tokens.wishlistButtonBg, borderColor: tokens.wishlistButtonBorder }}
+          >
+            <Heart size={14} style={{ color: tokens.wishlistIcon }} />
           </button>
         )}
       </div>
       <div className="p-3 flex-1 flex flex-col">
-        <span className="text-xs font-medium px-1.5 py-0.5 rounded w-fit mb-1.5" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+        <span
+          className="text-xs font-medium px-1.5 py-0.5 rounded w-fit mb-1.5 border"
+          style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
+        >
           {product.category}
         </span>
-        <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 flex-1">{product.name}</h3>
+        <h3 className="text-sm font-semibold line-clamp-2 flex-1" style={{ color: tokens.bodyText }}>{product.name}</h3>
         <div className="flex items-center gap-1 mt-1.5">
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
-              <svg key={i} className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'text-amber-400' : 'text-slate-200'}`} fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                key={i}
+                className="w-3 h-3"
+                style={{ color: i < Math.floor(product.rating) ? tokens.ratingStarActive : tokens.ratingStarInactive }}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             ))}
           </div>
-          <span className="text-xs text-slate-400">({product.reviews})</span>
+          <span className="text-xs" style={{ color: tokens.ratingCountText }}>({product.reviews})</span>
         </div>
         <div className="mt-2">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-base font-bold" style={{ color: brandColor }}>{formatVND(product.price)}</span>
+            <span className="text-base font-bold" style={{ color: tokens.priceColor }}>{formatVND(product.price)}</span>
             {product.originalPrice && (
-              <span className="text-xs text-slate-400 line-through">{formatVND(product.originalPrice)}</span>
+              <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(product.originalPrice)}</span>
             )}
           </div>
         </div>
@@ -715,8 +752,8 @@ export function ProductsListPreview({
           <div className="mt-2.5 space-y-2">
             {showAddToCartButton && (
               <button
-                className="w-full py-2 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-                style={{ backgroundColor: brandColor }}
+                className="w-full py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
                 disabled={!product.inStock}
               >
                 <ShoppingCart size={14} />
@@ -726,7 +763,7 @@ export function ProductsListPreview({
             {showBuyNowButton && (
               <button
                 className="w-full py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50"
-                style={{ borderColor: brandColor, color: brandColor }}
+                style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
                 disabled={!product.inStock}
               >
                 Mua ngay
@@ -743,47 +780,91 @@ export function ProductsListPreview({
       <div className="py-6 md:py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-3">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Sản phẩm</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h2>
           </div>
 
           {(showSearch || showCategories) && (
             <div className="mb-5 space-y-2.5">
-              <div className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+              <div
+                className="rounded-lg border p-3"
+                style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}
+              >
                 <div className="flex items-center gap-2">
                   {showSearch && (
                     <div className={`relative flex-1 min-w-0 ${isDesktop ? 'max-w-xs' : ''}`}>
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input type="text" placeholder="Tìm sản phẩm..." className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" disabled />
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inputIcon }} />
+                      <input
+                        type="text"
+                        placeholder="Tìm sản phẩm..."
+                        className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm placeholder:text-[var(--placeholder-color)]"
+                        style={{
+                          borderColor: tokens.inputBorder,
+                          backgroundColor: tokens.inputBackground,
+                          color: tokens.inputText,
+                          '--placeholder-color': tokens.inputPlaceholder,
+                        } as React.CSSProperties}
+                        disabled
+                      />
                     </div>
                   )}
                   {showCategories && isDesktop && (
                     <div className="relative">
-                      <select className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white min-w-[140px]" disabled>
+                      <select
+                        className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm min-w-[140px]"
+                        style={{
+                          borderColor: tokens.inputBorder,
+                          backgroundColor: tokens.inputBackground,
+                          color: tokens.inputText,
+                        }}
+                        disabled
+                      >
                         {categories.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
                       </select>
-                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                     </div>
                   )}
                   <div className="relative">
-                    <select className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white" disabled>
+                    <select
+                      className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
+                      disabled
+                    >
                       <option>Giá: Thấp đến cao</option>
                       <option>Giá: Cao đến thấp</option>
                       <option>Bán chạy nhất</option>
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                   </div>
                   {isCompact && (
-                    <button className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg text-sm shrink-0">
+                    <button
+                      className="flex items-center gap-2 px-3 py-2 border rounded-lg text-sm shrink-0"
+                      style={{
+                        borderColor: tokens.filterButtonBorder,
+                        backgroundColor: tokens.filterButtonBg,
+                        color: tokens.filterButtonText,
+                      }}
+                    >
                       <SlidersHorizontal className="w-4 h-4" />
                       Lọc
                     </button>
                   )}
                 </div>
                 {isCompact && showCategories && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
+                  <div className="mt-3 pt-3 border-t" style={{ borderColor: tokens.filterBarBorder }}>
                     <div className="flex flex-wrap gap-1.5">
                       {categories.map((cat, i) => (
-                        <span key={cat} className={`px-2.5 py-1 rounded-full text-sm font-medium ${i === 0 ? 'text-white' : 'bg-slate-100 text-slate-600'}`} style={i === 0 ? { backgroundColor: brandColor } : undefined}>
+                        <span
+                          key={cat}
+                          className="px-2.5 py-1 rounded-full text-sm font-medium border"
+                          style={i === 0
+                            ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
+                            : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
+                          }
+                        >
                           {cat}
                         </span>
                       ))}
@@ -791,7 +872,7 @@ export function ProductsListPreview({
                   </div>
                 )}
               </div>
-              <div className="text-sm text-slate-500">{mockProducts.length} sản phẩm</div>
+              <div className="text-sm" style={{ color: tokens.metaText }}>{mockProducts.length} sản phẩm</div>
             </div>
           )}
 
@@ -801,7 +882,7 @@ export function ProductsListPreview({
             ))}
           </div>
 
-          <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+          <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
         </div>
       </div>
     );
@@ -812,33 +893,63 @@ export function ProductsListPreview({
       <div className="py-6 md:py-10 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-3">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Sản phẩm</h2>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h2>
           </div>
 
           {(showSearch || showCategories) && (
-            <div className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm mb-4">
+            <div
+              className="rounded-lg border p-3 mb-4"
+              style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}
+            >
               <div className="flex flex-col md:flex-row gap-3">
                 {showSearch && (
                   <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input type="text" placeholder="Tìm sản phẩm..." className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" disabled />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inputIcon }} />
+                    <input
+                      type="text"
+                      placeholder="Tìm sản phẩm..."
+                      className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                        '--placeholder-color': tokens.inputPlaceholder,
+                      } as React.CSSProperties}
+                      disabled
+                    />
                   </div>
                 )}
                 {showCategories && (
                   <div className="relative">
-                    <select className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white min-w-[160px]" disabled>
+                    <select
+                      className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm min-w-[160px]"
+                      style={{
+                        borderColor: tokens.inputBorder,
+                        backgroundColor: tokens.inputBackground,
+                        color: tokens.inputText,
+                      }}
+                      disabled
+                    >
                       {categories.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                   </div>
                 )}
                 <div className="relative">
-                  <select className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white" disabled>
+                  <select
+                    className="appearance-none pl-3 pr-8 py-2 border rounded-lg text-sm"
+                    style={{
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                    }}
+                    disabled
+                  >
                     <option>Giá: Thấp đến cao</option>
                     <option>Giá: Cao đến thấp</option>
                     <option>Bán chạy nhất</option>
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: tokens.inputIcon }} />
                 </div>
               </div>
             </div>
@@ -846,37 +957,53 @@ export function ProductsListPreview({
 
           <div className="space-y-3">
             {mockProducts.slice(0, visibleProducts).map((product) => (
-              <div key={product.id} className="bg-white rounded-lg border border-slate-100 overflow-hidden flex flex-col sm:flex-row gap-3 p-3">
-                <div className="w-full sm:w-32 aspect-square bg-slate-100 rounded-lg relative flex items-center justify-center">
-                  <div className="w-16 h-16 bg-slate-200 rounded-lg" />
+              <div
+                key={product.id}
+                className="rounded-lg border overflow-hidden flex flex-col sm:flex-row gap-3 p-3"
+                style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+              >
+                <div
+                  className="w-full sm:w-32 aspect-square rounded-lg relative flex items-center justify-center"
+                  style={{ backgroundColor: tokens.filterChipBg }}
+                >
+                  <div className="w-16 h-16 rounded-lg" style={{ backgroundColor: tokens.filterChipBg }} />
                   {showPromotionBadge && product.originalPrice && (
-                    <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 text-white text-xs font-medium rounded">
+                    <span
+                      className="absolute top-2 left-2 px-1.5 py-0.5 text-xs font-medium rounded"
+                      style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
+                    >
                       -{Math.round((1 - product.price / product.originalPrice) * 100)}%
                     </span>
                   )}
                   {showWishlistButton && (
-                    <button className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-sm">
-                      <Heart size={14} className="text-slate-400" />
+                    <button
+                      className="absolute top-2 right-2 p-1.5 rounded-full border"
+                      style={{ backgroundColor: tokens.wishlistButtonBg, borderColor: tokens.wishlistButtonBorder }}
+                    >
+                      <Heart size={14} style={{ color: tokens.wishlistIcon }} />
                     </button>
                   )}
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-medium px-1.5 py-0.5 rounded w-fit mb-1.5" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+                    <span
+                      className="text-xs font-medium px-1.5 py-0.5 rounded w-fit mb-1.5 border"
+                      style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
+                    >
                       {product.category}
                     </span>
-                    <h3 className="text-sm font-semibold text-slate-900 line-clamp-2">{product.name}</h3>
+                    <h3 className="text-sm font-semibold line-clamp-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
                     <div className="mt-2 flex items-baseline gap-1.5">
-                      <span className="text-base font-bold" style={{ color: brandColor }}>{formatVND(product.price)}</span>
+                      <span className="text-base font-bold" style={{ color: tokens.priceColor }}>{formatVND(product.price)}</span>
                       {product.originalPrice && (
-                        <span className="text-xs text-slate-400 line-through">{formatVND(product.originalPrice)}</span>
+                        <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(product.originalPrice)}</span>
                       )}
                     </div>
                   </div>
                   {showAddToCartButton && (
                     <button
-                      className="mt-2.5 w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors flex items-center justify-center gap-1.5"
-                      style={{ backgroundColor: brandColor }}
+                      className="mt-2.5 w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+                      style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
                       disabled={!product.inStock}
                     >
                       <ShoppingCart size={14} />
@@ -888,7 +1015,7 @@ export function ProductsListPreview({
             ))}
           </div>
 
-          <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+          <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
         </div>
       </div>
     );
@@ -904,31 +1031,49 @@ export function ProductsListPreview({
     <div className="py-6 md:py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-3">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Sản phẩm</h2>
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h2>
         </div>
 
         <div className={`flex ${containerClass} gap-5`}>
           <aside className={`${sidebarWidth} flex-shrink-0 ${sidebarOrder}`}>
             <div className="space-y-3">
               {showSearch && (
-                <div className="bg-white rounded-lg border border-slate-200 p-3">
-                  <h3 className="font-semibold text-slate-900 text-sm mb-2 flex items-center gap-2">
-                    <Search size={14} style={{ color: brandColor }} />
+                <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}>
+                  <h3 className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: tokens.bodyText }}>
+                    <Search size={14} style={{ color: tokens.secondary }} />
                     Tìm kiếm
                   </h3>
-                  <input type="text" placeholder="Nhập từ khóa..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" disabled />
+                  <input
+                    type="text"
+                    placeholder="Nhập từ khóa..."
+                    className="w-full px-3 py-2 border rounded-lg text-sm placeholder:text-[var(--placeholder-color)]"
+                    style={{
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                      '--placeholder-color': tokens.inputPlaceholder,
+                    } as React.CSSProperties}
+                    disabled
+                  />
                 </div>
               )}
               {showCategories && (
-                <div className="bg-white rounded-lg border border-slate-200 p-3">
-                  <h3 className="font-semibold text-slate-900 text-sm mb-2 flex items-center gap-2">
-                    <FileText size={14} style={{ color: brandColor }} />
+                <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}>
+                  <h3 className="font-semibold text-sm mb-2 flex items-center gap-2" style={{ color: tokens.bodyText }}>
+                    <FileText size={14} style={{ color: tokens.secondary }} />
                     Danh mục
                   </h3>
                   <ul className="space-y-0.5">
                     {categories.map((cat, i) => (
                       <li key={cat}>
-                        <button className={`w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors ${i === 0 ? 'font-medium' : 'text-slate-600'}`} style={i === 0 ? { backgroundColor: `${brandColor}15`, color: brandColor } : undefined} disabled>
+                        <button
+                          className="w-full text-left px-2.5 py-1.5 rounded text-sm transition-colors border"
+                          style={i === 0
+                            ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
+                            : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
+                          }
+                          disabled
+                        >
                           {cat}
                         </button>
                       </li>
@@ -936,11 +1081,33 @@ export function ProductsListPreview({
                   </ul>
                 </div>
               )}
-              <div className="bg-white rounded-lg border border-slate-200 p-3">
-                <h3 className="font-semibold text-slate-900 text-sm mb-2">Khoảng giá</h3>
+              <div className="rounded-lg border p-3" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}>
+                <h3 className="font-semibold text-sm mb-2" style={{ color: tokens.bodyText }}>Khoảng giá</h3>
                 <div className="flex gap-2">
-                  <input type="text" placeholder="Từ" className="w-1/2 px-2 py-1.5 border border-slate-200 rounded text-sm" disabled />
-                  <input type="text" placeholder="Đến" className="w-1/2 px-2 py-1.5 border border-slate-200 rounded text-sm" disabled />
+                  <input
+                    type="text"
+                    placeholder="Từ"
+                    className="w-1/2 px-2 py-1.5 border rounded text-sm placeholder:text-[var(--placeholder-color)]"
+                    style={{
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                      '--placeholder-color': tokens.inputPlaceholder,
+                    } as React.CSSProperties}
+                    disabled
+                  />
+                  <input
+                    type="text"
+                    placeholder="Đến"
+                    className="w-1/2 px-2 py-1.5 border rounded text-sm placeholder:text-[var(--placeholder-color)]"
+                    style={{
+                      borderColor: tokens.inputBorder,
+                      backgroundColor: tokens.inputBackground,
+                      color: tokens.inputText,
+                      '--placeholder-color': tokens.inputPlaceholder,
+                    } as React.CSSProperties}
+                    disabled
+                  />
                 </div>
               </div>
             </div>
@@ -952,7 +1119,7 @@ export function ProductsListPreview({
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
-            <PaginationPreview paginationType={paginationType} brandColor={brandColor} />
+            <PaginationPreview paginationType={paginationType} brandColor={brandColor} tokens={tokens} />
           </main>
         </div>
       </div>

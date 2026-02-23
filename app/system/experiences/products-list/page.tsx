@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, Heart, LayoutTemplate, Loader2, Package, Save, ShoppingCart, Tag } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -114,7 +115,10 @@ export default function ProductsListExperiencePage() {
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
   const promotionsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'promotions' });
   const variantsSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'variantEnabled' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<ProductsListExperienceConfig>(() => {
@@ -169,6 +173,12 @@ export default function ProductsListExperiencePage() {
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
 
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
+
   const currentLayoutConfig = config.layouts[config.layoutStyle] ?? DEFAULT_LAYOUT_CONFIG;
   const updateLayoutConfig = <K extends keyof LayoutConfig>(
     key: K,
@@ -200,7 +210,7 @@ export default function ProductsListExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-emerald-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Danh sách sản phẩm</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -211,7 +221,8 @@ export default function ProductsListExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-emerald-600 hover:bg-emerald-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -223,26 +234,36 @@ export default function ProductsListExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Tìm kiếm"
               checked={currentLayoutConfig.showSearch}
               onChange={(v) => updateLayoutConfig('showSearch', v)}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!productsModule?.enabled}
             />
             <ToggleRow
               label="Buy Now"
               checked={config.showBuyNowButton}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNowButton: v }))}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!ordersModule?.enabled}
             />
             <ToggleRow
               label="Danh mục"
               checked={currentLayoutConfig.showCategories}
               onChange={(v) => updateLayoutConfig('showCategories', v)}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!productsModule?.enabled}
             />
           </ControlCard>
@@ -278,7 +299,7 @@ export default function ProductsListExperiencePage() {
               description="Hiện nút thêm vào wishlist"
               checked={config.showWishlistButton}
               onChange={(v) => setConfig(prev => ({ ...prev, showWishlistButton: v }))}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
@@ -286,7 +307,7 @@ export default function ProductsListExperiencePage() {
               description="Hiện nút add to cart"
               checked={config.showAddToCartButton}
               onChange={(v) => setConfig(prev => ({ ...prev, showAddToCartButton: v }))}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!cartModule?.enabled || !ordersModule?.enabled}
             />
             <ToggleRow
@@ -294,7 +315,7 @@ export default function ProductsListExperiencePage() {
               description="Mở modal chọn phiên bản khi thêm giỏ"
               checked={config.enableQuickAddVariant}
               onChange={(v) => setConfig(prev => ({ ...prev, enableQuickAddVariant: v }))}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!cartModule?.enabled || !ordersModule?.enabled}
             />
             <ToggleRow
@@ -302,7 +323,7 @@ export default function ProductsListExperiencePage() {
               description="Hiện badge giảm giá"
               checked={config.showPromotionBadge}
               onChange={(v) => setConfig(prev => ({ ...prev, showPromotionBadge: v }))}
-              accentColor="#10b981"
+              accentColor={brandColor}
               disabled={!promotionsModule?.enabled}
             />
           </ControlCard>
@@ -386,7 +407,7 @@ export default function ProductsListExperiencePage() {
             <div className="mb-2">
               <ExampleLinks
                 links={[{ label: 'Trang danh sách', url: '/products' }]}
-                color="#10b981"
+                color={brandColor}
                 compact
               />
             </div>
@@ -406,7 +427,7 @@ export default function ProductsListExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#10b981"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -421,6 +442,8 @@ export default function ProductsListExperiencePage() {
                 showSearch={currentLayoutConfig.showSearch}
                 showCategories={currentLayoutConfig.showCategories}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 device={previewDevice}
                 showWishlistButton={config.showWishlistButton && (wishlistModule?.enabled ?? false)}
                 showAddToCartButton={config.showAddToCartButton && (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false)}
