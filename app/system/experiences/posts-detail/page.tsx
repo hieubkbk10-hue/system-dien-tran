@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { AlertCircle, Eye, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   PostDetailPreview,
@@ -16,6 +16,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -119,7 +120,10 @@ export default function PostDetailExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const postsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'posts' });
   const commentsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'comments' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const postFields = useQuery(api.admin.modules.listModuleFields, { moduleKey: 'posts' });
   const examplePostSlug = useExamplePostSlug();
   const legacyDetailStyleSetting = useQuery(api.settings.getByKey, { key: LEGACY_DETAIL_STYLE_KEY });
@@ -172,6 +176,12 @@ export default function PostDetailExperiencePage() {
   const authorField = useMemo(() => postFields?.find(field => field.fieldKey === AUTHOR_FIELD_KEY), [postFields]);
   const authorFieldEnabled = authorField?.enabled ?? false;
   const isAuthorSyncPending = Boolean(authorField) && authorFieldEnabled !== currentLayoutConfig.showAuthor;
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   // Sync with legacy key
   const additionalSettings = useMemo(() => [
@@ -239,31 +249,41 @@ export default function PostDetailExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Hiển thị nội dung">
             <ToggleRow 
               label="Thông tin tác giả" 
               checked={currentLayoutConfig.showAuthor} 
               onChange={(v) => updateLayoutConfig('showAuthor', v)} 
-              accentColor="#3b82f6"
+              accentColor={brandColor}
               disabled={!authorField}
             />
             <ToggleRow 
               label="Danh sách tags" 
               checked={currentLayoutConfig.showTags} 
               onChange={(v) => updateLayoutConfig('showTags', v)} 
-              accentColor="#3b82f6"
+              accentColor={brandColor}
             />
             <ToggleRow 
               label="Nút chia sẻ" 
               checked={currentLayoutConfig.showShare} 
               onChange={(v) => updateLayoutConfig('showShare', v)} 
-              accentColor="#3b82f6" 
+              accentColor={brandColor} 
             />
             <ToggleRow 
               label="Bài viết liên quan" 
               checked={currentLayoutConfig.showRelated} 
               onChange={(v) => updateLayoutConfig('showRelated', v)} 
-              accentColor="#3b82f6" 
+              accentColor={brandColor} 
             />
           </ControlCard>
           
@@ -272,19 +292,19 @@ export default function PostDetailExperiencePage() {
               label="Hiển thị bình luận" 
               checked={currentLayoutConfig.showComments} 
               onChange={(v) => updateLayoutConfig('showComments', v)} 
-              accentColor="#3b82f6"
+              accentColor={brandColor}
             />
             <ToggleRow 
               label="Nút thích" 
               checked={currentLayoutConfig.showCommentLikes} 
               onChange={(v) => updateLayoutConfig('showCommentLikes', v)} 
-              accentColor="#3b82f6"
+              accentColor={brandColor}
             />
             <ToggleRow 
               label="Nút trả lời" 
               checked={currentLayoutConfig.showCommentReplies} 
               onChange={(v) => updateLayoutConfig('showCommentReplies', v)} 
-              accentColor="#3b82f6"
+              accentColor={brandColor}
             />
             <ModuleFeatureStatus
               label="Module bình luận"
@@ -345,7 +365,7 @@ export default function PostDetailExperiencePage() {
               <div className="mb-2">
                 <ExampleLinks
                   links={[{ label: 'Xem bài viết mẫu', url: `/posts/${examplePostSlug}` }]}
-                  color="#3b82f6"
+                  color={brandColor}
                   compact
                 />
               </div>
@@ -366,7 +386,7 @@ export default function PostDetailExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#3b82f6"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -386,6 +406,8 @@ export default function PostDetailExperiencePage() {
                 showCommentReplies={currentLayoutConfig.showCommentReplies}
                 device={previewDevice}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>

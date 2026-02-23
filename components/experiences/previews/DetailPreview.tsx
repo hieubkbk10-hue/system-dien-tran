@@ -22,6 +22,8 @@ type PostDetailPreviewProps = {
   quickContactButtonLink?: string;
   device?: DeviceType;
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: 'single' | 'dual';
 };
 
 type ServiceDetailPreviewProps = {
@@ -50,6 +52,18 @@ type ServiceDetailPreviewProps = {
   minimalCtaButtonLink?: string;
   device?: DeviceType;
   brandColor?: string;
+};
+
+const isValidHexColor = (value: string) => /^#[0-9A-Fa-f]{6}$/.test(value.trim());
+
+const resolveSecondary = (primary: string, secondary: string | undefined, mode: 'single' | 'dual' = 'single') => {
+  if (mode === 'single') {
+    return primary;
+  }
+  if (secondary && isValidHexColor(secondary)) {
+    return secondary;
+  }
+  return primary;
 };
 
 const MOCK_POST = {
@@ -311,10 +325,12 @@ function ClassicStylePreview({
   showCommentLikes = true,
   showCommentReplies = true,
   brandColor = '#3b82f6',
+  secondaryColor,
 }: Omit<PostDetailPreviewProps, 'layoutStyle' | 'device' | 'quickContactEnabled' | 'quickContactTitle' | 'quickContactDescription' | 'quickContactShowPrice' | 'quickContactButtonText' | 'quickContactButtonLink'>) {
   const readingTime = 5;
   const [isCopied] = React.useState(false);
   const visibleTags = showTags ? MOCK_TAGS : [];
+  const accentColor = secondaryColor || brandColor;
 
   return (
     <div className="min-h-screen bg-background">
@@ -348,7 +364,7 @@ function ClassicStylePreview({
               <div className="flex items-center gap-2">
                 <span
                   className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                  style={{ backgroundColor: `${brandColor}15`, borderColor: `${brandColor}30`, color: brandColor }}
+                  style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30`, color: accentColor }}
                 >
                   {MOCK_POST.categoryName}
                 </span>
@@ -360,7 +376,7 @@ function ClassicStylePreview({
                     <span
                       key={tag}
                       className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                      style={{ borderColor: `${accentColor}20`, color: accentColor }}
                     >
                       {tag}
                     </span>
@@ -492,10 +508,11 @@ function ClassicStylePreview({
 }
 
 // Modern Style Preview - Extracted from ModernStyle
-function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTags = true, showComments = true, showCommentLikes = true, showCommentReplies = true, brandColor = '#3b82f6' }: Omit<PostDetailPreviewProps, 'layoutStyle' | 'device' | 'quickContactEnabled' | 'quickContactTitle' | 'quickContactDescription' | 'quickContactShowPrice' | 'quickContactButtonText' | 'quickContactButtonLink'>) {
+function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTags = true, showComments = true, showCommentLikes = true, showCommentReplies = true, brandColor = '#3b82f6', secondaryColor }: Omit<PostDetailPreviewProps, 'layoutStyle' | 'device' | 'quickContactEnabled' | 'quickContactTitle' | 'quickContactDescription' | 'quickContactShowPrice' | 'quickContactButtonText' | 'quickContactButtonLink'>) {
   const readingTime = 5;
   const [isCopied] = React.useState(false);
   const visibleTags = showTags ? MOCK_TAGS : [];
+  const accentColor = secondaryColor || brandColor;
 
   return (
     <div className="min-h-screen bg-background pb-12 selection:bg-accent/30">
@@ -533,7 +550,7 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
             <div className="flex items-center justify-center md:justify-start">
               <span
                 className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-                style={{ backgroundColor: `${brandColor}10`, borderColor: `${brandColor}25`, color: brandColor }}
+                style={{ backgroundColor: `${accentColor}10`, borderColor: `${accentColor}25`, color: accentColor }}
               >
                 {MOCK_POST.categoryName}
               </span>
@@ -545,7 +562,7 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
                   <span
                     key={tag}
                     className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                    style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                    style={{ borderColor: `${accentColor}20`, color: accentColor }}
                   >
                     {tag}
                   </span>
@@ -670,10 +687,11 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
 }
 
 // Minimal Style Preview - Extracted from MinimalStyle
-function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTags = true, showComments = true, showCommentLikes = true, showCommentReplies = true, brandColor = '#3b82f6' }: Omit<PostDetailPreviewProps, 'layoutStyle' | 'device' | 'quickContactEnabled' | 'quickContactTitle' | 'quickContactDescription' | 'quickContactShowPrice' | 'quickContactButtonText' | 'quickContactButtonLink'>) {
+function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTags = true, showComments = true, showCommentLikes = true, showCommentReplies = true, brandColor = '#3b82f6', secondaryColor }: Omit<PostDetailPreviewProps, 'layoutStyle' | 'device' | 'quickContactEnabled' | 'quickContactTitle' | 'quickContactDescription' | 'quickContactShowPrice' | 'quickContactButtonText' | 'quickContactButtonLink'>) {
   const [isCopied] = React.useState(false);
   const readingTime = 5;
   const visibleTags = showTags ? MOCK_TAGS : [];
+  const accentColor = secondaryColor || brandColor;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -717,7 +735,7 @@ function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTa
             <div className="container max-w-6xl mx-auto h-full px-4 md:px-6 flex items-end pb-6 md:pb-8">
               <div className="w-full max-w-3xl border-border/70 bg-background/90 shadow-sm backdrop-blur-sm rounded-lg">
                 <div className="space-y-3 p-4 md:p-6">
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: brandColor }}>
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
                     {MOCK_POST.categoryName}
                   </span>
                   <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground">
@@ -729,7 +747,7 @@ function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTa
                         <span
                           key={tag}
                           className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
-                          style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                          style={{ borderColor: `${accentColor}20`, color: accentColor }}
                         >
                           {tag}
                         </span>
@@ -845,8 +863,11 @@ export function PostDetailPreview({
   showShare,
   device = 'desktop',
   brandColor = '#3b82f6',
+  secondaryColor,
+  colorMode = 'single',
 }: PostDetailPreviewProps) {
-  const props = { showAuthor, showTags, showComments, showCommentLikes, showCommentReplies, showRelated, showShare, brandColor, device };
+  const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
+  const props = { showAuthor, showTags, showComments, showCommentLikes, showCommentReplies, showRelated, showShare, brandColor, secondaryColor: resolvedSecondary, device };
 
   return (
     <div className="w-full">
