@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -8,7 +8,7 @@ import { Briefcase, Eye, LayoutTemplate, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
 import { SettingInput } from '@/components/modules/shared';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -21,6 +21,7 @@ import {
   deviceWidths,
   LayoutTabs,
   ControlCard,
+  ColorConfigCard,
   ToggleRow,
   type DeviceType,
   type LayoutOption,
@@ -108,7 +109,10 @@ export default function ServiceDetailExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const servicesModule = useQuery(api.admin.modules.getModuleByKey, { key: 'services' });
   const serviceFields = useQuery(api.admin.modules.listModuleFields, { moduleKey: 'services' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const exampleServiceSlug = useExampleServiceSlug();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const [isSaving, setIsSaving] = useState(false);
@@ -118,6 +122,12 @@ export default function ServiceDetailExperiencePage() {
     const raw = experienceSetting?.value as Partial<ServiceDetailExperienceConfig> | undefined;
     return { ...DEFAULT_CONFIG, ...raw };
   }, [experienceSetting?.value]);
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const isLoading = experienceSetting === undefined || servicesModule === undefined || serviceFields === undefined;
 
@@ -154,6 +164,8 @@ export default function ServiceDetailExperiencePage() {
       showRelated: config.showRelated,
       priceFieldEnabled,
       brandColor,
+      secondaryColor,
+      colorMode,
       device: previewDevice,
     };
     if (config.layoutStyle === 'classic') {
@@ -198,14 +210,14 @@ export default function ServiceDetailExperiencePage() {
             description="Hiện/ẩn sidebar liên hệ"
             checked={config.quickContactEnabled}
             onChange={(v) => updateConfig('quickContactEnabled', v)}
-            accentColor="#8b5cf6"
+            accentColor={brandColor}
           />
           <ToggleRow
             label="Nút chia sẻ"
             description="Copy link dịch vụ"
             checked={config.showShare}
             onChange={(v) => updateConfig('showShare', v)}
-            accentColor="#8b5cf6"
+            accentColor={brandColor}
           />
           <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
             <SettingInput
@@ -213,28 +225,28 @@ export default function ServiceDetailExperiencePage() {
               label="Tiêu đề khối liên hệ"
               value={config.quickContactTitle}
               onChange={(v) => updateConfig('quickContactTitle', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
             <SettingInput
               type="text"
               label="Mô tả khối liên hệ"
               value={config.quickContactDescription}
               onChange={(v) => updateConfig('quickContactDescription', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
             <SettingInput
               type="text"
               label="Text nút liên hệ"
               value={config.quickContactButtonText}
               onChange={(v) => updateConfig('quickContactButtonText', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
             <SettingInput
               type="text"
               label="Link nút (để trống = mặc định)"
               value={config.quickContactButtonLink}
               onChange={(v) => updateConfig('quickContactButtonLink', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
           </div>
         </>
@@ -248,14 +260,14 @@ export default function ServiceDetailExperiencePage() {
             description="Hiện giá và nút trong Hero"
             checked={config.modernContactEnabled}
             onChange={(v) => updateConfig('modernContactEnabled', v)}
-            accentColor="#8b5cf6"
+            accentColor={brandColor}
           />
           <ToggleRow
             label="Hiện giá trong Hero"
             description="Hiển thị giá dịch vụ"
             checked={config.modernContactShowPrice}
             onChange={(v) => updateConfig('modernContactShowPrice', v)}
-            accentColor="#8b5cf6"
+            accentColor={brandColor}
           />
           <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
             <SettingInput
@@ -263,14 +275,14 @@ export default function ServiceDetailExperiencePage() {
               label="Text nút Hero"
               value={config.modernHeroCtaText}
               onChange={(v) => updateConfig('modernHeroCtaText', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
             <SettingInput
               type="text"
               label="Link nút (để trống = mặc định)"
               value={config.modernHeroCtaLink}
               onChange={(v) => updateConfig('modernHeroCtaLink', v)}
-              focusColor="focus:border-violet-500"
+              focusColor="focus:border-[color:var(--brand-color)]"
             />
           </div>
         </>
@@ -283,14 +295,14 @@ export default function ServiceDetailExperiencePage() {
           description="Hiện/ẩn CTA section"
           checked={config.minimalCtaEnabled}
           onChange={(v) => updateConfig('minimalCtaEnabled', v)}
-          accentColor="#8b5cf6"
+          accentColor={brandColor}
         />
         <ToggleRow
           label="Hiện giá dịch vụ"
           description="Hiển thị giá trong header"
           checked={config.minimalShowPrice}
           onChange={(v) => updateConfig('minimalShowPrice', v)}
-          accentColor="#8b5cf6"
+          accentColor={brandColor}
         />
         <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
           <SettingInput
@@ -298,21 +310,21 @@ export default function ServiceDetailExperiencePage() {
             label="Text CTA Section"
             value={config.minimalCtaText}
             onChange={(v) => updateConfig('minimalCtaText', v)}
-            focusColor="focus:border-violet-500"
+            focusColor="focus:border-[color:var(--brand-color)]"
           />
           <SettingInput
             type="text"
             label="Text nút CTA"
             value={config.minimalCtaButtonText}
             onChange={(v) => updateConfig('minimalCtaButtonText', v)}
-            focusColor="focus:border-violet-500"
+            focusColor="focus:border-[color:var(--brand-color)]"
           />
           <SettingInput
             type="text"
             label="Link nút (để trống = mặc định)"
             value={config.minimalCtaButtonLink}
             onChange={(v) => updateConfig('minimalCtaButtonLink', v)}
-            focusColor="focus:border-violet-500"
+            focusColor="focus:border-[color:var(--brand-color)]"
           />
         </div>
       </>
@@ -329,6 +341,9 @@ export default function ServiceDetailExperiencePage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      <style jsx global>{`
+        :root { --brand-color: ${brandColor}; }
+      `}</style>
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -343,7 +358,8 @@ export default function ServiceDetailExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-violet-600 hover:bg-violet-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: '#ffffff' }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -355,12 +371,22 @@ export default function ServiceDetailExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Dịch vụ liên quan"
               checked={config.showRelated}
               onChange={(v) => updateConfig('showRelated', v)}
-              accentColor="#8b5cf6"
+              accentColor={brandColor}
             />
           </ControlCard>
 
@@ -396,7 +422,7 @@ export default function ServiceDetailExperiencePage() {
               <div className="mb-2">
                 <ExampleLinks
                   links={[{ label: 'Xem dịch vụ mẫu', url: `/services/${exampleServiceSlug}` }]}
-                  color="#8b5cf6"
+                  color={brandColor}
                   compact
                 />
               </div>
@@ -417,7 +443,7 @@ export default function ServiceDetailExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#8b5cf6"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>

@@ -4,7 +4,8 @@ import React, { use, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
+import { getServiceDetailColors } from '@/components/site/services/detail/_lib/colors';
 import { ClassicStyle, MinimalStyle, ModernStyle } from '@/components/site/services/detail/ServiceDetailStyles';
 import { ArrowLeft, Briefcase } from 'lucide-react';
 
@@ -86,7 +87,11 @@ interface PageProps {
 
 export default function ServiceDetailPage({ params }: PageProps) {
   const { slug } = use(params);
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const tokens = useMemo(
+    () => getServiceDetailColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
   const experienceConfig = useServiceDetailExperienceConfig();
   const enabledFields = useEnabledServiceFields();
   
@@ -116,15 +121,18 @@ export default function ServiceDetailPage({ params }: PageProps) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-            <Briefcase size={32} className="text-slate-400" />
+          <div
+            className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: tokens.surfaceSoft }}
+          >
+            <Briefcase size={32} style={{ color: tokens.softText }} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Không tìm thấy dịch vụ</h1>
-          <p className="text-slate-500 mb-8 max-w-sm mx-auto">Dịch vụ này không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.headingColor }}>Không tìm thấy dịch vụ</h1>
+          <p className="mb-8 max-w-sm mx-auto" style={{ color: tokens.metaText }}>Dịch vụ này không tồn tại hoặc đã bị xóa khỏi hệ thống.</p>
           <Link
             href="/services"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-medium transition-all hover:shadow-lg hover:scale-105"
-            style={{ backgroundColor: brandColor }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors"
+            style={{ backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText }}
           >
             <ArrowLeft size={18} />
             Xem tất cả dịch vụ
@@ -140,10 +148,11 @@ export default function ServiceDetailPage({ params }: PageProps) {
   const serviceData = { ...service, categoryName: category?.name ?? 'Dịch vụ' };
   const styleProps = {
     service: serviceData,
-    brandColor,
+    brandColor: tokens.primary,
     relatedServices: filteredRelated,
     enabledFields,
     showShare: experienceConfig.showShare,
+    tokens,
   };
 
   const quickContactConfig = {

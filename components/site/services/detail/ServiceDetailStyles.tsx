@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { QuickContactButtons } from '@/components/site/QuickContact';
 import { ArrowLeft, ArrowRight, Calendar, ChevronRight, Clock, Copy, Eye, Image as ImageIcon, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import type { ServiceDetailColors } from './_lib/colors';
 
 export interface ServiceDetailData {
   _id: Id<"services">;
@@ -62,6 +63,7 @@ type MinimalConfig = {
 export interface StyleProps {
   service: ServiceDetailData;
   brandColor: string;
+  tokens: ServiceDetailColors;
   relatedServices: RelatedService[];
   enabledFields: Set<string>;
   showShare?: boolean;
@@ -80,23 +82,24 @@ function formatDate(timestamp?: number): string {
   return new Date(timestamp).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function FallbackServiceThumb({ brandColor }: { brandColor: string }) {
+function FallbackServiceThumb({ tokens }: { tokens: ServiceDetailColors }) {
   return (
     <div
-      className="w-full h-full flex items-center justify-center text-white"
+      className="w-full h-full flex items-center justify-center"
       style={{
-        background: `linear-gradient(135deg, ${brandColor}30, ${brandColor}80)`
+        backgroundColor: tokens.fallbackThumbBg,
+        color: tokens.fallbackThumbIcon,
       }}
     >
-      <ImageIcon size={24} className="text-white/85" />
+      <ImageIcon size={24} />
     </div>
   );
 }
 
-function RelatedServiceThumb({ title, thumbnail, brandColor, size }: { title: string; thumbnail?: string; brandColor: string; size: 'small' | 'large' }) {
+function RelatedServiceThumb({ title, thumbnail, tokens, size }: { title: string; thumbnail?: string; tokens: ServiceDetailColors; size: 'small' | 'large' }) {
   const [hasError, setHasError] = useState(false);
   if (!thumbnail || hasError) {
-    return <FallbackServiceThumb brandColor={brandColor} />;
+    return <FallbackServiceThumb tokens={tokens} />;
   }
   return (
     <Image
@@ -111,7 +114,7 @@ function RelatedServiceThumb({ title, thumbnail, brandColor, size }: { title: st
 }
 
 // STYLE 1: CLASSIC - Professional service page with sticky CTA sidebar
-export function ClassicStyle({ service, brandColor, relatedServices, enabledFields, showShare = true, quickContact }: StyleProps) {
+export function ClassicStyle({ service, brandColor, tokens, relatedServices, enabledFields, showShare = true, quickContact }: StyleProps) {
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
@@ -138,15 +141,15 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-slate-100">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.pageBackground }}>
+      <div className="border-b" style={{ borderColor: tokens.border }}>
         <div className="max-w-6xl mx-auto px-4 py-3">
-          <nav className="flex items-center gap-2 text-xs md:text-sm text-slate-400">
-            <Link href="/" className="hover:text-slate-900 transition-colors">Trang chủ</Link>
+          <nav className="flex items-center gap-2 text-xs md:text-sm" style={{ color: tokens.breadcrumbText }}>
+            <Link href="/" className="transition-colors" style={{ color: tokens.breadcrumbText }}>Trang chủ</Link>
             <ChevronRight size={14} />
-            <Link href="/services" className="hover:text-slate-900 transition-colors">Dịch vụ</Link>
+            <Link href="/services" className="transition-colors" style={{ color: tokens.breadcrumbText }}>Dịch vụ</Link>
             <ChevronRight size={14} />
-            <span className="text-slate-700 font-medium truncate max-w-[200px]">{service.title}</span>
+            <span className="font-medium truncate max-w-[200px]" style={{ color: tokens.breadcrumbActive }}>{service.title}</span>
           </nav>
         </div>
       </div>
@@ -157,52 +160,55 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
             <header className="mb-8">
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 {showFeatured && service.featured && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-sm font-medium rounded-full">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full"
+                    style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}
+                  >
+                    <Star size={14} className="fill-current" />
                     Dịch vụ nổi bật
                   </span>
                 )}
                 <Link 
                   href={`/services?category=${service.categoryId}`}
-                  className="px-3 py-1 text-sm font-medium rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: `${brandColor}10`, color: brandColor }}
+                  className="px-3 py-1 text-sm font-medium rounded-full border transition-colors"
+                  style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
                 >
                   {service.categoryName}
                 </Link>
               </div>
               
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: tokens.headingColor }}>
                 {service.title}
               </h1>
               
               {service.excerpt && (
-                <p className="text-lg text-slate-600 leading-relaxed max-w-[60ch]">
+                <p className="text-lg leading-relaxed max-w-[60ch]" style={{ color: tokens.metaText }}>
                   {service.excerpt}
                 </p>
               )}
 
               {showPrice && (
                 <div className="mt-6">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Chi phí dự kiến</p>
-                  <p className="text-3xl font-bold" style={{ color: brandColor }}>
+                  <p className="text-xs uppercase tracking-wide" style={{ color: tokens.metaText }}>Chi phí dự kiến</p>
+                  <p className="text-3xl font-bold" style={{ color: tokens.priceColor }}>
                     {formatPrice(service.price)}
                   </p>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-4 mt-6 pt-6 border-t border-slate-100">
-                <div className="flex items-center gap-2 text-sm text-slate-500">
+              <div className="flex flex-wrap items-center gap-4 mt-6 pt-6 border-t" style={{ borderColor: tokens.border }}>
+                <div className="flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
                   <Eye size={16} />
                   <span>{service.views.toLocaleString()} lượt xem</span>
                 </div>
                 {service.publishedAt && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
                     <Calendar size={16} />
                     <span>{formatDate(service.publishedAt)}</span>
                   </div>
                 )}
                 {showDuration && service.duration && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
                     <Clock size={16} />
                     <span>{service.duration}</span>
                   </div>
@@ -211,7 +217,7 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
             </header>
 
             {service.thumbnail && (
-              <div className="mb-8 rounded-2xl overflow-hidden bg-slate-100 relative aspect-[16/9]">
+              <div className="mb-8 rounded-2xl overflow-hidden relative aspect-[16/9]" style={{ backgroundColor: tokens.surfaceSoft }}>
                 <Image
                   src={service.thumbnail}
                   alt={service.title}
@@ -222,20 +228,24 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
               </div>
             )}
 
-            <article className="prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-strong:text-slate-900">
+            <article
+              className="prose prose-lg max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl"
+              style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
+            >
               <div dangerouslySetInnerHTML={{ __html: service.content }} />
             </article>
 
-            <div className="mt-12 pt-8 border-t border-slate-200">
+            <div className="mt-12 pt-8 border-t" style={{ borderColor: tokens.border }}>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {showShare && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-500">Chia sẻ:</span>
+                    <span className="text-sm" style={{ color: tokens.metaText }}>Chia sẻ:</span>
                     <button
                       type="button"
                       aria-label="Copy dịch vụ"
                       onClick={handleCopy}
-                      className="inline-flex items-center gap-2 min-h-11 px-4 rounded-full bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 transition-colors"
+                      className="inline-flex items-center gap-2 min-h-11 px-4 rounded-full border text-sm font-medium transition-colors"
+                      style={{ backgroundColor: tokens.shareButtonBg, color: tokens.shareButtonText, borderColor: tokens.shareButtonBorder }}
                     >
                       <Copy size={16} />
                       {copied ? 'Đã copy' : 'Copy dịch vụ'}
@@ -244,8 +254,8 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
                 )}
                 <Link 
                   href="/services"
-                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
-                  style={{ color: brandColor }}
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors"
+                  style={{ color: tokens.linkColor }}
                 >
                   <ArrowLeft size={16} />
                   Xem tất cả dịch vụ
@@ -257,8 +267,8 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
           <div className="mt-8 lg:mt-0">
             <div className="lg:sticky lg:top-8 space-y-6">
               {relatedServices.length > 0 && (
-                <div className="bg-slate-50 rounded-2xl p-6">
-                  <h3 className="font-bold text-slate-900 mb-4">Dịch vụ liên quan</h3>
+                <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.sectionBackground }}>
+                  <h3 className="font-bold mb-4" style={{ color: tokens.sectionHeadingColor }}>Dịch vụ liên quan</h3>
                   <div className="space-y-4">
                     {relatedServices.map(s => (
                       <Link 
@@ -266,15 +276,15 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
                         href={`/services/${s.slug}`}
                         className="flex gap-4 group"
                       >
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shrink-0 relative">
-                          <RelatedServiceThumb title={s.title} thumbnail={s.thumbnail} brandColor={brandColor} size="small" />
+                        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative" style={{ backgroundColor: tokens.surface }}>
+                          <RelatedServiceThumb title={s.title} thumbnail={s.thumbnail} tokens={tokens} size="small" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-slate-900 text-sm line-clamp-2 group-hover:opacity-70 transition-opacity">
+                          <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-70 transition-opacity" style={{ color: tokens.relatedTitle }}>
                             {s.title}
                           </h4>
                           {showPrice && (
-                            <p className="text-sm font-semibold mt-1" style={{ color: brandColor }}>
+                            <p className="text-sm font-semibold mt-1" style={{ color: tokens.relatedPrice }}>
                               {formatPrice(s.price)}
                             </p>
                           )}
@@ -285,16 +295,16 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
                 </div>
               )}
               {quickContactConfig.enabled && (
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <div className="rounded-xl border px-4 py-3" style={{ borderColor: tokens.quickContactBorder, backgroundColor: tokens.quickContactBg }}>
                   <div className="min-w-0 mb-3">
-                    <p className="text-sm font-semibold text-slate-700">{quickContactConfig.title}</p>
+                    <p className="text-sm font-semibold" style={{ color: tokens.quickContactTitle }}>{quickContactConfig.title}</p>
                     {quickContactConfig.description && (
-                      <p className="text-sm text-slate-500">{quickContactConfig.description}</p>
+                      <p className="text-sm" style={{ color: tokens.quickContactDescription }}>{quickContactConfig.description}</p>
                     )}
                   </div>
                   <QuickContactButtons 
                     serviceName={service.title}
-                    brandColor={brandColor}
+                    brandColor={tokens.ctaPrimaryBg}
                     buttonLabel={quickContactConfig.buttonText}
                     buttonHref={quickContactConfig.buttonLink}
                   />
@@ -309,7 +319,7 @@ export function ClassicStyle({ service, brandColor, relatedServices, enabledFiel
 }
 
 // STYLE 2: MODERN - Landing page style with full-width hero and floating CTA
-export function ModernStyle({ service, brandColor, relatedServices, enabledFields, modernConfig }: StyleProps) {
+export function ModernStyle({ service, brandColor, tokens, relatedServices, enabledFields, modernConfig }: StyleProps) {
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
@@ -327,47 +337,51 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.pageBackground }}>
       {/* Breadcrumb */}
-      <div className="bg-background">
+      <div style={{ backgroundColor: tokens.pageBackground }}>
         <div className="max-w-6xl mx-auto px-4 pt-4 pb-2">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
-            <Link href="/" className="hover:text-foreground transition-colors">Trang chủ</Link>
-            <ChevronRight size={14} className="text-muted-foreground/50" />
-            <Link href="/services" className="hover:text-foreground transition-colors">Dịch vụ</Link>
-            <ChevronRight size={14} className="text-muted-foreground/50" />
-            <span className="text-foreground font-medium truncate max-w-[200px]">{service.title}</span>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs md:text-sm" style={{ color: tokens.breadcrumbText }}>
+            <Link href="/" className="transition-colors" style={{ color: tokens.breadcrumbText }}>Trang chủ</Link>
+            <ChevronRight size={14} />
+            <Link href="/services" className="transition-colors" style={{ color: tokens.breadcrumbText }}>Dịch vụ</Link>
+            <ChevronRight size={14} />
+            <span className="font-medium truncate max-w-[200px]" style={{ color: tokens.breadcrumbActive }}>{service.title}</span>
           </nav>
         </div>
       </div>
 
       {/* Hero Section - Clean & Minimal */}
-      <section className="relative overflow-hidden bg-muted/30">
-        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `radial-gradient(circle at 20% 45%, ${brandColor}10 0%, transparent 55%), radial-gradient(circle at 80% 55%, ${brandColor}08 0%, transparent 60%)` }} />
-        
+      <section className="relative overflow-hidden" style={{ backgroundColor: tokens.sectionBackground }}>
         <div className="relative max-w-6xl mx-auto px-4 py-10 md:py-16">
           <div className="max-w-4xl space-y-4">
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2">
               {showFeatured && service.featured && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-amber-900 text-xs font-semibold rounded-md shadow-sm">
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md"
+                  style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}
+                >
                   <Star size={12} className="fill-current" />
                   Nổi bật
                 </span>
               )}
-              <span className="px-3 py-1 bg-background border border-border text-xs font-medium rounded-md" style={{ color: brandColor }}>
+              <span
+                className="px-3 py-1 border text-xs font-medium rounded-md"
+                style={{ color: tokens.categoryBadgeText, backgroundColor: tokens.categoryBadgeBg, borderColor: tokens.categoryBadgeBorder }}
+              >
                 {service.categoryName}
               </span>
             </div>
 
             {/* Title - Shadcn typography scale */}
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-[1.15] tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-bold leading-[1.15] tracking-tight" style={{ color: tokens.headingColor }}>
               {service.title}
             </h1>
 
             {/* Lead text */}
             {service.excerpt && (
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
+              <p className="text-xl leading-relaxed max-w-2xl" style={{ color: tokens.metaText }}>
                 {service.excerpt}
               </p>
             )}
@@ -376,10 +390,10 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
             {config.contactEnabled && (
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 {showPrice && config.contactShowPrice && (
-                  <div className="flex items-center gap-3 px-4 py-2 bg-background border border-border rounded-lg">
+                  <div className="flex items-center gap-3 px-4 py-2 border rounded-lg" style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}>
                     <div>
-                      <p className="text-xs text-muted-foreground">Chỉ từ</p>
-                      <p className="text-2xl md:text-3xl font-bold leading-none" style={{ color: brandColor }}>
+                      <p className="text-xs" style={{ color: tokens.metaText }}>Chỉ từ</p>
+                      <p className="text-2xl md:text-3xl font-bold leading-none" style={{ color: tokens.priceColor }}>
                         {formatPrice(service.price)}
                       </p>
                     </div>
@@ -388,7 +402,7 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
                 <div className="min-w-[180px]">
                   <QuickContactButtons 
                     serviceName={service.title}
-                    brandColor={brandColor}
+                    brandColor={tokens.ctaPrimaryBg}
                     buttonLabel={config.heroCtaText}
                     buttonHref={config.heroCtaLink}
                   />
@@ -397,7 +411,7 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
             )}
 
             {/* Meta info - Muted */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: tokens.metaText }}>
               <div className="flex items-center gap-2">
                 <Eye size={16} />
                 <span>{service.views.toLocaleString()} lượt xem</span>
@@ -416,7 +430,7 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
       {/* Hero Image - Subtle shadow */}
       {service.thumbnail && (
         <div className="max-w-6xl mx-auto px-4 -mt-4 relative z-10">
-          <div className="relative rounded-lg overflow-hidden border border-border shadow-2xl aspect-[16/9]">
+          <div className="relative rounded-lg overflow-hidden border aspect-[16/9]" style={{ borderColor: tokens.border }}>
             <Image
               src={service.thumbnail}
               alt={service.title}
@@ -430,21 +444,24 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
 
       {/* Content Section */}
       <section className="max-w-4xl mx-auto px-4 py-12 md:py-16">
-        <article className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg prose-strong:text-foreground" style={{ '--tw-prose-links': brandColor } as React.CSSProperties}>
+        <article
+          className="prose max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg"
+          style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
+        >
           <div dangerouslySetInnerHTML={{ __html: service.content }} />
         </article>
       </section>
 
       {/* Related Services - Clean cards */}
       {relatedServices.length > 0 && (
-        <section className="bg-muted/30 py-10 md:py-12">
+        <section className="py-10 md:py-12" style={{ backgroundColor: tokens.sectionBackground }}>
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-foreground">Dịch vụ liên quan</h2>
+              <h2 className="text-xl font-bold" style={{ color: tokens.sectionHeadingColor }}>Dịch vụ liên quan</h2>
               <Link 
                 href="/services"
-                className="text-sm font-medium flex items-center gap-1 transition-colors hover:opacity-70"
-                style={{ color: brandColor }}
+                className="text-sm font-medium flex items-center gap-1 transition-colors"
+                style={{ color: tokens.linkMuted }}
               >
                 Xem tất cả
                 <ArrowRight size={16} />
@@ -455,17 +472,18 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
                 <Link 
                   key={s._id} 
                   href={`/services/${s.slug}`}
-                  className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg hover:border-muted-foreground/20 transition-all duration-200"
+                  className="group rounded-lg overflow-hidden border transition-colors"
+                  style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
                 >
-                  <div className="aspect-video overflow-hidden bg-muted relative">
-                    <RelatedServiceThumb title={s.title} thumbnail={s.thumbnail} brandColor={brandColor} size="large" />
+                  <div className="aspect-video overflow-hidden relative" style={{ backgroundColor: tokens.surfaceSoft }}>
+                    <RelatedServiceThumb title={s.title} thumbnail={s.thumbnail} tokens={tokens} size="large" />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-foreground mb-2 line-clamp-2 group-hover:opacity-70 transition-opacity">
+                    <h3 className="text-sm font-semibold mb-2 line-clamp-2 group-hover:opacity-70 transition-opacity" style={{ color: tokens.relatedTitle }}>
                       {s.title}
                     </h3>
                     {showPrice && (
-                      <p className="text-base font-bold" style={{ color: brandColor }}>
+                      <p className="text-base font-bold" style={{ color: tokens.relatedPrice }}>
                         {formatPrice(s.price)}
                       </p>
                     )}
@@ -481,7 +499,8 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
       <div className="max-w-6xl mx-auto px-4 py-6">
         <Link 
           href="/services"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-medium transition-colors"
+          style={{ color: tokens.metaText }}
         >
           <ArrowLeft size={16} />
           Quay lại danh sách dịch vụ
@@ -492,7 +511,7 @@ export function ModernStyle({ service, brandColor, relatedServices, enabledField
 }
 
 // STYLE 3: MINIMAL - Clean, distraction-free reading experience
-export function MinimalStyle({ service, brandColor, relatedServices, enabledFields, minimalConfig }: StyleProps) {
+export function MinimalStyle({ service, brandColor, tokens, relatedServices, enabledFields, minimalConfig }: StyleProps) {
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
 
@@ -508,11 +527,12 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
   const showPrice = config.showPrice && enabledFields.has('price');
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: tokens.pageBackground }}>
       <article className="max-w-7xl mx-auto px-4 py-12 md:py-18">
         <Link 
           href="/services"
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm mb-10 transition-colors"
+          className="inline-flex items-center gap-2 text-sm mb-10 transition-colors"
+          style={{ color: tokens.metaText }}
         >
           <ArrowLeft size={16} />
           Tất cả dịch vụ
@@ -521,24 +541,28 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
         <header className="mb-12 space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             {showFeatured && service.featured && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                <Star size={12} className="fill-amber-500 text-amber-500" />
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+                style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}
+              >
+                <Star size={12} className="fill-current" />
                 Nổi bật
               </span>
             )}
             <span 
-              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600"
+              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
             >
               {service.categoryName}
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: tokens.headingColor }}>
             {service.title}
           </h1>
 
           {service.excerpt && (
-            <p className="text-lg text-slate-600 leading-relaxed">
+            <p className="text-lg leading-relaxed" style={{ color: tokens.metaText }}>
               {service.excerpt}
             </p>
           )}
@@ -546,26 +570,26 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
           <div className="flex flex-wrap items-center gap-4">
             {showPrice && (
               <div className="min-w-[160px]">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Chi phí dự kiến</p>
-                <p className="text-2xl font-bold" style={{ color: brandColor }}>
+                <p className="text-xs uppercase tracking-wide" style={{ color: tokens.metaText }}>Chi phí dự kiến</p>
+                <p className="text-2xl font-bold" style={{ color: tokens.priceColor }}>
                 {formatPrice(service.price)}
                 </p>
               </div>
             )}
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: tokens.metaText }}>
               {showDuration && service.duration && (
-                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                  <Clock size={14} className="text-slate-400" />
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1" style={{ backgroundColor: tokens.chipBg, color: tokens.chipText }}>
+                  <Clock size={14} style={{ color: tokens.chipIcon }} />
                   {service.duration}
                 </span>
               )}
-              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                <Eye size={14} className="text-slate-400" />
+              <span className="inline-flex items-center gap-2 rounded-full px-3 py-1" style={{ backgroundColor: tokens.chipBg, color: tokens.chipText }}>
+                <Eye size={14} style={{ color: tokens.chipIcon }} />
                 {service.views.toLocaleString()} lượt xem
               </span>
               {service.publishedAt && (
-                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                  <Calendar size={14} className="text-slate-400" />
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1" style={{ backgroundColor: tokens.chipBg, color: tokens.chipText }}>
+                  <Calendar size={14} style={{ color: tokens.chipIcon }} />
                   {formatDate(service.publishedAt)}
                 </span>
               )}
@@ -575,7 +599,7 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
 
         {service.thumbnail && (
           <figure className="mb-12">
-            <div className="relative rounded-2xl overflow-hidden aspect-[16/9] shadow-sm">
+            <div className="relative rounded-2xl overflow-hidden aspect-[16/9] border" style={{ borderColor: tokens.border }}>
               <Image
                 src={service.thumbnail}
                 alt={service.title}
@@ -588,20 +612,20 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
         )}
 
         <div 
-          className="prose prose-slate max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:text-slate-600 prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-blockquote:border-l-2 prose-blockquote:not-italic prose-blockquote:text-slate-600"
-          style={{ '--tw-prose-links': brandColor, '--tw-prose-quote-borders': brandColor } as React.CSSProperties}
+          className="prose max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-blockquote:border-l-2 prose-blockquote:not-italic"
+          style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText, '--tw-prose-quote-borders': tokens.linkColor } as React.CSSProperties}
         >
           <div dangerouslySetInnerHTML={{ __html: service.content }} />
         </div>
 
         {config.ctaEnabled && (
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-white p-6 text-center">
-            <p className="text-slate-600 mb-5">{config.ctaText}</p>
+          <div className="mt-14 rounded-2xl border p-6 text-center" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
+            <p className="mb-5" style={{ color: tokens.metaText }}>{config.ctaText}</p>
             
             <div className="max-w-xs mx-auto">
               <QuickContactButtons 
                 serviceName={service.title}
-                brandColor={brandColor}
+                brandColor={tokens.ctaPrimaryBg}
                 buttonLabel={config.ctaButtonText}
                 buttonHref={config.ctaButtonLink}
               />
@@ -611,7 +635,7 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
 
         {relatedServices.length > 0 && (
           <div className="mt-16">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-6 text-center">
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-6 text-center" style={{ color: tokens.metaText }}>
               Có thể bạn quan tâm
             </h3>
             <div className="space-y-2">
@@ -619,16 +643,17 @@ export function MinimalStyle({ service, brandColor, relatedServices, enabledFiel
                 <Link 
                   key={s._id} 
                   href={`/services/${s.slug}`}
-                  className="group flex items-center justify-between gap-4 rounded-xl border border-slate-100 px-4 py-3 hover:border-slate-200 hover:bg-slate-50 transition-colors"
+                  className="group flex items-center justify-between gap-4 rounded-xl border px-4 py-3 transition-colors"
+                  style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
                 >
                   <div className="flex items-center gap-4">
-                    <span className="text-sm text-slate-300 font-mono">{String(index + 1).padStart(2, '0')}</span>
-                    <h4 className="font-medium text-slate-900 group-hover:opacity-70 transition-opacity">
+                    <span className="text-sm font-mono" style={{ color: tokens.softText }}>{String(index + 1).padStart(2, '0')}</span>
+                    <h4 className="font-medium group-hover:opacity-70 transition-opacity" style={{ color: tokens.relatedTitle }}>
                       {s.title}
                     </h4>
                   </div>
                   {showPrice && (
-                    <span className="text-sm font-semibold" style={{ color: brandColor }}>
+                    <span className="text-sm font-semibold" style={{ color: tokens.relatedPrice }}>
                       {formatPrice(s.price)}
                     </span>
                   )}
