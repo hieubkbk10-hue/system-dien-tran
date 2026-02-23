@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Briefcase, ChevronDown, Clock, Eye, Search, Star, TrendingUp } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
-import { resolveSecondaryColor } from '../colors';
+import type { ServicesListColors } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -30,8 +30,7 @@ interface Category {
 
 interface MagazineLayoutProps {
   services: Service[];
-  brandColor: string;
-  secondaryColor?: string;
+  tokens: ServicesListColors;
   categoryMap: Map<string, string>;
   categories: Category[];
   selectedCategory: Id<"serviceCategories"> | null;
@@ -60,8 +59,7 @@ const SORT_OPTIONS: { value: ServiceSortOption; label: string }[] = [
 
 export function MagazineLayout({
   services,
-  brandColor,
-  secondaryColor,
+  tokens,
   categoryMap,
   categories,
   selectedCategory,
@@ -73,11 +71,10 @@ export function MagazineLayout({
   featuredServices,
   enabledFields,
 }: MagazineLayoutProps) {
-  const ringStyle = { '--tw-ring-color': brandColor } as React.CSSProperties;
+  const ringStyle = { '--tw-ring-color': tokens.filterRing } as React.CSSProperties;
   const showExcerpt = enabledFields.has('excerpt');
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
-  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
   const [localSearch, setLocalSearch] = React.useState(searchQuery);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
@@ -139,7 +136,7 @@ export function MagazineLayout({
                 <div className="flex items-center gap-2 mb-2">
                   <span
                     className="px-2 py-0.5 rounded text-xs font-semibold text-white bg-black/60 backdrop-blur-sm ring-1 ring-black/30"
-                    style={{ borderColor: brandColor }}
+                    style={{ borderColor: tokens.accentBorder }}
                   >
                     {categoryMap.get(mainFeatured.categoryId) ?? 'Nổi bật'}
                   </span>
@@ -225,7 +222,7 @@ export function MagazineLayout({
               value={localSearch}
               onChange={(e) =>{  setLocalSearch(e.target.value); }}
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             />
           </div>
 
@@ -237,7 +234,7 @@ export function MagazineLayout({
                 onCategoryChange(value ? value : null);
               }}
               className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 min-w-[200px]"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             >
               <option value="">Tất cả danh mục</option>
               {categories.map((category) => (
@@ -254,7 +251,7 @@ export function MagazineLayout({
               value={sortBy}
               onChange={(e) =>{  onSortChange(e.target.value as ServiceSortOption); }}
               className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 min-w-[180px]"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -271,8 +268,8 @@ export function MagazineLayout({
       {!selectedCategory && trendingServices.length > 0 && (
         <section className="bg-slate-50 -mx-4 px-4 py-6 lg:-mx-6 lg:px-6 rounded-xl">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={18} style={{ color: brandColor }} />
-            <h2 className="text-base font-bold text-slate-900">Dịch vụ phổ biến</h2>
+            <TrendingUp size={18} style={{ color: tokens.primary }} />
+            <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>Dịch vụ phổ biến</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {trendingServices.map((service, index) => (
@@ -283,14 +280,14 @@ export function MagazineLayout({
                 style={ringStyle}
                 aria-label={`Xem dịch vụ ${service.title}`}
               >
-                <span className="text-2xl font-bold opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: brandColor }}>
+                <span className="text-2xl font-bold" style={{ color: tokens.highlightNumber }}>
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium" style={{ color: secondaryResolved }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                  <span className="text-xs font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
                   <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:opacity-70 transition-opacity duration-200 mt-0.5">{service.title}</h3>
                   {showPrice && (
-                    <span className="text-xs font-bold mt-1 block" style={{ color: secondaryResolved }}>{formatPrice(service.price)}</span>
+                    <span className="text-xs font-bold mt-1 block" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                   )}
                 </div>
               </Link>
@@ -309,7 +306,7 @@ export function MagazineLayout({
       ) : (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
               {selectedCategory ? categoryMap.get(selectedCategory) : 'Dịch vụ mới nhất'}
             </h2>
             <span className="text-sm text-slate-500">{services.length} dịch vụ</span>
@@ -351,7 +348,7 @@ export function MagazineLayout({
                   </div>
                   <div className="flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium" style={{ color: secondaryResolved }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                      <span className="text-sm font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
                       <span className="text-slate-300">•</span>
                       <span className="text-sm text-slate-500">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                     </div>
@@ -369,7 +366,7 @@ export function MagazineLayout({
                         )}
                       </div>
                       {showPrice && (
-                        <span className="text-base font-bold" style={{ color: secondaryResolved }}>{formatPrice(service.price)}</span>
+                        <span className="text-base font-bold" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                       )}
                     </div>
                   </div>

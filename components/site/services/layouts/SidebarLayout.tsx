@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Briefcase, ChevronDown, Clock, Eye, Folder, Search, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
-import { getSolidTint, resolveSecondaryColor } from '../colors';
+import type { ServicesListColors } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -30,8 +30,7 @@ interface Category {
 
 interface SidebarLayoutProps {
   services: Service[];
-  brandColor: string;
-  secondaryColor?: string;
+  tokens: ServicesListColors;
   categoryMap: Map<string, string>;
   categories: Category[];
   selectedCategory: Id<"serviceCategories"> | null;
@@ -61,8 +60,7 @@ const SORT_OPTIONS: { value: ServiceSortOption; label: string }[] = [
 
 export function SidebarLayout({
   services,
-  brandColor,
-  secondaryColor,
+  tokens,
   categoryMap,
   categories,
   selectedCategory,
@@ -76,13 +74,11 @@ export function SidebarLayout({
    showCategories = true,
 }: SidebarLayoutProps) {
   const ringStyle = (style?: React.CSSProperties) =>
-    ({ ...style, ['--tw-ring-color' as string]: brandColor } as React.CSSProperties);
+    ({ ...style, ['--tw-ring-color' as string]: tokens.filterRing } as React.CSSProperties);
   const showExcerpt = enabledFields.has('excerpt');
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
-  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
-  const badgeTint = getSolidTint(secondaryResolved, brandColor, 0.42);
   const [localSearch, setLocalSearch] = React.useState(searchQuery);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
@@ -112,7 +108,7 @@ export function SidebarLayout({
            {showSearch && (
            <div className="bg-white rounded-lg border border-slate-200 p-4">
             <h3 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">
-              <Search size={16} style={{ color: brandColor }} />
+              <Search size={16} style={{ color: tokens.filterIcon }} />
               Tìm kiếm
             </h3>
             <label htmlFor="services-sidebar-search" className="sr-only">
@@ -125,7 +121,7 @@ export function SidebarLayout({
               value={localSearch}
               onChange={(e) =>{  setLocalSearch(e.target.value); }}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             />
           </div>
            )}
@@ -134,7 +130,7 @@ export function SidebarLayout({
            {showCategories && (
            <div className="bg-white rounded-lg border border-slate-200 p-4">
             <h3 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">
-              <Folder size={16} style={{ color: brandColor }} />
+              <Folder size={16} style={{ color: tokens.filterIcon }} />
               Danh mục
             </h3>
             <ul className="space-y-1">
@@ -145,7 +141,7 @@ export function SidebarLayout({
                     !selectedCategory ? 'font-medium' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                   style={
-                    ringStyle(!selectedCategory ? { backgroundColor: badgeTint, color: secondaryResolved } : undefined)
+                    ringStyle(!selectedCategory ? { backgroundColor: tokens.filterActiveBg, color: tokens.filterActiveText } : undefined)
                   }
                 >
                   Tất cả
@@ -159,7 +155,7 @@ export function SidebarLayout({
                       selectedCategory === category._id ? 'font-medium' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                     style={
-                      ringStyle(selectedCategory === category._id ? { backgroundColor: badgeTint, color: secondaryResolved } : undefined)
+                      ringStyle(selectedCategory === category._id ? { backgroundColor: tokens.filterActiveBg, color: tokens.filterActiveText } : undefined)
                     }
                   >
                     {category.name}
@@ -178,7 +174,7 @@ export function SidebarLayout({
                 value={sortBy}
                 onChange={(e) =>{  onSortChange(e.target.value as ServiceSortOption); }}
                 className="w-full appearance-none px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2"
-                style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -211,7 +207,7 @@ export function SidebarLayout({
                   key={service._id}
                   href={`/services/${service.slug}`}
                   className="group block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                  style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                  style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
                 >
                   <article className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
                     <div className="flex flex-col sm:flex-row">
@@ -245,7 +241,7 @@ export function SidebarLayout({
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: badgeTint, color: secondaryResolved }}>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}>
                             {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                           </span>
                           <span className="text-xs text-slate-400">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
@@ -264,7 +260,7 @@ export function SidebarLayout({
                             )}
                           </div>
                           {showPrice && (
-                            <span className="text-base font-bold" style={{ color: secondaryResolved }}>
+                            <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                               {formatPrice(service.price)}
                             </span>
                           )}

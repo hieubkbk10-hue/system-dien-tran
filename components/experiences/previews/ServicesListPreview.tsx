@@ -1,7 +1,7 @@
 import React from 'react';
 import { Briefcase, ChevronDown, Clock, Eye, Folder, Search, Star, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
-import { formatHex, oklch } from 'culori';
+import { getServicesListColors, type ServicesListColors } from '@/components/site/services/colors';
 
 type ListLayoutStyle = 'grid' | 'sidebar' | 'masonry';
 type FilterPosition = 'sidebar' | 'top' | 'none';
@@ -33,26 +33,14 @@ const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
-const safeParseOklch = (value: string, fallback: string) => {
-  const parsed = oklch(value);
-  if (parsed) return parsed;
-  const fallbackParsed = oklch(fallback);
-  return fallbackParsed ?? { l: 0.7, c: 0.1, h: 0 };
-};
-
-const getSolidTint = (value: string, fallback: string, lDelta = 0.42) => {
-  const base = safeParseOklch(value, fallback);
-  return formatHex(oklch({ ...base, l: clamp(base.l + lDelta, 0, 0.98) }));
-};
-
-function PaginationPreviewServices({ paginationType, brandColor }: { paginationType: PaginationType; brandColor: string }) {
-  const buttonTint = getSolidTint(brandColor, brandColor, 0.42);
+function PaginationPreviewServices({ paginationType, tokens }: { paginationType: PaginationType; tokens: ServicesListColors }) {
   if (paginationType === 'pagination') {
     return (
       <div className="text-center mt-8">
-        <button className="px-6 py-3 rounded-lg font-medium transition-colors duration-200" style={{ backgroundColor: buttonTint, color: brandColor }}>
+        <button
+          className="px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+          style={{ backgroundColor: tokens.paginationButtonHoverBg, color: tokens.paginationButtonText }}
+        >
           1 &nbsp; 2 &nbsp; 3 &nbsp; ... &nbsp; 10
         </button>
       </div>
@@ -61,9 +49,9 @@ function PaginationPreviewServices({ paginationType, brandColor }: { paginationT
   return (
     <div className="text-center mt-8 space-y-2">
       <div className="flex justify-center gap-1">
-        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
-        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }} />
+        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.loadingDotStrong }} />
+        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.loadingDotMedium }} />
+        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.loadingDotSoft }} />
       </div>
       <p className="text-xs text-slate-400">Cuộn để xem thêm...</p>
     </div>
@@ -71,15 +59,13 @@ function PaginationPreviewServices({ paginationType, brandColor }: { paginationT
 }
 
 // FullWidth Layout (Grid view only)
-function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagination', brandColor = '#8b5cf6', secondaryColor = brandColor }: ServicesListPreviewProps) {
-  const badgeTint = getSolidTint(secondaryColor, brandColor, 0.42);
-
+function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagination', tokens }: ServicesListPreviewProps & { tokens: ServicesListColors }) {
   return (
     <div className="py-6 md:py-10 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Dịch vụ của chúng tôi</h1>
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Dịch vụ của chúng tôi</h1>
         </div>
 
         {/* Filter Bar */}
@@ -89,7 +75,7 @@ function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagina
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 {showSearch && (
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.filterIcon }} />
                     <input
                       type="text"
                       placeholder="Tìm kiếm dịch vụ..."
@@ -143,7 +129,7 @@ function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagina
               </div>
               <div className="p-3 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: badgeTint, color: secondaryColor }}>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}>
                     {service.category}
                   </span>
                 </div>
@@ -158,10 +144,13 @@ function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagina
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-bold" style={{ color: secondaryColor }}>
+                    <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                       {formatPrice(service.price)}
                     </span>
-                    <span className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium rounded-lg text-white" style={{ backgroundColor: brandColor }}>
+                    <span
+                      className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium rounded-lg"
+                      style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
+                    >
                       Xem ngay
                     </span>
                   </div>
@@ -172,21 +161,19 @@ function FullWidthPreview({ showSearch, showCategories, paginationType = 'pagina
         </div>
 
         {/* Load More */}
-        <PaginationPreviewServices paginationType={paginationType} brandColor={brandColor} />
+        <PaginationPreviewServices paginationType={paginationType} tokens={tokens} />
       </div>
     </div>
   );
 }
 
 // Sidebar Layout
-function SidebarPreview({ showSearch, showCategories, paginationType = 'pagination', brandColor = '#8b5cf6', secondaryColor = brandColor }: ServicesListPreviewProps) {
-  const badgeTint = getSolidTint(secondaryColor, brandColor, 0.42);
-
+function SidebarPreview({ showSearch, showCategories, paginationType = 'pagination', tokens }: ServicesListPreviewProps & { tokens: ServicesListColors }) {
   return (
     <div className="py-6 md:py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Dịch vụ của chúng tôi</h1>
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Dịch vụ của chúng tôi</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -196,7 +183,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
               {showSearch && (
                 <div className="bg-white rounded-lg border border-slate-200 p-4">
                   <h3 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <Search size={16} style={{ color: brandColor }} />
+                    <Search size={16} style={{ color: tokens.filterIcon }} />
                     Tìm kiếm
                   </h3>
                   <input type="text" placeholder="Nhập từ khóa..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" disabled />
@@ -206,7 +193,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
               {showCategories && (
                 <div className="bg-white rounded-lg border border-slate-200 p-4">
                   <h3 className="font-semibold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <Folder size={16} style={{ color: brandColor }} />
+                    <Folder size={16} style={{ color: tokens.filterIcon }} />
                     Danh mục
                   </h3>
                   <ul className="space-y-1">
@@ -214,7 +201,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
                       <li key={cat}>
                         <button
                           className={`w-full text-left px-3 py-2.5 rounded text-sm transition-colors min-h-11 ${i === 0 ? 'font-medium' : 'text-slate-600 hover:bg-slate-50'}`}
-                          style={i === 0 ? { backgroundColor: badgeTint, color: secondaryColor } : undefined}
+                          style={i === 0 ? { backgroundColor: tokens.filterActiveBg, color: tokens.filterActiveText } : undefined}
                           disabled
                         >
                           {cat}
@@ -265,7 +252,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
                     </div>
                     <div className="p-4 flex-1 flex flex-col justify-center">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: badgeTint, color: secondaryColor }}>
+                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}>
                           {service.category}
                         </span>
                       </div>
@@ -277,7 +264,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
                           <span className="flex items-center gap-1"><Eye size={12} />{service.views.toLocaleString()}</span>
                           <span className="flex items-center gap-1"><Clock size={12} />{service.duration}</span>
                         </div>
-                        <span className="text-base font-bold" style={{ color: secondaryColor }}>
+                          <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                           {formatPrice(service.price)}
                         </span>
                       </div>
@@ -286,7 +273,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
                 </article>
               ))}
             </div>
-            <PaginationPreviewServices paginationType={paginationType} brandColor={brandColor} />
+            <PaginationPreviewServices paginationType={paginationType} tokens={tokens} />
           </main>
         </div>
       </div>
@@ -295,7 +282,7 @@ function SidebarPreview({ showSearch, showCategories, paginationType = 'paginati
 }
 
 // Magazine Layout
-function MagazinePreview({ showCategories, paginationType = 'pagination', brandColor = '#8b5cf6', secondaryColor = brandColor }: ServicesListPreviewProps) {
+function MagazinePreview({ showCategories, paginationType = 'pagination', tokens }: ServicesListPreviewProps & { tokens: ServicesListColors }) {
   const mainFeatured = MOCK_SERVICES[0];
   const secondaryFeatured = MOCK_SERVICES.slice(1, 3);
   const trendingServices = MOCK_SERVICES.slice(0, 4);
@@ -304,7 +291,7 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
     <div className="py-6 md:py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Dịch vụ của chúng tôi</h1>
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Dịch vụ của chúng tôi</h1>
         </div>
 
         <div className="space-y-6">
@@ -368,7 +355,7 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
           <section className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.filterIcon }} />
                 <input
                   type="text"
                   placeholder="Tìm kiếm dịch vụ..."
@@ -404,19 +391,19 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
           {/* Trending */}
           <section className="bg-slate-50 -mx-4 px-4 py-6 rounded-xl">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={18} style={{ color: brandColor }} />
-              <h2 className="text-base font-bold text-slate-900">Dịch vụ phổ biến</h2>
+              <TrendingUp size={18} style={{ color: tokens.primary }} />
+              <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>Dịch vụ phổ biến</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {trendingServices.map((service, index) => (
                 <div key={service._id} className="flex gap-3">
-                  <span className="text-2xl font-bold" style={{ color: secondaryColor }}>
+                  <span className="text-2xl font-bold" style={{ color: tokens.highlightNumber }}>
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs font-medium" style={{ color: secondaryColor }}>{service.category}</span>
+                    <span className="text-xs font-medium" style={{ color: tokens.priceColor }}>{service.category}</span>
                     <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 mt-0.5">{service.title}</h3>
-                    <span className="text-xs font-bold mt-1 block" style={{ color: secondaryColor }}>{formatPrice(service.price)}</span>
+                    <span className="text-xs font-bold mt-1 block" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                   </div>
                 </div>
               ))}
@@ -426,7 +413,7 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
           {/* Main Grid */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-slate-900">Dịch vụ mới nhất</h2>
+              <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>Dịch vụ mới nhất</h2>
               <span className="text-sm text-slate-500">{MOCK_SERVICES.length} dịch vụ</span>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -448,7 +435,7 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
                   </div>
                   <div className="flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium" style={{ color: secondaryColor }}>{service.category}</span>
+                      <span className="text-sm font-medium" style={{ color: tokens.priceColor }}>{service.category}</span>
                     </div>
                     <h3 className="text-base font-semibold text-slate-900 line-clamp-2">{service.title}</h3>
                     <div className="flex items-center justify-between mt-2">
@@ -456,14 +443,14 @@ function MagazinePreview({ showCategories, paginationType = 'pagination', brandC
                         <span className="flex items-center gap-1"><Eye size={12} />{service.views.toLocaleString()}</span>
                         <span className="flex items-center gap-1"><Clock size={12} />{service.duration}</span>
                       </div>
-                      <span className="text-base font-bold" style={{ color: secondaryColor }}>{formatPrice(service.price)}</span>
+                      <span className="text-base font-bold" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                     </div>
                   </div>
                 </article>
               ))}
             </div>
           </section>
-          <PaginationPreviewServices paginationType={paginationType} brandColor={brandColor} />
+          <PaginationPreviewServices paginationType={paginationType} tokens={tokens} />
         </div>
       </div>
     </div>
@@ -482,24 +469,17 @@ export function ServicesListPreview({
   colorMode = 'single',
   device = 'desktop',
 }: ServicesListPreviewProps) {
-  const resolveSecondaryForMode = (primary: string, secondary: string, mode: 'single' | 'dual') => {
-    if (mode === 'single') return primary;
-    if (secondary.trim()) return secondary;
-    return primary;
-  };
-
   const primaryColor = brandColor || '#8b5cf6';
-  const resolvedSecondary = resolveSecondaryForMode(primaryColor, secondaryColor ?? '', colorMode);
+  const tokens = getServicesListColors(primaryColor, secondaryColor, colorMode);
   const props = {
     layoutStyle,
     filterPosition,
     paginationType,
     showSearch,
     showCategories,
-    brandColor: primaryColor,
-    secondaryColor: resolvedSecondary,
     colorMode,
     device,
+    tokens,
   };
 
   // Map layoutStyle to actual implementation

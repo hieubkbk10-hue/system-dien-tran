@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
+import { getServicesListColors } from '@/components/site/services/colors';
 import { useServicesListConfig } from '@/lib/experiences';
 import { ChevronDown } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -139,8 +140,11 @@ export default function ServicesPage() {
 }
 
 function ServicesContent() {
-  const { primary: brandColor, secondary } = useBrandColors();
-  const secondaryColor = secondary || brandColor;
+  const { primary: brandColor, secondary, mode } = useBrandColors();
+  const tokens = useMemo(
+    () => getServicesListColors(brandColor, secondary, mode || 'single'),
+    [brandColor, secondary, mode]
+  );
   const listConfig = useServicesListConfig();
    const layout: ServicesListLayout = listConfig.layoutStyle === 'masonry'
      ? 'magazine'
@@ -328,7 +332,7 @@ function ServicesContent() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>
             Dịch vụ của chúng tôi
           </h1>
         </div>
@@ -346,7 +350,7 @@ function ServicesContent() {
                 sortBy={sortBy}
                 onSortChange={handleSortChange}
                 totalResults={totalCount ?? 0}
-                brandColor={brandColor}
+                tokens={tokens}
               />
             </div>
 
@@ -355,8 +359,7 @@ function ServicesContent() {
             ) : (
               <FullWidthLayout
                 services={services}
-                brandColor={brandColor}
-                secondaryColor={secondaryColor}
+                tokens={tokens}
                 categoryMap={categoryMap}
                 viewMode="grid"
                 enabledFields={enabledFields}
@@ -371,8 +374,7 @@ function ServicesContent() {
           ) : (
             <SidebarLayout
               services={services}
-              brandColor={brandColor}
-              secondaryColor={secondaryColor}
+              tokens={tokens}
               categoryMap={categoryMap}
               categories={categories ?? []}
               selectedCategory={selectedCategory}
@@ -394,8 +396,7 @@ function ServicesContent() {
           ) : (
             <MagazineLayout
               services={services}
-              brandColor={brandColor}
-              secondaryColor={secondaryColor}
+              tokens={tokens}
               categoryMap={categoryMap}
               categories={categories ?? []}
               selectedCategory={selectedCategory}
@@ -420,7 +421,7 @@ function ServicesContent() {
                   value={postsPerPage}
                   onChange={(event) => handlePageSizeChange(Number(event.target.value))}
                   className="h-8 w-[70px] appearance-none rounded-md border border-slate-200 bg-white px-2 text-sm font-medium text-slate-900 shadow-sm focus:border-slate-300 focus:outline-none"
-                  style={{ borderColor: brandColor }}
+                  style={{ borderColor: tokens.paginationButtonBorder }}
                   aria-label="Số bài mỗi trang"
                 >
                   {[12, 20, 24, 48, 100].map((size) => (
@@ -446,7 +447,7 @@ function ServicesContent() {
                   onClick={() => handlePageChange(urlPage - 1)}
                   disabled={urlPage === 1}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={urlPage === 1 ? undefined : { color: brandColor, borderColor: brandColor }}
+                  style={urlPage === 1 ? undefined : { color: tokens.paginationButtonText, borderColor: tokens.paginationButtonBorder }}
                   aria-label="Trang trước"
                 >
                   <ChevronDown className="h-4 w-4 rotate-90" />
@@ -474,7 +475,7 @@ function ServicesContent() {
                           ? 'text-white shadow-sm border font-medium'
                           : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                       } ${isMobileHidden ? 'hidden sm:inline-flex' : ''}`}
-                      style={isActive ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
+                      style={isActive ? { backgroundColor: tokens.paginationActiveBg, borderColor: tokens.paginationActiveBg, color: tokens.paginationActiveText } : undefined}
                       aria-current={isActive ? 'page' : undefined}
                     >
                       {pageNum}
@@ -486,7 +487,7 @@ function ServicesContent() {
                   onClick={() => handlePageChange(urlPage + 1)}
                   disabled={totalCount ? urlPage >= Math.ceil(totalCount / postsPerPage) : true}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={totalCount && urlPage < Math.ceil(totalCount / postsPerPage) ? { color: brandColor, borderColor: brandColor } : undefined}
+                  style={totalCount && urlPage < Math.ceil(totalCount / postsPerPage) ? { color: tokens.paginationButtonText, borderColor: tokens.paginationButtonBorder } : undefined}
                   aria-label="Trang sau"
                 >
                   <ChevronDown className="h-4 w-4 -rotate-90" />
@@ -500,9 +501,9 @@ function ServicesContent() {
           <div ref={loadMoreRef} className="text-center mt-6 py-8">
             {infiniteStatus === 'LoadingMore' ? (
               <div className="flex justify-center gap-1">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor, opacity: 0.7 }} />
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor, opacity: 0.5 }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotStrong }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotMedium }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotSoft }} />
               </div>
             ) : infiniteStatus === 'CanLoadMore' ? (
               <p className="text-sm text-slate-400">Cuộn để xem thêm...</p>

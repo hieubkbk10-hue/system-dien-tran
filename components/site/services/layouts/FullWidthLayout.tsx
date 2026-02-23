@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Briefcase, Clock, Star } from 'lucide-react';
 import React from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
-import { getSolidTint, resolveSecondaryColor } from '../colors';
+import type { ServicesListColors } from '../colors';
 
 interface Service {
   _id: Id<"services">;
@@ -23,8 +23,7 @@ interface Service {
 
 interface FullWidthLayoutProps {
   services: Service[];
-  brandColor: string;
-  secondaryColor?: string;
+  tokens: ServicesListColors;
   categoryMap: Map<string, string>;
   viewMode: 'grid' | 'list';
   enabledFields: Set<string>;
@@ -35,13 +34,11 @@ const formatPrice = (price?: number): string => {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 };
 
-export const FullWidthLayout = ({ services, brandColor, secondaryColor, categoryMap, viewMode, enabledFields }: FullWidthLayoutProps): React.ReactElement => {
+export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabledFields }: FullWidthLayoutProps): React.ReactElement => {
   const showExcerpt = enabledFields.has('excerpt');
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
-  const secondaryResolved = resolveSecondaryColor(brandColor, secondaryColor);
-  const badgeTint = getSolidTint(secondaryResolved, brandColor, 0.42);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 
   const markThumbnailBroken = React.useCallback((id: Id<"services">) => {
@@ -75,7 +72,7 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
               key={service._id}
               href={`/services/${service.slug}`}
               className="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.primary } as React.CSSProperties}
               aria-label={`Xem chi tiết dịch vụ ${service.title}`}
             >
               <article className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 flex flex-col sm:flex-row">
@@ -111,7 +108,7 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
                   <div className="flex items-center gap-2 mb-1.5">
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded"
-                      style={{ backgroundColor: badgeTint, color: secondaryResolved }}
+                      style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
                     >
                       {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                     </span>
@@ -134,13 +131,13 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
                     </div>
                     <div className="flex items-center gap-3">
                       {showPrice && (
-                        <span className="text-lg font-bold" style={{ color: secondaryResolved }}>
+                        <span className="text-lg font-bold" style={{ color: tokens.priceColor }}>
                           {formatPrice(service.price)}
                         </span>
                       )}
                       <span
                         className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium rounded-lg text-white"
-                        style={{ backgroundColor: brandColor }}
+                        style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
                       >
                         Xem ngay
                       </span>
@@ -166,7 +163,7 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
           key={service._id}
           href={`/services/${service.slug}`}
           className="group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+          style={{ '--tw-ring-color': tokens.primary } as React.CSSProperties}
           aria-label={`Xem chi tiết dịch vụ ${service.title}`}
         >
           <article className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100 h-full flex flex-col">
@@ -200,7 +197,7 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
               <div className="flex items-center gap-2 mb-2">
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded"
-                  style={{ backgroundColor: badgeTint, color: secondaryResolved }}
+                  style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
                 >
                   {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
                 </span>
@@ -222,13 +219,13 @@ export const FullWidthLayout = ({ services, brandColor, secondaryColor, category
                 </div>
                 <div className="flex items-center gap-2">
                   {showPrice && (
-                  <span className="text-base font-bold" style={{ color: secondaryResolved }}>
+                  <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                       {formatPrice(service.price)}
                     </span>
                   )}
                   <span
                     className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium rounded-lg text-white"
-                    style={{ backgroundColor: brandColor }}
+                    style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
                   >
                     Xem ngay
                   </span>

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
-import { getSolidTint } from './colors';
+import type { ServicesListColors } from './colors';
 
 export type ServiceSortOption = 'newest' | 'oldest' | 'popular' | 'title' | 'price_asc' | 'price_desc';
 
@@ -22,7 +22,7 @@ interface ServicesFilterProps {
   sortBy: ServiceSortOption;
   onSortChange: (sort: ServiceSortOption) => void;
   totalResults: number;
-  brandColor: string;
+  tokens: ServicesListColors;
 }
 
 const SORT_OPTIONS: { value: ServiceSortOption; label: string }[] = [
@@ -43,11 +43,10 @@ export function ServicesFilter({
   sortBy,
   onSortChange,
   totalResults,
-  brandColor,
+  tokens,
 }: ServicesFilterProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const badgeTint = getSolidTint(brandColor, brandColor, 0.42);
   
   // Debounce search
   useEffect(() => {
@@ -81,7 +80,7 @@ export function ServicesFilter({
               value={localSearch}
               onChange={(e) =>{  setLocalSearch(e.target.value); }}
               className="w-full pl-10 pr-10 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 text-sm"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             />
             {localSearch && (
               <button
@@ -102,7 +101,7 @@ export function ServicesFilter({
                 onCategoryChange(value ? value : null);
               }}
               className="appearance-none px-4 py-2 pr-10 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 cursor-pointer min-w-[200px]"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             >
               <option value="">Tất cả danh mục</option>
               {categories.map((category) => (
@@ -120,7 +119,7 @@ export function ServicesFilter({
               value={sortBy}
               onChange={(e) =>{  onSortChange(e.target.value as ServiceSortOption); }}
               className="appearance-none px-4 py-2 pr-10 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 cursor-pointer"
-              style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+              style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -141,7 +140,7 @@ export function ServicesFilter({
             {hasActiveFilters && (
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: tokens.primary }}
               />
             )}
           </button>
@@ -163,7 +162,7 @@ export function ServicesFilter({
                     onCategoryChange(value ? value : null);
                   }}
                   className="w-full appearance-none px-4 py-2 pr-10 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2"
-                  style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                  style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
                 >
                   <option value="">Tất cả danh mục</option>
                   {categories.map((category) => (
@@ -185,7 +184,7 @@ export function ServicesFilter({
                 value={sortBy}
                 onChange={(e) =>{  onSortChange(e.target.value as ServiceSortOption); }}
                 className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2"
-                style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
+                style={{ '--tw-ring-color': tokens.filterRing } as React.CSSProperties}
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -210,7 +209,7 @@ export function ServicesFilter({
           {selectedCategoryName && (
             <span
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-              style={{ backgroundColor: badgeTint, color: brandColor }}
+              style={{ backgroundColor: tokens.filterTagBg, color: tokens.filterTagText }}
             >
               {selectedCategoryName}
               <button
@@ -239,7 +238,7 @@ export function ServicesFilter({
           <button
             onClick={clearFilters}
             className="text-sm hover:underline"
-            style={{ color: brandColor }}
+            style={{ color: tokens.primary }}
           >
             Xóa bộ lọc
           </button>
