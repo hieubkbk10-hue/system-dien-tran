@@ -10,6 +10,7 @@ import { ModuleGuard } from '../components/ModuleGuard';
 import { SettingsImageUploader } from '../components/SettingsImageUploader';
 import { useSettingsCleanup } from '../components/useSettingsCleanup';
 import { TagInput } from '../components/TagInput';
+import MapLocationPicker from './MapLocationPicker';
 
 const MODULE_KEY = 'settings';
 
@@ -153,7 +154,10 @@ function SettingsContent() {
       
       // Skip fields whose linked feature is disabled
       if (field.linkedFeature && ! enabledFeatures[field.linkedFeature]) {return;}
-      
+
+      // Skip lat/lng fields (managed by MapLocationPicker)
+      if (field.fieldKey === 'contact_lat' || field.fieldKey === 'contact_lng') {return;}
+
       const group = field.group ?? 'site';
       groups[group] ??= [];
       groups[group].push(field);
@@ -176,6 +180,12 @@ function SettingsContent() {
       });
       if (!values.site_brand_primary && values.site_brand_color) {
         values.site_brand_primary = values.site_brand_color;
+      }
+      if (!values.contact_lat) {
+        values.contact_lat = '10.762622';
+      }
+      if (!values.contact_lng) {
+        values.contact_lng = '106.660172';
       }
       setIsSecondaryAuto(values.site_brand_mode === 'single' ? true : !values.site_brand_secondary);
       setForm(values);
@@ -257,6 +267,13 @@ function SettingsContent() {
       const primaryValue = form.site_brand_primary || form.site_brand_color;
       if (primaryValue && hasPrimaryField) {
         settingsToSave.push({ group: 'site', key: 'site_brand_color', value: primaryValue });
+      }
+
+      if (form.contact_lat && !settingsToSave.some((item) => item.key === 'contact_lat')) {
+        settingsToSave.push({ group: 'contact', key: 'contact_lat', value: form.contact_lat });
+      }
+      if (form.contact_lng && !settingsToSave.some((item) => item.key === 'contact_lng')) {
+        settingsToSave.push({ group: 'contact', key: 'contact_lng', value: form.contact_lng });
       }
 
       await setMultiple({ settings: settingsToSave });
@@ -429,6 +446,33 @@ function SettingsContent() {
       }
 
       case 'textarea': {
+        if (key === 'contact_address') {
+          const lat = form.contact_lat || '10.762622';
+          const lng = form.contact_lng || '106.660172';
+
+          return (
+            <div className="space-y-2" key={key}>
+              <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
+              <textarea
+                value={value}
+                onChange={(e) => updateField(key, e.target.value)}
+                className="w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                placeholder="Nhập địa chỉ..."
+              />
+              <MapLocationPicker
+                address={value}
+                lat={lat}
+                lng={lng}
+                onLocationChange={(data) => {
+                  updateField('contact_address', data.address);
+                  updateField('contact_lat', data.lat);
+                  updateField('contact_lng', data.lng);
+                }}
+              />
+            </div>
+          );
+        }
+
         return (
           <div className="space-y-2" key={key}>
             <div className="flex items-center justify-between gap-3">

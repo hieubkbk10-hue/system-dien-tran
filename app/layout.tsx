@@ -1,5 +1,4 @@
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { BrandColorProvider } from "@/components/providers/BrandColorProvider";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
