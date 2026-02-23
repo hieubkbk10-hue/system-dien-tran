@@ -3,6 +3,7 @@
 import React from 'react';
 import { Mail, MapPin, MessageSquare, Phone, Send } from 'lucide-react';
 import { useContactPageData } from '@/components/site/useContactPageData';
+import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
 
 type SocialLinkItem = { label: string; href: string; color: string; icon: React.ElementType };
 
@@ -279,14 +280,13 @@ function CorporateSidebar({
   );
 }
 
-function MapPreview({ address }: { address: string }) {
+function MapPreview({ address, lat, lng }: { address: string; lat: number; lng: number }) {
   return (
-    <div className="bg-slate-100 rounded-xl h-48 flex items-center justify-center text-slate-400 border border-slate-200">
-      <div className="text-center">
-        <MapPin size={32} className="mx-auto mb-2" />
-        <span className="text-sm">{address ? `Bản đồ: ${address}` : 'Bản đồ đang cập nhật'}</span>
-      </div>
-    </div>
+    <OpenStreetMapDisplay
+      location={{ lat, lng, address }}
+      height="300px"
+      zoom={15}
+    />
   );
 }
 
@@ -326,7 +326,27 @@ export default function ContactPage() {
           )}
           <div className={`${config.showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
             <CorporateContactForm brandColor={brandColor} />
-            {config.showMap && <MapPreview address={contactData.address} />}
+            {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
+          </div>
+        </div>
+      )}
+
+      {config.layoutStyle === 'with-map' && (
+        <div className="space-y-4">
+          {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ContactForm brandColor={brandColor} />
+            {config.showContactInfo && (
+              <ContactInfoCard
+                brandColor={brandColor}
+                address={contactData.address}
+                email={contactData.email}
+                phone={contactData.phone}
+                hotline={contactData.hotline}
+                showSocialLinks={config.showSocialLinks}
+                socialLinks={socialLinks}
+              />
+            )}
           </div>
         </div>
       )}
@@ -348,7 +368,7 @@ export default function ContactPage() {
                 socialLinks={socialLinks}
               />
             )}
-            {config.showMap && <MapPreview address={contactData.address} />}
+            {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
           </div>
         </div>
       )}

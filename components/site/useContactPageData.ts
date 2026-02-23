@@ -24,6 +24,8 @@ type ContactData = {
   email: string;
   phone: string;
   hotline: string;
+  lat: number;
+  lng: number;
 };
 
 export function useContactPageData(): {
@@ -48,16 +50,18 @@ export function useContactPageData(): {
   );
 
   const contactData = useMemo<ContactData>(() => {
-    const settingsMap: Record<string, string> = {};
+    const settingsMap: Record<string, string | number> = {};
     contactSettings?.forEach(setting => {
-      settingsMap[setting.key] = typeof setting.value === 'string' ? setting.value : '';
+      settingsMap[setting.key] = setting.value;
     });
 
     return {
-      address: settingsMap.contact_address || '',
-      email: settingsMap.contact_email || '',
-      hotline: settingsMap.contact_hotline || '',
-      phone: settingsMap.contact_phone || '',
+      address: (settingsMap.contact_address as string) || '',
+      email: (settingsMap.contact_email as string) || '',
+      hotline: (settingsMap.contact_hotline as string) || '',
+      phone: (settingsMap.contact_phone as string) || '',
+      lat: (settingsMap.contact_lat as number) || 10.762622,
+      lng: (settingsMap.contact_lng as number) || 106.660172,
     };
   }, [contactSettings]);
 
