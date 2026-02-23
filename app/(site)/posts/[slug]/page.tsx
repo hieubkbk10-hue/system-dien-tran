@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Noto_Sans } from 'next/font/google';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import { usePostsDetailConfig } from '@/lib/experiences/useSiteConfig';
 import { Button, Card, CardContent } from '@/app/admin/components/ui';
 import { ArrowLeft, Calendar, Check, ChevronRight, Clock, Eye, FileText, Home, Link as LinkIcon, MessageSquare, Reply, Send, Share2, ThumbsUp, User } from 'lucide-react';
@@ -16,6 +16,18 @@ const notoSans = Noto_Sans({
   display: 'swap',
   subsets: ['vietnamese', 'latin'],
 });
+
+const isValidHexColor = (value: string) => /^#[0-9A-Fa-f]{6}$/.test(value.trim());
+
+const resolveSecondary = (primary: string, secondary: string | undefined, mode: 'single' | 'dual' = 'single') => {
+  if (mode === 'single') {
+    return primary;
+  }
+  if (secondary && isValidHexColor(secondary)) {
+    return secondary;
+  }
+  return primary;
+};
 
 // Hook để lấy danh sách các fields đang bật cho posts module
 function useEnabledPostFields(): Set<string> {
@@ -45,7 +57,9 @@ interface PageProps {
 
 export default function PostDetailPage({ params }: PageProps) {
   const { slug } = use(params);
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const brandColor = brandColors.primary;
+  const secondaryColor = resolveSecondary(brandColors.primary, brandColors.secondary, brandColors.mode || 'single');
   const postDetailConfig = usePostsDetailConfig();
   const style = postDetailConfig.layoutStyle;
   const enabledFields = useEnabledPostFields();
@@ -276,6 +290,7 @@ export default function PostDetailPage({ params }: PageProps) {
         <ClassicStyle
           post={postData}
           brandColor={brandColor}
+          secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
           showAuthor={shouldShowAuthor}
@@ -289,6 +304,7 @@ export default function PostDetailPage({ params }: PageProps) {
         <ModernStyle
           post={postData}
           brandColor={brandColor}
+          secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
           showAuthor={shouldShowAuthor}
@@ -302,6 +318,7 @@ export default function PostDetailPage({ params }: PageProps) {
         <MinimalStyle
           post={postData}
           brandColor={brandColor}
+          secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
           showAuthor={shouldShowAuthor}
@@ -351,6 +368,7 @@ interface RelatedPost {
 interface StyleProps {
   post: PostData;
   brandColor: string;
+  secondaryColor: string;
   relatedPosts: RelatedPost[];
   enabledFields: Set<string>;
   showAuthor: boolean;
@@ -361,12 +379,13 @@ interface StyleProps {
 }
 
 // Style 1: Classic - Truyền thống với sidebar
-function ClassicStyle({ post, brandColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
   const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
   const visibleTags = showTags ? tags : [];
+  const accentColor = secondaryColor || brandColor;
 
   const hasRelatedPosts = relatedPosts.length > 0;
 
@@ -422,7 +441,7 @@ function ClassicStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
               <div className="flex items-center gap-2">
                 <span
                   className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                  style={{ backgroundColor: `${brandColor}15`, borderColor: `${brandColor}30`, color: brandColor }}
+                  style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30`, color: accentColor }}
                 >
                   {post.categoryName}
                 </span>
@@ -434,7 +453,7 @@ function ClassicStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
                     <span
                       key={tag}
                       className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                      style={{ borderColor: `${accentColor}20`, color: accentColor }}
                     >
                       {tag}
                     </span>
@@ -442,7 +461,7 @@ function ClassicStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
                 </div>
               )}
 
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]" style={{ color: brandColor }}>
                 {post.title}
               </h1>
 
@@ -578,12 +597,13 @@ function ClassicStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
 }
 
 // Style 2: Modern - Medium/Substack inspired - Focus on typography and reading experience
-function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
   const showExcerpt = enabledFields.has('excerpt');
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
   const visibleTags = showTags ? tags : [];
+  const accentColor = secondaryColor || brandColor;
 
   const handleCopyLink = async () => {
     if (navigator?.clipboard) {
@@ -631,7 +651,7 @@ function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor
             <div className="flex items-center justify-center md:justify-start">
               <span
                 className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-                style={{ backgroundColor: `${brandColor}10`, borderColor: `${brandColor}25`, color: brandColor }}
+                style={{ backgroundColor: `${accentColor}10`, borderColor: `${accentColor}25`, color: accentColor }}
               >
                 {post.categoryName}
               </span>
@@ -643,7 +663,7 @@ function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor
                   <span
                     key={tag}
                     className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                    style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                    style={{ borderColor: `${accentColor}20`, color: accentColor }}
                   >
                     {tag}
                   </span>
@@ -651,7 +671,7 @@ function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor
               </div>
             )}
 
-            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance">
+            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance" style={{ color: brandColor }}>
               {post.title}
             </h1>
 
@@ -723,7 +743,7 @@ function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Bài viết cùng chủ đề</h2>
-                <Link href="/posts" className="text-sm font-medium" style={{ color: brandColor }}>
+                <Link href="/posts" className="text-sm font-medium" style={{ color: accentColor }}>
                   Xem thêm
                 </Link>
               </div>
@@ -782,11 +802,12 @@ function ModernStyle({ post, brandColor, relatedPosts, enabledFields, showAuthor
 }
 
 // Style 3: Minimal - Tối giản, tập trung nội dung
-function MinimalStyle({ post, brandColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const [isCopied, setIsCopied] = useState(false);
   const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
   const { isBroken, markBroken } = useImageFallback();
   const visibleTags = showTags ? tags : [];
+  const accentColor = secondaryColor || brandColor;
 
   const handleShare = async () => {
     if (navigator?.clipboard) {
@@ -847,10 +868,10 @@ function MinimalStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
             <div className="container max-w-6xl mx-auto h-full px-4 md:px-6 flex items-end pb-6 md:pb-8">
               <Card className="w-full max-w-3xl border-border/70 bg-background/90 shadow-sm backdrop-blur-sm">
                 <CardContent className="space-y-3 p-4 md:p-6">
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: brandColor }}>
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
                     {post.categoryName}
                   </span>
-                  <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground">
+                  <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
                     {post.title}
                   </h1>
                   {visibleTags.length > 0 && (
@@ -859,7 +880,7 @@ function MinimalStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
                         <span
                           key={tag}
                           className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
-                          style={{ borderColor: `${brandColor}20`, color: brandColor }}
+                          style={{ borderColor: `${accentColor}20`, color: accentColor }}
                         >
                           {tag}
                         </span>
@@ -912,7 +933,7 @@ function MinimalStyle({ post, brandColor, relatedPosts, showAuthor, authorName, 
               <Link
                 href="/posts"
                 className="text-sm font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                style={{ color: brandColor }}
+                style={{ color: accentColor }}
               >
                 Xem thêm
               </Link>

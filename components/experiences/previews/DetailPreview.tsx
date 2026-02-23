@@ -384,7 +384,7 @@ function ClassicStylePreview({
                 </div>
               )}
 
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]" style={{ color: brandColor }}>
                 {MOCK_POST.title}
               </h1>
 
@@ -570,7 +570,7 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
               </div>
             )}
 
-            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance">
+            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance" style={{ color: brandColor }}>
               {MOCK_POST.title}
             </h1>
 
@@ -635,7 +635,7 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Bài viết cùng chủ đề</h2>
-                <div className="text-sm font-medium" style={{ color: brandColor }}>
+                <div className="text-sm font-medium" style={{ color: accentColor }}>
                   Xem thêm
                 </div>
               </div>
@@ -738,7 +738,7 @@ function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTa
                   <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
                     {MOCK_POST.categoryName}
                   </span>
-                  <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground">
+                  <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
                     {MOCK_POST.title}
                   </h1>
                   {visibleTags.length > 0 && (
@@ -799,7 +799,7 @@ function MinimalStylePreview({ showRelated, showShare, showAuthor = true, showTa
               <h2 className="text-lg md:text-xl font-semibold text-foreground">Bài viết liên quan</h2>
               <div
                 className="text-sm font-semibold transition-colors hover:text-foreground"
-                style={{ color: brandColor }}
+                style={{ color: accentColor }}
               >
                 Xem thêm
               </div>
