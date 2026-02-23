@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { Briefcase, FileText, Package, Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
+import type { MenuColors } from './header/colors';
 
 type SuggestionItem = {
   id: string;
@@ -23,12 +24,13 @@ type AutocompleteResult = {
 
 export type HeaderSearchAutocompleteProps = {
   placeholder?: string;
-  brandColor: string;
+  tokens: MenuColors;
   searchProducts: boolean;
   searchPosts: boolean;
   searchServices: boolean;
   className?: string;
   inputClassName?: string;
+  inputStyle?: React.CSSProperties;
   buttonClassName?: string;
   showButton?: boolean;
   disabled?: boolean;
@@ -41,12 +43,13 @@ function cn(...classes: Array<string | undefined | false>) {
 
 export function HeaderSearchAutocomplete({
   placeholder,
-  brandColor,
+  tokens,
   searchProducts,
   searchPosts,
   searchServices,
   className,
   inputClassName,
+  inputStyle,
   buttonClassName,
   showButton = true,
   disabled = false,
@@ -124,6 +127,13 @@ export function HeaderSearchAutocomplete({
     router.push(item.url);
   };
 
+  const dropdownStyle: React.CSSProperties = {
+    backgroundColor: tokens.dropdownBg,
+    borderColor: tokens.dropdownBorder,
+    '--menu-search-hover-bg': tokens.dropdownItemHoverBg,
+    '--menu-search-hover-text': tokens.dropdownItemHoverText,
+  } as React.CSSProperties;
+
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <input
@@ -147,31 +157,38 @@ export function HeaderSearchAutocomplete({
         placeholder={placeholder ?? 'Tìm kiếm...'}
         disabled={disabled}
         className={cn('w-full', inputClassName)}
+        style={inputStyle}
       />
       {showButton && (
         <button
           type="button"
           onClick={handleSubmit}
           className={buttonClassName}
-          style={{ backgroundColor: brandColor }}
+          style={{ backgroundColor: tokens.searchButtonBg, color: tokens.searchButtonText }}
         >
           <Search size={14} />
         </button>
       )}
       {showDropdown && (
-        <div className="absolute right-0 mt-2 min-w-[320px] rounded-xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
+        <div
+          className="absolute right-0 mt-2 min-w-[320px] rounded-xl border z-50 overflow-hidden"
+          style={dropdownStyle}
+        >
           {isLoading && (
-            <div className="px-4 py-3 text-sm text-slate-500">Đang tìm kiếm...</div>
+            <div className="px-4 py-3 text-sm" style={{ color: tokens.textSubtle }}>Đang tìm kiếm...</div>
           )}
           {!isLoading && !hasResults && (
-            <div className="px-4 py-3 text-sm text-slate-500">Không có kết quả phù hợp.</div>
+            <div className="px-4 py-3 text-sm" style={{ color: tokens.textSubtle }}>Không có kết quả phù hợp.</div>
           )}
           {!isLoading && hasResults && (
             <div className="py-2">
               {sections.map((section) => (
                 section.items.length > 0 ? (
                   <div key={section.key} className="pb-2 last:pb-0">
-                    <div className="px-4 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    <div
+                      className="px-4 py-1 text-[11px] font-semibold uppercase tracking-wider"
+                      style={{ color: tokens.dropdownSectionLabel }}
+                    >
                       {section.label}
                     </div>
                     <div className="space-y-1">
@@ -182,17 +199,21 @@ export function HeaderSearchAutocomplete({
                             type="button"
                             key={item.id}
                             onClick={() => { handleSelect(item); }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-slate-50"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-left transition-colors hover:bg-[var(--menu-search-hover-bg)] hover:text-[var(--menu-search-hover-text)]"
+                            style={{ color: tokens.dropdownItemText }}
                           >
-                            <div className="relative w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
+                            <div
+                              className="relative w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
+                              style={{ backgroundColor: tokens.surfaceMuted }}
+                            >
                               {item.thumbnail ? (
                                 <Image src={item.thumbnail} alt={item.title} width={36} height={36} className="h-full w-full object-cover" />
                               ) : (
-                                <Icon size={16} className="text-slate-400" />
+                                <Icon size={16} style={{ color: tokens.textSubtle }} />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-900 truncate">{item.title}</p>
+                              <p className="text-sm font-medium truncate" style={{ color: tokens.textPrimary }}>{item.title}</p>
                             </div>
                           </button>
                         );

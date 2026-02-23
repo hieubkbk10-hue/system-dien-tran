@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ChevronDown, ChevronRight, Eye, Heart, LogOut, Mail, Package, Phone, Search, ShoppingCart, User } from 'lucide-react';
 import { Card, CardContent, cn } from '@/app/admin/components/ui';
+import { getMenuColors, type MenuColorMode, type MenuColors } from '@/components/site/header/colors';
 
 export type HeaderLayoutStyle = 'classic' | 'topbar' | 'allbirds';
 
@@ -43,6 +44,8 @@ type MenuItemWithChildren = MenuItem & { children: MenuItemWithChildren[] };
 
 export type HeaderMenuPreviewProps = {
   brandColor: string;
+  secondaryColor?: string;
+  colorMode?: MenuColorMode;
   config: HeaderMenuConfig;
   device: 'desktop' | 'tablet' | 'mobile';
   layoutStyle: HeaderLayoutStyle;
@@ -56,6 +59,8 @@ export type HeaderMenuPreviewProps = {
 
 export function HeaderMenuPreview({
   brandColor,
+  secondaryColor,
+  colorMode = 'single',
   config,
   device,
   layoutStyle,
@@ -66,6 +71,18 @@ export function HeaderMenuPreview({
   loginFeatureEnabled,
   ordersEnabled,
 }: HeaderMenuPreviewProps) {
+  const tokens = useMemo<MenuColors>(
+    () => getMenuColors(brandColor, secondaryColor, colorMode),
+    [brandColor, secondaryColor, colorMode]
+  );
+  const menuVars: React.CSSProperties = {
+    '--menu-hover-bg': tokens.navItemHoverBg,
+    '--menu-hover-text': tokens.navItemHoverText,
+    '--menu-dropdown-hover-bg': tokens.dropdownItemHoverBg,
+    '--menu-dropdown-hover-text': tokens.dropdownItemHoverText,
+    '--menu-dropdown-sub-hover-text': tokens.dropdownSubItemHoverText,
+    '--menu-icon-hover': tokens.iconButtonHoverText,
+  } as React.CSSProperties;
   const defaultLinks = useMemo(() => ({
     cart: '/cart',
     wishlist: '/wishlist',
@@ -129,43 +146,48 @@ export function HeaderMenuPreview({
         onClick={() => { setUserMenuOpen(prev => !prev); }}
         className={variant === 'text'
           ? 'hover:underline flex items-center gap-1'
-          : 'p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}
+          : 'p-2 transition-colors hover:text-[var(--menu-icon-hover)]'}
+        style={variant === 'text' ? { color: tokens.topbarText } : { color: tokens.iconButtonText, ...menuVars }}
       >
         <User size={variant === 'text' ? 12 : 18} />
         {variant === 'text' && <span>{config.login.text}</span>}
       </button>
       {userMenuOpen && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-900">Xin chào, Nguyễn Văn A</p>
-            <p className="text-xs text-slate-500 mt-1">customer@email.com</p>
+        <div className="absolute right-0 mt-2 w-56 rounded-xl border z-50" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+          <div className="px-4 py-3 border-b" style={{ borderColor: tokens.border }}>
+            <p className="text-sm font-semibold" style={{ color: tokens.textPrimary }}>Xin chào, Nguyễn Văn A</p>
+            <p className="text-xs mt-1" style={{ color: tokens.textSubtle }}>customer@email.com</p>
           </div>
           <div className="py-2">
             <a
               href={defaultLinks.accountProfile}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+              style={{ color: tokens.dropdownItemText, ...menuVars }}
             >
               <User size={16} />
               Thông tin tài khoản
             </a>
             <a
               href={defaultLinks.accountOrders}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+              style={{ color: tokens.dropdownItemText, ...menuVars }}
             >
               <Package size={16} />
               Đơn hàng của tôi
             </a>
             <a
               href={defaultLinks.wishlist}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+              style={{ color: tokens.dropdownItemText, ...menuVars }}
             >
               <Heart size={16} />
               Danh sách yêu thích
             </a>
           </div>
-          <div className="border-t border-slate-100">
+          <div className="border-t" style={{ borderColor: tokens.border }}>
             <button
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50"
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
+              style={{ color: tokens.secondary, ...menuVars }}
             >
               <LogOut size={16} />
               Đăng xuất
@@ -181,51 +203,31 @@ export function HeaderMenuPreview({
     return items.length > 0 ? items.join(' · ') : 'Shop New Arrivals';
   }, [displayTopbar.email, displayTopbar.hotline]);
 
-  const brandRgba = (alpha: number) => {
-    if (!brandColor.startsWith('#')) {
-      return brandColor;
-    }
-
-    const hex = brandColor.replace('#', '');
-    const normalized = hex.length === 3
-      ? hex.split('').map((char) => `${char}${char}`).join('')
-      : hex.slice(0, 6);
-    const value = Number.parseInt(normalized, 16);
-    if (Number.isNaN(value) || normalized.length !== 6) {
-      return brandColor;
-    }
-    const r = (value >> 16) & 255;
-    const g = (value >> 8) & 255;
-    const b = value & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
   const classicBackgroundStyle: React.CSSProperties = (() => {
     if (config.headerBackground === 'dots') {
       return {
-        backgroundColor: '#ffffff',
-        backgroundImage: `radial-gradient(circle, ${brandRgba(0.16)} 1px, transparent 1px)`,
+        backgroundColor: tokens.surface,
+        backgroundImage: `radial-gradient(circle, ${tokens.patternDot} 1px, transparent 1px)`,
         backgroundSize: '18px 18px',
       };
     }
     if (config.headerBackground === 'stripes') {
       return {
-        backgroundColor: '#ffffff',
-        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, ${brandRgba(0.12)} 10px, ${brandRgba(0.12)} 20px)`,
+        backgroundColor: tokens.surface,
+        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, ${tokens.patternStripe} 10px, ${tokens.patternStripe} 20px)`,
       };
     }
-    return { backgroundColor: '#ffffff' };
+    return { backgroundColor: tokens.surface };
   })();
 
-  const classicSeparatorClass = config.headerSeparator === 'shadow'
-    ? 'shadow-[0_10px_18px_-12px_rgba(15,23,42,0.35)] dark:shadow-[0_10px_18px_-12px_rgba(0,0,0,0.7)]'
-    : config.headerSeparator === 'border'
-      ? 'border-b border-slate-200 dark:border-slate-700'
-      : '';
+  const classicSeparatorStyle: React.CSSProperties =
+    config.headerSeparator === 'border' || config.headerSeparator === 'shadow'
+      ? { borderBottom: `1px solid ${tokens.border}` }
+      : {};
 
   const classicSeparatorElement = config.headerSeparator === 'gradient'
     ? (
-      <div className="h-3 bg-gradient-to-b from-slate-200/80 to-transparent dark:from-slate-800/80" />
+      <div className="h-1" style={{ backgroundColor: tokens.borderStrong }} />
     )
     : null;
 
@@ -235,44 +237,57 @@ export function HeaderMenuPreview({
     setExpandedMobileItems(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
   };
 
-  const renderLink = (item: MenuItem, className: string, children: React.ReactNode) => (
+  const renderLink = (item: MenuItem, className: string, children: React.ReactNode, style?: React.CSSProperties) => (
     <a
       href={item.url}
       target={item.openInNewTab ? '_blank' : undefined}
       rel={item.openInNewTab ? 'noreferrer' : undefined}
       className={className}
+      style={style}
     >
       {children}
     </a>
   );
 
-  const renderMobileMenuButton = (isTransparent = false) => (
-    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className={cn('p-2 rounded-lg', isTransparent ? 'text-white' : 'text-slate-600')}>
-      <div className="w-5 h-4 flex flex-col justify-between">
-        <span className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && 'rotate-45 translate-y-1.5', isTransparent ? 'bg-white' : 'bg-slate-600')}></span>
-        <span className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && 'opacity-0', isTransparent ? 'bg-white' : 'bg-slate-600')}></span>
-        <span className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && '-rotate-45 -translate-y-1.5', isTransparent ? 'bg-white' : 'bg-slate-600')}></span>
-      </div>
-    </button>
-  );
+  const renderMobileMenuButton = (isTransparent = false) => {
+    const color = isTransparent ? tokens.textInverse : tokens.iconButtonText;
+    return (
+      <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg" style={{ color }}>
+        <div className="w-5 h-4 flex flex-col justify-between">
+          <span
+            className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && 'rotate-45 translate-y-1.5')}
+            style={{ backgroundColor: color }}
+          ></span>
+          <span
+            className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && 'opacity-0')}
+            style={{ backgroundColor: color }}
+          ></span>
+          <span
+            className={cn('w-full h-0.5 rounded transition-all', mobileMenuOpen && '-rotate-45 -translate-y-1.5')}
+            style={{ backgroundColor: color }}
+          ></span>
+        </div>
+      </button>
+    );
+  };
 
   if (activeItems.length === 0) {
     return (
       <Card className="mt-6">
         <CardContent className="p-8 text-center">
-          <Eye className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-          <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Chưa có menu items</h3>
-          <p className="text-slate-500">Thêm menu items để xem preview</p>
+          <Eye className="w-12 h-12 mx-auto mb-4" style={{ color: tokens.textSubtle }} />
+          <h3 className="text-lg font-medium mb-2" style={{ color: tokens.textPrimary }}>Chưa có menu items</h3>
+          <p style={{ color: tokens.textSubtle }}>Thêm menu items để xem preview</p>
         </CardContent>
       </Card>
     );
   }
 
   const renderClassicStyle = () => (
-    <div className={cn('dark:bg-slate-900', classicSeparatorClass, classicPositionClass)} style={classicBackgroundStyle}>
+    <div className={cn(classicPositionClass)} style={{ ...classicBackgroundStyle, ...classicSeparatorStyle }}>
       {config.topbar.show && (
-        <div className="px-4 py-2 text-xs" style={{ backgroundColor: brandColor }}>
-          <div className="flex items-center justify-between text-white">
+        <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {displayTopbar.hotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
@@ -285,9 +300,9 @@ export function HeaderMenuPreview({
               {device !== 'mobile' && (
                 <>
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
-                  {showTrackOrder && displayTopbar.showStoreSystem && <span>|</span>}
+                  {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
                   {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span>|</span>}
+                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
               {showLogin && renderUserMenu('text')}
@@ -296,12 +311,12 @@ export function HeaderMenuPreview({
         </div>
       )}
       {config.showBrandAccent && (
-        <div className="h-0.5" style={{ backgroundColor: brandColor }} />
+        <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+      <div className="px-6 py-4 flex items-center justify-between border-b" style={{ borderColor: tokens.border }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: brandColor }}></div>
-          <span className="font-semibold text-slate-900 dark:text-white">{config.brandName}</span>
+          <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
+          <span className="font-semibold" style={{ color: tokens.textPrimary }}>{config.brandName}</span>
         </div>
 
         {device !== 'mobile' ? (
@@ -318,10 +333,13 @@ export function HeaderMenuPreview({
                     className={cn(
                       'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
                       hoveredItem === item._id
-                        ? 'text-white'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'text-[var(--menu-hover-text)]'
+                        : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
                     )}
-                    style={hoveredItem === item._id ? { backgroundColor: brandColor } : {}}
+                    style={{
+                      ...(hoveredItem === item._id ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText } : { color: tokens.navItemText }),
+                      ...menuVars,
+                    }}
                   >
                     {item.label}
                     {item.children.length > 0 && (
@@ -330,19 +348,30 @@ export function HeaderMenuPreview({
                   </button>
 
                   {item.children.length > 0 && hoveredItem === item._id && (
-                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] z-50">
+                    <div
+                      className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
+                      style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                    >
                       {item.children.map((child) => (
                         <div key={child._id} className="relative group">
-                          {renderLink(child, 'flex items-center justify-between px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors', (
+                          {renderLink(child, 'flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]', (
                             <>
                               {child.label}
                               {child.children?.length > 0 && <ChevronRight size={14} />}
                             </>
-                          ))}
+                          ), { color: tokens.dropdownItemText, ...menuVars })}
                           {child.children?.length > 0 && (
-                            <div className="absolute left-full top-0 ml-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-2 min-w-[180px] hidden group-hover:block">
+                            <div
+                              className="absolute left-full top-0 ml-1 rounded-lg border py-2 min-w-[180px] hidden group-hover:block"
+                              style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                            >
                               {child.children.map((sub) => (
-                                <a key={sub._id} href={sub.url} className="block px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                <a
+                                  key={sub._id}
+                                  href={sub.url}
+                                  className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                  style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                >
                                   {sub.label}
                                 </a>
                               ))}
@@ -361,21 +390,38 @@ export function HeaderMenuPreview({
                   <input
                     type="text"
                     placeholder={config.search.placeholder}
-                    className="w-48 pl-4 pr-10 py-2 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none text-slate-700 dark:text-slate-300"
+                    className="w-48 pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
+                    style={{
+                      backgroundColor: tokens.searchInputBg,
+                      borderColor: tokens.searchInputBorder,
+                      color: tokens.searchInputText,
+                    }}
                   />
-                  <button className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-white" style={{ backgroundColor: brandColor }}>
+                  <button
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full"
+                    style={{ backgroundColor: tokens.searchButtonBg, color: tokens.searchButtonText }}
+                  >
                     <Search size={14} />
                   </button>
                 </div>
               )}
               {config.cart.show && (
-                <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 relative">
+                <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
                   <ShoppingCart size={20} />
-                  <span className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                  <span
+                    className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                  >
+                    0
+                  </span>
                 </a>
               )}
               {config.cta.show && (
-                <a href={defaultLinks.cta} className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                <a
+                  href={defaultLinks.cta}
+                  className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+                >
                   {config.cta.text}
                 </a>
               )}
@@ -384,14 +430,19 @@ export function HeaderMenuPreview({
         ) : (
           <div className="flex items-center gap-2">
             {config.search.show && (
-              <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2 text-slate-600 dark:text-slate-400">
+              <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                 <Search size={20} />
               </button>
             )}
             {config.cart.show && (
-              <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 relative">
+              <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
                 <ShoppingCart size={20} />
-                <span className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                <span
+                  className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                >
+                  0
+                </span>
               </a>
             )}
             {renderMobileMenuButton(false)}
@@ -400,27 +451,41 @@ export function HeaderMenuPreview({
       </div>
 
       {config.search.show && searchOpen && (
-        <div className="md:hidden px-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="md:hidden px-6 pb-4 border-b" style={{ borderColor: tokens.border }}>
           <input
             type="text"
             placeholder={config.search.placeholder ?? 'Tìm kiếm...'}
-            className="w-full px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none"
+            className="w-full px-3 py-2 rounded-full border text-sm focus:outline-none"
+            style={{
+              backgroundColor: tokens.searchInputBg,
+              borderColor: tokens.searchInputBorder,
+              color: tokens.searchInputText,
+            }}
           />
         </div>
       )}
 
       {device === 'mobile' && mobileMenuOpen && (
-        <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div className="border-b" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
           {menuTree.map((item) => (
             <div key={item._id}>
-              <button onClick={() => item.children.length > 0 && toggleMobileItem(item._id)} className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+              <button
+                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
+                className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
+                style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+              >
                 {item.label}
                 {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
               </button>
               {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div className="bg-white dark:bg-slate-800">
+                <div style={{ backgroundColor: tokens.surface }}>
                   {item.children.map((child) => (
-                    <a key={child._id} href={child.url} className="block px-8 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-l-2 border-slate-200 dark:border-slate-600 ml-6">
+                    <a
+                      key={child._id}
+                      href={child.url}
+                      className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                      style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
+                    >
                       {child.label}
                     </a>
                   ))}
@@ -430,7 +495,13 @@ export function HeaderMenuPreview({
           ))}
           {config.cta.show && (
             <div className="p-4">
-              <a href={defaultLinks.cta} className="block w-full py-2.5 text-sm font-medium text-white rounded-lg text-center" style={{ backgroundColor: brandColor }}>{config.cta.text}</a>
+              <a
+                href={defaultLinks.cta}
+                className="block w-full py-2.5 text-sm font-medium rounded-lg text-center"
+                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+              >
+                {config.cta.text}
+              </a>
             </div>
           )}
         </div>
@@ -440,10 +511,10 @@ export function HeaderMenuPreview({
   );
 
   const renderTopbarStyle = () => (
-    <div className={cn('bg-white dark:bg-slate-900', classicPositionClass)}>
+    <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface }}>
       {displayTopbar.show && (
-        <div className="px-4 py-2 text-xs" style={{ backgroundColor: brandColor }}>
-          <div className="flex items-center justify-between text-white">
+        <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {displayTopbar.hotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
@@ -456,9 +527,9 @@ export function HeaderMenuPreview({
               {device !== 'mobile' && (
                 <>
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
-                  {showTrackOrder && displayTopbar.showStoreSystem && <span>|</span>}
+                  {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
                   {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span>|</span>}
+                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
               {showLogin && renderUserMenu('text')}
@@ -467,18 +538,37 @@ export function HeaderMenuPreview({
         </div>
       )}
 
-      <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+      <div className="px-4 py-3 border-b" style={{ borderColor: tokens.border }}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: brandColor }}>{config.brandName.charAt(0)}</div>
-            <span className="font-bold text-lg text-slate-900 dark:text-white">{config.brandName}</span>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center font-bold"
+              style={{ backgroundColor: tokens.brandBadgeBg, color: tokens.brandBadgeText }}
+            >
+              {config.brandName.charAt(0)}
+            </div>
+            <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{config.brandName}</span>
           </div>
 
           {device !== 'mobile' && config.search.show && (
             <div className="flex-1 max-w-md">
               <div className="relative">
-                <input type="text" placeholder={config.search.placeholder} className="w-full pl-4 pr-10 py-2 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none text-slate-700 dark:text-slate-300" />
-                <button className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full text-white" style={{ backgroundColor: brandColor }}><Search size={14} /></button>
+                <input
+                  type="text"
+                  placeholder={config.search.placeholder}
+                  className="w-full pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
+                  style={{
+                    backgroundColor: tokens.searchInputBg,
+                    borderColor: tokens.searchInputBorder,
+                    color: tokens.searchInputText,
+                  }}
+                />
+                <button
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full"
+                  style={{ backgroundColor: tokens.searchButtonBg, color: tokens.searchButtonText }}
+                >
+                  <Search size={14} />
+                </button>
               </div>
             </div>
           )}
@@ -487,14 +577,19 @@ export function HeaderMenuPreview({
             {device === 'mobile' ? (
               <>
                 {config.search.show && (
-                  <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2 text-slate-600 dark:text-slate-400">
+                  <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                     <Search size={20} />
                   </button>
                 )}
                 {config.cart.show && (
-                  <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 relative">
+                  <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
                     <ShoppingCart size={20} />
-                    <span className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                    <span
+                      className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                    >
+                      0
+                    </span>
                   </a>
                 )}
                 {renderMobileMenuButton(false)}
@@ -502,18 +597,35 @@ export function HeaderMenuPreview({
             ) : (
               <>
                 {config.wishlist.show && (
-                  <a href={defaultLinks.wishlist} className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex flex-col items-center text-xs gap-0.5">
+                  <a
+                    href={defaultLinks.wishlist}
+                    className="p-2 transition-colors flex flex-col items-center text-xs gap-0.5 hover:text-[var(--menu-icon-hover)]"
+                    style={{ color: tokens.iconButtonText, ...menuVars }}
+                  >
                     <Heart size={20} /><span>Yêu thích</span>
                   </a>
                 )}
                 {config.cart.show && (
-                  <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex flex-col items-center text-xs gap-0.5 relative">
+                  <a
+                    href={defaultLinks.cart}
+                    className="p-2 transition-colors flex flex-col items-center text-xs gap-0.5 relative hover:text-[var(--menu-icon-hover)]"
+                    style={{ color: tokens.iconButtonText, ...menuVars }}
+                  >
                     <ShoppingCart size={20} /><span>Giỏ hàng</span>
-                    <span className="absolute top-0 right-0 w-5 h-5 text-[10px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                    <span
+                      className="absolute top-0 right-0 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                    >
+                      0
+                    </span>
                   </a>
                 )}
                 {config.cta.show && (
-                  <a href={defaultLinks.cta} className="px-4 py-2 text-sm font-medium text-white rounded-full transition-colors hover:opacity-90" style={{ backgroundColor: brandColor }}>
+                  <a
+                    href={defaultLinks.cta}
+                    className="px-4 py-2 text-sm font-medium rounded-full transition-colors"
+                    style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+                  >
                     {config.cta.text}
                   </a>
                 )}
@@ -524,18 +636,42 @@ export function HeaderMenuPreview({
       </div>
 
       {device !== 'mobile' && (
-        <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+        <div className="px-4 py-2 border-b" style={{ backgroundColor: tokens.navBarBg, borderColor: tokens.border }}>
           <nav className="flex items-center gap-1">
             {menuTree.map((item) => (
               <div key={item._id} className="relative" onMouseEnter={() => setHoveredItem(item._id)} onMouseLeave={() => setHoveredItem(null)}>
-                <a href={item.url} className={cn('px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1', hoveredItem === item._id ? 'text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700')} style={hoveredItem === item._id ? { backgroundColor: brandColor } : {}}>
+                <a
+                  href={item.url}
+                  className={cn(
+                    'px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
+                    hoveredItem === item._id
+                      ? 'text-[var(--menu-hover-text)]'
+                      : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
+                  )}
+                  style={{
+                    ...(hoveredItem === item._id
+                      ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText }
+                      : { color: tokens.navItemText }),
+                    ...menuVars,
+                  }}
+                >
                   {item.label}
                   {item.children.length > 0 && <ChevronDown size={14} />}
                 </a>
                 {item.children.length > 0 && hoveredItem === item._id && (
-                  <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-2 min-w-[200px] z-50">
+                  <div
+                    className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
+                    style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                  >
                     {item.children.map((child) => (
-                      <a key={child._id} href={child.url} className="block px-4 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors">{child.label}</a>
+                      <a
+                        key={child._id}
+                        href={child.url}
+                        className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                        style={{ color: tokens.dropdownItemText, ...menuVars }}
+                      >
+                        {child.label}
+                      </a>
                     ))}
                   </div>
                 )}
@@ -546,27 +682,43 @@ export function HeaderMenuPreview({
       )}
 
       {config.search.show && searchOpen && (
-        <div className="md:hidden px-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="md:hidden px-4 pb-4 border-b" style={{ borderColor: tokens.border }}>
           <input
             type="text"
             placeholder={config.search.placeholder ?? 'Tìm kiếm...'}
-            className="w-full px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none"
+            className="w-full px-3 py-2 rounded-full border text-sm focus:outline-none"
+            style={{
+              backgroundColor: tokens.searchInputBg,
+              borderColor: tokens.searchInputBorder,
+              color: tokens.searchInputText,
+            }}
           />
         </div>
       )}
 
       {device === 'mobile' && mobileMenuOpen && (
-        <div className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <div className="border-t" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
           {menuTree.map((item) => (
-            <div key={item._id} className="border-b border-slate-100 dark:border-slate-800">
-              <button onClick={() => item.children.length > 0 && toggleMobileItem(item._id)} className="w-full px-4 py-3 text-left flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300">
+            <div key={item._id} className="border-b" style={{ borderColor: tokens.border }}>
+              <button
+                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
+                className="w-full px-4 py-3 text-left flex items-center justify-between text-sm font-medium"
+                style={{ color: tokens.mobileMenuItemText }}
+              >
                 {item.label}
                 {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
               </button>
               {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div className="bg-slate-50 dark:bg-slate-800/50 pb-2">
+                <div className="pb-2" style={{ backgroundColor: tokens.mobileMenuBg }}>
                   {item.children.map((child) => (
-                    <a key={child._id} href={child.url} className="block px-6 py-2 text-sm text-slate-600 dark:text-slate-400">{child.label}</a>
+                    <a
+                      key={child._id}
+                      href={child.url}
+                      className="block px-6 py-2 text-sm"
+                      style={{ color: tokens.mobileMenuSubItemText }}
+                    >
+                      {child.label}
+                    </a>
                   ))}
                 </div>
               )}
@@ -574,7 +726,11 @@ export function HeaderMenuPreview({
           ))}
           {config.cta.show && (
             <div className="p-4">
-              <a href={defaultLinks.cta} className="block w-full py-2.5 text-sm font-medium text-white rounded-lg text-center" style={{ backgroundColor: brandColor }}>
+              <a
+                href={defaultLinks.cta}
+                className="block w-full py-2.5 text-sm font-medium rounded-lg text-center"
+                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+              >
                 {config.cta.text}
               </a>
             </div>
@@ -585,15 +741,18 @@ export function HeaderMenuPreview({
   );
 
   const renderAllbirdsStyle = () => (
-    <div className={cn('bg-white dark:bg-slate-900', classicSeparatorClass, classicPositionClass)}>
+    <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface, ...classicSeparatorStyle }}>
       {displayTopbar.show && (
-        <div className="px-4 py-2 text-[11px] uppercase tracking-[0.3em]" style={{ backgroundColor: brandColor }}>
-          <div className="flex items-center justify-center gap-4 text-white">
+        <div
+          className="px-4 py-2 text-[11px] uppercase tracking-[0.3em]"
+          style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
+        >
+          <div className="flex items-center justify-center gap-4">
             <span className="font-medium">{announcementText}</span>
             {device !== 'mobile' && (showTrackOrder || displayTopbar.showStoreSystem) && (
               <span className="flex items-center gap-2 text-[10px] tracking-[0.2em]">
                 {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn</a>}
-                {showTrackOrder && displayTopbar.showStoreSystem && <span>|</span>}
+                {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Cửa hàng</a>}
               </span>
             )}
@@ -601,14 +760,14 @@ export function HeaderMenuPreview({
         </div>
       )}
       {config.showBrandAccent && (
-        <div className="h-0.5" style={{ backgroundColor: brandColor }} />
+        <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
         {device !== 'mobile' ? (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }}></div>
-              <span className="text-base font-semibold text-slate-900 dark:text-white">{config.brandName}</span>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
+              <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{config.brandName}</span>
             </div>
             <nav className="flex items-center gap-6">
               {menuTree.map((item) => {
@@ -634,28 +793,41 @@ export function HeaderMenuPreview({
                       href={item.url}
                       className={cn(
                         'text-sm font-medium transition-colors',
-                        hoveredItem === item._id ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                        hoveredItem === item._id ? 'text-[var(--menu-hover-text)]' : 'hover:text-[var(--menu-hover-text)]'
                       )}
+                      style={{ color: tokens.allbirdsNavText, ...menuVars }}
                     >
                       {item.label}
                     </a>
                     {item.children.length > 0 && hoveredItem === item._id && (
-                      <div className={cn('absolute left-1/2 top-full mt-6 -translate-x-1/2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xl z-50', dropdownWidth)}>
+                      <div
+                        className={cn('absolute left-1/2 top-full mt-6 -translate-x-1/2 rounded-2xl border p-6 z-50', dropdownWidth)}
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
                         <div className={cn('grid gap-6', gridCols)}>
                           {item.children.map((child) => (
                             <div key={child._id} className="space-y-3">
-                              <a href={child.url} className="text-sm font-semibold text-slate-900 dark:text-white">
+                              <a href={child.url} className="text-sm font-semibold" style={{ color: tokens.textPrimary }}>
                                 {child.label}
                               </a>
                               <div className="space-y-2">
                                 {child.children.length > 0 ? (
                                   child.children.map((sub) => (
-                                    <a key={sub._id} href={sub.url} className="block text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                                    <a
+                                      key={sub._id}
+                                      href={sub.url}
+                                      className="block text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                      style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                    >
                                       {sub.label}
                                     </a>
                                   ))
                                 ) : (
-                                  <a href={child.url} className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                                  <a
+                                    href={child.url}
+                                    className="text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                    style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                  >
                                     Xem thêm
                                   </a>
                                 )}
@@ -671,7 +843,11 @@ export function HeaderMenuPreview({
             </nav>
             <div className="flex items-center gap-3">
               {config.cta.show && (
-                <a href={defaultLinks.cta} className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                <a
+                  href={defaultLinks.cta}
+                  className="text-sm font-medium hover:text-[var(--menu-hover-text)]"
+                  style={{ color: tokens.ctaTextLink, ...menuVars }}
+                >
                   {config.cta.text}
                 </a>
               )}
@@ -681,15 +857,18 @@ export function HeaderMenuPreview({
                     <input
                       type="text"
                       placeholder={config.search.placeholder ?? 'Tìm kiếm...'}
-                      className={cn(
-                        'w-40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none transition-opacity',
-                        searchOpen ? 'opacity-100' : 'opacity-0'
-                      )}
+                      className={cn('w-40 px-3 py-1.5 rounded-full border text-sm focus:outline-none transition-opacity', searchOpen ? 'opacity-100' : 'opacity-0')}
+                      style={{
+                        backgroundColor: tokens.searchInputBg,
+                        borderColor: tokens.searchInputBorder,
+                        color: tokens.searchInputText,
+                      }}
                     />
                   </div>
                   <button
                     onClick={() => setSearchOpen((prev) => !prev)}
-                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    className="p-2 transition-colors hover:text-[var(--menu-icon-hover)]"
+                    style={{ color: tokens.iconButtonText, ...menuVars }}
                   >
                     <Search size={18} />
                   </button>
@@ -697,9 +876,18 @@ export function HeaderMenuPreview({
               )}
               {showLogin && renderUserMenu('icon')}
               {config.cart.show && (
-                <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 relative hover:text-slate-900 dark:hover:text-white">
+                <a
+                  href={defaultLinks.cart}
+                  className="p-2 relative transition-colors hover:text-[var(--menu-icon-hover)]"
+                  style={{ color: tokens.iconButtonText, ...menuVars }}
+                >
                   <ShoppingCart size={18} />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 text-[9px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                  <span
+                    className="absolute -top-1 -right-1 w-4 h-4 text-[9px] font-bold rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                  >
+                    0
+                  </span>
                 </a>
               )}
             </div>
@@ -707,19 +895,24 @@ export function HeaderMenuPreview({
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColor }}></div>
-              <span className="text-base font-semibold text-slate-900 dark:text-white">{config.brandName}</span>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
+              <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{config.brandName}</span>
             </div>
             <div className="flex items-center gap-2">
               {config.search.show && (
-                <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2 text-slate-600 dark:text-slate-400">
+                <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                   <Search size={18} />
                 </button>
               )}
               {config.cart.show && (
-                <a href={defaultLinks.cart} className="p-2 text-slate-600 dark:text-slate-400 relative">
+                <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
                   <ShoppingCart size={18} />
-                  <span className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold text-white rounded-full flex items-center justify-center" style={{ backgroundColor: brandColor }}>0</span>
+                  <span
+                    className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                  >
+                    0
+                  </span>
                 </a>
               )}
               {renderMobileMenuButton(false)}
@@ -733,23 +926,37 @@ export function HeaderMenuPreview({
           <input
             type="text"
             placeholder={config.search.placeholder ?? 'Tìm kiếm...'}
-            className="w-full px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none"
+            className="w-full px-3 py-2 rounded-full border text-sm focus:outline-none"
+            style={{
+              backgroundColor: tokens.searchInputBg,
+              borderColor: tokens.searchInputBorder,
+              color: tokens.searchInputText,
+            }}
           />
         </div>
       )}
 
       {device === 'mobile' && mobileMenuOpen && (
-        <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div className="border-b" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
           {menuTree.map((item) => (
             <div key={item._id}>
-              <button onClick={() => item.children.length > 0 && toggleMobileItem(item._id)} className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+              <button
+                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
+                className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
+                style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+              >
                 {item.label}
                 {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
               </button>
               {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div className="bg-white dark:bg-slate-800">
+                <div style={{ backgroundColor: tokens.surface }}>
                   {item.children.map((child) => (
-                    <a key={child._id} href={child.url} className="block px-8 py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-l-2 border-slate-200 dark:border-slate-600 ml-6">
+                    <a
+                      key={child._id}
+                      href={child.url}
+                      className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                      style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
+                    >
                       {child.label}
                     </a>
                   ))}
@@ -759,7 +966,13 @@ export function HeaderMenuPreview({
           ))}
           {config.cta.show && (
             <div className="p-4">
-              <a href={defaultLinks.cta} className="block w-full py-2.5 text-sm font-medium text-white rounded-lg text-center" style={{ backgroundColor: brandColor }}>{config.cta.text}</a>
+              <a
+                href={defaultLinks.cta}
+                className="block w-full py-2.5 text-sm font-medium rounded-lg text-center"
+                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+              >
+                {config.cta.text}
+              </a>
             </div>
           )}
         </div>
@@ -769,19 +982,19 @@ export function HeaderMenuPreview({
   );
 
   return (
-    <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden shadow-sm">
+    <div className="border rounded-lg overflow-hidden" style={{ borderColor: tokens.border }}>
       {layoutStyle === 'classic' && renderClassicStyle()}
       {layoutStyle === 'topbar' && renderTopbarStyle()}
       {layoutStyle === 'allbirds' && renderAllbirdsStyle()}
 
-      <div className="p-4 space-y-3 bg-slate-50 dark:bg-slate-800/50">
-        <div className="h-32 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
-          <span className="text-slate-400 text-sm">Content Area</span>
+      <div className="p-4 space-y-3" style={{ backgroundColor: tokens.surfaceAlt }}>
+        <div className="h-32 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.placeholderBg }}>
+          <span className="text-sm" style={{ color: tokens.placeholderText }}>Content Area</span>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-          <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-          <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+          <div className="h-20 rounded-lg" style={{ backgroundColor: tokens.placeholderBg }}></div>
+          <div className="h-20 rounded-lg" style={{ backgroundColor: tokens.placeholderBg }}></div>
+          <div className="h-20 rounded-lg" style={{ backgroundColor: tokens.placeholderBg }}></div>
         </div>
       </div>
     </div>

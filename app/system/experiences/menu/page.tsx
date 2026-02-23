@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { Briefcase, CreditCard, Eye, FileText, Heart, LayoutTemplate, Loader2, Mail, Package, Save, ShoppingCart, Users } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   ExperienceModuleLink,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   ControlCard,
   DeviceToggle,
   deviceWidths,
@@ -83,7 +84,10 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function HeaderMenuExperiencePage() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const menuData = useQuery(api.menus.getFullMenu, { location: 'header' });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
 
@@ -108,6 +112,12 @@ export default function HeaderMenuExperiencePage() {
   useEffect(() => {
     setPreviewStyle(savedStyle);
   }, [savedStyle]);
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const serverConfig = useMemo<HeaderMenuConfig>(() => {
     const raw = headerConfigSetting?.value as Partial<HeaderMenuConfig> | undefined;
@@ -136,7 +146,7 @@ export default function HeaderMenuExperiencePage() {
     || ordersModule === undefined
     || customerLoginFeature === undefined;
 
-  const resolvedBrandColor = brandColor || '#f97316';
+  const resolvedBrandColor = brandColor || brandColors.primary || '#f97316';
 
   const menuItems = menuData?.items ?? [];
   const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
@@ -253,6 +263,16 @@ export default function HeaderMenuExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Hiển thị">
             <ToggleRow
               label="Topbar"
@@ -582,6 +602,8 @@ export default function HeaderMenuExperiencePage() {
             <BrowserFrame url="yoursite.com">
               <HeaderMenuPreview
                 brandColor={resolvedBrandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 config={config}
                 device={previewDevice}
                 layoutStyle={previewStyle}
