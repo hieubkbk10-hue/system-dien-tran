@@ -3,3 +3,4 @@
  export { LayoutTabs, type LayoutOption } from './LayoutTabs';
  export { ConfigPanel } from './ConfigPanel';
 export { ControlCard, ToggleRow, SelectRow, MultiSelectRow } from './ControlCard';
+export { ColorConfigCard } from './ColorConfigCard';

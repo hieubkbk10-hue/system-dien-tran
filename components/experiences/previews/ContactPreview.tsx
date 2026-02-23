@@ -11,6 +11,8 @@ type ContactPreviewProps = {
   showSocialLinks: boolean;
   device?: 'desktop' | 'tablet' | 'mobile';
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: 'single' | 'dual';
 };
 
 const toHex = (value: string) => (value.startsWith('#') ? value.slice(1) : value);
@@ -41,6 +43,18 @@ const withAlpha = (hex: string, alpha: number) => {
     return hex;
   }
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+};
+
+const isValidHexColor = (value: string) => /^#[0-9A-Fa-f]{6}$/.test(value.trim());
+
+const resolveSecondary = (primary: string, secondary: string | undefined, mode: 'single' | 'dual' = 'single') => {
+  if (mode === 'single') {
+    return primary;
+  }
+  if (secondary && isValidHexColor(secondary)) {
+    return secondary;
+  }
+  return primary;
 };
 
 function CorporateForm({ brandColor = '#6366f1' }: { brandColor?: string }) {
@@ -107,11 +121,11 @@ function CorporateForm({ brandColor = '#6366f1' }: { brandColor?: string }) {
   );
 }
 
-function ContactForm({ brandColor = '#6366f1' }: { brandColor?: string }) {
+function ContactForm({ brandColor = '#6366f1', secondaryColor }: { brandColor?: string; secondaryColor?: string }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <MessageSquare size={20} style={{ color: brandColor }} />
+        <MessageSquare size={20} style={{ color: secondaryColor || brandColor }} />
         <h3 className="font-semibold text-slate-900">Gửi tin nhắn cho chúng tôi</h3>
       </div>
       <div className="space-y-3">
@@ -131,7 +145,7 @@ function ContactForm({ brandColor = '#6366f1' }: { brandColor?: string }) {
   );
 }
 
-function ContactInfo({ showSocialLinks, brandColor = '#6366f1' }: { showSocialLinks: boolean; brandColor?: string }) {
+function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }: { showSocialLinks: boolean; brandColor?: string; secondaryColor?: string }) {
   const socialLinks = [
     { label: 'Facebook', color: '#1877f2', icon: Facebook },
     { label: 'Instagram', color: '#e1306c', icon: Instagram },
@@ -173,7 +187,7 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1' }: { showSocialLi
       </div>
       {showSocialLinks && (
         <div className="pt-4 mt-4 border-t border-slate-200">
-          <div className="text-sm font-medium text-slate-700 mb-2">Theo dõi chúng tôi</div>
+          <div className="text-sm font-medium mb-2" style={{ color: secondaryColor || brandColor }}>Theo dõi chúng tôi</div>
           <div className="flex gap-2">
             {socialLinks.map((item) => (
               <button
@@ -209,8 +223,11 @@ export function ContactPreview({
   showSocialLinks,
   device = 'desktop',
   brandColor = '#6366f1',
+  secondaryColor,
+  colorMode = 'single',
 }: ContactPreviewProps) {
   const isMobile = device === 'mobile';
+  const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
 
   return (
     <div className="py-6 px-4 min-h-[300px]">
@@ -302,8 +319,8 @@ export function ContactPreview({
           <div className="space-y-4">
             {showMap && <MapPreview />}
             <div className={isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-6'}>
-              <ContactForm brandColor={brandColor} />
-              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} />}
+              <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
             </div>
           </div>
         )}
@@ -311,10 +328,10 @@ export function ContactPreview({
         {layoutStyle === 'with-info' && (
           <div className={isMobile ? 'space-y-4' : 'grid grid-cols-5 gap-6'}>
             <div className={isMobile ? '' : 'col-span-3'}>
-              <ContactForm brandColor={brandColor} />
+              <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
             </div>
             <div className={`${isMobile ? '' : 'col-span-2'} space-y-4`}>
-              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} />}
+              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
               {showMap && <MapPreview />}
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -14,6 +14,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   ControlCard,
   DeviceToggle,
   deviceWidths,
@@ -22,6 +23,7 @@ import {
   type DeviceType,
   type LayoutOption,
 } from '@/components/experiences/editor';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   CONTACT_EXPERIENCE_KEY,
   DEFAULT_CONTACT_CONFIG,
@@ -83,6 +85,10 @@ export default function ContactExperiencePage() {
   const socialFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableSocial' });
   const mailFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableMail' });
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
 
   const serverConfig = useMemo<ContactExperienceConfig>(
     () => parseContactExperienceConfig(experienceSetting?.value),
@@ -101,6 +107,12 @@ export default function ContactExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[CONTACT_EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const settingsEnabled = settingsModule?.enabled ?? false;
   const contactEnabled = settingsEnabled && (contactFeature?.enabled ?? false);
@@ -153,26 +165,36 @@ export default function ContactExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Bản đồ (Map)"
               checked={config.showMap}
               onChange={(v) => updateDisplayConfig('showMap', v)}
-              accentColor="#6366f1"
+              accentColor={brandColor}
               disabled={!contactEnabled}
             />
             <ToggleRow
               label="Thông tin liên hệ"
               checked={config.showContactInfo}
               onChange={(v) => updateDisplayConfig('showContactInfo', v)}
-              accentColor="#6366f1"
+              accentColor={brandColor}
               disabled={!contactEnabled}
             />
             <ToggleRow
               label="Social media"
               checked={config.showSocialLinks}
               onChange={(v) => updateDisplayConfig('showSocialLinks', v)}
-              accentColor="#6366f1"
+              accentColor={brandColor}
               disabled={!socialEnabled}
             />
             {!settingsEnabled && (
@@ -215,7 +237,7 @@ export default function ContactExperiencePage() {
             <ExampleLinks
               compact
               links={[{ label: 'Xem trang Contact thực tế', url: '/contact', description: 'Mở route thật để đối chiếu runtime' }]}
-              color="#6366f1"
+              color={brandColor}
             />
             <ExperienceHintCard hints={HINTS} />
           </Card>
@@ -233,7 +255,7 @@ export default function ContactExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#6366f1"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -248,7 +270,9 @@ export default function ContactExperiencePage() {
                 showContactInfo={config.showContactInfo && contactEnabled}
                 showSocialLinks={config.showSocialLinks && socialEnabled}
                 device={previewDevice}
-                brandColor="#6366f1"
+                brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>
