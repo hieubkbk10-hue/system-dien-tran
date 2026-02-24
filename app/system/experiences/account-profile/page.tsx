@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { FileText, LayoutTemplate, Loader2, Save, User } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   AccountProfilePreview,
   ExampleLinks,
   ExperienceHintCard,
   ExperienceModuleLink,
 } from '@/components/experiences';
+import { getAPCATextColor } from '@/components/site/account/profile/colors';
 import {
   BrowserFrame,
+  ColorConfigCard,
   ControlCard,
   DeviceToggle,
   LayoutTabs,
@@ -66,7 +68,7 @@ const HINTS = [
   'Thông tin liên hệ lấy từ hồ sơ khách hàng.',
 ];
 
-function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: string; enabled: boolean; href: string; moduleName: string }) {
+function ModuleFeatureStatus({ label, enabled, href, moduleName, accentColor }: { label: string; enabled: boolean; href: string; moduleName: string; accentColor: string }) {
   return (
     <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
       <div className="flex items-start gap-2">
@@ -78,7 +80,7 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
           </p>
         </div>
       </div>
-      <Link href={href} className="text-xs font-medium text-cyan-600 hover:underline">
+      <Link href={href} className="text-xs font-medium hover:underline" style={{ color: accentColor }}>
         Đi đến →
       </Link>
     </div>
@@ -88,7 +90,10 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function AccountProfileExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const customersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'customers' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<AccountProfileExperienceConfig>(() => {
@@ -115,6 +120,13 @@ export default function AccountProfileExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+  const buttonTextColor = useMemo(() => getAPCATextColor(brandColor, 14, 600), [brandColor]);
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   if (isLoading) {
     return (
@@ -129,10 +141,10 @@ export default function AccountProfileExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-teal-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Profile (Account)</h1>
           </div>
-          <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
+          <Link href="/system/experiences" className="text-sm hover:underline" style={{ color: brandColor }}>
             Quay lại danh sách
           </Link>
         </div>
@@ -140,7 +152,8 @@ export default function AccountProfileExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-teal-600 hover:bg-teal-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: buttonTextColor }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -157,13 +170,13 @@ export default function AccountProfileExperiencePage() {
               label="Thông tin liên hệ"
               checked={config.showContactInfo}
               onChange={(v) => setConfig(prev => ({ ...prev, showContactInfo: v }))}
-              accentColor="#14b8a6"
+              accentColor={brandColor}
             />
             <ToggleRow
               label="Địa chỉ mặc định"
               checked={config.showAddress}
               onChange={(v) => setConfig(prev => ({ ...prev, showAddress: v }))}
-              accentColor="#14b8a6"
+              accentColor={brandColor}
             />
           </ControlCard>
 
@@ -172,7 +185,7 @@ export default function AccountProfileExperiencePage() {
               label="Quick actions"
               checked={config.showQuickActions}
               onChange={(v) => setConfig(prev => ({ ...prev, showQuickActions: v }))}
-              accentColor="#14b8a6"
+              accentColor={brandColor}
             />
             <MultiSelectRow
               label="Chọn tác vụ"
@@ -202,13 +215,25 @@ export default function AccountProfileExperiencePage() {
               enabled={customersModule?.enabled ?? false}
               href="/system/modules/customers"
               moduleName="module Khách hàng"
+              accentColor={brandColor}
+            />
+          </ControlCard>
+
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
             />
           </ControlCard>
 
           <ControlCard title="Link xem thử">
             <ExampleLinks
               links={[{ label: 'Trang profile', url: '/account/profile' }]}
-              color="#14b8a6"
+              color={brandColor}
               compact
             />
           </ControlCard>
@@ -230,7 +255,7 @@ export default function AccountProfileExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#14b8a6"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -247,6 +272,8 @@ export default function AccountProfileExperiencePage() {
                 showAddress={config.showAddress}
                 actionItems={config.actionItems}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>
