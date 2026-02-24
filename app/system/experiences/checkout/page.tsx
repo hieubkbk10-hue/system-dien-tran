@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, LayoutTemplate, Loader2, Package, Save, ShoppingCart } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -14,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -107,6 +109,10 @@ export default function CheckoutExperiencePage() {
   const paymentFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enablePayment', moduleKey: 'orders' });
   const shippingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableShipping', moduleKey: 'orders' });
   const exampleProduct = useExampleProduct();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<CheckoutExperienceConfig>(() => {
@@ -135,6 +141,12 @@ export default function CheckoutExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const currentLayoutConfig = config.layouts[config.flowStyle];
 
@@ -167,7 +179,7 @@ export default function CheckoutExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-green-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Thanh toán</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -178,7 +190,8 @@ export default function CheckoutExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-green-600 hover:bg-green-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: '#ffffff' }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -195,21 +208,21 @@ export default function CheckoutExperiencePage() {
               label="Buy Now"
               checked={config.showBuyNow}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNow: v }))}
-              accentColor="#22c55e"
+              accentColor={brandColor}
               disabled={!ordersModule?.enabled}
             />
             <ToggleRow
               label="Payment Methods"
               checked={currentLayoutConfig.showPaymentMethods}
               onChange={(v) => updateLayoutConfig('showPaymentMethods', v)}
-              accentColor="#22c55e"
+              accentColor={brandColor}
               disabled={!ordersModule?.enabled}
             />
             <ToggleRow
               label="Shipping Options"
               checked={currentLayoutConfig.showShippingOptions}
               onChange={(v) => updateLayoutConfig('showShippingOptions', v)}
-              accentColor="#22c55e"
+              accentColor={brandColor}
               disabled={!ordersModule?.enabled}
             />
           </ControlCard>
@@ -251,6 +264,17 @@ export default function CheckoutExperiencePage() {
               colorScheme="green"
             />
           </ControlCard>
+
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
         </CardContent>
       </Card>
 
@@ -264,7 +288,7 @@ export default function CheckoutExperiencePage() {
               <div className="mb-2">
                 <ExampleLinks
                   links={[{ label: 'Xem checkout mẫu', url: `/checkout?productId=${exampleProduct._id}&quantity=1` }]}
-                  color="#22c55e"
+                  color={brandColor}
                   compact
                 />
               </div>
@@ -285,7 +309,7 @@ export default function CheckoutExperiencePage() {
                 layouts={FLOW_STYLES}
                 activeLayout={config.flowStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, flowStyle: layout }))}
-                accentColor="#22c55e"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -300,7 +324,9 @@ export default function CheckoutExperiencePage() {
                 showPaymentMethods={currentLayoutConfig.showPaymentMethods && (paymentFeature?.enabled ?? true)}
                 showShippingOptions={currentLayoutConfig.showShippingOptions && (shippingFeature?.enabled ?? true)}
                 device={previewDevice}
-                brandColor="#22c55e"
+                brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>

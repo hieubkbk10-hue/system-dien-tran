@@ -8,7 +8,8 @@ import { useMutation, useQuery } from 'convex/react';
 import { Check, CreditCard, MapPin, Package, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
+import { getCheckoutColors } from '@/components/site/checkout/colors';
 import { useCheckoutConfig } from '@/lib/experiences';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -112,16 +113,21 @@ const buildVariantLabel = (
 };
 
 function CheckoutSkeleton() {
+  const tokens = getCheckoutColors('#22c55e', '', 'single');
   return (
     <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-      <div className="h-6 w-48 bg-slate-200 rounded-lg animate-pulse mx-auto" />
-      <div className="h-4 w-64 bg-slate-200 rounded-lg animate-pulse mt-3 mx-auto" />
+      <div className="h-6 w-48 rounded-lg animate-pulse mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
+      <div className="h-4 w-64 rounded-lg animate-pulse mt-3 mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
     </div>
   );
 }
 
 function CheckoutContent() {
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const tokens = useMemo(
+    () => getCheckoutColors(brandColors.primary, brandColors.secondary, brandColors.mode),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
   const { customer, isAuthenticated, openLoginModal } = useCustomerAuth();
@@ -619,11 +625,14 @@ function CheckoutContent() {
   if (ordersModule && !ordersModule.enabled) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-          <Package size={32} className="text-slate-400" />
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: tokens.emptyStateIconBg }}
+        >
+          <Package size={32} style={{ color: tokens.emptyStateIcon }} />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Thanh toán đang tắt</h1>
-        <p className="text-slate-500">Hãy bật module Đơn hàng để sử dụng tính năng này.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.heading }}>Thanh toán đang tắt</h1>
+        <p style={{ color: tokens.metaText }}>Hãy bật module Đơn hàng để sử dụng tính năng này.</p>
       </div>
     );
   }
@@ -631,14 +640,18 @@ function CheckoutContent() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-          <CreditCard size={32} className="text-slate-400" />
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: tokens.emptyStateIconBg }}
+        >
+          <CreditCard size={32} style={{ color: tokens.emptyStateIcon }} />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Đăng nhập để thanh toán</h1>
-        <p className="text-slate-500 mb-6">Bạn cần đăng nhập để tạo đơn hàng.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.heading }}>Đăng nhập để thanh toán</h1>
+        <p className="mb-6" style={{ color: tokens.metaText }}>Bạn cần đăng nhập để tạo đơn hàng.</p>
         <button
           onClick={openLoginModal}
-          className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-800"
+          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium"
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         >
           Đăng nhập ngay
         </button>
@@ -649,15 +662,18 @@ function CheckoutContent() {
   if (!fromCart && !productId) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-          <Package size={32} className="text-slate-400" />
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: tokens.emptyStateIconBg }}
+        >
+          <Package size={32} style={{ color: tokens.emptyStateIcon }} />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Chưa chọn sản phẩm</h1>
-        <p className="text-slate-500 mb-6">Vui lòng chọn sản phẩm trước khi thanh toán.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.heading }}>Chưa chọn sản phẩm</h1>
+        <p className="mb-6" style={{ color: tokens.metaText }}>Vui lòng chọn sản phẩm trước khi thanh toán.</p>
         <Link
           href="/products"
-          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium text-white"
-          style={{ backgroundColor: brandColor }}
+          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium"
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         >
           Xem sản phẩm
         </Link>
@@ -668,8 +684,8 @@ function CheckoutContent() {
   if (!fromCart && product === undefined) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="h-6 w-48 bg-slate-200 rounded-lg animate-pulse mx-auto" />
-        <div className="h-4 w-64 bg-slate-200 rounded-lg animate-pulse mt-3 mx-auto" />
+        <div className="h-6 w-48 rounded-lg animate-pulse mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
+        <div className="h-4 w-64 rounded-lg animate-pulse mt-3 mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
       </div>
     );
   }
@@ -677,15 +693,18 @@ function CheckoutContent() {
   if (!fromCart && !product) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-          <Package size={32} className="text-slate-400" />
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: tokens.emptyStateIconBg }}
+        >
+          <Package size={32} style={{ color: tokens.emptyStateIcon }} />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Sản phẩm không tồn tại</h1>
-        <p className="text-slate-500 mb-6">Sản phẩm đã bị xoá hoặc không còn khả dụng.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.heading }}>Sản phẩm không tồn tại</h1>
+        <p className="mb-6" style={{ color: tokens.metaText }}>Sản phẩm đã bị xoá hoặc không còn khả dụng.</p>
         <Link
           href="/products"
-          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium text-white"
-          style={{ backgroundColor: brandColor }}
+          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium"
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         >
           Quay lại shop
         </Link>
@@ -696,8 +715,8 @@ function CheckoutContent() {
   if (fromCart && isCartLoading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="h-6 w-48 bg-slate-200 rounded-lg animate-pulse mx-auto" />
-        <div className="h-4 w-64 bg-slate-200 rounded-lg animate-pulse mt-3 mx-auto" />
+        <div className="h-6 w-48 rounded-lg animate-pulse mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
+        <div className="h-4 w-64 rounded-lg animate-pulse mt-3 mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />
       </div>
     );
   }
@@ -705,15 +724,18 @@ function CheckoutContent() {
   if (fromCart && (!cart || !cartItems || cartItems.length === 0)) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-          <Package size={32} className="text-slate-400" />
+        <div
+          className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: tokens.emptyStateIconBg }}
+        >
+          <Package size={32} style={{ color: tokens.emptyStateIcon }} />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Giỏ hàng trống</h1>
-        <p className="text-slate-500 mb-6">Hãy thêm sản phẩm trước khi thanh toán.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: tokens.heading }}>Giỏ hàng trống</h1>
+        <p className="mb-6" style={{ color: tokens.metaText }}>Hãy thêm sản phẩm trước khi thanh toán.</p>
         <Link
           href="/products"
-          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium text-white"
-          style={{ backgroundColor: brandColor }}
+          className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium"
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         >
           Xem sản phẩm
         </Link>
@@ -732,17 +754,26 @@ function CheckoutContent() {
           <React.Fragment key={step.label}>
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${index === 0 ? 'text-white' : 'bg-slate-100 text-slate-400'}`}
-                style={index === 0 ? { backgroundColor: brandColor } : undefined}
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={index === 0
+                  ? { backgroundColor: tokens.stepActiveBg, color: tokens.stepActiveText }
+                  : { backgroundColor: tokens.stepInactiveBg, color: tokens.stepInactiveText }
+                }
               >
                 {index === 0 ? <Check size={18} /> : <step.icon size={18} />}
               </div>
-              <span className={`text-xs mt-1 ${index === 0 ? 'font-medium' : 'text-slate-400'}`} style={index === 0 ? { color: brandColor } : undefined}>
+              <span
+                className="text-xs mt-1"
+                style={index === 0 ? { color: tokens.primary, fontWeight: 600 } : { color: tokens.mutedText }}
+              >
                 {step.label}
               </span>
             </div>
             {index < arr.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-2 ${index === 0 ? '' : 'bg-slate-200'}`} style={index === 0 ? { backgroundColor: brandColor } : undefined} />
+              <div
+                className="flex-1 h-0.5 mx-2"
+                style={{ backgroundColor: index === 0 ? tokens.stepLineActive : tokens.stepLineInactive }}
+              />
             )}
           </React.Fragment>
         ))}
@@ -750,24 +781,31 @@ function CheckoutContent() {
   );
 
   const shippingInfoCard = (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+    <div
+      className="rounded-2xl border p-5 space-y-4"
+      style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+    >
       <div className="flex items-center gap-2">
-        <MapPin className="w-5 h-5" style={{ color: brandColor }} />
-        <h2 className="text-lg font-semibold text-slate-900">{shouldCollectShipping ? 'Thông tin giao hàng' : 'Thông tin liên hệ'}</h2>
+        <MapPin className="w-5 h-5" style={{ color: tokens.primary }} />
+        <h2 className="text-lg font-semibold" style={{ color: tokens.heading }}>
+          {shouldCollectShipping ? 'Thông tin giao hàng' : 'Thông tin liên hệ'}
+        </h2>
       </div>
       <div className="grid gap-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <input
             type="text"
             placeholder="Họ tên"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+            className="w-full px-3 py-2.5 border rounded-lg text-sm"
+            style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
           />
           <input
             type="text"
             placeholder="Số điện thoại"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+            className="w-full px-3 py-2.5 border rounded-lg text-sm"
+            style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
             value={customerPhone}
             onChange={(event) => setCustomerPhone(event.target.value)}
           />
@@ -776,7 +814,8 @@ function CheckoutContent() {
           <input
             type="text"
             placeholder="Địa chỉ giao hàng"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+            className="w-full px-3 py-2.5 border rounded-lg text-sm"
+            style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
             value={shippingAddress}
             onChange={(event) => setShippingAddress(event.target.value)}
           />
@@ -790,7 +829,8 @@ function CheckoutContent() {
                   setDistrictCode('');
                   setWardCode('');
                 }}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2.5 border rounded-lg text-sm"
+                style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
               >
                 <option value="">Chọn Tỉnh/Thành</option>
                 {provinceList.map((province) => (
@@ -804,7 +844,8 @@ function CheckoutContent() {
                     setDistrictCode(event.target.value);
                     setWardCode('');
                   }}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white"
+                  className="w-full px-3 py-2.5 border rounded-lg text-sm"
+                  style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
                   disabled={!provinceCode}
                 >
                   <option value="">Chọn Quận/Huyện</option>
@@ -816,7 +857,8 @@ function CheckoutContent() {
               <select
                 value={wardCode}
                 onChange={(event) => setWardCode(event.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2.5 border rounded-lg text-sm"
+                style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
                 disabled={addressFormat === '3-level' ? !districtCode : !provinceCode}
               >
                 <option value="">Chọn Phường/Xã</option>
@@ -828,13 +870,17 @@ function CheckoutContent() {
             <input
               type="text"
               placeholder="Số nhà, tên đường"
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+              className="w-full px-3 py-2.5 border rounded-lg text-sm"
+              style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
               value={addressDetail}
               onChange={(event) => setAddressDetail(event.target.value)}
             />
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          <div
+            className="rounded-lg border px-3 py-2 text-xs"
+            style={{ borderColor: tokens.border, backgroundColor: tokens.surfaceMuted, color: tokens.metaText }}
+          >
             Đơn hàng digital sẽ được gửi qua tài khoản của bạn sau khi thanh toán.
           </div>
         )}
@@ -843,28 +889,38 @@ function CheckoutContent() {
   );
 
   const shippingOptionsCard = !shouldCollectShipping ? null : (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+    <div
+      className="rounded-2xl border p-5 space-y-3"
+      style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+    >
       <div className="flex items-center gap-2">
-        <Truck className="w-5 h-5 text-slate-400" />
-        <h2 className="text-lg font-semibold text-slate-900">Vận chuyển</h2>
+        <Truck className="w-5 h-5" style={{ color: tokens.iconMuted }} />
+        <h2 className="text-lg font-semibold" style={{ color: tokens.heading }}>Vận chuyển</h2>
       </div>
-      <div className="space-y-2 text-sm text-slate-600">
+      <div className="space-y-2 text-sm" style={{ color: tokens.metaText }}>
         {shippingMethods.map((method) => (
-          <label key={method.id} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer ${shippingMethodId === method.id ? '' : 'hover:bg-slate-50'}`} style={shippingMethodId === method.id ? { borderColor: brandColor, backgroundColor: `${brandColor}08` } : undefined}>
+          <label
+            key={method.id}
+            className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer"
+            style={shippingMethodId === method.id
+              ? { borderColor: tokens.selectionBorder, backgroundColor: tokens.selectionBg }
+              : { borderColor: tokens.border, backgroundColor: tokens.surface }
+            }
+          >
             <input
               type="radio"
               name="shipping"
               checked={shippingMethodId === method.id}
               onChange={() => setShippingMethodId(method.id)}
               className="w-4 h-4"
-              style={{ accentColor: brandColor }}
+              style={{ accentColor: tokens.radioAccent }}
             />
             <div className="flex-1">
-              <div className="font-medium text-sm text-slate-900">{method.label}</div>
-              {method.description && <div className="text-xs text-slate-500">{method.description}</div>}
-              {method.estimate && <div className="text-xs text-slate-400">{method.estimate}</div>}
+              <div className="font-medium text-sm" style={{ color: tokens.bodyText }}>{method.label}</div>
+              {method.description && <div className="text-xs" style={{ color: tokens.metaText }}>{method.description}</div>}
+              {method.estimate && <div className="text-xs" style={{ color: tokens.mutedText }}>{method.estimate}</div>}
             </div>
-            <span className="font-semibold text-sm text-slate-900">{formatPrice(method.fee)}</span>
+            <span className="font-semibold text-sm" style={{ color: tokens.priceText }}>{formatPrice(method.fee)}</span>
           </label>
         ))}
       </div>
@@ -876,32 +932,45 @@ function CheckoutContent() {
     const vietQrAccountName = encodeURIComponent(bankInfo.accountName);
     const vietQrUrl = `https://img.vietqr.io/image/${bankInfo.bankCode}-${bankInfo.accountNumber}-${bankInfo.vietQrTemplate}.jpg?amount=${finalTotal}&addInfo=${vietQrInfo}&accountName=${vietQrAccountName}`;
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+      <div
+        className="rounded-2xl border p-5 space-y-3"
+        style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+      >
         <div className="flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-slate-400" />
-          <h2 className="text-lg font-semibold text-slate-900">Thanh toán</h2>
+          <CreditCard className="w-5 h-5" style={{ color: tokens.iconMuted }} />
+          <h2 className="text-lg font-semibold" style={{ color: tokens.heading }}>Thanh toán</h2>
         </div>
-        <div className="space-y-2 text-sm text-slate-600">
+        <div className="space-y-2 text-sm" style={{ color: tokens.metaText }}>
           {paymentMethods.map((method) => (
-            <label key={method.id} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer ${paymentMethodId === method.id ? '' : 'hover:bg-slate-50'}`} style={paymentMethodId === method.id ? { borderColor: brandColor, backgroundColor: `${brandColor}08` } : undefined}>
+            <label
+              key={method.id}
+              className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer"
+              style={paymentMethodId === method.id
+                ? { borderColor: tokens.selectionBorder, backgroundColor: tokens.selectionBg }
+                : { borderColor: tokens.border, backgroundColor: tokens.surface }
+              }
+            >
               <input
                 type="radio"
                 name="payment"
                 checked={paymentMethodId === method.id}
                 onChange={() => setPaymentMethodId(method.id)}
                 className="w-4 h-4"
-                style={{ accentColor: brandColor }}
+                style={{ accentColor: tokens.radioAccent }}
               />
               <div className="flex-1">
-                <div className="font-medium text-sm text-slate-900">{method.label}</div>
-                {method.description && <div className="text-xs text-slate-500">{method.description}</div>}
+                <div className="font-medium text-sm" style={{ color: tokens.bodyText }}>{method.label}</div>
+                {method.description && <div className="text-xs" style={{ color: tokens.metaText }}>{method.description}</div>}
               </div>
             </label>
           ))}
         </div>
         {(selectedPayment?.type === 'BankTransfer' || selectedPayment?.type === 'VietQR') && (
-          <div className="border border-slate-200 rounded-lg p-3 text-sm text-slate-600 bg-slate-50">
-            <div className="font-medium text-slate-900 mb-1">Thông tin chuyển khoản</div>
+          <div
+            className="border rounded-lg p-3 text-sm"
+            style={{ borderColor: tokens.border, backgroundColor: tokens.surfaceMuted, color: tokens.metaText }}
+          >
+            <div className="font-medium mb-1" style={{ color: tokens.bodyText }}>Thông tin chuyển khoản</div>
             <div>Ngân hàng: {bankInfo.bankName} ({bankInfo.bankCode})</div>
             <div>Số tài khoản: {bankInfo.accountNumber}</div>
             <div>Chủ tài khoản: {bankInfo.accountName}</div>
@@ -912,11 +981,14 @@ function CheckoutContent() {
                   alt="VietQR"
                   width={192}
                   height={192}
-                  className="w-48 h-48 rounded-lg border border-slate-200 bg-white"
+                  className="w-48 h-48 rounded-lg border"
+                  style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}
                   loading="lazy"
                   unoptimized
                 />
-                <div className="text-xs text-slate-500">Quét mã để thanh toán {formatPrice(finalTotal)}</div>
+                <div className="text-xs" style={{ color: tokens.metaText }}>
+                  Quét mã để thanh toán {formatPrice(finalTotal)}
+                </div>
               </div>
             )}
           </div>
@@ -926,27 +998,33 @@ function CheckoutContent() {
   })();
 
   const SummaryCard = (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-4">
+    <div
+      className="rounded-2xl border p-4 space-y-4"
+      style={{ backgroundColor: tokens.summaryBg, borderColor: tokens.border }}
+    >
       <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-500">Sản phẩm</span>
-        <span className="font-medium">{fromCart ? cart?.itemsCount ?? 0 : quantity}x</span>
+        <span style={{ color: tokens.summaryText }}>Sản phẩm</span>
+        <span className="font-medium" style={{ color: tokens.summaryValue }}>{fromCart ? cart?.itemsCount ?? 0 : quantity}x</span>
       </div>
       <div className="space-y-3">
         {summaryItems.map((item) => (
           <div key={item.id} className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center">
+            <div
+              className="w-14 h-14 rounded-lg overflow-hidden flex items-center justify-center"
+              style={{ backgroundColor: tokens.surfaceSoft }}
+            >
               {item.image ? (
                 <Image src={item.image} alt={item.name} width={56} height={56} className="object-cover w-full h-full" unoptimized />
               ) : (
-                <Package size={20} className="text-slate-400" />
+                <Package size={20} style={{ color: tokens.iconMuted }} />
               )}
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">{item.name}</p>
-              {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
-              <p className="text-xs text-slate-500">Số lượng: {item.quantity}</p>
+              <p className="text-sm font-medium" style={{ color: tokens.bodyText }}>{item.name}</p>
+              {item.variantTitle && <p className="text-xs" style={{ color: tokens.metaText }}>{item.variantTitle}</p>}
+              <p className="text-xs" style={{ color: tokens.metaText }}>Số lượng: {item.quantity}</p>
             </div>
-            <div className="text-right text-sm font-semibold text-slate-900">
+            <div className="text-right text-sm font-semibold" style={{ color: tokens.summaryValue }}>
               {formatPrice(item.price * item.quantity)}
             </div>
           </div>
@@ -954,37 +1032,37 @@ function CheckoutContent() {
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-slate-500">Tạm tính</span>
-          <span className="font-semibold text-slate-900">{formatPrice(totalAmount)}</span>
+          <span style={{ color: tokens.summaryText }}>Tạm tính</span>
+          <span className="font-semibold" style={{ color: tokens.summaryValue }}>{formatPrice(totalAmount)}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-slate-500">Giảm giá</span>
-            <span className="font-semibold text-emerald-600">-{formatPrice(discountAmount)}</span>
+            <span style={{ color: tokens.summaryText }}>Giảm giá</span>
+            <span className="font-semibold" style={{ color: tokens.highlightText }}>-{formatPrice(discountAmount)}</span>
           </div>
         )}
         {shouldCollectShipping && (
           <div className="flex items-center justify-between">
-            <span className="text-slate-500">Phí vận chuyển</span>
-            <span className="font-semibold text-slate-900">{formatPrice(shippingFee)}</span>
+            <span style={{ color: tokens.summaryText }}>Phí vận chuyển</span>
+            <span className="font-semibold" style={{ color: tokens.summaryValue }}>{formatPrice(shippingFee)}</span>
           </div>
         )}
       </div>
-      <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
-        <span className="text-sm text-slate-500">Tổng cộng</span>
-        <span className="text-lg font-bold text-slate-900">{formatPrice(finalTotal)}</span>
+      <div className="border-t pt-3 flex items-center justify-between" style={{ borderColor: tokens.border }}>
+        <span className="text-sm" style={{ color: tokens.summaryTotalLabel }}>Tổng cộng</span>
+        <span className="text-lg font-bold" style={{ color: tokens.summaryTotalValue }}>{formatPrice(finalTotal)}</span>
       </div>
       <button
         type="button"
-        className="w-full h-11 rounded-lg text-sm font-semibold text-white"
-        style={{ backgroundColor: brandColor }}
+        className="w-full h-11 rounded-lg text-sm font-semibold"
+        style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         onClick={handlePlaceOrder}
         disabled={isSubmitting || Boolean(orderId)}
       >
         {orderId ? 'Đã đặt hàng' : isSubmitting ? 'Đang xử lý...' : 'Đặt hàng ngay'}
       </button>
       {orderId && (
-        <div className="text-xs text-emerald-600 text-center">
+        <div className="text-xs text-center" style={{ color: tokens.highlightText }}>
           Mã đơn: {orderId}
         </div>
       )}
@@ -992,14 +1070,22 @@ function CheckoutContent() {
   );
 
   const CouponCard = isPromotionEnabled ? (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+    <div
+      className="rounded-2xl border p-4 space-y-3"
+      style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Mã khuyến mãi</h3>
-          <p className="text-xs text-slate-500">Nhập mã để áp dụng giảm giá.</p>
+          <h3 className="text-sm font-semibold" style={{ color: tokens.bodyText }}>Mã khuyến mãi</h3>
+          <p className="text-xs" style={{ color: tokens.metaText }}>Nhập mã để áp dụng giảm giá.</p>
         </div>
         {appliedCode && (
-          <button type="button" className="text-xs text-slate-500 hover:text-slate-700" onClick={handleRemoveCoupon}>
+          <button
+            type="button"
+            className="text-xs"
+            style={{ color: tokens.couponActionText }}
+            onClick={handleRemoveCoupon}
+          >
             Bỏ áp dụng
           </button>
         )}
@@ -1008,21 +1094,25 @@ function CheckoutContent() {
         <input
           type="text"
           placeholder="VD: TET2026"
-          className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+          className="flex-1 px-3 py-2.5 border rounded-lg text-sm"
+          style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
           value={couponInput}
           onChange={(event) => setCouponInput(event.target.value)}
         />
         <button
           type="button"
-          className="px-4 py-2.5 rounded-lg text-sm font-medium text-white"
-          style={{ backgroundColor: brandColor }}
+          className="px-4 py-2.5 rounded-lg text-sm font-medium"
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
           onClick={handleApplyCoupon}
         >
           Áp dụng
         </button>
       </div>
       {promotionResult && appliedCode && (
-        <div className={`text-xs ${promotionResult.valid ? 'text-emerald-600' : 'text-rose-500'}`}>
+        <div
+          className="text-xs"
+          style={{ color: promotionResult.valid ? tokens.highlightText : tokens.mutedText }}
+        >
           {promotionResult.message}
         </div>
       )}
@@ -1036,10 +1126,10 @@ function CheckoutContent() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
+    <div className="max-w-6xl mx-auto px-4 py-10" style={{ backgroundColor: tokens.pageBg }}>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Thanh toán</h1>
-        <p className="text-slate-500 mt-2">Hoàn tất đơn hàng của bạn trong vài bước.</p>
+        <h1 className="text-3xl font-bold" style={{ color: tokens.heading }}>Thanh toán</h1>
+        <p className="mt-2" style={{ color: tokens.metaText }}>Hoàn tất đơn hàng của bạn trong vài bước.</p>
       </div>
 
       <div className={`grid gap-6 ${checkoutConfig.orderSummaryPosition === 'right' ? 'lg:grid-cols-3' : 'grid-cols-1'}`}>
@@ -1048,7 +1138,11 @@ function CheckoutContent() {
           {checkoutConfig.flowStyle === 'wizard-accordion' ? (
             <div className="space-y-3">
               {wizardSteps.map((step, index) => (
-                <div key={step.key} className="rounded-2xl border border-slate-200 bg-white">
+                <div
+                  key={step.key}
+                  className="rounded-2xl border"
+                  style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}
+                >
                   <button
                     type="button"
                     className="w-full flex items-center justify-between px-4 py-3"
@@ -1056,14 +1150,17 @@ function CheckoutContent() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${index === activeWizardStep ? 'text-white' : 'bg-slate-100 text-slate-400'}`}
-                        style={index === activeWizardStep ? { backgroundColor: brandColor } : undefined}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold"
+                        style={index === activeWizardStep
+                          ? { backgroundColor: tokens.stepActiveBg, color: tokens.stepActiveText }
+                          : { backgroundColor: tokens.stepInactiveBg, color: tokens.stepInactiveText }
+                        }
                       >
                         {index + 1}
                       </div>
                       <div>
-                        <div className="font-semibold text-slate-900 text-sm">{step.label}</div>
-                        <div className="text-xs text-slate-500">Nhập thông tin</div>
+                        <div className="font-semibold text-sm" style={{ color: tokens.bodyText }}>{step.label}</div>
+                        <div className="text-xs" style={{ color: tokens.metaText }}>Nhập thông tin</div>
                       </div>
                     </div>
                   </button>
