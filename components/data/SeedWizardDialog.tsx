@@ -24,6 +24,7 @@ import { SaleModeStep } from './seed-wizard/steps/SaleModeStep';
 import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
 import { ProductVariantsStep } from './seed-wizard/steps/ProductVariantsStep';
 import { BusinessInfoStep } from './seed-wizard/steps/BusinessInfoStep';
+import { AdminConfigStep } from './seed-wizard/steps/AdminConfigStep';
 import { ExperiencePresetStep } from './seed-wizard/steps/ExperiencePresetStep';
 import { QuickConfigStep } from './seed-wizard/steps/QuickConfigStep';
 import { DataScaleStep } from './seed-wizard/steps/DataScaleStep';
@@ -41,7 +42,9 @@ import {
   getExperiencePresets,
 } from './seed-wizard/experience-presets';
 import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '@/lib/orders/statuses';
+import { getIndustryBestPracticePalette } from '@/lib/seed-color-fallback';
 import type {
+  AdminConfig,
   BusinessInfo,
   DigitalDeliveryType,
   ExperiencePresetKey,
@@ -82,7 +85,13 @@ const DEFAULT_QUICK_CONFIG: QuickConfig = {
   productsPerPage: 12,
 };
 
+const DEFAULT_ADMIN_CONFIG: AdminConfig = {
+  email: '',
+  password: '',
+};
+
 const DEFAULT_STATE: WizardState = {
+  adminConfig: DEFAULT_ADMIN_CONFIG,
   businessInfo: DEFAULT_BUSINESS_INFO,
   customerLoginEnabled: true,
   customerLoginManuallySet: false,
@@ -119,20 +128,27 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const [currentStep, setCurrentStep] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
   const industryTemplate = useMemo(() => getIndustryTemplate(state.industryKey), [state.industryKey]);
+  const industryPalette = useMemo(
+    () => getIndustryBestPracticePalette(industryTemplate),
+    [industryTemplate]
+  );
 
   const modules = useQuery(api.admin.modules.listModules);
   const productsList = useQuery(api.products.listAll, { limit: 200 });
+  const superAdmin = useQuery(api.auth.getSuperAdmin);
   const productsRef = useRef(productsList ?? []);
 
   const seedBulk = useMutation(api.seedManager.seedBulk);
   const seedModule = useMutation(api.seedManager.seedModule);
   const clearAll = useMutation(api.seedManager.clearAll);
+  const clearModule = useMutation(api.seedManager.clearModule);
   const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
   const toggleModuleFeature = useMutation(api.admin.modules.toggleModuleFeature);
   const setSettings = useMutation(api.settings.setMultiple);
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
   const updateProduct = useMutation(api.products.update);
+  const createSuperAdmin = useMutation(api.auth.createSuperAdmin);
 
   useEffect(() => {
     if (productsList) {
@@ -159,7 +175,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     if (hasProducts) {
       list.push('saleMode', 'productType', 'variants');
     }
-    list.push('business', 'experience');
+    list.push('business', 'adminConfig', 'experience');
     if (hasProducts || hasOrders || hasPosts || hasComments) {
       list.push('quickConfig');
     }
@@ -213,6 +229,25 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
   }, [customerLoginRequired, state.customerLoginEnabled, state.customerLoginManuallySet]);
 
+  useEffect(() => {
+    if (state.businessInfo.brandMode !== 'dual') {
+      return;
+    }
+    if (state.businessInfo.brandSecondary) {
+      return;
+    }
+    if (!industryPalette.secondary) {
+      return;
+    }
+    setState((prev) => ({
+      ...prev,
+      businessInfo: {
+        ...prev.businessInfo,
+        brandSecondary: industryPalette.secondary,
+      },
+    }));
+  }, [industryPalette.secondary, state.businessInfo.brandMode, state.businessInfo.brandSecondary]);
+
   const handleToggleFeature = (featureKey: string, enabled: boolean) => {
     setState((prev) => {
       const next = new Set(prev.extraFeatures);
@@ -232,6 +267,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       return;
     }
 
+    const palette = getIndustryBestPracticePalette(template);
+
     const randomLogo = state.useSeedMauImages && template.assets.logos.length > 0
       ? template.assets.logos[Math.floor(Math.random() * template.assets.logos.length)]
       : null;
@@ -241,7 +278,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         ...prev,
         businessInfo: {
           ...prev.businessInfo,
-          brandColor: template.brandColor,
+          brandColor: palette.primary,
+          brandSecondary: prev.businessInfo.brandMode === 'dual' ? palette.secondary : '',
           businessType: template.businessType,
           siteName: template.name,
           tagline: template.description,
@@ -475,6 +513,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await syncModules(selectedModules);
 
+      if (!hasServices) {
+        await clearModule({ module: 'services' });
+        await clearModule({ module: 'serviceCategories' });
+      }
+
       const resolvedCustomerLoginEnabled = customerLoginRequired ? true : state.customerLoginEnabled;
       if (customerLoginRequired && !state.customerLoginEnabled) {
         toast.info('Đăng nhập KH sẽ được bật lại do phụ thuộc module.');
@@ -542,7 +585,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       }
 
       if (state.businessInfo.brandMode === 'dual' && !state.businessInfo.brandSecondary) {
-        toast.info('Chưa nhập màu phụ, wizard sẽ dùng màu chính làm fallback.');
+        toast.info('Chưa nhập màu phụ, wizard sẽ dùng màu best-practice theo ngành.');
       }
 
       const seedResults = await seedBulk({ configs: seedConfigs });
@@ -600,9 +643,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         });
       }
 
-      const brandPrimary = state.businessInfo.brandColor || '#3b82f6';
+      const brandPrimary = state.businessInfo.brandColor || industryPalette.primary || '#3b82f6';
       const brandSecondary = state.businessInfo.brandMode === 'dual'
-        ? (state.businessInfo.brandSecondary || brandPrimary)
+        ? (state.businessInfo.brandSecondary || industryPalette.secondary || brandPrimary)
         : '';
 
       await setSettings({
@@ -673,6 +716,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       if (experienceSettings.length > 0) {
         await setSettings({ settings: experienceSettings });
+      }
+
+      const resolvedAdminEmail = state.adminConfig.email.trim() || 'tranmanhhieu10@gmail.com';
+      const resolvedAdminPassword = state.adminConfig.password || '123456';
+      if (superAdmin === null) {
+        const result = await createSuperAdmin({
+          email: resolvedAdminEmail,
+          password: resolvedAdminPassword,
+        });
+        if (!result.success) {
+          toast.info(result.message);
+        }
       }
 
       await applyProductOverrides();
@@ -823,6 +878,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
             <BusinessInfoStep
               value={state.businessInfo}
               onChange={(businessInfo) => setState((prev) => ({ ...prev, businessInfo }))}
+            />
+          )}
+
+          {stepKey === 'adminConfig' && (
+            <AdminConfigStep
+              value={state.adminConfig}
+              onChange={(adminConfig) => setState((prev) => ({ ...prev, adminConfig }))}
             />
           )}
 

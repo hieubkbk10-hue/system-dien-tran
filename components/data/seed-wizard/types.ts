@@ -28,6 +28,11 @@ export type BusinessInfo = {
   tagline: string;
 };
 
+export type AdminConfig = {
+  email: string;
+  password: string;
+};
+
 export type ExperiencePresetKey = string;
 
 export type QuickConfig = {
@@ -42,6 +47,7 @@ export type QuickConfig = {
 };
 
 export type WizardState = {
+  adminConfig: AdminConfig;
   businessInfo: BusinessInfo;
   customerLoginEnabled: boolean;
   customerLoginManuallySet: boolean;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Loader2, LogOut } from 'lucide-react';
@@ -10,6 +10,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../components/ui';
 import { useAdminAuth } from '../auth/context';
+import { isValidImageSrc } from '@/lib/utils/image';
 
 export default function AdminProfilePage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function AdminProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const enabledFeatures = React.useMemo(() => {
     const features: Record<string, boolean> = {};
@@ -43,6 +45,10 @@ export default function AdminProfilePage() {
     .toUpperCase();
 
   const roleLabel = user?.isSuperAdmin ? 'Super Admin' : role?.name ?? 'Không xác định';
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
 
   const handleLogout = async () => {
     await logout();
@@ -102,8 +108,15 @@ export default function AdminProfilePage() {
         <CardContent>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="relative">
-              {avatarUrl ? (
-                <Image src={avatarUrl} alt={displayName} width={80} height={80} className="w-20 h-20 rounded-full ring-2 ring-white dark:ring-slate-700" />
+              {avatarUrl && isValidImageSrc(avatarUrl) && !avatarError ? (
+                <Image
+                  src={avatarUrl}
+                  alt={displayName}
+                  width={80}
+                  height={80}
+                  onError={() => setAvatarError(true)}
+                  className="w-20 h-20 rounded-full ring-2 ring-white dark:ring-slate-700"
+                />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-blue-600 text-white text-xl font-semibold flex items-center justify-center ring-2 ring-white dark:ring-slate-700">
                   {initials || 'AD'}

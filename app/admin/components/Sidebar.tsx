@@ -14,6 +14,7 @@ import { cn } from './ui';
 import { api } from '@/convex/_generated/api';
 import { useAdminModules } from '../context/AdminModulesContext';
 import { useAdminAuth } from '../auth/context';
+import { isValidImageSrc } from '@/lib/utils/image';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -133,6 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -227,6 +229,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showUserMenu]);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
 
   const handleLogout = async () => {
     await logout();
@@ -501,8 +507,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
               aria-expanded={showUserMenu}
             >
               <div className="relative">
-                {avatarUrl ? (
-                  <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-700" />
+                {avatarUrl && isValidImageSrc(avatarUrl) && !avatarError ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={displayName}
+                    width={36}
+                    height={36}
+                    onError={() => setAvatarError(true)}
+                    className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-700"
+                  />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white dark:ring-slate-700">
                     {initials || 'AD'}

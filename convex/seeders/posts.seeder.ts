@@ -10,6 +10,7 @@ import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 import {
   buildFromPatterns,
+  getSeedMauAssetPool,
   getIndustryTemplate,
   mergeTemplateFields,
   pickRandom,
@@ -97,22 +98,39 @@ export class PostSeeder extends BaseSeeder<PostData> {
     };
   }
 
-  private getPostThumbnail(template: IndustryTemplate | null, slug: string): string {
+  private getPostThumbnail(template: IndustryTemplate | null, slug: string): string | undefined {
+    void slug;
     const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
 
-    if (template?.assets.posts?.length) {
-      return pickRandom(template.assets.posts, randomFn);
+    if (this.config.useSeedMauImages === false) {
+      return undefined;
     }
 
-    if (template?.assets.hero?.length && this.randomBoolean(0.7)) {
-      return pickRandom(template.assets.hero, randomFn);
+    const pickFrom = (items: string[]) => (items.length > 0 ? pickRandom(items, randomFn) : undefined);
+
+    let candidate = pickFrom(template?.assets.posts ?? []);
+
+    if (!candidate && template?.assets.hero?.length && this.randomBoolean(0.7)) {
+      candidate = pickFrom(template.assets.hero);
     }
 
-    if (template?.assets.products?.length) {
-      return pickRandom(template.assets.products, randomFn);
+    if (!candidate) {
+      candidate = pickFrom(template?.assets.products ?? []);
     }
 
-    return `https://picsum.photos/seed/${slug}/800/600`;
+    if (!candidate) {
+      candidate = pickFrom(getSeedMauAssetPool('posts', { excludeIndustryKey: template?.key }));
+    }
+
+    if (!candidate) {
+      candidate = pickFrom(getSeedMauAssetPool('hero', { excludeIndustryKey: template?.key }));
+    }
+
+    if (!candidate) {
+      candidate = pickFrom(getSeedMauAssetPool('products', { excludeIndustryKey: template?.key }));
+    }
+
+    return candidate;
   }
   
   validateRecord(record: PostData): boolean {

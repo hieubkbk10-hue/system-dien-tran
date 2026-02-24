@@ -1,4 +1,4 @@
-import type { IndustrySummary, IndustryTemplate } from './types';
+import type { IndustryAssetPack, IndustrySummary, IndustryTemplate } from './types';
 import { buildIndustrySummary } from './utils';
 import fashion from './industries/fashion';
 import cosmetics from './industries/cosmetics';
@@ -95,6 +95,25 @@ export const INDUSTRY_TEMPLATES: IndustryTemplate[] = [
 export const INDUSTRY_TEMPLATE_MAP = new Map<string, IndustryTemplate>(
   INDUSTRY_TEMPLATES.map((template) => [template.key, template])
 );
+
+export type SeedMauAssetType = keyof IndustryAssetPack;
+
+export function getSeedMauAssetPool(
+  type: SeedMauAssetType,
+  options?: {
+    excludeIndustryKey?: string | null;
+  }
+): string[] {
+  const pool = INDUSTRY_TEMPLATES.flatMap((template) => {
+    if (options?.excludeIndustryKey && template.key === options.excludeIndustryKey) {
+      return [];
+    }
+    return template.assets?.[type] ?? [];
+  });
+
+  const filtered = pool.filter((item) => typeof item === 'string' && item.startsWith('/seed_mau/'));
+  return Array.from(new Set(filtered));
+}
 
 export function listIndustries(): IndustrySummary[] {
   return INDUSTRY_TEMPLATES.map(buildIndustrySummary);
