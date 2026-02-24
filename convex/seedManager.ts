@@ -40,6 +40,7 @@ const seedConfigValidator = v.object({
   module: v.string(),
   quantity: v.number(),
   selectedLogo: v.optional(v.string()),
+  strictVariantPresetScope: v.optional(v.boolean()),
   useSeedMauImages: v.optional(v.boolean()),
   variantPresetKey: v.optional(v.string()),
 });
@@ -102,6 +103,7 @@ export const seedModule = mutation({
     locale: v.optional(v.string()),
     module: v.string(),
     quantity: v.number(),
+    strictVariantPresetScope: v.optional(v.boolean()),
     variantPresetKey: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<SeedResult> => {
@@ -147,6 +149,7 @@ export const seedModule = mutation({
         industryKey: args.industryKey,
         locale: args.locale || 'vi',
         quantity: args.quantity,
+        strictVariantPresetScope: args.strictVariantPresetScope,
         variantPresetKey: args.variantPresetKey,
       });
       
@@ -235,6 +238,7 @@ export const seedBulk = mutation({
             locale: config.locale || 'vi',
             quantity: config.quantity,
             selectedLogo: config.selectedLogo,
+            strictVariantPresetScope: config.strictVariantPresetScope,
             useSeedMauImages: config.useSeedMauImages,
             variantPresetKey: config.variantPresetKey,
           });
@@ -526,6 +530,36 @@ export const clearAll = mutation({
   returns: v.object({
     success: v.boolean(),
     errors: v.array(v.string()),
+  }),
+});
+
+export const clearProductVariantData = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const productVariants = await ctx.db.query('productVariants').collect();
+    const productOptionValues = await ctx.db.query('productOptionValues').collect();
+    const productOptions = await ctx.db.query('productOptions').collect();
+
+    await Promise.all(productVariants.map((item) => ctx.db.delete(item._id)));
+    await Promise.all(productOptionValues.map((item) => ctx.db.delete(item._id)));
+    await Promise.all(productOptions.map((item) => ctx.db.delete(item._id)));
+
+    return {
+      deleted: {
+        options: productOptions.length,
+        optionValues: productOptionValues.length,
+        variants: productVariants.length,
+      },
+      success: true,
+    };
+  },
+  returns: v.object({
+    deleted: v.object({
+      options: v.number(),
+      optionValues: v.number(),
+      variants: v.number(),
+    }),
+    success: v.boolean(),
   }),
 });
 

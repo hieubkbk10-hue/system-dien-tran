@@ -4,6 +4,9 @@ import React from 'react';
 import { Badge, Checkbox } from '@/app/admin/components/ui';
 
 type ReviewStepProps = {
+  brandMode: 'single' | 'dual';
+  brandPrimary: string;
+  brandSecondary: string;
   clearBeforeSeed: boolean;
   dataScaleLabel: string;
   experienceSummary: string;
@@ -18,6 +21,9 @@ type ReviewStepProps = {
 };
 
 export function ReviewStep({
+  brandMode,
+  brandPrimary,
+  brandSecondary,
   clearBeforeSeed,
   dataScaleLabel,
   experienceSummary,
@@ -50,6 +56,28 @@ export function ReviewStep({
         <div className="text-xs text-slate-500">Experience preset</div>
         <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{experienceSummary}</div>
         <div className="text-xs text-slate-500 mt-1">Có thể chỉnh chi tiết tại /system/experiences.</div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
+        <div className="text-xs text-slate-500">Màu thương hiệu</div>
+        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          {brandMode === 'dual' ? '2 màu (Dual)' : '1 màu (Single)'}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
+          <span className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full border" style={{ backgroundColor: brandPrimary }} />
+            Màu chính
+          </span>
+          {brandMode === 'dual' && (
+            <span className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full border" style={{ backgroundColor: brandSecondary || brandPrimary }} />
+              Màu phụ
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-slate-500 mt-2">
+          Ảnh hưởng: /admin/settings, /system/experiences, /admin/home-components.
+        </div>
       </div>
 
       {moduleConfigs.length > 0 && (

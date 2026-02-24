@@ -10,6 +10,7 @@ type SeedVariantOptions = {
   maxVariants?: number;
   minVariants?: number;
   presetKey?: string;
+  strictVariantPresetScope?: boolean;
 };
 
 type OptionValueSelection = {
@@ -37,7 +38,9 @@ export async function seedProductVariants(
     variantsByProduct.set(variant.productId, list);
   }
 
-  const presetSeed = await seedVariantPresetOptions(ctx, options.presetKey);
+  const presetSeed = await seedVariantPresetOptions(ctx, options.presetKey, {
+    strictVariantPresetScope: options.strictVariantPresetScope,
+  });
   const optionValueLists = presetSeed.optionIds
     .map((optionId) => ({ optionId, values: presetSeed.optionValues[optionId] ?? [] }))
     .filter((entry) => entry.values.length > 0);

@@ -102,7 +102,10 @@ export class ProductSeeder extends BaseSeeder<ProductData> {
     void count;
     const variantEnabled = await this.isVariantEnabled();
     if (variantEnabled) {
-      await seedProductVariants(this.ctx, { presetKey: this.config.variantPresetKey });
+      await seedProductVariants(this.ctx, {
+        presetKey: this.config.variantPresetKey,
+        strictVariantPresetScope: this.config.strictVariantPresetScope,
+      });
     }
 
     await this.updateStats();

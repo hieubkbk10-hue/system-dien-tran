@@ -60,6 +60,8 @@ type SeedWizardDialogProps = {
 const DEFAULT_BUSINESS_INFO: BusinessInfo = {
   address: '',
   brandColor: '#3b82f6',
+  brandMode: 'dual',
+  brandSecondary: '',
   businessType: 'LocalBusiness',
   email: 'contact@example.com',
   openingHours: 'Mo-Su 08:00-22:00',
@@ -123,6 +125,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const seedBulk = useMutation(api.seedManager.seedBulk);
   const seedModule = useMutation(api.seedManager.seedModule);
   const clearAll = useMutation(api.seedManager.clearAll);
+  const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
   const toggleModuleFeature = useMutation(api.admin.modules.toggleModuleFeature);
   const setSettings = useMutation(api.settings.setMultiple);
@@ -189,9 +192,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       }
       if (!hasProducts && !hasPosts) {
         next.delete('comments');
-      }
-      if (hasServices) {
-        next.delete('services');
       }
       return { ...prev, extraFeatures: next };
     });
@@ -306,6 +306,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         ? 'Chỉ hàng số'
         : 'Chỉ hàng vật lý';
     const variantLabel = state.variantEnabled ? state.variantPresetKey : 'Không có phiên bản';
+    const brandModeLabel = state.businessInfo.brandMode === 'dual' ? '2 màu (Dual)' : '1 màu (Single)';
 
     const websiteLabel = state.websiteType === 'landing'
       ? 'Chỉ giới thiệu'
@@ -328,6 +329,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
     items.push({ label: 'Website', value: websiteLabel });
     items.push({ label: 'Ảnh mẫu', value: state.useSeedMauImages ? 'Bật' : 'Tắt' });
+    items.push({ label: 'Màu thương hiệu', value: brandModeLabel });
 
     if (hasProducts) {
       items.push(
@@ -443,23 +445,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         await seedModule({ module: 'systemPresets', quantity: 0 });
       }
 
+      if (state.clearBeforeSeed && hasProducts) {
+        await clearProductVariantData({});
+      }
+
       await syncModules(selectedModules);
-
-      const seedConfigs = buildSeedConfigs(
-        selectedModules,
-        state.dataScale,
-        state.industryKey,
-        state.selectedLogo,
-        state.useSeedMauImages
-      ).map((config) => ({
-        ...config,
-        force: false,
-        variantPresetKey: config.module === 'products' && state.variantEnabled
-          ? state.variantPresetKey
-          : undefined,
-      }));
-
-      await seedBulk({ configs: seedConfigs });
 
       if (hasProducts) {
         await setModuleSetting({ moduleKey: 'products', settingKey: 'saleMode', value: state.saleMode });
@@ -495,6 +485,38 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           value: state.quickConfig.productsDefaultStatus,
         });
       }
+
+      const seedConfigs = buildSeedConfigs(
+        selectedModules,
+        state.dataScale,
+        state.industryKey,
+        state.selectedLogo,
+        state.useSeedMauImages
+      ).map((config) => ({
+        ...config,
+        force: false,
+        strictVariantPresetScope: config.module === 'products' && state.variantEnabled && state.clearBeforeSeed
+          ? true
+          : undefined,
+        variantPresetKey: config.module === 'products' && state.variantEnabled
+          ? state.variantPresetKey
+          : undefined,
+      }));
+
+      const missingSeedModules = selectedModules.filter(
+        (moduleKey) => !seedConfigs.some((config) => config.module === moduleKey)
+      );
+
+      if (missingSeedModules.length > 0) {
+        toast.error(`Thiếu cấu hình seed cho: ${missingSeedModules.join(', ')}`, { id: toastId });
+        return;
+      }
+
+      if (state.businessInfo.brandMode === 'dual' && !state.businessInfo.brandSecondary) {
+        toast.info('Chưa nhập màu phụ, wizard sẽ dùng màu chính làm fallback.');
+      }
+
+      const seedResults = await seedBulk({ configs: seedConfigs });
 
       if (hasOrders) {
         const preset = state.quickConfig.orderStatusPreset || DEFAULT_ORDER_STATUS_PRESET;
@@ -549,14 +571,19 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         });
       }
 
+      const brandPrimary = state.businessInfo.brandColor || '#3b82f6';
+      const brandSecondary = state.businessInfo.brandMode === 'dual'
+        ? (state.businessInfo.brandSecondary || brandPrimary)
+        : '';
+
       await setSettings({
         settings: [
           { group: 'site', key: 'site_name', value: state.businessInfo.siteName || 'VietAdmin' },
           { group: 'site', key: 'site_tagline', value: state.businessInfo.tagline || '' },
-          { group: 'site', key: 'site_brand_mode', value: 'dual' },
-          { group: 'site', key: 'site_brand_primary', value: state.businessInfo.brandColor || '#3b82f6' },
-          { group: 'site', key: 'site_brand_secondary', value: '' },
-          { group: 'site', key: 'site_brand_color', value: state.businessInfo.brandColor || '#3b82f6' },
+          { group: 'site', key: 'site_brand_mode', value: state.businessInfo.brandMode },
+          { group: 'site', key: 'site_brand_primary', value: brandPrimary },
+          { group: 'site', key: 'site_brand_secondary', value: brandSecondary },
+          { group: 'site', key: 'site_brand_color', value: brandPrimary },
           { group: 'contact', key: 'contact_email', value: state.businessInfo.email || 'contact@example.com' },
           { group: 'contact', key: 'contact_phone', value: state.businessInfo.phone || '' },
           { group: 'contact', key: 'contact_address', value: state.businessInfo.address || '' },
@@ -613,6 +640,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await applyProductOverrides();
 
+      const zeroSeedModules = seedConfigs
+        .filter((config) => config.quantity > 0)
+        .map((config) => {
+          const result = seedResults.find((item) => item.module === config.module);
+          return result && result.created === 0 ? config.module : null;
+        })
+        .filter(Boolean) as string[];
+
+      if (zeroSeedModules.length > 0) {
+        toast.warning(`Seed xong nhưng dữ liệu trống: ${zeroSeedModules.join(', ')}`);
+      }
+
       toast.success('Seed wizard hoàn tất!', { id: toastId });
       onComplete?.();
       onOpenChange(false);
@@ -628,6 +667,10 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const summary = buildSummary();
   const dataScaleLabel = summary.find((item) => item.label === 'Quy mô dữ liệu')?.value ?? '';
   const scaleSummary = getScaleSummary(selectedModules, state.dataScale);
+  const brandPrimary = state.businessInfo.brandColor || '#3b82f6';
+  const brandSecondary = state.businessInfo.brandMode === 'dual'
+    ? (state.businessInfo.brandSecondary || brandPrimary)
+    : '';
   const moduleConfigs = [
     state.quickConfigSkipped
       ? { label: 'Cấu hình nhanh', value: 'Dùng mặc định' }
@@ -779,6 +822,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
           {stepKey === 'review' && (
             <ReviewStep
+              brandMode={state.businessInfo.brandMode}
+              brandPrimary={brandPrimary}
+              brandSecondary={brandSecondary}
               clearBeforeSeed={state.clearBeforeSeed}
               dataScaleLabel={dataScaleLabel}
               experienceSummary={experiencePreset.summary}

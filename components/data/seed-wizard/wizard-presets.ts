@@ -103,6 +103,12 @@ export const EXTRA_FEATURE_OPTIONS: ExtraFeatureOption[] = [
     label: 'Dịch vụ',
     modules: ['services', 'serviceCategories'],
   },
+  {
+    description: 'Quản lý công việc nội bộ theo dạng Kanban.',
+    key: 'kanban',
+    label: 'Kanban nội bộ',
+    modules: ['kanban'],
+  },
 ];
 
 export const VARIANT_PRESET_EXAMPLES: VariantPresetExample[] = [
@@ -125,6 +131,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     comments: 10,
     customers: 5,
     homepage: 6,
+    kanban: 6,
     menus: 2,
     orders: 5,
     postCategories: 3,
@@ -146,6 +153,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     comments: 30,
     customers: 20,
     homepage: 6,
+    kanban: 12,
     menus: 3,
     orders: 20,
     postCategories: 5,
@@ -167,6 +175,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     comments: 80,
     customers: 50,
     homepage: 6,
+    kanban: 20,
     menus: 4,
     orders: 50,
     postCategories: 6,
@@ -197,6 +206,7 @@ const SCALE_SUMMARY_ITEMS: Array<{ key: string; label: string }> = [
   { key: 'comments', label: 'Bình luận' },
   { key: 'promotions', label: 'Khuyến mãi' },
   { key: 'wishlist', label: 'Wishlist' },
+  { key: 'kanban', label: 'Kanban' },
 ];
 
 export function getBaseModules(websiteType: WizardState['websiteType']): string[] {

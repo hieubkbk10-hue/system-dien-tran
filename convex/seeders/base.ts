@@ -26,6 +26,7 @@ export interface SeedConfig {
   onProgress?: (current: number, total: number) => void; // Progress callback
   industryKey?: string;       // Industry template key
   selectedLogo?: string | null;
+  strictVariantPresetScope?: boolean;
   useSeedMauImages?: boolean;
   variantPresetKey?: string; // Optional preset key for product variants
 }

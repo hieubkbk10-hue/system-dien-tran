@@ -80,6 +80,28 @@ export function BusinessInfoStep({ value, onChange }: BusinessInfoStepProps) {
           <p className="text-xs text-slate-500">Áp dụng cho nút bấm và màu nhấn.</p>
         </div>
         <div className="space-y-2">
+          <Label>Chế độ màu thương hiệu</Label>
+          <select
+            className={SELECT_CLASS}
+            value={value.brandMode}
+            onChange={(event) => updateField('brandMode', event.target.value)}
+          >
+            <option value="single">1 màu (Single)</option>
+            <option value="dual">2 màu (Dual)</option>
+          </select>
+          <p className="text-xs text-slate-500">Ảnh hưởng /admin/settings, /system/experiences, /admin/home-components.</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Màu thương hiệu phụ</Label>
+          <Input
+            type="color"
+            value={value.brandSecondary}
+            onChange={(event) => updateField('brandSecondary', event.target.value)}
+            disabled={value.brandMode !== 'dual'}
+          />
+          <p className="text-xs text-slate-500">Bỏ trống sẽ dùng màu chính.</p>
+        </div>
+        <div className="space-y-2">
           <Label>Loại hình doanh nghiệp</Label>
           <select
             className={SELECT_CLASS}

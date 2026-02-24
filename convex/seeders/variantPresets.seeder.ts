@@ -17,13 +17,22 @@ export type VariantPresetSeedResult = {
   preset: VariantPreset;
 };
 
+type VariantPresetSeedOptions = {
+  strictVariantPresetScope?: boolean;
+};
+
 export async function seedVariantPresetOptions(
   ctx: GenericMutationCtx<DataModel>,
-  presetKey?: string
+  presetKey?: string,
+  options: VariantPresetSeedOptions = {}
 ): Promise<VariantPresetSeedResult> {
   const preset = VARIANT_PRESETS[presetKey ?? ""] ?? VARIANT_PRESETS[DEFAULT_VARIANT_PRESET_KEY];
   const optionIds: Array<Doc<"productOptions">["_id"]> = [];
   const optionValues: Record<string, OptionValueDoc[]> = {};
+
+  if (options.strictVariantPresetScope) {
+    await enforceStrictPresetScope(ctx, preset);
+  }
 
   for (const option of preset.options) {
     const optionDoc = await ensureOption(ctx, option);
@@ -32,6 +41,36 @@ export async function seedVariantPresetOptions(
   }
 
   return { optionIds, optionValues, preset };
+}
+
+async function enforceStrictPresetScope(
+  ctx: GenericMutationCtx<DataModel>,
+  preset: VariantPreset
+) {
+  const presetOptionMap = new Map(preset.options.map((option) => [option.slug, option]));
+  const existingOptions = await ctx.db.query("productOptions").collect();
+
+  for (const option of existingOptions) {
+    const presetOption = presetOptionMap.get(option.slug);
+    if (!presetOption) {
+      const values = await ctx.db
+        .query("productOptionValues")
+        .withIndex("by_option", (q) => q.eq("optionId", option._id))
+        .collect();
+      await Promise.all(values.map((value) => ctx.db.delete(value._id)));
+      await ctx.db.delete(option._id);
+      continue;
+    }
+
+    const allowedValues = new Set(presetOption.values.map((value) => value.value.toLowerCase()));
+    const values = await ctx.db
+      .query("productOptionValues")
+      .withIndex("by_option", (q) => q.eq("optionId", option._id))
+      .collect();
+    const toDelete = values.filter((value) => !allowedValues.has(value.value.toLowerCase()));
+    await Promise.all(toDelete.map((value) => ctx.db.delete(value._id)));
+  }
+
 }
 
 async function ensureOption(

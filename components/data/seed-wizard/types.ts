@@ -17,6 +17,8 @@ export type DataScale = 'low' | 'medium' | 'high';
 export type BusinessInfo = {
   address: string;
   brandColor: string;
+  brandMode: 'single' | 'dual';
+  brandSecondary: string;
   businessType: string;
   email: string;
   openingHours: string;
