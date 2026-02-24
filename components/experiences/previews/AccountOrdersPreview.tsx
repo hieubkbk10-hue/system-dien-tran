@@ -7,6 +7,12 @@ import { ArrowUpRight, CheckCircle2, Clock, DollarSign, Package, ShoppingBag } f
 import { StatusFilterDropdown } from '@/components/orders/StatusFilterDropdown';
 import { OrderDetailDrawer } from '@/components/orders/OrderDetailDrawer';
 import { toast } from 'sonner';
+import {
+  getAccountOrdersColors,
+  getAccountOrdersStatusBadgeTokens,
+  type AccountOrdersColorMode,
+  type AccountOrdersColors,
+} from '@/components/site/account/orders/colors';
 
 type AccountOrdersPreviewProps = {
   layoutStyle: 'cards' | 'compact' | 'timeline';
@@ -23,31 +29,14 @@ type AccountOrdersPreviewProps = {
   orderStatuses: Array<{ key: string; label: string; color: string; step: number; isFinal: boolean; allowCancel: boolean }>;
   stockEnabled: boolean;
   brandColor: string;
+  secondaryColor: string;
+  colorMode: AccountOrdersColorMode;
   device: 'desktop' | 'tablet' | 'mobile';
 };
 
 const formatPrice = (value: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(value);
 
 const TIMELINE_STEPS = ['Đặt hàng', 'Xác nhận', 'Vận chuyển', 'Hoàn thành'];
-
-const hexToRgba = (hex: string, opacity: number) => {
-  const cleaned = hex.replace('#', '');
-  if (cleaned.length !== 3 && cleaned.length !== 6) {
-    return hex;
-  }
-  const normalized = cleaned.length === 3
-    ? cleaned.split('').map((char) => char + char).join('')
-    : cleaned;
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
-    return hex;
-  }
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
-
-const getBrandTint = (color: string, opacity: number) => hexToRgba(color, opacity);
 
 const MOCK_ORDERS = [
   {
@@ -170,16 +159,24 @@ const MOCK_ORDERS = [
 
 type Order = (typeof MOCK_ORDERS)[number] & { status: string };
 
-function StatusBadge({ status, statusConfig, brandColor }: { status: string; statusConfig?: { label: string; color: string }; brandColor: string }) {
-  const statusColor = statusConfig?.color ?? brandColor;
-  const tone = status.toLowerCase().includes('cancel') ? 0.16 : 0.12;
+function StatusBadge({
+  status,
+  statusConfig,
+  tokens,
+}: {
+  status: string;
+  statusConfig?: { label: string; color: string };
+  tokens: AccountOrdersColors;
+}) {
+  const statusColor = statusConfig?.color ?? tokens.primary;
+  const badgeTokens = getAccountOrdersStatusBadgeTokens(statusColor, tokens.primary);
   return (
     <span
       className="text-xs font-semibold px-2.5 py-1 rounded-full border"
       style={{
-        backgroundColor: hexToRgba(statusColor, tone),
-        color: statusColor,
-        borderColor: hexToRgba(statusColor, 0.3),
+        backgroundColor: badgeTokens.bg,
+        color: badgeTokens.text,
+        borderColor: badgeTokens.border,
       }}
     >
       {statusConfig?.label ?? status}
@@ -187,42 +184,42 @@ function StatusBadge({ status, statusConfig, brandColor }: { status: string; sta
   );
 }
 
-function OrderItems({ items, brandColor }: { items: Order['items']; brandColor: string }) {
+function OrderItems({ items, tokens }: { items: Order['items']; tokens: AccountOrdersColors }) {
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={item.name} className="flex items-center gap-3 text-xs text-slate-700">
+        <div key={item.name} className="flex items-center gap-3 text-xs" style={{ color: tokens.bodyText }}>
           <div
             className="h-8 w-8 rounded-md border overflow-hidden flex items-center justify-center"
-            style={{ borderColor: getBrandTint(brandColor, 0.2), backgroundColor: getBrandTint(brandColor, 0.08) }}
+            style={{ borderColor: tokens.orderItemThumbBorder, backgroundColor: tokens.orderItemThumbBg }}
           >
             {item.image ? (
               <Image src={item.image} alt={item.name} width={32} height={32} className="h-full w-full object-cover" />
             ) : (
-              <Package size={12} style={{ color: brandColor }} />
+              <Package size={12} style={{ color: tokens.orderItemThumbIcon }} />
             )}
           </div>
           <div className="flex-1">
-            <div className="font-medium text-slate-900">{item.name}</div>
-            <div className="text-[10px] text-slate-500">Số lượng: {item.quantity}</div>
+            <div className="font-medium" style={{ color: tokens.orderValueText }}>{item.name}</div>
+            <div className="text-[10px]" style={{ color: tokens.orderMetaText }}>Số lượng: {item.quantity}</div>
           </div>
-          <span className="font-medium">{formatPrice(item.price)}</span>
+          <span className="font-medium" style={{ color: tokens.priceText }}>{formatPrice(item.price)}</span>
         </div>
       ))}
     </div>
   );
 }
 
-function OrderMeta({ label, value }: { label: string; value: string }) {
+function OrderMeta({ label, value, tokens }: { label: string; value: string; tokens: AccountOrdersColors }) {
   return (
     <div>
-      <div className="text-[10px] text-slate-500">{label}</div>
-      <div className="text-xs font-medium text-slate-900">{value}</div>
+      <div className="text-[10px]" style={{ color: tokens.orderMetaText }}>{label}</div>
+      <div className="text-xs font-medium" style={{ color: tokens.orderValueText }}>{value}</div>
     </div>
   );
 }
 
-function Stepper({ step, brandColor }: { step: number; brandColor: string }) {
+function Stepper({ step, tokens }: { step: number; tokens: AccountOrdersColors }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -232,19 +229,21 @@ function Stepper({ step, brandColor }: { step: number; brandColor: string }) {
             <div key={label} className="flex items-center gap-2">
               <div
                 className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: active ? brandColor : getBrandTint(brandColor, 0.2) }}
+                style={{ backgroundColor: active ? tokens.timelineActive : tokens.timelineInactive }}
               />
               {index < TIMELINE_STEPS.length - 1 && (
                 <div
                   className="h-[2px] w-8"
-                  style={{ backgroundColor: active ? brandColor : getBrandTint(brandColor, 0.2) }}
+                  style={{ backgroundColor: active ? tokens.timelineActive : tokens.timelineInactive }}
                 />
               )}
             </div>
           );
         })}
       </div>
-      <div className="text-xs text-slate-500">Bước hiện tại: {TIMELINE_STEPS[step - 1] ?? TIMELINE_STEPS[0]}</div>
+      <div className="text-xs" style={{ color: tokens.orderMetaText }}>
+        Bước hiện tại: {TIMELINE_STEPS[step - 1] ?? TIMELINE_STEPS[0]}
+      </div>
     </div>
   );
 }
@@ -254,27 +253,43 @@ function StatCard({
   value,
   icon,
   highlight,
-  brandColor,
+  tokens,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
   highlight?: boolean;
-  brandColor: string;
+  tokens: AccountOrdersColors;
 }) {
   return (
     <div
-      className={`rounded-xl border p-3 ${highlight ? '' : 'bg-white border-slate-200'}`}
-      style={highlight ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
+      className="rounded-xl border p-3"
+      style={highlight
+        ? { backgroundColor: tokens.statHighlightBg, borderColor: tokens.statHighlightBg }
+        : { backgroundColor: tokens.statCardBg, borderColor: tokens.statCardBorder }
+      }
     >
       <div className="flex items-start justify-between">
         <div>
-          <div className={`text-[10px] ${highlight ? 'text-white/80' : 'text-slate-500'}`}>{label}</div>
-          <div className={`text-sm font-semibold ${highlight ? 'text-white' : 'text-slate-900'}`}>{value}</div>
+          <div
+            className="text-[10px]"
+            style={{ color: highlight ? tokens.statHighlightSubText : tokens.orderMetaText }}
+          >
+            {label}
+          </div>
+          <div
+            className="text-sm font-semibold"
+            style={{ color: highlight ? tokens.statHighlightText : tokens.orderValueText }}
+          >
+            {value}
+          </div>
         </div>
         <div
-          className={`p-1.5 rounded-lg ${highlight ? 'text-white' : ''}`}
-          style={{ backgroundColor: highlight ? getBrandTint(brandColor, 0.2) : getBrandTint(brandColor, 0.08), color: highlight ? undefined : brandColor }}
+          className="p-1.5 rounded-lg"
+          style={{
+            backgroundColor: highlight ? tokens.statHighlightIconBg : tokens.statIconBg,
+            color: highlight ? tokens.statHighlightIconColor : tokens.statIconColor,
+          }}
         >
           {icon}
         </div>
@@ -298,10 +313,16 @@ export function AccountOrdersPreview({
   orderStatuses,
   stockEnabled,
   brandColor,
+  secondaryColor,
+  colorMode,
   device,
 }: AccountOrdersPreviewProps) {
   const router = useRouter();
   const isMobile = device === 'mobile';
+  const tokens = useMemo(
+    () => getAccountOrdersColors(brandColor, secondaryColor, colorMode),
+    [brandColor, secondaryColor, colorMode]
+  );
   const statusKeys = useMemo(() => orderStatuses.map((status) => status.key), [orderStatuses]);
   const statusMap = useMemo(() => new Map(orderStatuses.map((status) => [status.key, status])), [orderStatuses]);
   const normalizedDefaultStatuses = useMemo(
@@ -378,12 +399,30 @@ export function AccountOrdersPreview({
     priceLabel: formatPrice(item.price * item.quantity),
     image: item.image,
   }));
+  const drawerBadgeTokens = drawerStatus
+    ? getAccountOrdersStatusBadgeTokens(drawerStatus.color ?? tokens.primary, tokens.primary)
+    : undefined;
+
+  const filterColors = {
+    buttonBorder: tokens.filterButtonBorder,
+    buttonText: tokens.filterButtonText,
+    buttonActiveBg: tokens.filterButtonActiveBg,
+    buttonActiveBorder: tokens.filterButtonActiveBorder,
+    buttonActiveText: tokens.filterButtonActiveText,
+    panelBg: tokens.filterDropdownBg,
+    panelBorder: tokens.filterDropdownBorder,
+    panelText: tokens.filterDropdownText,
+    panelMutedText: tokens.filterDropdownMutedText,
+    divider: tokens.border,
+  };
+
+  const rowHoverStyle = { '--row-hover': tokens.tableRowHoverBg } as React.CSSProperties;
 
   return (
-    <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
+    <div className="rounded-2xl p-4 space-y-4" style={{ backgroundColor: tokens.pageBackground }}>
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">Đơn hàng của tôi</h3>
-        <p className="text-xs text-slate-500">Preview account orders</p>
+        <h3 className="text-lg font-semibold" style={{ color: tokens.headingColor }}>Đơn hàng của tôi</h3>
+        <p className="text-xs" style={{ color: tokens.metaText }}>Preview account orders</p>
       </div>
 
       <StatusFilterDropdown
@@ -396,6 +435,7 @@ export function AccountOrdersPreview({
           setCurrentPage(1);
         }}
         brandColor={brandColor}
+        colors={filterColors}
       />
 
       {showStats && (
@@ -405,11 +445,11 @@ export function AccountOrdersPreview({
             value={formatPrice(1280000)}
             icon={<DollarSign size={14} />}
             highlight
-            brandColor={brandColor}
+            tokens={tokens}
           />
-          <StatCard label="Đang xử lý" value="6" icon={<Clock size={14} />} brandColor={brandColor} />
-          <StatCard label="Đã giao" value="6" icon={<CheckCircle2 size={14} />} brandColor={brandColor} />
-          <StatCard label="Sản phẩm" value="6" icon={<ShoppingBag size={14} />} brandColor={brandColor} />
+          <StatCard label="Đang xử lý" value="6" icon={<Clock size={14} />} tokens={tokens} />
+          <StatCard label="Đã giao" value="6" icon={<CheckCircle2 size={14} />} tokens={tokens} />
+          <StatCard label="Sản phẩm" value="6" icon={<ShoppingBag size={14} />} tokens={tokens} />
         </div>
       )}
 
@@ -418,45 +458,51 @@ export function AccountOrdersPreview({
           {visibleOrders.map((order, index) => {
             const expanded = index === 0;
             return (
-              <div key={order.id} className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div
+                key={order.id}
+                className="rounded-2xl border p-4 space-y-3"
+                style={{ backgroundColor: tokens.orderCardBg, borderColor: tokens.orderCardBorder }}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-slate-500">Mã đơn hàng · {order.date}</div>
-                    <div className="text-sm font-semibold text-slate-900">{order.id}</div>
+                    <div className="text-xs" style={{ color: tokens.orderMetaText }}>Mã đơn hàng · {order.date}</div>
+                    <div className="text-sm font-semibold" style={{ color: tokens.orderValueText }}>{order.id}</div>
                   </div>
-                  <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} brandColor={brandColor} />
+                  <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} tokens={tokens} />
                 </div>
-                <div className="text-xs text-slate-500">{order.itemsCount} sản phẩm · {formatPrice(order.total)}</div>
-                <div className="border-t pt-3 flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Tổng thanh toán</span>
-                  <span className="font-semibold text-slate-900">{formatPrice(order.total)}</span>
+                <div className="text-xs" style={{ color: tokens.orderMetaText }}>
+                  {order.itemsCount} sản phẩm · {formatPrice(order.total)}
+                </div>
+                <div className="border-t pt-3 flex items-center justify-between text-xs" style={{ borderColor: tokens.orderCardDivider }}>
+                  <span style={{ color: tokens.orderMetaText }}>Tổng thanh toán</span>
+                  <span className="font-semibold" style={{ color: tokens.orderValueText }}>{formatPrice(order.total)}</span>
                 </div>
                 {expanded && (
                   <div
                     className="border-t pt-3 space-y-3"
-                    style={{ borderColor: getBrandTint(brandColor, 0.16) }}
+                    style={{ borderColor: tokens.orderExpandedBorder, backgroundColor: tokens.orderExpandedBg }}
                   >
                     {showOrderItems && (
                       <div>
-                        <div className="text-[10px] text-slate-500 mb-2">Sản phẩm</div>
-                        <OrderItems items={order.items} brandColor={brandColor} />
+                        <div className="text-[10px] mb-2" style={{ color: tokens.orderMetaText }}>Sản phẩm</div>
+                        <OrderItems items={order.items} tokens={tokens} />
                       </div>
                     )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {showPaymentMethod && <OrderMeta label="Thanh toán" value={order.paymentMethod} />}
-                      {showShippingMethod && <OrderMeta label="Giao hàng" value={order.shippingMethod} />}
-                      {showTracking && <OrderMeta label="Tracking" value={order.trackingCode} />}
+                      {showPaymentMethod && <OrderMeta label="Thanh toán" value={order.paymentMethod} tokens={tokens} />}
+                      {showShippingMethod && <OrderMeta label="Giao hàng" value={order.shippingMethod} tokens={tokens} />}
+                      {showTracking && <OrderMeta label="Tracking" value={order.trackingCode} tokens={tokens} />}
                     </div>
-                    {showShippingAddress && <OrderMeta label="Địa chỉ" value={order.shippingAddress} />}
+                    {showShippingAddress && <OrderMeta label="Địa chỉ" value={order.shippingAddress} tokens={tokens} />}
                     {showTimeline && (
-                      <Stepper step={statusMap.get(order.status)?.step ?? 1} brandColor={brandColor} />
+                      <Stepper step={statusMap.get(order.status)?.step ?? 1} tokens={tokens} />
                     )}
                     <div className="flex flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleReorder(order)}
-                        className="px-3 py-2 rounded-lg text-xs font-semibold text-white"
-                        style={{ backgroundColor: brandColor }}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold"
+                        style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                       >
                         Mua lại
                       </button>
@@ -464,8 +510,8 @@ export function AccountOrdersPreview({
                         <button
                           type="button"
                           onClick={() => {}}
-                          className="px-3 py-2 rounded-lg text-xs font-semibold text-white"
-                          style={{ backgroundColor: brandColor }}
+                          className="px-3 py-2 rounded-lg text-xs font-semibold"
+                          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                         >
                           Hủy đơn
                         </button>
@@ -477,7 +523,10 @@ export function AccountOrdersPreview({
             );
           })}
           {visibleOrders.length === 0 && (
-            <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-6 text-center text-sm text-slate-500">
+            <div
+              className="border border-dashed rounded-2xl p-6 text-center text-sm"
+              style={{ backgroundColor: tokens.emptyStateBg, borderColor: tokens.border, color: tokens.emptyStateText }}
+            >
               Không có đơn hàng phù hợp.
             </div>
           )}
@@ -487,9 +536,9 @@ export function AccountOrdersPreview({
       {layoutStyle === 'compact' && (
         <div className="space-y-3">
           {!isMobile ? (
-            <div className="overflow-hidden shadow ring-1 ring-black/5 sm:rounded-lg bg-white">
+            <div className="overflow-hidden shadow ring-1 ring-black/5 sm:rounded-lg" style={{ backgroundColor: tokens.surface }}>
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead style={{ backgroundColor: tokens.tableHeaderBg, color: tokens.tableHeaderText }}>
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Mã đơn</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Ngày</th>
@@ -501,20 +550,24 @@ export function AccountOrdersPreview({
                 </thead>
                 <tbody>
                   {visibleOrders.map((order) => (
-                    <tr key={order.id} className="border-t hover:bg-slate-50/50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-slate-900">{order.id}</td>
-                      <td className="px-4 py-3 text-slate-500">{order.date}</td>
-                      <td className="px-4 py-3 text-slate-700">{order.itemsCount}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-900">{formatPrice(order.total)}</td>
+                    <tr
+                      key={order.id}
+                      className="border-t transition-colors hover:bg-[var(--row-hover)]"
+                      style={{ borderColor: tokens.orderCardDivider, ...rowHoverStyle }}
+                    >
+                      <td className="px-4 py-3 font-medium" style={{ color: tokens.orderValueText }}>{order.id}</td>
+                      <td className="px-4 py-3" style={{ color: tokens.orderMetaText }}>{order.date}</td>
+                      <td className="px-4 py-3" style={{ color: tokens.bodyText }}>{order.itemsCount}</td>
+                      <td className="px-4 py-3 font-semibold" style={{ color: tokens.orderValueText }}>{formatPrice(order.total)}</td>
                       <td className="px-4 py-3">
-                        <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} brandColor={brandColor} />
+                        <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} tokens={tokens} />
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
                           onClick={() => setDrawerOrder(order)}
                           className="inline-flex items-center gap-1 text-xs font-semibold"
-                          style={{ color: brandColor }}
+                          style={{ color: tokens.primary }}
                         >
                           Chi tiết <ArrowUpRight size={12} />
                         </button>
@@ -523,11 +576,14 @@ export function AccountOrdersPreview({
                   ))}
                 </tbody>
               </table>
-              <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
-                <p className="text-sm text-slate-600">
-                  Hiển thị <span className="font-medium text-slate-900">{displayStart}</span> đến{' '}
-                  <span className="font-medium text-slate-900">{displayEnd}</span> trong số{' '}
-                  <span className="font-medium text-slate-900">{filteredOrders.length}</span> kết quả
+              <div
+                className="flex items-center justify-between border-t px-4 py-3"
+                style={{ borderColor: tokens.orderCardDivider, backgroundColor: tokens.surface }}
+              >
+                <p className="text-sm" style={{ color: tokens.paginationSummaryText }}>
+                  Hiển thị <span className="font-medium" style={{ color: tokens.paginationSummaryStrong }}>{displayStart}</span> đến{' '}
+                  <span className="font-medium" style={{ color: tokens.paginationSummaryStrong }}>{displayEnd}</span> trong số{' '}
+                  <span className="font-medium" style={{ color: tokens.paginationSummaryStrong }}>{filteredOrders.length}</span> kết quả
                 </p>
                 <div className="inline-flex items-center gap-2">
                   <button
@@ -535,7 +591,7 @@ export function AccountOrdersPreview({
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={safeCurrentPage === 1}
                     className="px-3 py-1.5 text-xs font-semibold border rounded-md"
-                    style={{ borderColor: getBrandTint(brandColor, 0.3), color: brandColor }}
+                    style={{ borderColor: tokens.paginationButtonBorder, color: tokens.paginationButtonText }}
                   >
                     Trước
                   </button>
@@ -543,8 +599,8 @@ export function AccountOrdersPreview({
                     type="button"
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={safeCurrentPage === totalPages}
-                    className="px-3 py-1.5 text-xs font-semibold text-white rounded-md"
-                    style={{ backgroundColor: brandColor }}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md"
+                    style={{ backgroundColor: tokens.paginationActiveBg, color: tokens.paginationActiveText }}
                   >
                     Sau
                   </button>
@@ -554,21 +610,25 @@ export function AccountOrdersPreview({
           ) : (
             <div className="space-y-2">
               {visibleOrders.map((order) => (
-                <div key={order.id} className="bg-white border border-slate-200 rounded-xl p-3">
+                <div
+                  key={order.id}
+                  className="border rounded-xl p-3"
+                  style={{ backgroundColor: tokens.orderCardBg, borderColor: tokens.orderCardBorder }}
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-slate-500">{order.id} · {order.date}</div>
-                      <div className="text-sm font-semibold text-slate-900">{formatPrice(order.total)}</div>
+                      <div className="text-xs" style={{ color: tokens.orderMetaText }}>{order.id} · {order.date}</div>
+                      <div className="text-sm font-semibold" style={{ color: tokens.orderValueText }}>{formatPrice(order.total)}</div>
                     </div>
-                    <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} brandColor={brandColor} />
+                    <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} tokens={tokens} />
                   </div>
-                  <div className="mt-2 text-xs text-slate-500">{order.itemsCount} sản phẩm</div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                  <div className="mt-2 text-xs" style={{ color: tokens.orderMetaText }}>{order.itemsCount} sản phẩm</div>
+                  <div className="mt-2 flex items-center justify-between text-xs" style={{ color: tokens.orderMetaText }}>
                     <button
                       type="button"
                       onClick={() => setDrawerOrder(order)}
                       className="font-semibold"
-                      style={{ color: brandColor }}
+                      style={{ color: tokens.primary }}
                     >
                       Chi tiết
                     </button>
@@ -583,43 +643,57 @@ export function AccountOrdersPreview({
       {layoutStyle === 'timeline' && (
         <div className="space-y-6">
           {visibleOrders.map((order) => (
-            <div key={order.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <div className="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-50/50">
+            <div
+              key={order.id}
+              className="border rounded-2xl overflow-hidden shadow-sm"
+              style={{ backgroundColor: tokens.surface, borderColor: tokens.orderCardBorder }}
+            >
+              <div
+                className="px-6 py-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                style={{ borderColor: tokens.orderCardDivider, backgroundColor: tokens.surfaceMuted }}
+              >
                 <div className="flex flex-wrap items-center gap-4">
                   <div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wide">Ngày đặt</div>
-                    <div className="text-sm font-semibold text-slate-900">{order.date}</div>
+                    <div className="text-xs uppercase tracking-wide" style={{ color: tokens.orderMetaText }}>Ngày đặt</div>
+                    <div className="text-sm font-semibold" style={{ color: tokens.orderValueText }}>{order.date}</div>
                   </div>
-                  <div className="hidden md:block h-8 w-px bg-slate-200" />
+                  <div className="hidden md:block h-8 w-px" style={{ backgroundColor: tokens.border }} />
                   <div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wide">Mã đơn</div>
-                    <div className="text-sm font-semibold text-slate-900">{order.id}</div>
+                    <div className="text-xs uppercase tracking-wide" style={{ color: tokens.orderMetaText }}>Mã đơn</div>
+                    <div className="text-sm font-semibold" style={{ color: tokens.orderValueText }}>{order.id}</div>
                   </div>
                 </div>
-                <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} brandColor={brandColor} />
+                <StatusBadge status={order.status} statusConfig={statusMap.get(order.status)} tokens={tokens} />
               </div>
 
               <div className="p-6 space-y-6">
                 {showTimeline && (
-                  <Stepper step={statusMap.get(order.status)?.step ?? 1} brandColor={brandColor} />
+                  <Stepper step={statusMap.get(order.status)?.step ?? 1} tokens={tokens} />
                 )}
                 {(showPaymentMethod || showShippingMethod || showShippingAddress) && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {showPaymentMethod && <OrderMeta label="Thanh toán" value={order.paymentMethod} />}
-                    {showShippingMethod && <OrderMeta label="Giao hàng" value={order.shippingMethod} />}
-                    {showShippingAddress && <OrderMeta label="Địa chỉ" value={order.shippingAddress} />}
+                    {showPaymentMethod && <OrderMeta label="Thanh toán" value={order.paymentMethod} tokens={tokens} />}
+                    {showShippingMethod && <OrderMeta label="Giao hàng" value={order.shippingMethod} tokens={tokens} />}
+                    {showShippingAddress && <OrderMeta label="Địa chỉ" value={order.shippingAddress} tokens={tokens} />}
                   </div>
                 )}
-                {showOrderItems && <OrderItems items={order.items} brandColor={brandColor} />}
+                {showOrderItems && <OrderItems items={order.items} tokens={tokens} />}
               </div>
 
-              <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div
+                className="px-6 py-4 border-t flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                style={{ backgroundColor: tokens.surfaceMuted, borderColor: tokens.orderCardDivider }}
+              >
                 {showTracking && (
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                    <span className="text-slate-500 font-medium">Tracking:</span>
+                  <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: tokens.orderMetaText }}>
+                    <span className="font-medium" style={{ color: tokens.orderMetaText }}>Tracking:</span>
                     <span
                       className="px-2 py-0.5 rounded border text-xs font-normal"
-                      style={{ borderColor: getBrandTint(brandColor, 0.2), color: brandColor, backgroundColor: getBrandTint(brandColor, 0.08) }}
+                      style={{
+                        borderColor: tokens.trackingBadgeBorder,
+                        color: tokens.trackingBadgeText,
+                        backgroundColor: tokens.trackingBadgeBg,
+                      }}
                     >
                       {order.trackingCode}
                     </span>
@@ -627,8 +701,8 @@ export function AccountOrdersPreview({
                 )}
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Tổng tiền</span>
-                    <span className="text-xl font-bold" style={{ color: brandColor }}>
+                    <span className="text-xs font-medium uppercase tracking-wide" style={{ color: tokens.orderMetaText }}>Tổng tiền</span>
+                    <span className="text-xl font-bold" style={{ color: tokens.priceText }}>
                       {formatPrice(order.total)}
                     </span>
                   </div>
@@ -636,8 +710,8 @@ export function AccountOrdersPreview({
                     <button
                       type="button"
                       onClick={() => {}}
-                      className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                      style={{ backgroundColor: brandColor }}
+                      className="px-4 py-2 rounded-lg text-sm font-semibold"
+                      style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                     >
                       Hủy đơn hàng
                     </button>
@@ -646,7 +720,7 @@ export function AccountOrdersPreview({
                       type="button"
                       onClick={() => handleReorder(order)}
                       className="px-4 py-2 rounded-lg text-sm font-semibold border"
-                      style={{ borderColor: getBrandTint(brandColor, 0.3), color: brandColor }}
+                      style={{ borderColor: tokens.secondaryButtonBorder, color: tokens.secondaryButtonText, backgroundColor: tokens.surface }}
                     >
                       Mua lại
                     </button>
@@ -659,7 +733,10 @@ export function AccountOrdersPreview({
       )}
 
       {layoutStyle !== 'cards' && visibleOrders.length === 0 && (
-        <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-6 text-center text-sm text-slate-500">
+        <div
+          className="border border-dashed rounded-2xl p-6 text-center text-sm"
+          style={{ backgroundColor: tokens.emptyStateBg, borderColor: tokens.border, color: tokens.emptyStateText }}
+        >
           Không có đơn hàng phù hợp.
         </div>
       )}
@@ -673,19 +750,19 @@ export function AccountOrdersPreview({
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={safeCurrentPage === 1}
                 className="px-3 py-1.5 rounded-lg font-semibold border disabled:opacity-50"
-                style={{ borderColor: getBrandTint(brandColor, 0.3), color: brandColor }}
+                style={{ borderColor: tokens.paginationButtonBorder, color: tokens.paginationButtonText }}
               >
                 Trước
               </button>
-              <div className="text-slate-500">
-                Trang <span className="font-semibold text-slate-700">{safeCurrentPage}</span> / {totalPages}
+              <div style={{ color: tokens.paginationSummaryText }}>
+                Trang <span className="font-semibold" style={{ color: tokens.paginationSummaryStrong }}>{safeCurrentPage}</span> / {totalPages}
               </div>
               <button
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={safeCurrentPage === totalPages}
                 className="px-3 py-1.5 rounded-lg font-semibold border disabled:opacity-50"
-                style={{ borderColor: getBrandTint(brandColor, 0.3), color: brandColor }}
+                style={{ borderColor: tokens.paginationButtonBorder, color: tokens.paginationButtonText }}
               >
                 Sau
               </button>
@@ -693,11 +770,11 @@ export function AccountOrdersPreview({
           ) : (
             <div className="text-center mt-2 space-y-2">
               <div className="flex justify-center gap-1">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                <div className="w-2 h-2 rounded-full animate-pulse delay-100" style={{ backgroundColor: brandColor, opacity: 0.7 }} />
-                <div className="w-2 h-2 rounded-full animate-pulse delay-200" style={{ backgroundColor: brandColor, opacity: 0.5 }} />
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tokens.loadingDotStrong }} />
+                <div className="w-2 h-2 rounded-full animate-pulse delay-100" style={{ backgroundColor: tokens.loadingDotMedium }} />
+                <div className="w-2 h-2 rounded-full animate-pulse delay-200" style={{ backgroundColor: tokens.loadingDotSoft }} />
               </div>
-              <p className="text-xs text-slate-400">Cuộn để xem thêm...</p>
+              <p className="text-xs" style={{ color: tokens.mutedText }}>Cuộn để xem thêm...</p>
             </div>
           )}
         </div>
@@ -707,6 +784,48 @@ export function AccountOrdersPreview({
         isOpen={Boolean(drawerOrder)}
         onClose={() => setDrawerOrder(null)}
         brandColor={brandColor}
+        tokens={{
+          overlayBg: tokens.drawerOverlayBg,
+          surface: tokens.drawerSurface,
+          border: tokens.drawerBorder,
+          title: tokens.drawerTitle,
+          subtitle: tokens.drawerSubtitle,
+          badgeBg: tokens.drawerBadgeBg,
+          badgeBorder: tokens.drawerBadgeBorder,
+          badgeText: tokens.drawerBadgeText,
+          totalLabel: tokens.drawerSectionTitle,
+          totalValue: tokens.drawerSectionValue,
+          timelineActive: tokens.timelineActive,
+          timelineInactive: tokens.timelineInactive,
+          timelineLabel: tokens.orderMetaText,
+          sectionTitle: tokens.drawerSectionTitle,
+          sectionText: tokens.orderValueText,
+          itemThumbBg: tokens.orderItemThumbBg,
+          itemThumbBorder: tokens.orderItemThumbBorder,
+          itemThumbText: tokens.orderItemThumbIcon,
+          actionPrimaryBg: tokens.primaryButtonBg,
+          actionPrimaryText: tokens.primaryButtonText,
+          actionSecondaryBorder: tokens.secondaryButtonBorder,
+          actionSecondaryText: tokens.secondaryButtonText,
+          closeIcon: tokens.drawerCloseIcon,
+          drawerSectionBg: tokens.drawerSectionBg,
+          drawerSectionBorder: tokens.drawerSectionBorder,
+          drawerSectionTitle: tokens.drawerSectionTitle,
+          drawerSectionValue: tokens.drawerSectionValue,
+        }}
+        badgeTokens={drawerBadgeTokens}
+        digitalTokens={{
+          cardBg: tokens.digitalCardBg,
+          cardBorder: tokens.digitalCardBorder,
+          title: tokens.digitalCardTitle,
+          fieldBg: tokens.digitalFieldBg,
+          fieldBorder: tokens.digitalFieldBorder,
+          fieldText: tokens.digitalFieldText,
+          fieldIcon: tokens.digitalFieldIcon,
+          actionBg: tokens.digitalActionBg,
+          actionText: tokens.digitalActionText,
+          alertText: tokens.digitalAlertText,
+        }}
         title={drawerOrder?.id ?? ''}
         subtitle={drawerOrder?.date}
         statusLabel={drawerStatus?.label ?? drawerOrder?.status ?? ''}

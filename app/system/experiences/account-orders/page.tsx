@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { FileText, LayoutTemplate, Loader2, Package, Save, ShoppingBag } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   AccountOrdersPreview,
   ExampleLinks,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   ControlCard,
   DeviceToggle,
   LayoutTabs,
@@ -100,7 +101,10 @@ export default function AccountOrdersExperiencePage() {
   const paymentFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enablePayment', moduleKey: 'orders' });
   const shippingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableShipping', moduleKey: 'orders' });
   const trackingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableTracking', moduleKey: 'orders' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const { statuses: orderStatuses } = useOrderStatuses();
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
@@ -137,6 +141,12 @@ export default function AccountOrdersExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   if (isLoading) {
     return (
@@ -291,10 +301,21 @@ export default function AccountOrdersExperiencePage() {
             />
           </ControlCard>
 
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
+
           <ControlCard title="Link xem thử">
             <ExampleLinks
               links={[{ label: 'Trang đơn hàng', url: '/account/orders' }]}
-              color="#4f46e5"
+              color={brandColor}
               compact
             />
           </ControlCard>
@@ -340,6 +361,8 @@ export default function AccountOrdersExperiencePage() {
                 orderStatuses={orderStatuses}
                 stockEnabled={stockFeature?.enabled ?? false}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 device={previewDevice}
               />
             </BrowserFrame>

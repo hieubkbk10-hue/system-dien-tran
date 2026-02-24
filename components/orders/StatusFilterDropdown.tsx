@@ -16,6 +16,18 @@ type StatusFilterDropdownProps = {
   onToggleKey: (key: string) => void;
   onToggleAll: () => void;
   brandColor?: string;
+  colors?: {
+    buttonBorder: string;
+    buttonText: string;
+    buttonActiveBg: string;
+    buttonActiveBorder: string;
+    buttonActiveText: string;
+    panelBg: string;
+    panelBorder: string;
+    panelText: string;
+    panelMutedText: string;
+    divider: string;
+  };
 };
 
 export function StatusFilterDropdown({
@@ -26,6 +38,7 @@ export function StatusFilterDropdown({
   onToggleKey,
   onToggleAll,
   brandColor,
+  colors,
 }: StatusFilterDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,8 +64,15 @@ export function StatusFilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${isAllActive ? 'bg-white shadow-sm' : 'text-slate-500'}`}
-        style={isAllActive && brandColor ? { borderColor: brandColor, color: brandColor } : { borderColor: '#e2e8f0' }}
+        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${isAllActive ? 'shadow-sm' : ''}`}
+        style={isAllActive
+          ? {
+            borderColor: colors?.buttonActiveBorder ?? brandColor ?? '#e2e8f0',
+            color: colors?.buttonActiveText ?? brandColor ?? '#0f172a',
+            backgroundColor: colors?.buttonActiveBg ?? '#ffffff',
+          }
+          : { borderColor: colors?.buttonBorder ?? '#e2e8f0', color: colors?.buttonText ?? '#64748b', backgroundColor: 'transparent' }
+        }
       >
         <span className="inline-flex items-center gap-1.5">
           {buttonLabel}
@@ -60,16 +80,19 @@ export function StatusFilterDropdown({
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 mt-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg p-3 z-10">
+        <div
+          className="absolute left-0 mt-2 w-56 rounded-lg border shadow-lg p-3 z-10"
+          style={{ borderColor: colors?.panelBorder ?? '#e2e8f0', backgroundColor: colors?.panelBg ?? '#ffffff' }}
+        >
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs text-slate-700">
+            <label className="flex items-center gap-2 text-xs" style={{ color: colors?.panelText ?? '#334155' }}>
               <input type="checkbox" checked={isAllActive} onChange={onToggleAll} />
               <span>Tất cả</span>
             </label>
-            <div className="h-px bg-slate-200" />
+            <div className="h-px" style={{ backgroundColor: colors?.divider ?? '#e2e8f0' }} />
             <div className="max-h-52 overflow-auto space-y-2">
               {options.map((option) => (
-                <label key={option.key} className="flex items-center gap-2 text-xs text-slate-600">
+                <label key={option.key} className="flex items-center gap-2 text-xs" style={{ color: colors?.panelMutedText ?? '#475569' }}>
                   <input
                     type="checkbox"
                     checked={activeKeys.includes(option.key)}
