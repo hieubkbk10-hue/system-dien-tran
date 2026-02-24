@@ -6,31 +6,36 @@ import { EXTRA_FEATURE_OPTIONS } from '../wizard-presets';
 
 type ExtraFeaturesStepProps = {
   enabledFeatures: Set<string>;
-  hasPosts: boolean;
-  hasProducts: boolean;
-  hasServices: boolean;
+  baseHasPosts: boolean;
+  baseHasProducts: boolean;
+  baseHasServices: boolean;
   onToggle: (key: string, enabled: boolean) => void;
 };
 
 export function ExtraFeaturesStep({
   enabledFeatures,
-  hasPosts,
-  hasProducts,
-  hasServices,
+  baseHasPosts,
+  baseHasProducts,
+  baseHasServices,
   onToggle,
 }: ExtraFeaturesStepProps) {
+  const hasPostsAvailable = baseHasPosts || enabledFeatures.has('posts');
+  const hasServicesAvailable = baseHasServices || enabledFeatures.has('services');
   const options = EXTRA_FEATURE_OPTIONS.filter((option) => {
     if (option.key === 'posts') {
-      return !hasPosts;
+      return !baseHasPosts;
     }
     if (option.key === 'services') {
-      return !hasServices;
+      return !baseHasServices;
     }
-    if (option.requiredProducts && !hasProducts) {
+    if (option.requiredProducts && !baseHasProducts) {
+      return false;
+    }
+    if (option.requiredServices && !hasServicesAvailable) {
       return false;
     }
     if (option.key === 'comments') {
-      return hasProducts || hasPosts;
+      return baseHasProducts || hasPostsAvailable;
     }
     return true;
   });
@@ -52,7 +57,7 @@ export function ExtraFeaturesStep({
             >
               <Checkbox
                 checked={checked}
-                onCheckedChange={(value) => onToggle(option.key, value)}
+                onCheckedChange={(value) => onToggle(option.key, value === true)}
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">

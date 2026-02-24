@@ -848,9 +848,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           {stepKey === 'extras' && (
             <ExtraFeaturesStep
               enabledFeatures={state.extraFeatures}
-              hasPosts={baseModules.includes('posts') || state.extraFeatures.has('posts')}
-              hasProducts={baseModules.includes('products') || state.extraFeatures.has('products')}
-              hasServices={baseModules.includes('services') || state.extraFeatures.has('services')}
+              baseHasPosts={baseModules.includes('posts')}
+              baseHasProducts={baseModules.includes('products')}
+              baseHasServices={baseModules.includes('services')}
               onToggle={handleToggleFeature}
             />
           )}
