@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Clock, Minus, Plus, Search, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCartExpiry } from '@/lib/cart';
+import { getCartColors, type CartColors } from '@/components/site/cart/colors';
 
 type CartPreviewProps = {
   layoutStyle: 'drawer' | 'page' | 'table';
@@ -8,6 +9,8 @@ type CartPreviewProps = {
   showNote: boolean;
   device?: 'desktop' | 'tablet' | 'mobile';
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: 'single' | 'dual';
   expiresAt?: number;
 };
 
@@ -23,51 +26,81 @@ const subtotal = mockCartItems.reduce((sum, item) => sum + item.price * item.qua
 
 type CartItem = (typeof mockCartItems)[number];
 
-function CartItemRow({ item, brandColor }: { item: CartItem; brandColor: string }) {
+function CartItemRow({ item, tokens }: { item: CartItem; tokens: CartColors }) {
   return (
-    <div className="flex gap-3 py-3 border-b border-slate-100 last:border-0">
-      <div className="w-16 h-16 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-        <div className="w-10 h-10 bg-slate-200 rounded" />
+    <div className="flex gap-3 py-3 border-b last:border-0" style={{ borderColor: tokens.itemDivider }}>
+      <div
+        className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center"
+        style={{ backgroundColor: tokens.thumbBg, borderColor: tokens.thumbBorder }}
+      >
+        <div className="w-10 h-10 rounded" style={{ backgroundColor: tokens.surfaceMuted }} />
       </div>
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-slate-900 text-sm line-clamp-1">{item.name}</h4>
-        <p className="text-sm font-semibold mt-0.5" style={{ color: brandColor }}>{formatVND(item.price)}</p>
+        <h4 className="font-medium text-sm line-clamp-1" style={{ color: tokens.bodyText }}>{item.name}</h4>
+        <p className="text-sm font-semibold mt-0.5" style={{ color: tokens.priceText }}>{formatVND(item.price)}</p>
         <div className="flex items-center gap-2 mt-2">
-          <button className="w-6 h-6 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-50">
-            <Minus size={12} className="text-slate-500" />
+          <button
+            className="w-6 h-6 rounded border flex items-center justify-center hover:bg-[var(--qty-hover-bg)]"
+            style={{
+              borderColor: tokens.quantityButtonBorder,
+              backgroundColor: tokens.quantityButtonBg,
+              ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
+            }}
+          >
+            <Minus size={12} style={{ color: tokens.quantityButtonIcon }} />
           </button>
-          <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-          <button className="w-6 h-6 rounded border border-slate-200 flex items-center justify-center hover:bg-slate-50">
-            <Plus size={12} className="text-slate-500" />
+          <span className="text-sm font-medium w-6 text-center" style={{ color: tokens.bodyText }}>{item.quantity}</span>
+          <button
+            className="w-6 h-6 rounded border flex items-center justify-center hover:bg-[var(--qty-hover-bg)]"
+            style={{
+              borderColor: tokens.quantityButtonBorder,
+              backgroundColor: tokens.quantityButtonBg,
+              ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
+            }}
+          >
+            <Plus size={12} style={{ color: tokens.quantityButtonIcon }} />
           </button>
         </div>
       </div>
       <div className="flex flex-col items-end justify-between">
-        <button className="p-1 hover:bg-red-50 rounded">
-          <Trash2 size={14} className="text-slate-400 hover:text-red-500" />
+        <button
+          className="group p-1 rounded hover:bg-[var(--action-hover-bg)]"
+          style={{ ['--action-hover-bg' as never]: tokens.actionHoverBg }}
+        >
+          <Trash2
+            size={14}
+            className="text-[var(--action-icon)] group-hover:text-[var(--action-icon-hover)]"
+            style={{
+              ['--action-icon' as never]: tokens.actionIcon,
+              ['--action-icon-hover' as never]: tokens.actionHoverIcon,
+            }}
+          />
         </button>
-        <span className="text-sm font-semibold text-slate-700">{formatVND(item.price * item.quantity)}</span>
+        <span className="text-sm font-semibold" style={{ color: tokens.bodyText }}>{formatVND(item.price * item.quantity)}</span>
       </div>
     </div>
   );
 }
 
-function CartSummary({ subtotal, brandColor }: { subtotal: number; brandColor: string }) {
+function CartSummary({ subtotal, tokens }: { subtotal: number; tokens: CartColors }) {
   return (
-    <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+    <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: tokens.summaryBg }}>
       <div className="flex justify-between text-sm">
-        <span className="text-slate-500">Tạm tính</span>
-        <span className="font-medium">{formatVND(subtotal)}</span>
+        <span style={{ color: tokens.summaryLabel }}>Tạm tính</span>
+        <span className="font-medium" style={{ color: tokens.summaryValue }}>{formatVND(subtotal)}</span>
       </div>
       <div className="flex justify-between text-sm">
-        <span className="text-slate-500">Phí vận chuyển</span>
-        <span className="text-slate-400">Tính khi checkout</span>
+        <span style={{ color: tokens.summaryLabel }}>Phí vận chuyển</span>
+        <span style={{ color: tokens.mutedText }}>Tính khi checkout</span>
       </div>
-      <div className="border-t border-slate-200 pt-3 flex justify-between">
-        <span className="font-semibold text-slate-900">Tổng cộng</span>
-        <span className="text-lg font-bold" style={{ color: brandColor }}>{formatVND(subtotal)}</span>
+      <div className="border-t pt-3 flex justify-between" style={{ borderColor: tokens.border }}>
+        <span className="font-semibold" style={{ color: tokens.summaryTotalLabel }}>Tổng cộng</span>
+        <span className="text-lg font-bold" style={{ color: tokens.summaryTotalValue }}>{formatVND(subtotal)}</span>
       </div>
-      <button className="w-full py-3 rounded-xl text-white font-semibold text-sm" style={{ backgroundColor: brandColor }}>
+      <button
+        className="w-full py-3 rounded-xl font-semibold text-sm"
+        style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
+      >
         Tiến hành thanh toán
       </button>
     </div>
@@ -80,61 +113,82 @@ export function CartPreview({
   showNote,
   device = 'desktop',
   brandColor = '#f97316',
+  secondaryColor,
+  colorMode = 'single',
   expiresAt: expiresAtProp,
 }: CartPreviewProps) {
   const isMobile = device === 'mobile';
   const expiresAt = expiresAtProp ?? DEFAULT_EXPIRES_AT;
   const { expiryText, isExpired } = useCartExpiry(expiresAt);
   const shouldShowExpiry = showExpiry && (expiryText || isExpired);
-
+  const tokens = useMemo(
+    () => getCartColors(brandColor, secondaryColor, colorMode),
+    [brandColor, secondaryColor, colorMode]
+  );
 
   return (
     <div className="min-h-[300px]">
       {layoutStyle === 'drawer' ? (
         <div className="flex h-full">
-          {/* Main page content placeholder */}
-          <div className="flex-1 bg-slate-50 p-4 flex items-center justify-center">
-            <div className="text-center text-slate-400">
-              <div className="w-20 h-20 bg-slate-200 rounded-lg mx-auto mb-2" />
+          <div className="flex-1 p-4 flex items-center justify-center" style={{ backgroundColor: tokens.pageBackground }}>
+            <div className="text-center" style={{ color: tokens.mutedText }}>
+              <div className="w-20 h-20 rounded-lg mx-auto mb-2" style={{ backgroundColor: tokens.surfaceSoft }} />
               <p className="text-sm">Nội dung trang</p>
             </div>
           </div>
-          {/* Drawer */}
-          <div className="w-80 bg-white border-l border-slate-200 p-4 flex flex-col">
+          <div
+            className="w-80 border-l p-4 flex flex-col"
+            style={{ backgroundColor: tokens.drawerSurface, borderColor: tokens.drawerBorder }}
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <ShoppingCart size={18} style={{ color: brandColor }} />
-                <h3 className="font-semibold text-slate-900">Giỏ hàng ({mockCartItems.length})</h3>
+                <ShoppingCart size={18} style={{ color: tokens.primary }} />
+                <h3 className="font-semibold" style={{ color: tokens.drawerTitle }}>Giỏ hàng ({mockCartItems.length})</h3>
               </div>
-              <button className="p-1 hover:bg-slate-100 rounded">
-                <X size={18} className="text-slate-400" />
+              <button
+                className="p-1 rounded hover:bg-[var(--qty-hover-bg)]"
+                style={{ ['--qty-hover-bg' as never]: tokens.surfaceSoft }}
+              >
+                <X size={18} style={{ color: tokens.drawerCloseIcon }} />
               </button>
             </div>
             {shouldShowExpiry && (
-              <div className={`flex items-center justify-center gap-1.5 text-xs mb-3 ${isExpired ? 'text-slate-500' : 'text-red-500'}`}>
+              <div
+                className="flex items-center justify-center gap-1.5 text-xs mb-3"
+                style={{ color: isExpired ? tokens.expiryExpiredText : tokens.expiryActiveText }}
+              >
                 <Clock size={12} />
                 <span>{isExpired ? 'Giỏ hàng đã hết hạn' : `Giỏ hàng sẽ hết hạn sau ${expiryText}`}</span>
               </div>
             )}
             <div className="flex-1 overflow-auto">
-              {mockCartItems.map(item => <CartItemRow key={item.id} item={item} brandColor={brandColor} />)}
+              {mockCartItems.map(item => <CartItemRow key={item.id} item={item} tokens={tokens} />)}
             </div>
             {showNote && (
               <div className="mt-3">
-                <textarea 
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none" 
-                  rows={2} 
+                <textarea
+                  className="w-full px-3 py-2 border rounded-lg text-sm resize-none placeholder:text-[var(--input-placeholder)]"
+                  rows={2}
                   placeholder="Ghi chú đơn hàng..."
                   disabled
+                  style={{
+                    backgroundColor: tokens.inputBg,
+                    borderColor: tokens.inputBorder,
+                    color: tokens.inputText,
+                    ['--input-placeholder' as never]: tokens.inputPlaceholder,
+                  }}
                 />
               </div>
             )}
-            <div className="mt-3 pt-3 border-t border-slate-200">
+            <div className="mt-3 pt-3 border-t" style={{ borderColor: tokens.border }}>
               <div className="flex justify-between mb-3">
-                <span className="text-sm text-slate-500">Tổng cộng</span>
-                <span className="font-bold" style={{ color: brandColor }}>{formatVND(subtotal)}</span>
+                <span className="text-sm" style={{ color: tokens.summaryLabel }}>Tổng cộng</span>
+                <span className="font-bold" style={{ color: tokens.summaryTotalValue }}>{formatVND(subtotal)}</span>
               </div>
-              <button className="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style={{ backgroundColor: brandColor }}>
+              <button
+                className="w-full py-2.5 rounded-lg font-semibold text-sm"
+                style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
+              >
                 Thanh toán
               </button>
             </div>
@@ -145,35 +199,51 @@ export function CartPreview({
           <div className="max-w-5xl mx-auto space-y-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900">Giỏ hàng</h1>
-                <p className="text-sm text-slate-500">{mockCartItems.length} sản phẩm</p>
+                <h1 className="text-xl md:text-2xl font-bold" style={{ color: tokens.headingColor }}>Giỏ hàng</h1>
+                <p className="text-sm" style={{ color: tokens.metaText }}>{mockCartItems.length} sản phẩm</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative w-full sm:w-56">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: tokens.searchIcon }} />
                   <input
-                    className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm"
+                    className="w-full rounded-lg border py-2 pl-9 pr-3 text-sm placeholder:text-[var(--input-placeholder)]"
                     placeholder="Tìm sản phẩm..."
                     disabled
+                    style={{
+                      backgroundColor: tokens.inputBg,
+                      borderColor: tokens.inputBorder,
+                      color: tokens.inputText,
+                      ['--input-placeholder' as never]: tokens.inputPlaceholder,
+                    }}
                   />
                 </div>
-                <select className="w-full sm:w-44 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" disabled>
+                <select
+                  className="w-full sm:w-44 rounded-lg border px-3 py-2 text-sm"
+                  style={{ backgroundColor: tokens.inputBg, borderColor: tokens.inputBorder, color: tokens.inputText }}
+                  disabled
+                >
                   <option>Sắp xếp</option>
                 </select>
               </div>
             </div>
 
             {shouldShowExpiry && (
-              <div className={`flex items-center gap-2 text-sm ${isExpired ? 'text-slate-500' : 'text-red-500'}`}>
+              <div
+                className="flex items-center gap-2 text-sm"
+                style={{ color: isExpired ? tokens.expiryExpiredText : tokens.expiryActiveText }}
+              >
                 <Clock size={14} />
                 <span>{isExpired ? 'Giỏ hàng đã hết hạn' : `Giỏ hàng sẽ hết hạn sau ${expiryText}`}</span>
               </div>
             )}
 
             {!isMobile ? (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div
+                className="overflow-hidden rounded-xl border"
+                style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}
+              >
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 text-slate-500">
+                  <thead style={{ backgroundColor: tokens.tableHeaderBg, color: tokens.tableHeaderText }}>
                     <tr>
                       <th className="px-4 py-3 text-left font-medium">Sản phẩm</th>
                       <th className="px-4 py-3 text-left font-medium">Đơn giá</th>
@@ -184,31 +254,47 @@ export function CartPreview({
                   </thead>
                   <tbody>
                     {mockCartItems.map((item) => (
-                      <tr key={item.id} className="border-t">
+                      <tr key={item.id} className="border-t" style={{ borderColor: tokens.border }}>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                              <div className="h-6 w-6 rounded bg-slate-200" />
+                            <div className="h-12 w-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.thumbBg }}>
+                              <div className="h-6 w-6 rounded" style={{ backgroundColor: tokens.surfaceMuted }} />
                             </div>
-                            <span className="font-medium text-slate-900 line-clamp-1">{item.name}</span>
+                            <span className="font-medium line-clamp-1" style={{ color: tokens.bodyText }}>{item.name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 font-medium" style={{ color: brandColor }}>{formatVND(item.price)}</td>
+                        <td className="px-4 py-4 font-medium" style={{ color: tokens.priceText }}>{formatVND(item.price)}</td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
-                            <button className="w-6 h-6 rounded border border-slate-200 flex items-center justify-center">
-                              <Minus size={12} className="text-slate-500" />
+                            <button
+                              className="w-6 h-6 rounded border flex items-center justify-center"
+                              style={{ borderColor: tokens.quantityButtonBorder, backgroundColor: tokens.quantityButtonBg }}
+                            >
+                              <Minus size={12} style={{ color: tokens.quantityButtonIcon }} />
                             </button>
-                            <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-                            <button className="w-6 h-6 rounded border border-slate-200 flex items-center justify-center">
-                              <Plus size={12} className="text-slate-500" />
+                            <span className="text-sm font-medium w-6 text-center" style={{ color: tokens.bodyText }}>{item.quantity}</span>
+                            <button
+                              className="w-6 h-6 rounded border flex items-center justify-center"
+                              style={{ borderColor: tokens.quantityButtonBorder, backgroundColor: tokens.quantityButtonBg }}
+                            >
+                              <Plus size={12} style={{ color: tokens.quantityButtonIcon }} />
                             </button>
                           </div>
                         </td>
-                        <td className="px-4 py-4 font-semibold text-slate-900">{formatVND(item.price * item.quantity)}</td>
+                        <td className="px-4 py-4 font-semibold" style={{ color: tokens.bodyText }}>{formatVND(item.price * item.quantity)}</td>
                         <td className="px-4 py-4 text-right">
-                          <button className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50">
-                            <Trash2 size={14} />
+                          <button
+                            className="group p-2 rounded-lg hover:bg-[var(--action-hover-bg)]"
+                            style={{ ['--action-hover-bg' as never]: tokens.actionHoverBg }}
+                          >
+                            <Trash2
+                              size={14}
+                              className="text-[var(--action-icon)] group-hover:text-[var(--action-icon-hover)]"
+                              style={{
+                                ['--action-icon' as never]: tokens.actionIcon,
+                                ['--action-icon-hover' as never]: tokens.actionHoverIcon,
+                              }}
+                            />
                           </button>
                         </td>
                       </tr>
@@ -219,14 +305,18 @@ export function CartPreview({
             ) : (
               <div className="space-y-3">
                 {mockCartItems.map((item) => (
-                  <div key={item.id} className="bg-white rounded-xl border border-slate-200 p-3">
-                    <CartItemRow item={item} brandColor={brandColor} />
+                  <div
+                    key={item.id}
+                    className="rounded-xl border p-3"
+                    style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+                  >
+                    <CartItemRow item={item} tokens={tokens} />
                   </div>
                 ))}
               </div>
             )}
 
-            <CartSummary subtotal={subtotal} brandColor={brandColor} />
+            <CartSummary subtotal={subtotal} tokens={tokens} />
           </div>
         </div>
       ) : (
@@ -234,33 +324,48 @@ export function CartPreview({
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-6">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-slate-900">Giỏ hàng của bạn</h1>
-                <p className="text-sm text-slate-500">{mockCartItems.length} sản phẩm</p>
+                <h1 className="text-xl md:text-2xl font-bold" style={{ color: tokens.headingColor }}>Giỏ hàng của bạn</h1>
+                <p className="text-sm" style={{ color: tokens.metaText }}>{mockCartItems.length} sản phẩm</p>
               </div>
             </div>
             {shouldShowExpiry && (
-              <div className={`flex items-center justify-center gap-2 text-sm mb-4 ${isExpired ? 'text-slate-500' : 'text-red-500'}`}>
+              <div
+                className="flex items-center justify-center gap-2 text-sm mb-4"
+                style={{ color: isExpired ? tokens.expiryExpiredText : tokens.expiryActiveText }}
+              >
                 <Clock size={14} />
                 <span>{isExpired ? 'Giỏ hàng đã hết hạn' : `Giỏ hàng sẽ hết hạn sau ${expiryText}`}</span>
               </div>
             )}
             <div className={`${isMobile ? 'space-y-4' : 'grid grid-cols-3 gap-6'}`}>
-              <div className={`${isMobile ? '' : 'col-span-2'} bg-white rounded-xl border border-slate-200 p-4`}>
-                {mockCartItems.map(item => <CartItemRow key={item.id} item={item} brandColor={brandColor} />)}
+              <div
+                className={`${isMobile ? '' : 'col-span-2'} rounded-xl border p-4`}
+                style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+              >
+                {mockCartItems.map(item => <CartItemRow key={item.id} item={item} tokens={tokens} />)}
               </div>
-              <div className={`${isMobile ? '' : ''}`}>
+              <div>
                 {showNote && (
-                  <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4">
-                    <h4 className="font-medium text-slate-900 text-sm mb-2">Ghi chú đơn hàng</h4>
-                    <textarea 
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none" 
-                      rows={3} 
+                  <div
+                    className="rounded-xl border p-4 mb-4"
+                    style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+                  >
+                    <h4 className="font-medium text-sm mb-2" style={{ color: tokens.bodyText }}>Ghi chú đơn hàng</h4>
+                    <textarea
+                      className="w-full px-3 py-2 border rounded-lg text-sm resize-none placeholder:text-[var(--input-placeholder)]"
+                      rows={3}
                       placeholder="Ghi chú cho shop..."
                       disabled
+                      style={{
+                        backgroundColor: tokens.inputBg,
+                        borderColor: tokens.inputBorder,
+                        color: tokens.inputText,
+                        ['--input-placeholder' as never]: tokens.inputPlaceholder,
+                      }}
                     />
                   </div>
                 )}
-                <CartSummary subtotal={subtotal} brandColor={brandColor} />
+                <CartSummary subtotal={subtotal} tokens={tokens} />
               </div>
             </div>
           </div>

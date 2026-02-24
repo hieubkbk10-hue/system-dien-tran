@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, LayoutTemplate, Loader2, Package, Save, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -13,6 +14,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -95,6 +97,10 @@ export default function CartExperiencePage() {
   const productsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'products' });
   const expiryFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableExpiry', moduleKey: 'cart' });
   const noteFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableNote', moduleKey: 'cart' });
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<CartExperienceConfig>(() => {
@@ -121,6 +127,12 @@ export default function CartExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const currentLayoutConfig = config.layouts[config.layoutStyle];
 
@@ -153,7 +165,7 @@ export default function CartExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-orange-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Giỏ hàng</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -164,7 +176,8 @@ export default function CartExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-orange-600 hover:bg-orange-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: '#ffffff' }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -181,14 +194,14 @@ export default function CartExperiencePage() {
               label="Hết hạn giỏ"
               checked={currentLayoutConfig.showExpiry}
               onChange={(v) => updateLayoutConfig('showExpiry', v)}
-              accentColor="#f97316"
+              accentColor={brandColor}
               disabled={!cartModule?.enabled}
             />
             <ToggleRow
               label="Ghi chú"
               checked={currentLayoutConfig.showNote}
               onChange={(v) => updateLayoutConfig('showNote', v)}
-              accentColor="#f97316"
+              accentColor={brandColor}
               disabled={!cartModule?.enabled}
             />
           </ControlCard>
@@ -236,6 +249,17 @@ export default function CartExperiencePage() {
             />
           </ControlCard>
 
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
+
           <Card className="p-2">
             <ExperienceHintCard hints={HINTS} />
           </Card>
@@ -253,7 +277,7 @@ export default function CartExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#f97316"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -267,7 +291,9 @@ export default function CartExperiencePage() {
                 showExpiry={currentLayoutConfig.showExpiry && (expiryFeature?.enabled ?? false)}
                 showNote={currentLayoutConfig.showNote && (noteFeature?.enabled ?? false)}
                 device={previewDevice}
-                brandColor="#f97316"
+                brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>
