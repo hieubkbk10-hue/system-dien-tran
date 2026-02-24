@@ -9,7 +9,7 @@ import { createVietnameseFaker } from './fakerVi';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
-type CustomerData = Omit<Doc<'customers'>, '_id' | '_creationTime' | 'ordersCount' | 'totalSpent'>;
+type CustomerData = Omit<Doc<'customers'>, '_id' | '_creationTime'>;
 
 export class CustomerSeeder extends BaseSeeder<CustomerData> {
   moduleName = 'customers';
@@ -54,8 +54,10 @@ export class CustomerSeeder extends BaseSeeder<CustomerData> {
       email,
       name: fullName,
       notes: hasNotes ? 'Khách hàng VIP' : undefined,
+      ordersCount: 0,
       phone: this.viFaker.phoneNumber(),
       status,
+      totalSpent: 0,
     };
   }
   
