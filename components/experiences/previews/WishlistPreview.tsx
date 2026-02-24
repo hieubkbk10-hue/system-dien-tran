@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Bell, Heart, ShoppingCart, Trash2, X } from 'lucide-react';
+import { getWishlistColors } from '@/components/site/wishlist/colors';
 
 type WishlistPreviewProps = {
   layoutStyle: 'grid' | 'list' | 'table';
@@ -9,6 +10,8 @@ type WishlistPreviewProps = {
   showAddToCartButton?: boolean;
   device?: 'desktop' | 'tablet' | 'mobile';
   brandColor?: string;
+  secondaryColor?: string;
+  colorMode?: 'single' | 'dual';
 };
 
 const mockWishlistItems = [
@@ -27,23 +30,32 @@ export function WishlistPreview({
   showAddToCartButton = true,
   device = 'desktop',
   brandColor = '#ec4899',
+  secondaryColor,
+  colorMode = 'single',
 }: WishlistPreviewProps) {
   const isMobile = device === 'mobile';
   const gridCols = isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3';
+  const tokens = useMemo(
+    () => getWishlistColors(brandColor, secondaryColor, colorMode),
+    [brandColor, secondaryColor, colorMode]
+  );
 
   return (
-    <div className="py-6 px-4 min-h-[300px]">
+    <div className="py-6 px-4 min-h-[300px]" style={{ backgroundColor: tokens.pageBackground }}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6" style={{ color: brandColor }} fill={brandColor} />
+            <Heart className="w-6 h-6" style={{ color: tokens.iconPrimary }} fill={tokens.iconPrimary} />
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900">Sản phẩm yêu thích</h1>
-              <p className="text-sm text-slate-500">{mockWishlistItems.length} sản phẩm</p>
+              <h1 className="text-xl md:text-2xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm yêu thích</h1>
+              <p className="text-sm" style={{ color: tokens.metaText }}>{mockWishlistItems.length} sản phẩm</p>
             </div>
           </div>
           {showWishlistButton && (
-            <button className="text-sm font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
+            <button
+              className="text-sm font-medium px-3 py-1.5 rounded-lg"
+              style={{ backgroundColor: tokens.secondaryButtonBg, color: tokens.secondaryButtonText }}
+            >
               Thêm tất cả vào giỏ
             </button>
           )}
@@ -52,41 +64,51 @@ export function WishlistPreview({
         {layoutStyle === 'grid' && (
           <div className={`grid ${gridCols} gap-4`}>
             {mockWishlistItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <div className="aspect-square bg-slate-100 relative flex items-center justify-center">
-                  <div className="w-20 h-20 bg-slate-200 rounded-lg" />
+              <div
+                key={item.id}
+                className="rounded-xl border overflow-hidden shadow-sm"
+                style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+              >
+                <div
+                  className="aspect-square relative flex items-center justify-center"
+                  style={{ backgroundColor: tokens.surfaceSoft }}
+                >
+                  <div className="w-20 h-20 rounded-lg" style={{ backgroundColor: tokens.skeletonHighlight }} />
                   {!item.inStock && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="bg-slate-800 text-white text-xs px-2 py-1 rounded">Hết hàng</span>
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: tokens.overlayBg }}>
+                      <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: tokens.overlayBg, color: tokens.overlayText }}>Hết hàng</span>
                     </div>
                   )}
-                  <button className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm hover:bg-red-50">
-                    <Trash2 size={14} className="text-slate-400 hover:text-red-500" />
+                  <button
+                    className="absolute top-2 right-2 p-1.5 rounded-full"
+                    style={{ backgroundColor: tokens.surface, color: tokens.actionIcon }}
+                  >
+                    <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="p-3 space-y-2">
-                  <h3 className="font-medium text-slate-900 text-sm line-clamp-2">{item.name}</h3>
+                  <h3 className="font-medium text-sm line-clamp-2" style={{ color: tokens.bodyText }}>{item.name}</h3>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-base font-bold" style={{ color: brandColor }}>{formatVND(item.price)}</span>
+                    <span className="text-base font-bold" style={{ color: tokens.priceText }}>{formatVND(item.price)}</span>
                     {item.originalPrice && (
-                      <span className="text-xs text-slate-400 line-through">{formatVND(item.originalPrice)}</span>
+                      <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(item.originalPrice)}</span>
                     )}
                   </div>
                   {showNote && (
-                    <div className="bg-slate-50 rounded-lg p-2 text-xs text-slate-500">
+                    <div className="rounded-lg p-2 text-xs" style={{ backgroundColor: tokens.noteBg, color: tokens.noteText }}>
                       <span className="font-medium">Ghi chú:</span> Mua khi giảm giá
                     </div>
                   )}
                   {showNotification && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                      <Bell size={12} />
+                    <div className="flex items-center gap-1.5 text-xs" style={{ color: tokens.notificationText }}>
+                      <Bell size={12} style={{ color: tokens.notificationIcon }} />
                       <span>Thông báo khi giảm giá</span>
                     </div>
                   )}
                   {showAddToCartButton && (
                     <button 
-                      className="w-full py-2 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-1.5 disabled:opacity-50"
-                      style={{ backgroundColor: brandColor }}
+                      className="w-full py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+                      style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                       disabled={!item.inStock}
                     >
                       <ShoppingCart size={14} />
@@ -102,43 +124,50 @@ export function WishlistPreview({
         {layoutStyle === 'list' && (
           <div className="space-y-3">
             {mockWishlistItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 items-start hover:shadow-sm transition-shadow">
-                <div className="w-20 h-20 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center relative">
-                  <div className="w-12 h-12 bg-slate-200 rounded" />
+              <div
+                key={item.id}
+                className="rounded-xl border p-4 flex gap-4 items-start shadow-sm"
+                style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+              >
+                <div
+                  className="w-20 h-20 rounded-lg flex-shrink-0 flex items-center justify-center relative"
+                  style={{ backgroundColor: tokens.surfaceSoft }}
+                >
+                  <div className="w-12 h-12 rounded" style={{ backgroundColor: tokens.skeletonHighlight }} />
                   {!item.inStock && (
-                    <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-xs">Hết</span>
+                    <div className="absolute inset-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.overlayBg }}>
+                      <span className="text-xs" style={{ color: tokens.overlayText }}>Hết</span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-slate-900 text-sm line-clamp-1">{item.name}</h3>
+                  <h3 className="font-medium text-sm line-clamp-1" style={{ color: tokens.bodyText }}>{item.name}</h3>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-base font-bold" style={{ color: brandColor }}>{formatVND(item.price)}</span>
+                    <span className="text-base font-bold" style={{ color: tokens.priceText }}>{formatVND(item.price)}</span>
                     {item.originalPrice && (
-                      <span className="text-xs text-slate-400 line-through">{formatVND(item.originalPrice)}</span>
+                      <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(item.originalPrice)}</span>
                     )}
                   </div>
                   {showNote && (
-                    <div className="mt-2 bg-slate-50 rounded p-1.5 text-xs text-slate-500">
+                    <div className="mt-2 rounded p-1.5 text-xs" style={{ backgroundColor: tokens.noteBg, color: tokens.noteText }}>
                       Ghi chú: Cần mua khi giảm giá
                     </div>
                   )}
                   {showNotification && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-600 mt-1.5">
-                      <Bell size={12} />
+                    <div className="flex items-center gap-1.5 text-xs mt-1.5" style={{ color: tokens.notificationText }}>
+                      <Bell size={12} style={{ color: tokens.notificationIcon }} />
                       <span>Thông báo khi giảm giá</span>
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-2 items-end">
-                  <button className="p-1.5 hover:bg-red-50 rounded">
-                    <X size={16} className="text-slate-400 hover:text-red-500" />
+                  <button className="p-1.5 rounded" style={{ color: tokens.actionIcon }}>
+                    <X size={16} />
                   </button>
                   {showAddToCartButton && (
                     <button 
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 disabled:opacity-50"
-                      style={{ backgroundColor: brandColor }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
+                      style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                       disabled={!item.inStock}
                     >
                       <ShoppingCart size={12} />
@@ -152,9 +181,9 @@ export function WishlistPreview({
         )}
 
         {layoutStyle === 'table' && !isMobile && (
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-xl border" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+              <thead style={{ backgroundColor: tokens.tableHeaderBg, color: tokens.tableHeaderText }}>
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">Sản phẩm</th>
                   <th className="px-4 py-3 text-left font-medium">Giá</th>
@@ -165,21 +194,21 @@ export function WishlistPreview({
               </thead>
               <tbody>
                 {mockWishlistItems.map((item) => (
-                  <tr key={item.id} className="border-t">
+                  <tr key={item.id} className="border-t" style={{ borderColor: tokens.tableRowBorder }}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <div className="h-6 w-6 rounded bg-slate-200" />
+                        <div className="h-12 w-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: tokens.surfaceSoft }}>
+                          <div className="h-6 w-6 rounded" style={{ backgroundColor: tokens.skeletonHighlight }} />
                         </div>
                         <div>
-                          <div className="font-medium text-slate-900 line-clamp-2">{item.name}</div>
-                          <div className="text-xs text-slate-500">{item.category}</div>
+                          <div className="font-medium line-clamp-2" style={{ color: tokens.bodyText }}>{item.name}</div>
+                          <div className="text-xs" style={{ color: tokens.metaText }}>{item.category}</div>
                           {showNote && (
-                            <div className="text-xs text-slate-400 mt-1">Ghi chú: Mua khi giảm giá</div>
+                            <div className="text-xs mt-1" style={{ color: tokens.mutedText }}>Ghi chú: Mua khi giảm giá</div>
                           )}
                           {showNotification && (
-                            <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-                              <Bell size={12} />
+                            <div className="flex items-center gap-1 text-xs mt-1" style={{ color: tokens.notificationText }}>
+                              <Bell size={12} style={{ color: tokens.notificationIcon }} />
                               <span>Thông báo khi giảm giá</span>
                             </div>
                           )}
@@ -187,28 +216,34 @@ export function WishlistPreview({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold" style={{ color: brandColor }}>{formatVND(item.price)}</div>
+                      <div className="font-semibold" style={{ color: tokens.priceText }}>{formatVND(item.price)}</div>
                       {item.originalPrice && (
-                        <div className="text-xs text-slate-400 line-through">{formatVND(item.originalPrice)}</div>
+                        <div className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatVND(item.originalPrice)}</div>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${item.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      <span
+                        className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{
+                          backgroundColor: item.inStock ? tokens.badgeInStockBg : tokens.badgeOutStockBg,
+                          color: item.inStock ? tokens.badgeInStockText : tokens.badgeOutStockText,
+                        }}
+                      >
                         {item.inStock ? 'Sẵn hàng' : 'Hết hàng'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-amber-600 font-medium">{item.rating.toFixed(1)} / 5</div>
+                      <div className="font-medium" style={{ color: tokens.ratingText }}>{item.rating.toFixed(1)} / 5</div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50">
+                        <button className="p-2 rounded-lg" style={{ color: tokens.actionIcon }}>
                           <Trash2 size={14} />
                         </button>
                         {showAddToCartButton && (
                           <button
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 disabled:opacity-50"
-                            style={{ backgroundColor: brandColor }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
+                            style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                             disabled={!item.inStock}
                           >
                             <ShoppingCart size={12} />
@@ -227,33 +262,37 @@ export function WishlistPreview({
         {layoutStyle === 'table' && isMobile && (
           <div className="space-y-3">
             {mockWishlistItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl border border-slate-200 p-3 flex gap-3">
-                <div className="h-20 w-20 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center">
-                  <div className="h-10 w-10 rounded bg-slate-200" />
+              <div
+                key={item.id}
+                className="rounded-xl border p-3 flex gap-3"
+                style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}
+              >
+                <div className="h-20 w-20 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: tokens.surfaceSoft }}>
+                  <div className="h-10 w-10 rounded" style={{ backgroundColor: tokens.skeletonHighlight }} />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <div className="text-xs text-slate-500">{item.category}</div>
-                  <div className="font-medium text-slate-900 line-clamp-2 text-sm">{item.name}</div>
-                  <div className="text-xs text-amber-600">{item.rating.toFixed(1)} / 5</div>
-                  <div className="font-semibold" style={{ color: brandColor }}>{formatVND(item.price)}</div>
+                  <div className="text-xs" style={{ color: tokens.metaText }}>{item.category}</div>
+                  <div className="font-medium line-clamp-2 text-sm" style={{ color: tokens.bodyText }}>{item.name}</div>
+                  <div className="text-xs" style={{ color: tokens.ratingText }}>{item.rating.toFixed(1)} / 5</div>
+                  <div className="font-semibold" style={{ color: tokens.priceText }}>{formatVND(item.price)}</div>
                   {showNote && (
-                    <div className="text-xs text-slate-400">Ghi chú: Mua khi giảm giá</div>
+                    <div className="text-xs" style={{ color: tokens.mutedText }}>Ghi chú: Mua khi giảm giá</div>
                   )}
                   {showNotification && (
-                    <div className="flex items-center gap-1 text-xs text-amber-600">
-                      <Bell size={12} />
+                    <div className="flex items-center gap-1 text-xs" style={{ color: tokens.notificationText }}>
+                      <Bell size={12} style={{ color: tokens.notificationIcon }} />
                       <span>Thông báo khi giảm giá</span>
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-2 items-end">
-                  <button className="p-1.5 hover:bg-red-50 rounded">
-                    <X size={16} className="text-slate-400 hover:text-red-500" />
+                  <button className="p-1.5 rounded" style={{ color: tokens.actionIcon }}>
+                    <X size={16} />
                   </button>
                   {showAddToCartButton && (
                     <button
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 disabled:opacity-50"
-                      style={{ backgroundColor: brandColor }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
+                      style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
                       disabled={!item.inStock}
                     >
                       <ShoppingCart size={12} />

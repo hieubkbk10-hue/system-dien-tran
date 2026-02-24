@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, Heart, LayoutTemplate, Loader2, Package, Save, ShoppingCart } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { useBrandColors } from '@/components/site/hooks';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -14,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   DeviceToggle,
   deviceWidths,
   LayoutTabs,
@@ -100,6 +102,10 @@ export default function WishlistExperiencePage() {
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
   const noteFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableNote', moduleKey: 'wishlist' });
   const notificationFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableNotification', moduleKey: 'wishlist' });
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const cartAvailable = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
@@ -129,6 +135,12 @@ export default function WishlistExperiencePage() {
     config,
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
+
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const currentLayoutConfig = config.layouts[config.layoutStyle];
 
@@ -161,7 +173,7 @@ export default function WishlistExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-pink-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Sản phẩm yêu thích</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -172,7 +184,8 @@ export default function WishlistExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-pink-600 hover:bg-pink-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor, color: '#ffffff' }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -189,21 +202,21 @@ export default function WishlistExperiencePage() {
               label="Nút Wishlist"
               checked={currentLayoutConfig.showWishlistButton}
               onChange={(v) => updateLayoutConfig('showWishlistButton', v)}
-              accentColor="#ec4899"
+              accentColor={brandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
               label="Ghi chú SP"
               checked={currentLayoutConfig.showNote}
               onChange={(v) => updateLayoutConfig('showNote', v)}
-              accentColor="#ec4899"
+              accentColor={brandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
               label="Thông báo"
               checked={currentLayoutConfig.showNotification}
               onChange={(v) => updateLayoutConfig('showNotification', v)}
-              accentColor="#ec4899"
+              accentColor={brandColor}
               disabled={!wishlistModule?.enabled}
             />
             <ToggleRow
@@ -211,7 +224,7 @@ export default function WishlistExperiencePage() {
               description="Hiện nút add to cart"
               checked={currentLayoutConfig.showAddToCartButton}
               onChange={(v) => updateLayoutConfig('showAddToCartButton', v)}
-              accentColor="#ec4899"
+              accentColor={brandColor}
               disabled={!cartAvailable}
             />
           </ControlCard>
@@ -252,11 +265,22 @@ export default function WishlistExperiencePage() {
             />
           </ControlCard>
 
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
+
           <Card className="p-2">
             <div className="mb-2">
               <ExampleLinks
                 links={[{ label: 'Trang wishlist', url: '/wishlist' }]}
-                color="#ec4899"
+                color={brandColor}
                 compact
               />
             </div>
@@ -276,7 +300,7 @@ export default function WishlistExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#ec4899"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -292,7 +316,9 @@ export default function WishlistExperiencePage() {
                 showNotification={currentLayoutConfig.showNotification && (notificationFeature?.enabled ?? true)}
                 showAddToCartButton={currentLayoutConfig.showAddToCartButton && cartAvailable}
                 device={previewDevice}
-                brandColor="#ec4899"
+                brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
               />
             </BrowserFrame>
           </div>
