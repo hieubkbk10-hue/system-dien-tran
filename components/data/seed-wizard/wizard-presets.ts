@@ -127,6 +127,7 @@ export const VARIANT_PRESET_EXAMPLES: VariantPresetExample[] = [
 
 const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
   low: {
+    analytics: 10,
     cart: 5,
     comments: 10,
     customers: 5,
@@ -149,6 +150,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     media: 10,
   },
   medium: {
+    analytics: 30,
     cart: 20,
     comments: 30,
     customers: 20,
@@ -171,6 +173,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     media: 20,
   },
   high: {
+    analytics: 60,
     cart: 50,
     comments: 80,
     customers: 50,
@@ -279,12 +282,17 @@ export function buildSeedConfigs(
   useSeedMauImages?: boolean
 ) {
   const quantities = SCALE_QUANTITIES[scale];
+  const canSeedAnalytics = selectedModules.includes('orders')
+    || selectedModules.includes('customers')
+    || selectedModules.includes('products');
   return selectedModules
     .filter((moduleKey) => quantities[moduleKey] !== undefined)
     .map((moduleKey) => ({
       industryKey: industryKey ?? undefined,
       module: moduleKey,
-      quantity: quantities[moduleKey],
+      quantity: moduleKey === 'analytics' && !canSeedAnalytics
+        ? 0
+        : quantities[moduleKey],
       selectedLogo: moduleKey === 'homepage' ? selectedLogo ?? undefined : undefined,
       useSeedMauImages,
     }));

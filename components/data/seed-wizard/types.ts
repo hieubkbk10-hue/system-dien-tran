@@ -43,6 +43,8 @@ export type QuickConfig = {
 
 export type WizardState = {
   businessInfo: BusinessInfo;
+  customerLoginEnabled: boolean;
+  customerLoginManuallySet: boolean;
   clearBeforeSeed: boolean;
   dataScale: DataScale;
   digitalDeliveryType: DigitalDeliveryType;

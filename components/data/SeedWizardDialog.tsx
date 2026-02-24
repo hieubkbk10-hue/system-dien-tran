@@ -84,6 +84,8 @@ const DEFAULT_QUICK_CONFIG: QuickConfig = {
 
 const DEFAULT_STATE: WizardState = {
   businessInfo: DEFAULT_BUSINESS_INFO,
+  customerLoginEnabled: true,
+  customerLoginManuallySet: false,
   clearBeforeSeed: true,
   dataScale: 'medium',
   digitalDeliveryType: 'account',
@@ -145,6 +147,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const hasServices = selectedModules.includes('services');
   const hasOrders = selectedModules.includes('orders');
   const hasComments = selectedModules.includes('comments');
+  const hasMenus = selectedModules.includes('menus');
+  const customerLoginRequired = selectedModules.includes('customers') || hasMenus;
 
   const steps = useMemo(() => {
     const list = ['website', 'industry'];
@@ -196,6 +200,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       return { ...prev, extraFeatures: next };
     });
   }, [hasProducts, hasPosts, hasServices]);
+
+  useEffect(() => {
+    if (!customerLoginRequired || state.customerLoginManuallySet) {
+      return;
+    }
+    if (!state.customerLoginEnabled) {
+      setState((prev) => ({
+        ...prev,
+        customerLoginEnabled: true,
+      }));
+    }
+  }, [customerLoginRequired, state.customerLoginEnabled, state.customerLoginManuallySet]);
 
   const handleToggleFeature = (featureKey: string, enabled: boolean) => {
     setState((prev) => {
@@ -274,6 +290,14 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       ...prev,
       variantEnabled: enabled,
       variantPresetKey: enabled ? prev.variantPresetKey : DEFAULT_VARIANT_PRESET_KEY,
+    }));
+  };
+
+  const handleCustomerLoginChange = (enabled: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      customerLoginEnabled: enabled,
+      customerLoginManuallySet: true,
     }));
   };
 
@@ -451,6 +475,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await syncModules(selectedModules);
 
+      const resolvedCustomerLoginEnabled = customerLoginRequired ? true : state.customerLoginEnabled;
+      if (customerLoginRequired && !state.customerLoginEnabled) {
+        toast.info('Đăng nhập KH sẽ được bật lại do phụ thuộc module.');
+      }
+
       if (hasProducts) {
         await setModuleSetting({ moduleKey: 'products', settingKey: 'saleMode', value: state.saleMode });
         await setModuleSetting({ moduleKey: 'products', settingKey: 'variantEnabled', value: state.variantEnabled });
@@ -600,6 +629,14 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           { group: 'seo', key: 'seo_opening_hours', value: state.businessInfo.openingHours || '' },
         ],
       });
+
+      if (selectedModules.includes('customers') || customerLoginRequired) {
+        await toggleModuleFeature({
+          enabled: resolvedCustomerLoginEnabled,
+          featureKey: 'enableLogin',
+          moduleKey: 'customers',
+        });
+      }
 
       await toggleModuleFeature({ enabled: true, featureKey: 'enableContact', moduleKey: 'settings' });
       await toggleModuleFeature({ enabled: true, featureKey: 'enableSEO', moduleKey: 'settings' });
@@ -825,6 +862,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               brandMode={state.businessInfo.brandMode}
               brandPrimary={brandPrimary}
               brandSecondary={brandSecondary}
+              customerLoginEnabled={state.customerLoginEnabled}
+              customerLoginRequired={customerLoginRequired}
               clearBeforeSeed={state.clearBeforeSeed}
               dataScaleLabel={dataScaleLabel}
               experienceSummary={experiencePreset.summary}
@@ -835,6 +874,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               selectedLogo={state.selectedLogo}
               summary={summary}
               useSeedMauImages={state.useSeedMauImages}
+              onCustomerLoginChange={handleCustomerLoginChange}
               onClearChange={(value) => setState((prev) => ({ ...prev, clearBeforeSeed: value }))}
             />
           )}

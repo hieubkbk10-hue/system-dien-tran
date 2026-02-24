@@ -7,6 +7,8 @@ type ReviewStepProps = {
   brandMode: 'single' | 'dual';
   brandPrimary: string;
   brandSecondary: string;
+  customerLoginEnabled: boolean;
+  customerLoginRequired: boolean;
   clearBeforeSeed: boolean;
   dataScaleLabel: string;
   experienceSummary: string;
@@ -17,6 +19,7 @@ type ReviewStepProps = {
   selectedLogo: string | null;
   summary: { label: string; value: string }[];
   useSeedMauImages: boolean;
+  onCustomerLoginChange: (value: boolean) => void;
   onClearChange: (value: boolean) => void;
 };
 
@@ -24,6 +27,8 @@ export function ReviewStep({
   brandMode,
   brandPrimary,
   brandSecondary,
+  customerLoginEnabled,
+  customerLoginRequired,
   clearBeforeSeed,
   dataScaleLabel,
   experienceSummary,
@@ -34,6 +39,7 @@ export function ReviewStep({
   selectedLogo,
   summary,
   useSeedMauImages,
+  onCustomerLoginChange,
   onClearChange,
 }: ReviewStepProps) {
   return (
@@ -103,6 +109,32 @@ export function ReviewStep({
             </Badge>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-slate-500">Đăng nhập khách</div>
+          {customerLoginRequired && (
+            <Badge variant="secondary">Dependency</Badge>
+          )}
+        </div>
+        <label className="flex items-center gap-3">
+          <Checkbox
+            checked={customerLoginEnabled}
+            onCheckedChange={(value) => onCustomerLoginChange(Boolean(value))}
+          />
+          <div>
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Bật đăng nhập khách</div>
+            <div className="text-xs text-slate-500">
+              Login chỉ hiển thị khi module Khách hàng + tính năng Đăng nhập KH đang bật.
+            </div>
+          </div>
+        </label>
+        {customerLoginRequired && !customerLoginEnabled && (
+          <div className="text-xs text-amber-600">
+            Sẽ tự bật lại khi seed vì phụ thuộc Module Khách hàng hoặc Experience Menu.
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
