@@ -183,9 +183,19 @@ export const getAccountProfileColors = (
     separatorDot: neutralBorderStrong,
     actionCardBg: neutralSurface,
     actionCardBorder: neutralBorder,
-    actionIconBg: primaryTint,
-    actionIconColor: ensureAPCATextColor(primary, primaryTint, 14, 600),
-    actionTitle: ensureAPCATextColor(primary, neutralSurface, 14, 600),
+    actionIconBg: mode === 'dual' ? secondaryTint : primaryTint,
+    actionIconColor: ensureAPCATextColor(
+      mode === 'dual' ? secondaryResolved : primary,
+      mode === 'dual' ? secondaryTint : primaryTint,
+      14,
+      600
+    ),
+    actionTitle: ensureAPCATextColor(
+      mode === 'dual' ? secondaryResolved : primary,
+      neutralSurface,
+      14,
+      600
+    ),
     actionDescription: ensureAPCATextColor(neutralMuted, neutralSurface, 12, 500),
     actionArrow: ensureAPCATextColor(neutralSoft, neutralSurface, 12, 500),
   };
