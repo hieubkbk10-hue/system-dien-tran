@@ -149,6 +149,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
   const updateProduct = useMutation(api.products.update);
   const createSuperAdmin = useMutation(api.auth.createSuperAdmin);
+  const updateSuperAdmin = useMutation(api.auth.updateSuperAdminCredentials);
 
   useEffect(() => {
     if (productsList) {
@@ -722,6 +723,14 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       const resolvedAdminPassword = state.adminConfig.password || '123456';
       if (superAdmin === null) {
         const result = await createSuperAdmin({
+          email: resolvedAdminEmail,
+          password: resolvedAdminPassword,
+        });
+        if (!result.success) {
+          toast.info(result.message);
+        }
+      } else {
+        const result = await updateSuperAdmin({
           email: resolvedAdminEmail,
           password: resolvedAdminPassword,
         });
