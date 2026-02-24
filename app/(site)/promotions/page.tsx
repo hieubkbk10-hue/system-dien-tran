@@ -5,7 +5,8 @@ import { useQuery } from 'convex/react';
 import { Check, Copy, Ticket } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Doc } from '@/convex/_generated/dataModel';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
+import { getPromotionsListColors } from '@/components/site/promotions/colors';
 
 type PromotionsLayoutStyle = 'grid' | 'list' | 'banner';
 
@@ -75,8 +76,13 @@ function buildConditions(promo: { minOrderAmount?: number; maxDiscountAmount?: n
 export default function PromotionsPage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: 'promotions_list_ui' });
   const promotions = useQuery(api.promotions.listPublicPromotions) as Doc<'promotions'>[] | undefined;
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const tokens = useMemo(
+    () => getPromotionsListColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
 
   const config = useMemo<PromotionsExperienceConfig>(() => {
     const raw = experienceSetting?.value as Partial<PromotionsExperienceConfig> | undefined;
@@ -114,7 +120,7 @@ export default function PromotionsPage() {
 
   if (promotions === undefined || experienceSetting === undefined) {
     return (
-      <div className="py-16 text-center text-slate-500">Đang tải khuyến mãi...</div>
+      <div className="py-16 text-center" style={{ color: tokens.emptyStateText }}>Đang tải khuyến mãi...</div>
     );
   }
 
@@ -122,32 +128,45 @@ export default function PromotionsPage() {
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 py-10 space-y-8">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 text-slate-500">
-            <Ticket className="w-5 h-5" />
-            <span className="text-sm uppercase tracking-wide">Khuyến mãi</span>
+          <div className="flex items-center justify-center gap-2">
+            <Ticket className="w-5 h-5" style={{ color: tokens.sectionEyebrow }} />
+            <span className="text-sm uppercase tracking-wide" style={{ color: tokens.sectionEyebrow }}>Khuyến mãi</span>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">Ưu đãi đang áp dụng</h1>
-          <p className="text-slate-500">Tổng hợp mã giảm giá và chương trình nổi bật hôm nay.</p>
+          <h1 className="text-3xl font-bold" style={{ color: tokens.sectionHeading }}>Ưu đãi đang áp dụng</h1>
+          <p style={{ color: tokens.sectionDescription }}>Tổng hợp mã giảm giá và chương trình nổi bật hôm nay.</p>
         </div>
 
         {config.layoutStyle === 'banner' && (
           <div
-            className="rounded-2xl p-6 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-            style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}99 100%)` }}
+            className="rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            style={{ backgroundColor: tokens.bannerBackground }}
           >
             <div>
-              <p className="text-xs uppercase tracking-wide">Ưu đãi nổi bật</p>
-              <h2 className="text-2xl font-bold mt-2">Săn deal hôm nay</h2>
-              <p className="text-sm mt-1">Chọn voucher phù hợp để tiết kiệm tối đa.</p>
+              <p className="text-xs uppercase tracking-wide" style={{ color: tokens.bannerEyebrow }}>Ưu đãi nổi bật</p>
+              <h2 className="text-2xl font-bold mt-2" style={{ color: tokens.bannerHeading }}>Săn deal hôm nay</h2>
+              <p className="text-sm mt-1" style={{ color: tokens.bannerDescription }}>Chọn voucher phù hợp để tiết kiệm tối đa.</p>
             </div>
-            <span className="px-4 py-2 text-sm bg-white/20 rounded-full">{promotions.length} khuyến mãi</span>
+            <span
+              className="px-4 py-2 text-sm rounded-full"
+              style={{ backgroundColor: tokens.bannerBadgeBg, color: tokens.bannerBadgeText }}
+            >
+              {promotions.length} khuyến mãi
+            </span>
           </div>
         )}
 
         {config.groupByType && groupedPromotions.length > 1 && (
           <div className="flex flex-wrap gap-2 justify-center">
             {groupedPromotions.map((group) => (
-              <span key={group.label} className="px-3 py-1 text-xs rounded-full bg-rose-500/10 text-rose-600">
+              <span
+                key={group.label}
+                className="px-3 py-1 text-xs rounded-full border"
+                style={{
+                  backgroundColor: tokens.groupBadgeBg,
+                  color: tokens.groupBadgeText,
+                  borderColor: tokens.groupBadgeBorder,
+                }}
+              >
                 {group.label}
               </span>
             ))}
@@ -155,14 +174,14 @@ export default function PromotionsPage() {
         )}
 
         {promotions.length === 0 && (
-          <div className="text-center text-slate-500">Chưa có khuyến mãi nào.</div>
+          <div className="text-center" style={{ color: tokens.emptyStateText }}>Chưa có khuyến mãi nào.</div>
         )}
 
         <div className="space-y-8">
           {groupedPromotions.map((group) => (
             <section key={group.label} className="space-y-4">
               {config.groupByType && (
-                <h2 className="text-lg font-semibold text-slate-900">{group.label}</h2>
+                <h2 className="text-lg font-semibold" style={{ color: tokens.sectionHeading }}>{group.label}</h2>
               )}
               <div
                 className={`grid gap-4 ${
@@ -185,51 +204,63 @@ export default function PromotionsPage() {
                       : DISCOUNT_TYPE_LABELS[promo.discountType] ?? promo.discountType;
 
                   return (
-                    <div key={promo._id} className="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div
+                      key={promo._id}
+                      className="border rounded-xl p-4"
+                      style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <span className="text-xs uppercase tracking-wide text-slate-500">
+                          <span className="text-xs uppercase tracking-wide" style={{ color: tokens.promoTypeText }}>
                             {PROMOTION_TYPE_LABELS[promo.promotionType ?? 'campaign'] ?? (promo.promotionType ?? 'campaign')}
                           </span>
-                          <h3 className="mt-2 font-semibold text-slate-900">{promo.name}</h3>
+                          <h3 className="mt-2 font-semibold" style={{ color: tokens.promoTitleText }}>{promo.name}</h3>
                         </div>
-                        <span className="text-xs font-medium text-slate-600">{discountLabel}</span>
+                        <span className="text-xs font-medium" style={{ color: tokens.promoDiscountText }}>{discountLabel}</span>
                       </div>
 
                       {promo.code ? (
                         <div className="flex items-center gap-2 mt-3">
-                          <span className="text-xs font-mono bg-rose-50 text-rose-600 px-2 py-0.5 rounded">
+                          <span
+                            className="text-xs font-mono px-2 py-0.5 rounded border"
+                            style={{
+                              backgroundColor: tokens.codeBadgeBg,
+                              color: tokens.codeBadgeText,
+                              borderColor: tokens.codeBadgeBorder,
+                            }}
+                          >
                             {promo.code}
                           </span>
                           <button
                             onClick={ async () =>{  await handleCopy(promo.code!); }}
-                            className="p-1 rounded hover:bg-slate-100"
+                            className="p-1 rounded"
                             title="Copy mã"
+                            style={{ color: tokens.copyIcon }}
                           >
                             {copiedCode === promo.code ? (
-                              <Check size={14} className="text-emerald-500" />
+                              <Check size={14} style={{ color: tokens.copySuccessIcon }} />
                             ) : (
-                              <Copy size={14} className="text-slate-400" />
+                              <Copy size={14} />
                             )}
                           </button>
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-500 mt-2">Tự động áp dụng</p>
+                        <p className="text-xs mt-2" style={{ color: tokens.promoMetaText }}>Tự động áp dụng</p>
                       )}
 
-                      {countdown && <p className="text-xs text-slate-500 mt-2">{countdown}</p>}
+                      {countdown && <p className="text-xs mt-2" style={{ color: tokens.promoMetaText }}>{countdown}</p>}
 
                       {config.showConditions && conditions.length > 0 && (
-                        <p className="text-xs text-slate-500 mt-2">Điều kiện: {conditions.join(' · ')}</p>
+                        <p className="text-xs mt-2" style={{ color: tokens.promoMetaText }}>Điều kiện: {conditions.join(' · ')}</p>
                       )}
 
                       {config.showProgress && progress > 0 && (
                         <div className="mt-3">
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full" style={{ width: `${progress}%`, backgroundColor: brandColor }} />
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: tokens.progressTrack }}>
+                            <div className="h-full" style={{ width: `${progress}%`, backgroundColor: tokens.progressFill }} />
                           </div>
                           {usageLimit > 0 && (
-                            <p className="text-xs text-slate-500 mt-1">Đã dùng {promo.usedCount}/{usageLimit}</p>
+                            <p className="text-xs mt-1" style={{ color: tokens.progressText }}>Đã dùng {promo.usedCount}/{usageLimit}</p>
                           )}
                         </div>
                       )}

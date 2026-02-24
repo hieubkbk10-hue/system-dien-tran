@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Eye, LayoutTemplate, Save, Ticket } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
-import { useBrandColor } from '@/components/site/hooks';
+import { useBrandColors } from '@/components/site/hooks';
 import {
   ExperienceHintCard,
   ExperienceModuleLink,
@@ -15,6 +15,7 @@ import {
 } from '@/components/experiences';
 import {
   BrowserFrame,
+  ColorConfigCard,
   ControlCard,
   DeviceToggle,
   LayoutTabs,
@@ -58,11 +59,26 @@ const HINTS = [
   'Banner nổi bật nên dùng cho flash sale hoặc campaign lớn.',
 ];
 
-function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: string; enabled: boolean; href: string; moduleName: string }) {
+function ModuleFeatureStatus({
+  label,
+  enabled,
+  href,
+  moduleName,
+  accentColor,
+}: {
+  label: string;
+  enabled: boolean;
+  href: string;
+  moduleName: string;
+  accentColor: string;
+}) {
   return (
     <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
       <div className="flex items-start gap-2">
-        <span className={`mt-1 inline-flex h-2 w-2 rounded-full ${enabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+        <span
+          className="mt-1 inline-flex h-2 w-2 rounded-full"
+          style={{ backgroundColor: enabled ? accentColor : '#94a3b8' }}
+        />
         <div>
           <p className="text-sm font-medium text-slate-700">{label}</p>
           <p className="text-xs text-slate-500">
@@ -70,7 +86,7 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
           </p>
         </div>
       </div>
-      <Link href={href} className="text-xs font-medium text-rose-600 hover:underline">
+      <Link href={href} className="text-xs font-medium hover:underline" style={{ color: accentColor }}>
         Đi đến →
       </Link>
     </div>
@@ -80,7 +96,10 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function PromotionsListExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: EXPERIENCE_KEY });
   const promotionsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'promotions' });
-  const brandColor = useBrandColor();
+  const brandColors = useBrandColors();
+  const [brandColor, setBrandColor] = useState(brandColors.primary);
+  const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
+  const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const serverConfig = useMemo<PromotionsExperienceConfig>(() => {
@@ -103,6 +122,12 @@ export default function PromotionsListExperiencePage() {
     MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
   );
 
+  useEffect(() => {
+    setBrandColor(brandColors.primary);
+    setSecondaryColor(brandColors.secondary || '');
+    setColorMode(brandColors.mode || 'single');
+  }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -116,7 +141,7 @@ export default function PromotionsListExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-rose-600" />
+            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
             <h1 className="text-2xl font-bold">Khuyến mãi</h1>
           </div>
           <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
@@ -127,7 +152,8 @@ export default function PromotionsListExperiencePage() {
           size="sm"
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
-          className="bg-rose-600 hover:bg-rose-500 gap-1.5"
+          className="gap-1.5"
+          style={{ backgroundColor: brandColor }}
         >
           {isSaving ? <Save size={14} className="animate-pulse" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -139,33 +165,43 @@ export default function PromotionsListExperiencePage() {
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ControlCard title="Màu thương hiệu">
+            <ColorConfigCard
+              primary={brandColor}
+              secondary={secondaryColor}
+              mode={colorMode}
+              onPrimaryChange={setBrandColor}
+              onSecondaryChange={setSecondaryColor}
+              onModeChange={setColorMode}
+            />
+          </ControlCard>
           <ControlCard title="Bố cục">
             <ToggleRow
               label="Hiện countdown"
               checked={config.showCountdown}
               onChange={(v) => setConfig(prev => ({ ...prev, showCountdown: v }))}
-              accentColor="#f43f5e"
+              accentColor={brandColor}
               disabled={!promotionsModule?.enabled}
             />
             <ToggleRow
               label="Hiện tiến trình"
               checked={config.showProgress}
               onChange={(v) => setConfig(prev => ({ ...prev, showProgress: v }))}
-              accentColor="#f43f5e"
+              accentColor={brandColor}
               disabled={!promotionsModule?.enabled}
             />
             <ToggleRow
               label="Hiện điều kiện"
               checked={config.showConditions}
               onChange={(v) => setConfig(prev => ({ ...prev, showConditions: v }))}
-              accentColor="#f43f5e"
+              accentColor={brandColor}
               disabled={!promotionsModule?.enabled}
             />
             <ToggleRow
               label="Nhóm theo loại"
               checked={config.groupByType}
               onChange={(v) => setConfig(prev => ({ ...prev, groupByType: v }))}
-              accentColor="#f43f5e"
+              accentColor={brandColor}
               disabled={!promotionsModule?.enabled}
             />
           </ControlCard>
@@ -190,6 +226,7 @@ export default function PromotionsListExperiencePage() {
               enabled={promotionsModule?.enabled ?? false}
               href="/system/modules/promotions"
               moduleName="module Khuyến mãi"
+              accentColor={brandColor}
             />
           </ControlCard>
 
@@ -197,7 +234,7 @@ export default function PromotionsListExperiencePage() {
             <div className="mb-2">
               <ExampleLinks
                 links={[{ label: 'Trang khuyến mãi', url: '/promotions' }]}
-                color="#f43f5e"
+                color={brandColor}
                 compact
               />
             </div>
@@ -217,7 +254,7 @@ export default function PromotionsListExperiencePage() {
                 layouts={LAYOUT_STYLES}
                 activeLayout={config.layoutStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, layoutStyle: layout }))}
-                accentColor="#f43f5e"
+                accentColor={brandColor}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -233,6 +270,8 @@ export default function PromotionsListExperiencePage() {
                 showConditions={config.showConditions}
                 groupByType={config.groupByType}
                 brandColor={brandColor}
+                secondaryColor={secondaryColor}
+                colorMode={colorMode}
                 device={previewDevice}
               />
             </BrowserFrame>
