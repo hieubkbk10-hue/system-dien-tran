@@ -173,6 +173,7 @@ export const getMenuColors = (
   const neutralSubtle = '#94a3b8';
 
   const resolvedSecondary = resolveSecondaryForMode(primary, secondary, mode);
+  const accent = mode === 'dual' ? resolvedSecondary : primary;
   const primaryTint = getSolidTint(primary, primary, 0.42);
   const primaryTintSoft = getSolidTint(primary, primary, 0.32);
   const secondaryTint = getSolidTint(resolvedSecondary, primary, 0.42);
@@ -181,6 +182,7 @@ export const getMenuColors = (
   const textMuted = ensureAPCATextColor(neutralMuted, neutralSurface, 14, 500);
   const textSubtle = ensureAPCATextColor(neutralSubtle, neutralSurface, 12, 500);
   const onPrimary = getAPCATextColor(primary, 12, 600);
+  const onAccent = getAPCATextColor(accent, 12, 600);
   const onSecondary = getAPCATextColor(resolvedSecondary, 12, 600);
 
   return {
@@ -198,12 +200,12 @@ export const getMenuColors = (
     topbarBg: primary,
     topbarText: onPrimary,
     topbarDivider: onPrimary,
-    accentLine: primary,
+    accentLine: accent,
     brandBadgeBg: primary,
     brandBadgeText: onPrimary,
     navItemText: textMuted,
-    navItemHoverBg: primary,
-    navItemHoverText: onPrimary,
+    navItemHoverBg: accent,
+    navItemHoverText: onAccent,
     dropdownBg: neutralSurface,
     dropdownBorder: neutralBorder,
     dropdownItemText: textMuted,
@@ -216,8 +218,8 @@ export const getMenuColors = (
     searchInputBorder: neutralBorder,
     searchInputText: textPrimary,
     searchInputPlaceholder: textSubtle,
-    searchButtonBg: primary,
-    searchButtonText: onPrimary,
+    searchButtonBg: accent,
+    searchButtonText: onAccent,
     iconButtonText: textMuted,
     iconButtonHoverText: textPrimary,
     badgeBg: resolvedSecondary,
