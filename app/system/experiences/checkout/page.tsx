@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Eye, LayoutTemplate, Loader2, Package, Save, ShoppingCart } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
 import { useBrandColors } from '@/components/site/hooks';
+import { getCheckoutColors, type CheckoutColors } from '@/components/site/checkout/colors';
 import { 
   ExperienceModuleLink, 
   ExperienceHintCard,
@@ -83,19 +84,37 @@ const HINTS = [
   'Mỗi flow có config riêng - chuyển tab để chỉnh.',
 ];
 
-function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: string; enabled: boolean; href: string; moduleName: string }) {
+function ModuleFeatureStatus({
+  label,
+  enabled,
+  href,
+  moduleName,
+  tokens,
+}: {
+  label: string;
+  enabled: boolean;
+  href: string;
+  moduleName: string;
+  tokens: CheckoutColors;
+}) {
   return (
-    <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+    <div
+      className="mt-2 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs"
+      style={{ borderColor: tokens.border, backgroundColor: tokens.surfaceMuted, color: tokens.metaText }}
+    >
       <div className="flex items-start gap-2">
-        <span className={`mt-1 inline-flex h-2 w-2 rounded-full ${enabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+        <span
+          className="mt-1 inline-flex h-2 w-2 rounded-full"
+          style={{ backgroundColor: enabled ? tokens.primary : tokens.mutedText }}
+        />
         <div>
-          <p className="text-sm font-medium text-slate-700">{label}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium" style={{ color: tokens.bodyText }}>{label}</p>
+          <p className="text-xs" style={{ color: tokens.metaText }}>
             {enabled ? 'Đang bật' : 'Chưa bật'} · Nếu muốn {enabled ? 'tắt' : 'bật'} hãy vào {moduleName}
           </p>
         </div>
       </div>
-      <Link href={href} className="text-xs font-medium text-cyan-600 hover:underline">
+      <Link href={href} className="text-xs font-medium hover:underline" style={{ color: tokens.linkText }}>
         Đi đến →
       </Link>
     </div>
@@ -114,6 +133,10 @@ export default function CheckoutExperiencePage() {
   const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
   const [colorMode, setColorMode] = useState<'single' | 'dual'>(brandColors.mode || 'single');
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
+  const tokens = useMemo(
+    () => getCheckoutColors(brandColor, secondaryColor, colorMode),
+    [brandColor, secondaryColor, colorMode]
+  );
 
   const serverConfig = useMemo<CheckoutExperienceConfig>(() => {
     const raw = experienceSetting?.value as Partial<CheckoutExperienceConfig> | undefined;
@@ -169,7 +192,7 @@ export default function CheckoutExperiencePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">{MESSAGES.loading}</div>
+        <div style={{ color: tokens.metaText }}>{MESSAGES.loading}</div>
       </div>
     );
   }
@@ -179,10 +202,10 @@ export default function CheckoutExperiencePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5" style={{ color: brandColor }} />
+            <LayoutTemplate className="w-5 h-5" style={{ color: tokens.primary }} />
             <h1 className="text-2xl font-bold">Thanh toán</h1>
           </div>
-          <Link href="/system/experiences" className="text-sm text-blue-600 hover:underline">
+          <Link href="/system/experiences" className="text-sm hover:underline" style={{ color: tokens.linkText }}>
             Quay lại danh sách
           </Link>
         </div>
@@ -191,7 +214,7 @@ export default function CheckoutExperiencePage() {
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
           className="gap-1.5"
-          style={{ backgroundColor: brandColor, color: '#ffffff' }}
+          style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
         >
           {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           <span>{hasChanges ? 'Lưu' : 'Đã lưu'}</span>
@@ -208,21 +231,21 @@ export default function CheckoutExperiencePage() {
               label="Buy Now"
               checked={config.showBuyNow}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNow: v }))}
-              accentColor={brandColor}
+              accentColor={tokens.primary}
               disabled={!ordersModule?.enabled}
             />
             <ToggleRow
               label="Payment Methods"
               checked={currentLayoutConfig.showPaymentMethods}
               onChange={(v) => updateLayoutConfig('showPaymentMethods', v)}
-              accentColor={brandColor}
+              accentColor={tokens.primary}
               disabled={!ordersModule?.enabled}
             />
             <ToggleRow
               label="Shipping Options"
               checked={currentLayoutConfig.showShippingOptions}
               onChange={(v) => updateLayoutConfig('showShippingOptions', v)}
-              accentColor={brandColor}
+              accentColor={tokens.primary}
               disabled={!ordersModule?.enabled}
             />
           </ControlCard>
@@ -249,12 +272,14 @@ export default function CheckoutExperiencePage() {
               enabled={paymentFeature?.enabled ?? false}
               href="/system/modules/orders"
               moduleName="module Đơn hàng"
+              tokens={tokens}
             />
             <ModuleFeatureStatus
               label="Vận chuyển"
               enabled={shippingFeature?.enabled ?? false}
               href="/system/modules/orders"
               moduleName="module Đơn hàng"
+              tokens={tokens}
             />
             <ExperienceModuleLink
               enabled={cartModule?.enabled ?? false}
@@ -288,7 +313,7 @@ export default function CheckoutExperiencePage() {
               <div className="mb-2">
                 <ExampleLinks
                   links={[{ label: 'Xem checkout mẫu', url: `/checkout?productId=${exampleProduct._id}&quantity=1` }]}
-                  color={brandColor}
+                  color={tokens.primary}
                   compact
                 />
               </div>
@@ -309,7 +334,7 @@ export default function CheckoutExperiencePage() {
                 layouts={FLOW_STYLES}
                 activeLayout={config.flowStyle}
                 onChange={(layout) => setConfig(prev => ({ ...prev, flowStyle: layout }))}
-                accentColor={brandColor}
+                accentColor={tokens.primary}
               />
               <DeviceToggle value={previewDevice} onChange={setPreviewDevice} size="sm" />
             </div>
@@ -330,8 +355,8 @@ export default function CheckoutExperiencePage() {
               />
             </BrowserFrame>
           </div>
-          <div className="mt-3 text-xs text-slate-500">
-            Style: <strong className="text-slate-700 dark:text-slate-300">{FLOW_STYLES.find(s => s.id === config.flowStyle)?.label}</strong>
+          <div className="mt-3 text-xs" style={{ color: tokens.metaText }}>
+            Style: <strong style={{ color: tokens.bodyText }}>{FLOW_STYLES.find(s => s.id === config.flowStyle)?.label}</strong>
             {' • '}{previewDevice === 'desktop' && 'Desktop (1920px)'}{previewDevice === 'tablet' && 'Tablet (768px)'}{previewDevice === 'mobile' && 'Mobile (375px)'}
           </div>
         </CardContent>

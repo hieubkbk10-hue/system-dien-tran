@@ -113,7 +113,11 @@ const buildVariantLabel = (
 };
 
 function CheckoutSkeleton() {
-  const tokens = getCheckoutColors('#22c55e', '', 'single');
+  const brandColors = useBrandColors();
+  const tokens = useMemo(
+    () => getCheckoutColors(brandColors.primary, brandColors.secondary, brandColors.mode),
+    [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
   return (
     <div className="max-w-5xl mx-auto px-4 py-16 text-center">
       <div className="h-6 w-48 rounded-lg animate-pulse mx-auto" style={{ backgroundColor: tokens.surfaceSoft }} />

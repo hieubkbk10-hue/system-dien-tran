@@ -1,12 +1,12 @@
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 
-const DEFAULT_COLOR = '#22c55e';
+export const DEFAULT_CHECKOUT_COLOR = '#22c55e';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const safeParseOklch = (value: string, fallback: string) => (
-  oklch(value) ?? oklch(fallback) ?? oklch(DEFAULT_COLOR)
+  oklch(value) ?? oklch(fallback) ?? oklch(DEFAULT_CHECKOUT_COLOR)
 );
 
 const toRgbTuple = (value: string, fallback: string): [number, number, number] | null => {
@@ -45,6 +45,45 @@ const getAPCALc = (text: string, background: string) => {
 
   const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb)));
   return Number.isFinite(lc) ? lc : 0;
+};
+
+const findBrandTextColor = (
+  preferredText: string,
+  background: string,
+  fontSize: number,
+  fontWeight: number
+) => {
+  const threshold = getAccessibilityThreshold(fontSize, fontWeight);
+  if (getAPCALc(preferredText, background) >= threshold) {
+    return preferredText;
+  }
+
+  const base = safeParseOklch(preferredText, DEFAULT_CHECKOUT_COLOR);
+  let best: { color: string; delta: number } | null = null;
+
+  for (let i = 1; i <= 24; i += 1) {
+    const delta = (i / 24) * 0.6;
+    const candidates = [
+      clamp(base.l - delta, 0.04, 0.98),
+      clamp(base.l + delta, 0.04, 0.98),
+    ];
+
+    for (const lightness of candidates) {
+      const candidate = formatHex(oklch({ ...base, l: lightness }));
+      const lc = getAPCALc(candidate, background);
+      if (lc >= threshold) {
+        if (!best || Math.abs(lightness - base.l) < best.delta) {
+          best = { color: candidate, delta: Math.abs(lightness - base.l) };
+        }
+      }
+    }
+
+    if (best) {
+      break;
+    }
+  }
+
+  return best ? best.color : preferredText;
 };
 
 export type CheckoutColorMode = 'single' | 'dual';
@@ -97,6 +136,18 @@ export const ensureAPCATextColor = (
   }
 
   return getAPCATextColor(background, fontSize, fontWeight);
+};
+
+export const ensureAPCABrandTextColor = (
+  preferredText: string,
+  background: string,
+  fontSize = 16,
+  fontWeight = 500
+) => findBrandTextColor(preferredText, background, fontSize, fontWeight);
+
+const getBadgeTextColor = (background: string, fontSize = 12, fontWeight = 600) => {
+  const preferred = getAPCATextColor(background, fontSize, fontWeight);
+  return ensureAPCATextColor(preferred, background, fontSize, fontWeight);
 };
 
 export type CheckoutColors = {
@@ -179,21 +230,21 @@ export const getCheckoutColors = (
     surfaceSoft: neutralSurfaceSoft,
     border: neutralBorder,
     borderStrong: neutralBorderStrong,
-    heading: ensureAPCATextColor(primary, neutralSurface, 28, 700),
+    heading: ensureAPCABrandTextColor(primary, neutralSurface, 28, 700),
     bodyText: ensureAPCATextColor(neutralText, neutralSurface, 16, 500),
     metaText: ensureAPCATextColor(neutralMuted, neutralSurface, 14, 500),
     mutedText: ensureAPCATextColor(neutralSoft, neutralSurface, 12, 500),
     helperText: ensureAPCATextColor(neutralMuted, neutralSurfaceMuted, 12, 500),
-    priceText: ensureAPCATextColor(secondaryResolved, neutralSurface, 16, 700),
+    priceText: ensureAPCABrandTextColor(secondaryResolved, neutralSurface, 16, 700),
     badgeBg: secondaryTint,
     badgeBorder: secondaryTintStrong,
-    badgeText: ensureAPCATextColor(secondaryResolved, secondaryTint, 12, 600),
+    badgeText: getBadgeTextColor(secondaryTint, 12, 600),
     selectionBg: primaryTint,
     selectionBorder: primaryTintStrong,
     primaryButtonBg: primary,
     primaryButtonText: getAPCATextColor(primary, 14, 600),
     secondaryButtonBg: neutralSurface,
-    secondaryButtonText: ensureAPCATextColor(secondaryResolved, neutralSurface, 12, 600),
+    secondaryButtonText: ensureAPCABrandTextColor(secondaryResolved, neutralSurface, 12, 600),
     secondaryButtonBorder: secondaryTintStrong,
     inputBg: neutralSurface,
     inputBorder: neutralBorder,
@@ -207,17 +258,17 @@ export const getCheckoutColors = (
     stepInactiveText: ensureAPCATextColor(neutralSoft, neutralSurfaceSoft, 12, 600),
     stepLineActive: primary,
     stepLineInactive: neutralBorder,
-    iconPrimary: ensureAPCATextColor(primary, neutralSurface, 16, 600),
+    iconPrimary: ensureAPCABrandTextColor(primary, neutralSurface, 16, 600),
     iconMuted: ensureAPCATextColor(neutralSoft, neutralSurface, 14, 600),
     summaryBg: neutralSurface,
     summaryText: ensureAPCATextColor(neutralMuted, neutralSurface, 12, 500),
     summaryValue: ensureAPCATextColor(neutralText, neutralSurface, 14, 600),
     summaryTotalLabel: ensureAPCATextColor(neutralMuted, neutralSurface, 12, 600),
-    summaryTotalValue: ensureAPCATextColor(secondaryResolved, neutralSurface, 18, 700),
-    highlightText: ensureAPCATextColor(secondaryResolved, neutralSurface, 14, 600),
-    linkText: ensureAPCATextColor(primary, neutralSurface, 14, 600),
+    summaryTotalValue: ensureAPCABrandTextColor(secondaryResolved, neutralSurface, 18, 700),
+    highlightText: ensureAPCABrandTextColor(secondaryResolved, neutralSurface, 14, 600),
+    linkText: ensureAPCABrandTextColor(primary, neutralSurface, 14, 600),
     emptyStateIconBg: neutralSurfaceSoft,
     emptyStateIcon: ensureAPCATextColor(neutralSoft, neutralSurfaceSoft, 16, 600),
-    couponActionText: ensureAPCATextColor(secondaryResolved, neutralSurface, 12, 600),
+    couponActionText: ensureAPCABrandTextColor(secondaryResolved, neutralSurface, 12, 600),
   };
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, CreditCard, MapPin, Package, Truck, Wallet } from 'lucide-react';
-import { getCheckoutColors, type CheckoutColorMode, type CheckoutColors } from '@/components/site/checkout/colors';
+import { DEFAULT_CHECKOUT_COLOR, getCheckoutColors, type CheckoutColorMode, type CheckoutColors } from '@/components/site/checkout/colors';
 
 type CheckoutPreviewProps = {
   flowStyle: 'single-page' | 'multi-step' | 'wizard-accordion';
@@ -358,7 +358,7 @@ export function CheckoutPreview({
   showPaymentMethods,
   showShippingOptions,
   device = 'desktop',
-  brandColor = '#22c55e',
+  brandColor = DEFAULT_CHECKOUT_COLOR,
   secondaryColor = '',
   colorMode = 'single',
 }: CheckoutPreviewProps) {
