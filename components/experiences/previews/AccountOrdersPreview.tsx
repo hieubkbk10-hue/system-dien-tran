@@ -502,7 +502,7 @@ export function AccountOrdersPreview({
                         type="button"
                         onClick={() => handleReorder(order)}
                         className="px-3 py-2 rounded-lg text-xs font-semibold"
-                        style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
+                        style={{ backgroundColor: tokens.secondaryButtonBg, color: tokens.secondaryButtonText }}
                       >
                         Mua lại
                       </button>
@@ -567,7 +567,7 @@ export function AccountOrdersPreview({
                           type="button"
                           onClick={() => setDrawerOrder(order)}
                           className="inline-flex items-center gap-1 text-xs font-semibold"
-                          style={{ color: tokens.primary }}
+                          style={{ color: tokens.secondary }}
                         >
                           Chi tiết <ArrowUpRight size={12} />
                         </button>
@@ -628,7 +628,7 @@ export function AccountOrdersPreview({
                       type="button"
                       onClick={() => setDrawerOrder(order)}
                       className="font-semibold"
-                      style={{ color: tokens.primary }}
+                        style={{ color: tokens.secondary }}
                     >
                       Chi tiết
                     </button>
