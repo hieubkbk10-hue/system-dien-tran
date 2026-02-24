@@ -47,7 +47,7 @@ const getAPCALc = (text: string, background: string) => {
   return Number.isFinite(lc) ? lc : 0;
 };
 
-const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
+const getAPCATextColor = (background: string, _fontSize = 16, _fontWeight = 500) => {
   const bgRgb = toRgbTuple(background, '#0f172a');
   if (!bgRgb) {
     return '#111111';
@@ -176,7 +176,6 @@ export const getMenuColors = (
   const accent = mode === 'dual' ? resolvedSecondary : primary;
   const primaryTint = getSolidTint(primary, primary, 0.42);
   const primaryTintSoft = getSolidTint(primary, primary, 0.32);
-  const secondaryTint = getSolidTint(resolvedSecondary, primary, 0.42);
 
   const textPrimary = ensureAPCATextColor(neutralText, neutralSurface, 16, 600);
   const textMuted = ensureAPCATextColor(neutralMuted, neutralSurface, 14, 500);

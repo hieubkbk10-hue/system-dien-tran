@@ -1790,7 +1790,7 @@ function RatingStars({ value, size = 14, onChange, tokens }: { value: number; si
 }
 
 function ProductCommentsSection({
-  brandColor,
+  brandColor: _brandColor,
   tokens,
   ratingSummary,
   comments,

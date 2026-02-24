@@ -114,7 +114,7 @@ function RelatedServiceThumb({ title, thumbnail, tokens, size }: { title: string
 }
 
 // STYLE 1: CLASSIC - Professional service page with sticky CTA sidebar
-export function ClassicStyle({ service, brandColor, tokens, relatedServices, enabledFields, showShare = true, quickContact }: StyleProps) {
+export function ClassicStyle({ service, brandColor: _brandColor, tokens, relatedServices, enabledFields, showShare = true, quickContact }: StyleProps) {
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
@@ -319,7 +319,7 @@ export function ClassicStyle({ service, brandColor, tokens, relatedServices, ena
 }
 
 // STYLE 2: MODERN - Landing page style with full-width hero and floating CTA
-export function ModernStyle({ service, brandColor, tokens, relatedServices, enabledFields, modernConfig }: StyleProps) {
+export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedServices, enabledFields, modernConfig }: StyleProps) {
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
@@ -511,7 +511,7 @@ export function ModernStyle({ service, brandColor, tokens, relatedServices, enab
 }
 
 // STYLE 3: MINIMAL - Clean, distraction-free reading experience
-export function MinimalStyle({ service, brandColor, tokens, relatedServices, enabledFields, minimalConfig }: StyleProps) {
+export function MinimalStyle({ service, brandColor: _brandColor, tokens, relatedServices, enabledFields, minimalConfig }: StyleProps) {
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
 

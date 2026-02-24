@@ -51,7 +51,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export function SidebarLayout({
   posts,
-  brandColor,
+  brandColor: _brandColor,
   tokens,
   categoryMap,
   categories,

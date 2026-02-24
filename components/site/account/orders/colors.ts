@@ -71,7 +71,7 @@ export const getSolidTint = (value: string, fallback: string, lDelta = 0.42) => 
   return formatHex(oklch({ ...base, l: clamp(base.l + lDelta, 0, 0.98) }));
 };
 
-export const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
+export const getAPCATextColor = (background: string, _fontSize = 16, _fontWeight = 500) => {
   const bgRgb = toRgbTuple(background, '#0f172a');
   if (!bgRgb) {
     return '#111111';
@@ -97,11 +97,6 @@ export const ensureAPCATextColor = (
   }
 
   return getAPCATextColor(background, fontSize, fontWeight);
-};
-
-const getBadgeTextColor = (badgeBg: string, fontSize = 12, fontWeight = 600) => {
-  const preferred = getAPCATextColor(badgeBg, fontSize, fontWeight);
-  return ensureAPCATextColor(preferred, badgeBg, fontSize, fontWeight);
 };
 
 export type AccountOrdersStatusBadgeTokens = {

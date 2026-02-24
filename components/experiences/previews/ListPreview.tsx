@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, FileText, Heart, Search, ShoppingCart, SlidersHorizontal } from 'lucide-react';
 import { getPostsListColors, type PostsListColorMode } from '@/components/site/posts/colors';
-import { getProductsListColors, type ProductsListColorMode, type ProductsListColors } from '@/components/site/products/colors';
+import { getProductsListColors, type ProductsListColorMode } from '@/components/site/products/colors';
 
 type ListLayoutStyle = 'fullwidth' | 'sidebar' | 'magazine' | 'grid' | 'list' | 'masonry';
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';

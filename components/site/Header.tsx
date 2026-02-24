@@ -100,7 +100,6 @@ function cn(...classes: (string | boolean | undefined)[]) {
 
 export function Header() {
   const brandColors = useBrandColors();
-  const brandColor = brandColors.primary;
   const { siteName, logo } = useSiteSettings();
   const menuData = useQuery(api.menus.getFullMenu, { location: 'header' });
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });

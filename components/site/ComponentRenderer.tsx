@@ -60,7 +60,7 @@ import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
 import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
 import type { BenefitItem, BenefitsBrandMode, BenefitsConfig } from '@/app/admin/home-components/benefits/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
-import { BrandBadge, IconContainer, CheckIcon, AccentLine } from './shared/BrandColorHelpers';
+import { BrandBadge } from './shared/BrandColorHelpers';
 import { BlogSection } from './BlogSection';
 import { ProductListSection } from './ProductListSection';
 import { ServiceListSection } from './ServiceListSection';
@@ -84,9 +84,9 @@ import { SpeedDialSection } from './SpeedDialSection';
 import { CountdownSectionWrapper } from './CountdownSectionWrapper';
 import {
   ArrowRight, ArrowUpRight,
-  Building2, ChevronLeft, ChevronRight, Globe,
-  Image as ImageIcon, LayoutTemplate, Mail, Maximize2, MapPin, Package, Phone, Plus,
-  Star, Clock, X, ZoomIn
+  ChevronLeft, ChevronRight, Globe,
+  Image as ImageIcon, LayoutTemplate, Maximize2, Package, Plus,
+  Star, X, ZoomIn
 } from 'lucide-react';
 
 type SiteImageProps = Omit<React.ComponentProps<typeof Image>, 'width' | 'height' | 'src'> & {

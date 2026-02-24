@@ -210,7 +210,7 @@ export default function OpenStreetMapPicker({
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
 
-      import('leaflet').then((L) => {
+      void import('leaflet').then((L) => {
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',

@@ -71,7 +71,7 @@ export const getSolidTint = (value: string, fallback: string, lDelta = 0.42) => 
   return formatHex(oklch({ ...base, l: clamp(base.l + lDelta, 0, 0.98) }));
 };
 
-export const getAPCATextColor = (background: string, fontSize = 16, fontWeight = 500) => {
+export const getAPCATextColor = (background: string, _fontSize = 16, _fontWeight = 500) => {
   const bgRgb = toRgbTuple(background, '#0f172a');
   if (!bgRgb) {
     return '#111111';
@@ -180,7 +180,6 @@ export const getCartColors = (
   const overlayBase = '#0f172a';
 
   const secondaryResolved = resolveSecondaryForMode(primary, secondary, mode);
-  const primaryTint = getSolidTint(primary, primary, 0.42);
   const secondaryTint = getSolidTint(secondaryResolved, primary, 0.42);
   const secondaryTintStrong = getSolidTint(secondaryResolved, primary, 0.32);
 

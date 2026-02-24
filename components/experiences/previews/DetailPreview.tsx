@@ -884,7 +884,7 @@ export function PostDetailPreview({
 function ClassicServicePreview({
   showRelated,
   showShare,
-  brandColor = '#3b82f6',
+  brandColor: _brandColor = '#3b82f6',
   tokens,
   device = 'desktop',
   priceFieldEnabled,
@@ -1078,7 +1078,7 @@ function ClassicServicePreview({
 
 function ModernServicePreview({
   showRelated,
-  brandColor = '#3b82f6',
+  brandColor: _brandColor = '#3b82f6',
   tokens,
   device = 'desktop',
   priceFieldEnabled,
@@ -1249,7 +1249,7 @@ function ModernServicePreview({
 
 function MinimalServicePreview({
   showRelated,
-  brandColor = '#3b82f6',
+  brandColor: _brandColor = '#3b82f6',
   tokens,
   device = 'desktop',
   priceFieldEnabled,

@@ -80,7 +80,7 @@ function ContactForm({ brandColor, secondaryColor }: { brandColor: string; secon
   );
 }
 
-function CorporateContactForm({ brandColor, secondaryColor }: { brandColor: string; secondaryColor: string }) {
+function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: { brandColor: string; secondaryColor: string }) {
   return (
     <form
       onSubmit={(event) => event.preventDefault()}

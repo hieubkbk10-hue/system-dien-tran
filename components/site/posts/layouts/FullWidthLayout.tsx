@@ -26,7 +26,7 @@ interface FullWidthLayoutProps {
   enabledFields: Set<string>;
 }
 
-export function FullWidthLayout({ posts, brandColor, tokens, categoryMap, enabledFields }: FullWidthLayoutProps) {
+export function FullWidthLayout({ posts, brandColor: _brandColor, tokens, categoryMap, enabledFields }: FullWidthLayoutProps) {
   const showExcerpt = enabledFields.has('excerpt');
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check, Copy, Download, Eye, EyeOff, Key, User, FileText, AlertTriangle } from 'lucide-react';
+import { Check, Copy, Download, Key, User, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Credentials = {
