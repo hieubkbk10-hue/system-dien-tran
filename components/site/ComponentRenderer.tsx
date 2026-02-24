@@ -181,6 +181,9 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
     case 'ProductList': {
       return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
+    case 'ProductGrid': {
+      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+    }
     case 'ServiceList': {
       return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
     }
