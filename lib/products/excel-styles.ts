@@ -74,9 +74,10 @@ export function buildGuideSheet(workbook: Workbook, columns: ProductExcelColumn[
   sheet.addRow(['3) Slug danh mục phải là slug hiện có trong hệ thống (không dùng tên danh mục).']);
   sheet.addRow(['4) SKU/Slug bị trùng sẽ được bỏ qua khi import.']);
   sheet.addRow(['5) Giá bán/Tồn kho phải là số, không nhập ký tự đặc biệt.']);
-  sheet.addRow(['6) Products có 6 case mẫu: chuẩn, khuyến mãi, Draft, Archived, không có ảnh, mô tả dài.']);
-  sheet.addRow(['7) Sheet LOI_MAU chỉ để tham khảo lỗi, tuyệt đối không dùng để import.']);
-  sheet.addRow(['8) Checklist: SKU/Slug phải unique, categorySlug phải tồn tại, status phải đúng danh sách.']);
+  sheet.addRow(['6) Cột Ảnh đại diện (URL) có thể nhập nhiều URL, ngăn cách bằng dấu ; (ảnh đầu là ảnh đại diện).']);
+  sheet.addRow(['7) Products có 6 case mẫu: chuẩn, khuyến mãi, Draft, Archived, không có ảnh, mô tả dài.']);
+  sheet.addRow(['8) Sheet LOI_MAU chỉ để tham khảo lỗi, tuyệt đối không dùng để import.']);
+  sheet.addRow(['9) Checklist: SKU/Slug phải unique, categorySlug phải tồn tại, status phải đúng danh sách.']);
 
   sheet.getRow(1).font = { bold: true, size: 14 };
   sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };

@@ -17,6 +17,7 @@ import {
   getProductExcelColumns,
   isRowEmpty,
   normalizeExcelText,
+  parseExcelImageUrls,
   parseExcelNumber,
   parseExcelStatus,
 } from '@/lib/products/excel-contract';
@@ -360,6 +361,7 @@ function ProductsContent() {
         categorySlug: string;
         description?: string;
         image?: string;
+        images?: string[];
         name: string;
         price: number;
         rowNumber: number;
@@ -412,11 +414,14 @@ function ProductsContent() {
 
         const salePrice = values.salePrice ? parseExcelNumber(values.salePrice) : null;
         const stock = values.stock ? parseExcelNumber(values.stock) : null;
+        const imageUrls = parseExcelImageUrls(values.image);
+        const primaryImage = imageUrls[0];
 
         payloadRows.push({
           categorySlug: values.categorySlug,
           description: values.description || undefined,
-          image: values.image || undefined,
+          image: primaryImage,
+          images: imageUrls.length ? imageUrls : undefined,
           name: values.name,
           price,
           rowNumber: rowIndex,

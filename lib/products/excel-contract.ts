@@ -106,6 +106,17 @@ export function parseExcelStatus(value: unknown): ProductExcelStatus | null {
   return STATUS_NORMALIZED_MAP[normalized] ?? null;
 }
 
+export function parseExcelImageUrls(value: unknown): string[] {
+  const normalized = normalizeExcelText(value);
+  if (!normalized) {
+    return [];
+  }
+  return normalized
+    .split(';')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export function buildHeaderMap(headers: string[]): Map<ProductExcelColumnKey, number> {
   const map = new Map<ProductExcelColumnKey, number>();
   const columns = [...PRODUCT_EXCEL_BASE_COLUMNS, ...PRODUCT_EXCEL_OPTIONAL_COLUMNS];
