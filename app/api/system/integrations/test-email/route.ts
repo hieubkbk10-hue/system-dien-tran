@@ -5,6 +5,8 @@ import { api } from '@/convex/_generated/api';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const toSafeString = (value: unknown) => (typeof value === 'string' ? value : '');
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
@@ -37,13 +39,13 @@ export async function POST(request: Request) {
       ],
     });
 
-    const host = String(settings.mail_host ?? '').trim();
+    const host = toSafeString(settings.mail_host).trim();
     const portValue = Number(settings.mail_port ?? 0);
-    const username = String(settings.mail_username ?? '').trim();
-    const password = String(settings.mail_password ?? '').trim();
-    const encryption = String(settings.mail_encryption ?? '').trim();
-    const fromEmail = String(settings.mail_from_email ?? '').trim();
-    const fromName = String(settings.mail_from_name ?? '').trim();
+    const username = toSafeString(settings.mail_username).trim();
+    const password = toSafeString(settings.mail_password).trim();
+    const encryption = toSafeString(settings.mail_encryption).trim();
+    const fromEmail = toSafeString(settings.mail_from_email).trim();
+    const fromName = toSafeString(settings.mail_from_name).trim();
 
     if (!host || !portValue || !username || !password || !fromEmail) {
       return NextResponse.json({ message: 'Thiếu cấu hình SMTP bắt buộc.' }, { status: 400 });

@@ -275,7 +275,7 @@ function ProductsContent() {
       }
     };
 
-    runExport();
+    void runExport();
   }, [categorySlugMap, excelColumns, exportData, exportRequested]);
 
   const handleSort = (key: string) => {

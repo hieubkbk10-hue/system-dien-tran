@@ -11,7 +11,7 @@ import { ConfigActions } from './_components/ConfigActions';
 import { ModuleCard } from './_components/ModuleCard';
 import { PresetDropdown } from './_components/PresetDropdown';
 import { categoryColors } from './_constants';
-import type { AdminModule, SystemPreset } from './_types';
+import type { AdminModule } from './_types';
 
 export default function ModuleManagementPage() {
   const { t } = useI18n();

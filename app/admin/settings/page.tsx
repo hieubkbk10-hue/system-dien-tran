@@ -211,7 +211,7 @@ function SettingsContent() {
       setHasCleanedSeoFields(true);
       return;
     }
-    removeMultiple({ keys: Array.from(REMOVED_SEO_KEYS) })
+    void removeMultiple({ keys: Array.from(REMOVED_SEO_KEYS) })
       .finally(() => setHasCleanedSeoFields(true));
   }, [settingsData, hasCleanedSeoFields, removeMultiple]);
 

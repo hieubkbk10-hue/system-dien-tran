@@ -24,6 +24,8 @@ type SettingsKey = (typeof SETTINGS_KEYS)[number];
 
 const sanitizeHtml = (html: string) => html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
 
+const toSafeString = (value: unknown) => (typeof value === 'string' ? value : '');
+
 export default function IntegrationsPage() {
   const { t } = useI18n();
   const settings = useQuery(api.settings.getMultiple, { keys: [...SETTINGS_KEYS] });
@@ -51,8 +53,8 @@ export default function IntegrationsPage() {
     if (!settings) {return;}
     const nextForm = { ...form };
     SETTINGS_KEYS.forEach((key) => {
-      const value = settings[key] ?? '';
-      nextForm[key] = typeof value === 'string' ? value : String(value ?? '');
+      const value = settings[key];
+      nextForm[key] = toSafeString(value);
     });
     if (!nextForm.mail_driver) {nextForm.mail_driver = 'smtp';}
     if (!nextForm.mail_encryption) {nextForm.mail_encryption = 'tls';}
