@@ -45,6 +45,12 @@ Khi skill này được gọi, **phải** trả về đúng khung:
 - **Non-critical fail ⇒ cho phép hoàn tất với warning bắt buộc + remediation note.**
 - “Done” chỉ khi **tất cả critical pass** và warning list đã được khai báo.
 
+## Conflict Resolution Order
+
+1) `CLAUDE.md` / `AGENTS.md`
+2) `system-extension-guideline` (master)
+3) Skill chuyên biệt (module/experience/home)
+
 ## Master Contract (4 luồng bắt buộc)
 
 ### 1) Module (tạo mới ở `/system/modules/*`)

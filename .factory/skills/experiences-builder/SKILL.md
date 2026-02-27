@@ -62,8 +62,8 @@ Khi user yêu cầu tạo experience mới hoặc chuẩn hóa experience:
 - [ ] `ExampleLinks` cho quick preview URLs
 
 ### 8) Validation & commit
-- [ ] Run `bunx oxlint --type-aware --type-check --fix` khi có thay đổi TS/TSX
-- [ ] Run `bun run lint`
+- [ ] Khi thay đổi TS/TSX: chạy `bunx tsc --noEmit`
+- [ ] Không chạy lint/oxlint mặc định nếu không được yêu cầu
 - [ ] Commit theo message rõ ràng
 
 ## Template layout mẫu (rút gọn)
@@ -174,8 +174,11 @@ return (
 Chạy:
 
 ```bash
-bunx oxlint --type-aware --type-check --fix
-bun run lint
+bunx tsc --noEmit
 ```
 
-Nếu lint fail do lỗi đã tồn tại ở file khác, báo rõ trong summary.
+Nếu có yêu cầu riêng về lint/oxlint, hãy làm theo yêu cầu đó.
+
+## Conflict Resolution
+
+Nếu có xung đột với `system-extension-guideline`, luôn ưu tiên master playbook.

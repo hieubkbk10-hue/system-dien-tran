@@ -37,9 +37,13 @@ components/site/
 
 ---
 
-## WebSearch Best Practices (BẮT BUỘC TRƯỚC KHI CODE)
+## Conflict Resolution
 
-**CRITICAL**: Mỗi loại home-component có đặc thù riêng. PHẢI WebSearch để tìm Best Practices cụ thể trước khi thiết kế.
+Nếu có xung đột với `system-extension-guideline`, luôn ưu tiên master playbook.
+
+## WebSearch Best Practices (Khi cần)
+
+**CRITICAL**: Chỉ bắt buộc WebSearch khi component domain mới/thiếu pattern nội bộ. Nếu repo đã có component tương tự, ưu tiên dùng reference nội bộ trước.
 
 ### Cách Search
 

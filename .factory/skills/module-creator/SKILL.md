@@ -35,6 +35,10 @@ Skill này giúp tạo module admin hoàn chỉnh theo chuẩn của hệ thốn
 - User cần system config page để quản lý cấu hình module
 - User muốn tạo seed data cho module
 
+## Conflict Resolution
+
+Nếu có xung đột với `system-extension-guideline`, luôn ưu tiên master playbook.
+
 ## Quy trình tạo Module
 
 ### Phase 1: Thu thập thông tin
@@ -464,8 +468,7 @@ export default function [ModuleName]ListPage() {
 }
 
 function [ModuleName]Content() {
-  const itemsData = useQuery(api.[moduleName].listAll, {});
-  const categoriesData = useQuery(api.[moduleName]Categories.listAll, {});
+  const categoriesData = useQuery(api.[moduleName]Categories.listAll, { limit: 50 });
   // ⚠️ CRITICAL: Get pagination setting from module settings
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: '[moduleName]' });
   const deleteItem = useMutation(api.[moduleName].remove);
@@ -476,15 +479,20 @@ function [ModuleName]Content() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedIds, setSelectedIds] = useState<Id<"[moduleName]">[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const isLoading = itemsData === undefined || categoriesData === undefined;
+  const isLoading = categoriesData === undefined;
 
   // ⚠️ CRITICAL: Get itemsPerPage from settings
   const itemsPerPage = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === '[moduleName]PerPage');
-    return (setting?.value as number) || 10;
+    const raw = (setting?.value as number) || 20;
+    return Math.min(Math.max(raw, 10), 100);
   }, [settingsData]);
+
+  const {
+    results: itemsData,
+    status: itemsStatus,
+    loadMore: loadMoreItems,
+  } = usePaginatedQuery(api.[moduleName].list, {}, { initialNumItems: itemsPerPage });
 
   // Map category ID to name
   const categoryMap = useMemo(() => {
@@ -510,21 +518,13 @@ function [ModuleName]Content() {
 
   const sortedItems = useSortableData(filteredItems, sortConfig);
 
-  // ⚠️ CRITICAL: Pagination logic
-  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return sortedItems.slice(start, start + itemsPerPage);
-  }, [sortedItems, currentPage, itemsPerPage]);
-
   const handleSort = (key: string) => {
     setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
-    setCurrentPage(1);  // Reset page on sort
+    // reset sorting state only
   };
 
   const handleFilterChange = (value: string) => {
     setFilterStatus(value);
-    setCurrentPage(1);  // Reset page on filter
   };
 
   // ... selection handlers, delete handlers, reseed handler
@@ -565,7 +565,7 @@ function [ModuleName]Content() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40px]"><SelectCheckbox checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0} onChange={toggleSelectAll} /></TableHead>
+              <TableHead className="w-[40px]"><SelectCheckbox checked={selectedIds.length === sortedItems.length && sortedItems.length > 0} onChange={toggleSelectAll} /></TableHead>
               <SortableHeader label="Tiêu đề" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
               <SortableHeader label="Danh mục" sortKey="category" sortConfig={sortConfig} onSort={handleSort} />
               <SortableHeader label="Trạng thái" sortKey="status" sortConfig={sortConfig} onSort={handleSort} />
@@ -573,30 +573,21 @@ function [ModuleName]Content() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedItems.map(item => (
+            {sortedItems.map(item => (
               <TableRow key={item._id} className={selectedIds.includes(item._id) ? 'bg-blue-500/5' : ''}>
                 {/* ... table cells */}
               </TableRow>
             ))}
-            {paginatedItems.length === 0 && (
+            {sortedItems.length === 0 && (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Chưa có dữ liệu</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
 
         {/* ⚠️ CRITICAL: Pagination UI */}
-        {sortedItems.length > 0 && (
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <span className="text-sm text-slate-500">
-              Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, sortedItems.length)} / {sortedItems.length}
-            </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}><ChevronLeft size={16} /></Button>
-                <span className="text-sm text-slate-600 dark:text-slate-400">Trang {currentPage} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}><ChevronRight size={16} /></Button>
-              </div>
-            )}
+        {itemsStatus === 'CanLoadMore' && (
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center">
+            <Button variant="outline" size="sm" onClick={() => loadMoreItems(itemsPerPage)}>Tải thêm</Button>
           </div>
         )}
       </Card>
@@ -1043,6 +1034,13 @@ File: `app/admin/components/Sidebar.tsx`
 ```typescript
 { name: '[Display Name]', href: '/admin/[module-name]', icon: [Icon], moduleKey: '[moduleName]' },
 ```
+
+## Bandwidth Guardrails (BẮT BUỘC)
+
+- Mặc định limit 20, max 100 (hoặc theo `{module}PerPage`).
+- Không dùng `listAll`/`collect()` cho luồng hiển thị list chính.
+- Filter/sort phải thực hiện ở DB (index phù hợp), không filter JS sau fetch-all.
+- `collect()` chỉ chấp nhận trong luồng cleanup/reset có kiểm soát.
 
 ## Checklist hoàn thành Module
 
