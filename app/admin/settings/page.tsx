@@ -801,7 +801,18 @@ function SettingsContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {activeTab === 'contact' && (
-                    <p className="text-xs text-slate-500">Dữ liệu này hiển thị ở trang /contact</p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <span>Dữ liệu này hiển thị ở trang /contact</span>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="h-auto px-0 text-xs"
+                        onClick={() => window.open('/contact', '_blank', 'noopener,noreferrer')}
+                      >
+                        Mở trang
+                      </Button>
+                    </div>
                   )}
                   {currentFields.map(field => renderField(field))}
                 </CardContent>
