@@ -1,17 +1,33 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { ChevronDown, Edit, ExternalLink, Layers, Loader2, Package, Plus, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, Download, Edit, ExternalLink, Layers, Loader2, Package, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui';
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import {
+  buildHeaderMap,
+  getProductExcelColumns,
+  isRowEmpty,
+  normalizeExcelText,
+  parseExcelNumber,
+  parseExcelStatus,
+} from '@/lib/products/excel-contract';
+import {
+  buildGuideSheet,
+  buildProductExportSheet,
+  buildProductTemplateSheet,
+  fillProductExportRows,
+  getStatusLabel,
+  type ProductExcelRow,
+} from '@/lib/products/excel-styles';
 
 const MODULE_KEY = 'products';
 const PAGE_SIZE_OPTIONS = [12, 20, 30, 50, 100];
@@ -32,6 +48,7 @@ function ProductsContent() {
   
   const deleteProduct = useMutation(api.products.remove);
   const bulkRemove = useMutation(api.products.bulkRemove);
+  const importProducts = useMutation(api.products.importFromExcelRows);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -61,6 +78,11 @@ function ProductsContent() {
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"products"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportRequested, setExportRequested] = useState(false);
+  const [exportMode, setExportMode] = useState<'filter' | 'all' | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSelectAllActive = selectionMode === 'all';
 
@@ -91,11 +113,12 @@ function ProductsContent() {
 
   const resolvedProductsPerPage = pageSizeOverride ?? productsPerPage;
   const offset = (currentPage - 1) * resolvedProductsPerPage;
+  const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
 
   const productsData = useQuery(api.products.listAdminWithOffset, {
     limit: resolvedProductsPerPage,
     offset,
-    search: debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined,
+    search: resolvedSearch,
     categoryId: filterCategory || undefined,
     status: filterStatus || undefined,
   });
@@ -106,7 +129,7 @@ function ProductsContent() {
   );
 
   const totalCountData = useQuery(api.products.countAdmin, {
-    search: debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined,
+    search: resolvedSearch,
     categoryId: filterCategory || undefined,
     status: filterStatus || undefined,
   });
@@ -115,9 +138,21 @@ function ProductsContent() {
     api.products.listAdminIds,
     isSelectAllActive
       ? {
-          search: debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined,
+          search: resolvedSearch,
           categoryId: filterCategory || undefined,
           status: filterStatus || undefined,
+        }
+      : 'skip'
+  );
+
+  const exportData = useQuery(
+    api.products.listAdminExport,
+    exportRequested
+      ? {
+          limit: 5000,
+          categoryId: exportMode === 'filter' ? (filterCategory || undefined) : undefined,
+          search: exportMode === 'filter' ? resolvedSearch : undefined,
+          status: exportMode === 'filter' ? (filterStatus || undefined) : undefined,
         }
       : 'skip'
   );
@@ -136,6 +171,8 @@ function ProductsContent() {
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
+
+  const excelColumns = useMemo(() => getProductExcelColumns(enabledFields), [enabledFields]);
 
   // Build columns based on enabled fields
   const columns = useMemo(() => {
@@ -179,14 +216,221 @@ function ProductsContent() {
     return map;
   }, [categoriesData]);
 
+  const categorySlugMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    categoriesData?.forEach(cat => { map[cat._id] = cat.slug; });
+    return map;
+  }, [categoriesData]);
+
   const products = useMemo(() => productsData?.map(p => ({
       ...p,
       id: p._id,
       category: categoryMap[p.categoryId] || 'Không có',
     })) || [], [productsData, categoryMap]);
 
+  useEffect(() => {
+    if (!exportRequested || exportData === undefined) {
+      return;
+    }
+    if (!exportData.length) {
+      toast.error('Không có dữ liệu để xuất Excel');
+      setExportRequested(false);
+      setExportMode(null);
+      setIsExporting(false);
+      return;
+    }
+
+    const runExport = async () => {
+      try {
+        const { Workbook } = await import('exceljs');
+        const workbook = new Workbook();
+        const sheet = buildProductExportSheet(workbook, excelColumns);
+        const rows: ProductExcelRow[] = exportData.map((product) => ({
+          categorySlug: categorySlugMap[product.categoryId] ?? '',
+          description: product.description ?? '',
+          image: product.image ?? '',
+          name: product.name,
+          price: product.price,
+          salePrice: product.salePrice ?? null,
+          sku: product.sku,
+          slug: product.slug,
+          status: getStatusLabel(product.status),
+          stock: product.stock,
+        }));
+        fillProductExportRows(sheet, excelColumns, rows);
+        await downloadWorkbook(workbook, `products-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Xuất Excel thất bại');
+      } finally {
+        setExportRequested(false);
+        setExportMode(null);
+        setIsExporting(false);
+      }
+    };
+
+    runExport();
+  }, [categorySlugMap, excelColumns, exportData, exportRequested]);
+
   const handleSort = (key: string) => {
     setSortConfig(prev => ({ direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc', key }));
+  };
+
+  const downloadWorkbook = async (workbook: { xlsx: { writeBuffer: () => Promise<ArrayBuffer> } }, fileName: string) => {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const { Workbook } = await import('exceljs');
+      const workbook = new Workbook();
+      buildProductTemplateSheet(workbook, excelColumns);
+      buildGuideSheet(workbook, excelColumns);
+      await downloadWorkbook(workbook, 'products-template.xlsx');
+      toast.success('Đã tải file mẫu');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể tạo file mẫu');
+    }
+  };
+
+  const handleExport = (mode: 'filter' | 'all') => {
+    if (isExporting) {
+      return;
+    }
+    setIsExporting(true);
+    setExportMode(mode);
+    setExportRequested(true);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const { Workbook } = await import('exceljs');
+      const buffer = await file.arrayBuffer();
+      const workbook = new Workbook();
+      await workbook.xlsx.load(buffer);
+
+      const sheet = workbook.getWorksheet('Products') ?? workbook.worksheets[0];
+      if (!sheet) {
+        toast.error('Không tìm thấy sheet Products');
+        return;
+      }
+
+      const headers = Array.from({ length: sheet.columnCount }, (_, index) =>
+        normalizeExcelText(sheet.getRow(1).getCell(index + 1).value)
+      );
+      const headerMap = buildHeaderMap(headers);
+      const missingHeaders = excelColumns.filter((column) => column.required && !headerMap.has(column.key));
+      if (missingHeaders.length > 0) {
+        toast.error(`Thiếu cột bắt buộc: ${missingHeaders.map((column) => column.label).join(', ')}`);
+        return;
+      }
+      const clientErrors: { row: number; message: string }[] = [];
+      const payloadRows: {
+        categorySlug: string;
+        description?: string;
+        image?: string;
+        name: string;
+        price: number;
+        rowNumber: number;
+        salePrice?: number;
+        sku: string;
+        slug: string;
+        status?: 'Active' | 'Draft' | 'Archived';
+        stock?: number;
+      }[] = [];
+
+      for (let rowIndex = 2; rowIndex <= sheet.rowCount; rowIndex += 1) {
+        const row = sheet.getRow(rowIndex);
+        const rowValues = excelColumns.map((column) => {
+          const columnIndex = headerMap.get(column.key);
+          if (columnIndex === undefined) {
+            return '';
+          }
+          return normalizeExcelText(row.getCell(columnIndex + 1).value);
+        });
+
+        if (isRowEmpty(rowValues)) {
+          continue;
+        }
+
+        const values: Record<string, string> = {};
+        excelColumns.forEach((column, columnIndex) => {
+          values[column.key] = rowValues[columnIndex] ?? '';
+        });
+
+        const requiredMissing = excelColumns
+          .filter((column) => column.required)
+          .some((column) => !values[column.key]);
+        if (requiredMissing) {
+          clientErrors.push({ message: 'Thiếu dữ liệu bắt buộc', row: rowIndex });
+          continue;
+        }
+
+        const price = parseExcelNumber(values.price);
+        if (price === null) {
+          clientErrors.push({ message: 'Giá bán không hợp lệ', row: rowIndex });
+          continue;
+        }
+
+        const statusValue = values.status;
+        const parsedStatus = statusValue ? parseExcelStatus(statusValue) : null;
+        if (statusValue && !parsedStatus) {
+          clientErrors.push({ message: 'Trạng thái không hợp lệ', row: rowIndex });
+          continue;
+        }
+
+        const salePrice = values.salePrice ? parseExcelNumber(values.salePrice) : null;
+        const stock = values.stock ? parseExcelNumber(values.stock) : null;
+
+        payloadRows.push({
+          categorySlug: values.categorySlug,
+          description: values.description || undefined,
+          image: values.image || undefined,
+          name: values.name,
+          price,
+          rowNumber: rowIndex,
+          salePrice: salePrice ?? undefined,
+          sku: values.sku,
+          slug: values.slug,
+          status: parsedStatus ?? undefined,
+          stock: stock ?? undefined,
+        });
+      }
+
+      if (!payloadRows.length) {
+        toast.error('Không có dữ liệu hợp lệ để import');
+        return;
+      }
+
+      const result = await importProducts({ rows: payloadRows });
+      const totalErrors = clientErrors.length + result.errors.length;
+      toast.success(`Đã tạo ${result.created} sản phẩm, bỏ qua ${result.skipped}`);
+      if (totalErrors > 0) {
+        toast.error(`Có ${totalErrors} dòng lỗi cần kiểm tra`);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Import Excel thất bại');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const toggleColumn = (key: string) => {
@@ -314,6 +558,25 @@ function ProductsContent() {
           </p>
         </div>
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+          <Button variant="outline" className="gap-2" onClick={handleDownloadTemplate}>
+            <Download size={16} /> Tải file mẫu
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={handleImportClick} disabled={isImporting}>
+            <Upload size={16} /> {isImporting ? 'Đang import...' : 'Import Excel'}
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('filter'); }} disabled={isExporting || exportRequested}>
+            <Download size={16} /> Xuất theo lọc
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('all'); }} disabled={isExporting || exportRequested}>
+            <Download size={16} /> Xuất toàn bộ
+          </Button>
           <Link href="/admin/products/create"><Button className="gap-2"><Plus size={16}/> Thêm sản phẩm</Button></Link>
         </div>
       </div>

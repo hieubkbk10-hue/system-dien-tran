@@ -188,6 +188,68 @@ export const listAdminIds = query({
   returns: v.object({ ids: v.array(v.id("products")), hasMore: v.boolean() }),
 });
 
+const productExportDoc = v.object({
+  categoryId: v.id("productCategories"),
+  description: v.optional(v.string()),
+  image: v.optional(v.string()),
+  name: v.string(),
+  price: v.number(),
+  salePrice: v.optional(v.number()),
+  sku: v.string(),
+  slug: v.string(),
+  status: productStatus,
+  stock: v.number(),
+});
+
+export const listAdminExport = query({
+  args: {
+    categoryId: v.optional(v.id("productCategories")),
+    limit: v.optional(v.number()),
+    search: v.optional(v.string()),
+    status: v.optional(productStatus),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 5000, 5000);
+    const fetchLimit = Math.min(limit + 200, 5000);
+
+    const queryBuilder = args.categoryId && args.status
+      ? ctx.db.query("products").withIndex("by_category_status", (q) =>
+        q.eq("categoryId", args.categoryId!).eq("status", args.status!)
+      )
+      : args.categoryId
+        ? ctx.db.query("products").withIndex("by_category_status", (q) =>
+          q.eq("categoryId", args.categoryId!)
+        )
+        : args.status
+          ? ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!))
+          : ctx.db.query("products").withIndex("by_status_order");
+
+    let products = await queryBuilder.order("desc").take(fetchLimit);
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase().trim();
+      products = products.filter((product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return products.slice(0, limit).map((product) => ({
+      categoryId: product.categoryId,
+      description: product.description,
+      image: product.image,
+      name: product.name,
+      price: product.price,
+      salePrice: product.salePrice,
+      sku: product.sku,
+      slug: product.slug,
+      status: product.status,
+      stock: product.stock,
+    }));
+  },
+  returns: v.array(productExportDoc),
+});
+
 // FIX #2: Use counter table for count instead of fetching ALL
 export const count = query({
   args: { status: v.optional(productStatus) },
@@ -684,6 +746,127 @@ async function getNextOrder(ctx: MutationCtx): Promise<number> {
     .unique();
   return totalStats?.lastOrder ?? 0;
 }
+
+const importRowDoc = v.object({
+  categorySlug: v.string(),
+  description: v.optional(v.string()),
+  image: v.optional(v.string()),
+  name: v.string(),
+  price: v.number(),
+  rowNumber: v.optional(v.number()),
+  salePrice: v.optional(v.number()),
+  sku: v.string(),
+  slug: v.string(),
+  status: v.optional(productStatus),
+  stock: v.optional(v.number()),
+});
+
+export const importFromExcelRows = mutation({
+  args: { rows: v.array(importRowDoc) },
+  handler: async (ctx, args) => {
+    const rows = args.rows.slice(0, 5000);
+    const categories = await ctx.db
+      .query("productCategories")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+    const categoryMap = new Map(categories.map((category) => [category.slug.toLowerCase(), category._id]));
+
+    const uniqueSkus = Array.from(new Set(rows.map((row) => row.sku.trim()).filter(Boolean)));
+    const uniqueSlugs = Array.from(new Set(rows.map((row) => row.slug.trim()).filter(Boolean)));
+
+    const [existingSkuList, existingSlugList] = await Promise.all([
+      Promise.all(uniqueSkus.map((sku) =>
+        ctx.db.query("products").withIndex("by_sku", (q) => q.eq("sku", sku)).unique()
+      )),
+      Promise.all(uniqueSlugs.map((slug) =>
+        ctx.db.query("products").withIndex("by_slug", (q) => q.eq("slug", slug)).unique()
+      )),
+    ]);
+
+    const existingSkus = new Set(existingSkuList.filter(Boolean).map((product) => product!.sku));
+    const existingSlugs = new Set(existingSlugList.filter(Boolean).map((product) => product!.slug));
+    const seenSkus = new Set<string>();
+    const seenSlugs = new Set<string>();
+
+    let defaultStatus: "Draft" | "Active" | "Archived" = "Draft";
+    const setting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "defaultStatus")
+      )
+      .unique();
+    if (setting?.value === "Active") {
+      defaultStatus = "Active";
+    }
+
+    const errors: { row: number; message: string }[] = [];
+    let created = 0;
+    let skipped = 0;
+
+    for (const [index, row] of rows.entries()) {
+      const rowNumber = row.rowNumber ?? index + 2;
+      const name = row.name.trim();
+      const slug = row.slug.trim();
+      const sku = row.sku.trim();
+      const categorySlug = row.categorySlug.trim().toLowerCase();
+
+      if (!name || !slug || !sku || !categorySlug) {
+        errors.push({ message: "Thiếu dữ liệu bắt buộc", row: rowNumber });
+        continue;
+      }
+
+      if (!Number.isFinite(row.price)) {
+        errors.push({ message: "Giá bán không hợp lệ", row: rowNumber });
+        continue;
+      }
+
+      const categoryId = categoryMap.get(categorySlug);
+      if (!categoryId) {
+        errors.push({ message: "Không tìm thấy danh mục theo slug", row: rowNumber });
+        continue;
+      }
+
+      if (existingSkus.has(sku) || existingSlugs.has(slug) || seenSkus.has(sku) || seenSlugs.has(slug)) {
+        skipped += 1;
+        continue;
+      }
+
+      const nextOrder = await getNextOrder(ctx);
+      const status = row.status ?? defaultStatus;
+      const stockValue = Number.isFinite(row.stock ?? 0) ? (row.stock ?? 0) : 0;
+      const salePrice = row.salePrice && row.salePrice > 0 ? row.salePrice : undefined;
+
+      await ctx.db.insert("products", {
+        categoryId,
+        description: row.description?.trim() || undefined,
+        image: row.image?.trim() || undefined,
+        name,
+        price: row.price,
+        salePrice,
+        sku,
+        slug,
+        status,
+        stock: stockValue,
+        sales: 0,
+        order: nextOrder,
+      });
+
+      await updateStats(ctx, { new: status });
+      existingSkus.add(sku);
+      existingSlugs.add(slug);
+      seenSkus.add(sku);
+      seenSlugs.add(slug);
+      created += 1;
+    }
+
+    return { created, skipped, errors };
+  },
+  returns: v.object({
+    created: v.number(),
+    errors: v.array(v.object({ message: v.string(), row: v.number() })),
+    skipped: v.number(),
+  }),
+});
 
 export const create = mutation({
   args: {
