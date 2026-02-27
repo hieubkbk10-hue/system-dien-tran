@@ -37,6 +37,7 @@ export function buildProductTemplateSheet(workbook: Workbook, columns: ProductEx
   applyNumberFormats(sheet, columns);
   addStatusValidation(sheet, columns);
   addExampleRows(sheet, columns);
+  ensureExampleRows(sheet, columns);
 
   return sheet;
 }
@@ -294,6 +295,27 @@ function addExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
   examples.forEach((example) => {
     sheet.addRow(columns.map((column) => example[column.key] ?? ''));
   });
+}
+
+function ensureExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
+  if (sheet.rowCount > 1) {
+    return;
+  }
+
+  const fallback: Record<ProductExcelColumnKey, string | number> = {
+    name: 'Sản phẩm mẫu',
+    slug: 'san-pham-mau',
+    sku: 'SKU-MAU-001',
+    categorySlug: 'danh-muc-mau',
+    price: 99000,
+    salePrice: 0,
+    stock: 10,
+    status: PRODUCT_STATUS_LABELS.Active,
+    image: '',
+    description: 'Dòng mẫu dự phòng khi sheet trống dữ liệu.',
+  };
+
+  sheet.addRow(columns.map((column) => fallback[column.key] ?? ''));
 }
 
 export function getStatusLabel(status: ProductExcelStatus): string {
