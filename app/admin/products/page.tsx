@@ -21,6 +21,7 @@ import {
   parseExcelStatus,
 } from '@/lib/products/excel-contract';
 import {
+  buildErrorSampleSheet,
   buildGuideSheet,
   buildProductExportSheet,
   buildProductTemplateSheet,
@@ -300,6 +301,7 @@ function ProductsContent() {
       const workbook = new Workbook();
       buildProductTemplateSheet(workbook, excelColumns);
       buildGuideSheet(workbook, excelColumns);
+      buildErrorSampleSheet(workbook, excelColumns);
       await downloadWorkbook(workbook, 'products-template.xlsx');
       toast.success('Đã tải file mẫu');
     } catch (error) {

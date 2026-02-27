@@ -36,7 +36,7 @@ export function buildProductTemplateSheet(workbook: Workbook, columns: ProductEx
   sheet.autoFilter = { from: { column: 1, row: 1 }, to: { column: columns.length, row: 1 } };
   applyNumberFormats(sheet, columns);
   addStatusValidation(sheet, columns);
-  addExampleRow(sheet, columns);
+  addExampleRows(sheet, columns);
 
   return sheet;
 }
@@ -73,9 +73,106 @@ export function buildGuideSheet(workbook: Workbook, columns: ProductExcelColumn[
   sheet.addRow(['3) Slug danh mục phải là slug hiện có trong hệ thống (không dùng tên danh mục).']);
   sheet.addRow(['4) SKU/Slug bị trùng sẽ được bỏ qua khi import.']);
   sheet.addRow(['5) Giá bán/Tồn kho phải là số, không nhập ký tự đặc biệt.']);
+  sheet.addRow(['6) Products có 6 case mẫu: chuẩn, khuyến mãi, Draft, Archived, không có ảnh, mô tả dài.']);
+  sheet.addRow(['7) Sheet LOI_MAU chỉ để tham khảo lỗi, tuyệt đối không dùng để import.']);
+  sheet.addRow(['8) Checklist: SKU/Slug phải unique, categorySlug phải tồn tại, status phải đúng danh sách.']);
 
   sheet.getRow(1).font = { bold: true, size: 14 };
   sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
+  return sheet;
+}
+
+export function buildErrorSampleSheet(workbook: Workbook, columns: ProductExcelColumn[]) {
+  const sheet = workbook.addWorksheet('LOI_MAU', { views: [{ state: 'frozen', ySplit: 2 }] });
+  sheet.columns = columns.map((column) => ({
+    header: column.label,
+    key: column.key,
+    width: column.width ?? 20,
+  }));
+
+  sheet.addRow(['Sheet này chỉ để tham khảo lỗi, không dùng để import.']);
+  sheet.mergeCells(1, 1, 1, columns.length);
+  sheet.getRow(1).font = { bold: true, color: { argb: 'FFB91C1C' } };
+  sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
+
+  styleHeaderRow(sheet, columns.length);
+  sheet.autoFilter = { from: { column: 1, row: 2 }, to: { column: columns.length, row: 2 } };
+  applyNumberFormats(sheet, columns);
+
+  const errorRows: Record<ProductExcelColumnKey, string | number>[] = [
+    {
+      name: 'Thiếu SKU',
+      slug: 'thieu-sku',
+      sku: '',
+      categorySlug: 'khong-ton-tai',
+      price: 150000,
+      salePrice: 0,
+      stock: 20,
+      status: 'SaiStatus',
+      image: '',
+      description: 'Thiếu SKU + categorySlug sai + status sai.',
+    },
+    {
+      name: 'Giá sai định dạng',
+      slug: 'gia-sai-dinh-dang',
+      sku: 'ERR-PRICE',
+      categorySlug: 'thoi-trang',
+      price: 'abc',
+      salePrice: 0,
+      stock: 10,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: 'https://example.com/images/error.jpg',
+      description: 'Giá bán không phải số.',
+    },
+    {
+      name: 'Thiếu slug',
+      slug: '',
+      sku: 'ERR-SLUG',
+      categorySlug: 'thoi-trang',
+      price: 120000,
+      salePrice: 0,
+      stock: 5,
+      status: PRODUCT_STATUS_LABELS.Draft,
+      image: '',
+      description: 'Thiếu slug bắt buộc.',
+    },
+    {
+      name: 'Slug sai format',
+      slug: 'Slug Có Dấu',
+      sku: 'ERR-FORMAT',
+      categorySlug: 'thoi-trang',
+      price: 89000,
+      salePrice: 0,
+      stock: 5,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: '',
+      description: 'Slug phải viết thường, không có dấu và khoảng trắng.',
+    },
+    {
+      name: 'Trùng SKU',
+      slug: 'trung-sku',
+      sku: 'TSHIRT-001',
+      categorySlug: 'thoi-trang',
+      price: 99000,
+      salePrice: 0,
+      stock: 12,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: '',
+      description: 'SKU trùng sẽ bị bỏ qua khi import.',
+    },
+  ];
+
+  errorRows.forEach((row) => {
+    const added = sheet.addRow(columns.map((column) => row[column.key] ?? ''));
+    added.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFEE2E2' },
+      };
+    });
+  });
+
   return sheet;
 }
 
@@ -118,21 +215,85 @@ function addStatusValidation(sheet: Worksheet, columns: ProductExcelColumn[]) {
   }
 }
 
-function addExampleRow(sheet: Worksheet, columns: ProductExcelColumn[]) {
-  const example: Record<ProductExcelColumnKey, string | number> = {
-    name: 'Áo thun basic',
-    slug: 'ao-thun-basic',
-    sku: 'TSHIRT-001',
-    categorySlug: 'thoi-trang',
-    price: 199000,
-    salePrice: 149000,
-    stock: 50,
-    status: PRODUCT_STATUS_LABELS.Active,
-    image: 'https://example.com/images/ao-thun.jpg',
-    description: 'Áo thun cotton mềm mại, dễ phối đồ.',
-  };
+function addExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
+  const examples: Record<ProductExcelColumnKey, string | number>[] = [
+    {
+      name: 'Áo thun basic',
+      slug: 'ao-thun-basic',
+      sku: 'TSHIRT-001',
+      categorySlug: 'thoi-trang',
+      price: 199000,
+      salePrice: 0,
+      stock: 50,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: 'https://example.com/images/ao-thun.jpg',
+      description: 'Áo thun cotton mềm mại, dễ phối đồ.',
+    },
+    {
+      name: 'Áo sơ mi khuyến mãi',
+      slug: 'ao-so-mi-khuyen-mai',
+      sku: 'SHIRT-002',
+      categorySlug: 'thoi-trang',
+      price: 299000,
+      salePrice: 249000,
+      stock: 40,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: 'https://example.com/images/ao-so-mi.jpg',
+      description: 'Sơ mi form rộng, giảm giá mùa lễ hội.',
+    },
+    {
+      name: 'Giày sneaker bản nháp',
+      slug: 'giay-sneaker-ban-nhap',
+      sku: 'SNEAK-003',
+      categorySlug: 'giay-dep',
+      price: 459000,
+      salePrice: 0,
+      stock: 0,
+      status: PRODUCT_STATUS_LABELS.Draft,
+      image: 'https://example.com/images/giay-sneaker.jpg',
+      description: 'Bản nháp để chuẩn bị mở bán.',
+    },
+    {
+      name: 'Balo lưu trữ',
+      slug: 'balo-luu-tru',
+      sku: 'BAG-004',
+      categorySlug: 'phu-kien',
+      price: 389000,
+      salePrice: 0,
+      stock: 15,
+      status: PRODUCT_STATUS_LABELS.Archived,
+      image: 'https://example.com/images/balo.jpg',
+      description: 'Sản phẩm ngừng kinh doanh.',
+    },
+    {
+      name: 'Mũ lưỡi trai không ảnh',
+      slug: 'mu-luoi-trai-khong-anh',
+      sku: 'CAP-005',
+      categorySlug: 'phu-kien',
+      price: 99000,
+      salePrice: 0,
+      stock: 80,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: '',
+      description: 'Ví dụ không có ảnh đại diện.',
+    },
+    {
+      name: 'Áo khoác mô tả dài',
+      slug: 'ao-khoac-mo-ta-dai',
+      sku: 'JACKET-006',
+      categorySlug: 'thoi-trang',
+      price: 599000,
+      salePrice: 0,
+      stock: 25,
+      status: PRODUCT_STATUS_LABELS.Active,
+      image: 'https://example.com/images/ao-khoac.jpg',
+      description: 'Mô tả dài: Áo khoác chống gió, chất liệu bền đẹp, phù hợp đi mưa nhẹ. Có nhiều màu sắc để lựa chọn, dễ phối đồ cho cả nam và nữ.',
+    },
+  ];
 
-  sheet.addRow(columns.map((column) => example[column.key] ?? ''));
+  examples.forEach((example) => {
+    sheet.addRow(columns.map((column) => example[column.key] ?? ''));
+  });
 }
 
 export function getStatusLabel(status: ProductExcelStatus): string {
