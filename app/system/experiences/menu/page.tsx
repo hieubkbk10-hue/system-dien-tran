@@ -211,6 +211,9 @@ export default function HeaderMenuExperiencePage() {
     login: { ...config.login, text: 'Đăng nhập' },
   }), [config, resolvedBrandName]);
 
+  const showLoginToggle = Boolean(config.login?.show);
+  const showCtaToggle = Boolean(config.cta?.show);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -313,13 +316,13 @@ export default function HeaderMenuExperiencePage() {
             />
             <ToggleRow
               label="Login"
-              checked={config.login.show}
+              checked={showLoginToggle}
               onChange={(v) => updateLogin('show', v)}
               accentColor={resolvedBrandColor}
             />
             <ToggleRow
               label="CTA"
-              checked={config.cta.show}
+              checked={showCtaToggle}
               onChange={(v) => updateCta('show', v)}
               accentColor={resolvedBrandColor}
             />
