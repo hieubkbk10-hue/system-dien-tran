@@ -156,7 +156,7 @@ export function Header() {
   const canSearchServices = Boolean(config.search?.searchServices && (servicesModule?.enabled ?? false));
   const showSearch = Boolean(config.search?.show && (canSearchProducts || canSearchPosts || canSearchServices));
   
-  const displayName = (config.brandName ?? siteName) ?? 'YourBrand';
+  const displayName = (siteName ?? config.brandName) ?? 'YourBrand';
 
   const tokens = useMemo<MenuColors>(
     () => getMenuColors(brandColors.primary, brandColors.secondary, brandColors.mode),

@@ -55,6 +55,9 @@ export type HeaderMenuPreviewProps = {
   customersEnabled: boolean;
   loginFeatureEnabled: boolean;
   ordersEnabled: boolean;
+  productsEnabled: boolean;
+  postsEnabled: boolean;
+  servicesEnabled: boolean;
 };
 
 export function HeaderMenuPreview({
@@ -70,6 +73,9 @@ export function HeaderMenuPreview({
   customersEnabled,
   loginFeatureEnabled,
   ordersEnabled,
+  productsEnabled,
+  postsEnabled,
+  servicesEnabled,
 }: HeaderMenuPreviewProps) {
   const tokens = useMemo<MenuColors>(
     () => getMenuColors(brandColor, secondaryColor, colorMode),
@@ -140,8 +146,14 @@ export function HeaderMenuPreview({
 
   const canLogin = customersEnabled && loginFeatureEnabled;
   const showLogin = config.login.show && canLogin;
+  const showUserMenu = false;
+  const showLoginLink = showLogin;
   const canTrackOrder = ordersEnabled;
   const showTrackOrder = displayTopbar.showTrackOrder && canTrackOrder;
+  const canSearchProducts = config.search.searchProducts && productsEnabled;
+  const canSearchPosts = config.search.searchPosts && postsEnabled;
+  const canSearchServices = config.search.searchServices && servicesEnabled;
+  const showSearch = config.search.show && (canSearchProducts || canSearchPosts || canSearchServices);
 
   const renderUserMenu = (variant: 'text' | 'icon') => (
     <div className="relative">
@@ -305,10 +317,16 @@ export function HeaderMenuPreview({
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
                   {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
                   {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span style={{ color: tokens.topbarDivider }}>|</span>}
+                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
-              {showLogin && renderUserMenu('text')}
+              {showUserMenu && renderUserMenu('text')}
+              {showLoginLink && (
+                <a href={defaultLinks.login} className="hover:underline flex items-center gap-1">
+                  <User size={12} />
+                  {loginLabel}
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -388,7 +406,7 @@ export function HeaderMenuPreview({
               ))}
             </nav>
             <div className="flex items-center gap-3">
-              {config.search.show && (
+              {showSearch && (
                 <div className="relative">
                   <input
                     type="text"
@@ -432,7 +450,7 @@ export function HeaderMenuPreview({
           </>
         ) : (
           <div className="flex items-center gap-2">
-            {config.search.show && (
+            {showSearch && (
               <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                 <Search size={20} />
               </button>
@@ -453,7 +471,7 @@ export function HeaderMenuPreview({
         )}
       </div>
 
-      {config.search.show && searchOpen && (
+      {showSearch && searchOpen && (
         <div className="md:hidden px-6 pb-4 border-b" style={{ borderColor: tokens.border }}>
           <input
             type="text"
@@ -532,10 +550,16 @@ export function HeaderMenuPreview({
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
                   {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
                   {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLogin && <span style={{ color: tokens.topbarDivider }}>|</span>}
+                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
-              {showLogin && renderUserMenu('text')}
+              {showUserMenu && renderUserMenu('text')}
+              {showLoginLink && (
+                <a href={defaultLinks.login} className="hover:underline flex items-center gap-1">
+                  <User size={12} />
+                  {loginLabel}
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -553,7 +577,7 @@ export function HeaderMenuPreview({
             <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
           </div>
 
-          {device !== 'mobile' && config.search.show && (
+          {device !== 'mobile' && showSearch && (
             <div className="flex-1 max-w-md">
               <div className="relative">
                 <input
@@ -579,7 +603,7 @@ export function HeaderMenuPreview({
           <div className="flex items-center gap-2">
             {device === 'mobile' ? (
               <>
-                {config.search.show && (
+                {showSearch && (
                   <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                     <Search size={20} />
                   </button>
@@ -684,7 +708,7 @@ export function HeaderMenuPreview({
         </div>
       )}
 
-      {config.search.show && searchOpen && (
+      {showSearch && searchOpen && (
         <div className="md:hidden px-4 pb-4 border-b" style={{ borderColor: tokens.border }}>
           <input
             type="text"
@@ -854,7 +878,7 @@ export function HeaderMenuPreview({
                   {ctaLabel}
                 </a>
               )}
-              {config.search.show && (
+              {showSearch && (
                 <div className="flex items-center gap-2">
                   <div className={cn('overflow-hidden transition-all duration-200', searchOpen ? 'w-40' : 'w-0')}>
                     <input
@@ -877,7 +901,16 @@ export function HeaderMenuPreview({
                   </button>
                 </div>
               )}
-              {showLogin && renderUserMenu('icon')}
+              {showUserMenu && renderUserMenu('icon')}
+              {showLoginLink && (
+                <a
+                  href={defaultLinks.login}
+                  className="p-2 transition-colors hover:text-[var(--menu-icon-hover)]"
+                  style={{ color: tokens.iconButtonText, ...menuVars }}
+                >
+                  <User size={18} />
+                </a>
+              )}
               {config.cart.show && (
                 <a
                   href={defaultLinks.cart}
@@ -902,7 +935,7 @@ export function HeaderMenuPreview({
               <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
             </div>
             <div className="flex items-center gap-2">
-              {config.search.show && (
+              {showSearch && (
                 <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
                   <Search size={18} />
                 </button>
@@ -924,7 +957,7 @@ export function HeaderMenuPreview({
         )}
       </div>
 
-      {device === 'mobile' && config.search.show && searchOpen && (
+      {device === 'mobile' && showSearch && searchOpen && (
         <div className="px-6 pb-4">
           <input
             type="text"

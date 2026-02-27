@@ -276,7 +276,7 @@ export default function HeaderMenuExperiencePage() {
         <CardHeader>
           <CardTitle className="text-base">Thiết lập hiển thị</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <CardContent className={cn('grid grid-cols-1 gap-4', previewStyle === 'classic' ? 'lg:grid-cols-4' : 'lg:grid-cols-3')}>
           <ControlCard title="Màu thương hiệu">
             <ColorConfigCard
               primary={brandColor}
@@ -600,6 +600,9 @@ export default function HeaderMenuExperiencePage() {
                 customersEnabled={customersModule?.enabled ?? false}
                 loginFeatureEnabled={customerLoginFeature?.enabled ?? false}
                 ordersEnabled={ordersModule?.enabled ?? false}
+                productsEnabled={productsModule?.enabled ?? false}
+                postsEnabled={postsModule?.enabled ?? false}
+                servicesEnabled={servicesModule?.enabled ?? false}
               />
             </BrowserFrame>
           </div>
