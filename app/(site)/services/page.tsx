@@ -333,7 +333,7 @@ function ServicesContent() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>
-            Dịch vụ của chúng tôi
+            Dịch vụ
           </h1>
         </div>
 

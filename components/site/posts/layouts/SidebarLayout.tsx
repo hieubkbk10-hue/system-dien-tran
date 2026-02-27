@@ -227,6 +227,7 @@ export function SidebarLayout({
                       </div>
                       <div className="p-3 flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1">
+                          {categoryMap.get(post.categoryId) && (
                             <span
                               className="text-xs font-medium px-2 py-0.5 rounded"
                               style={{
@@ -235,8 +236,9 @@ export function SidebarLayout({
                                 borderColor: tokens.categoryBadgeBorder,
                               }}
                             >
-                            {categoryMap.get(post.categoryId) ?? 'Tin tức'}
-                          </span>
+                              {categoryMap.get(post.categoryId)}
+                            </span>
+                          )}
                           {post.publishedAt && (
                               <span className="text-xs" style={{ color: tokens.neutralTextLight }}>
                               {new Date(post.publishedAt).toLocaleDateString('vi-VN')}

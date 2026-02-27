@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { JsonLd, generateItemListSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
@@ -70,25 +69,12 @@ export default async function ProductsListLayout({ children }: { children: React
       name: product.name,
       url: `${baseUrl}/products/${product.slug}`,
     })),
-    name: 'Sản phẩm mới nhất',
+    name: 'Sản phẩm',
     url: `${baseUrl}/products`,
   });
 
   return (
     <>
-      <section className="px-4 pt-8 pb-4">
-        <div className="max-w-6xl mx-auto space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Sản phẩm</h1>
-          <p className="text-base md:text-lg text-slate-600">
-            Khám phá danh sách sản phẩm mới nhất và lựa chọn phù hợp cho bạn.
-          </p>
-          <div className="flex flex-wrap gap-3 text-sm font-medium">
-            <Link href="/services" className="text-blue-600 hover:underline">Dịch vụ</Link>
-            <Link href="/posts" className="text-blue-600 hover:underline">Bài viết</Link>
-            <Link href="/contact" className="text-blue-600 hover:underline">Liên hệ</Link>
-          </div>
-        </div>
-      </section>
       {products.length > 0 && <JsonLd data={itemListSchema} />}
       {children}
     </>

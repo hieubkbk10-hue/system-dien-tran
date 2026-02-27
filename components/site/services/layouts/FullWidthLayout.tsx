@@ -30,7 +30,7 @@ interface FullWidthLayoutProps {
 }
 
 const formatPrice = (price?: number): string => {
-  if (!price) {return 'Liên hệ';}
+  if (price === undefined || price === null) {return '';} 
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 };
 
@@ -106,12 +106,14 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
                 </div>
                 <div className="p-3 flex-1 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded"
-                      style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
-                    >
-                      {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
-                    </span>
+                    {categoryMap.get(service.categoryId) && (
+                      <span
+                        className="text-xs font-medium px-2 py-0.5 rounded"
+                        style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                      >
+                        {categoryMap.get(service.categoryId)}
+                      </span>
+                    )}
                     <span className="text-xs text-slate-400">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                   </div>
                   <h2 className="text-base font-semibold text-slate-900 group-hover:opacity-70 transition-opacity duration-200 line-clamp-2">
@@ -130,7 +132,7 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      {showPrice && (
+                      {showPrice && service.price !== undefined && (
                         <span className="text-lg font-bold" style={{ color: tokens.priceColor }}>
                           {formatPrice(service.price)}
                         </span>
@@ -195,12 +197,14 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
             </div>
             <div className="p-3 flex-1 flex flex-col">
               <div className="flex items-center gap-2 mb-2">
-                <span
-                  className="text-xs font-medium px-2 py-0.5 rounded"
-                  style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
-                >
-                  {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
-                </span>
+                {categoryMap.get(service.categoryId) && (
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded"
+                    style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                  >
+                    {categoryMap.get(service.categoryId)}
+                  </span>
+                )}
               </div>
               <h2 className="text-base font-semibold text-slate-900 line-clamp-2 group-hover:opacity-70 transition-opacity duration-200 flex-1">
                 {service.title}
@@ -218,8 +222,8 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {showPrice && (
-                  <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
+                  {showPrice && service.price !== undefined && (
+                    <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                       {formatPrice(service.price)}
                     </span>
                   )}

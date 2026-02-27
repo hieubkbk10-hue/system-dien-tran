@@ -44,7 +44,7 @@ interface MagazineLayoutProps {
 }
 
 function formatPrice(price?: number): string {
-  if (!price) {return 'Liên hệ';}
+  if (price === undefined || price === null) {return '';}
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 }
 
@@ -77,6 +77,7 @@ export function MagazineLayout({
   const showDuration = enabledFields.has('duration');
   const [localSearch, setLocalSearch] = React.useState(searchQuery);
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
+  const selectedCategoryLabel = selectedCategory ? categoryMap.get(selectedCategory) : undefined;
 
   const markThumbnailBroken = React.useCallback((id: Id<"services">) => {
     setBrokenThumbnails((prev) => {
@@ -134,12 +135,14 @@ export function MagazineLayout({
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-6">
                 <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="px-2 py-0.5 rounded text-xs font-semibold text-white bg-black/60 backdrop-blur-sm ring-1 ring-black/30"
-                    style={{ borderColor: tokens.accentBorder }}
-                  >
-                    {categoryMap.get(mainFeatured.categoryId) ?? 'Nổi bật'}
-                  </span>
+                  {categoryMap.get(mainFeatured.categoryId) && (
+                    <span
+                      className="px-2 py-0.5 rounded text-xs font-semibold text-white bg-black/60 backdrop-blur-sm ring-1 ring-black/30"
+                      style={{ borderColor: tokens.accentBorder }}
+                    >
+                      {categoryMap.get(mainFeatured.categoryId)}
+                    </span>
+                  )}
                   <span className="px-2 py-0.5 rounded text-xs font-semibold bg-black/60 text-white flex items-center gap-1 backdrop-blur-sm ring-1 ring-black/30">
                     <Star size={10} className="fill-current" /> Dịch vụ nổi bật
                   </span>
@@ -151,7 +154,7 @@ export function MagazineLayout({
                   <p className="text-white/70 text-sm line-clamp-2 mb-2">{mainFeatured.excerpt}</p>
                 )}
                 <div className="flex items-center gap-4">
-                  {showPrice && (
+                  {showPrice && mainFeatured.price !== undefined && (
                     <span className="text-xl font-bold text-white">{formatPrice(mainFeatured.price)}</span>
                   )}
                   <div className="flex items-center gap-3 text-xs text-white/60">
@@ -196,11 +199,13 @@ export function MagazineLayout({
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold text-white mb-1 bg-black/60 backdrop-blur-sm ring-1 ring-black/30">
-                      {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
-                    </span>
+                    {categoryMap.get(service.categoryId) && (
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold text-white mb-1 bg-black/60 backdrop-blur-sm ring-1 ring-black/30">
+                        {categoryMap.get(service.categoryId)}
+                      </span>
+                    )}
                     <h3 className="text-base font-semibold text-white line-clamp-2">{service.title}</h3>
-                    {showPrice && (
+                    {showPrice && service.price !== undefined && (
                       <span className="text-sm font-bold text-white mt-1 block">{formatPrice(service.price)}</span>
                     )}
                   </div>
@@ -284,9 +289,11 @@ export function MagazineLayout({
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                  {categoryMap.get(service.categoryId) && (
+                    <span className="text-xs font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId)}</span>
+                  )}
                   <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 group-hover:opacity-70 transition-opacity duration-200 mt-0.5">{service.title}</h3>
-                  {showPrice && (
+                  {showPrice && service.price !== undefined && (
                     <span className="text-xs font-bold mt-1 block" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                   )}
                 </div>
@@ -306,9 +313,11 @@ export function MagazineLayout({
       ) : (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
-              {selectedCategory ? categoryMap.get(selectedCategory) : 'Dịch vụ mới nhất'}
-            </h2>
+            {selectedCategoryLabel && (
+              <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
+                {selectedCategoryLabel}
+              </h2>
+            )}
             <span className="text-sm text-slate-500">{services.length} dịch vụ</span>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -348,7 +357,9 @@ export function MagazineLayout({
                   </div>
                   <div className="flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId) ?? 'Dịch vụ'}</span>
+                      {categoryMap.get(service.categoryId) && (
+                        <span className="text-sm font-medium" style={{ color: tokens.priceColor }}>{categoryMap.get(service.categoryId)}</span>
+                      )}
                       <span className="text-slate-300">•</span>
                       <span className="text-sm text-slate-500">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                     </div>
@@ -365,7 +376,7 @@ export function MagazineLayout({
                           <span className="flex items-center gap-1"><Clock size={12} />{service.duration}</span>
                         )}
                       </div>
-                      {showPrice && (
+                      {showPrice && service.price !== undefined && (
                         <span className="text-base font-bold" style={{ color: tokens.priceColor }}>{formatPrice(service.price)}</span>
                       )}
                     </div>

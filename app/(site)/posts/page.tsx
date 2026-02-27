@@ -371,7 +371,7 @@ function PostsContent() {
         {/* Header */}
         <div className="text-center mb-3">
           <h1 className="text-2xl md:text-3xl font-bold" style={{ color: tokens.headingColor }}>
-            Tin tức & Bài viết
+            Bài viết
           </h1>
         </div>
 

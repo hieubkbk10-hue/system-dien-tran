@@ -172,7 +172,7 @@ export default function PostDetailPage({ params }: PageProps) {
 
   const postData = {
     ...post,
-    categoryName: category?.name ?? 'Tin tức',
+    categoryName: category?.name ?? '',
   };
 
   const handleSubmitComment = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -439,12 +439,14 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
           <article className={`space-y-8 ${hasRelatedPosts ? 'lg:col-span-9' : 'max-w-4xl mx-auto'}`}>
             <header className="space-y-4">
               <div className="flex items-center gap-2">
-                <span
-                  className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                  style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30`, color: accentColor }}
-                >
-                  {post.categoryName}
-                </span>
+                {post.categoryName && (
+                  <span
+                    className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30`, color: accentColor }}
+                  >
+                    {post.categoryName}
+                  </span>
+                )}
               </div>
 
               {visibleTags.length > 0 && (
@@ -649,12 +651,14 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
 
           <section className="max-w-7xl mx-auto w-full space-y-4">
             <div className="flex items-center justify-center md:justify-start">
-              <span
-                className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-                style={{ backgroundColor: `${accentColor}10`, borderColor: `${accentColor}25`, color: accentColor }}
-              >
-                {post.categoryName}
-              </span>
+              {post.categoryName && (
+                <span
+                  className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
+                  style={{ backgroundColor: `${accentColor}10`, borderColor: `${accentColor}25`, color: accentColor }}
+                >
+                  {post.categoryName}
+                </span>
+              )}
             </div>
 
             {visibleTags.length > 0 && (
@@ -868,9 +872,11 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
             <div className="container max-w-6xl mx-auto h-full px-4 md:px-6 flex items-end pb-6 md:pb-8">
               <Card className="w-full max-w-3xl border-border/70 bg-background/90 shadow-sm backdrop-blur-sm">
                 <CardContent className="space-y-3 p-4 md:p-6">
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
-                    {post.categoryName}
-                  </span>
+                  {post.categoryName && (
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
+                      {post.categoryName}
+                    </span>
+                  )}
                   <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
                     {post.title}
                   </h1>

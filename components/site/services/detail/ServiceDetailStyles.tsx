@@ -73,7 +73,7 @@ export interface StyleProps {
 }
 
 function formatPrice(price?: number): string {
-  if (!price) {return 'Liên hệ';}
+  if (price === undefined || price === null) {return '';}
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 }
 
@@ -168,13 +168,15 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
                     Dịch vụ nổi bật
                   </span>
                 )}
-                <Link 
-                  href={`/services?category=${service.categoryId}`}
-                  className="px-3 py-1 text-sm font-medium rounded-full border transition-colors"
-                  style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
-                >
-                  {service.categoryName}
-                </Link>
+                {service.categoryName && (
+                  <Link 
+                    href={`/services?category=${service.categoryId}`}
+                    className="px-3 py-1 text-sm font-medium rounded-full border transition-colors"
+                    style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
+                  >
+                    {service.categoryName}
+                  </Link>
+                )}
               </div>
               
               <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: tokens.headingColor }}>
@@ -187,7 +189,7 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
                 </p>
               )}
 
-              {showPrice && (
+              {showPrice && service.price !== undefined && (
                 <div className="mt-6">
                   <p className="text-xs uppercase tracking-wide" style={{ color: tokens.metaText }}>Chi phí dự kiến</p>
                   <p className="text-3xl font-bold" style={{ color: tokens.priceColor }}>
@@ -283,7 +285,7 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
                           <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-70 transition-opacity" style={{ color: tokens.relatedTitle }}>
                             {s.title}
                           </h4>
-                          {showPrice && (
+                          {showPrice && s.price !== undefined && (
                             <p className="text-sm font-semibold mt-1" style={{ color: tokens.relatedPrice }}>
                               {formatPrice(s.price)}
                             </p>
@@ -366,12 +368,14 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
                   Nổi bật
                 </span>
               )}
-              <span
-                className="px-3 py-1 border text-xs font-medium rounded-md"
-                style={{ color: tokens.categoryBadgeText, backgroundColor: tokens.categoryBadgeBg, borderColor: tokens.categoryBadgeBorder }}
-              >
-                {service.categoryName}
-              </span>
+              {service.categoryName && (
+                <span
+                  className="px-3 py-1 border text-xs font-medium rounded-md"
+                  style={{ color: tokens.categoryBadgeText, backgroundColor: tokens.categoryBadgeBg, borderColor: tokens.categoryBadgeBorder }}
+                >
+                  {service.categoryName}
+                </span>
+              )}
             </div>
 
             {/* Title - Shadcn typography scale */}
@@ -389,7 +393,7 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
             {/* Price & CTA - Inline horizontal layout */}
             {config.contactEnabled && (
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                {showPrice && config.contactShowPrice && (
+                {showPrice && config.contactShowPrice && service.price !== undefined && (
                   <div className="flex items-center gap-3 px-4 py-2 border rounded-lg" style={{ backgroundColor: tokens.surface, borderColor: tokens.border }}>
                     <div>
                       <p className="text-xs" style={{ color: tokens.metaText }}>Chỉ từ</p>
@@ -482,7 +486,7 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
                     <h3 className="text-sm font-semibold mb-2 line-clamp-2 group-hover:opacity-70 transition-opacity" style={{ color: tokens.relatedTitle }}>
                       {s.title}
                     </h3>
-                    {showPrice && (
+                    {showPrice && s.price !== undefined && (
                       <p className="text-base font-bold" style={{ color: tokens.relatedPrice }}>
                         {formatPrice(s.price)}
                       </p>
@@ -549,12 +553,14 @@ export function MinimalStyle({ service, brandColor: _brandColor, tokens, related
                 Nổi bật
               </span>
             )}
-            <span 
-              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
-            >
-              {service.categoryName}
-            </span>
+            {service.categoryName && (
+              <span 
+                className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold"
+                style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText, borderColor: tokens.categoryBadgeBorder }}
+              >
+                {service.categoryName}
+              </span>
+            )}
           </div>
 
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: tokens.headingColor }}>
@@ -568,7 +574,7 @@ export function MinimalStyle({ service, brandColor: _brandColor, tokens, related
           )}
 
           <div className="flex flex-wrap items-center gap-4">
-            {showPrice && (
+            {showPrice && service.price !== undefined && (
               <div className="min-w-[160px]">
                 <p className="text-xs uppercase tracking-wide" style={{ color: tokens.metaText }}>Chi phí dự kiến</p>
                 <p className="text-2xl font-bold" style={{ color: tokens.priceColor }}>
@@ -652,7 +658,7 @@ export function MinimalStyle({ service, brandColor: _brandColor, tokens, related
                       {s.title}
                     </h4>
                   </div>
-                  {showPrice && (
+                  {showPrice && s.price !== undefined && (
                     <span className="text-sm font-semibold" style={{ color: tokens.relatedPrice }}>
                       {formatPrice(s.price)}
                     </span>

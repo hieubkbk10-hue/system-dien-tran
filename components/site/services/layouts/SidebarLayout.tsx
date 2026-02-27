@@ -45,7 +45,7 @@ interface SidebarLayoutProps {
 }
 
 function formatPrice(price?: number): string {
-  if (!price) {return 'Liên hệ';}
+  if (price === undefined || price === null) {return '';}
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 }
 
@@ -241,9 +241,11 @@ export function SidebarLayout({
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}>
-                            {categoryMap.get(service.categoryId) ?? 'Dịch vụ'}
-                          </span>
+                          {categoryMap.get(service.categoryId) && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}>
+                              {categoryMap.get(service.categoryId)}
+                            </span>
+                          )}
                           <span className="text-xs text-slate-400">{service.publishedAt ? new Date(service.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
                         </div>
                         <h2 className="text-base font-semibold text-slate-900 group-hover:opacity-70 transition-opacity duration-200 line-clamp-2">
@@ -259,7 +261,7 @@ export function SidebarLayout({
                               <span className="flex items-center gap-1"><Clock size={12} />{service.duration}</span>
                             )}
                           </div>
-                          {showPrice && (
+                          {showPrice && service.price !== undefined && (
                             <span className="text-base font-bold" style={{ color: tokens.priceColor }}>
                               {formatPrice(service.price)}
                             </span>

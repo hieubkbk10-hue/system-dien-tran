@@ -69,6 +69,7 @@ export function MagazineLayout({
 }: MagazineLayoutProps) {
   const showExcerpt = enabledFields.has('excerpt');
   const [brokenThumbnails, setBrokenThumbnails] = React.useState<Set<string>>(new Set());
+  const selectedCategoryLabel = selectedCategory ? categoryMap.get(selectedCategory) : undefined;
 
   const markThumbnailBroken = React.useCallback((id: Id<"posts">) => {
     setBrokenThumbnails((prev) => {
@@ -175,9 +176,11 @@ export function MagazineLayout({
                     style={{ background: `linear-gradient(to top, ${tokens.overlaySurface}, ${tokens.overlaySurfaceMuted})` }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-1" style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}>
-                      {categoryMap.get(post.categoryId) ?? 'Tin tức'}
-                    </span>
+                    {categoryMap.get(post.categoryId) && (
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-medium mb-1" style={{ backgroundColor: tokens.featuredBadgeBg, color: tokens.featuredBadgeText }}>
+                        {categoryMap.get(post.categoryId)}
+                      </span>
+                    )}
                     <h3 className="text-base font-semibold line-clamp-2" style={{ color: tokens.overlayTextStrong }}>{post.title}</h3>
                   </div>
                 </article>
@@ -273,14 +276,18 @@ export function MagazineLayout({
       ) : (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
-              {selectedCategory ? categoryMap.get(selectedCategory) : 'Bài viết mới nhất'}
-            </h2>
+            {selectedCategoryLabel && (
+              <h2 className="text-base font-bold" style={{ color: tokens.sectionHeadingColor }}>
+                {selectedCategoryLabel}
+              </h2>
+            )}
             <span className="text-sm" style={{ color: tokens.metaText }}>{posts.length} bài viết</span>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {posts.map((post) => (
-              <Link key={post._id} href={`/posts/${post.slug}`} className="group">
+            {posts.map((post) => {
+              const categoryLabel = categoryMap.get(post.categoryId);
+              return (
+                <Link key={post._id} href={`/posts/${post.slug}`} className="group">
                 <article
                   className="h-full flex flex-col rounded-lg overflow-hidden border hover:shadow-md transition-shadow duration-200"
                   style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
@@ -308,16 +315,18 @@ export function MagazineLayout({
                   </div>
                   <div className="flex-1 flex flex-col p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="text-xs font-medium px-2 py-0.5 rounded"
-                        style={{
-                          backgroundColor: tokens.categoryBadgeBg,
-                          color: tokens.categoryBadgeText,
-                          borderColor: tokens.categoryBadgeBorder,
-                        }}
-                      >
-                        {categoryMap.get(post.categoryId) ?? 'Tin tức'}
-                      </span>
+                      {categoryLabel && (
+                        <span
+                          className="text-xs font-medium px-2 py-0.5 rounded"
+                          style={{
+                            backgroundColor: tokens.categoryBadgeBg,
+                            color: tokens.categoryBadgeText,
+                            borderColor: tokens.categoryBadgeBorder,
+                          }}
+                        >
+                          {categoryLabel}
+                        </span>
+                      )}
                       {post.publishedAt && (
                         <>
                           <span style={{ color: tokens.neutralTextLight }}>•</span>
@@ -338,7 +347,8 @@ export function MagazineLayout({
                   </div>
                 </article>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

@@ -83,16 +83,18 @@ export function FullWidthLayout({ posts, brandColor: _brandColor, tokens, catego
               </div>
               <div className="p-3 flex-1 flex flex-col">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <span
-                    className="text-xs font-medium px-1.5 py-0.5 rounded"
-                    style={{
-                      backgroundColor: tokens.categoryBadgeBg,
-                      color: tokens.categoryBadgeText,
-                      borderColor: tokens.categoryBadgeBorder,
-                    }}
-                  >
-                    {categoryMap.get(post.categoryId) ?? 'Tin tức'}
-                  </span>
+                  {categoryMap.get(post.categoryId) && (
+                    <span
+                      className="text-xs font-medium px-1.5 py-0.5 rounded"
+                      style={{
+                        backgroundColor: tokens.categoryBadgeBg,
+                        color: tokens.categoryBadgeText,
+                        borderColor: tokens.categoryBadgeBorder,
+                      }}
+                    >
+                      {categoryMap.get(post.categoryId)}
+                    </span>
+                  )}
                 </div>
                 <h2 className="text-sm font-semibold line-clamp-2 flex-1" style={{ color: tokens.bodyText }}>
                   {post.title}

@@ -664,7 +664,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const filteredRelated = relatedProducts?.filter(p => p._id !== product._id).slice(0, 4) ?? [];
   const productData = {
     ...product,
-    categoryName: category?.name ?? 'Sản phẩm',
+    categoryName: category?.name ?? '',
     categorySlug: category?.slug,
     hasVariants: product.hasVariants,
   };
@@ -933,7 +933,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             <ChevronRight size={14} />
             <Link href="/products" className="transition-colors">Sản phẩm</Link>
             <ChevronRight size={14} />
-            {product.categorySlug && (
+            {product.categorySlug && product.categoryName && (
               <>
                 <Link href={`/products?category=${product.categorySlug}`} className="transition-colors">{product.categoryName}</Link>
                 <ChevronRight size={14} />
@@ -976,13 +976,15 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 
           {/* Product Info */}
           <div>
-            <Link
-              href={`/products?category=${product.categorySlug}`}
-              className="inline-block px-3 py-1 text-sm font-medium rounded-full mb-4 transition-colors hover:opacity-80"
-              style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
-            >
-              {product.categoryName}
-            </Link>
+            {product.categorySlug && product.categoryName && (
+              <Link
+                href={`/products?category=${product.categorySlug}`}
+                className="inline-block px-3 py-1 text-sm font-medium rounded-full mb-4 transition-colors hover:opacity-80"
+                style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
+              >
+                {product.categoryName}
+              </Link>
+            )}
 
             <h1 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: tokens.headingColor }}>{product.name}</h1>
 
@@ -1304,19 +1306,21 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
           </div>
 
           <div className="space-y-6 lg:space-y-8">
-            <div className="flex flex-wrap gap-2">
-              <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                style={{
-                  backgroundColor: tokens.categoryBadgeBg,
-                  color: tokens.categoryBadgeText,
-                  borderColor: tokens.categoryBadgeBorder,
-                  borderWidth: 1,
-                }}
-              >
-                {product.categoryName}
-              </span>
-            </div>
+            {product.categoryName && (
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{
+                    backgroundColor: tokens.categoryBadgeBg,
+                    color: tokens.categoryBadgeText,
+                    borderColor: tokens.categoryBadgeBorder,
+                    borderWidth: 1,
+                  }}
+                >
+                  {product.categoryName}
+                </span>
+              </div>
+            )}
 
             <h1 className="text-3xl lg:text-4xl font-light tracking-tight" style={{ color: tokens.headingColor }}>
               {product.name}
