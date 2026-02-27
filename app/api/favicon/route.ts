@@ -4,7 +4,7 @@ import { api } from '@/convex/_generated/api';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const client = getConvexClient();
     const settings = await client.query(api.settings.getMultiple, {
@@ -17,7 +17,10 @@ export async function GET() {
 
     // Nếu có favicon URL, redirect đến đó
     if (faviconUrl) {
-      return NextResponse.redirect(faviconUrl);
+      const resolvedUrl = faviconUrl.startsWith('http')
+        ? faviconUrl
+        : new URL(faviconUrl, request.url).toString();
+      return NextResponse.redirect(resolvedUrl);
     }
 
     // Generate SVG favicon

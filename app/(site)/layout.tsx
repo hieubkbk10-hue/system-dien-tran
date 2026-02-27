@@ -83,7 +83,7 @@ export const generateMetadata = (): Promise<Metadata> => {
         ...(Object.keys(languages).length > 0 && { languages }),
       },
       description,
-      icons: { icon: '/api/favicon' },
+      icons: { icon: `/api/favicon?v=${encodeURIComponent(site.site_favicon || '')}` },
       keywords: buildKeywords(seo.seo_keywords || ''),
       metadataBase: buildMetadataBase(baseUrl),
       openGraph: {
