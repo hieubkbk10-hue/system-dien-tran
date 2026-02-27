@@ -121,7 +121,7 @@ export default function CreateOrderPage() {
 
     setIsSubmitting(true);
     try {
-      await createOrder({
+      const result = await createOrder({
         customerId: customerId,
         items,
         note: enabledFields.has('note') ? note : undefined,
@@ -129,6 +129,10 @@ export default function CreateOrderPage() {
         shippingAddress: enabledFields.has('shippingAddress') ? shippingAddress : undefined,
         shippingFee: enabledFields.has('shippingFee') ? shippingFee : undefined,
       });
+      if (!result.ok) {
+        toast.error(result.error ?? 'Có lỗi xảy ra');
+        return;
+      }
       toast.success('Đã tạo đơn hàng thành công');
       router.push('/admin/orders');
     } catch (error) {

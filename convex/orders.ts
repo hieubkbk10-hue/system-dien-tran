@@ -229,9 +229,9 @@ async function validateStockBeforeCreate(
   ctx: MutationCtx,
   items: OrderItemInput[],
   variantStock: VariantStockSetting
-) {
+): Promise<string | null> {
   if (items.length === 0) {
-    return;
+    return null;
   }
 
   if (variantStock === "product") {
@@ -243,16 +243,17 @@ async function validateStockBeforeCreate(
     const productIds = Array.from(quantities.keys()) as Id<"products">[];
     const products = await Promise.all(productIds.map((id) => ctx.db.get(id)));
 
-    products.forEach((product, index) => {
+    for (const [index, product] of products.entries()) {
       if (!product || product.stock === undefined) {
-        return;
+        continue;
       }
       const quantity = quantities.get(productIds[index]) ?? 0;
       if (quantity > product.stock) {
-        throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${product.stock}`);
+        return `Không đủ hàng trong kho cho ${product.name}. Còn lại: ${product.stock}`;
       }
-    });
-    return;
+    }
+
+    return null;
   }
 
   const [products, variants] = await Promise.all([
@@ -260,7 +261,7 @@ async function validateStockBeforeCreate(
     Promise.all(items.map((item) => (item.variantId ? ctx.db.get(item.variantId) : null))),
   ]);
 
-  items.forEach((item, index) => {
+  for (const [index, item] of items.entries()) {
     const product = products[index];
     if (!product) {
       throw new Error("Product not found");
@@ -269,14 +270,16 @@ async function validateStockBeforeCreate(
     if (item.variantId && variant?.stock !== undefined) {
       if (item.quantity > variant.stock) {
         const label = item.variantTitle ? ` (${item.variantTitle})` : "";
-        throw new Error(`Không đủ hàng trong kho cho ${item.productName}${label}. Còn lại: ${variant.stock}`);
+        return `Không đủ hàng trong kho cho ${item.productName}${label}. Còn lại: ${variant.stock}`;
       }
-      return;
+      continue;
     }
     if (product.stock !== undefined && item.quantity > product.stock) {
-      throw new Error(`Không đủ hàng trong kho cho ${item.productName}. Còn lại: ${product.stock}`);
+      return `Không đủ hàng trong kho cho ${item.productName}. Còn lại: ${product.stock}`;
     }
-  });
+  }
+
+  return null;
 }
 
 const orderDoc = v.object({
@@ -620,7 +623,10 @@ export const create = mutation({
     const normalizedItems = await normalizeOrderItems(ctx, args.items, variantPricing);
     const stockCheckEnabled = await isStockCheckEnabled(ctx);
     if (stockCheckEnabled) {
-      await validateStockBeforeCreate(ctx, normalizedItems, variantStock);
+      const stockError = await validateStockBeforeCreate(ctx, normalizedItems, variantStock);
+      if (stockError) {
+        return { ok: false, error: stockError };
+      }
     }
     const isDigitalOrder = normalizedItems.some((item) => item.isDigital);
     const { statuses } = await getOrderStatusSettings(ctx);
@@ -640,9 +646,13 @@ export const create = mutation({
       }
     }
 
-    return orderId;
+    return { ok: true, orderId };
   },
-  returns: v.id("orders"),
+  returns: v.object({
+    ok: v.boolean(),
+    orderId: v.optional(v.id("orders")),
+    error: v.optional(v.string()),
+  }),
 });
 
 export const update = mutation({

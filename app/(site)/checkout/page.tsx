@@ -593,7 +593,7 @@ function CheckoutContent() {
 
     setIsSubmitting(true);
     try {
-      const createdOrderId = await createOrder({
+      const result = await createOrder({
         customerId: customer.id as Id<'customers'>,
         items: orderItems,
         note: fromCart ? cart?.note : undefined,
@@ -608,13 +608,17 @@ function CheckoutContent() {
           : `${customerName} | ${customerPhone}`,
         shippingFee: shouldCollectShipping ? shippingFee : 0,
       });
+      if (!result.ok) {
+        toast.error(result.error ?? 'Không thể tạo đơn hàng.');
+        return;
+      }
       if (appliedPromotion?.promotion?._id) {
         await incrementPromotionUsage({ id: appliedPromotion.promotion._id });
       }
       if (fromCart && cart?._id) {
         await removeCart({ id: cart._id });
       }
-      setOrderId(createdOrderId);
+      setOrderId(result.orderId ?? null);
       toast.success('Đặt hàng thành công! Đang chuyển đến trang đơn hàng...');
       setTimeout(() => {
         router.push('/account/orders');

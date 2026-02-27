@@ -873,13 +873,20 @@ export const updateStock = mutation({
   args: { id: v.id("products"), quantity: v.number() },
   handler: async (ctx, args) => {
     const product = await ctx.db.get(args.id);
-    if (!product) {throw new Error("Product not found");}
+    if (!product) {
+      return { ok: false, error: "Product not found" };
+    }
     const newStock = product.stock + args.quantity;
-    if (newStock < 0) {throw new Error("Insufficient stock");}
+    if (newStock < 0) {
+      return { ok: false, error: "Insufficient stock" };
+    }
     await ctx.db.patch(args.id, { stock: newStock });
-    return null;
+    return { ok: true };
   },
-  returns: v.null(),
+  returns: v.object({
+    ok: v.boolean(),
+    error: v.optional(v.string()),
+  }),
 });
 
 export const incrementSales = mutation({
