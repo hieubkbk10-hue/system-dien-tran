@@ -49,7 +49,8 @@ const CascadeConfirmDialog: React.FC<{
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
-}> = ({ isOpen, moduleName, dependentModules, onConfirm, onCancel, isLoading }) => {
+  labels: TranslationKeys['modules'];
+}> = ({ isOpen, moduleName, dependentModules, onConfirm, onCancel, isLoading, labels }) => {
   if (!isOpen) {return null;}
 
   return (
@@ -61,14 +62,15 @@ const CascadeConfirmDialog: React.FC<{
               <AlertTriangle className="w-6 h-6 text-amber-500" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-              Xác nhận tắt module
+              {labels.cascadeDialog.title}
             </h3>
           </div>
           
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            Tắt module <strong className="text-slate-800 dark:text-slate-200">{moduleName}</strong> sẽ 
-            <span className="text-amber-600 dark:text-amber-400 font-medium"> tự động tắt </span> 
-            các module phụ thuộc sau:
+            {labels.cascadeDialog.description}{' '}
+            <strong className="text-slate-800 dark:text-slate-200">{moduleName}</strong>{' '}
+            <span className="text-amber-600 dark:text-amber-400 font-medium"> {labels.cascadeDialog.autoDisable} </span>{' '}
+            {labels.cascadeDialog.dependentList}
           </p>
           
           <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-3 mb-4">
@@ -84,7 +86,7 @@ const CascadeConfirmDialog: React.FC<{
           </div>
           
           <p className="text-xs text-slate-500 mb-6">
-            Bạn có thể bật lại các module này sau khi đã bật lại module {moduleName}.
+            {labels.cascadeDialog.hint} {moduleName}.
           </p>
           
           <div className="flex gap-3">
@@ -93,7 +95,7 @@ const CascadeConfirmDialog: React.FC<{
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
             >
-              Hủy
+              {labels.cascadeDialog.cancel}
             </button>
             <button
               onClick={onConfirm}
@@ -103,10 +105,10 @@ const CascadeConfirmDialog: React.FC<{
               {isLoading ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />
-                  Đang xử lý...
+                  {labels.cascadeDialog.processing}
                 </>
               ) : (
-                'Xác nhận tắt'
+                labels.cascadeDialog.confirm
               )}
             </button>
           </div>
@@ -130,34 +132,7 @@ const categoryColors: Record<string, string> = {
   user: 'text-purple-400',
 };
 
-const categoryLabelsEn: Record<string, string> = {
-  commerce: 'Commerce',
-  content: 'Content',
-  marketing: 'Marketing',
-  system: 'System',
-  user: 'User',
-};
-
-const moduleConfigRoutes: Record<string, string> = {
-  analytics: '/system/modules/analytics',
-  cart: '/system/modules/cart',
-  comments: '/system/modules/comments',
-  customers: '/system/modules/customers',
-  homepage: '/system/modules/homepage',
-  kanban: '/system/modules/kanban',
-  media: '/system/modules/media',
-  menus: '/system/modules/menus',
-  notifications: '/system/modules/notifications',
-  orders: '/system/modules/orders',
-  posts: '/system/modules/posts',
-  products: '/system/modules/products',
-  promotions: '/system/modules/promotions',
-  roles: '/system/modules/roles',
-  services: '/system/modules/services',
-  settings: '/system/modules/settings',
-  users: '/system/modules/users',
-  wishlist: '/system/modules/wishlist',
-};
+const getModuleConfigRoute = (moduleKey: string) => `/system/modules/${moduleKey}`;
 
 interface AdminModule {
   _id: Id<"adminModules">;
@@ -182,36 +157,37 @@ interface SystemPreset {
   isDefault?: boolean;
 }
 
-const generateConfigMarkdown = (modules: AdminModule[], preset?: SystemPreset): string => {
+const generateConfigMarkdown = (modules: AdminModule[], preset: SystemPreset | undefined, labels: TranslationKeys['modules']): string => {
   const enabledModules = modules.filter(m => m.enabled);
   const disabledModules = modules.filter(m => !m.enabled);
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const markdown = labels.markdown;
 
-  return `# Admin Module Configuration
+  return `# ${labels.moduleConfig}
 
-> Generated: ${now}
-> Preset: ${preset?.name ?? 'Custom'}
+> ${markdown.generatedAt}: ${now}
+> ${markdown.preset}: ${preset?.name ?? labels.custom}
 
-## Summary
+## ${markdown.summary}
 
-- Enabled: ${enabledModules.length}
-- Disabled: ${disabledModules.length}
+- ${markdown.enabledModules}: ${enabledModules.length}
+- ${markdown.disabledModules}: ${disabledModules.length}
 
-## Enabled Modules
+## ${markdown.enabledModules}
 
-| Module | Category | Core |
+| ${markdown.module} | ${markdown.category} | ${markdown.core} |
 |--------|----------|------|
 ${enabledModules.map(m => 
-  `| ${m.key} | ${categoryLabelsEn[m.category]} | ${m.isCore ? 'Yes' : 'No'} |`
+  `| ${m.key} | ${labels.categories[m.category]} | ${m.isCore ? markdown.yes : markdown.no} |`
 ).join('\n')}
 
-## Disabled Modules
+## ${markdown.disabledModules}
 
 ${disabledModules.length > 0 
-  ? disabledModules.map(m => `- ${m.key} (${categoryLabelsEn[m.category]})`).join('\n')
-  : '_None_'}
+  ? disabledModules.map(m => `- ${m.key} (${labels.categories[m.category]})`).join('\n')
+  : `_${markdown.none}_`}
 
-## JSON Config
+## ${markdown.jsonConfig}
 
 \`\`\`json
 {
@@ -229,7 +205,8 @@ const PresetDropdown: React.FC<{
   selectedPreset: string;
   onSelect: (presetKey: string) => void;
   loading?: boolean;
-}> = ({ presets, selectedPreset, onSelect, loading }) => {
+  labels: TranslationKeys['modules'];
+}> = ({ presets, selectedPreset, onSelect, loading, labels }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selected = presets.find(p => p.key === selectedPreset);
 
@@ -250,7 +227,7 @@ const PresetDropdown: React.FC<{
           <div className="fixed inset-0 z-10" onClick={() =>{  setIsOpen(false); }} />
           <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-20 overflow-hidden">
             <div className="p-2 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-[10px] text-slate-500 uppercase font-semibold px-2">Chọn preset</p>
+              <p className="text-[10px] text-slate-500 uppercase font-semibold px-2">{labels.selectPreset}</p>
             </div>
             <div className="max-h-72 overflow-y-auto">
               {presets.map(preset => (
@@ -270,7 +247,7 @@ const PresetDropdown: React.FC<{
                       <Check size={14} className="text-cyan-500 shrink-0" />
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">{preset.enabledModules.length} modules</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{preset.enabledModules.length} {labels.moduleCountLabel}</p>
                 </button>
               ))}
               <button
@@ -281,8 +258,8 @@ const PresetDropdown: React.FC<{
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Custom</span>
-                    <p className="text-xs text-slate-500">Cấu hình thủ công</p>
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{labels.custom}</span>
+                    <p className="text-xs text-slate-500">{labels.manualConfig}</p>
                   </div>
                   {selectedPreset === 'custom' && (
                     <Check size={14} className="text-cyan-500 shrink-0" />
@@ -302,9 +279,10 @@ const ConfigActions: React.FC<{
   preset?: SystemPreset;
   onReseed: () => void;
   isReseeding?: boolean;
-}> = ({ modules, preset, onReseed, isReseeding }) => {
+  labels: TranslationKeys['modules'];
+}> = ({ modules, preset, onReseed, isReseeding, labels }) => {
   const [showMarkdown, setShowMarkdown] = useState(false);
-  const markdown = useMemo(() => generateConfigMarkdown(modules, preset), [modules, preset]);
+  const markdown = useMemo(() => generateConfigMarkdown(modules, preset, labels), [modules, preset, labels]);
 
   const handleDownload = () => {
     const blob = new Blob([markdown], { type: 'text/markdown' });
@@ -329,30 +307,30 @@ const ConfigActions: React.FC<{
           onClick={onReseed}
           disabled={isReseeding}
           className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors disabled:opacity-50"
-          title="Seed lại modules hệ thống"
+          title={labels.actions.reseedTitle}
         >
           {isReseeding ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
-          <span className="hidden sm:inline">Seed lại</span>
+          <span className="hidden sm:inline">{labels.actions.reseed}</span>
         </button>
         <button
           onClick={() =>{  setShowMarkdown(true); }}
           className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-          title="Xem cấu hình dạng Markdown"
+          title={labels.actions.viewConfigTitle}
         >
           <FileCode size={16} />
-          <span className="hidden sm:inline">Xem Config</span>
+          <span className="hidden sm:inline">{labels.actions.viewConfig}</span>
         </button>
         <button
           onClick={handleDownload}
           className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-          title="Tải về file .md"
+          title={labels.actions.downloadTitle}
         >
           <Download size={16} />
         </button>
         <button
           onClick={handleOpenNewTab}
           className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-          title="Mở trong tab mới"
+          title={labels.actions.openNewTabTitle}
         >
           <ExternalLink size={16} />
         </button>
@@ -363,14 +341,14 @@ const ConfigActions: React.FC<{
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
               <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <FileCode size={20} /> Module Configuration
+                <FileCode size={20} /> {labels.actions.moduleConfigTitle}
               </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDownload}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                  <Download size={14} /> Tải về
+                  <Download size={14} /> {labels.actions.download}
                 </button>
                 <button
                   onClick={() =>{  setShowMarkdown(false); }}
@@ -404,7 +382,7 @@ const ModuleCard: React.FC<{
   const Icon = iconMap[module.icon] || Package;
   const categoryColor = categoryColors[module.category];
   const categoryLabel = t.modules.categories[module.category];
-  const configRoute = moduleConfigRoutes[module.key];
+  const configRoute = module.key ? getModuleConfigRoute(module.key) : undefined;
   // SYS-008: Disable toggle khi có bất kỳ module nào đang toggle
   const isDisabled = module.isCore || !canToggle || (isToggling ?? isAnyToggling);
   const hasDependents = allModules.some(m => m.dependencies?.includes(module.key) && m.enabled);
@@ -429,12 +407,12 @@ const ModuleCard: React.FC<{
               <h3 className="text-slate-800 dark:text-slate-200 font-medium text-sm truncate">{module.name}</h3>
               {module.isCore && (
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-medium">
-                  CORE
+                  {t.modules.badges.core}
                 </span>
               )}
               {hasDependents && module.enabled && (
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-medium">
-                  PARENT
+                  {t.modules.badges.parent}
                 </span>
               )}
             </div>
@@ -573,9 +551,9 @@ export default function ModuleManagementPage() {
         throw new Error(presetsResult.errors.join(', '));
       }
 
-      toast.success('Đã seed lại modules hệ thống');
+      toast.success(t.modules.messages.reseedSuccess);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+      toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
       setIsReseeding(false);
     }
@@ -623,15 +601,19 @@ export default function ModuleManagementPage() {
         key: moduleKey,
       });
       if (!result.success) {
-        toast.error('Module không tồn tại hoặc đã bị xóa');
+        toast.error(t.modules.messages.moduleNotFound);
         return;
       }
 
       if (result.disabledModules.length > 0) {
-        toast.success(`Đã tắt ${moduleKey} và ${result.disabledModules.length} modules phụ thuộc`);
+        toast.success(
+          t.modules.messages.cascadeDisabled
+            .replace('{module}', moduleKey)
+            .replace('{count}', String(result.disabledModules.length))
+        );
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+      toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
       setTogglingKey(null);
       setCascadeDialog({ dependentModules: [], isOpen: false, moduleKey: '', moduleName: '' });
@@ -709,15 +691,17 @@ export default function ModuleManagementPage() {
             selectedPreset={selectedPreset} 
             onSelect={handlePresetSelect}
             loading={applyingPreset}
+            labels={t.modules}
           />
           <span className="text-xs text-slate-500">
-            Preset sẽ bật/tắt modules theo mẫu; bạn có thể chỉnh lại thủ công.
+            {t.modules.presetHint}
           </span>
           <ConfigActions
             modules={modules}
             preset={currentPreset}
             onReseed={handleReseedModules}
             isReseeding={isReseeding}
+            labels={t.modules}
           />
         </div>
       </div>
@@ -792,6 +776,7 @@ export default function ModuleManagementPage() {
         onConfirm={handleCascadeConfirm}
         onCancel={handleCascadeCancel}
         isLoading={Boolean(togglingKey)}
+        labels={t.modules}
       />
 
     </div>
