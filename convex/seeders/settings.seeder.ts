@@ -87,6 +87,8 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       { group: 'mail', key: 'mail_from_email', value: 'noreply@vietadmin.com' },
       { group: 'mail', key: 'mail_driver', value: 'smtp' },
       { group: 'mail', key: 'mail_host', value: '' },
+      { group: 'mail', key: 'mail_username', value: '' },
+      { group: 'mail', key: 'mail_password', value: '' },
       { group: 'mail', key: 'mail_port', value: 587 },
       { group: 'mail', key: 'mail_encryption', value: 'tls' },
       {
@@ -167,7 +169,6 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
         { description: 'Quản lý email, phone, địa chỉ', enabled: true, featureKey: 'enableContact', moduleKey: 'settings', name: 'Thông tin liên hệ' },
         { description: 'Meta title, description, keywords', enabled: true, featureKey: 'enableSEO', moduleKey: 'settings', name: 'SEO cơ bản' },
         { description: 'Links Facebook, Instagram, Youtube...', enabled: true, featureKey: 'enableSocial', moduleKey: 'settings', name: 'Mạng xã hội' },
-        { description: 'SMTP settings để gửi email', enabled: false, featureKey: 'enableMail', moduleKey: 'settings', name: 'Cấu hình Email' },
       ];
       await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
     }
@@ -202,12 +203,6 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
         { enabled: true, fieldKey: 'social_youtube', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'Youtube', order: 16, required: false, type: 'text' as const },
         { enabled: false, fieldKey: 'social_tiktok', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'TikTok', order: 17, required: false, type: 'text' as const },
         { enabled: false, fieldKey: 'social_zalo', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'Zalo', order: 18, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'mail_from_name', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'Tên người gửi', order: 19, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'mail_from_email', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'Email người gửi', order: 20, required: false, type: 'email' as const },
-        { enabled: false, fieldKey: 'mail_driver', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'Mail driver', order: 21, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'mail_host', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'SMTP Host', order: 22, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'mail_port', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'SMTP Port', order: 23, required: false, type: 'number' as const },
-        { enabled: false, fieldKey: 'mail_encryption', group: 'mail', isSystem: false, linkedFeature: 'enableMail', moduleKey: 'settings', name: 'Encryption', order: 24, required: false, type: 'text' as const },
       ];
       await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
     }

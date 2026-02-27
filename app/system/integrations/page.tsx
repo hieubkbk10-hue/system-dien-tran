@@ -1,94 +1,318 @@
 'use client';
 
-import React from 'react';
-import { BarChart3, ExternalLink, Save } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Eye, EyeOff, Loader2, Save, Send } from 'lucide-react';
+import { toast } from 'sonner';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useI18n } from '../i18n/context';
 
-interface IntegrationItemProps {
-  title: string;
-  desc: string;
-  placeholder: string;
-  connected: boolean;
-  iconColor: string;
-}
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const IntegrationItem = ({ title, desc, placeholder, connected, iconColor }: IntegrationItemProps) => (
-  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-    <div className="flex justify-between items-start gap-4">
-      <div className="flex-1">
-        <div className="flex items-center gap-3 mb-2">
-           <div className={`w-8 h-8 rounded bg-slate-200 dark:bg-slate-800 flex items-center justify-center ${iconColor}`}>
-             <BarChart3 size={18} />
-           </div>
-           <div>
-             <h3 className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{title}</h3>
-             <span className={`text-[10px] px-1.5 py-0.5 rounded border ml-2 ${connected ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'}`}>
-               {connected ? 'CONNECTED' : 'NOT CONNECTED'}
-             </span>
-           </div>
-        </div>
-        <p className="text-xs text-slate-500 mb-4 h-8">{desc}</p>
-        
-        <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Measurement ID / Pixel ID</label>
-            <div className="flex gap-2">
-                <input 
-                    type="text" 
-                    placeholder={placeholder} 
-                    className="flex-1 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded px-3 py-2 text-sm text-slate-700 dark:text-slate-200 font-mono outline-none focus:border-cyan-500/50"
-                    defaultValue={connected ? "G-12345678" : ""} 
-                />
-            </div>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-         <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" defaultChecked={connected} />
-            <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
-         </label>
-      </div>
-    </div>
-    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800/50 flex justify-end gap-3">
-        <button className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1">Docs <ExternalLink size={10}/></button>
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded border border-slate-300 dark:border-slate-700 transition-colors">
-            <Save size={12} /> Save Config
-        </button>
-    </div>
-  </div>
-);
+const SETTINGS_KEYS = [
+  'mail_driver',
+  'mail_host',
+  'mail_port',
+  'mail_username',
+  'mail_password',
+  'mail_encryption',
+  'mail_from_email',
+  'mail_from_name',
+] as const;
+
+type SettingsKey = (typeof SETTINGS_KEYS)[number];
+
+const sanitizeHtml = (html: string) => html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
 
 export default function IntegrationsPage() {
+  const { t } = useI18n();
+  const settings = useQuery(api.settings.getMultiple, { keys: [...SETTINGS_KEYS] });
+  const setMultiple = useMutation(api.settings.setMultiple);
+
+  const [form, setForm] = useState<Record<SettingsKey, string>>({
+    mail_driver: 'smtp',
+    mail_host: '',
+    mail_port: '587',
+    mail_username: '',
+    mail_password: '',
+    mail_encryption: 'tls',
+    mail_from_email: '',
+    mail_from_name: '',
+  });
+  const [initialForm, setInitialForm] = useState<Record<SettingsKey, string>>(form);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [previewSubject, setPreviewSubject] = useState('Xin chào từ VietAdmin');
+  const [previewHtml, setPreviewHtml] = useState('<p>Đây là email test từ hệ thống.</p>');
+  const [testEmail, setTestEmail] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  React.useEffect(() => {
+    if (!settings) {return;}
+    const nextForm = { ...form };
+    SETTINGS_KEYS.forEach((key) => {
+      const value = settings[key] ?? '';
+      nextForm[key] = typeof value === 'string' ? value : String(value ?? '');
+    });
+    if (!nextForm.mail_driver) {nextForm.mail_driver = 'smtp';}
+    if (!nextForm.mail_encryption) {nextForm.mail_encryption = 'tls';}
+    setForm(nextForm);
+    setInitialForm(nextForm);
+  }, [settings]);
+
+  const hasChanges = useMemo(
+    () => SETTINGS_KEYS.some((key) => form[key] !== initialForm[key]),
+    [form, initialForm]
+  );
+
+  const updateField = (key: SettingsKey, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const validatePort = () => {
+    if (!form.mail_port) {return true;}
+    const port = Number(form.mail_port);
+    return Number.isFinite(port) && port > 0;
+  };
+
+  const handleSave = async () => {
+    if (!validatePort()) {
+      toast.error(t.integrations.invalidPort);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const settingsToSave = SETTINGS_KEYS.map((key) => ({
+        group: 'mail',
+        key,
+        value: form[key].trim(),
+      }));
+      await setMultiple({ settings: settingsToSave });
+      setInitialForm({ ...form });
+      toast.success(t.integrations.saved);
+    } catch {
+      toast.error(t.integrations.saveError);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSendTest = async () => {
+    if (!EMAIL_REGEX.test(testEmail.trim())) {
+      toast.error(t.integrations.invalidEmail);
+      return;
+    }
+    if (!form.mail_host || !form.mail_port || !form.mail_username || !form.mail_password || !form.mail_from_email) {
+      toast.error(t.integrations.requiredConfig);
+      return;
+    }
+    if (!validatePort()) {
+      toast.error(t.integrations.invalidPort);
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const response = await fetch('/api/system/integrations/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: testEmail.trim(),
+          subject: previewSubject.trim() || 'Test email',
+          html: previewHtml || '<p>Test email</p>',
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.message || t.integrations.testError);
+      }
+      toast.success(t.integrations.testSuccess);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t.integrations.testError;
+      toast.error(message);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  if (!settings) {
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <div>
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Analytics Integrations</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Configure third-party tracking scripts and analytics tools.</p>
-            </div>
-
-            <div className="grid gap-4">
-                <IntegrationItem 
-                    title="Google Analytics 4" 
-                    desc="Track website traffic and user behavior with the latest GA4 property."
-                    placeholder="G-XXXXXXXXXX"
-                    connected={true}
-                    iconColor="text-orange-400"
-                />
-                
-                <IntegrationItem 
-                    title="Facebook Pixel" 
-                    desc="Track conversions from Facebook ads and build targeted audiences."
-                    placeholder="123456789012345"
-                    connected={false}
-                    iconColor="text-blue-400"
-                />
-
-                <IntegrationItem 
-                    title="Google Tag Manager" 
-                    desc="Manage all your website tags without editing code."
-                    placeholder="GTM-XXXXXX"
-                    connected={false}
-                    iconColor="text-blue-300"
-                />
-            </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
     );
+  }
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{t.integrations.title}</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t.integrations.subtitle}</p>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t.integrations.smtpConfig}</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+            SMTP
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.fromName}</label>
+            <input
+              value={form.mail_from_name}
+              onChange={(e) => updateField('mail_from_name', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.fromEmail}</label>
+            <input
+              value={form.mail_from_email}
+              onChange={(e) => updateField('mail_from_email', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.host}</label>
+            <input
+              value={form.mail_host}
+              onChange={(e) => updateField('mail_host', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm font-mono"
+              placeholder="smtp.gmail.com"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.port}</label>
+            <input
+              value={form.mail_port}
+              onChange={(e) => updateField('mail_port', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm font-mono"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.username}</label>
+            <input
+              value={form.mail_username}
+              onChange={(e) => updateField('mail_username', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.password}</label>
+            <div className="relative">
+              <input
+                value={form.mail_password}
+                onChange={(e) => updateField('mail_password', e.target.value)}
+                type={showPassword ? 'text' : 'password'}
+                className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                title={showPassword ? 'Hide' : 'Show'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">{t.integrations.encryption}</label>
+            <select
+              value={form.mail_encryption}
+              onChange={(e) => updateField('mail_encryption', e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            >
+              <option value="tls">TLS</option>
+              <option value="ssl">SSL</option>
+              <option value="">None</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-2">
+          {hasChanges && (
+            <span className="text-xs text-amber-600 dark:text-amber-400">Có thay đổi chưa lưu</span>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !hasChanges}
+            className="flex items-center gap-2 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs rounded border border-slate-300 dark:border-slate-700 transition-colors disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {isSaving ? t.integrations.saving : t.integrations.save}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t.integrations.previewTitle}</h3>
+          <div className="space-y-2">
+            <label className="text-xs text-slate-500">{t.integrations.previewSubject}</label>
+            <input
+              value={previewSubject}
+              onChange={(e) => setPreviewSubject(e.target.value)}
+              className="w-full rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs text-slate-500">{t.integrations.previewHtml}</label>
+            <textarea
+              value={previewHtml}
+              onChange={(e) => setPreviewHtml(e.target.value)}
+              className="w-full min-h-[160px] rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm font-mono"
+            />
+          </div>
+          <p className="text-xs text-slate-500">{t.integrations.previewHint}</p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t.integrations.previewTitle}</h3>
+          <div className="border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-4 bg-slate-50 dark:bg-slate-950">
+            <div className="text-xs text-slate-500 mb-2">{previewSubject || 'Email Subject'}</div>
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml || '') }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t.integrations.testTitle}</h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            className="flex-1 rounded border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 px-3 py-2 text-sm"
+            placeholder="you@example.com"
+          />
+          <button
+            onClick={handleSendTest}
+            disabled={isSending}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-sm rounded transition-colors disabled:opacity-50"
+          >
+            {isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {isSending ? t.integrations.testSending : t.integrations.testSend}
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-2">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t.integrations.limitsTitle}</h3>
+        <p className="text-xs text-slate-500">{t.integrations.limitsDesc}</p>
+        <ul className="text-xs text-slate-600 dark:text-slate-400 list-disc pl-4 space-y-1">
+          <li>{t.integrations.limitsDaily}</li>
+          <li>{t.integrations.limitsRecipients}</li>
+          <li>{t.integrations.limitsWorkspace}</li>
+        </ul>
+      </div>
+    </div>
+  );
 }

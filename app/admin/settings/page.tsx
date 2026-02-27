@@ -68,13 +68,11 @@ const TAB_CONFIG = [
   { feature: null, id: 'site', label: 'Chung' }, // Luôn hiển thị
   { feature: 'enableContact', id: 'contact', label: 'Liên hệ' },
   { feature: 'enableSEO', id: 'seo', label: 'SEO' },
-  { feature: 'enableMail', id: 'mail', label: 'Email' },
 ];
 
 // Group labels for display
 const GROUP_LABELS: Record<string, string> = {
   contact: 'Thông tin liên hệ',
-  mail: 'Cấu hình Email',
   seo: 'Cài đặt SEO',
   site: 'Thông tin chung',
   social: 'Mạng xã hội',
@@ -555,38 +553,6 @@ function SettingsContent() {
               >
                 <option value="vi">Tiếng Việt</option>
                 <option value="en">English</option>
-              </select>
-            </div>
-          );
-        }
-        if (key === 'mail_driver') {
-          return (
-            <div className="space-y-2" key={key}>
-              <Label>{field.name}</Label>
-              <select
-                value={value}
-                onChange={(e) =>{  updateField(key, e.target.value); }}
-                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-              >
-                <option value="smtp">SMTP</option>
-                <option value="sendmail">Sendmail</option>
-                <option value="mailgun">Mailgun</option>
-              </select>
-            </div>
-          );
-        }
-        if (key === 'mail_encryption') {
-          return (
-            <div className="space-y-2" key={key}>
-              <Label>{field.name}</Label>
-              <select
-                value={value}
-                onChange={(e) =>{  updateField(key, e.target.value); }}
-                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-              >
-                <option value="tls">TLS</option>
-                <option value="ssl">SSL</option>
-                <option value="">None</option>
               </select>
             </div>
           );
