@@ -16,7 +16,9 @@ describe('buildProductTemplateSheet', () => {
     const nameIndex = getNameColumnIndex(columns);
     expect(nameIndex).toBeGreaterThanOrEqual(0);
     const sampleName = sheet.getRow(2).getCell(nameIndex + 1).value;
+    const lastExampleName = sheet.getRow(7).getCell(nameIndex + 1).value;
     expect(String(sampleName ?? '').trim().length).toBeGreaterThan(0);
+    expect(String(lastExampleName ?? '').trim().length).toBeGreaterThan(0);
   });
 
   it('luôn có dòng ví dụ khi chỉ bật một phần cột', () => {
@@ -28,6 +30,8 @@ describe('buildProductTemplateSheet', () => {
     const nameIndex = getNameColumnIndex(columns);
     expect(nameIndex).toBeGreaterThanOrEqual(0);
     const sampleName = sheet.getRow(2).getCell(nameIndex + 1).value;
+    const lastExampleName = sheet.getRow(7).getCell(nameIndex + 1).value;
     expect(String(sampleName ?? '').trim().length).toBeGreaterThan(0);
+    expect(String(lastExampleName ?? '').trim().length).toBeGreaterThan(0);
   });
 });

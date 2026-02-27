@@ -35,9 +35,9 @@ export function buildProductTemplateSheet(workbook: Workbook, columns: ProductEx
   styleHeaderRow(sheet, columns.length);
   sheet.autoFilter = { from: { column: 1, row: 1 }, to: { column: columns.length, row: 1 } };
   applyNumberFormats(sheet, columns);
-  addStatusValidation(sheet, columns);
   addExampleRows(sheet, columns);
   ensureExampleRows(sheet, columns);
+  addStatusValidation(sheet, columns);
 
   return sheet;
 }
@@ -292,9 +292,8 @@ function addExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
     },
   ];
 
-  examples.forEach((example) => {
-    sheet.addRow(columns.map((column) => example[column.key] ?? ''));
-  });
+  const rows = examples.map((example) => columns.map((column) => example[column.key] ?? ''));
+  sheet.insertRows(2, rows);
 }
 
 function ensureExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
@@ -315,7 +314,7 @@ function ensureExampleRows(sheet: Worksheet, columns: ProductExcelColumn[]) {
     description: 'Dòng mẫu dự phòng khi sheet trống dữ liệu.',
   };
 
-  sheet.addRow(columns.map((column) => fallback[column.key] ?? ''));
+  sheet.insertRows(2, [columns.map((column) => fallback[column.key] ?? '')]);
 }
 
 export function getStatusLabel(status: ProductExcelStatus): string {
