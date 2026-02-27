@@ -109,9 +109,35 @@ export const applyPreset = mutation({
       .unique();
     if (!preset) {throw new Error("Preset not found");}
     const allModules = await ctx.db.query("adminModules").collect();
+    const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
+    const enabledSet = new Set<string>();
+    const unknownKeys = preset.enabledModules.filter((key) => !modulesByKey.has(key));
+    if (unknownKeys.length > 0) {
+      throw new Error(`Preset chứa module không tồn tại: ${unknownKeys.join(', ')}`);
+    }
+
     for (const moduleRecord of allModules) {
-      if (moduleRecord.isCore) {continue;}
-      const shouldEnable = preset.enabledModules.includes(moduleRecord.key);
+      if (moduleRecord.isCore || preset.enabledModules.includes(moduleRecord.key)) {
+        enabledSet.add(moduleRecord.key);
+      }
+    }
+
+    for (const moduleRecord of allModules) {
+      if (!enabledSet.has(moduleRecord.key)) {continue;}
+      if (!moduleRecord.dependencies?.length) {continue;}
+      const enabledDependencies = moduleRecord.dependencies.filter((depKey) => enabledSet.has(depKey));
+      const dependencyType = moduleRecord.dependencyType ?? "all";
+      if (dependencyType === "all" && enabledDependencies.length !== moduleRecord.dependencies.length) {
+        const missing = moduleRecord.dependencies.filter((depKey) => !enabledSet.has(depKey));
+        throw new Error(`Preset thiếu dependency cho module "${moduleRecord.key}": ${missing.join(', ')}`);
+      }
+      if (dependencyType === "any" && enabledDependencies.length === 0) {
+        throw new Error(`Preset thiếu dependency cho module "${moduleRecord.key}"`);
+      }
+    }
+
+    for (const moduleRecord of allModules) {
+      const shouldEnable = enabledSet.has(moduleRecord.key);
       if (moduleRecord.enabled !== shouldEnable) {
         await ctx.db.patch(moduleRecord._id, {
           enabled: shouldEnable,

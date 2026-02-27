@@ -47,6 +47,7 @@ const parseJsonSetting = <T,>(value: string | number | boolean | undefined, fall
 export function OrdersConfigTab({
   config,
   moduleData,
+  isReadOnly,
   localFeatures,
   localFields,
   localSettings,
@@ -167,8 +168,9 @@ export function OrdersConfigTab({
         isCore={moduleData?.isCore ?? false}
         enabled={moduleData?.enabled ?? true}
         toggleColor={colorClasses.toggle}
+        disabled={isReadOnly}
       />
-      <div className="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+      <div className={cn("mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-2", isReadOnly && "pointer-events-none opacity-60")}>
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -187,7 +189,7 @@ export function OrdersConfigTab({
         ))}
       </div>
 
-      <div className="mt-4 space-y-4">
+      <div className={cn("mt-4 space-y-4", isReadOnly && "pointer-events-none opacity-60")}>
         {activeTab === 'general' && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <div className="space-y-4">

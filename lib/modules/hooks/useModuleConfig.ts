@@ -40,6 +40,7 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
                      featuresData === undefined || 
                      fieldsData === undefined || 
                      settingsData === undefined;
+  const isModuleDisabled = moduleData?.enabled === false;
    
    // ============ SYNC EFFECTS ============
    useEffect(() => {
@@ -209,6 +210,10 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
    
    // ============ BATCH SAVE ============
    const handleSave = useCallback(async () => {
+    if (isModuleDisabled) {
+      toast.error('Module đang tắt, không thể lưu cấu hình.');
+      return;
+    }
      setIsSaving(true);
      try {
        const promises: Promise<unknown>[] = [];
@@ -266,13 +271,14 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
      } finally {
        setIsSaving(false);
      }
-   }, [
-     moduleKey, 
-     localFeatures, serverFeatures, toggleFeature,
-     localFields, fieldsData, updateField,
-     localCategoryFields, categoryFieldsData,
-     localSettings, serverSettings, setSetting,
-   ]);
+  }, [
+    moduleKey,
+    localFeatures, serverFeatures, toggleFeature,
+    localFields, fieldsData, updateField,
+    localCategoryFields, categoryFieldsData,
+    localSettings, serverSettings, setSetting,
+    isModuleDisabled,
+  ]);
    
    return {
      // Data

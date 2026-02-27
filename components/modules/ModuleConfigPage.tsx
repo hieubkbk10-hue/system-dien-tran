@@ -32,6 +32,7 @@ export interface ModuleConfigPageRenderProps {
 export interface ModuleConfigTabRenderProps {
   config: ModuleDefinition;
   moduleData: { isCore?: boolean; enabled?: boolean } | null | undefined;
+  isReadOnly: boolean;
   localFeatures: Record<string, boolean>;
   localFields: FieldConfig[];
   localCategoryFields: FieldConfig[];
@@ -79,6 +80,7 @@ export function ModuleConfigPage({
    
    const colorClasses = getColorClasses(config.color);
    const tabs = config.tabs ?? ['config'];
+   const isReadOnly = moduleData?.enabled === false;
   
   const renderProps: ModuleConfigPageRenderProps = {
     config,
@@ -90,6 +92,7 @@ export function ModuleConfigPage({
   const configTabProps: ModuleConfigTabRenderProps = {
     config,
     moduleData,
+    isReadOnly,
     localFeatures,
     localFields,
     localCategoryFields,
@@ -110,6 +113,8 @@ export function ModuleConfigPage({
       setIsSaving(false);
     }
   };
+  const canSaveConfig = !isReadOnly;
+  const hasConfigChanges = activeTab === 'config' ? hasChanges : (activeTab === 'appearance' ? appearanceHasChanges : false);
    
    if (isLoading) {
      return (
@@ -128,10 +133,16 @@ export function ModuleConfigPage({
          iconBgClass={colorClasses.iconBg}
          iconTextClass={colorClasses.iconText}
          buttonClass={colorClasses.button}
-        onSave={activeTab === 'config' ? handleSave : (activeTab === 'appearance' && onAppearanceSave ? handleAppearanceSave : undefined)}
-        hasChanges={activeTab === 'config' ? hasChanges : (activeTab === 'appearance' ? appearanceHasChanges : false)}
+        onSave={canSaveConfig ? (activeTab === 'config' ? handleSave : (activeTab === 'appearance' && onAppearanceSave ? handleAppearanceSave : undefined)) : undefined}
+        hasChanges={canSaveConfig ? hasConfigChanges : false}
         isSaving={isConfigSaving || isSaving}
        />
+
+      {isReadOnly && (
+        <div className="border border-amber-200 bg-amber-50 text-amber-700 text-sm rounded-lg p-3">
+          Module đang tắt. Hãy bật module ở trang Quản lý Module để chỉnh cấu hình.
+        </div>
+      )}
        
        {tabs.length > 1 && (
          <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
@@ -161,6 +172,7 @@ export function ModuleConfigPage({
            <ConfigTab
              config={config}
              moduleData={moduleData}
+             isReadOnly={isReadOnly}
              localFeatures={localFeatures}
              localFields={localFields}
              localCategoryFields={localCategoryFields}
@@ -205,9 +217,10 @@ export function ModuleConfigPage({
    );
  }
  
-function ConfigTab({ config, moduleData, localFeatures, localFields, localCategoryFields, localSettings, colorClasses, onToggleFeature, onToggleField, onToggleCategoryField, onSettingChange }: {
+function ConfigTab({ config, moduleData, isReadOnly, localFeatures, localFields, localCategoryFields, localSettings, colorClasses, onToggleFeature, onToggleField, onToggleCategoryField, onSettingChange }: {
    config: ModuleDefinition;
    moduleData: { isCore?: boolean; enabled?: boolean } | null | undefined;
+   isReadOnly: boolean;
    localFeatures: Record<string, boolean>;
   localFields: FieldConfig[];
   localCategoryFields: FieldConfig[];
@@ -252,11 +265,12 @@ function ConfigTab({ config, moduleData, localFeatures, localFields, localCatego
      <>
        <ModuleStatus 
          isCore={moduleData?.isCore ?? false} 
-         enabled={moduleData?.enabled ?? true} 
+         enabled={moduleData?.enabled ?? true}
          toggleColor={colorClasses.toggle}
+         disabled={isReadOnly}
        />
        
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+       <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-4", isReadOnly && "pointer-events-none opacity-60")}>
          <div className="space-y-4">
           {settingsByGroup.map(({ group, settings: groupSettings }) => (
             <div key={group.key} className="space-y-3">

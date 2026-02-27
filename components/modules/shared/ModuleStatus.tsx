@@ -9,6 +9,7 @@ interface ModuleStatusProps {
   enabled?: boolean;
   onToggle?: () => void;
   toggleColor?: string;
+  disabled?: boolean;
 }
 
 export const ModuleStatus: React.FC<ModuleStatusProps> = ({
@@ -16,6 +17,7 @@ export const ModuleStatus: React.FC<ModuleStatusProps> = ({
   enabled = true,
   onToggle,
   toggleColor = 'bg-emerald-500',
+  disabled = false,
 }) => {
   if (isCore) {
     return (
@@ -41,7 +43,12 @@ export const ModuleStatus: React.FC<ModuleStatusProps> = ({
           {enabled ? 'Module đang hoạt động' : 'Module đang tắt'}
         </span>
       </div>
-      <ToggleSwitch enabled={enabled} onChange={onToggle ?? (() => {})} color={toggleColor} />
+      <ToggleSwitch
+        enabled={enabled}
+        onChange={onToggle ?? (() => {})}
+        color={toggleColor}
+        disabled={disabled}
+      />
     </div>
   );
 };

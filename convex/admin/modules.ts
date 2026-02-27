@@ -22,7 +22,10 @@ const moduleDoc = v.object({
 
 export const listModules = query({
   args: {},
-  handler: async (ctx) => ctx.db.query("adminModules").collect(),
+  handler: async (ctx) => {
+    const modules = await ctx.db.query("adminModules").collect();
+    return modules.sort((a, b) => a.order - b.order);
+  },
   returns: v.array(moduleDoc),
 });
 
