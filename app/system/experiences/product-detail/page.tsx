@@ -327,6 +327,7 @@ export default function ProductDetailExperiencePage() {
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
   const currentLayoutConfig = config.layouts[config.layoutStyle];
+  const canUseWishlist = wishlistModule?.enabled ?? false;
 
   const updateLayoutConfig = <K extends keyof typeof currentLayoutConfig>(
     key: K,
@@ -377,7 +378,7 @@ export default function ProductDetailExperiencePage() {
     const base = {
       layoutStyle: config.layoutStyle,
       showRating: currentLayoutConfig.showRating,
-      showWishlist: currentLayoutConfig.showWishlist,
+      showWishlist: currentLayoutConfig.showWishlist && canUseWishlist,
       showAddToCart: currentLayoutConfig.showAddToCart,
       showBuyNow: config.showBuyNow,
       showComments: currentLayoutConfig.showComments,
@@ -576,10 +577,10 @@ export default function ProductDetailExperiencePage() {
             />
             <ToggleRow
               label="Wishlist"
-              checked={currentLayoutConfig.showWishlist}
+              checked={currentLayoutConfig.showWishlist && canUseWishlist}
               onChange={(v) => updateLayoutConfig('showWishlist', v)}
               accentColor={brandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!canUseWishlist}
             />
             <ToggleRow
               label="Add to Cart"
