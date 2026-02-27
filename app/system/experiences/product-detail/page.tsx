@@ -328,6 +328,7 @@ export default function ProductDetailExperiencePage() {
 
   const currentLayoutConfig = config.layouts[config.layoutStyle];
   const canUseWishlist = wishlistModule?.enabled ?? false;
+  const canUseComments = commentsModule?.enabled ?? false;
 
   const updateLayoutConfig = <K extends keyof typeof currentLayoutConfig>(
     key: K,
@@ -377,13 +378,13 @@ export default function ProductDetailExperiencePage() {
   const getPreviewProps = () => {
     const base = {
       layoutStyle: config.layoutStyle,
-      showRating: currentLayoutConfig.showRating,
+      showRating: currentLayoutConfig.showRating && canUseComments,
       showWishlist: currentLayoutConfig.showWishlist && canUseWishlist,
       showAddToCart: currentLayoutConfig.showAddToCart,
       showBuyNow: config.showBuyNow,
-      showComments: currentLayoutConfig.showComments,
-      showCommentLikes: currentLayoutConfig.showCommentLikes,
-      showCommentReplies: currentLayoutConfig.showCommentReplies,
+      showComments: currentLayoutConfig.showComments && canUseComments,
+      showCommentLikes: currentLayoutConfig.showCommentLikes && canUseComments,
+      showCommentReplies: currentLayoutConfig.showCommentReplies && canUseComments,
       showVariants: (variantsSetting?.value as boolean | undefined) ?? false,
       heroStyle: config.layoutStyle === 'modern'
         ? (currentLayoutConfig as ModernLayoutConfig).heroStyle
@@ -570,10 +571,10 @@ export default function ProductDetailExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Đánh giá"
-              checked={currentLayoutConfig.showRating}
+              checked={currentLayoutConfig.showRating && canUseComments}
               onChange={(v) => updateLayoutConfig('showRating', v)}
               accentColor={brandColor}
-              disabled={!commentsModule?.enabled}
+              disabled={!canUseComments}
             />
             <ToggleRow
               label="Wishlist"
@@ -606,24 +607,24 @@ export default function ProductDetailExperiencePage() {
           <ControlCard title="Bình luận">
             <ToggleRow
               label="Hiển thị bình luận"
-              checked={currentLayoutConfig.showComments}
+              checked={currentLayoutConfig.showComments && canUseComments}
               onChange={(v) => updateLayoutConfig('showComments' as keyof typeof currentLayoutConfig, v as never)}
               accentColor={brandColor}
-              disabled={!commentsModule?.enabled}
+              disabled={!canUseComments}
             />
             <ToggleRow
               label="Nút thích"
-              checked={currentLayoutConfig.showCommentLikes}
+              checked={currentLayoutConfig.showCommentLikes && canUseComments}
               onChange={(v) => updateLayoutConfig('showCommentLikes' as keyof typeof currentLayoutConfig, v as never)}
               accentColor={brandColor}
-              disabled={!commentsModule?.enabled}
+              disabled={!canUseComments}
             />
             <ToggleRow
               label="Nút trả lời"
-              checked={currentLayoutConfig.showCommentReplies}
+              checked={currentLayoutConfig.showCommentReplies && canUseComments}
               onChange={(v) => updateLayoutConfig('showCommentReplies' as keyof typeof currentLayoutConfig, v as never)}
               accentColor={brandColor}
-              disabled={!commentsModule?.enabled}
+              disabled={!canUseComments}
             />
             <ModuleFeatureStatus
               label="Module bình luận"
