@@ -235,7 +235,7 @@ export default function AccountOrdersPage() {
         availableItems.push(item);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.';
-        if (stockEnabled && /stock|tồn kho|hết hàng|insufficient/i.test(message)) {
+        if (stockEnabled && /stock|tồn kho|hết hàng|không đủ|insufficient/i.test(message)) {
           outOfStockItems.push(item);
         } else {
           toast.error(message);

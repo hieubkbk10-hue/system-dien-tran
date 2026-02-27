@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Minus, Package, Plus, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { getCartColors } from '@/components/site/cart/colors';
@@ -94,6 +95,14 @@ export default function CartPage() {
       })
     );
   }, [variantOptions, variantValues, variants]);
+
+  const handleUpdateQuantity = async (itemId: Id<'cartItems'>, quantity: number) => {
+    try {
+      await updateQuantity(itemId, quantity);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật số lượng.');
+    }
+  };
 
   const expiresAt = cart?.expiresAt ?? null;
   const { expiryText, isExpired } = useCartExpiry(expiresAt);
@@ -332,7 +341,7 @@ export default function CartPage() {
                                 backgroundColor: tokens.quantityButtonBg,
                                 ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                               }}
-                              onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                              onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                             >
                               <Minus size={12} style={{ color: tokens.quantityButtonIcon }} />
                             </button>
@@ -345,7 +354,7 @@ export default function CartPage() {
                                 backgroundColor: tokens.quantityButtonBg,
                                 ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                               }}
-                              onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                              onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                             >
                               <Plus size={12} style={{ color: tokens.quantityButtonIcon }} />
                             </button>
@@ -406,7 +415,7 @@ export default function CartPage() {
                             backgroundColor: tokens.quantityButtonBg,
                             ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                           }}
-                          onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                         >
                           <Minus size={14} style={{ color: tokens.quantityButtonIcon }} />
                         </button>
@@ -419,7 +428,7 @@ export default function CartPage() {
                             backgroundColor: tokens.quantityButtonBg,
                             ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                           }}
-                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                         >
                           <Plus size={14} style={{ color: tokens.quantityButtonIcon }} />
                         </button>
@@ -539,7 +548,7 @@ export default function CartPage() {
                           backgroundColor: tokens.quantityButtonBg,
                           ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                         }}
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                       >
                         <Minus size={12} style={{ color: tokens.quantityButtonIcon }} />
                       </button>
@@ -552,7 +561,7 @@ export default function CartPage() {
                           backgroundColor: tokens.quantityButtonBg,
                           ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                         }}
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                       >
                         <Plus size={12} style={{ color: tokens.quantityButtonIcon }} />
                       </button>

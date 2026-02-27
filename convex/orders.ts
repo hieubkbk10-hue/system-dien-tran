@@ -120,6 +120,14 @@ async function getVariantSettings(ctx: MutationCtx): Promise<{
   };
 }
 
+async function isStockCheckEnabled(ctx: MutationCtx): Promise<boolean> {
+  const feature = await ctx.db
+    .query("moduleFeatures")
+    .withIndex("by_module_feature", (q) => q.eq("moduleKey", "products").eq("featureKey", "enableStock"))
+    .unique();
+  return feature?.enabled ?? false;
+}
+
 async function buildVariantTitle(ctx: MutationCtx, variant: Doc<"productVariants">): Promise<string | undefined> {
   if (!variant.optionValues.length) {
     return undefined;
@@ -191,6 +199,84 @@ async function decrementVariantStock(ctx: MutationCtx, items: OrderItemInput[]) 
     const nextStock = Math.max(0, variant.stock - item.quantity);
     return ctx.db.patch(variant._id, { stock: nextStock });
   }));
+}
+
+async function decrementProductStock(ctx: MutationCtx, items: OrderItemInput[]) {
+  if (items.length === 0) {
+    return;
+  }
+
+  const quantities = new Map<string, number>();
+  items.forEach((item) => {
+    const key = item.productId;
+    quantities.set(key, (quantities.get(key) ?? 0) + item.quantity);
+  });
+
+  const productIds = Array.from(quantities.keys()) as Id<"products">[];
+  const products = await Promise.all(productIds.map((id) => ctx.db.get(id)));
+
+  await Promise.all(products.map((product, index) => {
+    if (!product || product.stock === undefined) {
+      return null;
+    }
+    const quantity = quantities.get(productIds[index]) ?? 0;
+    const nextStock = Math.max(0, product.stock - quantity);
+    return ctx.db.patch(product._id, { stock: nextStock });
+  }));
+}
+
+async function validateStockBeforeCreate(
+  ctx: MutationCtx,
+  items: OrderItemInput[],
+  variantStock: VariantStockSetting
+) {
+  if (items.length === 0) {
+    return;
+  }
+
+  if (variantStock === "product") {
+    const quantities = new Map<string, number>();
+    items.forEach((item) => {
+      const key = item.productId;
+      quantities.set(key, (quantities.get(key) ?? 0) + item.quantity);
+    });
+    const productIds = Array.from(quantities.keys()) as Id<"products">[];
+    const products = await Promise.all(productIds.map((id) => ctx.db.get(id)));
+
+    products.forEach((product, index) => {
+      if (!product || product.stock === undefined) {
+        return;
+      }
+      const quantity = quantities.get(productIds[index]) ?? 0;
+      if (quantity > product.stock) {
+        throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${product.stock}`);
+      }
+    });
+    return;
+  }
+
+  const [products, variants] = await Promise.all([
+    Promise.all(items.map((item) => ctx.db.get(item.productId))),
+    Promise.all(items.map((item) => (item.variantId ? ctx.db.get(item.variantId) : null))),
+  ]);
+
+  items.forEach((item, index) => {
+    const product = products[index];
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    const variant = variants[index];
+    if (item.variantId && variant?.stock !== undefined) {
+      if (item.quantity > variant.stock) {
+        const label = item.variantTitle ? ` (${item.variantTitle})` : "";
+        throw new Error(`Không đủ hàng trong kho cho ${item.productName}${label}. Còn lại: ${variant.stock}`);
+      }
+      return;
+    }
+    if (product.stock !== undefined && item.quantity > product.stock) {
+      throw new Error(`Không đủ hàng trong kho cho ${item.productName}. Còn lại: ${product.stock}`);
+    }
+  });
 }
 
 const orderDoc = v.object({
@@ -532,6 +618,10 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const { variantPricing, variantStock } = await getVariantSettings(ctx);
     const normalizedItems = await normalizeOrderItems(ctx, args.items, variantPricing);
+    const stockCheckEnabled = await isStockCheckEnabled(ctx);
+    if (stockCheckEnabled) {
+      await validateStockBeforeCreate(ctx, normalizedItems, variantStock);
+    }
     const isDigitalOrder = normalizedItems.some((item) => item.isDigital);
     const { statuses } = await getOrderStatusSettings(ctx);
     const defaultStatus = statuses[0]?.key ?? "Pending";
@@ -542,8 +632,12 @@ export const create = mutation({
       status: defaultStatus,
     });
 
-    if (variantStock === "variant") {
-      await decrementVariantStock(ctx, normalizedItems);
+    if (stockCheckEnabled) {
+      if (variantStock === "variant") {
+        await decrementVariantStock(ctx, normalizedItems);
+      } else {
+        await decrementProductStock(ctx, normalizedItems);
+      }
     }
 
     return orderId;

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useMutation, useQuery } from 'convex/react';
 import { Heart, Package, Search, ShoppingCart } from 'lucide-react';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
@@ -144,12 +145,16 @@ export default function WishlistPage() {
       return;
     }
 
-    await addItem(productId, 1);
-    notifyAddToCart();
-    if (cartConfig.layoutStyle === 'drawer') {
-      openDrawer();
-    } else {
-      router.push('/cart');
+    try {
+      await addItem(productId, 1);
+      notifyAddToCart();
+      if (cartConfig.layoutStyle === 'drawer') {
+        openDrawer();
+      } else {
+        router.push('/cart');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.');
     }
   };
 

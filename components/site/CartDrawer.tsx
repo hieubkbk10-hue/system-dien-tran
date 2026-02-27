@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCart, useCartExpiry } from '@/lib/cart';
 import { useCartConfig } from '@/lib/experiences';
 import { useBrandColors } from './hooks';
@@ -24,6 +25,14 @@ export function CartDrawer() {
   const { cart, items, itemsCount, totalAmount, isDrawerOpen, closeDrawer, updateQuantity, removeItem, updateNote } = useCart();
   const { layoutStyle, showExpiry, showNote } = useCartConfig();
   const { isAuthenticated, openLoginModal } = useCustomerAuth();
+
+  const handleUpdateQuantity = async (itemId: (typeof items)[number]['_id'], quantity: number) => {
+    try {
+      await updateQuantity(itemId, quantity);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật số lượng.');
+    }
+  };
 
   const expiresAt = cart?.expiresAt ?? null;
   const { expiryText, isExpired } = useCartExpiry(expiresAt);
@@ -119,7 +128,7 @@ export function CartDrawer() {
                           backgroundColor: tokens.quantityButtonBg,
                           ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                         }}
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                       >
                         <Minus size={12} style={{ color: tokens.quantityButtonIcon }} />
                       </button>
@@ -132,7 +141,7 @@ export function CartDrawer() {
                           backgroundColor: tokens.quantityButtonBg,
                           ['--qty-hover-bg' as never]: tokens.quantityButtonHoverBg,
                         }}
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                       >
                         <Plus size={12} style={{ color: tokens.quantityButtonIcon }} />
                       </button>

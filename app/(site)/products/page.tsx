@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { getProductsListColors, type ProductsListColors } from '@/components/site/products/colors';
@@ -404,18 +405,22 @@ function ProductsContent() {
     const { product, action } = quickAddTarget;
 
     if (action === 'addToCart') {
-      await addItem(product._id, quantity, variantId);
-      notifyAddToCart();
-      if (cartConfig.layoutStyle === 'drawer') {
-        openDrawer();
-      } else {
-        router.push('/cart');
+      try {
+        await addItem(product._id, quantity, variantId);
+        notifyAddToCart();
+        if (cartConfig.layoutStyle === 'drawer') {
+          openDrawer();
+        } else {
+          router.push('/cart');
+        }
+        setQuickAddTarget(null);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.');
       }
     } else {
       router.push(`/checkout?productId=${product._id}&quantity=${quantity}&variantId=${variantId}`);
+      setQuickAddTarget(null);
     }
-
-    setQuickAddTarget(null);
   };
 
   const handleAddToCart = async (product: ProductCardProps['product']) => {
@@ -433,12 +438,16 @@ function ProductsContent() {
       return;
     }
 
-    await addItem(product._id, 1);
-    notifyAddToCart();
-    if (cartConfig.layoutStyle === 'drawer') {
-      openDrawer();
-    } else {
-      router.push('/cart');
+    try {
+      await addItem(product._id, 1);
+      notifyAddToCart();
+      if (cartConfig.layoutStyle === 'drawer') {
+        openDrawer();
+      } else {
+        router.push('/cart');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.');
     }
   };
 

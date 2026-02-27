@@ -51,6 +51,22 @@ async function getVariantPricingSetting(ctx: MutationCtx): Promise<"product" | "
   return (setting?.value as "product" | "variant") ?? "variant";
 }
 
+async function getVariantStockSetting(ctx: MutationCtx): Promise<"product" | "variant"> {
+  const setting = await ctx.db
+    .query("moduleSettings")
+    .withIndex("by_module_setting", (q) => q.eq("moduleKey", "products").eq("settingKey", "variantStock"))
+    .unique();
+  return (setting?.value as "product" | "variant") ?? "variant";
+}
+
+async function isStockCheckEnabled(ctx: MutationCtx): Promise<boolean> {
+  const feature = await ctx.db
+    .query("moduleFeatures")
+    .withIndex("by_module_feature", (q) => q.eq("moduleKey", "products").eq("featureKey", "enableStock"))
+    .unique();
+  return feature?.enabled ?? false;
+}
+
 // ============ CART QUERIES ============
 
 // FIX Issue #1: Added limit parameter with default
@@ -358,6 +374,24 @@ export const addItem = mutation({
     const product = await ctx.db.get(args.productId);
     if (!product) {throw new Error("Product not found");}
 
+    let variant = null;
+    if (product.hasVariants) {
+      if (!args.variantId) {
+        throw new Error("Vui lòng chọn phiên bản sản phẩm");
+      }
+      variant = await ctx.db.get(args.variantId);
+      if (!variant || variant.productId !== args.productId) {
+        throw new Error("Phiên bản không hợp lệ");
+      }
+    } else if (args.variantId) {
+      throw new Error("Sản phẩm không hỗ trợ phiên bản");
+    }
+
+    const [variantStock, stockCheckEnabled] = await Promise.all([
+      getVariantStockSetting(ctx),
+      isStockCheckEnabled(ctx),
+    ]);
+
     const maxItemsSetting = await ctx.db
       .query("moduleSettings")
       .withIndex("by_module", (q) => q.eq("moduleKey", "cart"))
@@ -372,11 +406,20 @@ export const addItem = mutation({
       )
       .first();
 
+    const targetQuantity = (existingItem?.quantity ?? 0) + args.quantity;
+    if (stockCheckEnabled) {
+      const stockValue = variantStock === "variant" && variant?.stock !== undefined
+        ? variant.stock
+        : product.stock;
+      if (stockValue !== undefined && targetQuantity > stockValue) {
+        throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}`);
+      }
+    }
+
     if (existingItem) {
-      const newQuantity = existingItem.quantity + args.quantity;
-      const newSubtotal = existingItem.price * newQuantity;
+      const newSubtotal = existingItem.price * targetQuantity;
       await ctx.db.patch(existingItem._id, {
-        quantity: newQuantity,
+        quantity: targetQuantity,
         subtotal: newSubtotal,
       });
       await recalculateCart(ctx, args.cartId);
@@ -389,19 +432,6 @@ export const addItem = mutation({
       .collect();
     if (currentItems.length >= maxItems) {
       throw new Error(`Giỏ hàng đã đạt giới hạn ${maxItems} sản phẩm`);
-    }
-
-    let variant = null;
-    if (product.hasVariants) {
-      if (!args.variantId) {
-        throw new Error("Vui lòng chọn phiên bản sản phẩm");
-      }
-      variant = await ctx.db.get(args.variantId);
-      if (!variant || variant.productId !== args.productId) {
-        throw new Error("Phiên bản không hợp lệ");
-      }
-    } else if (args.variantId) {
-      throw new Error("Sản phẩm không hỗ trợ phiên bản");
     }
 
     const variantPricing = product.hasVariants ? await getVariantPricingSetting(ctx) : "product";
@@ -434,6 +464,32 @@ export const updateItemQuantity = mutation({
   handler: async (ctx, args) => {
     const item = await ctx.db.get(args.itemId);
     if (!item) {throw new Error("Cart item not found");}
+
+    if (args.quantity > 0) {
+      const [product, variantStock, stockCheckEnabled] = await Promise.all([
+        ctx.db.get(item.productId),
+        getVariantStockSetting(ctx),
+        isStockCheckEnabled(ctx),
+      ]);
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      if (stockCheckEnabled) {
+        let stockValue = product.stock;
+        if (variantStock === "variant" && item.variantId) {
+          const variant = await ctx.db.get(item.variantId);
+          if (variant?.stock !== undefined) {
+            stockValue = variant.stock;
+          }
+        }
+
+        if (stockValue !== undefined && args.quantity > stockValue) {
+          throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}`);
+        }
+      }
+    }
 
     if (args.quantity <= 0) {
       await ctx.db.delete(args.itemId);

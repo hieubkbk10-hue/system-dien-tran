@@ -458,12 +458,16 @@ export default function ProductDetailPage({ params }: PageProps) {
       toast.error('Vui lòng chọn phiên bản trước khi thêm vào giỏ hàng');
       return;
     }
-    await addItem(product._id, quantity, variantId);
-    notifyAddToCart();
-    if (cartConfig.layoutStyle === 'drawer') {
-      openDrawer();
-    } else {
-      router.push('/cart');
+    try {
+      await addItem(product._id, quantity, variantId);
+      notifyAddToCart();
+      if (cartConfig.layoutStyle === 'drawer') {
+        openDrawer();
+      } else {
+        router.push('/cart');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.');
     }
   };
 
