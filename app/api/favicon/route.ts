@@ -11,7 +11,7 @@ export async function GET() {
       keys: ['site_favicon', 'site_brand_primary', 'site_brand_color', 'site_name'],
     });
 
-    const faviconUrl = settings.site_favicon as string | undefined;
+    const faviconUrl = (settings.site_favicon as string | undefined)?.trim();
     const brandColor = (settings.site_brand_primary as string) || (settings.site_brand_color as string) || '#3b82f6';
     const siteName = (settings.site_name as string) || 'V';
 

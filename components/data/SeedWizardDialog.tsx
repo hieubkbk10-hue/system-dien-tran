@@ -67,6 +67,7 @@ const DEFAULT_BUSINESS_INFO: BusinessInfo = {
   brandSecondary: '',
   businessType: 'LocalBusiness',
   email: 'contact@example.com',
+  faviconUrl: '',
   openingHours: 'Mo-Su 08:00-22:00',
   phone: '',
   siteName: 'VietAdmin',
@@ -282,6 +283,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           brandColor: palette.primary,
           brandSecondary: prev.businessInfo.brandMode === 'dual' ? palette.secondary : '',
           businessType: template.businessType,
+          faviconUrl: randomLogo ?? prev.businessInfo.faviconUrl,
           siteName: template.name,
           tagline: template.description,
         },
@@ -648,11 +650,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       const brandSecondary = state.businessInfo.brandMode === 'dual'
         ? (state.businessInfo.brandSecondary || industryPalette.secondary || brandPrimary)
         : '';
+      const resolvedFavicon = state.businessInfo.faviconUrl || state.selectedLogo || '';
 
       await setSettings({
         settings: [
           { group: 'site', key: 'site_name', value: state.businessInfo.siteName || 'VietAdmin' },
           { group: 'site', key: 'site_tagline', value: state.businessInfo.tagline || '' },
+          { group: 'site', key: 'site_favicon', value: resolvedFavicon },
           { group: 'site', key: 'site_brand_mode', value: state.businessInfo.brandMode },
           { group: 'site', key: 'site_brand_primary', value: brandPrimary },
           { group: 'site', key: 'site_brand_secondary', value: brandSecondary },
@@ -885,6 +889,16 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
           {stepKey === 'business' && (
             <BusinessInfoStep
+              suggestedLogoUrl={state.selectedLogo ?? undefined}
+              onUseLogoAsFavicon={(logoUrl) =>
+                setState((prev) => ({
+                  ...prev,
+                  businessInfo: {
+                    ...prev.businessInfo,
+                    faviconUrl: logoUrl,
+                  },
+                }))
+              }
               value={state.businessInfo}
               onChange={(businessInfo) => setState((prev) => ({ ...prev, businessInfo }))}
             />

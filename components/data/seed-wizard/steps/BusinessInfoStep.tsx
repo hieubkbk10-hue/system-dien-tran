@@ -19,14 +19,19 @@ const SELECT_CLASS =
   'flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
 
 type BusinessInfoStepProps = {
+  suggestedLogoUrl?: string;
+  onUseLogoAsFavicon?: (logoUrl: string) => void;
   value: BusinessInfo;
   onChange: (value: BusinessInfo) => void;
 };
 
-export function BusinessInfoStep({ value, onChange }: BusinessInfoStepProps) {
+export function BusinessInfoStep({ suggestedLogoUrl, onUseLogoAsFavicon, value, onChange }: BusinessInfoStepProps) {
   const updateField = (field: keyof BusinessInfo, fieldValue: string) => {
     onChange({ ...value, [field]: fieldValue });
   };
+
+  const canUseLogoAsFavicon = Boolean(suggestedLogoUrl);
+  const isUsingLogoAsFavicon = canUseLogoAsFavicon && value.faviconUrl === suggestedLogoUrl;
 
   return (
     <div className="space-y-4">
@@ -78,6 +83,38 @@ export function BusinessInfoStep({ value, onChange }: BusinessInfoStepProps) {
             onChange={(event) => updateField('brandColor', event.target.value)}
           />
           <p className="text-xs text-slate-500">Áp dụng cho nút bấm và màu nhấn.</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Favicon URL</Label>
+          <Input
+            value={value.faviconUrl}
+            onChange={(event) => updateField('faviconUrl', event.target.value)}
+            placeholder="https://example.com/favicon.png"
+          />
+          {canUseLogoAsFavicon ? (
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={isUsingLogoAsFavicon}
+                onChange={(event) => {
+                  if (!suggestedLogoUrl) {
+                    return;
+                  }
+                  if (event.target.checked) {
+                    onUseLogoAsFavicon?.(suggestedLogoUrl);
+                    return;
+                  }
+                  if (isUsingLogoAsFavicon) {
+                    updateField('faviconUrl', '');
+                  }
+                }}
+                className="rounded border-slate-300"
+              />
+              Dùng logo đã chọn làm favicon
+            </label>
+          ) : (
+            <p className="text-xs text-slate-500">Chọn logo mẫu để dùng nhanh làm favicon.</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label>Chế độ màu thương hiệu</Label>

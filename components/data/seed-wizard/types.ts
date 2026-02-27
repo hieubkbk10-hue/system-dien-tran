@@ -21,6 +21,7 @@ export type BusinessInfo = {
   brandSecondary: string;
   businessType: string;
   email: string;
+  faviconUrl: string;
   openingHours: string;
   phone: string;
   siteName: string;

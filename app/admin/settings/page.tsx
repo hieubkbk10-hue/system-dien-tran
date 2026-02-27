@@ -611,6 +611,16 @@ function SettingsContent() {
       }
 
       case 'image': {
+        const isFaviconField = key === 'site_favicon';
+        const handleUseLogoAsFavicon = () => {
+          if (!form.site_logo) {
+            toast.error('Chưa có logo để dùng làm favicon.');
+            return;
+          }
+          updateField('site_favicon', form.site_logo);
+          toast.success('Đã dùng logo làm favicon.');
+        };
+
         return (
           <div className="space-y-2" key={key}>
             <SettingsImageUploader
@@ -620,6 +630,26 @@ function SettingsContent() {
               folder="settings"
               previewSize={key.includes('favicon') ? 'sm' : 'md'}
             />
+            {isFaviconField && (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUseLogoAsFavicon}
+                >
+                  Dùng logo hiện tại
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>{  updateField('site_favicon', ''); }}
+                >
+                  Xóa favicon
+                </Button>
+              </div>
+            )}
           </div>
         );
       }
