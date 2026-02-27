@@ -111,6 +111,11 @@ function ProductsContent() {
     return Boolean(setting?.value);
   }, [settingsData]);
 
+  const excelActionsEnabled = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'enableExcelActions');
+    return setting?.value === undefined ? true : Boolean(setting?.value);
+  }, [settingsData]);
+
   const resolvedProductsPerPage = pageSizeOverride ?? productsPerPage;
   const offset = (currentPage - 1) * resolvedProductsPerPage;
   const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
@@ -287,6 +292,9 @@ function ProductsContent() {
   };
 
   const handleDownloadTemplate = async () => {
+    if (!excelActionsEnabled) {
+      return;
+    }
     try {
       const { Workbook } = await import('exceljs');
       const workbook = new Workbook();
@@ -300,6 +308,9 @@ function ProductsContent() {
   };
 
   const handleExport = (mode: 'filter' | 'all') => {
+    if (!excelActionsEnabled) {
+      return;
+    }
     if (isExporting) {
       return;
     }
@@ -309,6 +320,9 @@ function ProductsContent() {
   };
 
   const handleImportClick = () => {
+    if (!excelActionsEnabled) {
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -558,25 +572,29 @@ function ProductsContent() {
           </p>
         </div>
         <div className="flex gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx"
-            className="hidden"
-            onChange={handleImportFile}
-          />
-          <Button variant="outline" className="gap-2" onClick={handleDownloadTemplate}>
-            <Download size={16} /> Tải file mẫu
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={handleImportClick} disabled={isImporting}>
-            <Upload size={16} /> {isImporting ? 'Đang import...' : 'Import Excel'}
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('filter'); }} disabled={isExporting || exportRequested}>
-            <Download size={16} /> Xuất theo lọc
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('all'); }} disabled={isExporting || exportRequested}>
-            <Download size={16} /> Xuất toàn bộ
-          </Button>
+          {excelActionsEnabled && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={handleImportFile}
+              />
+              <Button variant="outline" className="gap-2" onClick={handleDownloadTemplate}>
+                <Download size={16} /> Tải file mẫu
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={handleImportClick} disabled={isImporting}>
+                <Upload size={16} /> {isImporting ? 'Đang import...' : 'Import Excel'}
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('filter'); }} disabled={isExporting || exportRequested}>
+                <Download size={16} /> Xuất theo lọc
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('all'); }} disabled={isExporting || exportRequested}>
+                <Download size={16} /> Xuất toàn bộ
+              </Button>
+            </>
+          )}
           <Link href="/admin/products/create"><Button className="gap-2"><Plus size={16}/> Thêm sản phẩm</Button></Link>
         </div>
       </div>

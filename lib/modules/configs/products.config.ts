@@ -39,6 +39,12 @@ export const productsModule = defineModule({
         { value: 'affiliate', label: 'Nút Affiliate (Mua ngay)' },
       ],
     },
+    {
+      key: 'enableExcelActions',
+      label: 'Bật Import/Export Excel',
+      type: 'toggle',
+      default: true,
+    },
     { key: 'lowStockThreshold', label: 'Ngưỡng tồn kho thấp', type: 'number', default: 10 },
     {
       key: 'variantEnabled',
