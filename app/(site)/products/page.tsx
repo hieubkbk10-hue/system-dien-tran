@@ -404,21 +404,18 @@ function ProductsContent() {
     const { product, action } = quickAddTarget;
 
     if (action === 'addToCart') {
-      const ok = await addItem(product._id, quantity, variantId);
-      if (!ok) {
-        return;
-      }
+      await addItem(product._id, quantity, variantId);
       notifyAddToCart();
       if (cartConfig.layoutStyle === 'drawer') {
         openDrawer();
       } else {
         router.push('/cart');
       }
-      setQuickAddTarget(null);
     } else {
       router.push(`/checkout?productId=${product._id}&quantity=${quantity}&variantId=${variantId}`);
-      setQuickAddTarget(null);
     }
+
+    setQuickAddTarget(null);
   };
 
   const handleAddToCart = async (product: ProductCardProps['product']) => {
@@ -436,10 +433,7 @@ function ProductsContent() {
       return;
     }
 
-    const ok = await addItem(product._id, 1);
-    if (!ok) {
-      return;
-    }
+    await addItem(product._id, 1);
     notifyAddToCart();
     if (cartConfig.layoutStyle === 'drawer') {
       openDrawer();
@@ -711,6 +705,7 @@ function ProductsContent() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
+            <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
           </div>
 
         {/* Filter Bar */}
@@ -899,15 +894,13 @@ interface ProductCardProps {
 function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, formatPrice, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; formatPrice: (price: number) => string; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-      {products.map((product) => {
-        const categoryLabel = categoryMap.get(product.categoryId);
-        return (
-          <Link
-            key={product._id}
-            href={`/products/${product.slug}`}
-            className="group rounded-xl overflow-hidden border transition-colors"
-            style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
-          >
+      {products.map((product) => (
+        <Link
+          key={product._id}
+          href={`/products/${product.slug}`}
+          className="group rounded-xl overflow-hidden border transition-colors"
+          style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+        >
           <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.filterChipBg }}>
             {product.image ? (
                 <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -934,9 +927,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             )}
           </div>
           <div className="p-4">
-            {categoryLabel && (
-              <p className="text-xs mb-1" style={{ color: tokens.metaText }}>{categoryLabel}</p>
-            )}
+            <p className="text-xs mb-1" style={{ color: tokens.metaText }}>{categoryMap.get(product.categoryId) ?? 'Sản phẩm'}</p>
             <h3 className="font-medium line-clamp-2 transition-colors mb-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
             {showPrice && (
               <div className="flex items-center gap-2">
@@ -971,8 +962,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             )}
           </div>
         </Link>
-        );
-      })}
+      ))}
     </div>
   );
 }
@@ -980,15 +970,13 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
 function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, formatPrice, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; formatPrice: (price: number) => string; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
   return (
     <div className="space-y-4">
-      {products.map((product) => {
-        const categoryLabel = categoryMap.get(product.categoryId);
-        return (
-          <Link
-            key={product._id}
-            href={`/products/${product.slug}`}
-            className="group flex gap-4 rounded-xl overflow-hidden border transition-colors p-4"
-            style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
-          >
+      {products.map((product) => (
+        <Link
+          key={product._id}
+          href={`/products/${product.slug}`}
+          className="group flex gap-4 rounded-xl overflow-hidden border transition-colors p-4"
+          style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
+        >
           <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 overflow-hidden rounded-lg relative" style={{ backgroundColor: tokens.filterChipBg }}>
             {product.image ? (
                 <Image src={product.image} alt={product.name} fill sizes="160px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -1015,9 +1003,7 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             )}
           </div>
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            {categoryLabel && (
-              <p className="text-xs mb-1" style={{ color: tokens.metaText }}>{categoryLabel}</p>
-            )}
+            <p className="text-xs mb-1" style={{ color: tokens.metaText }}>{categoryMap.get(product.categoryId) ?? 'Sản phẩm'}</p>
             <h3 className="font-semibold text-lg transition-colors mb-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
             {product.description && <p className="text-sm line-clamp-2 mb-3" style={{ color: tokens.metaText }} dangerouslySetInnerHTML={{ __html: product.description.slice(0, 150) }} />}
             <div className="flex items-center gap-4">
@@ -1054,8 +1040,7 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             </div>
           )}
         </Link>
-        );
-      })}
+      ))}
     </div>
   );
 }
@@ -1119,6 +1104,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
+          <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
         </div>
 
         <div className="flex gap-6">
@@ -1289,6 +1275,7 @@ function ListLayout({ products, categories, categoryMap, selectedCategory, onCat
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
+          <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
         </div>
 
         {/* Filter Bar */}

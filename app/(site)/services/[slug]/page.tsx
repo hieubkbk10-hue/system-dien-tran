@@ -145,7 +145,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
   const filteredRelated = experienceConfig.showRelated 
     ? (relatedServices?.filter(s => s._id !== service._id).slice(0, 3) ?? [])
     : [];
-  const serviceData = { ...service, categoryName: category?.name ?? '' };
+  const serviceData = { ...service, categoryName: category?.name ?? 'Dịch vụ' };
   const styleProps = {
     service: serviceData,
     brandColor: tokens.primary,

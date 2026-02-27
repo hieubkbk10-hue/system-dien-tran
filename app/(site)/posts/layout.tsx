@@ -4,13 +4,8 @@ import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
 import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { parseHreflang } from '@/lib/seo';
-import { buildListCanonical } from '@/lib/seo/canonical';
 
-interface MetadataProps {
-  searchParams?: Record<string, string | string[] | undefined>;
-}
-
-export async function generateMetadata({ searchParams }: MetadataProps): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   const [site, seo] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
@@ -18,19 +13,14 @@ export async function generateMetadata({ searchParams }: MetadataProps): Promise
 
   const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
   const title = 'Bài viết';
-  const description = seo.seo_description || `Tin tức, kiến thức và xu hướng mới từ ${site.site_name}`;
+  const description = seo.seo_description || `Danh sách bài viết từ ${site.site_name}`;
   const keywords = seo.seo_keywords ? seo.seo_keywords.split(',').map(k => k.trim()) : [];
   const image = seo.seo_og_image;
   const languages = parseHreflang(seo.seo_hreflang);
-  const canonical = buildListCanonical({
-    baseUrl,
-    pathname: '/posts',
-    pageParam: searchParams?.page,
-  });
 
   return {
     alternates: {
-      canonical,
+      canonical: `${baseUrl}/posts`,
       ...(Object.keys(languages).length > 0 && { languages }),
     },
     description,
@@ -39,7 +29,7 @@ export async function generateMetadata({ searchParams }: MetadataProps): Promise
       title: `${title} | ${site.site_name}`,
       description,
       type: 'website',
-      url: canonical,
+      url: `${baseUrl}/posts`,
       images: image ? [{ url: image }] : undefined,
       siteName: site.site_name,
       locale: site.site_language === 'vi' ? 'vi_VN' : 'en_US',
@@ -69,7 +59,7 @@ export default async function PostsListLayout({ children }: { children: React.Re
       name: post.title,
       url: `${baseUrl}/posts/${post.slug}`,
     })),
-    name: 'Bài viết',
+    name: 'Bài viết mới nhất',
     url: `${baseUrl}/posts`,
   });
 
