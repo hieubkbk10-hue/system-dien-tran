@@ -392,6 +392,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const isWishlisted = wishlistStatus ?? false;
   const canUseWishlist = experienceConfig.showWishlist && (wishlistModule?.enabled ?? false);
   const commentsEnabled = commentsModule?.enabled ?? false;
+  const canShowRating = commentsEnabled && experienceConfig.showRating;
   const shouldShowComments = commentsEnabled && experienceConfig.showComments;
   const shouldShowCommentLikes = shouldShowComments && (commentsLikesFeature?.enabled ?? false) && experienceConfig.showCommentLikes;
   const shouldShowCommentReplies = shouldShowComments && (commentsRepliesFeature?.enabled ?? false) && experienceConfig.showCommentReplies;
@@ -601,7 +602,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const buyNowLabel = saleMode === 'contact' ? 'Liên hệ' : 'Mua ngay';
   const requireStockForBuyNow = saleMode === 'cart';
 
-  const ratingSummary = useProductRatingSummary(product?._id, experienceConfig.showRating);
+  const ratingSummary = useProductRatingSummary(product?._id, canShowRating);
 
   const commentsSection = shouldShowComments ? (
     <ProductCommentsSection
@@ -681,7 +682,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           highlightsEnabled={classicHighlightsEnabled}
           ratingSummary={ratingSummary}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
-          showRating={experienceConfig.showRating}
+          showRating={canShowRating}
           showWishlist={canUseWishlist}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
@@ -704,7 +705,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           variantOptions={variantOptions}
           ratingSummary={ratingSummary}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
-          showRating={experienceConfig.showRating}
+          showRating={canShowRating}
           showWishlist={canUseWishlist}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
@@ -728,7 +729,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           variantOptions={variantOptions}
           ratingSummary={ratingSummary}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
-          showRating={experienceConfig.showRating}
+          showRating={canShowRating}
           showWishlist={canUseWishlist}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
