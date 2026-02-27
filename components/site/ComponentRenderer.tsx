@@ -3416,7 +3416,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
 
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
-    <a href={`/san-pham/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
+    <a href={`/products/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
       <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${secondary}08` }}>
         {product.image ? (
           <SiteImage 
@@ -3592,7 +3592,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {section.products.map((product) => (
                         <a
                           key={product._id}
-                          href={`/san-pham/${product.slug ?? product._id}`}
+                          href={`/products/${product.slug ?? product._id}`}
                           className="snap-start flex-shrink-0 w-40 md:w-48 group cursor-pointer"
                           draggable={false}
                         >
@@ -3748,7 +3748,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {/* Featured - 2x2 */}
                       {featured && (
                         <a 
-                          href={`/san-pham/${featured.slug ?? featured._id}`}
+                          href={`/products/${featured.slug ?? featured._id}`}
                           className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden bg-slate-100"
                         >
                           {featured.image ? (
@@ -3784,7 +3784,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {others.map((product) => (
                         <a 
                           key={product._id}
-                          href={`/san-pham/${product.slug ?? product._id}`}
+                          href={`/products/${product.slug ?? product._id}`}
                           className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-100"
                         >
                           {product.image ? (
@@ -3868,7 +3868,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {/* Featured Item - Large */}
                       {featured && (
                         <a 
-                          href={`/san-pham/${featured.slug ?? featured._id}`}
+                          href={`/products/${featured.slug ?? featured._id}`}
                           className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]"
                           style={{ backgroundColor: `${secondary}08` }}
                         >
@@ -3908,7 +3908,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         {gridItems.map((product) => (
                           <a 
                             key={product._id}
-                            href={`/san-pham/${product.slug ?? product._id}`}
+                            href={`/products/${product.slug ?? product._id}`}
                             className="group cursor-pointer"
                           >
                             <div 
@@ -4015,7 +4015,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                 {section.products.map((product) => (
                   <a 
                     key={product._id}
-                    href={`/san-pham/${product.slug ?? product._id}`}
+                    href={`/products/${product.slug ?? product._id}`}
                     className="group cursor-pointer block"
                   >
                     {/* Image Container với effects */}
