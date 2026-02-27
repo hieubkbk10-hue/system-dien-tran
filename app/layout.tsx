@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): React.ReactElement {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body
         className={`${vietnameseSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
