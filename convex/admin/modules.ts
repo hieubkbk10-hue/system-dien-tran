@@ -129,34 +129,32 @@ export const getDependentModules = query({
 export const toggleModule = mutation({
   args: { enabled: v.boolean(), key: v.string(), updatedBy: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const moduleRecord = await ctx.db
-      .query("adminModules")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .unique();
+    const allModules = await ctx.db.query("adminModules").collect();
+    const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
+    const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {throw new Error("Module not found");}
     if (moduleRecord.isCore && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
     if (args.enabled && args.key === "wishlist") {
-      const [products, customers] = await Promise.all([
-        ctx.db.query("adminModules").withIndex("by_key", (q) => q.eq("key", "products")).unique(),
-        ctx.db.query("adminModules").withIndex("by_key", (q) => q.eq("key", "customers")).unique(),
-      ]);
+      const products = modulesByKey.get("products");
+      const customers = modulesByKey.get("customers");
       if (!products?.enabled || !customers?.enabled) {
         throw new Error("Cần bật module Sản phẩm và Khách hàng trước");
       }
     }
     if (args.enabled && moduleRecord.dependencies?.length) {
-      for (const depKey of moduleRecord.dependencies) {
-        const dep = await ctx.db
-          .query("adminModules")
-          .withIndex("by_key", (q) => q.eq("key", depKey))
-          .unique();
-        if (!dep?.enabled) {
-          if (moduleRecord.dependencyType === "all") {
-            throw new Error(`Dependency module "${depKey}" must be enabled first`);
-          }
-        }
+      const dependencies = moduleRecord.dependencies
+        .map((depKey) => modulesByKey.get(depKey))
+        .filter(Boolean);
+      const enabledCount = dependencies.filter((dep) => dep?.enabled).length;
+      const dependencyType = moduleRecord.dependencyType ?? "all";
+      if (dependencyType === "all" && enabledCount !== dependencies.length) {
+        const missing = moduleRecord.dependencies.filter((depKey) => !modulesByKey.get(depKey)?.enabled);
+        throw new Error(`Dependency module "${missing[0] ?? moduleRecord.dependencies[0]}" must be enabled first`);
+      }
+      if (dependencyType === "any" && enabledCount === 0) {
+        throw new Error("Cần bật ít nhất 1 module phụ thuộc trước");
       }
     }
     await ctx.db.patch(moduleRecord._id, { enabled: args.enabled, updatedBy: args.updatedBy });
@@ -174,20 +172,17 @@ export const toggleModuleWithCascade = mutation({
     updatedBy: v.optional(v.id("users")), // Modules con cần disable cùng
   },
   handler: async (ctx, args) => {
-    const moduleRecord = await ctx.db
-      .query("adminModules")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .unique();
+    const allModules = await ctx.db.query("adminModules").collect();
+    const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
+    const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {return { disabledModules: [], success: false };}
     if (moduleRecord.isCore && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
 
     if (args.enabled && args.key === "wishlist") {
-      const [products, customers] = await Promise.all([
-        ctx.db.query("adminModules").withIndex("by_key", (q) => q.eq("key", "products")).unique(),
-        ctx.db.query("adminModules").withIndex("by_key", (q) => q.eq("key", "customers")).unique(),
-      ]);
+      const products = modulesByKey.get("products");
+      const customers = modulesByKey.get("customers");
       if (!products?.enabled || !customers?.enabled) {
         throw new Error("Cần bật module Sản phẩm và Khách hàng trước");
       }
@@ -195,31 +190,48 @@ export const toggleModuleWithCascade = mutation({
     
     // Khi enable, check dependencies
     if (args.enabled && moduleRecord.dependencies?.length) {
-      for (const depKey of moduleRecord.dependencies) {
-        const dep = await ctx.db
-          .query("adminModules")
-          .withIndex("by_key", (q) => q.eq("key", depKey))
-          .unique();
-        if (!dep?.enabled) {
-          if (moduleRecord.dependencyType === "all") {
-            throw new Error(`Dependency module "${depKey}" must be enabled first`);
-          }
-        }
+      const dependencies = moduleRecord.dependencies
+        .map((depKey) => modulesByKey.get(depKey))
+        .filter(Boolean);
+      const enabledCount = dependencies.filter((dep) => dep?.enabled).length;
+      const dependencyType = moduleRecord.dependencyType ?? "all";
+      if (dependencyType === "all" && enabledCount !== dependencies.length) {
+        const missing = moduleRecord.dependencies.filter((depKey) => !modulesByKey.get(depKey)?.enabled);
+        throw new Error(`Dependency module "${missing[0] ?? moduleRecord.dependencies[0]}" must be enabled first`);
+      }
+      if (dependencyType === "any" && enabledCount === 0) {
+        throw new Error("Cần bật ít nhất 1 module phụ thuộc trước");
       }
     }
     
     const disabledModules: string[] = [];
     
     // Khi disable, cascade disable các modules con
-    if (!args.enabled && args.cascadeKeys?.length) {
-      for (const cascadeKey of args.cascadeKeys) {
-        const cascadeModule = await ctx.db
-          .query("adminModules")
-          .withIndex("by_key", (q) => q.eq("key", cascadeKey))
-          .unique();
-        if (cascadeModule && cascadeModule.enabled && !cascadeModule.isCore) {
-          await ctx.db.patch(cascadeModule._id, { enabled: false, updatedBy: args.updatedBy });
-          disabledModules.push(cascadeKey);
+    if (!args.enabled) {
+      const dependentsMap = new Map<string, string[]>();
+      for (const moduleRecord of allModules) {
+        if (!moduleRecord.dependencies?.length) {continue;}
+        for (const depKey of moduleRecord.dependencies) {
+          const list = dependentsMap.get(depKey) ?? [];
+          list.push(moduleRecord.key);
+          dependentsMap.set(depKey, list);
+        }
+      }
+
+      const queue = [...(dependentsMap.get(args.key) ?? [])];
+      const visited = new Set<string>();
+      while (queue.length > 0) {
+        const currentKey = queue.shift();
+        if (!currentKey || visited.has(currentKey)) {continue;}
+        visited.add(currentKey);
+        const current = modulesByKey.get(currentKey);
+        if (current && current.enabled && !current.isCore) {
+          await ctx.db.patch(current._id, { enabled: false, updatedBy: args.updatedBy });
+          disabledModules.push(currentKey);
+        }
+        const next = dependentsMap.get(currentKey);
+        if (next?.length) {
+          queue.push(...next);
         }
       }
     }
