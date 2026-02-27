@@ -116,6 +116,18 @@ export const remove = mutation({
   returns: v.null(),
 });
 
+export const removeMultiple = mutation({
+  args: { keys: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const keySet = new Set(args.keys);
+    const settings = await ctx.db.query('settings').take(500);
+    const toDelete = settings.filter(setting => keySet.has(setting.key));
+    await Promise.all(toDelete.map(setting => ctx.db.delete(setting._id)));
+    return null;
+  },
+  returns: v.null(),
+});
+
 // TICKET #2 FIX: Dùng Promise.all thay vì sequential deletes
 export const removeByGroup = mutation({
   args: { group: v.string() },

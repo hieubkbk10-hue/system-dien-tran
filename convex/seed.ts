@@ -2057,16 +2057,9 @@ export const seedSettingsModule = mutation({
         
         // SEO settings
         { group: "seo", key: "seo_title", value: "VietAdmin - Hệ thống quản trị website" },
-        { group: "seo", key: "seo_robots", value: "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /system/\nDisallow: /api/" },
         { group: "seo", key: "seo_description", value: "VietAdmin là hệ thống quản trị website hiện đại, dễ sử dụng" },
         { group: "seo", key: "seo_keywords", value: "admin, quản trị, website, cms" },
         { group: "seo", key: "seo_og_image", value: "" },
-        { group: "seo", key: "seo_business_type", value: "LocalBusiness" },
-        { group: "seo", key: "seo_opening_hours", value: "Mo-Su 08:00-22:00" },
-        { group: "seo", key: "seo_price_range", value: "$$" },
-        { group: "seo", key: "seo_geo_lat", value: "" },
-        { group: "seo", key: "seo_geo_lng", value: "" },
-        { group: "seo", key: "seo_hreflang", value: "" },
         
         // Social settings
         { group: "social", key: "social_facebook", value: "" },
@@ -2193,13 +2186,6 @@ export const seedSettingsModule = mutation({
         { enabled: true, fieldKey: "seo_description", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Meta Description", order: 11, required: false, type: "textarea" as const },
         { enabled: true, fieldKey: "seo_keywords", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Keywords", order: 12, required: false, type: "tags" as const },
         { enabled: true, fieldKey: "seo_og_image", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "OG Image", order: 13, required: false, type: "image" as const },
-        { enabled: true, fieldKey: "seo_robots", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Robots.txt", order: 14, required: false, type: "textarea" as const },
-        { enabled: true, fieldKey: "seo_business_type", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Loại hình doanh nghiệp", order: 15, required: false, type: "select" as const },
-        { enabled: true, fieldKey: "seo_opening_hours", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Giờ mở cửa", order: 16, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "seo_price_range", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Khoảng giá", order: 17, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "seo_geo_lat", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Vĩ độ (Latitude)", order: 18, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "seo_geo_lng", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Kinh độ (Longitude)", order: 19, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "seo_hreflang", group: "seo", isSystem: false, linkedFeature: "enableSEO", moduleKey: "settings", name: "Hreflang", order: 20, required: false, type: "textarea" as const },
         // Social fields
         { enabled: true, fieldKey: "social_facebook", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "Facebook", order: 14, required: false, type: "text" as const },
         { enabled: true, fieldKey: "social_instagram", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "Instagram", order: 15, required: false, type: "text" as const },
@@ -2361,32 +2347,22 @@ export const seedMenusModule = mutation({
     }
 
     if (existingFields.length > 0) {
-      const seoFields = [
-        { fieldKey: "seo_business_type", name: "Loại hình doanh nghiệp", type: "select" as const },
-        { fieldKey: "seo_opening_hours", name: "Giờ mở cửa", type: "text" as const },
-        { fieldKey: "seo_price_range", name: "Khoảng giá", type: "text" as const },
-        { fieldKey: "seo_geo_lat", name: "Vĩ độ (Latitude)", type: "number" as const },
-        { fieldKey: "seo_geo_lng", name: "Kinh độ (Longitude)", type: "number" as const },
-        { fieldKey: "seo_hreflang", name: "Hreflang", type: "textarea" as const },
-      ];
       const existingKeys = new Set(existingFields.map((field) => field.fieldKey));
-      const maxOrder = existingFields.reduce((max, field) => Math.max(max, field.order), 0);
-      let order = maxOrder + 1;
-      for (const field of seoFields) {
-        if (existingKeys.has(field.fieldKey)) {continue;}
-        await ctx.db.insert("moduleFields", {
-          enabled: true,
-          fieldKey: field.fieldKey,
-          group: "seo",
-          isSystem: false,
-          linkedFeature: "enableSEO",
-          moduleKey: "settings",
-          name: field.name,
-          order,
-          required: false,
-          type: field.type,
-        });
-        order += 1;
+      const shouldRemove = [
+        "seo_robots",
+        "seo_business_type",
+        "seo_opening_hours",
+        "seo_price_range",
+        "seo_geo_lat",
+        "seo_geo_lng",
+        "seo_hreflang",
+      ];
+      for (const key of shouldRemove) {
+        if (!existingKeys.has(key)) {continue;}
+        const field = existingFields.find((item) => item.fieldKey === key);
+        if (field) {
+          await ctx.db.delete(field._id);
+        }
       }
     }
 

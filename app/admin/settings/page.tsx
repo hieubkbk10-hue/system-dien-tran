@@ -68,7 +68,6 @@ const TAB_CONFIG = [
   { feature: null, id: 'site', label: 'Chung' }, // Luôn hiển thị
   { feature: 'enableContact', id: 'contact', label: 'Liên hệ' },
   { feature: 'enableSEO', id: 'seo', label: 'SEO' },
-  { feature: 'enableSocial', id: 'social', label: 'Mạng xã hội' },
   { feature: 'enableMail', id: 'mail', label: 'Email' },
 ];
 
@@ -85,6 +84,16 @@ const SEO_META_LIMITS: Record<string, number> = {
   seo_description: 160,
   seo_title: 60,
 };
+
+const REMOVED_SEO_KEYS = new Set([
+  'seo_robots',
+  'seo_business_type',
+  'seo_opening_hours',
+  'seo_price_range',
+  'seo_geo_lat',
+  'seo_geo_lng',
+  'seo_hreflang',
+]);
 
 const BUSINESS_TYPE_OPTIONS = [
   'LocalBusiness',
@@ -112,6 +121,7 @@ function SettingsContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [isSecondaryAuto, setIsSecondaryAuto] = useState(true);
+  const [hasCleanedSeoFields, setHasCleanedSeoFields] = useState(false);
 
   // Hooks
   const { cleanupUnusedImages } = useSettingsCleanup();
@@ -123,6 +133,7 @@ function SettingsContent() {
 
   // Mutations
   const setMultiple = useMutation(api.settings.setMultiple);
+  const removeMultiple = useMutation(api.settings.removeMultiple);
 
   const isLoading = settingsData === undefined || featuresData === undefined || fieldsData === undefined;
 
@@ -154,6 +165,8 @@ function SettingsContent() {
       
       // Skip fields whose linked feature is disabled
       if (field.linkedFeature && ! enabledFeatures[field.linkedFeature]) {return;}
+
+      if (REMOVED_SEO_KEYS.has(field.fieldKey)) {return;}
 
       // Skip lat/lng fields (managed by MapLocationPicker)
       if (field.fieldKey === 'contact_lat' || field.fieldKey === 'contact_lng') {return;}
@@ -192,6 +205,17 @@ function SettingsContent() {
       setInitialForm(values);
     }
   }, [settingsData]);
+
+  useEffect(() => {
+    if (!settingsData || hasCleanedSeoFields) {return;}
+    const hasRemoved = settingsData.some(setting => REMOVED_SEO_KEYS.has(setting.key));
+    if (!hasRemoved) {
+      setHasCleanedSeoFields(true);
+      return;
+    }
+    removeMultiple({ keys: Array.from(REMOVED_SEO_KEYS) })
+      .finally(() => setHasCleanedSeoFields(true));
+  }, [settingsData, hasCleanedSeoFields, removeMultiple]);
 
   useEffect(() => {
     if (isSecondaryModeSingle && !isSecondaryAuto) {
@@ -247,6 +271,7 @@ function SettingsContent() {
         ?.filter(f => {
           if (!f.enabled) {return false;}
           if (hasPrimaryField && f.fieldKey === 'site_brand_color') {return false;}
+          if (REMOVED_SEO_KEYS.has(f.fieldKey)) {return false;}
           return !f.linkedFeature || enabledFeatures[f.linkedFeature];
         })
         .map(field => {
@@ -736,6 +761,7 @@ function SettingsContent() {
   }
 
   const currentFields = fieldsByGroup[activeTab] ?? [];
+  const socialFields = activeTab === 'contact' ? (fieldsByGroup.social ?? []) : [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
@@ -767,15 +793,30 @@ function SettingsContent() {
 
         {/* Content */}
         <div className="flex-1 space-y-6">
-          {currentFields.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{GROUP_LABELS[activeTab] || activeTab}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {currentFields.map(field => renderField(field))}
-              </CardContent>
-            </Card>
+          {currentFields.length > 0 || socialFields.length > 0 ? (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{GROUP_LABELS[activeTab] || activeTab}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {activeTab === 'contact' && (
+                    <p className="text-xs text-slate-500">Dữ liệu này hiển thị ở trang /contact</p>
+                  )}
+                  {currentFields.map(field => renderField(field))}
+                </CardContent>
+              </Card>
+              {activeTab === 'contact' && socialFields.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{GROUP_LABELS.social}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {socialFields.map(field => renderField(field))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           ) : (
             <Card>
               <CardContent className="py-8 text-center text-slate-500">

@@ -21,6 +21,16 @@ import { VariantSettingsSection } from '@/components/modules/products/VariantSet
 import { Card, cn } from '@/app/admin/components/ui';
  
 type TabType = 'config' | 'appearance';
+
+const REMOVED_SETTINGS_FIELDS = new Set([
+  'seo_robots',
+  'seo_business_type',
+  'seo_opening_hours',
+  'seo_price_range',
+  'seo_geo_lat',
+  'seo_geo_lng',
+  'seo_hreflang',
+]);
  
 export interface ModuleConfigPageRenderProps {
   config: ModuleDefinition;
@@ -256,6 +266,9 @@ function ConfigTab({ config, moduleData, isReadOnly, localFeatures, localFields,
   const isProductModule = config.key === 'products';
   const isSettingsModule = config.key === 'settings';
   const isSingleBrandMode = isSettingsModule && localSettings.site_brand_mode === 'single';
+  const visibleFields = isSettingsModule
+    ? localFields.filter(field => !REMOVED_SETTINGS_FIELDS.has(field.key))
+    : localFields;
   const handleFieldToggle = (key: string) => {
     if (isSingleBrandMode && key === 'site_brand_secondary') {return;}
     onToggleField(key);
@@ -368,7 +381,7 @@ function ConfigTab({ config, moduleData, isReadOnly, localFeatures, localFields,
            title={`Trường ${config.name}`}
            icon={config.icon}
            iconColorClass={colorClasses.iconText}
-           fields={localFields}
+           fields={visibleFields}
            onToggle={handleFieldToggle}
            fieldColorClass={colorClasses.fieldColor}
            toggleColor={colorClasses.toggle}
