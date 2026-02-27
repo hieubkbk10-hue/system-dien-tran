@@ -83,9 +83,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, [customer, isAuthenticated, openLoginModal]);
 
-  const runSafely = useCallback(async (action: () => Promise<void>, fallbackMessage: string, silent?: boolean) => {
+  const runSafely = useCallback(async (
+    action: () => Promise<{ ok: boolean; error?: string }>,
+    fallbackMessage: string,
+    silent?: boolean
+  ) => {
     try {
-      await action();
+      const result = await action();
+      if (!result.ok) {
+        if (!silent) {
+          toast.error(result.error ?? fallbackMessage);
+        }
+        return false;
+      }
       return true;
     } catch (error) {
       if (!silent) {
@@ -111,7 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     return runSafely(async () => {
       const activeCartId = cart?._id ?? await createCart({ customerId: customer!.id as Id<'customers'> });
-      await addItemMutation({ cartId: activeCartId, productId, quantity, variantId });
+      return addItemMutation({ cartId: activeCartId, productId, quantity, variantId });
     }, 'Không thể thêm sản phẩm vào giỏ hàng.', options?.silent);
   }, [addItemMutation, cart, createCart, customer, ensureAuthenticated, runSafely]);
 
@@ -127,7 +137,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
     return runSafely(async () => {
-      await updateQuantityMutation({ itemId, quantity });
+      return updateQuantityMutation({ itemId, quantity });
     }, 'Không thể cập nhật số lượng.');
   }, [ensureAuthenticated, runSafely, updateQuantityMutation]);
 

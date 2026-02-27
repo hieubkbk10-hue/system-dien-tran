@@ -365,26 +365,30 @@ export const addItem = mutation({
   handler: async (ctx, args) => {
     // FIX Issue #11: Validate quantity > 0
     if (args.quantity <= 0) {
-      throw new Error("Quantity must be greater than 0");
+      return { ok: false, error: "Quantity must be greater than 0" };
     }
 
     const cart = await ctx.db.get(args.cartId);
-    if (!cart) {throw new Error("Cart not found");}
+    if (!cart) {
+      return { ok: false, error: "Cart not found" };
+    }
 
     const product = await ctx.db.get(args.productId);
-    if (!product) {throw new Error("Product not found");}
+    if (!product) {
+      return { ok: false, error: "Product not found" };
+    }
 
     let variant = null;
     if (product.hasVariants) {
       if (!args.variantId) {
-        throw new Error("Vui lòng chọn phiên bản sản phẩm");
+        return { ok: false, error: "Vui lòng chọn phiên bản sản phẩm" };
       }
       variant = await ctx.db.get(args.variantId);
       if (!variant || variant.productId !== args.productId) {
-        throw new Error("Phiên bản không hợp lệ");
+        return { ok: false, error: "Phiên bản không hợp lệ" };
       }
     } else if (args.variantId) {
-      throw new Error("Sản phẩm không hỗ trợ phiên bản");
+      return { ok: false, error: "Sản phẩm không hỗ trợ phiên bản" };
     }
 
     const [variantStock, stockCheckEnabled] = await Promise.all([
@@ -412,7 +416,7 @@ export const addItem = mutation({
         ? variant.stock
         : product.stock;
       if (stockValue !== undefined && targetQuantity > stockValue) {
-        throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}`);
+        return { ok: false, error: `Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}` };
       }
     }
 
@@ -423,7 +427,7 @@ export const addItem = mutation({
         subtotal: newSubtotal,
       });
       await recalculateCart(ctx, args.cartId);
-      return existingItem._id;
+      return { ok: true, itemId: existingItem._id };
     }
 
     const currentItems = await ctx.db
@@ -431,7 +435,7 @@ export const addItem = mutation({
       .withIndex("by_cart", (q) => q.eq("cartId", args.cartId))
       .collect();
     if (currentItems.length >= maxItems) {
-      throw new Error(`Giỏ hàng đã đạt giới hạn ${maxItems} sản phẩm`);
+      return { ok: false, error: `Giỏ hàng đã đạt giới hạn ${maxItems} sản phẩm` };
     }
 
     const variantPricing = product.hasVariants ? await getVariantPricingSetting(ctx) : "product";
@@ -451,9 +455,13 @@ export const addItem = mutation({
     });
 
     await recalculateCart(ctx, args.cartId);
-    return itemId;
+    return { ok: true, itemId };
   },
-  returns: v.id("cartItems"),
+  returns: v.object({
+    ok: v.boolean(),
+    itemId: v.optional(v.id("cartItems")),
+    error: v.optional(v.string()),
+  }),
 });
 
 export const updateItemQuantity = mutation({
@@ -463,7 +471,9 @@ export const updateItemQuantity = mutation({
   },
   handler: async (ctx, args) => {
     const item = await ctx.db.get(args.itemId);
-    if (!item) {throw new Error("Cart item not found");}
+    if (!item) {
+      return { ok: false, error: "Cart item not found" };
+    }
 
     if (args.quantity > 0) {
       const [product, variantStock, stockCheckEnabled] = await Promise.all([
@@ -473,7 +483,7 @@ export const updateItemQuantity = mutation({
       ]);
 
       if (!product) {
-        throw new Error("Product not found");
+        return { ok: false, error: "Product not found" };
       }
 
       if (stockCheckEnabled) {
@@ -486,7 +496,7 @@ export const updateItemQuantity = mutation({
         }
 
         if (stockValue !== undefined && args.quantity > stockValue) {
-          throw new Error(`Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}`);
+          return { ok: false, error: `Không đủ hàng trong kho cho ${product.name}. Còn lại: ${stockValue}` };
         }
       }
     }
@@ -501,9 +511,12 @@ export const updateItemQuantity = mutation({
     }
 
     await recalculateCart(ctx, item.cartId);
-    return null;
+    return { ok: true };
   },
-  returns: v.null(),
+  returns: v.object({
+    ok: v.boolean(),
+    error: v.optional(v.string()),
+  }),
 });
 
 export const removeItem = mutation({
