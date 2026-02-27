@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import HomePageClient from './_components/HomePageClient';
 import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
@@ -53,20 +52,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function HomePage(): React.ReactElement {
   return (
     <>
-      <section className="px-4 py-10 md:py-14">
-        <div className="max-w-6xl mx-auto space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">Trang chủ VietAdmin</h1>
-          <p className="text-base md:text-lg text-slate-600">
-            Khám phá sản phẩm, dịch vụ và bài viết mới nhất từ hệ thống VietAdmin.
-          </p>
-          <div className="flex flex-wrap gap-3 text-sm font-medium">
-            <Link href="/products" className="text-blue-600 hover:underline">Sản phẩm</Link>
-            <Link href="/services" className="text-blue-600 hover:underline">Dịch vụ</Link>
-            <Link href="/posts" className="text-blue-600 hover:underline">Bài viết</Link>
-            <Link href="/contact" className="text-blue-600 hover:underline">Liên hệ</Link>
-          </div>
-        </div>
-      </section>
       <HomePageClient />
     </>
   );
