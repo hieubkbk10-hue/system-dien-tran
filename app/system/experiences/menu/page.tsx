@@ -184,6 +184,10 @@ export default function HeaderMenuExperiencePage() {
     setConfig(prev => ({ ...prev, login: { ...prev.login, [key]: value } }));
   };
 
+  const updateCta = <K extends keyof HeaderMenuConfig['cta']>(key: K, value: HeaderMenuConfig['cta'][K]) => {
+    setConfig(prev => ({ ...prev, cta: { ...prev.cta, [key]: value } }));
+  };
+
   const updateHeaderBackground = (value: HeaderMenuConfig['headerBackground']) => {
     setConfig(prev => ({ ...prev, headerBackground: value }));
   };
@@ -311,6 +315,12 @@ export default function HeaderMenuExperiencePage() {
               label="Login"
               checked={config.login.show}
               onChange={(v) => updateLogin('show', v)}
+              accentColor={resolvedBrandColor}
+            />
+            <ToggleRow
+              label="CTA"
+              checked={config.cta.show}
+              onChange={(v) => updateCta('show', v)}
               accentColor={resolvedBrandColor}
             />
           </ControlCard>
