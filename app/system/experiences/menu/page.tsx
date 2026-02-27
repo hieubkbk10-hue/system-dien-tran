@@ -84,6 +84,7 @@ function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: stri
 export default function HeaderMenuExperiencePage() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
+  const siteNameSetting = useQuery(api.settings.getByKey, { key: 'site_name' });
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
   const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
@@ -119,22 +120,29 @@ export default function HeaderMenuExperiencePage() {
     setColorMode(brandColors.mode || 'single');
   }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
+  const resolvedBrandName = useMemo(() => {
+    const rawName = typeof siteNameSetting?.value === 'string' ? siteNameSetting.value.trim() : '';
+    return rawName || 'YourBrand';
+  }, [siteNameSetting?.value]);
+
   const serverConfig = useMemo<HeaderMenuConfig>(() => {
     const raw = headerConfigSetting?.value as Partial<HeaderMenuConfig> | undefined;
     return {
       ...DEFAULT_CONFIG,
       ...raw,
+      brandName: resolvedBrandName,
       topbar: { ...DEFAULT_CONFIG.topbar, ...raw?.topbar },
       search: { ...DEFAULT_CONFIG.search, ...raw?.search },
-      cta: { ...DEFAULT_CONFIG.cta, ...raw?.cta },
+      cta: { ...DEFAULT_CONFIG.cta, ...raw?.cta, text: 'Liên hệ' },
       cart: { ...DEFAULT_CONFIG.cart, ...raw?.cart },
       wishlist: { ...DEFAULT_CONFIG.wishlist, ...raw?.wishlist },
-      login: { ...DEFAULT_CONFIG.login, ...raw?.login },
+      login: { ...DEFAULT_CONFIG.login, ...raw?.login, text: 'Đăng nhập' },
     };
-  }, [headerConfigSetting?.value]);
+  }, [headerConfigSetting?.value, resolvedBrandName]);
 
   const isLoading = headerStyleSetting === undefined
     || headerConfigSetting === undefined
+    || siteNameSetting === undefined
     || menuData === undefined
     || contactSettings === undefined
     || cartModule === undefined
@@ -176,10 +184,6 @@ export default function HeaderMenuExperiencePage() {
     setConfig(prev => ({ ...prev, login: { ...prev.login, [key]: value } }));
   };
 
-  const updateCta = <K extends keyof HeaderMenuConfig['cta']>(key: K, value: HeaderMenuConfig['cta'][K]) => {
-    setConfig(prev => ({ ...prev, cta: { ...prev.cta, [key]: value } }));
-  };
-
   const updateHeaderBackground = (value: HeaderMenuConfig['headerBackground']) => {
     setConfig(prev => ({ ...prev, headerBackground: value }));
   };
@@ -196,17 +200,20 @@ export default function HeaderMenuExperiencePage() {
     setConfig(prev => ({ ...prev, headerSticky: value }));
   };
 
-  const updateBrandName = (value: string) => {
-    setConfig(prev => ({ ...prev, brandName: value }));
-  };
+  const normalizedConfig = useMemo(() => ({
+    ...config,
+    brandName: resolvedBrandName,
+    cta: { ...config.cta, text: 'Liên hệ' },
+    login: { ...config.login, text: 'Đăng nhập' },
+  }), [config, resolvedBrandName]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const normalizedConfig = {
-        ...config,
+      const configToSave = {
+        ...normalizedConfig,
         search: {
-          ...config.search,
+          ...normalizedConfig.search,
           searchProducts: true,
           searchPosts: true,
           searchServices: true,
@@ -215,7 +222,7 @@ export default function HeaderMenuExperiencePage() {
       await setMultipleSettings({
         settings: [
           { group: 'site', key: 'header_style', value: previewStyle },
-          { group: 'site', key: 'header_config', value: normalizedConfig },
+          { group: 'site', key: 'header_config', value: configToSave },
         ],
       });
       toast.success('Đã lưu cấu hình Header Menu');
@@ -306,12 +313,6 @@ export default function HeaderMenuExperiencePage() {
               onChange={(v) => updateLogin('show', v)}
               accentColor={resolvedBrandColor}
             />
-            <ToggleRow
-              label="CTA"
-              checked={config.cta.show}
-              onChange={(v) => updateCta('show', v)}
-              accentColor={resolvedBrandColor}
-            />
           </ControlCard>
           <ControlCard title="Topbar & Search">
             <div className="space-y-2">
@@ -376,33 +377,6 @@ export default function HeaderMenuExperiencePage() {
               )}
             </div>
           </ControlCard>
-          <ControlCard title="CTA & Brand">
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Brand name</Label>
-                <Input value={config.brandName} onChange={(e) => updateBrandName(e.target.value)} className="h-8 text-sm" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">CTA text</Label>
-                <Input
-                  value={config.cta.text}
-                  onChange={(e) => updateCta('text', e.target.value)}
-                  className="h-8 text-sm"
-                  disabled={!config.cta.show}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Login text</Label>
-                <Input
-                  value={config.login.text}
-                  onChange={(e) => updateLogin('text', e.target.value)}
-                  className="h-8 text-sm"
-                  disabled={!config.login.show}
-                />
-              </div>
-            </div>
-          </ControlCard>
-
           {previewStyle === 'classic' && (
             <ControlCard title="Giao diện Classic">
               <div className="space-y-2">
@@ -604,7 +578,7 @@ export default function HeaderMenuExperiencePage() {
                 brandColor={resolvedBrandColor}
                 secondaryColor={secondaryColor}
                 colorMode={colorMode}
-                config={config}
+                config={normalizedConfig}
                 device={previewDevice}
                 layoutStyle={previewStyle}
                 menuItems={menuItems}
