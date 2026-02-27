@@ -5,7 +5,7 @@ description: Guideline tổng hợp mở rộng hệ thống VietAdmin (module/e
 
 # System Extension Guideline (Master Playbook)
 
-Skill này là **nguồn chuẩn duy nhất** để mở rộng hệ thống VietAdmin theo 4 mũi chính: Module, Experience, Home Component, Seed/Wizard + Convex. Mục tiêu: đồng bộ cross-layer, tránh xung đột và đảm bảo quality gate bắt buộc.
+Skill này là **nguồn chuẩn duy nhất** để mở rộng hệ thống VietAdmin theo 4 mũi chính: Module, Experience, Home Component, Seed/Wizard + Convex. Mục tiêu: đồng bộ cross-layer, tránh xung đột và đảm bảo quality gate bắt buộc theo mức độ rủi ro.
 
 ## When to use
 
@@ -20,27 +20,38 @@ Skill này là **nguồn chuẩn duy nhất** để mở rộng hệ thống Vie
 - **Nguồn chuẩn duy nhất:** `.factory/skills/system-extension-guideline/*`.
 - Các skill chuyên biệt khác vẫn dùng bình thường, nhưng nếu thay đổi cross-domain thì **phải** theo master playbook này.
 
-## Gap Analysis (Design Pattern hiện tại)
+## Execution Protocol (bắt buộc khi trả lời)
 
-**Đã tốt:**
-- Module: CRUD + config tabs, seed cơ bản.
-- Experience: layout preview, settings cards.
-- Home Component: 6 styles, preview + renderer.
-- QA: checklist nền cho module.
+Khi skill này được gọi, **phải** trả về đúng khung:
+1) Scope & impacted paths.
+2) Ordered actions (step-by-step thực thi được).
+3) Gate matrix (critical/non-critical) + trạng thái pass/fail.
+4) Warnings (nếu có) kèm remediation note.
+5) Next-safe-step (bước tiếp theo an toàn sau khi pass gate).
 
-**Thiếu cần bổ sung:**
-- Contract cross-layer (System ↔ Admin ↔ Frontend).
-- Seed/Wizard contract rõ ràng (idempotent + dependencies + cleanup).
-- Convex full-scope contract (index, validator, pagination, storage cleanup).
-- Strict gate bắt buộc pass trước khi coi hoàn tất.
+## Extension Workflow (7 bước)
+
+1) Discover scope & dependencies.
+2) Contract Mapping (map input/keys giữa System ↔ Admin ↔ Convex ↔ Frontend).
+3) Data/Schema Validation (schema + index + validators + pagination).
+4) UI Sync (admin/system/preview/renderer parity).
+5) Seed/Cleanup (idempotent + storage cleanup).
+6) Gate Check (critical/non-critical).
+7) Final Report (output protocol ở trên).
+
+## Risk Policy (Critical vs Non-Critical)
+
+- **Critical fail ⇒ block completion.**
+- **Non-critical fail ⇒ cho phép hoàn tất với warning bắt buộc + remediation note.**
+- “Done” chỉ khi **tất cả critical pass** và warning list đã được khai báo.
 
 ## Master Contract (4 luồng bắt buộc)
 
-### 1) Tạo Module mới ở `/system/modules/*`
+### 1) Module (tạo mới ở `/system/modules/*`)
 
-**Input contract:** moduleKey, displayName, category, fields, features, settings, seed scope.
+**Required inputs:** `moduleKey`, `displayName`, `category`, `fields`, `features`, `settings`, `seedScope`.
 
-**Files phải có:**
+**Required files:**
 - `convex/schema.ts` (table + indexes)
 - `convex/{module}.ts` (queries/mutations + validators)
 - `convex/seed.ts` (seed + clear)
@@ -49,69 +60,69 @@ Skill này là **nguồn chuẩn duy nhất** để mở rộng hệ thống Vie
 - `app/admin/{module}/create/page.tsx`
 - `app/admin/{module}/[id]/edit/page.tsx`
 
-**Acceptance criteria:**
+**Required invariants:**
 - Feature/Field/Settings sync sang Admin UI.
 - Pagination admin list lấy `{module}PerPage`.
 - Default status lấy từ settings.
-- Seed/clear có cleanup storage, idempotent.
+- Seed/clear idempotent + cleanup storage.
 
-**Anti-pattern cấm:**
+**Common failure modes:**
 - Fetch ALL rồi filter JS.
-- Không dùng index cho filter/sort.
-- list page không đọc settings.
+- Filter/sort không có index.
+- List page không đọc settings.
 - Feature toggle không ẩn UI.
 
-### 2) Tạo Experience mới ở `/system/experiences/*`
+### 2) Experience (tạo mới ở `/system/experiences/*`)
 
-**Input contract:** experienceKey, module dependency (1-way), layout styles, settings schema.
+**Required inputs:** `experienceKey`, `moduleDependency` (1-way), `layoutStyles`, `settingsSchema`.
 
-**Files phải có:**
+**Required files:**
 - `app/system/experiences/{experience}/page.tsx`
-- preview component trong `components/experiences/*` hoặc `lib/experiences/*`
+- Preview component trong `components/experiences/*` hoặc `lib/experiences/*`
 
-**Acceptance criteria:**
-- Layout preview/real render parity.
-- Module dependency theo 1-way (Experience phụ thuộc Module, không ngược lại).
-- Save flow: `hasChanges` + `useExperienceSave`.
+**Required invariants:**
+- Preview/real render parity.
+- Dependency 1-way (Experience phụ thuộc Module, không ngược lại).
+- Save flow có `hasChanges` + `useExperienceSave`.
 
-**Anti-pattern cấm:**
+**Common failure modes:**
 - Split panels/z-index overlay gây conflict.
-- Không có DeviceToggle/LayoutTabs.
+- Thiếu DeviceToggle/LayoutTabs.
 
-### 3) Tạo Home Component ở `/admin/home-components/*`
+### 3) Home Component (tạo mới ở `/admin/home-components/*`)
 
-**Input contract:** componentType, 6 styles, config schema, preview parity.
+**Required inputs:** `componentType`, 6 styles, `configSchema`, preview parity.
 
-**Files phải có:**
+**Required files:**
 - `app/admin/home-components/create/{component}/page.tsx`
 - `app/admin/home-components/previews.tsx`
 - `app/admin/home-components/[id]/edit/page.tsx`
 - `components/site/ComponentRenderer.tsx`
 
-**Acceptance criteria:**
+**Required invariants:**
 - Đúng 6 styles, preview = renderer.
-- Fallback style nằm cuối function (không chặn styles sau).
+- Fallback style nằm cuối function.
 - Không hardcode nội dung đặc thù; dùng config fields.
 
-**Anti-pattern cấm:**
+**Common failure modes:**
 - Preview button thiếu `type="button"`.
 - Style fallback return trước các case khác.
 
-### 4) Thêm Seed + Wizard ở `/system/data`
+### 4) Seed/Wizard (ở `/system/data`)
 
-**Input contract:** module seed scope, dependencies, reset policy.
+**Required inputs:** module seed scope, dependencies, reset policy.
 
-**Files phải có:**
+**Required files:**
 - `convex/seed.ts` (seed + clear)
-- wizard registry (theo REFERENCE)
+- Wizard registry (theo REFERENCE)
 - UI wizard step (nếu thêm bước)
 
-**Acceptance criteria:**
-- Idempotent: seed chạy lại không nhân bản.
+**Required invariants:**
+- Seed idempotent (không nhân bản).
 - Clear xóa data + storage + relations.
 - Wizard dependency graph rõ ràng.
 
-**Anti-pattern cấm:**
+**Common failure modes:**
 - Seed không kiểm tra tồn tại.
 - Clear xóa DB nhưng bỏ storage.
 
@@ -140,7 +151,8 @@ Xem file [CHECKLISTS.md](CHECKLISTS.md). Gate nào fail thì **không** được
 ## Output format
 
 Khi dùng skill này, luôn trả về:
-1) Các bước cần làm theo thứ tự.
-2) Checklist gate phải pass.
-3) File/path sẽ thay đổi.
-4) Cảnh báo anti-pattern nếu có.
+1) Scope + impacted paths.
+2) Ordered actions.
+3) Gate results (critical/non-critical).
+4) Warnings + remediation note.
+5) Next-safe-step.
