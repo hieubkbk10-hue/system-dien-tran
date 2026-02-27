@@ -1219,15 +1219,17 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               {' / '}
               <span style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
             </div>
-            <button
-              type="button"
-              onClick={onToggleWishlist}
-              className="inline-flex items-center gap-2 text-sm"
-              style={{ color: tokens.metaText }}
-            >
-              <Heart className={isWishlisted ? 'fill-current' : ''} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
-              Yêu thích
-            </button>
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={onToggleWishlist}
+                className="inline-flex items-center gap-2 text-sm"
+                style={{ color: tokens.metaText }}
+              >
+                <Heart className={isWishlisted ? 'fill-current' : ''} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
+                Yêu thích
+              </button>
+            )}
           </nav>
         </div>
       </header>
