@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Minus, Package, Plus, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
-import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { getCartColors } from '@/components/site/cart/colors';
@@ -97,11 +96,7 @@ export default function CartPage() {
   }, [variantOptions, variantValues, variants]);
 
   const handleUpdateQuantity = async (itemId: Id<'cartItems'>, quantity: number) => {
-    try {
-      await updateQuantity(itemId, quantity);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật số lượng.');
-    }
+    await updateQuantity(itemId, quantity);
   };
 
   const expiresAt = cart?.expiresAt ?? null;

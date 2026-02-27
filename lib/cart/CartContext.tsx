@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
@@ -37,9 +38,14 @@ type CartContextValue = {
   isDrawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
-  addItem: (productId: Id<'products'>, quantity?: number, variantId?: Id<'productVariants'>) => Promise<void>;
+  addItem: (
+    productId: Id<'products'>,
+    quantity?: number,
+    variantId?: Id<'productVariants'>,
+    options?: { silent?: boolean }
+  ) => Promise<boolean>;
   removeItem: (itemId: Id<'cartItems'>) => Promise<void>;
-  updateQuantity: (itemId: Id<'cartItems'>, quantity: number) => Promise<void>;
+  updateQuantity: (itemId: Id<'cartItems'>, quantity: number) => Promise<boolean>;
   clearCart: () => Promise<void>;
   updateNote: (note?: string) => Promise<void>;
 };
@@ -77,18 +83,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, [customer, isAuthenticated, openLoginModal]);
 
-  const addItem = useCallback(async (productId: Id<'products'>, quantity = 1, variantId?: Id<'productVariants'>) => {
+  const runSafely = useCallback(async (action: () => Promise<void>, fallbackMessage: string, silent?: boolean) => {
+    try {
+      await action();
+      return true;
+    } catch (error) {
+      if (!silent) {
+        toast.error(error instanceof Error ? error.message : fallbackMessage);
+      }
+      return false;
+    }
+  }, []);
+
+  const addItem = useCallback(async (
+    productId: Id<'products'>,
+    quantity = 1,
+    variantId?: Id<'productVariants'>,
+    options?: { silent?: boolean }
+  ) => {
     if (!ensureAuthenticated()) {
-      return;
+      return false;
     }
 
     if (cart === undefined) {
-      return;
+      return false;
     }
 
-    const activeCartId = cart?._id ?? await createCart({ customerId: customer!.id as Id<'customers'> });
-    await addItemMutation({ cartId: activeCartId, productId, quantity, variantId });
-  }, [addItemMutation, cart, createCart, customer, ensureAuthenticated]);
+    return runSafely(async () => {
+      const activeCartId = cart?._id ?? await createCart({ customerId: customer!.id as Id<'customers'> });
+      await addItemMutation({ cartId: activeCartId, productId, quantity, variantId });
+    }, 'Không thể thêm sản phẩm vào giỏ hàng.', options?.silent);
+  }, [addItemMutation, cart, createCart, customer, ensureAuthenticated, runSafely]);
 
   const removeItem = useCallback(async (itemId: Id<'cartItems'>) => {
     if (!ensureAuthenticated()) {
@@ -99,10 +124,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuantity = useCallback(async (itemId: Id<'cartItems'>, quantity: number) => {
     if (!ensureAuthenticated()) {
-      return;
+      return false;
     }
-    await updateQuantityMutation({ itemId, quantity });
-  }, [ensureAuthenticated, updateQuantityMutation]);
+    return runSafely(async () => {
+      await updateQuantityMutation({ itemId, quantity });
+    }, 'Không thể cập nhật số lượng.');
+  }, [ensureAuthenticated, runSafely, updateQuantityMutation]);
 
   const clearCart = useCallback(async () => {
     if (!ensureAuthenticated()) {

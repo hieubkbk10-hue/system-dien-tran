@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { useCart, useCartExpiry } from '@/lib/cart';
 import { useCartConfig } from '@/lib/experiences';
 import { useBrandColors } from './hooks';
@@ -27,11 +26,7 @@ export function CartDrawer() {
   const { isAuthenticated, openLoginModal } = useCustomerAuth();
 
   const handleUpdateQuantity = async (itemId: (typeof items)[number]['_id'], quantity: number) => {
-    try {
-      await updateQuantity(itemId, quantity);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật số lượng.');
-    }
+    await updateQuantity(itemId, quantity);
   };
 
   const expiresAt = cart?.expiresAt ?? null;

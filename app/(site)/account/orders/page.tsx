@@ -227,19 +227,14 @@ export default function AccountOrdersPage() {
 
   const handleReorder = async (order: (typeof ordersList)[number]) => {
     const availableItems: Array<(typeof order.items)[number]> = [];
-    const outOfStockItems: Array<(typeof order.items)[number]> = [];
+    const failedItems: Array<(typeof order.items)[number]> = [];
 
     for (const item of order.items) {
-      try {
-        await addItem(item.productId as Id<'products'>, item.quantity, item.variantId);
+      const ok = await addItem(item.productId as Id<'products'>, item.quantity, item.variantId, { silent: true });
+      if (ok) {
         availableItems.push(item);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.';
-        if (stockEnabled && /stock|tồn kho|hết hàng|không đủ|insufficient/i.test(message)) {
-          outOfStockItems.push(item);
-        } else {
-          toast.error(message);
-        }
+      } else {
+        failedItems.push(item);
       }
     }
 
@@ -248,12 +243,16 @@ export default function AccountOrdersPage() {
       router.push('/cart');
     }
 
-    if (stockEnabled && outOfStockItems.length > 0) {
-      toast.error(`Sản phẩm đã hết hàng: ${outOfStockItems.map((item) => item.productName).join(', ')}`);
-    }
-
-    if (availableItems.length === 0 && outOfStockItems.length > 0) {
-      toast.error('Tất cả sản phẩm trong đơn đã hết hàng');
+    if (failedItems.length > 0) {
+      if (stockEnabled) {
+        if (availableItems.length === 0) {
+          toast.error('Tất cả sản phẩm trong đơn đã hết hàng');
+        } else {
+          toast.error(`Sản phẩm đã hết hàng: ${failedItems.map((item) => item.productName).join(', ')}`);
+        }
+      } else {
+        toast.error('Không thể thêm một số sản phẩm vào giỏ hàng.');
+      }
     }
   };
 
