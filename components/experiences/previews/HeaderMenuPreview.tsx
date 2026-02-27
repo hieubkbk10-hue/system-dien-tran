@@ -154,6 +154,7 @@ export function HeaderMenuPreview({
   const canSearchPosts = config.search.searchPosts && postsEnabled;
   const canSearchServices = config.search.searchServices && servicesEnabled;
   const showSearch = config.search.show && (canSearchProducts || canSearchPosts || canSearchServices);
+  const isDesktop = device === 'desktop';
 
   const renderUserMenu = (variant: 'text' | 'icon') => (
     <div className="relative">
@@ -789,7 +790,7 @@ export function HeaderMenuPreview({
       {config.showBrandAccent && (
         <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className="px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
+      <div className={cn('px-6 py-4', !isDesktop && 'border-b')} style={{ borderColor: tokens.border }}>
         {device !== 'mobile' ? (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
@@ -956,6 +957,10 @@ export function HeaderMenuPreview({
           </div>
         )}
       </div>
+
+      {isDesktop && (
+        <div className="h-px w-full" style={{ backgroundColor: tokens.border }} />
+      )}
 
       {device === 'mobile' && showSearch && searchOpen && (
         <div className="px-6 pb-4">
