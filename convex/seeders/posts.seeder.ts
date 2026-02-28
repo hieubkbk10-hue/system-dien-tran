@@ -4,8 +4,6 @@
  * Generates blog posts with Vietnamese content
  */
 
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
 import { createVietnameseFaker } from './fakerVi';
 import type { Doc, DataModel } from '../_generated/dataModel';
@@ -107,17 +105,7 @@ export class PostSeeder extends BaseSeeder<PostData> {
       return undefined;
     }
 
-    const isValidSeedMauPath = (value?: string) => {
-      if (!value) {
-        return false;
-      }
-      if (!value.startsWith('/seed_mau/')) {
-        return true;
-      }
-      const normalized = value.replace(/^\//, '');
-      const filePath = path.resolve(process.cwd(), 'public', normalized);
-      return existsSync(filePath);
-    };
+    const isValidSeedMauPath = (value?: string) => !!value;
 
     const pickFrom = (items: string[]) => {
       const validItems = items.filter(isValidSeedMauPath);
