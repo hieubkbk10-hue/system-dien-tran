@@ -25,6 +25,7 @@ import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
 import { ProductVariantsStep } from './seed-wizard/steps/ProductVariantsStep';
 import { BusinessInfoStep } from './seed-wizard/steps/BusinessInfoStep';
 import { AdminConfigStep } from './seed-wizard/steps/AdminConfigStep';
+import { AdminPermissionModeStep } from './seed-wizard/steps/AdminPermissionModeStep';
 import { ExperiencePresetStep } from './seed-wizard/steps/ExperiencePresetStep';
 import { QuickConfigStep } from './seed-wizard/steps/QuickConfigStep';
 import { DataScaleStep } from './seed-wizard/steps/DataScaleStep';
@@ -45,6 +46,7 @@ import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '@/lib/orders/
 import { getIndustryBestPracticePalette } from '@/lib/seed-color-fallback';
 import type {
   AdminConfig,
+  AdminPermissionMode,
   BusinessInfo,
   DigitalDeliveryType,
   ExperiencePresetKey,
@@ -93,6 +95,7 @@ const DEFAULT_ADMIN_CONFIG: AdminConfig = {
 
 const DEFAULT_STATE: WizardState = {
   adminConfig: DEFAULT_ADMIN_CONFIG,
+  adminPermissionMode: 'simple_full_admin',
   businessInfo: DEFAULT_BUSINESS_INFO,
   customerLoginEnabled: true,
   customerLoginManuallySet: false,
@@ -159,6 +162,12 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   }, [productsList]);
 
   const selectedModules = useMemo(() => buildModuleSelection(state), [state]);
+  const modulesForEnable = useMemo(() => {
+    if (state.adminPermissionMode !== 'simple_full_admin') {
+      return selectedModules;
+    }
+    return selectedModules.filter((moduleKey) => moduleKey !== 'roles');
+  }, [selectedModules, state.adminPermissionMode]);
   const baseModules = useMemo(() => getBaseModules(state.websiteType), [state.websiteType]);
   const hasProducts = selectedModules.includes('products');
   const hasPosts = selectedModules.includes('posts');
@@ -177,7 +186,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     if (hasProducts) {
       list.push('saleMode', 'productType', 'variants');
     }
-    list.push('business', 'adminConfig', 'experience');
+    list.push('business', 'adminConfig', 'permissionMode', 'experience');
     if (hasProducts || hasOrders || hasPosts || hasComments) {
       list.push('quickConfig');
     }
@@ -372,6 +381,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         : 'Chỉ hàng vật lý';
     const variantLabel = state.variantEnabled ? state.variantPresetKey : 'Không có phiên bản';
     const brandModeLabel = state.businessInfo.brandMode === 'dual' ? '2 màu (Dual)' : '1 màu (Single)';
+    const permissionModeLabel = state.adminPermissionMode === 'simple_full_admin'
+      ? 'Full quyền (Sticky)'
+      : 'RBAC chuẩn';
 
     const websiteLabel = state.websiteType === 'landing'
       ? 'Chỉ giới thiệu'
@@ -393,6 +405,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       items.push({ label: 'Ngành hàng', value: industryTemplate.name });
     }
     items.push({ label: 'Website', value: websiteLabel });
+    items.push({ label: 'Phân quyền admin', value: permissionModeLabel });
     items.push({ label: 'Ảnh mẫu', value: state.useSeedMauImages ? 'Bật' : 'Tắt' });
     items.push({ label: 'Màu thương hiệu', value: brandModeLabel });
 
@@ -431,7 +444,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       .map((moduleItem) => moduleItem.key);
 
     const toDisable = modules
-      .filter((moduleItem) => !desiredSet.has(moduleItem.key) && moduleItem.enabled && !moduleItem.isCore)
+      .filter((moduleItem) => !desiredSet.has(moduleItem.key)
+        && moduleItem.enabled
+        && (!moduleItem.isCore || moduleItem.key === 'roles'))
       .map((moduleItem) => moduleItem.key);
 
     const orderedEnable = orderModulesByDependencies(toEnable, moduleMap);
@@ -449,7 +464,11 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         }
       };
       visit(moduleKey);
-      return Array.from(cascade).filter((key) => !moduleMap.get(key)?.isCore);
+      return Array.from(cascade).filter((key) => {
+        const moduleItem = moduleMap.get(key);
+        if (!moduleItem) {return false;}
+        return !moduleItem.isCore || moduleItem.key === 'roles';
+      });
     };
 
     for (const moduleKey of orderedEnable) {
@@ -514,7 +533,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         await clearProductVariantData({});
       }
 
-      await syncModules(selectedModules);
+      await syncModules(modulesForEnable);
 
       if (!hasServices) {
         await clearModule({ module: 'services' });
@@ -675,6 +694,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           { group: 'seo', key: 'seo_description', value: state.businessInfo.tagline || '' },
           { group: 'seo', key: 'seo_business_type', value: state.businessInfo.businessType || 'LocalBusiness' },
           { group: 'seo', key: 'seo_opening_hours', value: state.businessInfo.openingHours || '' },
+          { group: 'admin', key: 'admin_permission_mode', value: state.adminPermissionMode },
         ],
       });
 
@@ -911,6 +931,14 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
             />
           )}
 
+          {stepKey === 'permissionMode' && (
+            <AdminPermissionModeStep
+              value={state.adminPermissionMode}
+              onChange={(adminPermissionMode: AdminPermissionMode) =>
+                setState((prev) => ({ ...prev, adminPermissionMode }))}
+            />
+          )}
+
           {stepKey === 'experience' && (
             <ExperiencePresetStep
               options={experienceOptions}
@@ -944,6 +972,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
           {stepKey === 'review' && (
             <ReviewStep
+              adminPermissionMode={state.adminPermissionMode}
               brandMode={state.businessInfo.brandMode}
               brandPrimary={brandPrimary}
               brandSecondary={brandSecondary}

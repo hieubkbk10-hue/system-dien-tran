@@ -29,7 +29,8 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
   const categoryColor = categoryColors[module.category];
   const categoryLabel = labels.categories[module.category];
   const configRoute = module.key ? getModuleConfigRoute(module.key) : undefined;
-  const isDisabled = module.isCore || !canToggle || (isToggling ?? isAnyToggling);
+  const isCoreLocked = module.isCore && module.key !== 'roles';
+  const isDisabled = isCoreLocked || !canToggle || (isToggling ?? isAnyToggling);
   const hasDependents = allModules.some((mod) => mod.dependencies?.includes(module.key) && mod.enabled);
 
   return (
@@ -89,7 +90,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
               }`}></div>
             )}
           </button>
-          {module.isCore && (
+          {isCoreLocked && (
             <Lock size={12} className="text-slate-400" />
           )}
           {!canToggle && !module.isCore && (

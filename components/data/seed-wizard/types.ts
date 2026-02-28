@@ -34,6 +34,8 @@ export type AdminConfig = {
   password: string;
 };
 
+export type AdminPermissionMode = 'simple_full_admin' | 'rbac';
+
 export type ExperiencePresetKey = string;
 
 export type QuickConfig = {
@@ -49,6 +51,7 @@ export type QuickConfig = {
 
 export type WizardState = {
   adminConfig: AdminConfig;
+  adminPermissionMode: AdminPermissionMode;
   businessInfo: BusinessInfo;
   customerLoginEnabled: boolean;
   customerLoginManuallySet: boolean;

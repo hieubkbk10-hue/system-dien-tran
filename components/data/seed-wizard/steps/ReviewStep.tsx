@@ -4,6 +4,7 @@ import React from 'react';
 import { Badge, Checkbox } from '@/app/admin/components/ui';
 
 type ReviewStepProps = {
+  adminPermissionMode: 'simple_full_admin' | 'rbac';
   brandMode: 'single' | 'dual';
   brandPrimary: string;
   brandSecondary: string;
@@ -24,6 +25,7 @@ type ReviewStepProps = {
 };
 
 export function ReviewStep({
+  adminPermissionMode,
   brandMode,
   brandPrimary,
   brandSecondary,
@@ -42,6 +44,13 @@ export function ReviewStep({
   onCustomerLoginChange,
   onClearChange,
 }: ReviewStepProps) {
+  const permissionModeLabel = adminPermissionMode === 'simple_full_admin'
+    ? 'Full quyền (Sticky)'
+    : 'RBAC chuẩn';
+  const permissionModeHelper = adminPermissionMode === 'simple_full_admin'
+    ? 'Chỉ Super Admin được chỉnh quyền hoặc cấu trúc phân quyền.'
+    : 'Quản lý theo vai trò & module như hiện tại.';
+
   return (
     <div className="space-y-4">
       <div>
@@ -109,6 +118,12 @@ export function ReviewStep({
             </Badge>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
+        <div className="text-xs text-slate-500">Phân quyền admin</div>
+        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{permissionModeLabel}</div>
+        <div className="text-xs text-slate-500 mt-1">{permissionModeHelper}</div>
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 space-y-2">

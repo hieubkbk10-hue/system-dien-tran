@@ -136,7 +136,7 @@ export const toggleModule = mutation({
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {throw new Error("Module not found");}
-    if (moduleRecord.isCore && !args.enabled) {
+    if (moduleRecord.isCore && moduleRecord.key !== "roles" && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
     if (args.enabled && args.key === "wishlist") {
@@ -179,7 +179,7 @@ export const toggleModuleWithCascade = mutation({
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {return { disabledModules: [], success: false };}
-    if (moduleRecord.isCore && !args.enabled) {
+    if (moduleRecord.isCore && moduleRecord.key !== "roles" && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
 

@@ -44,6 +44,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     token ? { token } : "skip"
   );
 
+  const permissionMode = useQuery(api.settings.getValue, {
+    defaultValue: 'rbac',
+    key: 'admin_permission_mode',
+  });
+
   const activeToken = sessionResult?.valid === false ? null : token;
 
   // Check if session is valid
@@ -91,6 +96,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = (moduleKey: string, action: string) => {
     if (!user) {return false;}
+    if (permissionMode === 'simple_full_admin') {return true;}
     if (user.isSuperAdmin) {return true;}
     
     const {permissions} = user;

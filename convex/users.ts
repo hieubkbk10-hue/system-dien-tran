@@ -25,6 +25,17 @@ const sanitizeUser = (user: Doc<"users">) => {
   return safeUser;
 };
 
+async function assertCanModifySuperAdmin(
+  ctx: MutationCtx,
+  actorIsSuperAdmin: boolean,
+  targetRoleId: Doc<"roles">["_id"]
+) {
+  const role = await ctx.db.get(targetRoleId);
+  if (role?.isSuperAdmin && !actorIsSuperAdmin) {
+    throw new Error("Không thể sửa/xóa tài khoản Super Admin");
+  }
+}
+
 export const list = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -357,7 +368,10 @@ export const create = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "users", "create");
+    const { permissionMode, role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "create");
+    if (permissionMode === "simple_full_admin" && !actorRole?.isSuperAdmin) {
+      await assertCanModifySuperAdmin(ctx, false, args.roleId);
+    }
     if (args.password.length < 6) {
       throw new Error("Mật khẩu tối thiểu 6 ký tự");
     }
@@ -397,11 +411,15 @@ export const update = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "users", "edit");
+    const { permissionMode, role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "edit");
     const { id, token, ...updates } = args;
     void token;
     const user = await ctx.db.get(id);
     if (!user) {throw new Error("User not found");}
+    await assertCanModifySuperAdmin(ctx, Boolean(actorRole?.isSuperAdmin), user.roleId);
+    if (permissionMode === "simple_full_admin" && updates.roleId) {
+      await assertCanModifySuperAdmin(ctx, Boolean(actorRole?.isSuperAdmin), updates.roleId);
+    }
     
     // Update status counters if status changed
     if (updates.status && updates.status !== user.status) {
@@ -424,12 +442,13 @@ export const changePassword = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "users", "edit");
+    const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "edit");
     if (args.password.length < 6) {
       throw new Error("Mật khẩu tối thiểu 6 ký tự");
     }
     const user = await ctx.db.get(args.id);
     if (!user) {throw new Error("User not found");}
+    await assertCanModifySuperAdmin(ctx, Boolean(actorRole?.isSuperAdmin), user.roleId);
     const passwordHash = await hashPassword(args.password);
     await ctx.db.patch(args.id, { passwordHash });
     return null;
@@ -480,9 +499,10 @@ export const updateLastLogin = mutation({
 export const remove = mutation({
   args: { cascade: v.optional(v.boolean()), id: v.id("users"), token: v.string() },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "users", "delete");
+    const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "delete");
     const user = await ctx.db.get(args.id);
     if (!user) {throw new Error("User not found");}
+    await assertCanModifySuperAdmin(ctx, Boolean(actorRole?.isSuperAdmin), user.roleId);
 
     const preview = await ctx.db
       .query("activityLogs")
@@ -552,9 +572,15 @@ export const getDeleteInfo = query({
 export const bulkRemove = mutation({
   args: { cascade: v.optional(v.boolean()), ids: v.array(v.id("users")), token: v.string() },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "users", "delete");
+    const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "delete");
     const users = await Promise.all(args.ids.map( async (id) => ctx.db.get(id)));
     const validUsers = users.filter((u): u is NonNullable<typeof u> => u !== null);
+    const hasSuperAdmin = await Promise.all(
+      validUsers.map((u) => ctx.db.get(u.roleId))
+    );
+    if (hasSuperAdmin.some((role) => role?.isSuperAdmin) && !actorRole?.isSuperAdmin) {
+      throw new Error("Không thể sửa/xóa tài khoản Super Admin");
+    }
 
     if (args.cascade) {
       const logs = await Promise.all(

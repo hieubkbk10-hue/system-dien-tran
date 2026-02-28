@@ -74,6 +74,12 @@ async function updateRoleStats(
   }
 }
 
+function assertSuperAdmin(permissionMode: string, isSuperAdmin?: boolean) {
+  if (permissionMode === "simple_full_admin" && !isSuperAdmin) {
+    throw new Error("Chỉ Super Admin được phép chỉnh quyền");
+  }
+}
+
 export const create = mutation({
   args: {
     color: v.optional(v.string()),
@@ -85,7 +91,8 @@ export const create = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "roles", "create");
+    const { permissionMode, role: adminRole } = await requireAdminPermission(ctx, args.token, "roles", "create");
+    assertSuperAdmin(permissionMode, adminRole?.isSuperAdmin);
     const existing = await ctx.db
       .query("roles")
       .withIndex("by_name", (q) => q.eq("name", args.name))
@@ -121,7 +128,8 @@ export const update = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "roles", "edit");
+    const { permissionMode, role: currentRole } = await requireAdminPermission(ctx, args.token, "roles", "edit");
+    assertSuperAdmin(permissionMode, currentRole?.isSuperAdmin);
     const { id, token, ...updates } = args;
     void token;
     const role = await ctx.db.get(id);
@@ -151,7 +159,8 @@ export const clone = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "roles", "create");
+    const { permissionMode, role: adminRole } = await requireAdminPermission(ctx, args.token, "roles", "create");
+    assertSuperAdmin(permissionMode, adminRole?.isSuperAdmin);
     const role = await ctx.db.get(args.id);
     if (!role) {throw new Error("Không tìm thấy vai trò");}
 
@@ -182,7 +191,8 @@ export const clone = mutation({
 export const remove = mutation({
   args: { cascade: v.optional(v.boolean()), id: v.id("roles"), token: v.string() },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "roles", "delete");
+    const { permissionMode, role: adminRole } = await requireAdminPermission(ctx, args.token, "roles", "delete");
+    assertSuperAdmin(permissionMode, adminRole?.isSuperAdmin);
     const role = await ctx.db.get(args.id);
     if (!role) {throw new Error("Không tìm thấy vai trò");}
     if (role.isSystem) {throw new Error("Không thể xóa vai trò hệ thống");}
@@ -235,7 +245,8 @@ export const remove = mutation({
 export const bulkRemove = mutation({
   args: { cascade: v.optional(v.boolean()), ids: v.array(v.id("roles")), token: v.string() },
   handler: async (ctx, args) => {
-    await requireAdminPermission(ctx, args.token, "roles", "delete");
+    const { permissionMode, role: adminRole } = await requireAdminPermission(ctx, args.token, "roles", "delete");
+    assertSuperAdmin(permissionMode, adminRole?.isSuperAdmin);
     const roles = await Promise.all(args.ids.map( async (id) => ctx.db.get(id)));
     const validRoles = roles.filter((role): role is NonNullable<typeof role> => role !== null);
 
@@ -339,6 +350,13 @@ export const checkPermission = query({
     roleId: v.id("roles"),
   },
   handler: async (ctx, args) => {
+    const permissionMode = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "admin_permission_mode"))
+      .unique();
+    if (permissionMode?.value === "simple_full_admin") {
+      return true;
+    }
     const role = await ctx.db.get(args.roleId);
     if (!role) {return false;}
     if (role.isSuperAdmin) {return true;}

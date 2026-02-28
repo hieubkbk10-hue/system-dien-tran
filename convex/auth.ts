@@ -675,6 +675,15 @@ export const checkPermission = query({
     if (!moduleRecord || !moduleRecord.enabled) {
       return { allowed: false, reason: "Module chưa được bật" };
     }
+
+    const permissionMode = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "admin_permission_mode"))
+      .unique();
+
+    if (permissionMode?.value === "simple_full_admin") {
+      return { allowed: true, reason: "Simple full admin" };
+    }
     
     // Check permissions
     const {permissions} = role;
