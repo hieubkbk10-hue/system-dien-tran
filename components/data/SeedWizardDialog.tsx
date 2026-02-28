@@ -70,11 +70,13 @@ const DEFAULT_BUSINESS_INFO: BusinessInfo = {
   businessType: 'LocalBusiness',
   email: 'contact@example.com',
   faviconUrl: '',
+  ogImageUrl: '',
   openingHours: 'Mo-Su 08:00-22:00',
   phone: '',
   siteName: 'VietAdmin',
   socialFacebook: '',
   tagline: '',
+  useLogoAsOgImage: true,
 };
 
 const DEFAULT_QUICK_CONFIG: QuickConfig = {
@@ -283,6 +285,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       : null;
 
     setState((prev) => {
+      const isUsingLogoAsFavicon = prev.businessInfo.faviconUrl === prev.selectedLogo || !prev.businessInfo.faviconUrl;
+      const nextFavicon = isUsingLogoAsFavicon ? (randomLogo ?? '') : prev.businessInfo.faviconUrl;
       return {
         ...prev,
         businessInfo: {
@@ -290,7 +294,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           brandColor: palette.primary,
           brandSecondary: prev.businessInfo.brandMode === 'dual' ? palette.secondary : '',
           businessType: template.businessType,
-          faviconUrl: randomLogo ?? prev.businessInfo.faviconUrl,
+          faviconUrl: nextFavicon,
           siteName: template.name,
           tagline: template.description,
         },
@@ -305,10 +309,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   };
 
   const handleToggleSeedMau = (value: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      useSeedMauImages: value,
-      selectedLogo: value
+    setState((prev) => {
+      const nextLogo = value
         ? (prev.selectedLogo ?? (() => {
           const template = getIndustryTemplate(prev.industryKey);
           if (template && template.assets.logos.length > 0) {
@@ -316,9 +318,20 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           }
           return null;
         })())
-        : null,
-      logoCustomized: value ? prev.logoCustomized : false,
-    }));
+        : null;
+      const isUsingLogoAsFavicon = prev.businessInfo.faviconUrl === prev.selectedLogo;
+      const nextFavicon = isUsingLogoAsFavicon ? (nextLogo ?? '') : prev.businessInfo.faviconUrl;
+      return {
+        ...prev,
+        useSeedMauImages: value,
+        selectedLogo: nextLogo,
+        logoCustomized: value ? prev.logoCustomized : false,
+        businessInfo: {
+          ...prev.businessInfo,
+          faviconUrl: nextFavicon,
+        },
+      };
+    });
   };
 
   const handleSaleModeChange = (saleMode: SaleMode) => {
@@ -698,7 +711,20 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       const brandSecondary = state.businessInfo.brandMode === 'dual'
         ? (state.businessInfo.brandSecondary || industryPalette.secondary || brandPrimary)
         : '';
-      const resolvedFavicon = state.businessInfo.faviconUrl || state.selectedLogo || '';
+      const resolvedFavicon = state.selectedLogo || state.businessInfo.faviconUrl || '';
+      const seoKeywordPool = [
+        ...(industryTemplate?.tags ?? []),
+        industryTemplate?.name,
+        state.businessInfo.siteName,
+      ]
+        .filter(Boolean)
+        .map((item) => (item || '').trim())
+        .filter(Boolean);
+      const seoKeywords = Array.from(new Set(seoKeywordPool)).join(', ')
+        || 'admin, quản trị, website, cms';
+      const resolvedOgImage = state.businessInfo.useLogoAsOgImage
+        ? (state.selectedLogo || state.businessInfo.ogImageUrl || '')
+        : (state.businessInfo.ogImageUrl || '');
 
       await setSettings({
         settings: [
@@ -721,6 +747,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               : state.businessInfo.siteName,
           },
           { group: 'seo', key: 'seo_description', value: state.businessInfo.tagline || '' },
+          { group: 'seo', key: 'seo_keywords', value: seoKeywords },
+          { group: 'seo', key: 'seo_og_image', value: resolvedOgImage },
           { group: 'seo', key: 'seo_business_type', value: state.businessInfo.businessType || 'LocalBusiness' },
           { group: 'seo', key: 'seo_opening_hours', value: state.businessInfo.openingHours || '' },
           { group: 'admin', key: 'admin_permission_mode', value: state.adminPermissionMode },
@@ -883,7 +911,19 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               selectedLogo={state.selectedLogo}
               logoCustomized={state.logoCustomized}
               onChange={(logo, customized) =>
-                setState((prev) => ({ ...prev, selectedLogo: logo, logoCustomized: customized }))
+                setState((prev) => {
+                  const isUsingLogoAsFavicon = prev.businessInfo.faviconUrl === prev.selectedLogo;
+                  const nextFavicon = isUsingLogoAsFavicon ? (logo ?? '') : prev.businessInfo.faviconUrl;
+                  return {
+                    ...prev,
+                    businessInfo: {
+                      ...prev.businessInfo,
+                      faviconUrl: nextFavicon,
+                    },
+                    selectedLogo: logo,
+                    logoCustomized: customized,
+                  };
+                })
               }
             />
           )}

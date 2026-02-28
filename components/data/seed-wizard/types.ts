@@ -22,11 +22,13 @@ export type BusinessInfo = {
   businessType: string;
   email: string;
   faviconUrl: string;
+  ogImageUrl: string;
   openingHours: string;
   phone: string;
   siteName: string;
   socialFacebook: string;
   tagline: string;
+  useLogoAsOgImage: boolean;
 };
 
 export type AdminConfig = {

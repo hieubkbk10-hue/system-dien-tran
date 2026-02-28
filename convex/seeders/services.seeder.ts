@@ -16,6 +16,7 @@ import {
   mergeTemplateFields,
   pickRandom,
 } from '../../lib/seed-templates';
+import type { IndustryTemplate } from '../../lib/seed-templates';
 
 type ServiceData = Omit<Doc<'services'>, '_id' | '_creationTime'>;
 
@@ -57,22 +58,7 @@ export class ServiceSeeder extends BaseSeeder<ServiceData> {
     const description = template?.fakerTemplates.descriptionPatterns?.length
       ? buildFromPatterns(template.fakerTemplates.descriptionPatterns, fields, randomFn)
       : this.faker.lorem.paragraph();
-    let thumbnail = `https://picsum.photos/seed/${slug}/600/400`;
-
-    if (this.config.useSeedMauImages !== false) {
-      const templateGallery = filterAvailableSeedMauPaths(template?.assets.gallery ?? []);
-      const poolGallery = filterAvailableSeedMauPaths(
-        getSeedMauAssetPool('gallery', { excludeIndustryKey: template?.key })
-      );
-      const candidate = templateGallery.length > 0
-        ? pickRandom(templateGallery, randomFn)
-        : poolGallery.length > 0
-          ? pickRandom(poolGallery, randomFn)
-          : undefined;
-      if (candidate) {
-        thumbnail = candidate;
-      }
-    }
+    const thumbnail = this.getServiceThumbnail(template, slug);
     
     const hasPrice = this.randomBoolean(0.7); // 70% có giá
     const price = hasPrice ? this.randomInt(500_000, 20_000_000) : undefined;
@@ -98,5 +84,23 @@ export class ServiceSeeder extends BaseSeeder<ServiceData> {
   
   validateRecord(record: ServiceData): boolean {
     return !!record.title && !!record.slug && !!record.categoryId;
+  }
+
+  private getServiceThumbnail(template: IndustryTemplate | null, slug: string): string {
+    const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
+
+    if (this.config.useSeedMauImages === false) {
+      return `https://picsum.photos/seed/${slug}/600/400`;
+    }
+
+    const pickFrom = (items: string[]) => {
+      const validItems = filterAvailableSeedMauPaths(items);
+      return validItems.length > 0 ? pickRandom(validItems, randomFn) : undefined;
+    };
+
+    const candidate = pickFrom(template?.assets.gallery ?? [])
+      ?? pickFrom(getSeedMauAssetPool('gallery', { excludeIndustryKey: template?.key }));
+
+    return candidate ?? `https://picsum.photos/seed/${slug}/600/400`;
   }
 }

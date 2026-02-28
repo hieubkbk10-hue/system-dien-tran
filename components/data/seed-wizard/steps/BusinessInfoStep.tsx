@@ -26,12 +26,14 @@ type BusinessInfoStepProps = {
 };
 
 export function BusinessInfoStep({ suggestedLogoUrl, onUseLogoAsFavicon, value, onChange }: BusinessInfoStepProps) {
-  const updateField = (field: keyof BusinessInfo, fieldValue: string) => {
+  const updateField = <K extends keyof BusinessInfo>(field: K, fieldValue: BusinessInfo[K]) => {
     onChange({ ...value, [field]: fieldValue });
   };
 
   const canUseLogoAsFavicon = Boolean(suggestedLogoUrl);
   const isUsingLogoAsFavicon = canUseLogoAsFavicon && value.faviconUrl === suggestedLogoUrl;
+  const canUseLogoAsOgImage = Boolean(suggestedLogoUrl);
+  const isUsingLogoAsOgImage = canUseLogoAsOgImage && value.useLogoAsOgImage;
 
   return (
     <div className="space-y-4">
@@ -117,11 +119,38 @@ export function BusinessInfoStep({ suggestedLogoUrl, onUseLogoAsFavicon, value, 
           )}
         </div>
         <div className="space-y-2">
+          <Label>OG Image URL</Label>
+          <Input
+            value={value.ogImageUrl}
+            onChange={(event) => updateField('ogImageUrl', event.target.value)}
+            placeholder="https://example.com/og-image.png"
+            disabled={isUsingLogoAsOgImage}
+          />
+          {canUseLogoAsOgImage ? (
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={isUsingLogoAsOgImage}
+                onChange={(event) => {
+                  if (!suggestedLogoUrl) {
+                    return;
+                  }
+                  updateField('useLogoAsOgImage', event.target.checked);
+                }}
+                className="rounded border-slate-300"
+              />
+              Dùng logo đã chọn làm OG image
+            </label>
+          ) : (
+            <p className="text-xs text-slate-500">Chọn logo mẫu để dùng nhanh làm OG image.</p>
+          )}
+        </div>
+        <div className="space-y-2">
           <Label>Chế độ màu thương hiệu</Label>
           <select
             className={SELECT_CLASS}
             value={value.brandMode}
-            onChange={(event) => updateField('brandMode', event.target.value)}
+            onChange={(event) => updateField('brandMode', event.target.value as BusinessInfo['brandMode'])}
           >
             <option value="single">1 màu (Single)</option>
             <option value="dual">2 màu (Dual)</option>
