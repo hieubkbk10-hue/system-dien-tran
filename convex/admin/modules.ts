@@ -24,35 +24,55 @@ export const listModules = query({
   args: {},
   handler: async (ctx) => {
     const modules = await ctx.db.query("adminModules").collect();
-    return modules.sort((a, b) => a.order - b.order);
+    return modules
+      .sort((a, b) => a.order - b.order)
+      .map((moduleItem) => moduleItem.key === "roles"
+        ? { ...moduleItem, isCore: false }
+        : moduleItem);
   },
   returns: v.array(moduleDoc),
 });
 
 export const listEnabledModules = query({
   args: {},
-  handler: async (ctx) => ctx.db
+  handler: async (ctx) => {
+    const modules = await ctx.db
       .query("adminModules")
       .withIndex("by_enabled_order", (q) => q.eq("enabled", true))
-      .collect(),
+      .collect();
+    return modules.map((moduleItem) => moduleItem.key === "roles"
+      ? { ...moduleItem, isCore: false }
+      : moduleItem);
+  },
   returns: v.array(moduleDoc),
 });
 
 export const listModulesByCategory = query({
   args: { category: moduleCategory },
-  handler: async (ctx, args) => ctx.db
+  handler: async (ctx, args) => {
+    const modules = await ctx.db
       .query("adminModules")
       .withIndex("by_category_enabled", (q) => q.eq("category", args.category))
-      .collect(),
+      .collect();
+    return modules.map((moduleItem) => moduleItem.key === "roles"
+      ? { ...moduleItem, isCore: false }
+      : moduleItem);
+  },
   returns: v.array(moduleDoc),
 });
 
 export const getModuleByKey = query({
   args: { key: v.string() },
-  handler: async (ctx, args) => ctx.db
+  handler: async (ctx, args) => {
+    const moduleItem = await ctx.db
       .query("adminModules")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .unique(),
+      .unique();
+    if (!moduleItem) {return null;}
+    return moduleItem.key === "roles"
+      ? { ...moduleItem, isCore: false }
+      : moduleItem;
+  },
   returns: v.union(moduleDoc, v.null()),
 });
 

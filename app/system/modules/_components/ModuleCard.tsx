@@ -51,7 +51,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-slate-800 dark:text-slate-200 font-medium text-sm truncate">{module.name}</h3>
-              {module.isCore && (
+              {isCoreLocked && (
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-medium">
                   {labels.badges.core}
                 </span>

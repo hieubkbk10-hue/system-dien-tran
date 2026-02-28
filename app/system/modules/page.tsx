@@ -162,7 +162,7 @@ export default function ModuleManagementPage() {
   };
   
   const canToggleModule = (module: AdminModule): boolean => {
-    if (module.isCore) {return false;}
+    if (module.isCore && module.key !== 'roles') {return false;}
     if (!module.dependencies || module.dependencies.length === 0) {return true;}
     
     if (module.dependencyType === 'any') {
