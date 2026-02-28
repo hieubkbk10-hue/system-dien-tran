@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { useCartAvailable } from './useCartAvailable';
 import { normalizeOrderStatusPreset, parseOrderStatuses } from '@/lib/orders/statuses';
+import { parseErrorPagesConfig, type ErrorPagesExperienceConfig } from './error-pages/config';
 
 type PaginationType = 'pagination' | 'infiniteScroll';
 type FilterPosition = 'sidebar' | 'top' | 'none';
@@ -416,4 +417,10 @@ export function useAccountProfileConfig(): AccountProfileConfig {
       actionItems: normalizedActions,
     };
   }, [experienceSetting?.value]);
+}
+
+export function useErrorPagesConfig(): ErrorPagesExperienceConfig {
+  const experienceSetting = useQuery(api.settings.getByKey, { key: 'error_pages_ui' });
+
+  return useMemo(() => parseErrorPagesConfig(experienceSetting?.value), [experienceSetting?.value]);
 }

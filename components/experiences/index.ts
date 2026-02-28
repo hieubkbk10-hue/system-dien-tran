@@ -15,6 +15,7 @@ export { PostsListPreview, ProductsListPreview } from './previews/ListPreview';
 export { ServicesListPreview } from './previews/ServicesListPreview';
 export { PostDetailPreview, ServiceDetailPreview } from './previews/DetailPreview';
 export { ContactPreview } from './previews/ContactPreview';
+export { ErrorPagesPreview } from './previews/ErrorPagesPreview';
 export { SearchFilterPreview } from './previews/SearchFilterPreview';
 export { PromotionsListPreview } from './previews/PromotionsListPreview';
 export { AccountOrdersPreview } from './previews/AccountOrdersPreview';

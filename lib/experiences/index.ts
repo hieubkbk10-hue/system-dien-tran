@@ -19,6 +19,7 @@ export {
   useCheckoutConfig,
   useAccountOrdersConfig,
   useAccountProfileConfig,
+  useErrorPagesConfig,
   useOrderStatuses,
   usePostsListConfig,
   useProductsListConfig,
@@ -34,3 +35,12 @@ export {
   type ContactExperienceConfig,
   type ContactLayoutStyle,
 } from './contact/config';
+export {
+  ERROR_PAGES_EXPERIENCE_KEY,
+  DEFAULT_ERROR_PAGES_CONFIG,
+  ERROR_STATUS_CODES,
+  ERROR_CODE_COPY,
+  parseErrorPagesConfig,
+  type ErrorPagesExperienceConfig,
+  type ErrorPagesLayoutStyle,
+} from './error-pages/config';

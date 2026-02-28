@@ -11,6 +11,7 @@ export type ExperienceKey =
   | 'products_list_ui'
   | 'header_menu_ui'
   | 'contact_ui'
+  | 'error_pages_ui'
   | 'search_filter_ui'
   | 'promotions_list_ui'
   | 'account_orders_ui'
@@ -31,6 +32,7 @@ export const EXPERIENCE_COLORS: Record<ExperienceKey, ColorScheme> = {
   products_list_ui: 'emerald',
   header_menu_ui: 'orange',
   contact_ui: 'indigo',
+  error_pages_ui: 'orange',
   search_filter_ui: 'teal',
   promotions_list_ui: 'pink',
   account_orders_ui: 'indigo',
@@ -58,6 +60,7 @@ export const EXPERIENCE_NAMES: Record<ExperienceKey, string> = {
   products_list_ui: 'Products List',
   header_menu_ui: 'Header Menu',
   contact_ui: 'Contact',
+  error_pages_ui: 'Error Pages',
   search_filter_ui: 'Search & Filter',
   promotions_list_ui: 'Promotions List',
   account_orders_ui: 'Account Orders',
