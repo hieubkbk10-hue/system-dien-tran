@@ -630,6 +630,125 @@ export const updateSuperAdminCredentials = mutation({
   }),
 });
 
+export const ensureSuperAdminCredentials = mutation({
+  args: {
+    email: v.string(),
+    name: v.optional(v.string()),
+    password: v.string(),
+  },
+  handler: async (ctx, args) => {
+    let superAdminRole = await ctx.db
+      .query("roles")
+      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+      .first();
+
+    if (!superAdminRole) {
+      const roleId = await ctx.db.insert("roles", {
+        color: "#ef4444",
+        description: "Quản trị viên cao nhất, toàn quyền hệ thống",
+        isSuperAdmin: true,
+        isSystem: true,
+        name: "Super Admin",
+        permissions: { "*": ["*"] },
+      });
+      superAdminRole = await ctx.db.get(roleId);
+    }
+
+    if (!superAdminRole) {
+      return { message: "Không thể tạo vai trò SuperAdmin", success: false };
+    }
+
+    let adminRole = await ctx.db
+      .query("roles")
+      .withIndex("by_name", (q) => q.eq("name", "Admin"))
+      .first();
+
+    if (!adminRole) {
+      adminRole = await ctx.db
+        .query("roles")
+        .filter((q) => q.eq(q.field("isSuperAdmin"), false))
+        .first();
+    }
+
+    if (!adminRole) {
+      const roleId = await ctx.db.insert("roles", {
+        color: "#3b82f6",
+        description: "Quản trị viên hệ thống",
+        isSystem: true,
+        name: "Admin",
+        permissions: { "*": ["read"] },
+      });
+      adminRole = await ctx.db.get(roleId);
+    }
+
+    const existingSuperAdmin = await ctx.db
+      .query("users")
+      .withIndex("by_role_status", (q) => q.eq("roleId", superAdminRole._id))
+      .first();
+
+    const existingByEmail = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+
+    const passwordHash = await hashPassword(args.password);
+    const resolvedName = args.name?.trim();
+
+    if (existingByEmail && (!existingSuperAdmin || existingByEmail._id !== existingSuperAdmin._id)) {
+      await ctx.db.patch(existingByEmail._id, {
+        email: args.email,
+        name: resolvedName ?? existingByEmail.name,
+        passwordHash,
+        roleId: superAdminRole._id,
+        status: "Active",
+      });
+
+      if (existingSuperAdmin && existingSuperAdmin._id !== existingByEmail._id && adminRole) {
+        await ctx.db.patch(existingSuperAdmin._id, { roleId: adminRole._id });
+      }
+
+      return { message: "Đã đảm bảo SuperAdmin theo cấu hình", success: true };
+    }
+
+    if (existingSuperAdmin) {
+      const updates: Partial<Doc<"users">> = {};
+
+      if (args.email !== existingSuperAdmin.email) {
+        updates.email = args.email;
+      }
+
+      if (resolvedName) {
+        updates.name = resolvedName;
+      }
+
+      updates.passwordHash = passwordHash;
+
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(existingSuperAdmin._id, updates);
+      }
+
+      return { message: "Đã cập nhật SuperAdmin", success: true };
+    }
+
+    await ctx.db.insert("users", {
+      email: args.email,
+      name: resolvedName || "Super Admin",
+      passwordHash,
+      roleId: superAdminRole._id,
+      status: "Active",
+    });
+
+    await updateUserStats(ctx, "total", 1);
+    await updateUserStats(ctx, "Active", 1);
+
+    return { message: "Đã tạo SuperAdmin", success: true };
+  },
+  returns: v.object({
+    message: v.string(),
+    success: v.boolean(),
+  }),
+});
+
 // ============================================================
 // PERMISSION HELPERS
 // ============================================================

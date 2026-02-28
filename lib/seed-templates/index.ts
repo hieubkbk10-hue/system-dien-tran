@@ -1,5 +1,6 @@
 import type { IndustryAssetPack, IndustrySummary, IndustryTemplate } from './types';
 import { buildIndustrySummary } from './utils';
+import { AVAILABLE_SEED_MAU_PATHS } from './available-seed-mau-paths';
 import fashion from './industries/fashion';
 import cosmetics from './industries/cosmetics';
 import jewelry from './industries/jewelry';
@@ -98,6 +99,14 @@ export const INDUSTRY_TEMPLATE_MAP = new Map<string, IndustryTemplate>(
 
 export type SeedMauAssetType = keyof IndustryAssetPack;
 
+export function isAvailableSeedMauPath(path?: string | null): boolean {
+  return !!path && AVAILABLE_SEED_MAU_PATHS.has(path);
+}
+
+export function filterAvailableSeedMauPaths(items: string[]): string[] {
+  return items.filter((item) => isAvailableSeedMauPath(item));
+}
+
 export function getSeedMauAssetPool(
   type: SeedMauAssetType,
   options?: {
@@ -111,7 +120,9 @@ export function getSeedMauAssetPool(
     return template.assets?.[type] ?? [];
   });
 
-  const filtered = pool.filter((item) => typeof item === 'string' && item.startsWith('/seed_mau/'));
+  const filtered = pool
+    .filter((item) => typeof item === 'string' && item.startsWith('/seed_mau/'))
+    .filter((item) => isAvailableSeedMauPath(item));
   return Array.from(new Set(filtered));
 }
 

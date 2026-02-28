@@ -10,6 +10,7 @@ import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 import {
   buildFromPatterns,
+  filterAvailableSeedMauPaths,
   getSeedMauAssetPool,
   getIndustryTemplate,
   mergeTemplateFields,
@@ -102,37 +103,16 @@ export class PostSeeder extends BaseSeeder<PostData> {
     const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
 
     if (this.config.useSeedMauImages === false) {
-      return undefined;
+      return `https://picsum.photos/seed/${slug}/600/400`;
     }
 
-    const isValidSeedMauPath = (value?: string) => !!value;
-
     const pickFrom = (items: string[]) => {
-      const validItems = items.filter(isValidSeedMauPath);
+      const validItems = filterAvailableSeedMauPaths(items);
       return validItems.length > 0 ? pickRandom(validItems, randomFn) : undefined;
     };
 
-    let candidate = pickFrom(template?.assets.posts ?? []);
-
-    if (!candidate && template?.assets.hero?.length && this.randomBoolean(0.7)) {
-      candidate = pickFrom(template.assets.hero);
-    }
-
-    if (!candidate) {
-      candidate = pickFrom(template?.assets.products ?? []);
-    }
-
-    if (!candidate) {
-      candidate = pickFrom(getSeedMauAssetPool('posts', { excludeIndustryKey: template?.key }));
-    }
-
-    if (!candidate) {
-      candidate = pickFrom(getSeedMauAssetPool('hero', { excludeIndustryKey: template?.key }));
-    }
-
-    if (!candidate) {
-      candidate = pickFrom(getSeedMauAssetPool('products', { excludeIndustryKey: template?.key }));
-    }
+    const candidate = pickFrom(template?.assets.posts ?? [])
+      ?? pickFrom(getSeedMauAssetPool('posts', { excludeIndustryKey: template?.key }));
 
     return candidate ?? `https://picsum.photos/seed/${slug}/600/400`;
   }

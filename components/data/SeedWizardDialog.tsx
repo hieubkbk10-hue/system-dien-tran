@@ -139,7 +139,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
   const modules = useQuery(api.admin.modules.listModules);
   const productsList = useQuery(api.products.listAll, { limit: 200 });
-  const superAdmin = useQuery(api.auth.getSuperAdmin);
   const productsRef = useRef(productsList ?? []);
 
   const seedBulk = useMutation(api.seedManager.seedBulk);
@@ -152,8 +151,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const setSettings = useMutation(api.settings.setMultiple);
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
   const updateProduct = useMutation(api.products.update);
-  const createSuperAdmin = useMutation(api.auth.createSuperAdmin);
-  const updateSuperAdmin = useMutation(api.auth.updateSuperAdminCredentials);
+  const ensureSuperAdmin = useMutation(api.auth.ensureSuperAdminCredentials);
 
   useEffect(() => {
     if (productsList) {
@@ -776,22 +774,12 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       const resolvedAdminEmail = state.adminConfig.email.trim() || 'tranmanhhieu10@gmail.com';
       const resolvedAdminPassword = state.adminConfig.password || '123456';
-      if (superAdmin === null) {
-        const result = await createSuperAdmin({
-          email: resolvedAdminEmail,
-          password: resolvedAdminPassword,
-        });
-        if (!result.success) {
-          toast.info(result.message);
-        }
-      } else {
-        const result = await updateSuperAdmin({
-          email: resolvedAdminEmail,
-          password: resolvedAdminPassword,
-        });
-        if (!result.success) {
-          toast.info(result.message);
-        }
+      const result = await ensureSuperAdmin({
+        email: resolvedAdminEmail,
+        password: resolvedAdminPassword,
+      });
+      if (!result.success) {
+        toast.info(result.message);
       }
 
       await applyProductOverrides();

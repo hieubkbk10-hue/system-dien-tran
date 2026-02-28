@@ -10,6 +10,8 @@ import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 import {
   buildFromPatterns,
+  filterAvailableSeedMauPaths,
+  getSeedMauAssetPool,
   getIndustryTemplate,
   mergeTemplateFields,
   pickRandom,
@@ -55,11 +57,22 @@ export class ServiceSeeder extends BaseSeeder<ServiceData> {
     const description = template?.fakerTemplates.descriptionPatterns?.length
       ? buildFromPatterns(template.fakerTemplates.descriptionPatterns, fields, randomFn)
       : this.faker.lorem.paragraph();
-    const thumbnail = this.config.useSeedMauImages === false
-      ? `https://picsum.photos/seed/${slug}/600/400`
-      : template?.assets.gallery?.length
-        ? pickRandom(template.assets.gallery, randomFn)
-        : `https://picsum.photos/seed/${slug}/600/400`;
+    let thumbnail = `https://picsum.photos/seed/${slug}/600/400`;
+
+    if (this.config.useSeedMauImages !== false) {
+      const templateGallery = filterAvailableSeedMauPaths(template?.assets.gallery ?? []);
+      const poolGallery = filterAvailableSeedMauPaths(
+        getSeedMauAssetPool('gallery', { excludeIndustryKey: template?.key })
+      );
+      const candidate = templateGallery.length > 0
+        ? pickRandom(templateGallery, randomFn)
+        : poolGallery.length > 0
+          ? pickRandom(poolGallery, randomFn)
+          : undefined;
+      if (candidate) {
+        thumbnail = candidate;
+      }
+    }
     
     const hasPrice = this.randomBoolean(0.7); // 70% có giá
     const price = hasPrice ? this.randomInt(500_000, 20_000_000) : undefined;
