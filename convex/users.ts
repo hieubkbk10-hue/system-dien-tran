@@ -36,6 +36,13 @@ async function assertCanModifySuperAdmin(
   }
 }
 
+async function assertNotSuperAdmin(ctx: MutationCtx, targetRoleId: Doc<"roles">["_id"]) {
+  const role = await ctx.db.get(targetRoleId);
+  if (role?.isSuperAdmin) {
+    throw new Error("Không thể xóa tài khoản Super Admin");
+  }
+}
+
 async function resolveDefaultRoleId(ctx: MutationCtx): Promise<Doc<"roles">["_id"]> {
   const adminRole = await ctx.db
     .query("roles")
@@ -220,6 +227,7 @@ export const countAdmin = query({
 
 export const listAdminIds = query({
   args: {
+    excludeSuperAdmin: v.optional(v.boolean()),
     limit: v.optional(v.number()),
     roleId: v.optional(v.id("roles")),
     search: v.optional(v.string()),
@@ -228,6 +236,14 @@ export const listAdminIds = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 5000, 5000);
     const fetchLimit = limit + 1;
+
+    const superAdminRoles = args.excludeSuperAdmin
+      ? await ctx.db
+        .query("roles")
+        .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+        .collect()
+      : [];
+    const superAdminRoleIds = new Set(superAdminRoles.map(role => role._id));
 
     let users: Doc<"users">[] = [];
     if (args.roleId && args.status) {
@@ -256,6 +272,10 @@ export const listAdminIds = query({
         user.email.toLowerCase().includes(searchLower) ||
         (user.phone?.toLowerCase().includes(searchLower) ?? false)
       );
+    }
+
+    if (args.excludeSuperAdmin) {
+      users = users.filter((user) => !superAdminRoleIds.has(user.roleId));
     }
 
     const hasMore = users.length > limit;
@@ -531,6 +551,7 @@ export const remove = mutation({
     const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "delete");
     const user = await ctx.db.get(args.id);
     if (!user) {throw new Error("User not found");}
+    await assertNotSuperAdmin(ctx, user.roleId);
     await assertCanModifySuperAdmin(ctx, Boolean(actorRole?.isSuperAdmin), user.roleId);
 
     const preview = await ctx.db
@@ -604,11 +625,9 @@ export const bulkRemove = mutation({
     const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "delete");
     const users = await Promise.all(args.ids.map( async (id) => ctx.db.get(id)));
     const validUsers = users.filter((u): u is NonNullable<typeof u> => u !== null);
-    const hasSuperAdmin = await Promise.all(
-      validUsers.map((u) => ctx.db.get(u.roleId))
-    );
-    if (hasSuperAdmin.some((role) => role?.isSuperAdmin) && !actorRole?.isSuperAdmin) {
-      throw new Error("Không thể sửa/xóa tài khoản Super Admin");
+    const roles = await Promise.all(validUsers.map((u) => ctx.db.get(u.roleId)));
+    if (roles.some((role) => role?.isSuperAdmin)) {
+      throw new Error("Không thể xóa tài khoản Super Admin");
     }
 
     if (args.cascade) {

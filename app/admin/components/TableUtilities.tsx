@@ -124,10 +124,12 @@ export const BulkActionBar = ({ selectedCount, onDelete, onClearSelection, isLoa
   );
 };
 
-export const SelectCheckbox = ({ checked, onChange, indeterminate }: { 
+export const SelectCheckbox = ({ checked, onChange, indeterminate, disabled, title }: { 
   checked: boolean; 
   onChange: () => void;
   indeterminate?: boolean;
+  disabled?: boolean;
+  title?: string;
 }) => {
   const ref = React.useRef<HTMLInputElement>(null);
   
@@ -143,7 +145,11 @@ export const SelectCheckbox = ({ checked, onChange, indeterminate }: {
       type="checkbox"
       checked={checked}
       onChange={onChange}
-      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+      disabled={disabled}
+      title={title}
+      className={`w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 ${
+        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+      }`}
     />
   );
 };

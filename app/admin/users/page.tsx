@@ -17,7 +17,7 @@ import { useAdminAuth } from '../auth/context';
 const MODULE_KEY = 'users';
 
 type AdminUser = Omit<Doc<"users">, "passwordHash">;
-type AdminUserWithRole = AdminUser & { roleColor?: string; roleName: string };
+type AdminUserWithRole = AdminUser & { isSuperAdmin: boolean; roleColor?: string; roleName: string };
 
 export default function UsersListPage() {
   return (
@@ -234,6 +234,7 @@ function UsersTable({
     api.users.listAdminIds,
     selectionEnabled && isSelectAllActive
       ? {
+          excludeSuperAdmin: true,
           roleId: isRolesEnabled ? (filterRole || undefined) : undefined,
           search: resolvedSearch,
           status: filterStatus || undefined,
@@ -271,13 +272,14 @@ function UsersTable({
   }, [selectAllData?.hasMore]);
 
   const roleMap = useMemo(() => {
-    const map: Record<string, { name: string; color?: string }> = {};
-    rolesData?.forEach(role => { map[role._id] = { color: role.color, name: role.name }; });
+    const map: Record<string, { color?: string; isSuperAdmin?: boolean; name: string }> = {};
+    rolesData?.forEach(role => { map[role._id] = { color: role.color, isSuperAdmin: role.isSuperAdmin, name: role.name }; });
     return map;
   }, [rolesData]);
 
   const users = useMemo<AdminUserWithRole[]>(() => usersData?.map(user => ({
     ...user,
+    isSuperAdmin: roleMap[user.roleId]?.isSuperAdmin ?? false,
     roleName: isRolesEnabled ? (roleMap[user.roleId]?.name || 'N/A') : 'Full quyền',
     roleColor: isRolesEnabled ? roleMap[user.roleId]?.color : undefined,
   })) ?? [], [usersData, roleMap, isRolesEnabled]);
@@ -287,6 +289,7 @@ function UsersTable({
   const totalCount = totalCountData?.count ?? 0;
   const totalPages = totalCount ? Math.ceil(totalCount / resolvedUsersPerPage) : 1;
   const paginatedUsers = sortedUsers;
+  const selectableUsers = paginatedUsers.filter(user => !user.isSuperAdmin);
   const showActions = canEdit || canDelete;
   const tableColumnCount = resolvedVisibleColumns.length + 1 + (selectionEnabled ? 1 : 0) + (showActions ? 1 : 0);
   const selectedIds = selectionEnabled && isSelectAllActive && selectAllData ? selectAllData.ids : manualSelectedIds;
@@ -325,9 +328,9 @@ function UsersTable({
     applyManualSelection([]);
   };
 
-  const selectedOnPage = paginatedUsers.filter(user => resolvedSelectedIds.includes(user._id));
-  const isPageSelected = selectionEnabled && paginatedUsers.length > 0 && selectedOnPage.length === paginatedUsers.length;
-  const isPageIndeterminate = selectionEnabled && selectedOnPage.length > 0 && selectedOnPage.length < paginatedUsers.length;
+  const selectedOnPage = selectableUsers.filter(user => resolvedSelectedIds.includes(user._id));
+  const isPageSelected = selectionEnabled && selectableUsers.length > 0 && selectedOnPage.length === selectableUsers.length;
+  const isPageIndeterminate = selectionEnabled && selectedOnPage.length > 0 && selectedOnPage.length < selectableUsers.length;
 
   const toggleSelectAll = () => {
     if (!selectionEnabled) {return;}
@@ -337,12 +340,14 @@ function UsersTable({
       return;
     }
     const next = new Set(resolvedSelectedIds);
-    paginatedUsers.forEach(user => next.add(user._id));
+    selectableUsers.forEach(user => next.add(user._id));
     applyManualSelection(Array.from(next));
   };
 
   const toggleSelectItem = (id: Id<"users">) => {
     if (!selectionEnabled) {return;}
+    const target = paginatedUsers.find(user => user._id === id);
+    if (target?.isSuperAdmin) {return;}
     const next = resolvedSelectedIds.includes(id)
       ? resolvedSelectedIds.filter(i => i !== id)
       : [...resolvedSelectedIds, id];
@@ -546,7 +551,15 @@ function UsersTable({
           <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white dark:[&_th]:bg-slate-900">
             <TableRow>
               {selectionEnabled && (
-                <TableHead className="w-[40px]"><SelectCheckbox checked={isPageSelected} onChange={toggleSelectAll} indeterminate={isPageIndeterminate} /></TableHead>
+                <TableHead className="w-[40px]">
+                  <SelectCheckbox
+                    checked={isPageSelected}
+                    onChange={toggleSelectAll}
+                    indeterminate={isPageIndeterminate}
+                    disabled={selectableUsers.length === 0}
+                    title={selectableUsers.length === 0 ? 'Không có user để chọn' : undefined}
+                  />
+                </TableHead>
               )}
               <SortableHeader label="Người dùng" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
               {resolvedVisibleColumns.includes('role') && <SortableHeader label="Vai trò" sortKey="roleName" sortConfig={sortConfig} onSort={handleSort} />}
@@ -604,9 +617,21 @@ function UsersTable({
             ) : (
               <>
                 {paginatedUsers.map(user => (
-                  <TableRow key={user._id} className={resolvedSelectedIds.includes(user._id) ? 'bg-blue-500/5' : ''}>
+                  <TableRow
+                    key={user._id}
+                    className={`${resolvedSelectedIds.includes(user._id) ? 'bg-blue-500/5' : ''} ${
+                      user.isSuperAdmin ? 'bg-amber-50/60 dark:bg-amber-950/30' : ''
+                    }`}
+                  >
                     {selectionEnabled && (
-                      <TableCell><SelectCheckbox checked={resolvedSelectedIds.includes(user._id)} onChange={() =>{  toggleSelectItem(user._id); }} /></TableCell>
+                      <TableCell>
+                        <SelectCheckbox
+                          checked={resolvedSelectedIds.includes(user._id)}
+                          onChange={() =>{  toggleSelectItem(user._id); }}
+                          disabled={user.isSuperAdmin}
+                          title={user.isSuperAdmin ? 'Không thể chọn Super Admin' : undefined}
+                        />
+                      </TableCell>
                     )}
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -620,7 +645,14 @@ function UsersTable({
                           )
                         )}
                         <div>
-                          <div className="font-medium">{user.name}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {user.name}
+                            {user.isSuperAdmin && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-semibold">
+                                Super Admin
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs text-slate-500">{user.email}</div>
                         </div>
                       </div>
@@ -660,7 +692,7 @@ function UsersTable({
                           {canEdit && (
                             <Link href={`/admin/users/${user._id}/edit`}><Button variant="ghost" size="icon"><Edit size={16}/></Button></Link>
                           )}
-                          {canDelete && (
+                          {canDelete && !user.isSuperAdmin && (
                             <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={ async () => handleDelete(user._id)}><Trash2 size={16}/></Button>
                           )}
                         </div>
