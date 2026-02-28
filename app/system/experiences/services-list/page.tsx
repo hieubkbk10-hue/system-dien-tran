@@ -26,6 +26,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type ListLayoutStyle = 'grid' | 'sidebar' | 'masonry';
 type PaginationType = 'pagination' | 'infiniteScroll';
@@ -117,12 +118,32 @@ export default function ServicesListExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || servicesModule === undefined;
+  const canUseServices = servicesModule?.enabled ?? false;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as ServicesListExperienceConfig;
+    const normalizeLayout = (layout: LayoutConfig) => enforceMultipleToggles(layout, [
+      { key: 'showSearch', enabled: canUseServices },
+      { key: 'showCategories', enabled: canUseServices },
+    ]);
+
+    return {
+      ...configValue,
+      layouts: {
+        grid: normalizeLayout(configValue.layouts.grid),
+        sidebar: normalizeLayout(configValue.layouts.sidebar),
+        masonry: normalizeLayout(configValue.layouts.masonry),
+      },
+    };
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {
@@ -198,17 +219,17 @@ export default function ServicesListExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Tìm kiếm"
-              checked={currentLayoutConfig.showSearch}
+              checked={currentLayoutConfig.showSearch && canUseServices}
               onChange={(v) => updateLayoutConfig('showSearch', v)}
               accentColor={brandColor}
-              disabled={!servicesModule?.enabled}
+              disabled={!canUseServices}
             />
             <ToggleRow
               label="Danh mục"
-              checked={currentLayoutConfig.showCategories}
+              checked={currentLayoutConfig.showCategories && canUseServices}
               onChange={(v) => updateLayoutConfig('showCategories', v)}
               accentColor={brandColor}
-              disabled={!servicesModule?.enabled}
+              disabled={!canUseServices}
             />
           </ControlCard>
 
@@ -221,7 +242,7 @@ export default function ServicesListExperiencePage() {
                 { value: 'infiniteScroll', label: 'Cuộn vô hạn' },
               ]}
               onChange={(v) => updateLayoutConfig('paginationType', v as PaginationType)}
-              disabled={!servicesModule?.enabled}
+              disabled={!canUseServices}
             />
             <SelectRow
               label="Bài mỗi trang"
@@ -233,7 +254,7 @@ export default function ServicesListExperiencePage() {
                 { value: '48', label: '48' },
               ]}
               onChange={(v) => updateLayoutConfig('postsPerPage', Number(v))}
-              disabled={!servicesModule?.enabled}
+              disabled={!canUseServices}
             />
           </ControlCard>
 

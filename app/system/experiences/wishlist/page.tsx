@@ -110,6 +110,10 @@ export default function WishlistExperiencePage() {
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
 
   const cartAvailable = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
+  const canUseWishlist = wishlistModule?.enabled ?? false;
+  const canUseNote = canUseWishlist && (noteFeature?.enabled ?? true);
+  const canUseNotification = canUseWishlist && (notificationFeature?.enabled ?? true);
+  const canUseAddToCart = canUseWishlist && cartAvailable;
 
   const serverConfig = useMemo<WishlistExperienceConfig>(() => {
     const raw = experienceSetting?.value as Omit<Partial<WishlistExperienceConfig>, 'layoutStyle' | 'layouts'> & {
@@ -222,32 +226,32 @@ export default function WishlistExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Nút Wishlist"
-              checked={currentLayoutConfig.showWishlistButton}
+              checked={currentLayoutConfig.showWishlistButton && canUseWishlist}
               onChange={(v) => updateLayoutConfig('showWishlistButton', v)}
               accentColor={brandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!canUseWishlist}
             />
             <ToggleRow
               label="Ghi chú SP"
-              checked={currentLayoutConfig.showNote}
+              checked={currentLayoutConfig.showNote && canUseNote}
               onChange={(v) => updateLayoutConfig('showNote', v)}
               accentColor={brandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!canUseNote}
             />
             <ToggleRow
               label="Thông báo"
-              checked={currentLayoutConfig.showNotification}
+              checked={currentLayoutConfig.showNotification && canUseNotification}
               onChange={(v) => updateLayoutConfig('showNotification', v)}
               accentColor={brandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!canUseNotification}
             />
             <ToggleRow
               label="Nút thêm giỏ hàng"
               description="Hiện nút add to cart"
-              checked={currentLayoutConfig.showAddToCartButton}
+              checked={currentLayoutConfig.showAddToCartButton && canUseAddToCart}
               onChange={(v) => updateLayoutConfig('showAddToCartButton', v)}
               accentColor={brandColor}
-              disabled={!cartAvailable}
+              disabled={!canUseAddToCart}
             />
           </ControlCard>
 

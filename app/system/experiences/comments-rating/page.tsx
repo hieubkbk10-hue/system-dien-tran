@@ -102,12 +102,15 @@ export default function CommentsRatingExperiencePage() {
   }, [experienceSetting?.value, likesFeature?.enabled, repliesFeature?.enabled, moderationFeature?.enabled]);
 
   const isLoading = experienceSetting === undefined || commentsModule === undefined;
+  const commentsEnabled = commentsModule?.enabled ?? false;
+  const canUseLikes = commentsEnabled && (likesFeature?.enabled ?? false);
+  const canUseReplies = commentsEnabled && (repliesFeature?.enabled ?? false);
+  const canUseModeration = commentsEnabled && (moderationFeature?.enabled ?? false);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
   const beforeSaveTransform = (rawConfig: unknown) => {
     const configValue = rawConfig as CommentsRatingExperienceConfig;
-    const commentsEnabled = commentsModule?.enabled ?? false;
     return enforceMultipleToggles(configValue, [
       { key: 'showLikes', enabled: commentsEnabled && (likesFeature?.enabled ?? false) },
       { key: 'showReplies', enabled: commentsEnabled && (repliesFeature?.enabled ?? false) },
@@ -175,9 +178,9 @@ export default function CommentsRatingExperiencePage() {
           </ControlCard>
 
           <ControlCard title="Tính năng">
-            <ToggleRow label="Likes" checked={config.showLikes} onChange={(v) => setConfig(prev => ({ ...prev, showLikes: v }))} accentColor="#a855f7" disabled={!commentsModule?.enabled} />
-            <ToggleRow label="Replies" checked={config.showReplies} onChange={(v) => setConfig(prev => ({ ...prev, showReplies: v }))} accentColor="#a855f7" disabled={!commentsModule?.enabled} />
-            <ToggleRow label="Moderation" checked={config.showModeration} onChange={(v) => setConfig(prev => ({ ...prev, showModeration: v }))} accentColor="#a855f7" disabled={!commentsModule?.enabled} />
+            <ToggleRow label="Likes" checked={config.showLikes && canUseLikes} onChange={(v) => setConfig(prev => ({ ...prev, showLikes: v }))} accentColor="#a855f7" disabled={!canUseLikes} />
+            <ToggleRow label="Replies" checked={config.showReplies && canUseReplies} onChange={(v) => setConfig(prev => ({ ...prev, showReplies: v }))} accentColor="#a855f7" disabled={!canUseReplies} />
+            <ToggleRow label="Moderation" checked={config.showModeration && canUseModeration} onChange={(v) => setConfig(prev => ({ ...prev, showModeration: v }))} accentColor="#a855f7" disabled={!canUseModeration} />
           </ControlCard>
 
           <ControlCard title="Module liên quan">

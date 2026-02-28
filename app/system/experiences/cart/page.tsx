@@ -121,6 +121,9 @@ export default function CartExperiencePage() {
   }, [experienceSetting?.value, expiryFeature?.enabled, noteFeature?.enabled]);
 
   const isLoading = experienceSetting === undefined || cartModule === undefined;
+  const canUseCart = cartModule?.enabled ?? false;
+  const canUseExpiry = canUseCart && (expiryFeature?.enabled ?? false);
+  const canUseNote = canUseCart && (noteFeature?.enabled ?? false);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
@@ -213,17 +216,17 @@ export default function CartExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Hết hạn giỏ"
-              checked={currentLayoutConfig.showExpiry}
+              checked={currentLayoutConfig.showExpiry && canUseExpiry}
               onChange={(v) => updateLayoutConfig('showExpiry', v)}
               accentColor={brandColor}
-              disabled={!cartModule?.enabled}
+              disabled={!canUseExpiry}
             />
             <ToggleRow
               label="Ghi chú"
-              checked={currentLayoutConfig.showNote}
+              checked={currentLayoutConfig.showNote && canUseNote}
               onChange={(v) => updateLayoutConfig('showNote', v)}
               accentColor={brandColor}
-              disabled={!cartModule?.enabled}
+              disabled={!canUseNote}
             />
           </ControlCard>
 

@@ -252,6 +252,14 @@ export default function HeaderMenuExperiencePage() {
 
   const showLoginToggle = Boolean(config.login?.show);
   const showCtaToggle = Boolean(config.cta?.show);
+  const cartEnabled = cartModule?.enabled ?? false;
+  const wishlistEnabled = wishlistModule?.enabled ?? false;
+  const productsEnabled = productsModule?.enabled ?? false;
+  const postsEnabled = postsModule?.enabled ?? false;
+  const servicesEnabled = servicesModule?.enabled ?? false;
+  const ordersEnabled = ordersModule?.enabled ?? false;
+  const loginEnabled = (customersModule?.enabled ?? false) && (customerLoginFeature?.enabled ?? false);
+  const canUseSearch = productsEnabled || postsEnabled || servicesEnabled;
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -355,29 +363,31 @@ export default function HeaderMenuExperiencePage() {
             />
             <ToggleRow
               label="Search"
-              checked={config.search.show}
+              checked={config.search.show && canUseSearch}
               onChange={(v) => updateSearch('show', v)}
               accentColor={resolvedBrandColor}
+              disabled={!canUseSearch}
             />
             <ToggleRow
               label="Cart"
-              checked={config.cart.show}
+              checked={config.cart.show && cartEnabled}
               onChange={(v) => updateCart('show', v)}
               accentColor={resolvedBrandColor}
-              disabled={!cartModule?.enabled}
+              disabled={!cartEnabled}
             />
             <ToggleRow
               label="Wishlist"
-              checked={config.wishlist.show}
+              checked={config.wishlist.show && wishlistEnabled}
               onChange={(v) => updateWishlist('show', v)}
               accentColor={resolvedBrandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!wishlistEnabled}
             />
             <ToggleRow
               label="Login"
-              checked={showLoginToggle}
+              checked={showLoginToggle && loginEnabled}
               onChange={(v) => updateLogin('show', v)}
               accentColor={resolvedBrandColor}
+              disabled={!loginEnabled}
             />
             <ToggleRow
               label="CTA"
@@ -414,9 +424,10 @@ export default function HeaderMenuExperiencePage() {
               </div>
               <ToggleRow
                 label="Theo dõi đơn"
-                checked={config.topbar.showTrackOrder}
+                checked={config.topbar.showTrackOrder && ordersEnabled}
                 onChange={(v) => updateTopbar('showTrackOrder', v)}
                 accentColor={resolvedBrandColor}
+                disabled={!ordersEnabled}
               />
               <ToggleRow
                 label="Hệ thống cửa hàng"

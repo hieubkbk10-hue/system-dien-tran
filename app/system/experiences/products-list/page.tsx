@@ -168,11 +168,13 @@ export default function ProductsListExperiencePage() {
   const isLoading = experienceSetting === undefined || productsModule === undefined || wishlistModule === undefined || cartModule === undefined || ordersModule === undefined || promotionsModule === undefined || variantsSetting === undefined;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+  const canUseProducts = productsModule?.enabled ?? false;
   const canUseWishlist = wishlistModule?.enabled ?? false;
   const canUseCart = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
   const canUseOrders = ordersModule?.enabled ?? false;
   const canUsePromotions = promotionsModule?.enabled ?? false;
   const variantsEnabled = (variantsSetting?.value as boolean | undefined) ?? false;
+  const canUseQuickAddVariant = canUseCart && variantsEnabled;
 
   const beforeSaveTransform = (rawConfig: unknown) => {
     const configValue = rawConfig as ProductsListExperienceConfig;
@@ -273,24 +275,24 @@ export default function ProductsListExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Tìm kiếm"
-              checked={currentLayoutConfig.showSearch}
+              checked={currentLayoutConfig.showSearch && canUseProducts}
               onChange={(v) => updateLayoutConfig('showSearch', v)}
               accentColor={brandColor}
-              disabled={!productsModule?.enabled}
+              disabled={!canUseProducts}
             />
             <ToggleRow
               label="Buy Now"
-              checked={config.showBuyNowButton}
+              checked={config.showBuyNowButton && canUseOrders}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNowButton: v }))}
               accentColor={brandColor}
-              disabled={!ordersModule?.enabled}
+              disabled={!canUseOrders}
             />
             <ToggleRow
               label="Danh mục"
-              checked={currentLayoutConfig.showCategories}
+              checked={currentLayoutConfig.showCategories && canUseProducts}
               onChange={(v) => updateLayoutConfig('showCategories', v)}
               accentColor={brandColor}
-              disabled={!productsModule?.enabled}
+              disabled={!canUseProducts}
             />
           </ControlCard>
 
@@ -303,7 +305,7 @@ export default function ProductsListExperiencePage() {
                 { value: 'infiniteScroll', label: 'Cuộn vô hạn' },
               ]}
               onChange={(v) => updateLayoutConfig('paginationType', v as PaginationType)}
-              disabled={!productsModule?.enabled}
+              disabled={!canUseProducts}
             />
             <SelectRow
               label="Bài mỗi trang"
@@ -315,7 +317,7 @@ export default function ProductsListExperiencePage() {
                 { value: '48', label: '48' },
               ]}
               onChange={(v) => updateLayoutConfig('postsPerPage', Number(v))}
-              disabled={!productsModule?.enabled}
+              disabled={!canUseProducts}
             />
           </ControlCard>
 
@@ -323,34 +325,34 @@ export default function ProductsListExperiencePage() {
             <ToggleRow
               label="Nút yêu thích"
               description="Hiện nút thêm vào wishlist"
-              checked={config.showWishlistButton}
+              checked={config.showWishlistButton && canUseWishlist}
               onChange={(v) => setConfig(prev => ({ ...prev, showWishlistButton: v }))}
               accentColor={brandColor}
-              disabled={!wishlistModule?.enabled}
+              disabled={!canUseWishlist}
             />
             <ToggleRow
               label="Nút thêm giỏ hàng"
               description="Hiện nút add to cart"
-              checked={config.showAddToCartButton}
+              checked={config.showAddToCartButton && canUseCart}
               onChange={(v) => setConfig(prev => ({ ...prev, showAddToCartButton: v }))}
               accentColor={brandColor}
-              disabled={!cartModule?.enabled || !ordersModule?.enabled}
+              disabled={!canUseCart}
             />
             <ToggleRow
               label="Quick add phiên bản"
               description="Mở modal chọn phiên bản khi thêm giỏ"
-              checked={config.enableQuickAddVariant}
+              checked={config.enableQuickAddVariant && canUseQuickAddVariant}
               onChange={(v) => setConfig(prev => ({ ...prev, enableQuickAddVariant: v }))}
               accentColor={brandColor}
-              disabled={!cartModule?.enabled || !ordersModule?.enabled}
+              disabled={!canUseQuickAddVariant}
             />
             <ToggleRow
               label="Badge khuyến mãi"
               description="Hiện badge giảm giá"
-              checked={config.showPromotionBadge}
+              checked={config.showPromotionBadge && canUsePromotions}
               onChange={(v) => setConfig(prev => ({ ...prev, showPromotionBadge: v }))}
               accentColor={brandColor}
-              disabled={!promotionsModule?.enabled}
+              disabled={!canUsePromotions}
             />
           </ControlCard>
         </CardContent>

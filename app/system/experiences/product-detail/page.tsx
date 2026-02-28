@@ -625,17 +625,17 @@ export default function ProductDetailExperiencePage() {
             />
             <ToggleRow
               label="Add to Cart"
-              checked={currentLayoutConfig.showAddToCart}
+              checked={currentLayoutConfig.showAddToCart && canUseCart}
               onChange={(v) => updateLayoutConfig('showAddToCart', v)}
               accentColor={brandColor}
-              disabled={!cartModule?.enabled || !ordersModule?.enabled}
+              disabled={!canUseCart}
             />
             <ToggleRow
               label="Buy Now"
-              checked={config.showBuyNow}
+              checked={config.showBuyNow && canUseOrders}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNow: v }))}
               accentColor={brandColor}
-              disabled={!ordersModule?.enabled}
+              disabled={!canUseOrders}
             />
             <VariantFeatureStatus
               enabled={(variantsSetting?.value as boolean | undefined) ?? false}
@@ -654,17 +654,17 @@ export default function ProductDetailExperiencePage() {
             />
             <ToggleRow
               label="Nút thích"
-              checked={currentLayoutConfig.showCommentLikes && canUseComments}
+              checked={currentLayoutConfig.showCommentLikes && canUseCommentLikes}
               onChange={(v) => updateLayoutConfig('showCommentLikes' as keyof typeof currentLayoutConfig, v as never)}
               accentColor={brandColor}
-              disabled={!canUseComments}
+              disabled={!canUseCommentLikes}
             />
             <ToggleRow
               label="Nút trả lời"
-              checked={currentLayoutConfig.showCommentReplies && canUseComments}
+              checked={currentLayoutConfig.showCommentReplies && canUseCommentReplies}
               onChange={(v) => updateLayoutConfig('showCommentReplies' as keyof typeof currentLayoutConfig, v as never)}
               accentColor={brandColor}
-              disabled={!canUseComments}
+              disabled={!canUseCommentReplies}
             />
             <ModuleFeatureStatus
               label="Module bình luận"

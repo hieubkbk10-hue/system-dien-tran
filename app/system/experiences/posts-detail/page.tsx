@@ -290,9 +290,10 @@ export default function PostDetailExperiencePage() {
             />
             <ToggleRow 
               label="Danh sách tags" 
-              checked={currentLayoutConfig.showTags} 
+              checked={currentLayoutConfig.showTags && canUseTags} 
               onChange={(v) => updateLayoutConfig('showTags', v)} 
               accentColor={brandColor}
+              disabled={!canUseTags}
             />
             <ToggleRow 
               label="Nút chia sẻ" 
@@ -311,21 +312,24 @@ export default function PostDetailExperiencePage() {
           <ControlCard title="Bình luận">
             <ToggleRow 
               label="Hiển thị bình luận" 
-              checked={currentLayoutConfig.showComments} 
+              checked={currentLayoutConfig.showComments && canUseComments} 
               onChange={(v) => updateLayoutConfig('showComments', v)} 
               accentColor={brandColor}
+              disabled={!canUseComments}
             />
             <ToggleRow 
               label="Nút thích" 
-              checked={currentLayoutConfig.showCommentLikes} 
+              checked={currentLayoutConfig.showCommentLikes && canUseCommentLikes} 
               onChange={(v) => updateLayoutConfig('showCommentLikes', v)} 
               accentColor={brandColor}
+              disabled={!canUseCommentLikes}
             />
             <ToggleRow 
               label="Nút trả lời" 
-              checked={currentLayoutConfig.showCommentReplies} 
+              checked={currentLayoutConfig.showCommentReplies && canUseCommentReplies} 
               onChange={(v) => updateLayoutConfig('showCommentReplies', v)} 
               accentColor={brandColor}
+              disabled={!canUseCommentReplies}
             />
             <ModuleFeatureStatus
               label="Module bình luận"

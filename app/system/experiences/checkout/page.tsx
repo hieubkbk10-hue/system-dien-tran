@@ -27,6 +27,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExampleProduct, useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type CheckoutFlowStyle = 'single-page' | 'multi-step' | 'wizard-accordion';
 type OrderSummaryPosition = 'right' | 'bottom';
@@ -157,12 +158,35 @@ export default function CheckoutExperiencePage() {
   }, [experienceSetting?.value, paymentFeature?.enabled, shippingFeature?.enabled]);
 
   const isLoading = experienceSetting === undefined || ordersModule === undefined || cartModule === undefined;
+  const canUseOrders = ordersModule?.enabled ?? false;
+  const canUsePayment = canUseOrders && (paymentFeature?.enabled ?? false);
+  const canUseShipping = canUseOrders && (shippingFeature?.enabled ?? false);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as CheckoutExperienceConfig;
+    const normalizeLayout = (layout: LayoutConfig) => enforceMultipleToggles(layout, [
+      { key: 'showPaymentMethods', enabled: canUsePayment },
+      { key: 'showShippingOptions', enabled: canUseShipping },
+    ]);
+
+    return {
+      ...configValue,
+      showBuyNow: canUseOrders ? configValue.showBuyNow : false,
+      layouts: {
+        'single-page': normalizeLayout(configValue.layouts['single-page']),
+        'multi-step': normalizeLayout(configValue.layouts['multi-step']),
+        'wizard-accordion': normalizeLayout(configValue.layouts['wizard-accordion']),
+      },
+    };
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {
@@ -229,24 +253,24 @@ export default function CheckoutExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Buy Now"
-              checked={config.showBuyNow}
+              checked={config.showBuyNow && canUseOrders}
               onChange={(v) => setConfig(prev => ({ ...prev, showBuyNow: v }))}
               accentColor={tokens.primary}
-              disabled={!ordersModule?.enabled}
+              disabled={!canUseOrders}
             />
             <ToggleRow
               label="Payment Methods"
-              checked={currentLayoutConfig.showPaymentMethods}
+              checked={currentLayoutConfig.showPaymentMethods && canUsePayment}
               onChange={(v) => updateLayoutConfig('showPaymentMethods', v)}
               accentColor={tokens.primary}
-              disabled={!ordersModule?.enabled}
+              disabled={!canUsePayment}
             />
             <ToggleRow
               label="Shipping Options"
-              checked={currentLayoutConfig.showShippingOptions}
+              checked={currentLayoutConfig.showShippingOptions && canUseShipping}
               onChange={(v) => updateLayoutConfig('showShippingOptions', v)}
               accentColor={tokens.primary}
-              disabled={!ordersModule?.enabled}
+              disabled={!canUseShipping}
             />
           </ControlCard>
 

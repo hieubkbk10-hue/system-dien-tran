@@ -25,6 +25,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { EXPERIENCE_NAMES, MESSAGES, useExperienceConfig, useExperienceSave } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type PromotionsLayoutStyle = 'grid' | 'list' | 'banner';
 
@@ -114,12 +115,25 @@ export default function PromotionsListExperiencePage() {
   }, [experienceSetting?.value]);
 
   const isLoading = experienceSetting === undefined || promotionsModule === undefined;
+  const canUsePromotions = promotionsModule?.enabled ?? false;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as PromotionsExperienceConfig;
+    return enforceMultipleToggles(configValue, [
+      { key: 'showCountdown', enabled: canUsePromotions },
+      { key: 'showProgress', enabled: canUsePromotions },
+      { key: 'showConditions', enabled: canUsePromotions },
+      { key: 'groupByType', enabled: canUsePromotions },
+    ]);
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {
@@ -178,31 +192,31 @@ export default function PromotionsListExperiencePage() {
           <ControlCard title="Bố cục">
             <ToggleRow
               label="Hiện countdown"
-              checked={config.showCountdown}
+              checked={config.showCountdown && canUsePromotions}
               onChange={(v) => setConfig(prev => ({ ...prev, showCountdown: v }))}
               accentColor={brandColor}
-              disabled={!promotionsModule?.enabled}
+              disabled={!canUsePromotions}
             />
             <ToggleRow
               label="Hiện tiến trình"
-              checked={config.showProgress}
+              checked={config.showProgress && canUsePromotions}
               onChange={(v) => setConfig(prev => ({ ...prev, showProgress: v }))}
               accentColor={brandColor}
-              disabled={!promotionsModule?.enabled}
+              disabled={!canUsePromotions}
             />
             <ToggleRow
               label="Hiện điều kiện"
-              checked={config.showConditions}
+              checked={config.showConditions && canUsePromotions}
               onChange={(v) => setConfig(prev => ({ ...prev, showConditions: v }))}
               accentColor={brandColor}
-              disabled={!promotionsModule?.enabled}
+              disabled={!canUsePromotions}
             />
             <ToggleRow
               label="Nhóm theo loại"
-              checked={config.groupByType}
+              checked={config.groupByType && canUsePromotions}
               onChange={(v) => setConfig(prev => ({ ...prev, groupByType: v }))}
               accentColor={brandColor}
-              disabled={!promotionsModule?.enabled}
+              disabled={!canUsePromotions}
             />
           </ControlCard>
         </CardContent>

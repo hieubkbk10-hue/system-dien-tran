@@ -35,6 +35,7 @@ import {
   type ContactExperienceConfig,
   type ContactLayoutStyle,
 } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 const LAYOUT_STYLES: LayoutOption<ContactLayoutStyle>[] = [
   { description: 'Chỉ có form liên hệ', id: 'form-only', label: 'Form Only' },
@@ -101,11 +102,27 @@ export default function ContactExperiencePage() {
     || socialFeature === undefined
     || mailFeature === undefined;
 
+  const settingsEnabled = settingsModule?.enabled ?? false;
+  const contactEnabled = settingsEnabled && (contactFeature?.enabled ?? false);
+  const socialEnabled = settingsEnabled && (socialFeature?.enabled ?? false);
+  const mailEnabled = settingsEnabled && (mailFeature?.enabled ?? false);
+
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONTACT_CONFIG, isLoading);
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as ContactExperienceConfig;
+    return enforceMultipleToggles(configValue, [
+      { key: 'showMap', enabled: contactEnabled },
+      { key: 'showContactInfo', enabled: contactEnabled },
+      { key: 'showSocialLinks', enabled: socialEnabled },
+    ]);
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     CONTACT_EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[CONTACT_EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[CONTACT_EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {
@@ -113,11 +130,6 @@ export default function ContactExperiencePage() {
     setSecondaryColor(brandColors.secondary || '');
     setColorMode(brandColors.mode || 'single');
   }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
-
-  const settingsEnabled = settingsModule?.enabled ?? false;
-  const contactEnabled = settingsEnabled && (contactFeature?.enabled ?? false);
-  const socialEnabled = settingsEnabled && (socialFeature?.enabled ?? false);
-  const mailEnabled = settingsEnabled && (mailFeature?.enabled ?? false);
 
   const updateDisplayConfig = <K extends keyof Pick<ContactExperienceConfig, 'showContactInfo' | 'showMap' | 'showSocialLinks'>>(
     key: K,
@@ -178,21 +190,21 @@ export default function ContactExperiencePage() {
           <ControlCard title="Khối hiển thị">
             <ToggleRow
               label="Bản đồ (Map)"
-              checked={config.showMap}
+              checked={config.showMap && contactEnabled}
               onChange={(v) => updateDisplayConfig('showMap', v)}
               accentColor={brandColor}
               disabled={!contactEnabled}
             />
             <ToggleRow
               label="Thông tin liên hệ"
-              checked={config.showContactInfo}
+              checked={config.showContactInfo && contactEnabled}
               onChange={(v) => updateDisplayConfig('showContactInfo', v)}
               accentColor={brandColor}
               disabled={!contactEnabled}
             />
             <ToggleRow
               label="Social media"
-              checked={config.showSocialLinks}
+              checked={config.showSocialLinks && socialEnabled}
               onChange={(v) => updateDisplayConfig('showSocialLinks', v)}
               accentColor={brandColor}
               disabled={!socialEnabled}
