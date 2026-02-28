@@ -622,7 +622,7 @@ export const getDeleteInfo = query({
 export const bulkRemove = mutation({
   args: { cascade: v.optional(v.boolean()), ids: v.array(v.id("users")), token: v.string() },
   handler: async (ctx, args) => {
-    const { role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "delete");
+    await requireAdminPermission(ctx, args.token, "users", "delete");
     const users = await Promise.all(args.ids.map( async (id) => ctx.db.get(id)));
     const validUsers = users.filter((u): u is NonNullable<typeof u> => u !== null);
     const roles = await Promise.all(validUsers.map((u) => ctx.db.get(u.roleId)));
