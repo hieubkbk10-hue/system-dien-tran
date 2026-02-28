@@ -4,6 +4,8 @@
  * Generates blog posts with Vietnamese content
  */
 
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
 import { createVietnameseFaker } from './fakerVi';
 import type { Doc, DataModel } from '../_generated/dataModel';
@@ -99,14 +101,28 @@ export class PostSeeder extends BaseSeeder<PostData> {
   }
 
   private getPostThumbnail(template: IndustryTemplate | null, slug: string): string | undefined {
-    void slug;
     const randomFn = () => this.faker.number.float({ max: 1, min: 0 });
 
     if (this.config.useSeedMauImages === false) {
       return undefined;
     }
 
-    const pickFrom = (items: string[]) => (items.length > 0 ? pickRandom(items, randomFn) : undefined);
+    const isValidSeedMauPath = (value?: string) => {
+      if (!value) {
+        return false;
+      }
+      if (!value.startsWith('/seed_mau/')) {
+        return true;
+      }
+      const normalized = value.replace(/^\//, '');
+      const filePath = path.resolve(process.cwd(), 'public', normalized);
+      return existsSync(filePath);
+    };
+
+    const pickFrom = (items: string[]) => {
+      const validItems = items.filter(isValidSeedMauPath);
+      return validItems.length > 0 ? pickRandom(validItems, randomFn) : undefined;
+    };
 
     let candidate = pickFrom(template?.assets.posts ?? []);
 
@@ -130,7 +146,7 @@ export class PostSeeder extends BaseSeeder<PostData> {
       candidate = pickFrom(getSeedMauAssetPool('products', { excludeIndustryKey: template?.key }));
     }
 
-    return candidate;
+    return candidate ?? `https://picsum.photos/seed/${slug}/600/400`;
   }
   
   validateRecord(record: PostData): boolean {
