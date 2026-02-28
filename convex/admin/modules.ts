@@ -81,6 +81,18 @@ async function repairRolesCoreFlag(ctx: MutationCtx) {
   return rolesRecord;
 }
 
+async function upsertAdminPermissionMode(ctx: MutationCtx, value: "simple_full_admin" | "rbac") {
+  const existing = await ctx.db
+    .query("settings")
+    .withIndex("by_key", (q) => q.eq("key", "admin_permission_mode"))
+    .unique();
+  if (existing) {
+    await ctx.db.patch(existing._id, { group: existing.group ?? "auth", value });
+    return;
+  }
+  await ctx.db.insert("settings", { group: "auth", key: "admin_permission_mode", value });
+}
+
 export const listModules = query({
   args: {},
   handler: async (ctx) => {
@@ -257,6 +269,9 @@ export const toggleModule = mutation({
       }
     }
     await ctx.db.patch(moduleRecord._id, { enabled: args.enabled, updatedBy: args.updatedBy });
+    if (args.key === "roles") {
+      await upsertAdminPermissionMode(ctx, "simple_full_admin");
+    }
     return createToggleBasicResult({ code: "OK", success: true });
   },
   returns: v.object({
@@ -389,6 +404,10 @@ export const toggleModuleWithCascade = mutation({
         }
       }
 
+      if (args.key === "roles") {
+        await upsertAdminPermissionMode(ctx, "simple_full_admin");
+      }
+
       return createToggleResult({
         autoEnabledModules,
         code: "OK",
@@ -438,6 +457,9 @@ export const toggleModuleWithCascade = mutation({
     }
 
     await ctx.db.patch(moduleRecord._id, { enabled: false, updatedBy: args.updatedBy });
+    if (args.key === "roles") {
+      await upsertAdminPermissionMode(ctx, "simple_full_admin");
+    }
 
     return createToggleResult({
       autoEnabledModules: [],

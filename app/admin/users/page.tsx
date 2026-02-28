@@ -112,11 +112,13 @@ function UsersTable({
   const selectionEnabled = canDelete || canEdit;
 
   const rolesData = useQuery(api.roles.listAll);
+  const rolesModule = useQuery(api.admin.modules.getModuleByKey, { key: 'roles' });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
   const deleteUser = useMutation(api.users.remove);
   const bulkDeleteUsers = useMutation(api.users.bulkRemove);
   const bulkStatusChange = useMutation(api.users.bulkStatusChange);
+  const isRolesEnabled = rolesModule?.enabled ?? false;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -141,13 +143,13 @@ function UsersTable({
   const usersData = useQuery(api.users.listAdminWithOffset, {
     limit: resolvedUsersPerPage,
     offset,
-    roleId: filterRole || undefined,
+    roleId: isRolesEnabled ? (filterRole || undefined) : undefined,
     search: resolvedSearch,
     status: filterStatus || undefined,
   }) as AdminUser[] | undefined;
 
   const totalCountData = useQuery(api.users.countAdmin, {
-    roleId: filterRole || undefined,
+    roleId: isRolesEnabled ? (filterRole || undefined) : undefined,
     search: resolvedSearch,
     status: filterStatus || undefined,
   });
@@ -157,7 +159,7 @@ function UsersTable({
     exportRequested
       ? {
           limit: 5000,
-          roleId: filterRole || undefined,
+          roleId: isRolesEnabled ? (filterRole || undefined) : undefined,
           search: resolvedSearch,
           status: filterStatus || undefined,
         }
@@ -179,17 +181,28 @@ function UsersTable({
       Banned: 'Bị cấm',
       Inactive: 'Không hoạt động',
     };
+    const rows: string[][] = exportData.map(user => {
+      const baseRow = [
+        user.name,
+        user.email,
+        user.phone ?? '',
+      ];
+      if (isRolesEnabled) {
+        baseRow.push(roleMap.get(user.roleId) ?? 'Không rõ');
+      }
+      baseRow.push(statusLabels[user.status] ?? user.status);
+      baseRow.push(user.lastLogin ? new Date(user.lastLogin).toLocaleString('vi-VN') : '');
+      return baseRow;
+    });
 
-    const rows: string[][] = exportData.map(user => [
-      user.name,
-      user.email,
-      user.phone ?? '',
-      roleMap.get(user.roleId) ?? 'Không rõ',
-      statusLabels[user.status] ?? user.status,
-      user.lastLogin ? new Date(user.lastLogin).toLocaleString('vi-VN') : '',
-    ]);
-
-    const header = ['Họ tên', 'Email', 'Số điện thoại', 'Vai trò', 'Trạng thái', 'Đăng nhập cuối'];
+    const header = [
+      'Họ tên',
+      'Email',
+      'Số điện thoại',
+      ...(isRolesEnabled ? ['Vai trò'] : []),
+      'Trạng thái',
+      'Đăng nhập cuối',
+    ];
     const csv = [header, ...rows]
       .map(row => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
       .join('\n');
@@ -204,7 +217,13 @@ function UsersTable({
 
     setExportRequested(false);
     setIsExporting(false);
-  }, [exportRequested, exportData, rolesData]);
+  }, [exportRequested, exportData, rolesData, isRolesEnabled]);
+
+  useEffect(() => {
+    if (!isRolesEnabled) {
+      setFilterRole('');
+    }
+  }, [isRolesEnabled]);
 
   const deleteInfo = useQuery(
     api.users.getDeleteInfo,
@@ -215,14 +234,14 @@ function UsersTable({
     api.users.listAdminIds,
     selectionEnabled && isSelectAllActive
       ? {
-          roleId: filterRole || undefined,
+          roleId: isRolesEnabled ? (filterRole || undefined) : undefined,
           search: resolvedSearch,
           status: filterStatus || undefined,
         }
       : 'skip'
   );
 
-  const isTableLoading = usersData === undefined || totalCountData === undefined || rolesData === undefined;
+  const isTableLoading = usersData === undefined || totalCountData === undefined || rolesModule === undefined || (isRolesEnabled && rolesData === undefined);
 
   const enabledFeatures = useMemo(() => {
     const features: Record<string, boolean> = {};
@@ -235,7 +254,7 @@ function UsersTable({
   const showLastLogin = enabledFeatures.enableLastLogin ?? true;
 
   const columns = [
-    { key: 'role', label: 'Vai trò', required: true },
+    ...(isRolesEnabled ? [{ key: 'role', label: 'Vai trò', required: true }] : []),
     { key: 'status', label: 'Trạng thái', required: true },
     ...(showPhone ? [{ key: 'phone', label: 'Số điện thoại' }] : []),
     ...(showLastLogin ? [{ key: 'lastLogin', label: 'Đăng nhập cuối' }] : []),
@@ -259,9 +278,9 @@ function UsersTable({
 
   const users = useMemo<AdminUserWithRole[]>(() => usersData?.map(user => ({
     ...user,
-    roleName: roleMap[user.roleId]?.name || 'N/A',
-    roleColor: roleMap[user.roleId]?.color,
-  })) ?? [], [usersData, roleMap]);
+    roleName: isRolesEnabled ? (roleMap[user.roleId]?.name || 'N/A') : 'Full quyền',
+    roleColor: isRolesEnabled ? roleMap[user.roleId]?.color : undefined,
+  })) ?? [], [usersData, roleMap, isRolesEnabled]);
 
   const sortedUsers = useSortableData(users, sortConfig);
 
@@ -399,7 +418,7 @@ function UsersTable({
   };
 
   const handleExport = () => {
-    if (!rolesData) {
+    if (isRolesEnabled && !rolesData) {
       toast.error('Đang tải dữ liệu, vui lòng thử lại');
       return;
     }
@@ -491,14 +510,16 @@ function UsersTable({
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-              value={filterRole}
-              onChange={(e) =>{  handleFilterRole(e.target.value); }}
-            >
-              <option value="">Tất cả vai trò</option>
-              {rolesData?.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-            </select>
+            {isRolesEnabled && (
+              <select
+                className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                value={filterRole}
+                onChange={(e) =>{  handleFilterRole(e.target.value); }}
+              >
+                <option value="">Tất cả vai trò</option>
+                {rolesData?.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+              </select>
+            )}
             <select
               className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               value={filterStatus}

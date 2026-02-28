@@ -36,6 +36,22 @@ async function assertCanModifySuperAdmin(
   }
 }
 
+async function resolveDefaultRoleId(ctx: MutationCtx): Promise<Doc<"roles">["_id"]> {
+  const adminRole = await ctx.db
+    .query("roles")
+    .withIndex("by_name", (q) => q.eq("name", "Admin"))
+    .unique();
+  if (adminRole) {
+    return adminRole._id;
+  }
+  const roles = await ctx.db.query("roles").take(100);
+  const fallback = roles.find((role) => !role.isSuperAdmin);
+  if (!fallback) {
+    throw new Error("Không tìm thấy vai trò mặc định để gán người dùng");
+  }
+  return fallback._id;
+}
+
 export const list = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -363,14 +379,27 @@ export const create = mutation({
     name: v.string(),
     password: v.string(),
     phone: v.optional(v.string()),
-    roleId: v.id("roles"),
+    roleId: v.optional(v.id("roles")),
     status: userStatus,
     token: v.string(),
   },
   handler: async (ctx, args) => {
     const { permissionMode, role: actorRole } = await requireAdminPermission(ctx, args.token, "users", "create");
+    const rolesModule = await ctx.db
+      .query("adminModules")
+      .withIndex("by_key", (q) => q.eq("key", "roles"))
+      .unique();
+    const rolesEnabled = rolesModule?.enabled ?? false;
+    let resolvedRoleId = args.roleId;
+    if (!rolesEnabled) {
+      if (!resolvedRoleId) {
+        resolvedRoleId = await resolveDefaultRoleId(ctx);
+      }
+    } else if (!resolvedRoleId) {
+      throw new Error("Vui lòng chọn vai trò");
+    }
     if (permissionMode === "simple_full_admin" && !actorRole?.isSuperAdmin) {
-      await assertCanModifySuperAdmin(ctx, false, args.roleId);
+      await assertCanModifySuperAdmin(ctx, false, resolvedRoleId);
     }
     if (args.password.length < 6) {
       throw new Error("Mật khẩu tối thiểu 6 ký tự");
@@ -385,7 +414,7 @@ export const create = mutation({
     const { password, token, ...payload } = args;
     void token;
     const passwordHash = await hashPassword(password);
-    const userId = await ctx.db.insert("users", { ...payload, passwordHash });
+    const userId = await ctx.db.insert("users", { ...payload, passwordHash, roleId: resolvedRoleId });
     
     // Update counters
     await Promise.all([

@@ -47,6 +47,7 @@ function UserEditForm({ params, token }: { params: Promise<{ id: string }>; toke
   const router = useRouter();
   const userData = useQuery(api.users.getById, { id: id as Id<"users"> });
   const rolesData = useQuery(api.roles.listAll);
+  const rolesModule = useQuery(api.admin.modules.getModuleByKey, { key: 'roles' });
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const activityLogs = useQuery(api.activityLogs.getRecentByUser, { limit: 10, userId: id as Id<"users"> });
   const updateUser = useMutation(api.users.update);
@@ -64,7 +65,8 @@ function UserEditForm({ params, token }: { params: Promise<{ id: string }>; toke
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const isLoading = userData === undefined || rolesData === undefined || fieldsData === undefined;
+  const isRolesEnabled = rolesModule?.enabled ?? false;
+  const isLoading = userData === undefined || fieldsData === undefined || rolesModule === undefined || (isRolesEnabled && rolesData === undefined);
 
   const enabledFields = useMemo(() => {
     const fields = new Set<string>();
@@ -99,7 +101,7 @@ function UserEditForm({ params, token }: { params: Promise<{ id: string }>; toke
       toast.error('Email không hợp lệ');
       return;
     }
-    if (!roleId) {
+    if (isRolesEnabled && !roleId) {
       toast.error('Vui lòng chọn vai trò');
       return;
     }
@@ -111,7 +113,7 @@ function UserEditForm({ params, token }: { params: Promise<{ id: string }>; toke
         id: id as Id<"users">,
         name,
         phone: enabledFields.has('phone') && phone ? phone : undefined,
-        roleId: roleId,
+        roleId: isRolesEnabled ? (roleId || undefined) : undefined,
         status,
         token,
       });
@@ -222,20 +224,29 @@ function UserEditForm({ params, token }: { params: Promise<{ id: string }>; toke
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Vai trò <span className="text-red-500">*</span></Label>
-                <select 
-                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  value={roleId}
-                  onChange={(e) =>{  setRoleId(e.target.value as Id<"roles">); }}
-                  required
-                >
-                  <option value="">Chọn vai trò...</option>
-                  {rolesData?.map(role => (
-                    <option key={role._id} value={role._id}>{role.name}</option>
-                  ))}
-                </select>
-              </div>
+              {isRolesEnabled ? (
+                <div className="space-y-2">
+                  <Label>Vai trò <span className="text-red-500">*</span></Label>
+                  <select 
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                    value={roleId}
+                    onChange={(e) =>{  setRoleId(e.target.value as Id<"roles">); }}
+                    required
+                  >
+                    <option value="">Chọn vai trò...</option>
+                    {rolesData?.map(role => (
+                      <option key={role._id} value={role._id}>{role.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Vai trò</Label>
+                  <div className="h-10 rounded-md border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 flex items-center text-sm text-slate-500">
+                    Module vai trò đang tắt. Không thể đổi vai trò trong lúc này.
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Trạng thái</Label>
                 <select 
