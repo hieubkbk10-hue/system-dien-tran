@@ -109,6 +109,7 @@ const vi = {
         no: 'Không',
       },
       messages: {
+        cannotDisableCore: 'Không thể tắt module lõi',
         cascadeDisabled: 'Đã tắt {module} và {count} modules phụ thuộc',
         moduleNotFound: 'Module không tồn tại hoặc đã bị xóa',
         reseedSuccess: 'Đã seed lại modules hệ thống',
@@ -297,6 +298,7 @@ const en: typeof vi = {
         no: 'No',
       },
       messages: {
+        cannotDisableCore: 'Cannot disable core module',
         cascadeDisabled: 'Disabled {module} and {count} dependent modules',
         moduleNotFound: 'Module does not exist or was removed',
         reseedSuccess: 'System modules reseeded',

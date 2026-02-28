@@ -102,12 +102,16 @@ export default function ModuleManagementPage() {
 
   const handleToggleModule = async (key: string, enabled: boolean) => {
     setSelectedPreset('custom');
+    const targetModule = modules.find(m => m.key === key);
+    if (!enabled && targetModule?.isCore && targetModule.key !== 'roles') {
+      toast.error(t.modules.messages.cannotDisableCore);
+      return;
+    }
     
     // Khi tắt module, kiểm tra xem có modules con không
     if (!enabled) {
       const dependents = getDependentModules(key);
       if (dependents.length > 0) {
-        const targetModule = modules.find(m => m.key === key);
         setCascadeDialog({
           dependentModules: dependents,
           isOpen: true,
@@ -125,6 +129,8 @@ export default function ModuleManagementPage() {
         enabled,
         key,
       });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
       setTogglingKey(null);
     }
