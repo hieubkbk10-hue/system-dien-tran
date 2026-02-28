@@ -2,27 +2,27 @@
 
 import React from 'react';
 import { ErrorPageView } from '@/components/site/error/ErrorPageView';
-import { useBrandColors } from '@/components/site/hooks';
-import { useErrorPagesConfig } from '@/lib/experiences';
+import { DEFAULT_ERROR_PAGES_CONFIG } from '@/lib/experiences';
 
-export default function GlobalError() {
-  const config = useErrorPagesConfig();
-  const brandColors = useBrandColors();
+const FALLBACK_BRAND_COLOR = '#3b82f6';
+
+export default function GlobalError({ error }: { error: Error }) {
+  console.error(error);
 
   return (
     <html>
       <body>
         <ErrorPageView
           code={500}
-          layoutStyle={config.layoutStyle}
-          brandColor={brandColors.primary}
-          secondaryColor={brandColors.secondary}
-          colorMode={brandColors.mode}
-          showGoHome={config.showGoHome}
-          showGoBack={config.showGoBack}
-          showShortApology={config.showShortApology}
-          customHeadline={config.customHeadline}
-          customMessage={config.customMessage}
+          layoutStyle={DEFAULT_ERROR_PAGES_CONFIG.layoutStyle}
+          brandColor={FALLBACK_BRAND_COLOR}
+          secondaryColor=""
+          colorMode="single"
+          showGoHome={DEFAULT_ERROR_PAGES_CONFIG.showGoHome}
+          showGoBack={DEFAULT_ERROR_PAGES_CONFIG.showGoBack}
+          showShortApology={DEFAULT_ERROR_PAGES_CONFIG.showShortApology}
+          customHeadline={DEFAULT_ERROR_PAGES_CONFIG.customHeadline}
+          customMessage={DEFAULT_ERROR_PAGES_CONFIG.customMessage}
         />
       </body>
     </html>
