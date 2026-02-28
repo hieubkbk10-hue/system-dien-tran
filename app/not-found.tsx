@@ -5,7 +5,7 @@ import { ErrorPageView } from '@/components/site/error/ErrorPageView';
 import { useBrandColors } from '@/components/site/hooks';
 import { useErrorPagesConfig } from '@/lib/experiences';
 
-export default function NotFoundPage() {
+export default function RootNotFound() {
   const config = useErrorPagesConfig();
   const brandColors = useBrandColors();
 
