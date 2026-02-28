@@ -48,6 +48,21 @@ async function normalizeRolesModuleWithPatch<T extends ModuleRecord>(
   return { ...moduleItem, isCore: false } as T;
 }
 
+async function repairRolesCoreFlag(ctx: MutationCtx) {
+  const rolesRecord = await ctx.db
+    .query("adminModules")
+    .withIndex("by_key", (q) => q.eq("key", "roles"))
+    .unique();
+  if (!rolesRecord) {
+    return null;
+  }
+  if (rolesRecord.isCore) {
+    await ctx.db.patch(rolesRecord._id, { isCore: false });
+    return { ...rolesRecord, isCore: false };
+  }
+  return rolesRecord;
+}
+
 export const listModules = query({
   args: {},
   handler: async (ctx) => {
@@ -172,12 +187,13 @@ export const getDependentModules = query({
 export const toggleModule = mutation({
   args: { enabled: v.boolean(), key: v.string(), updatedBy: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
+    await repairRolesCoreFlag(ctx);
     const allModules = await ctx.db.query("adminModules").collect();
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {throw new Error("Module not found");}
     const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
-    if (normalizedModule.isCore && normalizedModule.key !== "roles" && !args.enabled) {
+    if (args.key !== "roles" && normalizedModule.isCore && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
     if (args.enabled && args.key === "wishlist") {
@@ -216,12 +232,13 @@ export const toggleModuleWithCascade = mutation({
     updatedBy: v.optional(v.id("users")), // Modules con cần disable cùng
   },
   handler: async (ctx, args) => {
+    await repairRolesCoreFlag(ctx);
     const allModules = await ctx.db.query("adminModules").collect();
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {return { disabledModules: [], success: false };}
     const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
-    if (normalizedModule.isCore && normalizedModule.key !== "roles" && !args.enabled) {
+    if (args.key !== "roles" && normalizedModule.isCore && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
 
