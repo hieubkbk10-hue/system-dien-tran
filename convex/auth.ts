@@ -1,8 +1,48 @@
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { updateUserStats } from "./users";
 import { hashPassword, verifyPassword } from "./lib/password";
+
+async function resolveSuperAdminRole(ctx: MutationCtx) {
+  let superAdminRole = await ctx.db
+    .query("roles")
+    .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+    .first();
+
+  if (!superAdminRole) {
+    const roleId = await ctx.db.insert("roles", {
+      color: "#ef4444",
+      description: "Quản trị viên cao nhất, toàn quyền hệ thống",
+      isSuperAdmin: true,
+      isSystem: true,
+      name: "Super Admin",
+      permissions: { "*": ["*"] },
+    });
+    superAdminRole = await ctx.db.get(roleId);
+  }
+
+  return superAdminRole;
+}
+
+async function resolveAdminRoleId(ctx: MutationCtx) {
+  const adminRole = await ctx.db
+    .query("roles")
+    .withIndex("by_name", (q) => q.eq("name", "Admin"))
+    .first();
+  if (adminRole) {
+    return adminRole._id;
+  }
+  const fallbackRole = await ctx.db
+    .query("roles")
+    .filter((q) => q.eq(q.field("isSuperAdmin"), false))
+    .first();
+  if (!fallbackRole) {
+    throw new Error("Không tìm thấy vai trò mặc định để gán người dùng");
+  }
+  return fallbackRole._id;
+}
 
 // ============================================================
 // SYSTEM AUTH - Hardcoded single account for /system
@@ -470,22 +510,7 @@ export const createSuperAdmin = mutation({
   },
   handler: async (ctx, args) => {
     // Get or create SuperAdmin role
-    let superAdminRole = await ctx.db
-      .query("roles")
-      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
-      .first();
-
-    if (!superAdminRole) {
-      const roleId = await ctx.db.insert("roles", {
-        color: "#ef4444",
-        description: "Quản trị viên cao nhất, toàn quyền hệ thống",
-        isSuperAdmin: true,
-        isSystem: true,
-        name: "Super Admin",
-        permissions: { "*": ["*"] },
-      });
-      superAdminRole = await ctx.db.get(roleId);
-    }
+    const superAdminRole = await resolveSuperAdminRole(ctx);
 
     if (!superAdminRole) {
       return { message: "Không thể tạo vai trò SuperAdmin", success: false };
@@ -502,20 +527,23 @@ export const createSuperAdmin = mutation({
     }
 
     // Check email unique
+    const email = args.email;
+    const password = args.password;
+
     const existingEmail = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", email))
       .unique();
 
     if (existingEmail) {
       return { message: "Email đã được sử dụng", success: false };
     }
 
-    const passwordHash = await hashPassword(args.password);
+    const passwordHash = await hashPassword(password);
 
     // Create SuperAdmin user
     await ctx.db.insert("users", {
-      email: args.email,
+      email,
       name: args.name ?? "Super Admin",
       passwordHash,
       roleId: superAdminRole._id,
@@ -568,6 +596,206 @@ export const getSuperAdmin = query({
     }),
     v.null()
   ),
+});
+
+export const listSuperAdmins = query({
+  args: {},
+  handler: async (ctx) => {
+    const superAdminRoles = await ctx.db
+      .query("roles")
+      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+      .collect();
+
+    if (superAdminRoles.length === 0) {
+      return [];
+    }
+
+    const users = await Promise.all(
+      superAdminRoles.map((role) =>
+        ctx.db
+          .query("users")
+          .withIndex("by_role_status", (q) => q.eq("roleId", role._id))
+          .collect()
+      )
+    );
+
+    return users
+      .flat()
+      .map((user) => ({
+        createdAt: user._creationTime,
+        email: user.email,
+        id: user._id,
+        name: user.name,
+        status: user.status,
+      }))
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+  returns: v.array(
+    v.object({
+      createdAt: v.number(),
+      email: v.string(),
+      id: v.id("users"),
+      name: v.string(),
+      status: v.string(),
+    })
+  ),
+});
+
+export const listAdminUsersForSystem = query({
+  args: {
+    limit: v.optional(v.number()),
+    search: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 20, 50);
+    const fetchLimit = Math.min(limit + 50, 200);
+    const roles = await ctx.db.query("roles").take(200);
+    const roleMap = new Map(roles.map((role) => [role._id, role]));
+    const superAdminRoleIds = new Set(roles.filter((role) => role.isSuperAdmin).map((role) => role._id));
+
+    let users = await ctx.db.query("users").order("desc").take(fetchLimit);
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.trim().toLowerCase();
+      users = users.filter((user) =>
+        user.name.toLowerCase().includes(searchLower) ||
+        user.email.toLowerCase().includes(searchLower) ||
+        (user.phone?.toLowerCase().includes(searchLower) ?? false)
+      );
+    }
+
+    users = users.filter((user) => !superAdminRoleIds.has(user.roleId));
+
+    return users.slice(0, limit).map((user) => ({
+      email: user.email,
+      id: user._id,
+      name: user.name,
+      roleName: roleMap.get(user.roleId)?.name,
+      status: user.status,
+    }));
+  },
+  returns: v.array(
+    v.object({
+      email: v.string(),
+      id: v.id("users"),
+      name: v.string(),
+      roleName: v.optional(v.string()),
+      status: v.string(),
+    })
+  ),
+});
+
+export const addSuperAdmin = mutation({
+  args: {
+    email: v.optional(v.string()),
+    existingUserId: v.optional(v.id("users")),
+    name: v.optional(v.string()),
+    password: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const superAdminRole = await resolveSuperAdminRole(ctx);
+    if (!superAdminRole) {
+      return { message: "Không thể tạo vai trò SuperAdmin", success: false };
+    }
+
+    if (args.existingUserId) {
+      const targetUser = await ctx.db.get(args.existingUserId);
+      if (!targetUser) {
+        return { message: "Không tìm thấy người dùng", success: false };
+      }
+      const targetRole = await ctx.db.get(targetUser.roleId);
+      if (targetRole?.isSuperAdmin) {
+        return { message: "Người dùng đã là Super Admin", success: false };
+      }
+      await ctx.db.patch(targetUser._id, { roleId: superAdminRole._id });
+      return { message: "Đã nâng quyền Super Admin", success: true };
+    }
+
+    if (!args.email || !args.password) {
+      return { message: "Vui lòng nhập đủ email và mật khẩu", success: false };
+    }
+
+    if (args.password.length < 6) {
+      return { message: "Mật khẩu tối thiểu 6 ký tự", success: false };
+    }
+
+    const email = args.email;
+    const password = args.password;
+
+    const existingEmail = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique();
+
+    if (existingEmail) {
+      return { message: "Email đã được sử dụng", success: false };
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    await ctx.db.insert("users", {
+      email,
+      name: args.name ?? "Super Admin",
+      passwordHash,
+      roleId: superAdminRole._id,
+      status: "Active",
+    });
+
+    await Promise.all([
+      updateUserStats(ctx, "total", 1),
+      updateUserStats(ctx, "Active", 1),
+    ]);
+
+    return { message: "Đã tạo Super Admin", success: true };
+  },
+  returns: v.object({
+    message: v.string(),
+    success: v.boolean(),
+  }),
+});
+
+export const demoteSuperAdmin = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const superAdminRoles = await ctx.db
+      .query("roles")
+      .filter((q) => q.eq(q.field("isSuperAdmin"), true))
+      .collect();
+    if (superAdminRoles.length === 0) {
+      return { message: "Super Admin chưa được tạo", success: false };
+    }
+
+    const targetUser = await ctx.db.get(args.userId);
+    if (!targetUser) {
+      return { message: "Không tìm thấy người dùng", success: false };
+    }
+    const targetRole = await ctx.db.get(targetUser.roleId);
+    if (!targetRole?.isSuperAdmin) {
+      return { message: "Người dùng không phải Super Admin", success: false };
+    }
+
+    const superAdmins = await Promise.all(
+      superAdminRoles.map((role) =>
+        ctx.db
+          .query("users")
+          .withIndex("by_role_status", (q) => q.eq("roleId", role._id))
+          .collect()
+      )
+    );
+    const superAdminCount = superAdmins.flat().length;
+    if (superAdminCount <= 1) {
+      return { message: "Phải giữ tối thiểu 1 Super Admin", success: false };
+    }
+
+    const adminRoleId = await resolveAdminRoleId(ctx);
+    await ctx.db.patch(targetUser._id, { roleId: adminRoleId });
+
+    return { message: "Đã gỡ quyền Super Admin", success: true };
+  },
+  returns: v.object({
+    message: v.string(),
+    success: v.boolean(),
+  }),
 });
 
 export const updateSuperAdminCredentials = mutation({
