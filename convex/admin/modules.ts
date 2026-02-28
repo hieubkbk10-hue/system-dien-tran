@@ -1,4 +1,6 @@
 import { mutation, query } from "../_generated/server";
+import type { MutationCtx } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
 import { v } from "convex/values";
 import { dependencyType, fieldType, moduleCategory } from "../lib/validators";
 
@@ -20,15 +22,39 @@ const moduleDoc = v.object({
   updatedBy: v.optional(v.id("users")),
 });
 
+type ModuleRecord = { _id: Id<"adminModules">; isCore: boolean; key: string };
+
+function normalizeRolesModule<T extends ModuleRecord>(moduleItem: T): T {
+  if (moduleItem.key !== "roles") {
+    return moduleItem;
+  }
+  if (!moduleItem.isCore) {
+    return moduleItem;
+  }
+  return { ...moduleItem, isCore: false } as T;
+}
+
+async function normalizeRolesModuleWithPatch<T extends ModuleRecord>(
+  ctx: MutationCtx,
+  moduleItem: T
+): Promise<T> {
+  if (moduleItem.key !== "roles") {
+    return moduleItem;
+  }
+  if (!moduleItem.isCore) {
+    return moduleItem;
+  }
+  await ctx.db.patch(moduleItem._id, { isCore: false });
+  return { ...moduleItem, isCore: false } as T;
+}
+
 export const listModules = query({
   args: {},
   handler: async (ctx) => {
     const modules = await ctx.db.query("adminModules").collect();
-    return modules
-      .sort((a, b) => a.order - b.order)
-      .map((moduleItem) => moduleItem.key === "roles"
-        ? { ...moduleItem, isCore: false }
-        : moduleItem);
+    const sorted = modules.sort((a, b) => a.order - b.order);
+    const normalized = sorted.map((moduleItem) => normalizeRolesModule(moduleItem));
+    return normalized;
   },
   returns: v.array(moduleDoc),
 });
@@ -40,9 +66,7 @@ export const listEnabledModules = query({
       .query("adminModules")
       .withIndex("by_enabled_order", (q) => q.eq("enabled", true))
       .collect();
-    return modules.map((moduleItem) => moduleItem.key === "roles"
-      ? { ...moduleItem, isCore: false }
-      : moduleItem);
+    return modules.map((moduleItem) => normalizeRolesModule(moduleItem));
   },
   returns: v.array(moduleDoc),
 });
@@ -54,9 +78,7 @@ export const listModulesByCategory = query({
       .query("adminModules")
       .withIndex("by_category_enabled", (q) => q.eq("category", args.category))
       .collect();
-    return modules.map((moduleItem) => moduleItem.key === "roles"
-      ? { ...moduleItem, isCore: false }
-      : moduleItem);
+    return modules.map((moduleItem) => normalizeRolesModule(moduleItem));
   },
   returns: v.array(moduleDoc),
 });
@@ -69,9 +91,7 @@ export const getModuleByKey = query({
       .withIndex("by_key", (q) => q.eq("key", args.key))
       .unique();
     if (!moduleItem) {return null;}
-    return moduleItem.key === "roles"
-      ? { ...moduleItem, isCore: false }
-      : moduleItem;
+    return normalizeRolesModule(moduleItem);
   },
   returns: v.union(moduleDoc, v.null()),
 });
@@ -156,7 +176,8 @@ export const toggleModule = mutation({
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {throw new Error("Module not found");}
-    if (moduleRecord.isCore && moduleRecord.key !== "roles" && !args.enabled) {
+    const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
+    if (normalizedModule.isCore && normalizedModule.key !== "roles" && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
     if (args.enabled && args.key === "wishlist") {
@@ -199,7 +220,8 @@ export const toggleModuleWithCascade = mutation({
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
     if (!moduleRecord) {return { disabledModules: [], success: false };}
-    if (moduleRecord.isCore && moduleRecord.key !== "roles" && !args.enabled) {
+    const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
+    if (normalizedModule.isCore && normalizedModule.key !== "roles" && !args.enabled) {
       throw new Error("Cannot disable core module");
     }
 

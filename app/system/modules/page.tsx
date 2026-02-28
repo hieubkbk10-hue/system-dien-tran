@@ -17,7 +17,6 @@ export default function ModuleManagementPage() {
   const { t } = useI18n();
   const modulesData = useQuery(api.admin.modules.listModules);
   const presetsData = useQuery(api.admin.presets.listPresets);
-  const toggleModule = useMutation(api.admin.modules.toggleModule);
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
   const applyPreset = useMutation(api.admin.presets.applyPreset);
   const seedModule = useMutation(api.seedManager.seedModule);
@@ -121,7 +120,11 @@ export default function ModuleManagementPage() {
     
     setTogglingKey(key);
     try {
-      await toggleModule({ enabled, key });
+      await toggleModuleWithCascade({
+        cascadeKeys: [],
+        enabled,
+        key,
+      });
     } finally {
       setTogglingKey(null);
     }
