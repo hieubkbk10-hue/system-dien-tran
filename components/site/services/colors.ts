@@ -1,3 +1,4 @@
+import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -7,6 +8,72 @@ const safeParseOklch = (value: string, fallback: string) => {
   if (parsed) {return parsed;}
   const fallbackParsed = oklch(fallback);
   return fallbackParsed ?? { l: 0.7, c: 0.1, h: 0 };
+};
+
+const toRgbTuple = (value: string, fallback: string): [number, number, number] | null => {
+  const parsed = safeParseOklch(value, fallback);
+  const normalized = formatHex(parsed).replace('#', '');
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+
+  if ([r, g, b].some((channel) => Number.isNaN(channel))) {
+    return null;
+  }
+
+  return [r, g, b];
+};
+
+const getAccessibilityThreshold = (fontSize: number, fontWeight: number) => {
+  if (fontSize >= 24 || (fontSize >= 18 && fontWeight >= 700)) {
+    return 45;
+  }
+
+  if (fontSize >= 16 && fontWeight >= 600) {
+    return 52;
+  }
+
+  return 60;
+};
+
+const getAPCALc = (text: string, background: string) => {
+  const textRgb = toRgbTuple(text, '#ffffff');
+  const bgRgb = toRgbTuple(background, '#0f172a');
+
+  if (!textRgb || !bgRgb) {
+    return 0;
+  }
+
+  const lc = Math.abs(APCAcontrast(sRGBtoY(textRgb), sRGBtoY(bgRgb)));
+  return Number.isFinite(lc) ? lc : 0;
+};
+
+const getAPCATextColor = (background: string, _fontSize = 12, _fontWeight = 600) => {
+  const bgRgb = toRgbTuple(background, '#0f172a');
+  if (!bgRgb) {
+    return '#111111';
+  }
+
+  const whiteLc = Math.abs(APCAcontrast(sRGBtoY([255, 255, 255]), sRGBtoY(bgRgb)));
+  const nearBlackLc = Math.abs(APCAcontrast(sRGBtoY([17, 17, 17]), sRGBtoY(bgRgb)));
+
+  return whiteLc >= nearBlackLc ? '#ffffff' : '#111111';
+};
+
+const ensureAPCATextColor = (
+  preferredText: string,
+  background: string,
+  fontSize = 12,
+  fontWeight = 600
+) => {
+  const threshold = getAccessibilityThreshold(fontSize, fontWeight);
+  const lc = getAPCALc(preferredText, background);
+
+  if (lc >= threshold) {
+    return preferredText;
+  }
+
+  return getAPCATextColor(background, fontSize, fontWeight);
 };
 
 export type ServicesListColorMode = 'single' | 'dual';
@@ -78,7 +145,7 @@ export const getServicesListColors = (
     primaryActionBg: primary,
     primaryActionText: '#ffffff',
     badgeBg: secondarySoft,
-    badgeText: resolvedSecondary,
+    badgeText: ensureAPCATextColor(getAPCATextColor(secondarySoft, 12, 600), secondarySoft, 12, 600),
     badgeBorder: secondarySoft,
     priceColor: resolvedSecondary,
     filterRing: primary,
