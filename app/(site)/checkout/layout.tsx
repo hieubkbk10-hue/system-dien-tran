@@ -1,7 +1,23 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { api } from '@/convex/_generated/api';
+import { getConvexClient } from '@/lib/convex';
 import { getSiteSettings } from '@/lib/get-settings';
 
 export async function generateMetadata(): Promise<Metadata> {
+  const client = getConvexClient();
+  const [cartModule, ordersModule] = await Promise.all([
+    client.query(api.admin.modules.getModuleByKey, { key: 'cart' }),
+    client.query(api.admin.modules.getModuleByKey, { key: 'orders' }),
+  ]);
+
+  if (cartModule?.enabled === false || ordersModule?.enabled === false) {
+    return {
+      title: 'Thanh toán',
+      description: 'Trang thanh toán hiện không khả dụng.',
+      robots: { index: false, follow: false },
+    };
+  }
   const site = await getSiteSettings();
   const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
 
@@ -18,6 +34,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
+export default async function CheckoutLayout({ children }: { children: React.ReactNode }) {
+  const client = getConvexClient();
+  const [cartModule, ordersModule] = await Promise.all([
+    client.query(api.admin.modules.getModuleByKey, { key: 'cart' }),
+    client.query(api.admin.modules.getModuleByKey, { key: 'orders' }),
+  ]);
+
+  if (cartModule?.enabled === false || ordersModule?.enabled === false) {
+    notFound();
+  }
   return children;
 }

@@ -155,6 +155,10 @@ export default function PostDetailExperiencePage() {
 
   // Get current layout config for preview
   const currentLayoutConfig = config.layouts[config.layoutStyle];
+  const canUseComments = commentsModule?.enabled ?? false;
+  const canUseCommentLikes = canUseComments && (commentsLikesFeature?.enabled ?? false);
+  const canUseCommentReplies = canUseComments && (commentsRepliesFeature?.enabled ?? false);
+  const canUseTags = tagsFeature?.enabled ?? false;
 
   // Update current layout's config
   const updateLayoutConfig = <K extends keyof typeof currentLayoutConfig>(
@@ -193,8 +197,25 @@ export default function PostDetailExperiencePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const normalizedLayouts = (['classic', 'modern', 'minimal'] as const).reduce((acc, style) => {
+        const layout = config.layouts[style];
+        acc[style] = {
+          ...layout,
+          showComments: canUseComments ? layout.showComments : false,
+          showCommentLikes: canUseCommentLikes ? layout.showCommentLikes : false,
+          showCommentReplies: canUseCommentReplies ? layout.showCommentReplies : false,
+          showTags: canUseTags ? layout.showTags : false,
+        };
+        return acc;
+      }, {} as typeof config.layouts);
+
+      const normalizedConfig = {
+        ...config,
+        layouts: normalizedLayouts,
+      };
+
       const settingsToSave: Array<{ group: string; key: string; value: unknown }> = [
-        { group: EXPERIENCE_GROUP, key: EXPERIENCE_KEY, value: config },
+        { group: EXPERIENCE_GROUP, key: EXPERIENCE_KEY, value: normalizedConfig },
         ...additionalSettings,
       ];
 
@@ -398,12 +419,12 @@ export default function PostDetailExperiencePage() {
               <PostDetailPreview
                 layoutStyle={config.layoutStyle}
                 showAuthor={currentLayoutConfig.showAuthor}
-                showTags={currentLayoutConfig.showTags}
+                showTags={currentLayoutConfig.showTags && canUseTags}
                 showRelated={currentLayoutConfig.showRelated}
                 showShare={currentLayoutConfig.showShare}
-                showComments={currentLayoutConfig.showComments}
-                showCommentLikes={currentLayoutConfig.showCommentLikes}
-                showCommentReplies={currentLayoutConfig.showCommentReplies}
+                showComments={currentLayoutConfig.showComments && canUseComments}
+                showCommentLikes={currentLayoutConfig.showCommentLikes && canUseCommentLikes}
+                showCommentReplies={currentLayoutConfig.showCommentReplies && canUseCommentReplies}
                 device={previewDevice}
                 brandColor={brandColor}
                 secondaryColor={secondaryColor}

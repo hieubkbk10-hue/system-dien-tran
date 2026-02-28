@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { JsonLd, generateItemListSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
@@ -6,10 +7,20 @@ import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { parseHreflang } from '@/lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [site, seo] = await Promise.all([
+  const client = getConvexClient();
+  const [site, seo, productsModule] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
+    client.query(api.admin.modules.getModuleByKey, { key: 'products' }),
   ]);
+
+  if (productsModule?.enabled === false) {
+    return {
+      description: 'Trang sản phẩm hiện không khả dụng.',
+      robots: { follow: false, index: false },
+      title: 'Không tìm thấy sản phẩm',
+    };
+  }
 
   const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
   const title = 'Sản phẩm';
@@ -46,6 +57,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ProductsListLayout({ children }: { children: React.ReactNode }) {
   const client = getConvexClient();
+  const productsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'products' });
+
+  if (productsModule?.enabled === false) {
+    notFound();
+  }
   const site = await getSiteSettings();
   const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
   const products = await client.query(api.products.listPublishedWithOffset, {

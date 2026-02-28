@@ -329,6 +329,10 @@ export default function ProductDetailExperiencePage() {
   const currentLayoutConfig = config.layouts[config.layoutStyle];
   const canUseWishlist = wishlistModule?.enabled ?? false;
   const canUseComments = commentsModule?.enabled ?? false;
+  const canUseCommentLikes = canUseComments && (commentsLikesFeature?.enabled ?? false);
+  const canUseCommentReplies = canUseComments && (commentsRepliesFeature?.enabled ?? false);
+  const canUseCart = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
+  const canUseOrders = ordersModule?.enabled ?? false;
 
   const updateLayoutConfig = <K extends keyof typeof currentLayoutConfig>(
     key: K,
@@ -361,8 +365,44 @@ export default function ProductDetailExperiencePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const normalizedLayouts = {
+        classic: {
+          ...config.layouts.classic,
+          showRating: canUseComments ? config.layouts.classic.showRating : false,
+          showComments: canUseComments ? config.layouts.classic.showComments : false,
+          showCommentLikes: canUseCommentLikes ? config.layouts.classic.showCommentLikes : false,
+          showCommentReplies: canUseCommentReplies ? config.layouts.classic.showCommentReplies : false,
+          showWishlist: canUseWishlist ? config.layouts.classic.showWishlist : false,
+          showAddToCart: canUseCart ? config.layouts.classic.showAddToCart : false,
+        },
+        modern: {
+          ...config.layouts.modern,
+          showRating: canUseComments ? config.layouts.modern.showRating : false,
+          showComments: canUseComments ? config.layouts.modern.showComments : false,
+          showCommentLikes: canUseCommentLikes ? config.layouts.modern.showCommentLikes : false,
+          showCommentReplies: canUseCommentReplies ? config.layouts.modern.showCommentReplies : false,
+          showWishlist: canUseWishlist ? config.layouts.modern.showWishlist : false,
+          showAddToCart: canUseCart ? config.layouts.modern.showAddToCart : false,
+        },
+        minimal: {
+          ...config.layouts.minimal,
+          showRating: canUseComments ? config.layouts.minimal.showRating : false,
+          showComments: canUseComments ? config.layouts.minimal.showComments : false,
+          showCommentLikes: canUseCommentLikes ? config.layouts.minimal.showCommentLikes : false,
+          showCommentReplies: canUseCommentReplies ? config.layouts.minimal.showCommentReplies : false,
+          showWishlist: canUseWishlist ? config.layouts.minimal.showWishlist : false,
+          showAddToCart: canUseCart ? config.layouts.minimal.showAddToCart : false,
+        },
+      };
+
+      const normalizedConfig = {
+        ...config,
+        showBuyNow: canUseOrders ? config.showBuyNow : false,
+        layouts: normalizedLayouts,
+      };
+
       const settingsToSave = [
-        { group: EXPERIENCE_GROUP, key: EXPERIENCE_KEY, value: config },
+        { group: EXPERIENCE_GROUP, key: EXPERIENCE_KEY, value: normalizedConfig },
         { group: 'products', key: CLASSIC_HIGHLIGHTS_KEY, value: classicHighlights },
         ...additionalSettings,
       ];
@@ -380,11 +420,11 @@ export default function ProductDetailExperiencePage() {
       layoutStyle: config.layoutStyle,
       showRating: currentLayoutConfig.showRating && canUseComments,
       showWishlist: currentLayoutConfig.showWishlist && canUseWishlist,
-      showAddToCart: currentLayoutConfig.showAddToCart,
-      showBuyNow: config.showBuyNow,
+      showAddToCart: currentLayoutConfig.showAddToCart && canUseCart,
+      showBuyNow: config.showBuyNow && canUseOrders,
       showComments: currentLayoutConfig.showComments && canUseComments,
-      showCommentLikes: currentLayoutConfig.showCommentLikes && canUseComments,
-      showCommentReplies: currentLayoutConfig.showCommentReplies && canUseComments,
+      showCommentLikes: currentLayoutConfig.showCommentLikes && canUseCommentLikes,
+      showCommentReplies: currentLayoutConfig.showCommentReplies && canUseCommentReplies,
       showVariants: (variantsSetting?.value as boolean | undefined) ?? false,
       heroStyle: config.layoutStyle === 'modern'
         ? (currentLayoutConfig as ModernLayoutConfig).heroStyle

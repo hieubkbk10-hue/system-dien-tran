@@ -9,6 +9,8 @@ interface UseExperienceSaveResult {
   isSaving: boolean;
 }
 
+type ExperienceSaveTransform = (config: unknown) => unknown;
+
 /**
  * Hook để handle save experience config
  * @param experienceKey - Key của experience (vd: 'product_detail_ui')
@@ -20,7 +22,8 @@ export function useExperienceSave(
   experienceKey: string,
   config: unknown,
   successMessage: string,
-  additionalSettings?: Array<{ group: string; key: string; value: unknown }>
+  additionalSettings?: Array<{ group: string; key: string; value: unknown }>,
+  beforeSaveTransform?: ExperienceSaveTransform
 ): UseExperienceSaveResult {
   const [isSaving, setIsSaving] = useState(false);
   const setMultipleSettings = useMutation(api.settings.setMultiple);
@@ -28,8 +31,9 @@ export function useExperienceSave(
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const normalizedConfig = beforeSaveTransform ? beforeSaveTransform(config) : config;
       const settingsToSave: Array<{ group: string; key: string; value: unknown }> = [
-        { group: EXPERIENCE_GROUP, key: experienceKey, value: config }
+        { group: EXPERIENCE_GROUP, key: experienceKey, value: normalizedConfig }
       ];
 
       if (additionalSettings) {

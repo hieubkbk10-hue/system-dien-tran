@@ -21,6 +21,7 @@ import {
   type DeviceType,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type RatingDisplayStyle = 'stars' | 'numbers' | 'both';
 type CommentsSortOrder = 'newest' | 'oldest' | 'highest-rating' | 'most-liked';
@@ -103,10 +104,23 @@ export default function CommentsRatingExperiencePage() {
   const isLoading = experienceSetting === undefined || commentsModule === undefined;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as CommentsRatingExperienceConfig;
+    const commentsEnabled = commentsModule?.enabled ?? false;
+    return enforceMultipleToggles(configValue, [
+      { key: 'showLikes', enabled: commentsEnabled && (likesFeature?.enabled ?? false) },
+      { key: 'showReplies', enabled: commentsEnabled && (repliesFeature?.enabled ?? false) },
+      { key: 'showModeration', enabled: commentsEnabled && (moderationFeature?.enabled ?? false) },
+    ]);
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   if (isLoading) {
@@ -215,9 +229,9 @@ export default function CommentsRatingExperiencePage() {
               <CommentsRatingPreview
                 ratingDisplayStyle={config.ratingDisplayStyle}
                 commentsSortOrder={config.commentsSortOrder}
-                showLikes={config.showLikes && (likesFeature?.enabled ?? true)}
-                showReplies={config.showReplies && (repliesFeature?.enabled ?? true)}
-                showModeration={config.showModeration && (moderationFeature?.enabled ?? true)}
+                showLikes={config.showLikes && (commentsModule?.enabled ?? false) && (likesFeature?.enabled ?? true)}
+                showReplies={config.showReplies && (commentsModule?.enabled ?? false) && (repliesFeature?.enabled ?? true)}
+                showModeration={config.showModeration && (commentsModule?.enabled ?? false) && (moderationFeature?.enabled ?? true)}
                 device={previewDevice}
                 brandColor="#a855f7"
               />

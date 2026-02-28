@@ -25,6 +25,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type WishlistLayoutStyle = 'grid' | 'list' | 'table';
 
@@ -130,10 +131,31 @@ export default function WishlistExperiencePage() {
   const isLoading = experienceSetting === undefined || wishlistModule === undefined || cartModule === undefined || ordersModule === undefined;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as WishlistExperienceConfig;
+    const normalizeLayout = (layout: LayoutConfig) => enforceMultipleToggles(layout, [
+      { key: 'showNote', enabled: noteFeature?.enabled ?? true },
+      { key: 'showNotification', enabled: notificationFeature?.enabled ?? true },
+      { key: 'showAddToCartButton', enabled: cartAvailable },
+    ]);
+
+    return {
+      ...configValue,
+      layouts: {
+        grid: normalizeLayout(configValue.layouts.grid),
+        list: normalizeLayout(configValue.layouts.list),
+        table: normalizeLayout(configValue.layouts.table),
+      },
+    };
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {

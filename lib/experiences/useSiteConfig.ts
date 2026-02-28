@@ -157,6 +157,8 @@ type ProductsListConfig = {
 export function useProductsListConfig(): ProductsListConfig {
   const experienceSetting = useQuery(api.settings.getByKey, { key: 'products_list_ui' });
   const { isAvailable: cartAvailable, ordersEnabled } = useCartAvailable();
+  const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
+  const promotionsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'promotions' });
   
   return useMemo(() => {
     const raw = experienceSetting?.value as {
@@ -183,19 +185,22 @@ export function useProductsListConfig(): ProductsListConfig {
     const configShowAddToCart = raw?.showAddToCartButton ?? true;
     const configShowBuyNow = raw?.showBuyNowButton ?? true;
     
+    const wishlistEnabled = wishlistModule?.enabled ?? false;
+    const promotionsEnabled = promotionsModule?.enabled ?? false;
+
     return {
       layoutStyle,
       paginationType: normalizePaginationType(layoutConfig?.paginationType ?? raw?.paginationType ?? layoutConfig?.showPagination ?? raw?.showPagination),
       showSearch: layoutConfig?.showSearch ?? raw?.showSearch ?? true,
       showCategories: layoutConfig?.showCategories ?? raw?.showCategories ?? true,
       postsPerPage: layoutConfig?.postsPerPage ?? raw?.postsPerPage ?? 12,
-      showWishlistButton: raw?.showWishlistButton ?? true,
+      showWishlistButton: (raw?.showWishlistButton ?? true) && wishlistEnabled,
       showAddToCartButton: configShowAddToCart && cartAvailable,
       showBuyNowButton: configShowBuyNow && ordersEnabled,
-      showPromotionBadge: raw?.showPromotionBadge ?? true,
-      enableQuickAddVariant: raw?.enableQuickAddVariant ?? true,
+      showPromotionBadge: (raw?.showPromotionBadge ?? true) && promotionsEnabled,
+      enableQuickAddVariant: (raw?.enableQuickAddVariant ?? true) && cartAvailable,
     };
-  }, [experienceSetting?.value, cartAvailable, ordersEnabled]);
+  }, [experienceSetting?.value, cartAvailable, ordersEnabled, wishlistModule?.enabled, promotionsModule?.enabled]);
 }
 
 type WishlistConfig = {

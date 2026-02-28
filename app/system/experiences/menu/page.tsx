@@ -211,21 +211,80 @@ export default function HeaderMenuExperiencePage() {
     login: { ...config.login, text: 'Đăng nhập' },
   }), [config, resolvedBrandName]);
 
+  const previewConfig = useMemo(() => {
+    const cartEnabled = cartModule?.enabled ?? false;
+    const wishlistEnabled = wishlistModule?.enabled ?? false;
+    const productsEnabled = productsModule?.enabled ?? false;
+    const postsEnabled = postsModule?.enabled ?? false;
+    const servicesEnabled = servicesModule?.enabled ?? false;
+    const ordersEnabled = ordersModule?.enabled ?? false;
+    const loginEnabled = (customersModule?.enabled ?? false) && (customerLoginFeature?.enabled ?? false);
+
+    const search = {
+      ...normalizedConfig.search,
+      searchProducts: productsEnabled ? normalizedConfig.search.searchProducts : false,
+      searchPosts: postsEnabled ? normalizedConfig.search.searchPosts : false,
+      searchServices: servicesEnabled ? normalizedConfig.search.searchServices : false,
+    };
+
+    return {
+      ...normalizedConfig,
+      cart: { ...normalizedConfig.cart, show: normalizedConfig.cart.show && cartEnabled },
+      wishlist: { ...normalizedConfig.wishlist, show: normalizedConfig.wishlist.show && wishlistEnabled },
+      login: { ...normalizedConfig.login, show: normalizedConfig.login.show && loginEnabled },
+      topbar: { ...normalizedConfig.topbar, showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled },
+      search: {
+        ...search,
+        show: search.show && (search.searchProducts || search.searchPosts || search.searchServices),
+      },
+    };
+  }, [
+    normalizedConfig,
+    cartModule?.enabled,
+    wishlistModule?.enabled,
+    productsModule?.enabled,
+    postsModule?.enabled,
+    servicesModule?.enabled,
+    ordersModule?.enabled,
+    customersModule?.enabled,
+    customerLoginFeature?.enabled,
+  ]);
+
   const showLoginToggle = Boolean(config.login?.show);
   const showCtaToggle = Boolean(config.cta?.show);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const cartEnabled = cartModule?.enabled ?? false;
+      const wishlistEnabled = wishlistModule?.enabled ?? false;
+      const productsEnabled = productsModule?.enabled ?? false;
+      const postsEnabled = postsModule?.enabled ?? false;
+      const servicesEnabled = servicesModule?.enabled ?? false;
+      const customersEnabled = customersModule?.enabled ?? false;
+      const ordersEnabled = ordersModule?.enabled ?? false;
+      const loginEnabled = customersEnabled && (customerLoginFeature?.enabled ?? false);
+
       const configToSave = {
         ...normalizedConfig,
         search: {
           ...normalizedConfig.search,
-          searchProducts: true,
-          searchPosts: true,
-          searchServices: true,
+          searchProducts: productsEnabled ? normalizedConfig.search.searchProducts : false,
+          searchPosts: postsEnabled ? normalizedConfig.search.searchPosts : false,
+          searchServices: servicesEnabled ? normalizedConfig.search.searchServices : false,
+        },
+        cart: { ...normalizedConfig.cart, show: normalizedConfig.cart.show && cartEnabled },
+        wishlist: { ...normalizedConfig.wishlist, show: normalizedConfig.wishlist.show && wishlistEnabled },
+        login: { ...normalizedConfig.login, show: normalizedConfig.login.show && loginEnabled },
+        topbar: {
+          ...normalizedConfig.topbar,
+          showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled,
         },
       };
+
+      if (!productsEnabled && !postsEnabled && !servicesEnabled) {
+        configToSave.search = { ...configToSave.search, show: false };
+      }
       await setMultipleSettings({
         settings: [
           { group: 'site', key: 'header_style', value: previewStyle },
@@ -591,7 +650,7 @@ export default function HeaderMenuExperiencePage() {
                 brandColor={resolvedBrandColor}
                 secondaryColor={secondaryColor}
                 colorMode={colorMode}
-                config={normalizedConfig}
+                config={previewConfig}
                 device={previewDevice}
                 layoutStyle={previewStyle}
                 menuItems={menuItems}

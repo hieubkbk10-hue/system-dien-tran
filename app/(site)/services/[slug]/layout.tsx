@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
@@ -13,6 +14,15 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const client = getConvexClient();
+  const servicesModule = await client.query(api.admin.modules.getModuleByKey, { key: 'services' });
+
+  if (servicesModule?.enabled === false) {
+    return {
+      description: 'Trang dịch vụ hiện không khả dụng.',
+      robots: { follow: false, index: false },
+      title: 'Không tìm thấy dịch vụ',
+    };
+  }
   
   const [service, site, seo] = await Promise.all([
     client.query(api.services.getBySlug, { slug }),
@@ -63,6 +73,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ServiceLayout({ params, children }: Props) {
   const { slug } = await params;
   const client = getConvexClient();
+  const servicesModule = await client.query(api.admin.modules.getModuleByKey, { key: 'services' });
+
+  if (servicesModule?.enabled === false) {
+    notFound();
+  }
   
   const [service, site, seo] = await Promise.all([
     client.query(api.services.getBySlug, { slug }),

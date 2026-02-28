@@ -24,6 +24,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type CartLayoutStyle = 'drawer' | 'page' | 'table';
 
@@ -122,10 +123,30 @@ export default function CartExperiencePage() {
   const isLoading = experienceSetting === undefined || cartModule === undefined;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as CartExperienceConfig;
+    const normalizeLayout = (layout: LayoutConfig) => enforceMultipleToggles(layout, [
+      { key: 'showExpiry', enabled: expiryFeature?.enabled ?? false },
+      { key: 'showNote', enabled: noteFeature?.enabled ?? false },
+    ]);
+
+    return {
+      ...configValue,
+      layouts: {
+        drawer: normalizeLayout(configValue.layouts.drawer),
+        page: normalizeLayout(configValue.layouts.page),
+        table: normalizeLayout(configValue.layouts.table),
+      },
+    };
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
     EXPERIENCE_KEY,
     config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {

@@ -105,6 +105,8 @@ export function Header() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const cartModule = useQuery(api.admin.modules.getModuleByKey, { key: 'cart' });
+  const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
   const customersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'customers' });
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
   const productsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'products' });
@@ -155,6 +157,8 @@ export function Header() {
   const canSearchPosts = Boolean(config.search?.searchPosts && (postsModule?.enabled ?? false));
   const canSearchServices = Boolean(config.search?.searchServices && (servicesModule?.enabled ?? false));
   const showSearch = Boolean(config.search?.show && (canSearchProducts || canSearchPosts || canSearchServices));
+  const showCart = Boolean(config.cart?.show && (cartModule?.enabled ?? false));
+  const showWishlist = Boolean(config.wishlist?.show && (wishlistModule?.enabled ?? false));
   
   const displayName = (siteName ?? config.brandName) ?? 'YourBrand';
 
@@ -541,7 +545,7 @@ export function Header() {
                 />
               </div>
             )}
-            {config.cart?.show && (
+            {showCart && (
               <CartIcon variant="mobile" className="hidden lg:flex" tokens={tokens} />
             )}
             {config.cta?.show && (
@@ -563,7 +567,7 @@ export function Header() {
                   <Search size={20} />
                 </button>
               )}
-              {config.cart?.show && (
+              {showCart && (
                 <CartIcon variant="mobile" tokens={tokens} />
               )}
               {renderMobileMenuButton(false)}
@@ -742,7 +746,7 @@ export function Header() {
                     <Search size={20} />
                   </button>
                 )}
-                {config.cart?.show && (
+                {showCart && (
                   <CartIcon variant="mobile" tokens={tokens} />
                 )}
                 {renderMobileMenuButton(false)}
@@ -750,7 +754,7 @@ export function Header() {
 
               {/* Desktop: Wishlist + Cart */}
               <div className="hidden lg:flex items-center gap-2">
-                {config.wishlist?.show && (
+                {showWishlist && (
                   <Link
                     href={DEFAULT_LINKS.wishlist}
                     className="p-2 transition-colors flex flex-col items-center text-xs gap-0.5 hover:text-[var(--menu-icon-hover)]"
@@ -760,7 +764,7 @@ export function Header() {
                     <span>Yêu thích</span>
                   </Link>
                 )}
-                {config.cart?.show && (
+                {showCart && (
                   <CartIcon tokens={tokens} />
                 )}
                 {config.cta?.show && (
@@ -1079,7 +1083,7 @@ export function Header() {
                     <User size={18} />
                   </Link>
                 )}
-                {config.cart?.show && (
+                {showCart && (
                   <CartIcon variant="mobile" tokens={tokens} />
                 )}
               </div>
@@ -1093,7 +1097,7 @@ export function Header() {
                     <Search size={18} />
                   </button>
                 )}
-                {config.cart?.show && (
+                {showCart && (
                   <CartIcon variant="mobile" tokens={tokens} />
                 )}
                 {renderMobileMenuButton(false)}

@@ -4,6 +4,7 @@ import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { parseHreflang } from '@/lib/seo';
 import { JsonLd, generateBreadcrumbSchema, generateProductSchema } from '@/components/seo/JsonLd';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -14,6 +15,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const client = getConvexClient();
   try {
+    const productsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'products' });
+    if (productsModule?.enabled === false) {
+      return {
+        description: 'Trang sản phẩm hiện không khả dụng.',
+        robots: { follow: false, index: false },
+        title: 'Không tìm thấy sản phẩm',
+      };
+    }
+
     const [product, site, seo] = await Promise.all([
       client.query(api.products.getBySlug, { slug }),
       getSiteSettings(),
@@ -73,6 +83,11 @@ export default async function ProductLayout({ params, children }: Props) {
   const { slug } = await params;
   const client = getConvexClient();
   try {
+    const productsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'products' });
+    if (productsModule?.enabled === false) {
+      notFound();
+    }
+
     const [product, site, seo] = await Promise.all([
       client.query(api.products.getBySlug, { slug }),
       getSiteSettings(),

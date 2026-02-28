@@ -26,6 +26,7 @@ import {
   type LayoutOption,
 } from '@/components/experiences/editor';
 import { useExperienceConfig, useExperienceSave, EXPERIENCE_NAMES, MESSAGES } from '@/lib/experiences';
+import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
 
 type ListLayoutStyle = 'grid' | 'sidebar' | 'list';
 type PaginationType = 'pagination' | 'infiniteScroll';
@@ -167,10 +168,35 @@ export default function ProductsListExperiencePage() {
   const isLoading = experienceSetting === undefined || productsModule === undefined || wishlistModule === undefined || cartModule === undefined || ordersModule === undefined || promotionsModule === undefined || variantsSetting === undefined;
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
+  const canUseWishlist = wishlistModule?.enabled ?? false;
+  const canUseCart = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
+  const canUseOrders = ordersModule?.enabled ?? false;
+  const canUsePromotions = promotionsModule?.enabled ?? false;
+  const variantsEnabled = (variantsSetting?.value as boolean | undefined) ?? false;
+
+  const beforeSaveTransform = (rawConfig: unknown) => {
+    const configValue = rawConfig as ProductsListExperienceConfig;
+    let next = enforceMultipleToggles(configValue, [
+      { key: 'showWishlistButton', enabled: canUseWishlist },
+      { key: 'showAddToCartButton', enabled: canUseCart },
+      { key: 'showBuyNowButton', enabled: canUseOrders },
+      { key: 'showPromotionBadge', enabled: canUsePromotions },
+      { key: 'enableQuickAddVariant', enabled: canUseCart && variantsEnabled },
+    ]);
+
+    if (!variantsEnabled) {
+      next = { ...next, enableQuickAddVariant: false };
+    }
+
+    return next;
+  };
+
   const { handleSave, isSaving } = useExperienceSave(
-    EXPERIENCE_KEY,
-    config,
-    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY])
+    EXPERIENCE_KEY, 
+    config, 
+    MESSAGES.saveSuccess(EXPERIENCE_NAMES[EXPERIENCE_KEY]),
+    undefined,
+    beforeSaveTransform
   );
 
   useEffect(() => {

@@ -159,10 +159,19 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
   const highlightsSetting = useQuery(api.settings.getByKey, { key: 'products_detail_classic_highlights_enabled' });
   const cartModule = useQuery(api.admin.modules.getModuleByKey, { key: 'cart' });
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
+  const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
+  const commentsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'comments' });
+  const commentsLikesFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableLikes', moduleKey: 'comments' });
+  const commentsRepliesFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableReplies', moduleKey: 'comments' });
 
   const legacyStyle = (detailStyleSetting?.value as ProductDetailStyle) || 'classic';
   const legacyHighlightsEnabled = (highlightsSetting?.value as boolean) ?? true;
   const cartAvailable = (cartModule?.enabled ?? false) && (ordersModule?.enabled ?? false);
+  const ordersEnabled = ordersModule?.enabled ?? false;
+  const canUseWishlist = wishlistModule?.enabled ?? false;
+  const canUseComments = commentsModule?.enabled ?? false;
+  const canUseCommentLikes = canUseComments && (commentsLikesFeature?.enabled ?? false);
+  const canUseCommentReplies = canUseComments && (commentsRepliesFeature?.enabled ?? false);
 
   return useMemo(() => {
     const raw = experienceSetting?.value as Partial<{
@@ -197,12 +206,12 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
       layoutStyle,
       showAddToCart: configShowAddToCart && cartAvailable,
       showClassicHighlights: layoutHighlights ?? legacyLayoutHighlights ?? raw?.showClassicHighlights ?? raw?.showHighlights ?? legacyHighlightsEnabled,
-      showRating: layoutConfig?.showRating ?? raw?.showRating ?? true,
-      showComments,
-      showCommentLikes,
-      showCommentReplies,
-      showWishlist: layoutConfig?.showWishlist ?? raw?.showWishlist ?? true,
-      showBuyNow: raw?.showBuyNow ?? true,
+      showRating: (layoutConfig?.showRating ?? raw?.showRating ?? true) && canUseComments,
+      showComments: canUseComments ? showComments : false,
+      showCommentLikes: canUseCommentLikes ? showCommentLikes : false,
+      showCommentReplies: canUseCommentReplies ? showCommentReplies : false,
+      showWishlist: canUseWishlist ? (layoutConfig?.showWishlist ?? raw?.showWishlist ?? true) : false,
+      showBuyNow: (raw?.showBuyNow ?? true) && ordersEnabled,
       heroStyle: layoutStyle === 'modern'
         ? (layoutConfig as Partial<ModernLayoutConfig>)?.heroStyle ?? raw?.heroStyle ?? 'full'
         : 'full',
@@ -210,7 +219,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
         ? (layoutConfig as Partial<MinimalLayoutConfig>)?.contentWidth ?? raw?.contentWidth ?? 'medium'
         : 'medium',
     };
-  }, [experienceSetting?.value, legacyHighlightsEnabled, legacyStyle, cartAvailable]);
+  }, [experienceSetting?.value, legacyHighlightsEnabled, legacyStyle, cartAvailable, canUseComments, canUseCommentLikes, canUseCommentReplies, canUseWishlist, ordersEnabled]);
 }
 
 function useClassicHighlightsEnabled(): boolean {
