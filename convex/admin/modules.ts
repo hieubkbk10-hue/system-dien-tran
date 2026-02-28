@@ -32,7 +32,15 @@ type ToggleModuleResult = {
   success: boolean;
 };
 
+type ToggleModuleBasicCode = "OK" | "MODULE_NOT_FOUND" | "CORE_LOCKED" | "DEPENDENCY_MISSING";
+type ToggleModuleBasicResult = {
+  code: ToggleModuleBasicCode;
+  message?: string;
+  success: boolean;
+};
+
 const createToggleResult = (result: ToggleModuleResult): ToggleModuleResult => result;
+const createToggleBasicResult = (result: ToggleModuleBasicResult): ToggleModuleBasicResult => result;
 
 function normalizeRolesModule<T extends ModuleRecord>(moduleItem: T): T {
   if (moduleItem.key !== "roles") {
@@ -201,16 +209,30 @@ export const toggleModule = mutation({
     const allModules = await ctx.db.query("adminModules").collect();
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
-    if (!moduleRecord) {throw new Error("Module not found");}
+    if (!moduleRecord) {
+      return createToggleBasicResult({
+        code: "MODULE_NOT_FOUND",
+        message: "Module not found",
+        success: false,
+      });
+    }
     const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
     if (args.key !== "roles" && normalizedModule.isCore && !args.enabled) {
-      throw new Error("Cannot disable core module");
+      return createToggleBasicResult({
+        code: "CORE_LOCKED",
+        message: "Cannot disable core module",
+        success: false,
+      });
     }
     if (args.enabled && args.key === "wishlist") {
       const products = modulesByKey.get("products");
       const customers = modulesByKey.get("customers");
       if (!products?.enabled || !customers?.enabled) {
-        throw new Error("Cần bật module Sản phẩm và Khách hàng trước");
+        return createToggleBasicResult({
+          code: "DEPENDENCY_MISSING",
+          message: "Missing dependency module",
+          success: false,
+        });
       }
     }
     if (args.enabled && moduleRecord.dependencies?.length) {
@@ -220,17 +242,33 @@ export const toggleModule = mutation({
       const enabledCount = dependencies.filter((dep) => dep?.enabled).length;
       const dependencyType = moduleRecord.dependencyType ?? "all";
       if (dependencyType === "all" && enabledCount !== dependencies.length) {
-        const missing = moduleRecord.dependencies.filter((depKey) => !modulesByKey.get(depKey)?.enabled);
-        throw new Error(`Dependency module "${missing[0] ?? moduleRecord.dependencies[0]}" must be enabled first`);
+        return createToggleBasicResult({
+          code: "DEPENDENCY_MISSING",
+          message: "Missing dependency module",
+          success: false,
+        });
       }
       if (dependencyType === "any" && enabledCount === 0) {
-        throw new Error("Cần bật ít nhất 1 module phụ thuộc trước");
+        return createToggleBasicResult({
+          code: "DEPENDENCY_MISSING",
+          message: "Missing dependency module",
+          success: false,
+        });
       }
     }
     await ctx.db.patch(moduleRecord._id, { enabled: args.enabled, updatedBy: args.updatedBy });
-    return null;
+    return createToggleBasicResult({ code: "OK", success: true });
   },
-  returns: v.null(),
+  returns: v.object({
+    code: v.union(
+      v.literal("OK"),
+      v.literal("MODULE_NOT_FOUND"),
+      v.literal("CORE_LOCKED"),
+      v.literal("DEPENDENCY_MISSING")
+    ),
+    message: v.optional(v.string()),
+    success: v.boolean(),
+  }),
 });
 
 // SYS-004: Toggle với cascade - auto disable các modules con
