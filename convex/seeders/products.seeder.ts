@@ -59,9 +59,11 @@ export class ProductSeeder extends BaseSeeder<ProductData> {
     const description = template?.fakerTemplates.descriptionPatterns?.length
       ? buildFromPatterns(template.fakerTemplates.descriptionPatterns, fields, randomFn)
       : this.viFaker.productDescription();
-    const image = template?.assets.products?.length
-      ? pickRandom(template.assets.products, randomFn)
-      : `https://picsum.photos/seed/${slug}/400/400`;
+    const image = this.config.useSeedMauImages === false
+      ? `https://picsum.photos/seed/${slug}/400/400`
+      : template?.assets.products?.length
+        ? pickRandom(template.assets.products, randomFn)
+        : `https://picsum.photos/seed/${slug}/400/400`;
     
     const basePrice = this.randomInt(100_000, 50_000_000);
     const hasSale = this.randomBoolean(0.3); // 30% có sale

@@ -9,7 +9,6 @@ import type { GenericMutationCtx } from 'convex/server';
 type UserData = Omit<Doc<'users'>, '_creationTime' | '_id'>;
 
 const DEFAULT_USERS: Array<{ email: string; name: string; status: UserData['status'] }> = [
-  { email: 'superadmin@example.com', name: 'Super Admin', status: 'Active' as const },
   { email: 'admin@example.com', name: 'Admin User', status: 'Active' as const },
   { email: 'editor@example.com', name: 'Nguyễn Văn Editor', status: 'Active' as const },
   { email: 'mod@example.com', name: 'Trần Thị Moderator', status: 'Active' as const },
@@ -57,7 +56,7 @@ export class UsersSeeder extends BaseSeeder<UserData> {
     }
 
     return {
-      avatar: this.randomBoolean(0.6) ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${baseUser.email}` : undefined,
+      avatar: this.randomBoolean(0.6) ? `https://api.dicebear.com/7.x/avataaars/png?seed=${baseUser.email}` : undefined,
       email: baseUser.email,
       lastLogin: this.randomBoolean(0.7) ? Date.now() - this.randomInt(1, 15) * 60 * 60 * 1000 : undefined,
       name: baseUser.name,
@@ -102,7 +101,12 @@ export class UsersSeeder extends BaseSeeder<UserData> {
   }
 
   private pickRoleForIndex(index: number): Doc<'roles'> {
-    const ordered = [...this.roles].sort((a, b) => a.name.localeCompare(b.name));
+    const ordered = [...this.roles]
+      .filter((role) => !role.isSuperAdmin)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (ordered.length === 0) {
+      throw new Error('No non-super-admin roles found. Seed roles first.');
+    }
     return ordered[index % ordered.length];
   }
 

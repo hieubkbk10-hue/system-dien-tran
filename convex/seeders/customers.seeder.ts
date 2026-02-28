@@ -49,7 +49,7 @@ export class CustomerSeeder extends BaseSeeder<CustomerData> {
     
     return {
       address: this.viFaker.street(),
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+      avatar: `https://api.dicebear.com/7.x/avataaars/png?seed=${email}`,
       city: this.viFaker.city(),
       email,
       name: fullName,

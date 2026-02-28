@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
+import { AdminEntityImage } from '../components/AdminEntityImage';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { ChevronDown, Download, Edit, ExternalLink, Layers, Loader2, Package, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ChevronDown, Download, Edit, ExternalLink, Layers, Loader2, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui';
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
@@ -669,13 +669,14 @@ function ProductsContent() {
                 {visibleColumns.includes('select') && <TableCell><SelectCheckbox checked={selectedIds.includes(product._id)} onChange={() =>{  toggleSelectItem(product._id); }} /></TableCell>}
                 {visibleColumns.includes('image') && (
                   <TableCell>
-                    {product.image ? (
-                      <Image src={product.image} width={40} height={40} className="w-10 h-10 object-cover rounded bg-slate-100" alt={product.name} />
-                    ) : (
-                      <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
-                        <Package size={16} className="text-slate-400" />
-                      </div>
-                    )}
+                    <AdminEntityImage
+                      src={product.image}
+                      alt={product.name}
+                      variant="product"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10"
+                    />
                   </TableCell>
                 )}
                 {visibleColumns.includes('name') && <TableCell className="font-medium max-w-[200px] truncate">{product.name}</TableCell>}

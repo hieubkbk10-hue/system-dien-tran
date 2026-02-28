@@ -1725,10 +1725,9 @@ export const seedUsersModule = mutation({
       if (!existingUsers && superAdminRole && adminRole && editorRole && moderatorRole) {
         const defaultPasswordHash = await hashPassword(DEFAULT_USER_PASSWORD);
         const users = [
-          { avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=superadmin", email: "superadmin@example.com", lastLogin: Date.now() - 3_600_000, name: "Super Admin", passwordHash: defaultPasswordHash, phone: "0901234567", roleId: superAdminRole._id, status: "Active" as const },
-          { avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=admin", email: "admin@example.com", lastLogin: Date.now() - 7_200_000, name: "Admin User", passwordHash: defaultPasswordHash, phone: "0912345678", roleId: adminRole._id, status: "Active" as const },
-          { avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=editor", email: "editor@example.com", lastLogin: Date.now() - 86_400_000, name: "Nguyễn Văn Editor", passwordHash: defaultPasswordHash, phone: "0923456789", roleId: editorRole._id, status: "Active" as const },
-          { avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=mod", email: "mod@example.com", name: "Trần Thị Moderator", passwordHash: defaultPasswordHash, phone: "0934567890", roleId: moderatorRole._id, status: "Active" as const },
+          { avatar: "https://api.dicebear.com/7.x/avataaars/png?seed=admin", email: "admin@example.com", lastLogin: Date.now() - 7_200_000, name: "Admin User", passwordHash: defaultPasswordHash, phone: "0912345678", roleId: adminRole._id, status: "Active" as const },
+          { avatar: "https://api.dicebear.com/7.x/avataaars/png?seed=editor", email: "editor@example.com", lastLogin: Date.now() - 86_400_000, name: "Nguyễn Văn Editor", passwordHash: defaultPasswordHash, phone: "0923456789", roleId: editorRole._id, status: "Active" as const },
+          { avatar: "https://api.dicebear.com/7.x/avataaars/png?seed=mod", email: "mod@example.com", name: "Trần Thị Moderator", passwordHash: defaultPasswordHash, phone: "0934567890", roleId: moderatorRole._id, status: "Active" as const },
           { email: "test@example.com", name: "Lê Văn Test", passwordHash: defaultPasswordHash, phone: "0945678901", roleId: editorRole._id, status: "Inactive" as const },
           { email: "banned@example.com", name: "Banned User", passwordHash: defaultPasswordHash, roleId: moderatorRole._id, status: "Banned" as const },
         ];

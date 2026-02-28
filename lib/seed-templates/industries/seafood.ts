@@ -84,11 +84,7 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/seafood/products/8.webp",
       "/seed_mau/seafood/products/9.webp"
     ],
-    "posts": [
-      "/seed_mau/seafood/posts/post-1.webp",
-      "/seed_mau/seafood/posts/post-2.webp",
-      "/seed_mau/seafood/posts/post-3.webp"
-    ],
+    "posts": [],
     "logos": [
       "/seed_mau/seafood/logos/1.webp",
       "/seed_mau/seafood/logos/10.webp",
@@ -124,12 +120,7 @@ export const industryTemplate: IndustryTemplate = {
       "/seed_mau/seafood/logos/8.webp",
       "/seed_mau/seafood/logos/9.webp"
     ],
-    "gallery": [
-      "/seed_mau/seafood/gallery/gallery-1.webp",
-      "/seed_mau/seafood/gallery/gallery-2.webp",
-      "/seed_mau/seafood/gallery/gallery-3.webp",
-      "/seed_mau/seafood/gallery/gallery-4.webp"
-    ]
+    "gallery": []
   },
   "fakerTemplates": {
     "namePatterns": [

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Loader2, Trash2, Upload } from 'lucide-react';
+import { ImageOff, Loader2, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, cn } from './ui';
 
@@ -84,6 +84,7 @@ export function ImageUploader({
 }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | undefined>(value);
+  const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
@@ -95,6 +96,7 @@ export function ImageUploader({
   // Sync preview with value prop when it changes
   useEffect(() => {
     setPreview(value);
+    setHasError(false);
   }, [value]);
 
   const handleFileSelect = useCallback(async (file: File) => {
@@ -209,7 +211,21 @@ export function ImageUploader({
       
       {preview ? (
         <div className={cn('relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700', aspectClasses[aspectRatio])}>
-          <Image src={preview} alt="" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
+          {!hasError ? (
+            <Image
+              src={preview}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="object-cover"
+              onError={() => setHasError(true)}
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+              <ImageOff size={24} />
+              <span className="text-xs">Ảnh lỗi</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
             <Button
               type="button"

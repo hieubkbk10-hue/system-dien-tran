@@ -109,6 +109,7 @@ export function MultiImageUploader<T extends ImageItem>({
   const itemsRef = useRef(items);
   const [uploadingIds, setUploadingIds] = useState<Set<string | number>>(new Set());
   const [urlModeIds, setUrlModeIds] = useState<Set<string | number>>(new Set());
+  const [brokenIds, setBrokenIds] = useState<Set<string | number>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [dragOverItemId, setDragOverItemId] = useState<string | number | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | number | null>(null);
@@ -119,6 +120,21 @@ export function MultiImageUploader<T extends ImageItem>({
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
   const deleteImage = useMutation(api.storage.deleteImage);
+
+  const markBroken = useCallback((itemId: string | number) => {
+    setBrokenIds(prev => new Set(prev).add(itemId));
+  }, []);
+
+  const clearBroken = useCallback((itemId: string | number) => {
+    setBrokenIds(prev => {
+      if (!prev.has(itemId)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.delete(itemId);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -189,6 +205,7 @@ export function MultiImageUploader<T extends ImageItem>({
           ? { ...item, [imageKey]: result.url ?? '', storageId } as T
           : item
       ));
+      clearBroken(itemId);
 
       toast.success('Tải ảnh lên thành công');
     } catch (error) {
@@ -201,7 +218,7 @@ export function MultiImageUploader<T extends ImageItem>({
         return next;
       });
     }
-  }, [generateUploadUrl, saveImage, folder, imageKey, onChange]);
+  }, [generateUploadUrl, saveImage, folder, imageKey, onChange, clearBroken]);
 
   const handleMultipleFiles = useCallback(async (files: FileList) => {
     const filesToUpload = [...files];
@@ -345,7 +362,8 @@ export function MultiImageUploader<T extends ImageItem>({
     onChange(items.map(item => 
       item.id === itemId ? { ...item, [imageKey]: url, storageId: undefined } as T : item
     ));
-  }, [items, imageKey, onChange]);
+    clearBroken(itemId);
+  }, [items, imageKey, onChange, clearBroken]);
 
   const handleExtraFieldChange = useCallback((itemId: string | number, fieldKey: keyof T, value: string) => {
     onChange(items.map(item => 
@@ -488,6 +506,7 @@ export function MultiImageUploader<T extends ImageItem>({
             const isDraggedItem = draggedItemId === item.id;
             const isDragOverItem = dragOverItemId === item.id && draggedItemId !== null;
             const isFileDragOver = fileDragOverItemId === item.id;
+            const isBroken = brokenIds.has(item.id);
 
             // Vertical layout - card style với ảnh trên, input bên dưới
             if (layout === 'vertical') {
@@ -522,13 +541,14 @@ export function MultiImageUploader<T extends ImageItem>({
                     onDragOver={(e) =>{  handleItemFileDragOver(e, item.id); }}
                     onDrop={(e) =>{  handleItemFileDrop(e, item.id); }}
                   >
-                    {imageUrl ? (
+                    {imageUrl && !isBroken ? (
                       <Image
                         src={imageUrl}
                         alt=""
                         fill
                         sizes="(max-width: 768px) 100vw, 320px"
                         className={cn("object-cover transition-opacity", isFileDragOver && "opacity-50")}
+                        onError={() => markBroken(item.id)}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-700">
@@ -659,13 +679,14 @@ export function MultiImageUploader<T extends ImageItem>({
                     onDragOver={(e) =>{  handleItemFileDragOver(e, item.id); }}
                     onDrop={(e) =>{  handleItemFileDrop(e, item.id); }}
                   >
-                    {imageUrl ? (
+                    {imageUrl && !isBroken ? (
                       <Image
                         src={imageUrl}
                         alt=""
                         fill
                         sizes="(max-width: 768px) 100vw, 320px"
                         className={cn("object-cover transition-opacity", isFileDragOver && "opacity-50")}
+                        onError={() => markBroken(item.id)}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-700">

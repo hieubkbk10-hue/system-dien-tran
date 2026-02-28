@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
+import { AdminEntityImage } from '../components/AdminEntityImage';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -345,11 +345,14 @@ function PostsContent() {
                     <TableCell><SelectCheckbox checked={selectedIds.includes(post._id)} onChange={() =>{  toggleSelectItem(post._id); }} /></TableCell>
                     {resolvedVisibleColumns.includes('thumbnail') && (
                       <TableCell>
-                        {post.thumbnail ? (
-                          <Image src={post.thumbnail} width={48} height={32} className="w-12 h-8 object-cover rounded" alt={post.title} />
-                        ) : (
-                          <div className="w-12 h-8 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center text-xs text-slate-400">No img</div>
-                        )}
+                        <AdminEntityImage
+                          src={post.thumbnail}
+                          alt={post.title}
+                          variant="post"
+                          width={48}
+                          height={32}
+                          className="h-8 w-12"
+                        />
                       </TableCell>
                     )}
                     <TableCell className="font-medium max-w-[300px] truncate">{post.title}</TableCell>

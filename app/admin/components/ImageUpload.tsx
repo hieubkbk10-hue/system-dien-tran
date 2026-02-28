@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Loader2, Upload, X } from 'lucide-react';
+import { ImageOff, Loader2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, cn } from './ui';
 
@@ -70,8 +70,13 @@ interface ImageUploadProps {
 
 export function ImageUpload({ value, onChange, folder = 'products', className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [value]);
 
   const handleUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -146,13 +151,20 @@ export function ImageUpload({ value, onChange, folder = 'products', className }:
   if (value) {
     return (
       <div className={cn("relative h-40 w-full", className)}>
-        <Image
-          src={value}
-          alt="Uploaded"
-          fill
-          sizes="(max-width: 768px) 100vw, 400px"
-          className="object-cover rounded-lg border border-slate-200 dark:border-slate-700"
-        />
+        {!hasError ? (
+          <Image
+            src={value}
+            alt="Uploaded"
+            fill
+            sizes="(max-width: 768px) 100vw, 400px"
+            className="object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+            <ImageOff size={24} />
+          </div>
+        )}
         <Button
           type="button"
           variant="ghost"
