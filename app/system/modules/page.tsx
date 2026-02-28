@@ -95,25 +95,65 @@ export default function ModuleManagementPage() {
     }
   };
   
-  // SYS-004: Tìm các modules phụ thuộc vào module này (enabled)
-  const getDependentModules = (moduleKey: string) => modules.filter(m => 
-      m.enabled && m.dependencies?.includes(moduleKey)
-    ).map(m => ({ key: m.key, name: m.name }));
+  // SYS-004: Tìm các modules phụ thuộc vào module này (enabled, bao gồm cascade)
+  const getCascadeKeys = (moduleKey: string) => {
+    const dependentsMap = new Map<string, string[]>();
+    for (const moduleItem of modules) {
+      if (!moduleItem.dependencies?.length) {continue;}
+      for (const depKey of moduleItem.dependencies) {
+        const list = dependentsMap.get(depKey) ?? [];
+        list.push(moduleItem.key);
+        dependentsMap.set(depKey, list);
+      }
+    }
+
+    const cascade: string[] = [];
+    const queue = [...(dependentsMap.get(moduleKey) ?? [])];
+    const visited = new Set<string>();
+    while (queue.length > 0) {
+      const currentKey = queue.shift();
+      if (!currentKey || visited.has(currentKey)) {continue;}
+      visited.add(currentKey);
+      const current = modules.find(m => m.key === currentKey);
+      if (current?.enabled && (!current.isCore || current.key === 'roles')) {
+        cascade.push(currentKey);
+      }
+      const next = dependentsMap.get(currentKey);
+      if (next?.length) {
+        queue.push(...next);
+      }
+    }
+    return cascade;
+  };
+
+  const getToggleErrorMessage = (code: string | null | undefined) => {
+    switch (code) {
+      case 'CORE_LOCKED':
+        return t.modules.messages.coreLocked;
+      case 'DEPENDENCY_MISSING':
+        return t.modules.messages.dependencyMissing;
+      case 'INVALID_CASCADE':
+        return t.modules.messages.invalidCascade;
+      case 'MODULE_NOT_FOUND':
+        return t.modules.messages.moduleNotFound;
+      default:
+        return t.common.error;
+    }
+  };
 
   const handleToggleModule = async (key: string, enabled: boolean) => {
     setSelectedPreset('custom');
     const targetModule = modules.find(m => m.key === key);
-    if (!enabled && targetModule?.isCore && targetModule.key !== 'roles') {
-      toast.error(t.modules.messages.cannotDisableCore);
-      return;
-    }
     
     // Khi tắt module, kiểm tra xem có modules con không
     if (!enabled) {
-      const dependents = getDependentModules(key);
-      if (dependents.length > 0) {
+      const cascadeKeys = getCascadeKeys(key);
+      if (cascadeKeys.length > 0) {
         setCascadeDialog({
-          dependentModules: dependents,
+          dependentModules: cascadeKeys.map(depKey => ({
+            key: depKey,
+            name: modules.find(m => m.key === depKey)?.name ?? depKey,
+          })),
           isOpen: true,
           moduleKey: key,
           moduleName: targetModule?.name ?? key,
@@ -124,11 +164,14 @@ export default function ModuleManagementPage() {
     
     setTogglingKey(key);
     try {
-      await toggleModuleWithCascade({
+      const result = await toggleModuleWithCascade({
         cascadeKeys: [],
         enabled,
         key,
       });
+      if (!result.success) {
+        toast.error(getToggleErrorMessage(result.code));
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
@@ -147,7 +190,7 @@ export default function ModuleManagementPage() {
         key: moduleKey,
       });
       if (!result.success) {
-        toast.error(t.modules.messages.moduleNotFound);
+        toast.error(getToggleErrorMessage(result.code));
         return;
       }
 
@@ -172,17 +215,7 @@ export default function ModuleManagementPage() {
   
   const canToggleModule = (module: AdminModule): boolean => {
     if (module.isCore && module.key !== 'roles') {return false;}
-    if (!module.dependencies || module.dependencies.length === 0) {return true;}
-    
-    if (module.dependencyType === 'any') {
-      return module.dependencies.some(depKey => 
-        modules.find(m => m.key === depKey)?.enabled
-      );
-    }
-      return module.dependencies.every(depKey => 
-        modules.find(m => m.key === depKey)?.enabled
-      );
-    
+    return true;
   };
   
   const filteredModules = modules.filter(m => {

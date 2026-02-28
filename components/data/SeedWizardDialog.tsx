@@ -439,14 +439,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     const moduleMap = new Map(modules.map((moduleItem) => [moduleItem.key, moduleItem]));
     const desiredSet = new Set(desiredModules);
 
-    const toEnable = modules
+    const toEnable = Array.from(moduleMap.values())
       .filter((moduleItem) => desiredSet.has(moduleItem.key) && !moduleItem.enabled)
-      .map((moduleItem) => moduleItem.key);
-
-    const toDisable = modules
-      .filter((moduleItem) => !desiredSet.has(moduleItem.key)
-        && moduleItem.enabled
-        && (!moduleItem.isCore || moduleItem.key === 'roles'))
       .map((moduleItem) => moduleItem.key);
 
     const orderedEnable = orderModulesByDependencies(toEnable, moduleMap);
@@ -454,7 +448,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     const getCascadeKeys = (moduleKey: string) => {
       const cascade = new Set<string>();
       const visit = (key: string) => {
-        for (const moduleItem of modules) {
+        for (const moduleItem of moduleMap.values()) {
           if (moduleItem.dependencies?.includes(key)) {
             if (!cascade.has(moduleItem.key)) {
               cascade.add(moduleItem.key);
@@ -472,12 +466,49 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     };
 
     for (const moduleKey of orderedEnable) {
-      await toggleModuleWithCascade({ enabled: true, key: moduleKey });
+      const result = await toggleModuleWithCascade({ enabled: true, key: moduleKey });
+      if (!result.success) {
+        continue;
+      }
+      const current = moduleMap.get(moduleKey);
+      if (current) {
+        moduleMap.set(moduleKey, { ...current, enabled: true });
+      }
+      if (result.autoEnabledModules.length > 0) {
+        for (const autoKey of result.autoEnabledModules) {
+          desiredSet.add(autoKey);
+          const autoModule = moduleMap.get(autoKey);
+          if (autoModule) {
+            moduleMap.set(autoKey, { ...autoModule, enabled: true });
+          }
+        }
+      }
     }
+
+    const toDisable = Array.from(moduleMap.values())
+      .filter((moduleItem) => !desiredSet.has(moduleItem.key)
+        && moduleItem.enabled
+        && (!moduleItem.isCore || moduleItem.key === 'roles'))
+      .map((moduleItem) => moduleItem.key);
 
     for (const moduleKey of toDisable) {
       const cascadeKeys = getCascadeKeys(moduleKey).filter((key) => !desiredSet.has(key));
-      await toggleModuleWithCascade({ enabled: false, key: moduleKey, cascadeKeys });
+      const result = await toggleModuleWithCascade({ enabled: false, key: moduleKey, cascadeKeys });
+      if (!result.success) {
+        continue;
+      }
+      const current = moduleMap.get(moduleKey);
+      if (current) {
+        moduleMap.set(moduleKey, { ...current, enabled: false });
+      }
+      if (result.disabledModules.length > 0) {
+        for (const disabledKey of result.disabledModules) {
+          const disabledModule = moduleMap.get(disabledKey);
+          if (disabledModule) {
+            moduleMap.set(disabledKey, { ...disabledModule, enabled: false });
+          }
+        }
+      }
     }
   };
 

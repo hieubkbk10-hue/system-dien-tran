@@ -23,6 +23,16 @@ const moduleDoc = v.object({
 });
 
 type ModuleRecord = { _id: Id<"adminModules">; isCore: boolean; key: string };
+type ToggleModuleCode = "OK" | "MODULE_NOT_FOUND" | "CORE_LOCKED" | "DEPENDENCY_MISSING" | "INVALID_CASCADE";
+type ToggleModuleResult = {
+  autoEnabledModules: string[];
+  code: ToggleModuleCode;
+  disabledModules: string[];
+  message?: string;
+  success: boolean;
+};
+
+const createToggleResult = (result: ToggleModuleResult): ToggleModuleResult => result;
 
 function normalizeRolesModule<T extends ModuleRecord>(moduleItem: T): T {
   if (moduleItem.key !== "roles") {
@@ -236,75 +246,179 @@ export const toggleModuleWithCascade = mutation({
     const allModules = await ctx.db.query("adminModules").collect();
     const modulesByKey = new Map(allModules.map((module) => [module.key, module]));
     const moduleRecord = modulesByKey.get(args.key) ?? null;
-    if (!moduleRecord) {return { disabledModules: [], success: false };}
+    if (!moduleRecord) {
+      return createToggleResult({
+        autoEnabledModules: [],
+        code: "MODULE_NOT_FOUND",
+        disabledModules: [],
+        message: "Module not found",
+        success: false,
+      });
+    }
     const normalizedModule = await normalizeRolesModuleWithPatch(ctx, moduleRecord);
     if (args.key !== "roles" && normalizedModule.isCore && !args.enabled) {
-      throw new Error("Cannot disable core module");
+      return createToggleResult({
+        autoEnabledModules: [],
+        code: "CORE_LOCKED",
+        disabledModules: [],
+        message: "Cannot disable core module",
+        success: false,
+      });
     }
 
-    if (args.enabled && args.key === "wishlist") {
-      const products = modulesByKey.get("products");
-      const customers = modulesByKey.get("customers");
-      if (!products?.enabled || !customers?.enabled) {
-        throw new Error("Cần bật module Sản phẩm và Khách hàng trước");
+    const dependentsMap = new Map<string, string[]>();
+    for (const moduleItem of allModules) {
+      if (!moduleItem.dependencies?.length) {continue;}
+      for (const depKey of moduleItem.dependencies) {
+        const list = dependentsMap.get(depKey) ?? [];
+        list.push(moduleItem.key);
+        dependentsMap.set(depKey, list);
       }
     }
-    
-    // Khi enable, check dependencies
-    if (args.enabled && moduleRecord.dependencies?.length) {
-      const dependencies = moduleRecord.dependencies
-        .map((depKey) => modulesByKey.get(depKey))
-        .filter(Boolean);
-      const enabledCount = dependencies.filter((dep) => dep?.enabled).length;
-      const dependencyType = moduleRecord.dependencyType ?? "all";
-      if (dependencyType === "all" && enabledCount !== dependencies.length) {
-        const missing = moduleRecord.dependencies.filter((depKey) => !modulesByKey.get(depKey)?.enabled);
-        throw new Error(`Dependency module "${missing[0] ?? moduleRecord.dependencies[0]}" must be enabled first`);
-      }
-      if (dependencyType === "any" && enabledCount === 0) {
-        throw new Error("Cần bật ít nhất 1 module phụ thuộc trước");
-      }
-    }
-    
-    const disabledModules: string[] = [];
-    
-    // Khi disable, cascade disable các modules con
-    if (!args.enabled) {
-      const dependentsMap = new Map<string, string[]>();
-      for (const moduleRecord of allModules) {
-        if (!moduleRecord.dependencies?.length) {continue;}
-        for (const depKey of moduleRecord.dependencies) {
-          const list = dependentsMap.get(depKey) ?? [];
-          list.push(moduleRecord.key);
-          dependentsMap.set(depKey, list);
-        }
-      }
 
-      const queue = [...(dependentsMap.get(args.key) ?? [])];
+    const autoEnabledModules: string[] = [];
+
+    // Khi enable, auto-enable dependencies theo thứ tự
+    if (args.enabled) {
+      const ordered: string[] = [];
+      const visiting = new Set<string>();
       const visited = new Set<string>();
-      while (queue.length > 0) {
-        const currentKey = queue.shift();
-        if (!currentKey || visited.has(currentKey)) {continue;}
-        visited.add(currentKey);
-        const current = modulesByKey.get(currentKey);
-        if (current && current.enabled && !current.isCore) {
-          await ctx.db.patch(current._id, { enabled: false, updatedBy: args.updatedBy });
-          disabledModules.push(currentKey);
+      let missingDependencyKey: string | null = null;
+
+      const visit = (moduleKey: string) => {
+        if (visited.has(moduleKey)) {return;}
+        if (visiting.has(moduleKey)) {return;}
+        visiting.add(moduleKey);
+        const current = modulesByKey.get(moduleKey);
+        if (!current) {
+          missingDependencyKey = moduleKey;
+          visiting.delete(moduleKey);
+          return;
         }
-        const next = dependentsMap.get(currentKey);
-        if (next?.length) {
-          queue.push(...next);
+
+        const deps = current.key === "wishlist"
+          ? Array.from(new Set([...(current.dependencies ?? []), "products", "customers"]))
+          : (current.dependencies ?? []);
+        if (deps.length > 0) {
+          const dependencyType = current.dependencyType ?? "all";
+          if (dependencyType === "any") {
+            const hasEnabled = deps.some((depKey) => modulesByKey.get(depKey)?.enabled);
+            const targetKey = hasEnabled ? null : deps[0];
+            if (targetKey) {
+              visit(targetKey);
+            }
+          } else {
+            for (const depKey of deps) {
+              visit(depKey);
+            }
+          }
+        }
+
+        visiting.delete(moduleKey);
+        visited.add(moduleKey);
+        ordered.push(moduleKey);
+      };
+
+      visit(args.key);
+
+      if (missingDependencyKey) {
+        return createToggleResult({
+          autoEnabledModules: [],
+          code: "DEPENDENCY_MISSING",
+          disabledModules: [],
+          message: "Missing dependency module",
+          success: false,
+        });
+      }
+
+      for (const moduleKey of ordered) {
+        const current = modulesByKey.get(moduleKey);
+        if (!current) {
+          return createToggleResult({
+            autoEnabledModules: [],
+            code: "DEPENDENCY_MISSING",
+            disabledModules: [],
+            message: "Missing dependency module",
+            success: false,
+          });
+        }
+        if (!current.enabled) {
+          await ctx.db.patch(current._id, { enabled: true, updatedBy: args.updatedBy });
+          modulesByKey.set(moduleKey, { ...current, enabled: true });
+          if (moduleKey !== args.key) {
+            autoEnabledModules.push(moduleKey);
+          }
         }
       }
+
+      return createToggleResult({
+        autoEnabledModules,
+        code: "OK",
+        disabledModules: [],
+        success: true,
+      });
     }
-    
-    // Toggle module chính
-    await ctx.db.patch(moduleRecord._id, { enabled: args.enabled, updatedBy: args.updatedBy });
-    
-    return { disabledModules, success: true };
+
+    const disabledModules: string[] = [];
+    const expectedDependents: string[] = [];
+    const queue = [...(dependentsMap.get(args.key) ?? [])];
+    const visited = new Set<string>();
+    while (queue.length > 0) {
+      const currentKey = queue.shift();
+      if (!currentKey || visited.has(currentKey)) {continue;}
+      visited.add(currentKey);
+      const current = modulesByKey.get(currentKey);
+      if (current?.enabled && (!current.isCore || current.key === "roles")) {
+        expectedDependents.push(currentKey);
+      }
+      const next = dependentsMap.get(currentKey);
+      if (next?.length) {
+        queue.push(...next);
+      }
+    }
+
+    const cascadeSet = new Set(args.cascadeKeys ?? []);
+    const expectedSet = new Set(expectedDependents);
+    const hasMismatch = expectedDependents.some((key) => !cascadeSet.has(key))
+      || (args.cascadeKeys ?? []).some((key) => !expectedSet.has(key));
+    if (hasMismatch) {
+      return createToggleResult({
+        autoEnabledModules: [],
+        code: "INVALID_CASCADE",
+        disabledModules: [],
+        message: "Cascade keys mismatch",
+        success: false,
+      });
+    }
+
+    for (const currentKey of expectedDependents) {
+      const current = modulesByKey.get(currentKey);
+      if (current && current.enabled && (!current.isCore || current.key === "roles")) {
+        await ctx.db.patch(current._id, { enabled: false, updatedBy: args.updatedBy });
+        disabledModules.push(currentKey);
+      }
+    }
+
+    await ctx.db.patch(moduleRecord._id, { enabled: false, updatedBy: args.updatedBy });
+
+    return createToggleResult({
+      autoEnabledModules: [],
+      code: "OK",
+      disabledModules,
+      success: true,
+    });
   },
   returns: v.object({
+    autoEnabledModules: v.array(v.string()),
+    code: v.union(
+      v.literal("OK"),
+      v.literal("MODULE_NOT_FOUND"),
+      v.literal("CORE_LOCKED"),
+      v.literal("DEPENDENCY_MISSING"),
+      v.literal("INVALID_CASCADE")
+    ),
     disabledModules: v.array(v.string()),
+    message: v.optional(v.string()),
     success: v.boolean(),
   }),
 });

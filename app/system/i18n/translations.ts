@@ -111,6 +111,9 @@ const vi = {
       messages: {
         cannotDisableCore: 'Không thể tắt module lõi',
         cascadeDisabled: 'Đã tắt {module} và {count} modules phụ thuộc',
+        coreLocked: 'Module lõi không thể tắt',
+        dependencyMissing: 'Thiếu module phụ thuộc bắt buộc',
+        invalidCascade: 'Danh sách cascade không hợp lệ',
         moduleNotFound: 'Module không tồn tại hoặc đã bị xóa',
         reseedSuccess: 'Đã seed lại modules hệ thống',
       },
@@ -300,6 +303,9 @@ const en: typeof vi = {
       messages: {
         cannotDisableCore: 'Cannot disable core module',
         cascadeDisabled: 'Disabled {module} and {count} dependent modules',
+        coreLocked: 'Core module cannot be disabled',
+        dependencyMissing: 'Required dependency module is missing',
+        invalidCascade: 'Cascade list is invalid',
         moduleNotFound: 'Module does not exist or was removed',
         reseedSuccess: 'System modules reseeded',
       },
