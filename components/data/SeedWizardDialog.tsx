@@ -20,6 +20,7 @@ import { WebsiteTypeStep } from './seed-wizard/steps/WebsiteTypeStep';
 import { IndustrySelectionStep } from './seed-wizard/steps/IndustrySelectionStep';
 import { LogoSelectionStep } from './seed-wizard/steps/LogoSelectionStep';
 import { ExtraFeaturesStep } from './seed-wizard/steps/ExtraFeaturesStep';
+import { CalendarFeatureStep } from './seed-wizard/steps/CalendarFeatureStep';
 import { SaleModeStep } from './seed-wizard/steps/SaleModeStep';
 import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
 import { ProductVariantsStep } from './seed-wizard/steps/ProductVariantsStep';
@@ -99,6 +100,14 @@ const DEFAULT_STATE: WizardState = {
   adminConfig: DEFAULT_ADMIN_CONFIG,
   adminPermissionMode: 'simple_full_admin',
   businessInfo: DEFAULT_BUSINESS_INFO,
+  calendarFeatures: {
+    enableAssignee: true,
+    enableListView: true,
+    enableMonthView: true,
+    enablePriority: true,
+    enableRecurring: true,
+    enableReminder: true,
+  },
   customerLoginEnabled: true,
   customerLoginManuallySet: false,
   clearBeforeSeed: true,
@@ -175,6 +184,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const hasOrders = selectedModules.includes('orders');
   const hasComments = selectedModules.includes('comments');
   const hasMenus = selectedModules.includes('menus');
+  const hasCalendar = selectedModules.includes('calendar');
   const customerLoginRequired = selectedModules.includes('customers') || hasMenus;
 
   const steps = useMemo(() => {
@@ -183,6 +193,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       list.push('logo');
     }
     list.push('extras');
+    if (hasCalendar) {
+      list.push('calendarConfig');
+    }
     if (hasProducts) {
       list.push('saleMode', 'productType', 'variants');
     }
@@ -192,7 +205,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
     list.push('dataScale', 'review');
     return list;
-  }, [hasComments, hasOrders, hasPosts, hasProducts, state.industryKey, state.useSeedMauImages]);
+  }, [hasCalendar, hasComments, hasOrders, hasPosts, hasProducts, state.industryKey, state.useSeedMauImages]);
 
   useEffect(() => {
     const presetKey = industryTemplate?.experiencePresetKey
@@ -269,6 +282,19 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       }
       return { ...prev, extraFeatures: next };
     });
+  };
+
+  const handleCalendarFeatureChange = (
+    featureKey: keyof WizardState['calendarFeatures'],
+    enabled: boolean
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      calendarFeatures: {
+        ...prev.calendarFeatures,
+        [featureKey]: enabled,
+      },
+    }));
   };
 
   const handleIndustryChange = (industryKey: string) => {
@@ -577,6 +603,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await syncModules(modulesForEnable);
 
+      if (hasCalendar) {
+        await Promise.all(
+          Object.entries(state.calendarFeatures).map(([featureKey, enabled]) =>
+            toggleModuleFeature({
+              enabled,
+              featureKey,
+              moduleKey: 'calendar',
+            })
+          )
+        );
+      }
+
       if (!hasServices) {
         await clearModule({ module: 'services' });
         await clearModule({ module: 'serviceCategories' });
@@ -871,6 +909,24 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     hasComments
       ? { label: 'Trạng thái bình luận', value: state.quickConfig.commentsDefaultStatus }
       : null,
+      hasCalendar
+        ? { label: 'Calendar - Month View', value: state.calendarFeatures.enableMonthView ? 'Bật' : 'Tắt' }
+        : null,
+      hasCalendar
+        ? { label: 'Calendar - List View', value: state.calendarFeatures.enableListView ? 'Bật' : 'Tắt' }
+        : null,
+      hasCalendar
+        ? { label: 'Calendar - Lịch lặp', value: state.calendarFeatures.enableRecurring ? 'Bật' : 'Tắt' }
+        : null,
+      hasCalendar
+        ? { label: 'Calendar - Phân công', value: state.calendarFeatures.enableAssignee ? 'Bật' : 'Tắt' }
+        : null,
+      hasCalendar
+        ? { label: 'Calendar - Nhắc việc', value: state.calendarFeatures.enableReminder ? 'Bật' : 'Tắt' }
+        : null,
+      hasCalendar
+        ? { label: 'Calendar - Ưu tiên', value: state.calendarFeatures.enablePriority ? 'Bật' : 'Tắt' }
+        : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
@@ -935,6 +991,13 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               baseHasProducts={baseModules.includes('products')}
               baseHasServices={baseModules.includes('services')}
               onToggle={handleToggleFeature}
+            />
+          )}
+
+          {stepKey === 'calendarConfig' && (
+            <CalendarFeatureStep
+              value={state.calendarFeatures}
+              onChange={handleCalendarFeatureChange}
             />
           )}
 
