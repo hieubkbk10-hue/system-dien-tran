@@ -53,12 +53,6 @@ export const calendarModule = defineModule({
       default: 24,
     },
     {
-      key: 'timezoneDefault',
-      label: 'Múi giờ mặc định',
-      type: 'text',
-      default: 'Asia/Ho_Chi_Minh',
-    },
-    {
       key: 'weekStartsOn',
       label: 'Bắt đầu tuần',
       type: 'select',

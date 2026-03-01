@@ -35,6 +35,12 @@ const STATUS_LABELS: Record<CalendarStatus, string> = {
   Done: 'Hoàn thành',
 };
 
+const STATUS_BADGES: Record<CalendarStatus, { label: string; variant: 'default' | 'warning' | 'secondary' }> = {
+  Todo: { label: 'Chưa làm', variant: 'default' },
+  InProgress: { label: 'Đang làm', variant: 'warning' },
+  Done: { label: 'Hoàn thành', variant: 'secondary' },
+};
+
 const PRIORITY_LABELS: Record<CalendarPriority, { label: string; variant: 'secondary' | 'warning' | 'destructive' }> = {
   LOW: { label: 'Thấp', variant: 'secondary' },
   MEDIUM: { label: 'Trung bình', variant: 'warning' },
@@ -444,6 +450,10 @@ function CalendarWorkspace() {
                 acc[item.priority] += 1;
                 return acc;
               }, { LOW: 0, MEDIUM: 0, HIGH: 0 });
+              const statusCounts = items.reduce((acc, item) => {
+                acc[item.status] += 1;
+                return acc;
+              }, { Todo: 0, InProgress: 0, Done: 0 });
               const isSelected = selectedDateKey === dateKey;
 
               return (
@@ -470,9 +480,20 @@ function CalendarWorkspace() {
                         <Badge variant={PRIORITY_LABELS.LOW.variant} className="text-[10px]">Thấp {priorityCounts.LOW}</Badge>
                       )}
                       {overdueCount > 0 && (
-                        <Badge variant="destructive" className="text-[10px]">{overdueCount}</Badge>
+                        <Badge variant="destructive" className="text-[10px]">QH {overdueCount}</Badge>
                       )}
                     </div>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {statusCounts.Todo > 0 && (
+                      <Badge variant={STATUS_BADGES.Todo.variant} className="text-[10px]">{STATUS_BADGES.Todo.label} {statusCounts.Todo}</Badge>
+                    )}
+                    {statusCounts.InProgress > 0 && (
+                      <Badge variant={STATUS_BADGES.InProgress.variant} className="text-[10px]">{STATUS_BADGES.InProgress.label} {statusCounts.InProgress}</Badge>
+                    )}
+                    {statusCounts.Done > 0 && (
+                      <Badge variant={STATUS_BADGES.Done.variant} className="text-[10px]">{STATUS_BADGES.Done.label} {statusCounts.Done}</Badge>
+                    )}
                   </div>
                   <div className="mt-2 space-y-1">
                     {items.slice(0, 2).map(item => (

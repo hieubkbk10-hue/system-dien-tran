@@ -266,9 +266,15 @@ function ConfigTab({ config, moduleData, isReadOnly, localFeatures, localFields,
   const isProductModule = config.key === 'products';
   const isSettingsModule = config.key === 'settings';
   const isSingleBrandMode = isSettingsModule && localSettings.site_brand_mode === 'single';
-  const visibleFields = isSettingsModule
-    ? localFields.filter(field => !REMOVED_SETTINGS_FIELDS.has(field.key))
-    : localFields;
+  const visibleFields = localFields.filter((field) => {
+    if (isSettingsModule && REMOVED_SETTINGS_FIELDS.has(field.key)) {
+      return false;
+    }
+    if (config.key === 'calendar' && field.key === 'timezone') {
+      return false;
+    }
+    return true;
+  });
   const handleFieldToggle = (key: string) => {
     if (isSingleBrandMode && key === 'site_brand_secondary') {return;}
     onToggleField(key);

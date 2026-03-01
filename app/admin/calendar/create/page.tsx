@@ -116,7 +116,6 @@ function CalendarCreateForm() {
   const enabledFields = useMemo(() => new Set(fieldsData?.map(field => field.fieldKey)), [fieldsData]);
   const defaultStatus = settingsData?.find(setting => setting.settingKey === 'defaultStatus')?.value as string | undefined;
   const defaultPriority = settingsData?.find(setting => setting.settingKey === 'defaultPriority')?.value as string | undefined;
-  const defaultTimezone = settingsData?.find(setting => setting.settingKey === 'timezoneDefault')?.value as string | undefined;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -127,7 +126,6 @@ function CalendarCreateForm() {
   const [startAt, setStartAt] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [assigneeId, setAssigneeId] = useState<Id<'users'> | ''>('');
-  const [timezone, setTimezone] = useState('Asia/Ho_Chi_Minh');
   const [reminderOffset, setReminderOffset] = useState('');
 
   const [rruleInput, setRruleInput] = useState('');
@@ -146,10 +144,7 @@ function CalendarCreateForm() {
     if (defaultPriority) {
       setPriority(defaultPriority);
     }
-    if (defaultTimezone) {
-      setTimezone(defaultTimezone);
-    }
-  }, [defaultPriority, defaultStatus, defaultTimezone]);
+  }, [defaultPriority, defaultStatus]);
 
   const handleApplyRrule = () => {
     const rule = buildRrule({
@@ -198,7 +193,7 @@ function CalendarCreateForm() {
         rrule: enabledFields.has('rrule') ? (rruleInput.trim() || undefined) : undefined,
         startAt: enabledFields.has('startAt') ? startAtValue : undefined,
         status: status as 'Todo' | 'InProgress' | 'Done',
-        timezone,
+        timezone: 'Asia/Ho_Chi_Minh',
         title: title.trim(),
       });
       toast.success('Đã tạo task');
@@ -411,12 +406,6 @@ function CalendarCreateForm() {
                     <option value="60">1 giờ</option>
                     <option value="1440">24 giờ</option>
                   </select>
-                </div>
-              )}
-              {enabledFields.has('timezone') && (
-                <div className="space-y-2">
-                  <Label>Múi giờ</Label>
-                  <Input value={timezone} onChange={(event) => setTimezone(event.target.value)} />
                 </div>
               )}
             </CardContent>

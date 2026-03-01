@@ -144,12 +144,10 @@ function CalendarEditForm() {
   const taskId = params?.id as Id<'calendarTasks'>;
   const updateTask = useMutation(api.calendar.updateCalendarTask);
   const task = useQuery(api.calendar.getCalendarTask, { id: taskId });
-  const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const users = useQuery(api.users.listAll, {});
 
   const enabledFields = useMemo(() => new Set(fieldsData?.map(field => field.fieldKey)), [fieldsData]);
-  const defaultTimezone = settingsData?.find(setting => setting.settingKey === 'timezoneDefault')?.value as string | undefined;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -160,7 +158,6 @@ function CalendarEditForm() {
   const [startAt, setStartAt] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [assigneeId, setAssigneeId] = useState<Id<'users'> | ''>('');
-  const [timezone, setTimezone] = useState('Asia/Ho_Chi_Minh');
   const [reminderOffset, setReminderOffset] = useState('');
 
   const [rruleInput, setRruleInput] = useState('');
@@ -185,7 +182,6 @@ function CalendarEditForm() {
     setStartAt(formatDateInput(task.startAt ?? task.dueDate, task.allDay));
     setDueDate(formatDateInput(task.dueDate ?? task.startAt, task.allDay));
     setAssigneeId(task.assigneeId ?? '');
-    setTimezone(task.timezone || defaultTimezone || 'Asia/Ho_Chi_Minh');
 
     if (task.reminderAt && task.dueDate) {
       const offset = Math.max(Math.round((task.dueDate - task.reminderAt) / 60000), 0);
@@ -203,7 +199,7 @@ function CalendarEditForm() {
       setRruleUntil(parsed.until);
       setRruleCount(parsed.count);
     }
-  }, [task, defaultTimezone]);
+  }, [task]);
 
   const handleApplyRrule = () => {
     const rule = buildRrule({
@@ -247,7 +243,7 @@ function CalendarEditForm() {
         rrule: enabledFields.has('rrule') ? rruleInput.trim() : undefined,
         startAt: enabledFields.has('startAt') ? startAtValue : undefined,
         status: status as 'Todo' | 'InProgress' | 'Done',
-        timezone,
+        timezone: 'Asia/Ho_Chi_Minh',
         title: title.trim(),
       });
       toast.success('Đã cập nhật task');
@@ -464,12 +460,6 @@ function CalendarEditForm() {
                     <option value="60">1 giờ</option>
                     <option value="1440">24 giờ</option>
                   </select>
-                </div>
-              )}
-              {enabledFields.has('timezone') && (
-                <div className="space-y-2">
-                  <Label>Múi giờ</Label>
-                  <Input value={timezone} onChange={(event) => setTimezone(event.target.value)} />
                 </div>
               )}
             </CardContent>
