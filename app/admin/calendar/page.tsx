@@ -114,6 +114,7 @@ function CalendarWorkspace() {
   const [statusFilter, setStatusFilter] = useState<CalendarStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<CalendarPriority | 'all'>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<Id<'users'> | 'all'>('all');
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Doc<'calendarTasks'> | null>(null);
@@ -124,6 +125,11 @@ function CalendarWorkspace() {
 
   const enableMonthView = enabledFeatures.enableMonthView ?? true;
   const enableListView = enabledFeatures.enableListView ?? true;
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!enableMonthView && enableListView) {
@@ -156,7 +162,7 @@ function CalendarWorkspace() {
   const upcomingData = useQuery(api.calendar.listUpcomingTasks, {
     horizonHours: upcomingWindowHours,
     limit: 8,
-    now: Date.now(),
+    now: nowTick,
   });
 
   const listData = useQuery(api.calendar.listCalendarTasksPage, {
@@ -422,7 +428,7 @@ function CalendarWorkspace() {
             {monthDays.map(({ date, isCurrentMonth }) => {
               const dateKey = getDateKey(date);
               const items = tasksByDay.get(dateKey) ?? [];
-              const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < Date.now()).length;
+              const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < nowTick).length;
               const isSelected = selectedDateKey === dateKey;
 
               return (

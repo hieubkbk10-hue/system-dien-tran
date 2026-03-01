@@ -109,6 +109,12 @@ export const EXTRA_FEATURE_OPTIONS: ExtraFeatureOption[] = [
     label: 'Kanban nội bộ',
     modules: ['kanban'],
   },
+  {
+    description: 'Theo dõi lịch nội bộ, việc đến hạn và nhắc việc.',
+    key: 'calendar',
+    label: 'Calendar nội bộ',
+    modules: ['calendar'],
+  },
 ];
 
 export const VARIANT_PRESET_EXAMPLES: VariantPresetExample[] = [
@@ -130,6 +136,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     analytics: 10,
     cart: 5,
     comments: 10,
+    calendar: 8,
     customers: 5,
     homepage: 6,
     kanban: 6,
@@ -153,6 +160,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     analytics: 30,
     cart: 20,
     comments: 30,
+    calendar: 14,
     customers: 20,
     homepage: 6,
     kanban: 12,
@@ -176,6 +184,7 @@ const SCALE_QUANTITIES: Record<DataScale, Record<string, number>> = {
     analytics: 60,
     cart: 50,
     comments: 80,
+    calendar: 20,
     customers: 50,
     homepage: 6,
     kanban: 20,
@@ -210,6 +219,7 @@ const SCALE_SUMMARY_ITEMS: Array<{ key: string; label: string }> = [
   { key: 'promotions', label: 'Khuyến mãi' },
   { key: 'wishlist', label: 'Wishlist' },
   { key: 'kanban', label: 'Kanban' },
+  { key: 'calendar', label: 'Calendar' },
 ];
 
 export function getBaseModules(websiteType: WizardState['websiteType']): string[] {
