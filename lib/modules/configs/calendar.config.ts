@@ -47,10 +47,16 @@ export const calendarModule = defineModule({
       ],
     },
     {
-      key: 'upcomingWindowHours',
-      label: 'Cửa sổ nhắc việc (giờ)',
-      type: 'number',
-      default: 24,
+      key: 'upcomingWindowPreset',
+      label: 'Cửa sổ nhắc việc',
+      type: 'select',
+      default: '24h',
+      options: [
+        { value: '24h', label: '24 giờ' },
+        { value: '7d', label: '1 tuần' },
+        { value: '1m', label: '1 tháng' },
+        { value: '3m', label: '3 tháng' },
+      ],
     },
     {
       key: 'weekStartsOn',

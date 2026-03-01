@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
@@ -11,9 +9,11 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, Input, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { CalendarTaskModal } from './_components/CalendarTaskModal';
 
 type CalendarStatus = Doc<'calendarTasks'>['status'];
 type CalendarPriority = Doc<'calendarTasks'>['priority'];
+type CalendarView = 'month' | 'week' | 'day' | 'year' | 'list';
 
 type CalendarRangeItem = {
   _id: string;
@@ -47,6 +47,13 @@ const PRIORITY_LABELS: Record<CalendarPriority, { label: string; variant: 'secon
   HIGH: { label: 'Cao', variant: 'destructive' },
 };
 
+const UPCOMING_PRESETS = [
+  { value: '24h', label: '24 giờ', hours: 24 },
+  { value: '7d', label: '1 tuần', hours: 24 * 7 },
+  { value: '1m', label: '1 tháng', hours: 24 * 30 },
+  { value: '3m', label: '3 tháng', hours: 24 * 90 },
+];
+
 const WEEK_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
 function getDateKey(date: Date) {
@@ -74,6 +81,56 @@ function buildMonthGrid(baseDate: Date, weekStartsOn: 'monday' | 'sunday') {
   return days;
 }
 
+function startOfDay(date: Date) {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+function endOfDay(date: Date) {
+  const next = new Date(date);
+  next.setHours(23, 59, 59, 999);
+  return next;
+}
+
+function getWeekStart(date: Date, weekStartsOn: 'monday' | 'sunday') {
+  const day = date.getDay();
+  const weekStartIndex = weekStartsOn === 'monday' ? 1 : 0;
+  const diff = (day - weekStartIndex + 7) % 7;
+  const start = new Date(date);
+  start.setDate(date.getDate() - diff);
+  return startOfDay(start);
+}
+
+function buildWeekDays(baseDate: Date, weekStartsOn: 'monday' | 'sunday') {
+  const start = getWeekStart(baseDate, weekStartsOn);
+  return Array.from({ length: 7 }, (_, idx) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + idx);
+    return date;
+  });
+}
+
+function getRangeForView(view: CalendarView, baseDate: Date, weekStartsOn: 'monday' | 'sunday') {
+  if (view === 'week') {
+    const weekStart = getWeekStart(baseDate, weekStartsOn);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    return { start: weekStart.getTime(), end: endOfDay(weekEnd).getTime() };
+  }
+  if (view === 'day') {
+    return { start: startOfDay(baseDate).getTime(), end: endOfDay(baseDate).getTime() };
+  }
+  if (view === 'year') {
+    const start = new Date(baseDate.getFullYear(), 0, 1);
+    const end = new Date(baseDate.getFullYear(), 11, 31, 23, 59, 59);
+    return { start: start.getTime(), end: end.getTime() };
+  }
+  const monthStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+  const monthEnd = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0, 23, 59, 59);
+  return { start: monthStart.getTime(), end: monthEnd.getTime() };
+}
+
 export default function CalendarPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
@@ -83,12 +140,12 @@ export default function CalendarPage() {
 }
 
 function CalendarWorkspace() {
-  const router = useRouter();
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
   const users = useQuery(api.users.listAll, {});
   const deleteTask = useMutation(api.calendar.deleteCalendarTask);
   const markDone = useMutation(api.calendar.markCalendarTaskDone);
+  const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
 
   const enabledFeatures = useMemo(() => {
     const features: Record<string, boolean> = {};
@@ -103,9 +160,9 @@ function CalendarWorkspace() {
     return Math.min(Math.max(raw ?? 20, 10), 100);
   }, [settingsData]);
 
-  const upcomingWindowHours = useMemo(() => {
-    const raw = settingsData?.find(setting => setting.settingKey === 'upcomingWindowHours')?.value as number | undefined;
-    return Math.min(Math.max(raw ?? 24, 1), 168);
+  const upcomingWindowPreset = useMemo(() => {
+    const raw = settingsData?.find(setting => setting.settingKey === 'upcomingWindowPreset')?.value as string | undefined;
+    return raw && UPCOMING_PRESETS.some(preset => preset.value === raw) ? raw : '24h';
   }, [settingsData]);
 
   const weekStartsOn = useMemo(() => {
@@ -113,9 +170,10 @@ function CalendarWorkspace() {
     return raw === 'sunday' ? 'sunday' : 'monday';
   }, [settingsData]);
 
-  const [view, setView] = useState<'month' | 'list'>('month');
-  const [currentMonth, setCurrentMonth] = useState(() => new Date());
+  const [view, setView] = useState<CalendarView>('month');
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+  const [upcomingPreset, setUpcomingPreset] = useState(upcomingWindowPreset);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<CalendarStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<CalendarPriority | 'all'>('all');
@@ -128,6 +186,9 @@ function CalendarWorkspace() {
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
   const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [editingTaskId, setEditingTaskId] = useState<Id<'calendarTasks'> | null>(null);
 
   const enableMonthView = enabledFeatures.enableMonthView ?? true;
   const enableListView = enabledFeatures.enableListView ?? true;
@@ -145,14 +206,28 @@ function CalendarWorkspace() {
   }, [enableMonthView, enableListView]);
 
   useEffect(() => {
+    setUpcomingPreset(upcomingWindowPreset);
+  }, [upcomingWindowPreset]);
+
+  useEffect(() => {
     setCursorStack([]);
     setCurrentCursor(null);
     setCurrentPage(1);
     refreshNow();
   }, [statusFilter, priorityFilter, assigneeFilter]);
 
-  const rangeStart = useMemo(() => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getTime(), [currentMonth]);
-  const rangeEnd = useMemo(() => new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).getTime(), [currentMonth]);
+  useEffect(() => {
+    if (view === 'day') {
+      setSelectedDateKey(getDateKey(currentDate));
+    }
+  }, [currentDate, view]);
+
+  const currentMonth = useMemo(() => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), [currentDate]);
+  const viewForRange = view === 'list' ? 'month' : view;
+  const { start: rangeStart, end: rangeEnd } = useMemo(
+    () => getRangeForView(viewForRange, currentDate, weekStartsOn),
+    [currentDate, viewForRange, weekStartsOn]
+  );
 
   const rangeItems = useQuery(api.calendar.listCalendarTasksRange, {
     assigneeId: assigneeFilter === 'all' ? undefined : assigneeFilter,
@@ -162,6 +237,11 @@ function CalendarWorkspace() {
     to: rangeEnd,
     limit: 300,
   });
+
+  const upcomingWindowHours = useMemo(
+    () => UPCOMING_PRESETS.find(preset => preset.value === upcomingPreset)?.hours ?? 24,
+    [upcomingPreset]
+  );
 
   const upcomingData = useQuery(api.calendar.listUpcomingTasks, {
     horizonHours: upcomingWindowHours,
@@ -213,7 +293,24 @@ function CalendarWorkspace() {
     return map;
   }, [filteredRangeItems]);
 
+  const tasksByMonth = useMemo(() => {
+    const map = new Map<string, CalendarRangeItem[]>();
+    filteredRangeItems.forEach(item => {
+      const target = item.dueDate ?? item.startAt;
+      if (!target) {
+        return;
+      }
+      const date = new Date(target);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const bucket = map.get(key) ?? [];
+      bucket.push(item);
+      map.set(key, bucket);
+    });
+    return map;
+  }, [filteredRangeItems]);
+
   const monthDays = useMemo(() => buildMonthGrid(currentMonth, weekStartsOn), [currentMonth, weekStartsOn]);
+  const weekDays = useMemo(() => buildWeekDays(currentDate, weekStartsOn), [currentDate, weekStartsOn]);
 
   const selectedTasks = useMemo(() => {
     if (!selectedDateKey) {
@@ -256,14 +353,36 @@ function CalendarWorkspace() {
     }
   };
 
-  const handlePrevMonth = () => {
-    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const handlePrevRange = () => {
+    setCurrentDate(prev => {
+      if (view === 'week') {
+        return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() - 7);
+      }
+      if (view === 'day') {
+        return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() - 1);
+      }
+      if (view === 'year') {
+        return new Date(prev.getFullYear() - 1, prev.getMonth(), prev.getDate());
+      }
+      return new Date(prev.getFullYear(), prev.getMonth() - 1, 1);
+    });
     setSelectedDateKey(null);
     refreshNow();
   };
 
-  const handleNextMonth = () => {
-    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  const handleNextRange = () => {
+    setCurrentDate(prev => {
+      if (view === 'week') {
+        return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + 7);
+      }
+      if (view === 'day') {
+        return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + 1);
+      }
+      if (view === 'year') {
+        return new Date(prev.getFullYear() + 1, prev.getMonth(), prev.getDate());
+      }
+      return new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
+    });
     setSelectedDateKey(null);
     refreshNow();
   };
@@ -290,6 +409,17 @@ function CalendarWorkspace() {
     });
   };
 
+  const handleUpcomingPresetChange = async (value: string) => {
+    setUpcomingPreset(value);
+    try {
+      await setModuleSetting({ moduleKey: MODULE_KEY, settingKey: 'upcomingWindowPreset', value });
+      toast.success('Đã cập nhật cửa sổ nhắc việc');
+      refreshNow();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Cập nhật thất bại');
+    }
+  };
+
   const isLoading = settingsData === undefined || featuresData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
 
   return (
@@ -303,33 +433,73 @@ function CalendarWorkspace() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() => router.push('/admin/calendar/create')}
+            onClick={() => {
+              setModalMode('create');
+              setEditingTaskId(null);
+              setModalOpen(true);
+            }}
           >
             <Plus size={16} />
             Tạo task
           </Button>
-          {enableMonthView && enableListView && (
+          {(enableMonthView || enableListView) && (
             <div className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => {
-                  setView('month');
-                  refreshNow();
-                }}
-                className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'month' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
-              >
-                <CalendarDays size={16} /> Month
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setView('list');
-                  refreshNow();
-                }}
-                className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
-              >
-                <ListTodo size={16} /> List
-              </button>
+              {enableMonthView && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('month');
+                      refreshNow();
+                    }}
+                    className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'month' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
+                  >
+                    <CalendarDays size={16} /> Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('week');
+                      refreshNow();
+                    }}
+                    className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'week' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
+                  >
+                    <CalendarDays size={16} /> Week
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('day');
+                      refreshNow();
+                    }}
+                    className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'day' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
+                  >
+                    <Clock size={16} /> Day
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('year');
+                      refreshNow();
+                    }}
+                    className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'year' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
+                  >
+                    <CalendarDays size={16} /> Year
+                  </button>
+                </>
+              )}
+              {enableListView && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView('list');
+                    refreshNow();
+                  }}
+                  className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
+                >
+                  <ListTodo size={16} /> List
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -399,8 +569,19 @@ function CalendarWorkspace() {
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <Clock size={16} /> Sắp đến hạn ({upcomingWindowHours}h)
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2">
+              <Clock size={16} /> Sắp đến hạn
+            </div>
+            <select
+              value={upcomingPreset}
+              onChange={(event) => handleUpcomingPresetChange(event.target.value)}
+              className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"
+            >
+              {UPCOMING_PRESETS.map(preset => (
+                <option key={preset.value} value={preset.value}>{preset.label}</option>
+              ))}
+            </select>
           </div>
           <div className="mt-3 space-y-2">
             {(upcomingData?.dueSoon ?? []).length === 0 && (
@@ -420,13 +601,13 @@ function CalendarWorkspace() {
         <Card className="p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
+              <Button variant="ghost" size="icon" onClick={handlePrevRange}>
                 <ChevronLeft size={16} />
               </Button>
               <div className="text-lg font-semibold">
                 {currentMonth.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
               </div>
-              <Button variant="ghost" size="icon" onClick={handleNextMonth}>
+              <Button variant="ghost" size="icon" onClick={handleNextRange}>
                 <ChevronRight size={16} />
               </Button>
             </div>
@@ -525,7 +706,17 @@ function CalendarWorkspace() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
-                        <Link href={`/admin/calendar/${task.sourceId}/edit`} className="text-xs text-blue-600">Sửa</Link>
+                        <button
+                          type="button"
+                          className="text-xs text-blue-600"
+                          onClick={() => {
+                            setModalMode('edit');
+                            setEditingTaskId(task.sourceId);
+                            setModalOpen(true);
+                          }}
+                        >
+                          Sửa
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -533,6 +724,157 @@ function CalendarWorkspace() {
               )}
             </div>
           )}
+        </Card>
+      )}
+
+      {view === 'week' && enableMonthView && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={handlePrevRange}>
+                <ChevronLeft size={16} />
+              </Button>
+              <div className="text-lg font-semibold">
+                {weekDays[0]?.toLocaleDateString('vi-VN')} - {weekDays[6]?.toLocaleDateString('vi-VN')}
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleNextRange}>
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-7 gap-2 text-xs text-slate-400">
+            {(weekStartsOn === 'monday' ? [...WEEK_LABELS.slice(1), WEEK_LABELS[0]] : WEEK_LABELS).map(label => (
+              <div key={label} className="text-center">{label}</div>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-7 gap-2">
+            {weekDays.map(date => {
+              const dateKey = getDateKey(date);
+              const items = tasksByDay.get(dateKey) ?? [];
+              return (
+                <button
+                  key={dateKey}
+                  type="button"
+                  onClick={() => {
+                    setCurrentDate(date);
+                    setView('day');
+                  }}
+                  className={cn(
+                    'min-h-[110px] rounded-md border px-2 py-2 text-left text-xs transition',
+                    'border-slate-200 bg-white'
+                  )}
+                >
+                  <div className="text-sm font-semibold text-slate-700">{date.getDate()}</div>
+                  <div className="mt-2 space-y-1">
+                    {items.slice(0, 3).map(item => (
+                      <div key={item._id} className="truncate text-[11px] text-slate-600">• {item.title}</div>
+                    ))}
+                    {items.length > 3 && (
+                      <div className="text-[10px] text-slate-400">+{items.length - 3} task</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      {view === 'day' && enableMonthView && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={handlePrevRange}>
+                <ChevronLeft size={16} />
+              </Button>
+              <div className="text-lg font-semibold">
+                {currentDate.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleNextRange}>
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setModalMode('create');
+                setEditingTaskId(null);
+                setModalOpen(true);
+              }}
+            >
+              <Plus size={14} />
+              <span className="ml-1">Tạo task</span>
+            </Button>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {(tasksByDay.get(getDateKey(currentDate)) ?? []).length === 0 && (
+              <div className="text-sm text-slate-400">Không có task</div>
+            )}
+            {(tasksByDay.get(getDateKey(currentDate)) ?? []).map(task => (
+              <div key={task._id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{task.title}</div>
+                  <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600"
+                    onClick={() => {
+                      setModalMode('edit');
+                      setEditingTaskId(task.sourceId);
+                      setModalOpen(true);
+                    }}
+                  >
+                    Sửa
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {view === 'year' && enableMonthView && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={handlePrevRange}>
+                <ChevronLeft size={16} />
+              </Button>
+              <div className="text-lg font-semibold">Năm {currentDate.getFullYear()}</div>
+              <Button variant="ghost" size="icon" onClick={handleNextRange}>
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 12 }).map((_, index) => {
+              const monthDate = new Date(currentDate.getFullYear(), index, 1);
+              const monthKey = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+              const items = tasksByMonth.get(monthKey) ?? [];
+              return (
+                <button
+                  key={monthKey}
+                  type="button"
+                  className="rounded-md border border-slate-200 px-3 py-3 text-left"
+                  onClick={() => {
+                    setView('month');
+                    setCurrentDate(monthDate);
+                    refreshNow();
+                  }}
+                >
+                  <div className="text-sm font-semibold text-slate-700">
+                    {monthDate.toLocaleDateString('vi-VN', { month: 'long' })}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">{items.length} task</div>
+                </button>
+              );
+            })}
+          </div>
         </Card>
       )}
 
@@ -581,7 +923,17 @@ function CalendarWorkspace() {
                       {task.assigneeId ? usersMap.get(task.assigneeId)?.name ?? '---' : '---'}
                     </td>
                     <td className="py-3 flex items-center gap-2">
-                      <Link href={`/admin/calendar/${task._id}/edit`} className="text-xs text-blue-600">Sửa</Link>
+                      <button
+                        type="button"
+                        className="text-xs text-blue-600"
+                        onClick={() => {
+                          setModalMode('edit');
+                          setEditingTaskId(task._id);
+                          setModalOpen(true);
+                        }}
+                      >
+                        Sửa
+                      </button>
                       {task.status !== 'Done' && (
                         <button
                           type="button"
@@ -625,6 +977,17 @@ function CalendarWorkspace() {
         itemName={deleteTarget?.title ?? 'task'}
         onConfirm={handleDelete}
         isLoading={isDeleting}
+      />
+
+      <CalendarTaskModal
+        open={modalOpen}
+        mode={modalMode}
+        taskId={editingTaskId ?? undefined}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => {
+          setModalOpen(false);
+          refreshNow();
+        }}
       />
 
       {isLoading && (

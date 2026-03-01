@@ -100,9 +100,19 @@ function extractUntilTimestamp(rule: string): number | undefined {
 export default function CalendarCreatePage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
-      <CalendarCreateForm />
+      <CalendarRedirect />
     </ModuleGuard>
   );
+}
+
+function CalendarRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/admin/calendar');
+  }, [router]);
+
+  return <div className="text-sm text-slate-400">Đang chuyển về lịch...</div>;
 }
 
 function CalendarCreateForm() {

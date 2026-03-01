@@ -270,7 +270,7 @@ function ConfigTab({ config, moduleData, isReadOnly, localFeatures, localFields,
     if (isSettingsModule && REMOVED_SETTINGS_FIELDS.has(field.key)) {
       return false;
     }
-    if (config.key === 'calendar' && field.key === 'timezone') {
+    if (config.key === 'calendar' && (field.key === 'timezone' || field.key === 'notes')) {
       return false;
     }
     return true;

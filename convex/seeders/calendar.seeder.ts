@@ -114,7 +114,6 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { enabled: true, fieldKey: 'reminderAt', isSystem: false, linkedFeature: 'enableReminder', moduleKey: 'calendar', name: 'Nhắc việc', order: 8, required: false, type: 'date' as const },
         { enabled: true, fieldKey: 'rrule', isSystem: false, linkedFeature: 'enableRecurring', moduleKey: 'calendar', name: 'RRULE', order: 9, required: false, type: 'text' as const },
         { enabled: true, fieldKey: 'timezone', isSystem: false, moduleKey: 'calendar', name: 'Múi giờ', order: 10, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'notes', isSystem: false, moduleKey: 'calendar', name: 'Ghi chú', order: 11, required: false, type: 'textarea' as const },
       ];
       await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
     }
@@ -128,7 +127,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { moduleKey: 'calendar', settingKey: 'calendarPerPage', value: 20 },
         { moduleKey: 'calendar', settingKey: 'defaultStatus', value: 'Todo' },
         { moduleKey: 'calendar', settingKey: 'defaultPriority', value: 'MEDIUM' },
-        { moduleKey: 'calendar', settingKey: 'upcomingWindowHours', value: 24 },
+        { moduleKey: 'calendar', settingKey: 'upcomingWindowPreset', value: '24h' },
         { moduleKey: 'calendar', settingKey: 'timezoneDefault', value: 'Asia/Ho_Chi_Minh' },
         { moduleKey: 'calendar', settingKey: 'weekStartsOn', value: 'monday' },
       ];
