@@ -36,6 +36,7 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
    const [localSettings, setLocalSettings] = useState<SettingsState>({});
    const [isSaving, setIsSaving] = useState(false);
   const hasMigratedPriorityRef = useRef(false);
+  const hasMigratedPrioritySystemRef = useRef(false);
    
    const isLoading = moduleData === undefined || 
                      featuresData === undefined || 
@@ -91,6 +92,30 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
       }
     };
     void migratePriority();
+  }, [moduleKey, fieldsData, updateField]);
+
+  useEffect(() => {
+    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedPrioritySystemRef.current) {
+      return;
+    }
+    const priorityField = fieldsData.find(field => field.fieldKey === 'priority' && field.isSystem);
+    if (!priorityField) {
+      return;
+    }
+    hasMigratedPrioritySystemRef.current = true;
+    const migratePrioritySystem = async () => {
+      try {
+        await updateField({ id: priorityField._id, isSystem: false });
+        setLocalFields(prev => prev.map(field => (
+          field.key === 'priority' ? { ...field, isSystem: false } : field
+        )));
+        toast.success('Đã cập nhật trường Ưu tiên thành không hệ thống.');
+      } catch (error) {
+        hasMigratedPrioritySystemRef.current = false;
+        toast.error(error instanceof Error ? error.message : 'Cập nhật trường Ưu tiên thất bại.');
+      }
+    };
+    void migratePrioritySystem();
   }, [moduleKey, fieldsData, updateField]);
    
    useEffect(() => {

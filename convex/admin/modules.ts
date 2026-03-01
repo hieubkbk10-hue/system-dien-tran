@@ -587,6 +587,7 @@ export const updateModuleField = mutation({
     enabled: v.optional(v.boolean()),
     group: v.optional(v.string()),
     id: v.id("moduleFields"),
+    isSystem: v.optional(v.boolean()),
     linkedFeature: v.optional(v.string()),
     name: v.optional(v.string()),
     order: v.optional(v.number()),
@@ -597,8 +598,12 @@ export const updateModuleField = mutation({
     const { id, ...updates } = args;
     const field = await ctx.db.get(id);
     if (!field) {throw new Error("Field not found");}
-    if (field.isSystem && args.enabled === false) {
+    const isDemotingSystem = field.isSystem && updates.isSystem === false;
+    if (field.isSystem && args.enabled === false && !isDemotingSystem) {
       throw new Error("Cannot disable system field");
+    }
+    if (updates.isSystem !== undefined && updates.isSystem !== field.isSystem && !isDemotingSystem) {
+      throw new Error("Cannot change system field");
     }
     await ctx.db.patch(id, updates);
     return null;
