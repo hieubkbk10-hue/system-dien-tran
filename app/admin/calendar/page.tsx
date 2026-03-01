@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, Input, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { CalendarTaskModal } from './_components/CalendarTaskModal';
 
 type CalendarStatus = Doc<'calendarTasks'>['status'];
@@ -182,8 +183,11 @@ function CalendarWorkspace() {
   const [queryNow, setQueryNow] = useState(() => Date.now());
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Doc<'calendarTasks'> | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ _id: Id<'calendarTasks'>; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Id<'calendarTasks'>[]>([]);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
   const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -216,6 +220,7 @@ function CalendarWorkspace() {
     setCursorStack([]);
     setCurrentCursor(null);
     setCurrentPage(1);
+    setSelectedIds([]);
     refreshNow();
   }, [statusFilter, priorityFilter, assigneeFilter]);
 
@@ -236,6 +241,10 @@ function CalendarWorkspace() {
       setSelectedDateKey(getDateKey(currentDate));
     }
   }, [currentDate, view]);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [keyword, currentCursor, currentPage, view]);
 
   const currentMonth = useMemo(() => new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), [currentDate]);
   const viewForRange = view === 'list' ? 'month' : view;
@@ -368,6 +377,44 @@ function CalendarWorkspace() {
     }
   };
 
+  const handleToggleSelectAll = () => {
+    if (listItems.length === 0) {
+      return;
+    }
+    const allSelected = listItems.every(task => selectedIds.includes(task._id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !listItems.some(task => task._id === id)));
+      return;
+    }
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      listItems.forEach(task => next.add(task._id));
+      return Array.from(next);
+    });
+  };
+
+  const handleToggleSelectItem = (taskId: Id<'calendarTasks'>) => {
+    setSelectedIds(prev => (prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId]));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) {
+      return;
+    }
+    setIsBulkDeleting(true);
+    try {
+      await Promise.all(selectedIds.map(id => deleteTask({ id })));
+      toast.success(`Đã xóa ${selectedIds.length} task`);
+      setSelectedIds([]);
+      setBulkDeleteDialogOpen(false);
+      refreshNow();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Xóa task thất bại');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   const handlePrevRange = () => {
     setCurrentDate(prev => {
       if (view === 'week') {
@@ -436,7 +483,7 @@ function CalendarWorkspace() {
   };
 
   const isLoading = settingsData === undefined || featuresData === undefined || fieldsData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
-  const listColSpan = 4 + (isPriorityEnabled ? 1 : 0) + (isAssigneeEnabled ? 1 : 0);
+  const listColSpan = 5 + (isPriorityEnabled ? 1 : 0) + (isAssigneeEnabled ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -739,6 +786,16 @@ function CalendarWorkspace() {
                         >
                           Sửa
                         </button>
+                        <button
+                          type="button"
+                          className="text-xs text-red-600"
+                          onClick={() => {
+                            setDeleteTarget({ _id: task.sourceId, title: task.title });
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          Xóa
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -855,6 +912,16 @@ function CalendarWorkspace() {
                   >
                     Sửa
                   </button>
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() => {
+                      setDeleteTarget({ _id: task.sourceId, title: task.title });
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    Xóa
+                  </button>
                 </div>
               </div>
             ))}
@@ -908,10 +975,25 @@ function CalendarWorkspace() {
             <div className="text-sm text-slate-500">Danh sách task</div>
             <div className="text-xs text-slate-400">Trang {currentPage}</div>
           </div>
+          <BulkActionBar
+            selectedCount={selectedIds.length}
+            onDelete={() => setBulkDeleteDialogOpen(true)}
+            onClearSelection={() => setSelectedIds([])}
+            isLoading={isBulkDeleting}
+          />
           <div className="mt-3 overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="text-left text-slate-500">
                 <tr>
+                  <th className="py-2 pr-4 w-[40px]">
+                    <SelectCheckbox
+                      checked={listItems.length > 0 && listItems.every(task => selectedIds.includes(task._id))}
+                      indeterminate={selectedIds.length > 0 && listItems.some(task => !selectedIds.includes(task._id))}
+                      onChange={handleToggleSelectAll}
+                      disabled={listItems.length === 0}
+                      title="Chọn tất cả"
+                    />
+                  </th>
                   <th className="py-2 pr-4">Task</th>
                   <th className="py-2 pr-4">Hạn</th>
                   <th className="py-2 pr-4">Trạng thái</th>
@@ -932,6 +1014,12 @@ function CalendarWorkspace() {
                 )}
                 {listItems.map(task => (
                   <tr key={task._id} className="border-t border-slate-100">
+                    <td className="py-3 pr-4">
+                      <SelectCheckbox
+                        checked={selectedIds.includes(task._id)}
+                        onChange={() => handleToggleSelectItem(task._id)}
+                      />
+                    </td>
                     <td className="py-3 pr-4">
                       <div className="font-medium text-slate-800">{task.title}</div>
                       {task.description && (
@@ -979,7 +1067,7 @@ function CalendarWorkspace() {
                         type="button"
                         className="text-xs text-red-600 flex items-center gap-1"
                         onClick={() => {
-                          setDeleteTarget(task);
+                          setDeleteTarget({ _id: task._id, title: task.title });
                           setDeleteDialogOpen(true);
                         }}
                       >
@@ -1009,6 +1097,15 @@ function CalendarWorkspace() {
         itemName={deleteTarget?.title ?? 'task'}
         onConfirm={handleDelete}
         isLoading={isDeleting}
+      />
+
+      <DeleteConfirmDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        title="Xóa các task đã chọn"
+        itemName={`${selectedIds.length} task`}
+        onConfirm={handleBulkDelete}
+        isLoading={isBulkDeleting}
       />
 
       <CalendarTaskModal
