@@ -321,7 +321,7 @@ export default function ModuleManagementPage() {
               {t.modules.categories[category as keyof typeof t.modules.categories]}
               <span className="text-xs font-normal text-slate-500">({(mods).length})</span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {(mods).map(module => (
                 <ModuleCard 
                   key={module._id} 
