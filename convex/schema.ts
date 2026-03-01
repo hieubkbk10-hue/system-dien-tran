@@ -567,6 +567,44 @@ export default defineSchema({
     .index("by_column_order", ["columnId", "order"])
     .index("by_assignee", ["assigneeId"]),
 
+  // 19d. calendarTasks - Công việc dạng lịch
+  calendarTasks: defineTable({
+    allDay: v.boolean(),
+    assigneeId: v.optional(v.id("users")),
+    completedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    createdBy: v.id("users"),
+    description: v.optional(v.string()),
+    dueDate: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    order: v.number(),
+    priority: v.union(
+      v.literal("LOW"),
+      v.literal("MEDIUM"),
+      v.literal("HIGH")
+    ),
+    recurrenceEndAt: v.optional(v.number()),
+    reminderAt: v.optional(v.number()),
+    rrule: v.optional(v.string()),
+    startAt: v.optional(v.number()),
+    status: v.union(
+      v.literal("Todo"),
+      v.literal("InProgress"),
+      v.literal("Done")
+    ),
+    timezone: v.string(),
+    title: v.string(),
+    updatedAt: v.number(),
+    exdates: v.optional(v.array(v.number())),
+  })
+    .index("by_dueDate", ["dueDate"])
+    .index("by_status_dueDate", ["status", "dueDate"])
+    .index("by_assignee_dueDate", ["assigneeId", "dueDate"])
+    .index("by_priority_dueDate", ["priority", "dueDate"])
+    .index("by_startAt", ["startAt"])
+    .index("by_createdBy_updatedAt", ["createdBy", "updatedAt"])
+    .index("by_recurrence_end", ["recurrenceEndAt"]),
+
   // 20. orders - Đơn hàng
   orders: defineTable({
     customerId: v.id("customers"),

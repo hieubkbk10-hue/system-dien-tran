@@ -32,6 +32,12 @@ export const SEED_MODULE_METADATA: Record<string, SeedModuleMetadata> = {
     description: 'Thống kê và báo cáo',
     name: 'Analytics',
   },
+  calendar: {
+    category: 'system',
+    defaultQuantity: 12,
+    description: 'Lịch nhắc việc nội bộ',
+    name: 'Calendar',
+  },
   cart: {
     category: 'commerce',
     defaultQuantity: 10,

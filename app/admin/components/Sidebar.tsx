@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { 
-  Bell, Briefcase, ChevronRight, ChevronsLeft, 
+  Bell, Briefcase, CalendarDays, ChevronRight, ChevronsLeft, 
   ChevronsRight, FileText, Globe, Image as ImageIcon, LayoutDashboard, LayoutGrid, Loader2,
   LogOut, Settings, ShoppingCart, Ticket, User, Users, X
 } from 'lucide-react';
@@ -194,6 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showUsersSection = isModuleEnabled('users') || isModuleEnabled('roles');
   const showWebsiteSection = isModuleEnabled('menus') || isModuleEnabled('homepage');
   const showKanbanSection = isModuleEnabled('kanban');
+  const showCalendarSection = isModuleEnabled('calendar');
   const showSettingsSection = isModuleEnabled('settings');
   const showNotificationsSection = isModuleEnabled('notifications');
   const showPromotionsSection = isModuleEnabled('promotions');
@@ -418,7 +419,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
             )}
 
             {/* System Section */}
-            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection) && (
+            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection || showCalendarSection) && (
               <div className="space-y-1">
                 {!isSidebarCollapsed && <div className="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Hệ thống</div>}
                 
@@ -464,6 +465,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
                     label="Kanban Board"
                     href="/admin/kanban"
                     active={isActive('/admin/kanban')}
+                    isCollapsed={isSidebarCollapsed}
+                    isExpanded={false}
+                    onToggle={() => {}}
+                    pathname={pathname}
+                    isModuleEnabled={isModuleEnabled}
+                  />
+                )}
+
+                {showCalendarSection && (
+                  <SidebarItem
+                    icon={CalendarDays}
+                    label="Calendar"
+                    href="/admin/calendar"
+                    active={isActive('/admin/calendar')}
                     isCollapsed={isSidebarCollapsed}
                     isExpanded={false}
                     onToggle={() => {}}

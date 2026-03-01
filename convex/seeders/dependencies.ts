@@ -122,6 +122,11 @@ export const SEED_DEPENDENCIES: Record<string, ModuleDependency> = {
     minRecords: 1,
     type: 'all',
   },
+  calendar: {
+    deps: ['users'],
+    minRecords: 1,
+    type: 'all',
+  },
   
   // Special modules
   analytics: {

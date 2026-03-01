@@ -13,6 +13,7 @@ import type * as admin_modules from "../admin/modules.js";
 import type * as admin_presets from "../admin/presets.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
+import type * as calendar from "../calendar.js";
 import type * as cart from "../cart.js";
 import type * as comments from "../comments.js";
 import type * as convexDashboard from "../convexDashboard.js";
@@ -73,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   "admin/presets": typeof admin_presets;
   analytics: typeof analytics;
   auth: typeof auth;
+  calendar: typeof calendar;
   cart: typeof cart;
   comments: typeof comments;
   convexDashboard: typeof convexDashboard;

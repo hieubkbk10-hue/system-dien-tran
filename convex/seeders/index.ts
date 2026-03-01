@@ -17,6 +17,7 @@ export { ServiceCategorySeeder } from './serviceCategories.seeder';
 export { AnalyticsSeeder } from './analytics.seeder';
 export { CommentsSeeder } from './comments.seeder';
 export { CartSeeder } from './cart.seeder';
+export { CalendarSeeder } from './calendar.seeder';
 export { WishlistSeeder } from './wishlist.seeder';
 export { RolesSeeder } from './roles.seeder';
 export { UsersSeeder } from './users.seeder';
