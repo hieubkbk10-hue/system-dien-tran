@@ -190,7 +190,13 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
          f.linkedFeature === key ? { ...f, enabled: newState } : f
        ));
      }
-   }, [localFeatures, config.features]);
+
+    if (moduleKey === 'calendar' && key === 'enablePriority') {
+      setLocalFields(prev => prev.map(field => (
+        field.key === 'priority' ? { ...field, enabled: newState } : field
+      )));
+    }
+  }, [config.features, localFeatures, moduleKey]);
    
    const handleToggleField = useCallback((fieldKey: string) => {
      setLocalFields(prev => prev.map(f => 

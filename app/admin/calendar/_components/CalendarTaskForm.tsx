@@ -290,7 +290,7 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
           createdBy: user!.id as Id<'users'>,
           description: enabledFields.has('description') ? description.trim() || undefined : undefined,
           dueDate: enabledFields.has('dueDate') ? dueDateValue : undefined,
-          priority: priority as 'LOW' | 'MEDIUM' | 'HIGH',
+          priority: enabledFields.has('priority') ? (priority as 'LOW' | 'MEDIUM' | 'HIGH') : 'MEDIUM',
           recurrenceEndAt,
           reminderOffsetMinutes: enabledFields.has('reminderAt') ? reminderOffsetMinutes : undefined,
           rrule: enabledFields.has('rrule') ? recurrenceRule : undefined,
@@ -307,7 +307,7 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
           description: enabledFields.has('description') ? description.trim() || undefined : undefined,
           dueDate: enabledFields.has('dueDate') ? dueDateValue : undefined,
           id: task._id,
-          priority: priority as 'LOW' | 'MEDIUM' | 'HIGH',
+          priority: enabledFields.has('priority') ? (priority as 'LOW' | 'MEDIUM' | 'HIGH') : 'MEDIUM',
           recurrenceEndAt,
           reminderOffsetMinutes: enabledFields.has('reminderAt') ? reminderOffsetMinutes : undefined,
           rrule: enabledFields.has('rrule') ? recurrenceRule : undefined,
@@ -359,18 +359,20 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
             ))}
           </select>
         </div>
-        <div className="space-y-2">
-          <Label>Ưu tiên</Label>
-          <select
-            value={priority}
-            onChange={(event) => setPriority(event.target.value)}
-            className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            {PRIORITIES.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </div>
+        {enabledFields.has('priority') && (
+          <div className="space-y-2">
+            <Label>Ưu tiên</Label>
+            <select
+              value={priority}
+              onChange={(event) => setPriority(event.target.value)}
+              className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            >
+              {PRIORITIES.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {enabledFields.has('allDay') && (

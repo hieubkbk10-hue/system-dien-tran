@@ -522,7 +522,7 @@ export const listCalendarTasksRange = query({
     allDay: v.boolean(),
     assigneeId: v.optional(v.id('users')),
     dueDate: v.optional(v.number()),
-    priority: calendarPriority,
+    priority: v.optional(calendarPriority),
     sourceId: v.id('calendarTasks'),
     startAt: v.optional(v.number()),
     status: calendarStatus,
