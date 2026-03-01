@@ -185,7 +185,6 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
           {!collapsed && (
             <div className="ml-3">
               <h1 className="font-bold text-slate-800 dark:text-slate-100 tracking-tight">SYSTEM</h1>
-              <span className="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-mono tracking-wider">Console v2.5</span>
             </div>
           )}
         </div>
@@ -218,7 +217,7 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
       <div className={`flex-1 flex flex-col h-full transition-all duration-300 ${collapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         
         {/* Header */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40">
+        <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 sm:px-4 sticky top-0 z-40">
           <div className="flex items-center gap-4">
             <button 
               className="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -233,7 +232,7 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-1.5 focus-within:border-cyan-500/50 transition-colors">
               <Search size={14} className="text-slate-400 dark:text-slate-500 mr-2" />
               <input 
@@ -244,13 +243,7 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
               <span className="text-[10px] text-slate-500 dark:text-slate-600 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-800 ml-2">Ctrl+K</span>
             </div>
 
-            <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-1 hidden sm:block"></div>
-
-            <div className="flex items-center gap-1">
-              <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-[10px] font-mono font-medium tracking-wide">
-                PROD
-              </span>
-            </div>
+            <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>
 
             <LanguageSwitcher />
 
