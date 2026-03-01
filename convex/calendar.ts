@@ -728,6 +728,63 @@ export const updateCalendarTask = mutation({
   returns: v.null(),
 });
 
+const BULK_DELETE_LIMIT = 500;
+
+async function bulkDeleteTasks(
+  ctx: { db: { delete: (id: Doc<'calendarTasks'>['_id']) => Promise<void> } },
+  tasks: Doc<'calendarTasks'>[]
+) {
+  for (const task of tasks) {
+    await ctx.db.delete(task._id);
+  }
+}
+
+export const deleteAllCalendarTasks = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let deletedCount = 0;
+    while (true) {
+      const tasks = await ctx.db
+        .query('calendarTasks')
+        .withIndex('by_dueDate', q => q.gte('dueDate', 0))
+        .take(BULK_DELETE_LIMIT);
+      if (tasks.length === 0) {
+        break;
+      }
+      await bulkDeleteTasks(ctx, tasks);
+      deletedCount += tasks.length;
+      if (tasks.length < BULK_DELETE_LIMIT) {
+        break;
+      }
+    }
+    return { deletedCount };
+  },
+  returns: v.object({ deletedCount: v.number() }),
+});
+
+export const deleteOverdueCalendarTasks = mutation({
+  args: { now: v.number() },
+  handler: async (ctx, args) => {
+    let deletedCount = 0;
+    while (true) {
+      const tasks = await ctx.db
+        .query('calendarTasks')
+        .withIndex('by_dueDate', q => q.lt('dueDate', args.now))
+        .take(BULK_DELETE_LIMIT);
+      if (tasks.length === 0) {
+        break;
+      }
+      await bulkDeleteTasks(ctx, tasks);
+      deletedCount += tasks.length;
+      if (tasks.length < BULK_DELETE_LIMIT) {
+        break;
+      }
+    }
+    return { deletedCount };
+  },
+  returns: v.object({ deletedCount: v.number() }),
+});
+
 export const deleteCalendarTask = mutation({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {

@@ -4,11 +4,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, ListTodo, Plus, Search, Trash2 } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock, ListTodo, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Badge, Button, Card, Input, cn } from '../components/ui';
+import { Badge, Button, Card, Input, Popover, PopoverContent, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { BulkDeleteConfirmDialog } from '../components/BulkDeleteConfirmDialog';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { CalendarTaskModal } from './_components/CalendarTaskModal';
 
@@ -146,6 +147,8 @@ function CalendarWorkspace() {
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const users = useQuery(api.users.listAll, {});
   const deleteTask = useMutation(api.calendar.deleteCalendarTask);
+  const deleteAllTasks = useMutation(api.calendar.deleteAllCalendarTasks);
+  const deleteOverdueTasks = useMutation(api.calendar.deleteOverdueCalendarTasks);
   const markDone = useMutation(api.calendar.markCalendarTaskDone);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
 
@@ -187,6 +190,11 @@ function CalendarWorkspace() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [deleteOldDialogOpen, setDeleteOldDialogOpen] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [isDeletingOld, setIsDeletingOld] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Id<'calendarTasks'>[]>([]);
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([]);
   const [currentCursor, setCurrentCursor] = useState<string | null>(null);
@@ -201,6 +209,12 @@ function CalendarWorkspace() {
   const isAssigneeEnabled = fieldsData?.some(field => field.fieldKey === 'assigneeId') ?? true;
 
   const refreshNow = () => setQueryNow(Date.now());
+  const resetListState = () => {
+    setSelectedIds([]);
+    setCursorStack([]);
+    setCurrentCursor(null);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     if (!enableMonthView && enableListView) {
@@ -415,6 +429,38 @@ function CalendarWorkspace() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    setIsDeletingAll(true);
+    try {
+      const result = await deleteAllTasks({});
+      const deletedCount = result?.deletedCount ?? 0;
+      toast.success(deletedCount > 0 ? `Đã xóa ${deletedCount} task` : 'Không có task để xóa');
+      resetListState();
+      refreshNow();
+      setDeleteAllDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Xóa task thất bại');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
+  const handleDeleteOverdue = async () => {
+    setIsDeletingOld(true);
+    try {
+      const result = await deleteOverdueTasks({ now: Date.now() });
+      const deletedCount = result?.deletedCount ?? 0;
+      toast.success(deletedCount > 0 ? `Đã xóa ${deletedCount} task quá hạn` : 'Không có task quá hạn để xóa');
+      resetListState();
+      refreshNow();
+      setDeleteOldDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Xóa task thất bại');
+    } finally {
+      setIsDeletingOld(false);
+    }
+  };
+
   const handlePrevRange = () => {
     setCurrentDate(prev => {
       if (view === 'week') {
@@ -505,6 +551,42 @@ function CalendarWorkspace() {
             <Plus size={16} />
             Tạo task
           </Button>
+          <Popover>
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setActionMenuOpen(prev => !prev)}
+              >
+                Hành động
+                <ChevronDown size={14} />
+              </Button>
+              {actionMenuOpen && (
+                <PopoverContent align="end" className="w-56 p-2">
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                    onClick={() => {
+                      setActionMenuOpen(false);
+                      setDeleteAllDialogOpen(true);
+                    }}
+                  >
+                    Xóa toàn bộ task
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      setActionMenuOpen(false);
+                      setDeleteOldDialogOpen(true);
+                    }}
+                  >
+                    Xóa toàn bộ task cũ
+                  </button>
+                </PopoverContent>
+              )}
+            </div>
+          </Popover>
           {(enableMonthView || enableListView) && (
             <div className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
               {enableMonthView && (
@@ -1202,6 +1284,24 @@ function CalendarWorkspace() {
           </div>
         </Card>
       )}
+
+      <BulkDeleteConfirmDialog
+        open={deleteAllDialogOpen}
+        onOpenChange={setDeleteAllDialogOpen}
+        title="Xóa toàn bộ task"
+        description="Hành động này sẽ xóa toàn bộ task trong hệ thống. Không thể hoàn tác."
+        onConfirm={handleDeleteAll}
+        isLoading={isDeletingAll}
+      />
+
+      <BulkDeleteConfirmDialog
+        open={deleteOldDialogOpen}
+        onOpenChange={setDeleteOldDialogOpen}
+        title="Xóa toàn bộ task cũ"
+        description="Hành động này sẽ xóa toàn bộ task quá hạn (dueDate < hiện tại)."
+        onConfirm={handleDeleteOverdue}
+        isLoading={isDeletingOld}
+      />
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
