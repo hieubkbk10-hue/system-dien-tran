@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { Eye, EyeOff, LayoutTemplate } from 'lucide-react';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { COMPONENT_TYPES } from '@/app/admin/home-components/create/shared';
 import { useBrandColors } from '@/components/site/hooks';
@@ -57,11 +58,17 @@ export default function SystemHomeComponentsPage() {
   };
 
   const toggleHiddenType = async (type: string) => {
+    const willHide = !hiddenTypeSet.has(type);
     const nextHidden = hiddenTypeSet.has(type)
       ? hiddenTypes.filter((item) => item !== type)
       : [...hiddenTypes, type];
     setHiddenTypes(nextHidden);
-    await setCreateVisibility({ hiddenTypes: nextHidden });
+    try {
+      await setCreateVisibility({ hiddenTypes: nextHidden });
+      toast.success(willHide ? 'Đã ẩn khỏi trang tạo.' : 'Đã hiển thị lại trên trang tạo.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật trạng thái ẩn/hiện.');
+    }
   };
 
   const getDefaultOverride = (type: string): ColorOverride => {
@@ -91,13 +98,18 @@ export default function SystemHomeComponentsPage() {
       secondary: resolvedSecondary,
     };
     setTypeOverrides((prev) => ({ ...prev, [type]: nextOverride }));
-    await setTypeColorOverride({
-      enabled: nextOverride.enabled,
-      mode: nextOverride.mode,
-      primary: nextOverride.primary,
-      secondary: nextOverride.secondary,
-      type,
-    });
+    try {
+      await setTypeColorOverride({
+        enabled: nextOverride.enabled,
+        mode: nextOverride.mode,
+        primary: nextOverride.primary,
+        secondary: nextOverride.secondary,
+        type,
+      });
+      toast.success(nextEnabled ? 'Đã bật custom màu cho component.' : 'Đã chuyển về màu hệ thống.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu.');
+    }
   };
 
   const handleHideSelected = async () => {
