@@ -523,6 +523,7 @@ function CalendarWorkspace() {
                     type="button"
                     onClick={() => {
                       setView('week');
+                      setSelectedDateKey(null);
                       refreshNow();
                     }}
                     className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'week' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
@@ -836,7 +837,7 @@ function CalendarWorkspace() {
                   type="button"
                   onClick={() => {
                     setCurrentDate(date);
-                    setView('day');
+                    setSelectedDateKey(getDateKey(date));
                   }}
                   className={cn(
                     'min-h-[110px] rounded-md border px-2 py-2 text-left text-xs transition',
@@ -856,6 +857,52 @@ function CalendarWorkspace() {
               );
             })}
           </div>
+
+          {selectedDateKey && (
+            <div className="mt-4 border-t border-slate-200 pt-4">
+              <div className="text-sm font-semibold">Task ngày {selectedDateKey}</div>
+              {selectedTasks.length === 0 ? (
+                <div className="text-sm text-slate-400 mt-2">Không có task</div>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {selectedTasks.map(task => (
+                    <div key={task._id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{task.title}</div>
+                        <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isPriorityEnabled && (
+                          <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                        )}
+                        <button
+                          type="button"
+                          className="text-xs text-blue-600"
+                          onClick={() => {
+                            setModalMode('edit');
+                            setEditingTaskId(task.sourceId);
+                            setModalOpen(true);
+                          }}
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs text-red-600"
+                          onClick={() => {
+                            setDeleteTarget({ _id: task.sourceId, title: task.title });
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
       )}
 
