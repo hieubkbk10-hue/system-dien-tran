@@ -437,6 +437,7 @@ function CalendarWorkspace() {
               const dateKey = getDateKey(date);
               const items = tasksByDay.get(dateKey) ?? [];
               const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < queryNow).length;
+              const hasHighPriority = items.some(item => item.priority === 'HIGH' && item.status !== 'Done');
               const isSelected = selectedDateKey === dateKey;
 
               return (
@@ -452,9 +453,14 @@ function CalendarWorkspace() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-700">{date.getDate()}</span>
-                    {overdueCount > 0 && (
-                      <Badge variant="destructive" className="text-[10px]">{overdueCount}</Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {hasHighPriority && (
+                        <Badge variant="destructive" className="text-[10px]">Cao</Badge>
+                      )}
+                      {overdueCount > 0 && (
+                        <Badge variant="destructive" className="text-[10px]">{overdueCount}</Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-2 space-y-1">
                     {items.slice(0, 2).map(item => (
