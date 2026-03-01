@@ -629,9 +629,42 @@ function CalendarWorkspace() {
               <div className="text-sm text-slate-400">Không có task quá hạn</div>
             )}
             {(upcomingData?.overdue ?? []).map(task => (
-              <div key={task._id} className="flex items-center justify-between text-sm">
-                <span className="truncate">{task.title}</span>
-                <Badge variant="destructive">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
+              <div key={task._id} className="flex items-center justify-between gap-2 text-sm">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 truncate text-left text-slate-700"
+                  onClick={() => {
+                    setModalMode('edit');
+                    setEditingTaskId(task._id);
+                    setModalOpen(true);
+                  }}
+                >
+                  {task.title}
+                </button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="destructive">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600"
+                    onClick={() => {
+                      setModalMode('edit');
+                      setEditingTaskId(task._id);
+                      setModalOpen(true);
+                    }}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() => {
+                      setDeleteTarget({ _id: task._id, title: task.title });
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    Xóa
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -656,9 +689,42 @@ function CalendarWorkspace() {
               <div className="text-sm text-slate-400">Không có task sắp đến hạn</div>
             )}
             {(upcomingData?.dueSoon ?? []).map(task => (
-              <div key={task._id} className="flex items-center justify-between text-sm">
-                <span className="truncate">{task.title}</span>
-                <Badge variant="secondary">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
+              <div key={task._id} className="flex items-center justify-between gap-2 text-sm">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 truncate text-left text-slate-700"
+                  onClick={() => {
+                    setModalMode('edit');
+                    setEditingTaskId(task._id);
+                    setModalOpen(true);
+                  }}
+                >
+                  {task.title}
+                </button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600"
+                    onClick={() => {
+                      setModalMode('edit');
+                      setEditingTaskId(task._id);
+                      setModalOpen(true);
+                    }}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() => {
+                      setDeleteTarget({ _id: task._id, title: task.title });
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    Xóa
+                  </button>
+                </div>
               </div>
             ))}
           </div>
