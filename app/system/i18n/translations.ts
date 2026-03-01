@@ -17,9 +17,6 @@ const vi = {
       lightMode: 'Chuyển sang chế độ sáng',
       search: 'Tìm kiếm...',
     },
-    footer: {
-      systemHealthy: 'Hệ thống: Hoạt động tốt',
-    },
     pages: {
       analyticsIntegrations: 'Tích hợp',
       dashboard: 'Bảng điều khiển',
@@ -208,9 +205,6 @@ const en: typeof vi = {
       darkMode: 'Switch to Dark Mode',
       lightMode: 'Switch to Light Mode',
       search: 'Search...',
-    },
-    footer: {
-      systemHealthy: 'System: Healthy',
     },
     pages: {
       analyticsIntegrations: 'Integrations',

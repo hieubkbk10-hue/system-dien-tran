@@ -282,19 +282,6 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
             {children}
           </ErrorBoundary>
         </main>
-
-        {/* System Status Bar */}
-        <footer className="h-8 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center px-4 text-[10px] font-mono text-slate-400 dark:text-slate-500 justify-between shrink-0 select-none">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-slate-600 dark:text-slate-300">{t.footer.systemHealthy}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-             <span>v2.5.0</span>
-          </div>
-        </footer>
       </div>
 
       {/* Mobile Overlay */}
