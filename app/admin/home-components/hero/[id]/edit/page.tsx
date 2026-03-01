@@ -7,45 +7,15 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { LayoutTemplate, Loader2 } from 'lucide-react';
-import { differenceEuclidean, formatHex, oklch } from 'culori';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { HeroForm } from '../../_components/HeroForm';
 import { HeroPreview } from '../../_components/HeroPreview';
 import { DEFAULT_HERO_CONTENT } from '../../_lib/constants';
 import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_types';
-
-const DEFAULT_BRAND_COLOR = '#3b82f6';
-
-const isValidHexColor = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
-
-const safeOklch = (value: string, fallback: string) => {
-  return oklch(value) ?? oklch(fallback) ?? oklch(DEFAULT_BRAND_COLOR);
-};
-
-const getAnalogousColor = (primary: string) => {
-  const base = safeOklch(primary, DEFAULT_BRAND_COLOR);
-  if (!base) {return DEFAULT_BRAND_COLOR;}
-  return formatHex(oklch({ ...base, h: ((base.h ?? 0) + 30) % 360 }));
-};
-
-const getComplementaryColor = (primary: string) => {
-  const base = safeOklch(primary, DEFAULT_BRAND_COLOR);
-  if (!base) {return DEFAULT_BRAND_COLOR;}
-  return formatHex(oklch({ ...base, h: ((base.h ?? 0) + 180) % 360 }));
-};
-
-const getSuggestedSecondary = (primary: string) => {
-  if (!isValidHexColor(primary)) {return DEFAULT_BRAND_COLOR;}
-  const analogous = getAnalogousColor(primary);
-  if (!isValidHexColor(analogous)) {return getComplementaryColor(primary);}
-  const delta = differenceEuclidean('oklch')(primary, analogous);
-  if (Math.round(delta * 100) < 20) {
-    return getComplementaryColor(primary);
-  }
-  return analogous;
-};
+import { getSuggestedSecondary } from '../../../_shared/lib/typeColorOverride';
 
 export default function HeroEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -299,99 +269,36 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           <div></div>
           <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
             {showCustomBlock && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Màu custom cho Hero</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Dùng màu custom</div>
-                    <div
-                      className={cn(
-                        "cursor-pointer inline-flex items-center justify-center rounded-full w-10 h-5 transition-colors",
-                        heroCustomEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"
-                      )}
-                      onClick={() => setHeroCustomEnabled(!heroCustomEnabled)}
-                    >
-                      <div className={cn("w-4 h-4 bg-white rounded-full transition-transform", heroCustomEnabled ? "translate-x-2" : "-translate-x-2")}></div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={heroCustomMode === 'single' ? 'accent' : 'outline'}
-                      onClick={() => {
-                        setHeroCustomMode('single');
-                        setHeroCustomSecondary(heroCustomPrimary);
-                      }}
-                      disabled={!heroCustomEnabled}
-                    >
-                      Single
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={heroCustomMode === 'dual' ? 'accent' : 'outline'}
-                      onClick={() => {
-                        if (heroCustomMode === 'single') {
-                          setHeroCustomSecondary(getSuggestedSecondary(heroCustomPrimary));
-                        }
-                        setHeroCustomMode('dual');
-                      }}
-                      disabled={!heroCustomEnabled}
-                    >
-                      Dual
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Màu chính</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={heroCustomPrimary}
-                          onChange={(e) => {
-                            setHeroCustomPrimary(e.target.value);
-                            if (heroCustomMode === 'single') {
-                              setHeroCustomSecondary(e.target.value);
-                            }
-                          }}
-                          disabled={!heroCustomEnabled}
-                        />
-                        <Input
-                          value={heroCustomPrimary}
-                          onChange={(e) => {
-                            setHeroCustomPrimary(e.target.value);
-                            if (heroCustomMode === 'single') {
-                              setHeroCustomSecondary(e.target.value);
-                            }
-                          }}
-                          disabled={!heroCustomEnabled}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Màu phụ</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={heroCustomSecondary}
-                          onChange={(e) => setHeroCustomSecondary(e.target.value)}
-                          disabled={!heroCustomEnabled || heroCustomMode === 'single'}
-                        />
-                        <Input
-                          value={heroCustomSecondary}
-                          onChange={(e) => setHeroCustomSecondary(e.target.value)}
-                          disabled={!heroCustomEnabled || heroCustomMode === 'single'}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <TypeColorOverrideCard
+                title="Màu custom Hero"
+                enabled={heroCustomEnabled}
+                mode={heroCustomMode}
+                primary={heroCustomPrimary}
+                secondary={heroCustomSecondary}
+                compact
+                toggleLabel="Custom"
+                primaryLabel="Chính"
+                secondaryLabel="Phụ"
+                onEnabledChange={setHeroCustomEnabled}
+                onModeChange={(next) => {
+                  if (next === 'single') {
+                    setHeroCustomMode('single');
+                    setHeroCustomSecondary(heroCustomPrimary);
+                    return;
+                  }
+                  if (heroCustomMode === 'single') {
+                    setHeroCustomSecondary(getSuggestedSecondary(heroCustomPrimary));
+                  }
+                  setHeroCustomMode('dual');
+                }}
+                onPrimaryChange={(value) => {
+                  setHeroCustomPrimary(value);
+                  if (heroCustomMode === 'single') {
+                    setHeroCustomSecondary(value);
+                  }
+                }}
+                onSecondaryChange={setHeroCustomSecondary}
+              />
             )}
             <HeroPreview
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))}
