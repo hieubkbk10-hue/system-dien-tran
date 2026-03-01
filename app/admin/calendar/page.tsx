@@ -114,7 +114,7 @@ function CalendarWorkspace() {
   const [statusFilter, setStatusFilter] = useState<CalendarStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<CalendarPriority | 'all'>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<Id<'users'> | 'all'>('all');
-  const [nowTick, setNowTick] = useState(() => Date.now());
+  const [queryNow, setQueryNow] = useState(() => Date.now());
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Doc<'calendarTasks'> | null>(null);
@@ -126,10 +126,7 @@ function CalendarWorkspace() {
   const enableMonthView = enabledFeatures.enableMonthView ?? true;
   const enableListView = enabledFeatures.enableListView ?? true;
 
-  useEffect(() => {
-    const timer = setInterval(() => setNowTick(Date.now()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
+  const refreshNow = () => setQueryNow(Date.now());
 
   useEffect(() => {
     if (!enableMonthView && enableListView) {
@@ -145,6 +142,7 @@ function CalendarWorkspace() {
     setCursorStack([]);
     setCurrentCursor(null);
     setCurrentPage(1);
+    refreshNow();
   }, [statusFilter, priorityFilter, assigneeFilter]);
 
   const rangeStart = useMemo(() => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getTime(), [currentMonth]);
@@ -162,7 +160,7 @@ function CalendarWorkspace() {
   const upcomingData = useQuery(api.calendar.listUpcomingTasks, {
     horizonHours: upcomingWindowHours,
     limit: 8,
-    now: nowTick,
+    now: queryNow,
   });
 
   const listData = useQuery(api.calendar.listCalendarTasksPage, {
@@ -232,6 +230,7 @@ function CalendarWorkspace() {
     try {
       await deleteTask({ id: deleteTarget._id });
       toast.success('Đã xóa task');
+      refreshNow();
       setDeleteTarget(null);
       setDeleteDialogOpen(false);
     } catch (error) {
@@ -245,6 +244,7 @@ function CalendarWorkspace() {
     try {
       await markDone({ id: taskId });
       toast.success('Đã hoàn thành task');
+      refreshNow();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Cập nhật thất bại');
     }
@@ -253,11 +253,13 @@ function CalendarWorkspace() {
   const handlePrevMonth = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
     setSelectedDateKey(null);
+    refreshNow();
   };
 
   const handleNextMonth = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
     setSelectedDateKey(null);
+    refreshNow();
   };
 
   const handleNextPage = () => {
@@ -304,14 +306,20 @@ function CalendarWorkspace() {
             <div className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
               <button
                 type="button"
-                onClick={() => setView('month')}
+                onClick={() => {
+                  setView('month');
+                  refreshNow();
+                }}
                 className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'month' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
               >
                 <CalendarDays size={16} /> Month
               </button>
               <button
                 type="button"
-                onClick={() => setView('list')}
+                onClick={() => {
+                  setView('list');
+                  refreshNow();
+                }}
                 className={cn('px-3 py-2 text-sm flex items-center gap-2', view === 'list' ? 'bg-blue-50 text-blue-600' : 'text-slate-500')}
               >
                 <ListTodo size={16} /> List
@@ -428,7 +436,7 @@ function CalendarWorkspace() {
             {monthDays.map(({ date, isCurrentMonth }) => {
               const dateKey = getDateKey(date);
               const items = tasksByDay.get(dateKey) ?? [];
-              const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < nowTick).length;
+              const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < queryNow).length;
               const isSelected = selectedDateKey === dateKey;
 
               return (
