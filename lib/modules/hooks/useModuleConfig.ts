@@ -1,6 +1,6 @@
  'use client';
  
- import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
  import { useQuery, useMutation } from 'convex/react';
  import { api } from '@/convex/_generated/api';
  import { toast } from 'sonner';
@@ -35,6 +35,7 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
    const [localCategoryFields, setLocalCategoryFields] = useState<FieldConfig[]>([]);
    const [localSettings, setLocalSettings] = useState<SettingsState>({});
    const [isSaving, setIsSaving] = useState(false);
+  const hasMigratedPriorityRef = useRef(false);
    
    const isLoading = moduleData === undefined || 
                      featuresData === undefined || 
@@ -67,6 +68,30 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
        })));
      }
    }, [fieldsData]);
+
+  useEffect(() => {
+    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedPriorityRef.current) {
+      return;
+    }
+    const priorityField = fieldsData.find(field => field.fieldKey === 'priority' && field.required);
+    if (!priorityField) {
+      return;
+    }
+    hasMigratedPriorityRef.current = true;
+    const migratePriority = async () => {
+      try {
+        await updateField({ id: priorityField._id, required: false });
+        setLocalFields(prev => prev.map(field => (
+          field.key === 'priority' ? { ...field, required: false } : field
+        )));
+        toast.success('Đã cập nhật trường Ưu tiên thành tùy chọn.');
+      } catch (error) {
+        hasMigratedPriorityRef.current = false;
+        toast.error(error instanceof Error ? error.message : 'Cập nhật trường Ưu tiên thất bại.');
+      }
+    };
+    void migratePriority();
+  }, [moduleKey, fieldsData, updateField]);
    
    useEffect(() => {
      if (categoryFieldsData) {

@@ -142,6 +142,7 @@ export default function CalendarPage() {
 function CalendarWorkspace() {
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
+  const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const users = useQuery(api.users.listAll, {});
   const deleteTask = useMutation(api.calendar.deleteCalendarTask);
   const markDone = useMutation(api.calendar.markCalendarTaskDone);
@@ -192,6 +193,7 @@ function CalendarWorkspace() {
 
   const enableMonthView = enabledFeatures.enableMonthView ?? true;
   const enableListView = enabledFeatures.enableListView ?? true;
+  const isPriorityEnabled = fieldsData?.some(field => field.fieldKey === 'priority') ?? true;
 
   const refreshNow = () => setQueryNow(Date.now());
 
@@ -217,6 +219,12 @@ function CalendarWorkspace() {
   }, [statusFilter, priorityFilter, assigneeFilter]);
 
   useEffect(() => {
+    if (!isPriorityEnabled && priorityFilter !== 'all') {
+      setPriorityFilter('all');
+    }
+  }, [isPriorityEnabled, priorityFilter]);
+
+  useEffect(() => {
     if (view === 'day') {
       setSelectedDateKey(getDateKey(currentDate));
     }
@@ -232,7 +240,7 @@ function CalendarWorkspace() {
   const rangeItems = useQuery(api.calendar.listCalendarTasksRange, {
     assigneeId: assigneeFilter === 'all' ? undefined : assigneeFilter,
     from: rangeStart,
-    priority: priorityFilter === 'all' ? undefined : priorityFilter,
+    priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
     to: rangeEnd,
     limit: 300,
@@ -253,7 +261,7 @@ function CalendarWorkspace() {
     assigneeId: assigneeFilter === 'all' ? undefined : assigneeFilter,
     cursor: currentCursor ?? undefined,
     pageSize: calendarPerPage,
-    priority: priorityFilter === 'all' ? undefined : priorityFilter,
+    priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
 
@@ -420,7 +428,8 @@ function CalendarWorkspace() {
     }
   };
 
-  const isLoading = settingsData === undefined || featuresData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
+  const isLoading = settingsData === undefined || featuresData === undefined || fieldsData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
+  const listColSpan = isPriorityEnabled ? 6 : 5;
 
   return (
     <div className="space-y-6">
@@ -527,16 +536,18 @@ function CalendarWorkspace() {
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
-            <select
-              value={priorityFilter}
-              onChange={(event) => setPriorityFilter(event.target.value as CalendarPriority | 'all')}
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              <option value="all">Tất cả ưu tiên</option>
-              {Object.entries(PRIORITY_LABELS).map(([value, meta]) => (
-                <option key={value} value={value}>{meta.label}</option>
-              ))}
-            </select>
+            {isPriorityEnabled && (
+              <select
+                value={priorityFilter}
+                onChange={(event) => setPriorityFilter(event.target.value as CalendarPriority | 'all')}
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">Tất cả ưu tiên</option>
+                {Object.entries(PRIORITY_LABELS).map(([value, meta]) => (
+                  <option key={value} value={value}>{meta.label}</option>
+                ))}
+              </select>
+            )}
             <select
               value={assigneeFilter}
               onChange={(event) => setAssigneeFilter(event.target.value as Id<'users'> | 'all')}
@@ -624,13 +635,13 @@ function CalendarWorkspace() {
               const dateKey = getDateKey(date);
               const items = tasksByDay.get(dateKey) ?? [];
               const overdueCount = items.filter(item => item.status !== 'Done' && (item.dueDate ?? item.startAt ?? 0) < queryNow).length;
-              const priorityCounts = items.reduce((acc, item) => {
+              const priorityCounts = isPriorityEnabled ? items.reduce((acc, item) => {
                 if (item.status === 'Done') {
                   return acc;
                 }
                 acc[item.priority] += 1;
                 return acc;
-              }, { LOW: 0, MEDIUM: 0, HIGH: 0 });
+              }, { LOW: 0, MEDIUM: 0, HIGH: 0 }) : null;
               const statusCounts = items.reduce((acc, item) => {
                 acc[item.status] += 1;
                 return acc;
@@ -651,13 +662,13 @@ function CalendarWorkspace() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-700">{date.getDate()}</span>
                     <div className="flex items-center gap-1">
-                      {priorityCounts.HIGH > 0 && (
+                      {isPriorityEnabled && priorityCounts && priorityCounts.HIGH > 0 && (
                         <Badge variant={PRIORITY_LABELS.HIGH.variant} className="text-[10px]">Cao {priorityCounts.HIGH}</Badge>
                       )}
-                      {priorityCounts.MEDIUM > 0 && (
+                      {isPriorityEnabled && priorityCounts && priorityCounts.MEDIUM > 0 && (
                         <Badge variant={PRIORITY_LABELS.MEDIUM.variant} className="text-[10px]">TB {priorityCounts.MEDIUM}</Badge>
                       )}
-                      {priorityCounts.LOW > 0 && (
+                      {isPriorityEnabled && priorityCounts && priorityCounts.LOW > 0 && (
                         <Badge variant={PRIORITY_LABELS.LOW.variant} className="text-[10px]">Thấp {priorityCounts.LOW}</Badge>
                       )}
                       {overdueCount > 0 && (
@@ -705,7 +716,9 @@ function CalendarWorkspace() {
                         <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                        {isPriorityEnabled && (
+                          <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                        )}
                         <button
                           type="button"
                           className="text-xs text-blue-600"
@@ -819,7 +832,9 @@ function CalendarWorkspace() {
                   <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                  {isPriorityEnabled && (
+                    <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                  )}
                   <button
                     type="button"
                     className="text-xs text-blue-600"
@@ -891,7 +906,9 @@ function CalendarWorkspace() {
                   <th className="py-2 pr-4">Task</th>
                   <th className="py-2 pr-4">Hạn</th>
                   <th className="py-2 pr-4">Trạng thái</th>
-                  <th className="py-2 pr-4">Ưu tiên</th>
+                  {isPriorityEnabled && (
+                    <th className="py-2 pr-4">Ưu tiên</th>
+                  )}
                   <th className="py-2 pr-4">Phụ trách</th>
                   <th className="py-2">Hành động</th>
                 </tr>
@@ -899,7 +916,7 @@ function CalendarWorkspace() {
               <tbody>
                 {listItems.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400">Chưa có task</td>
+                    <td colSpan={listColSpan} className="py-6 text-center text-slate-400">Chưa có task</td>
                   </tr>
                 )}
                 {listItems.map(task => (
@@ -916,9 +933,11 @@ function CalendarWorkspace() {
                     <td className="py-3 pr-4">
                       <Badge variant={task.status === 'Done' ? 'secondary' : 'default'}>{STATUS_LABELS[task.status]}</Badge>
                     </td>
-                    <td className="py-3 pr-4">
-                      <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
-                    </td>
+                    {isPriorityEnabled && (
+                      <td className="py-3 pr-4">
+                        <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
+                      </td>
+                    )}
                     <td className="py-3 pr-4 text-slate-600">
                       {task.assigneeId ? usersMap.get(task.assigneeId)?.name ?? '---' : '---'}
                     </td>

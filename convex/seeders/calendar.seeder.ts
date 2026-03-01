@@ -106,7 +106,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'calendar', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
         { enabled: true, fieldKey: 'description', isSystem: false, moduleKey: 'calendar', name: 'Mô tả', order: 1, required: false, type: 'textarea' as const },
         { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'calendar', name: 'Trạng thái', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'priority', isSystem: false, linkedFeature: 'enablePriority', moduleKey: 'calendar', name: 'Ưu tiên', order: 3, required: true, type: 'select' as const },
+        { enabled: true, fieldKey: 'priority', isSystem: false, linkedFeature: 'enablePriority', moduleKey: 'calendar', name: 'Ưu tiên', order: 3, required: false, type: 'select' as const },
         { enabled: true, fieldKey: 'startAt', isSystem: false, moduleKey: 'calendar', name: 'Bắt đầu', order: 4, required: false, type: 'date' as const },
         { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'calendar', name: 'Hạn xử lý', order: 5, required: false, type: 'date' as const },
         { enabled: true, fieldKey: 'allDay', isSystem: false, moduleKey: 'calendar', name: 'Cả ngày', order: 6, required: false, type: 'boolean' as const },

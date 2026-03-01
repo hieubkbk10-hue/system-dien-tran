@@ -247,7 +247,7 @@ function CalendarEditForm() {
         dueDate: enabledFields.has('dueDate') ? dueDateValue : undefined,
         id: task._id,
         notes: enabledFields.has('notes') ? notes.trim() || undefined : undefined,
-        priority: priority as 'LOW' | 'MEDIUM' | 'HIGH',
+        priority: enabledFields.has('priority') ? (priority as 'LOW' | 'MEDIUM' | 'HIGH') : undefined,
         recurrenceEndAt,
         reminderOffsetMinutes: enabledFields.has('reminderAt') ? reminderOffsetMinutes : undefined,
         rrule: enabledFields.has('rrule') ? rruleInput.trim() : undefined,
