@@ -194,6 +194,7 @@ function CalendarWorkspace() {
   const enableMonthView = enabledFeatures.enableMonthView ?? true;
   const enableListView = enabledFeatures.enableListView ?? true;
   const isPriorityEnabled = fieldsData?.some(field => field.fieldKey === 'priority') ?? true;
+  const isAssigneeEnabled = fieldsData?.some(field => field.fieldKey === 'assigneeId') ?? true;
 
   const refreshNow = () => setQueryNow(Date.now());
 
@@ -225,6 +226,12 @@ function CalendarWorkspace() {
   }, [isPriorityEnabled, priorityFilter]);
 
   useEffect(() => {
+    if (!isAssigneeEnabled && assigneeFilter !== 'all') {
+      setAssigneeFilter('all');
+    }
+  }, [assigneeFilter, isAssigneeEnabled]);
+
+  useEffect(() => {
     if (view === 'day') {
       setSelectedDateKey(getDateKey(currentDate));
     }
@@ -238,7 +245,7 @@ function CalendarWorkspace() {
   );
 
   const rangeItems = useQuery(api.calendar.listCalendarTasksRange, {
-    assigneeId: assigneeFilter === 'all' ? undefined : assigneeFilter,
+    assigneeId: isAssigneeEnabled && assigneeFilter !== 'all' ? assigneeFilter : undefined,
     from: rangeStart,
     priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -258,7 +265,7 @@ function CalendarWorkspace() {
   });
 
   const listData = useQuery(api.calendar.listCalendarTasksPage, {
-    assigneeId: assigneeFilter === 'all' ? undefined : assigneeFilter,
+    assigneeId: isAssigneeEnabled && assigneeFilter !== 'all' ? assigneeFilter : undefined,
     cursor: currentCursor ?? undefined,
     pageSize: calendarPerPage,
     priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
@@ -429,7 +436,7 @@ function CalendarWorkspace() {
   };
 
   const isLoading = settingsData === undefined || featuresData === undefined || fieldsData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
-  const listColSpan = isPriorityEnabled ? 6 : 5;
+  const listColSpan = 4 + (isPriorityEnabled ? 1 : 0) + (isAssigneeEnabled ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -548,16 +555,18 @@ function CalendarWorkspace() {
                 ))}
               </select>
             )}
-            <select
-              value={assigneeFilter}
-              onChange={(event) => setAssigneeFilter(event.target.value as Id<'users'> | 'all')}
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              <option value="all">Tất cả người phụ trách</option>
-              {users?.map(user => (
-                <option key={user._id} value={user._id}>{user.name}</option>
-              ))}
-            </select>
+            {isAssigneeEnabled && (
+              <select
+                value={assigneeFilter}
+                onChange={(event) => setAssigneeFilter(event.target.value as Id<'users'> | 'all')}
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">Tất cả người phụ trách</option>
+                {users?.map(user => (
+                  <option key={user._id} value={user._id}>{user.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       </Card>
@@ -909,7 +918,9 @@ function CalendarWorkspace() {
                   {isPriorityEnabled && (
                     <th className="py-2 pr-4">Ưu tiên</th>
                   )}
-                  <th className="py-2 pr-4">Phụ trách</th>
+                  {isAssigneeEnabled && (
+                    <th className="py-2 pr-4">Phụ trách</th>
+                  )}
                   <th className="py-2">Hành động</th>
                 </tr>
               </thead>
@@ -938,9 +949,11 @@ function CalendarWorkspace() {
                         <Badge variant={PRIORITY_LABELS[task.priority].variant}>{PRIORITY_LABELS[task.priority].label}</Badge>
                       </td>
                     )}
-                    <td className="py-3 pr-4 text-slate-600">
-                      {task.assigneeId ? usersMap.get(task.assigneeId)?.name ?? '---' : '---'}
-                    </td>
+                    {isAssigneeEnabled && (
+                      <td className="py-3 pr-4 text-slate-600">
+                        {task.assigneeId ? usersMap.get(task.assigneeId)?.name ?? '---' : '---'}
+                      </td>
+                    )}
                     <td className="py-3 flex items-center gap-2">
                       <button
                         type="button"
