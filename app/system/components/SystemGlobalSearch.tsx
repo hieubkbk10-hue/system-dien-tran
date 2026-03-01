@@ -89,7 +89,11 @@ export function SystemGlobalSearch() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
+      const rawKey = event.key;
+      if (typeof rawKey !== 'string' || !rawKey) {
+        return;
+      }
+      const key = rawKey.toLowerCase();
       if ((event.ctrlKey || event.metaKey) && key === 'k') {
         if (isEditableTarget(document.activeElement)) {
           return;
