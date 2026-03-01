@@ -19,6 +19,7 @@ import type * as comments from "../comments.js";
 import type * as convexDashboard from "../convexDashboard.js";
 import type * as customers from "../customers.js";
 import type * as dataManager from "../dataManager.js";
+import type * as homeComponentSystemConfig from "../homeComponentSystemConfig.js";
 import type * as homeComponents from "../homeComponents.js";
 import type * as kanban from "../kanban.js";
 import type * as lib_helpers from "../lib/helpers.js";
@@ -80,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   convexDashboard: typeof convexDashboard;
   customers: typeof customers;
   dataManager: typeof dataManager;
+  homeComponentSystemConfig: typeof homeComponentSystemConfig;
   homeComponents: typeof homeComponents;
   kanban: typeof kanban;
   "lib/helpers": typeof lib_helpers;

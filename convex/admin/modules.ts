@@ -93,6 +93,18 @@ async function upsertAdminPermissionMode(ctx: MutationCtx, value: "simple_full_a
   await ctx.db.insert("settings", { group: "auth", key: "admin_permission_mode", value });
 }
 
+async function resetHomeComponentCreateVisibility(ctx: MutationCtx) {
+  const existing = await ctx.db
+    .query("settings")
+    .withIndex("by_key", (q) => q.eq("key", "create_hidden_types"))
+    .unique();
+  if (existing) {
+    await ctx.db.patch(existing._id, { group: "home_components", value: [] });
+    return;
+  }
+  await ctx.db.insert("settings", { group: "home_components", key: "create_hidden_types", value: [] });
+}
+
 export const listModules = query({
   args: {},
   handler: async (ctx) => {
@@ -272,6 +284,9 @@ export const toggleModule = mutation({
     if (args.key === "roles") {
       await upsertAdminPermissionMode(ctx, "simple_full_admin");
     }
+    if (args.enabled && args.key === "homepage") {
+      await resetHomeComponentCreateVisibility(ctx);
+    }
     return createToggleBasicResult({ code: "OK", success: true });
   },
   returns: v.object({
@@ -406,6 +421,9 @@ export const toggleModuleWithCascade = mutation({
 
       if (args.key === "roles") {
         await upsertAdminPermissionMode(ctx, "simple_full_admin");
+      }
+      if (args.key === "homepage") {
+        await resetHomeComponentCreateVisibility(ctx);
       }
 
       return createToggleResult({

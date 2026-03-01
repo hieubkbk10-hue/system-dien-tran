@@ -773,6 +773,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           { group: 'site', key: 'site_brand_primary', value: brandPrimary },
           { group: 'site', key: 'site_brand_secondary', value: brandSecondary },
           { group: 'site', key: 'site_brand_color', value: brandPrimary },
+          { group: 'home_components', key: 'create_hidden_types', value: [] },
+          { group: 'home_components', key: 'type_color_overrides', value: {} },
           { group: 'contact', key: 'contact_email', value: state.businessInfo.email || 'contact@example.com' },
           { group: 'contact', key: 'contact_phone', value: state.businessInfo.phone || '' },
           { group: 'contact', key: 'contact_address', value: state.businessInfo.address || '' },

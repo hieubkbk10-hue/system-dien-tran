@@ -10,13 +10,17 @@ import { COMPONENT_TYPES } from './shared';
 
 export default function HomeComponentCreatePage() {
   const stats = useQuery(api.homeComponents.getStats);
+  const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
   const typeCounts = useMemo(() => {
     if (!stats) {return {};}
     return Object.fromEntries(stats.typeBreakdown.map(item => [item.type, item.count]));
   }, [stats]);
 
-  const recommendedTypes = COMPONENT_TYPES.filter((type) => type.recommended);
-  const otherTypes = COMPONENT_TYPES.filter((type) => !type.recommended);
+  const hiddenTypeSet = useMemo(() => new Set(systemConfig?.hiddenTypes ?? []), [systemConfig?.hiddenTypes]);
+  const visibleTypes = useMemo(() => COMPONENT_TYPES.filter((type) => !hiddenTypeSet.has(type.value)), [hiddenTypeSet]);
+
+  const recommendedTypes = visibleTypes.filter((type) => type.recommended);
+  const otherTypes = visibleTypes.filter((type) => !type.recommended);
 
   return (
     <TooltipProvider>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -18,11 +18,11 @@ import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_type
 export default function HeroEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { primary, secondary, mode } = useBrandColors();
+  const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
@@ -32,6 +32,10 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const [heroHarmony, setHeroHarmony] = useState<HeroHarmony>('analogous');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [heroCustomEnabled, setHeroCustomEnabled] = useState(false);
+  const [heroCustomMode, setHeroCustomMode] = useState<'single' | 'dual'>('dual');
+  const [heroCustomPrimary, setHeroCustomPrimary] = useState(primary);
+  const [heroCustomSecondary, setHeroCustomSecondary] = useState(secondary || primary);
   const [initialData, setInitialData] = useState<{
     title: string;
     active: boolean;
@@ -40,6 +44,47 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     content: HeroContent;
     harmony: HeroHarmony;
   } | null>(null);
+  const [initialCustom, setInitialCustom] = useState<{
+    enabled: boolean;
+    mode: 'single' | 'dual';
+    primary: string;
+    secondary: string;
+  } | null>(null);
+
+  const resolvedCustomSecondary = heroCustomMode === 'single' ? heroCustomPrimary : heroCustomSecondary;
+  const effectiveColors = useMemo(() => {
+    if (!heroCustomEnabled) {
+      return {
+        mode,
+        primary,
+        secondary,
+      };
+    }
+    return {
+      mode: heroCustomMode,
+      primary: heroCustomPrimary,
+      secondary: resolvedCustomSecondary,
+    };
+  }, [heroCustomEnabled, heroCustomMode, heroCustomPrimary, resolvedCustomSecondary, mode, primary, secondary]);
+
+  useEffect(() => {
+    const override = systemConfig?.typeColorOverrides?.Hero;
+    const resolvedMode = override?.mode ?? mode;
+    const resolvedPrimary = override?.primary ?? primary;
+    const resolvedSecondary = override?.secondary ?? (secondary || resolvedPrimary);
+    const customSecondary = resolvedMode === 'single' ? resolvedPrimary : resolvedSecondary;
+
+    setHeroCustomEnabled(override?.enabled ?? false);
+    setHeroCustomMode(resolvedMode);
+    setHeroCustomPrimary(resolvedPrimary);
+    setHeroCustomSecondary(customSecondary);
+    setInitialCustom({
+      enabled: override?.enabled ?? false,
+      mode: resolvedMode,
+      primary: resolvedPrimary,
+      secondary: customSecondary,
+    });
+  }, [systemConfig?.typeColorOverrides?.Hero, mode, primary, secondary]);
 
   useEffect(() => {
     if (component) {
@@ -81,15 +126,23 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     const currentContent = JSON.stringify(heroContent);
     const initialContent = JSON.stringify(initialData.content);
 
+    const customChanged = initialCustom
+      ? heroCustomEnabled !== initialCustom.enabled
+        || heroCustomMode !== initialCustom.mode
+        || heroCustomPrimary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
+
     const changed = title !== initialData.title
       || active !== initialData.active
       || currentSlides !== initialSlides
       || heroStyle !== initialData.style
       || currentContent !== initialContent
-      || heroHarmony !== initialData.harmony;
+      || heroHarmony !== initialData.harmony
+      || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData]);
+  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, heroCustomEnabled, heroCustomMode, heroCustomPrimary, resolvedCustomSecondary, initialCustom]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +162,13 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         id: id as Id<"homeComponents">,
         title,
       });
+      await setTypeColorOverride({
+        enabled: heroCustomEnabled,
+        mode: heroCustomMode,
+        primary: heroCustomPrimary,
+        secondary: resolvedCustomSecondary,
+        type: 'Hero',
+      });
       toast.success('Đã cập nhật Hero Banner');
       setInitialData({
         title,
@@ -117,6 +177,12 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         style: heroStyle,
         content: heroContent,
         harmony: heroHarmony,
+      });
+      setInitialCustom({
+        enabled: heroCustomEnabled,
+        mode: heroCustomMode,
+        primary: heroCustomPrimary,
+        secondary: resolvedCustomSecondary,
       });
       setHasChanges(false);
     } catch (error) {
@@ -184,6 +250,55 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Màu custom cho Hero</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Dùng màu custom</div>
+                <div className="text-xs text-slate-500">Tắt để dùng màu chung từ Cài đặt hệ thống.</div>
+              </div>
+              <div
+                className={cn(
+                  "cursor-pointer inline-flex items-center justify-center rounded-full w-10 h-5 transition-colors",
+                  heroCustomEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"
+                )}
+                onClick={() => setHeroCustomEnabled(!heroCustomEnabled)}
+              >
+                <div className={cn("w-4 h-4 bg-white rounded-full transition-transform", heroCustomEnabled ? "translate-x-2" : "-translate-x-2")}></div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant={heroCustomMode === 'single' ? 'accent' : 'outline'} onClick={() => { setHeroCustomMode('single'); setHeroCustomSecondary(heroCustomPrimary); }} disabled={!heroCustomEnabled}>
+                Single
+              </Button>
+              <Button type="button" size="sm" variant={heroCustomMode === 'dual' ? 'accent' : 'outline'} onClick={() => setHeroCustomMode('dual')} disabled={!heroCustomEnabled}>
+                Dual
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Màu chính</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={heroCustomPrimary} onChange={(e) => { setHeroCustomPrimary(e.target.value); if (heroCustomMode === 'single') { setHeroCustomSecondary(e.target.value); } }} disabled={!heroCustomEnabled} />
+                  <Input value={heroCustomPrimary} onChange={(e) => { setHeroCustomPrimary(e.target.value); if (heroCustomMode === 'single') { setHeroCustomSecondary(e.target.value); } }} disabled={!heroCustomEnabled} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Màu phụ</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={heroCustomSecondary} onChange={(e) => setHeroCustomSecondary(e.target.value)} disabled={!heroCustomEnabled || heroCustomMode === 'single'} />
+                  <Input value={heroCustomSecondary} onChange={(e) => setHeroCustomSecondary(e.target.value)} disabled={!heroCustomEnabled || heroCustomMode === 'single'} />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <HeroForm
           heroSlides={heroSlides}
           setHeroSlides={setHeroSlides}
@@ -197,9 +312,9 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
           <div className="lg:sticky lg:top-6 lg:self-start">
             <HeroPreview
               slides={heroSlides.map((s, idx) => ({ id: idx + 1, image: s.url, link: s.link }))}
-              brandColor={primary}
-              secondary={secondary}
-              mode={brandMode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}
