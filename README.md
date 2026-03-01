@@ -66,7 +66,7 @@ python scripts/generate_seed_templates.py
 ```
 
 Gợi ý ảnh mẫu (không giới hạn số lượng, seed sẽ lấy toàn bộ ảnh trong từng thư mục):
-- hero: 1920x1080 hoặc 1920x1200 (16:9 / 16:10)
+- hero: 1920x1080 hoặc 1920x1200 (16:9 /16:10)
 - products: 1000x1000 (1:1)
 - posts: 1200x800 (3:2) hoặc 1200x675 (16:9)
 - gallery: 1200x900 (4:3) hoặc 1600x1200
