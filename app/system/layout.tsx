@@ -15,7 +15,6 @@ import {
   Menu,
   Moon,
   ExternalLink,
-  Search,
   Shield,
   Sun,
   Terminal
@@ -28,6 +27,7 @@ import type { Locale } from './i18n/translations';
 import { SystemAuthProvider, useSystemAuth } from './auth/context';
 import { SystemAuthGuard } from './auth/SystemAuthGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SystemGlobalSearch } from './components/SystemGlobalSearch';
 
 const SidebarItem = ({ href, icon: Icon, label, collapsed }: { href: string, icon: LucideIcon, label: string, collapsed: boolean }) => {
   const pathname = usePathname();
@@ -233,15 +233,7 @@ function SystemLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-1.5 focus-within:border-cyan-500/50 transition-colors">
-              <Search size={14} className="text-slate-400 dark:text-slate-500 mr-2" />
-              <input 
-                type="text" 
-                placeholder={t.header.search}
-                className="bg-transparent border-none outline-none text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 w-48"
-              />
-              <span className="text-[10px] text-slate-500 dark:text-slate-600 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-800 ml-2">Ctrl+K</span>
-            </div>
+            <SystemGlobalSearch />
 
             <div className="h-4 w-px bg-slate-300 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>
 

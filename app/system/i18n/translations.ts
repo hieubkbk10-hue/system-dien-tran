@@ -14,6 +14,11 @@ const vi = {
     },
     header: {
       darkMode: 'Chuyển sang chế độ tối',
+      globalSearchExperiences: 'Experiences',
+      globalSearchHint: 'Esc để đóng',
+      globalSearchModules: 'Modules',
+      globalSearchNoResult: 'Không tìm thấy kết quả phù hợp',
+      globalSearchPlaceholder: 'Tìm kiếm modules, experiences...',
       lightMode: 'Chuyển sang chế độ sáng',
       search: 'Tìm kiếm...',
     },
@@ -203,6 +208,11 @@ const en: typeof vi = {
     },
     header: {
       darkMode: 'Switch to Dark Mode',
+      globalSearchExperiences: 'Experiences',
+      globalSearchHint: 'Esc to close',
+      globalSearchModules: 'Modules',
+      globalSearchNoResult: 'No results found',
+      globalSearchPlaceholder: 'Search modules, experiences...',
       lightMode: 'Switch to Light Mode',
       search: 'Search...',
     },
