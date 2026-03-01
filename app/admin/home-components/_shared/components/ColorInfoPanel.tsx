@@ -2,14 +2,35 @@ import React from 'react';
 
 export const ColorInfoPanel = ({
   brandColor,
+  compact = false,
   secondary,
   description = 'Màu phụ được áp dụng cho: nav buttons, borders, badges, accents.',
 }: {
   brandColor: string;
+  compact?: boolean;
   secondary: string;
   description?: string;
 }) => {
   if (!secondary) {return null;}
+
+  if (compact) {
+    return (
+      <div className="mt-3 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-6 h-6 rounded border border-slate-300 dark:border-slate-600"
+            style={{ backgroundColor: brandColor }}
+            title={brandColor}
+          />
+          <div
+            className="w-6 h-6 rounded border border-slate-300 dark:border-slate-600"
+            style={{ backgroundColor: secondary }}
+            title={secondary}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">

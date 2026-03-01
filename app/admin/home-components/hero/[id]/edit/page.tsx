@@ -305,10 +305,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Dùng màu custom</div>
-                      <div className="text-xs text-slate-500">Tắt để dùng màu chung từ Cài đặt hệ thống.</div>
-                    </div>
+                    <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Dùng màu custom</div>
                     <div
                       className={cn(
                         "cursor-pointer inline-flex items-center justify-center rounded-full w-10 h-5 transition-colors",

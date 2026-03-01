@@ -136,13 +136,20 @@ interface ComponentRendererProps {
 
 export function ComponentRenderer({ component }: ComponentRendererProps) {
   const { primary, secondary, mode } = useBrandColors();
+  const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
   const brandColor = primary;
   const { type, title, config } = component;
+  const heroOverride = systemConfig?.typeColorOverrides?.Hero;
+  const heroMode = heroOverride?.enabled ? heroOverride.mode : mode;
+  const heroPrimary = heroOverride?.enabled ? heroOverride.primary : primary;
+  const heroSecondary = heroOverride?.enabled
+    ? (heroMode === 'single' ? heroPrimary : (heroOverride.secondary || heroPrimary))
+    : secondary;
 
   // Render component dựa vào type
   switch (type) {
     case 'Hero': {
-      return <HeroSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
+      return <HeroSection config={config} brandColor={heroPrimary} secondary={heroSecondary} mode={heroMode} />;
     }
     case 'Stats': {
       return <StatsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
