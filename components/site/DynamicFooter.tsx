@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { useBrandColors, useSiteSettings, useSocialLinks } from './hooks';
 import { getFooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
+import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
 import { Facebook, Github, Globe, Instagram, Linkedin, Twitter, Youtube } from 'lucide-react';
 
 interface SocialLinkItem { id: number; platform: string; url: string; icon: string }
@@ -72,7 +73,14 @@ const SOCIAL_ORIGINAL_COLORS: Record<string, { bg: string; icon: string }> = {
 };
 
 export function DynamicFooter() {
-  const { primary: brandColor, secondary, mode } = useBrandColors();
+  const systemColors = useBrandColors();
+  const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
+  const resolvedColors = resolveTypeOverrideColors({
+    type: 'Footer',
+    systemColors,
+    overrides: systemConfig?.typeColorOverrides ?? null,
+  });
+  const { primary: brandColor, secondary, mode } = resolvedColors;
   const { siteName, logo: siteLogo } = useSiteSettings();
   const socialLinks = useSocialLinks();
   const components = useQuery(api.homeComponents.listActive);
