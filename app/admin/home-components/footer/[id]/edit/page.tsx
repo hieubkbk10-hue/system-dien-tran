@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FooterForm } from '../../_components/FooterForm';
 import { FooterPreview } from '../../_components/FooterPreview';
 import { DEFAULT_FOOTER_CONFIG, normalizeFooterConfig } from '../../_lib/constants';
@@ -195,8 +195,20 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === 'single') {
+                    return { ...prev, mode: 'single', secondary: prev.primary };
+                  }
+                  if (prev.mode === 'single') {
+                    return { ...prev, mode: 'dual', secondary: getSuggestedSecondary(prev.primary) };
+                  }
+                  return { ...prev, mode: 'dual' };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => (
+                  prev.mode === 'single'
+                    ? { ...prev, primary: value, secondary: value }
+                    : { ...prev, primary: value }
+                ))}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
