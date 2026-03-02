@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ConfigEditor } from '../../_components/ConfigEditor';
 import { ContactPreview } from '../../_components/ContactPreview';
 import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../_lib/constants';
@@ -241,9 +241,24 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
-                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              onModeChange={(next) => setCustomState((prev) => {
+                if (next === 'single') {
+                  return { ...prev, mode: next, secondary: prev.primary };
+                }
+                if (prev.mode === 'single') {
+                  return { ...prev, mode: next, secondary: getSuggestedSecondary(prev.primary) };
+                }
+                return { ...prev, mode: next };
+              })}
+              onPrimaryChange={(value) => setCustomState((prev) => ({
+                ...prev,
+                primary: value,
+                secondary: prev.mode === 'single' ? value : prev.secondary,
+              }))}
+              onSecondaryChange={(value) => setCustomState((prev) => ({
+                ...prev,
+                secondary: prev.mode === 'single' ? prev.primary : value,
+              }))}
               />
             )}
             <ContactPreview

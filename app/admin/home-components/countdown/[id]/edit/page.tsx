@@ -9,7 +9,7 @@ import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CountdownForm } from '../../_components/CountdownForm';
 import { CountdownPreview } from '../../_components/CountdownPreview';
 import { DEFAULT_COUNTDOWN_CONFIG } from '../../_lib/constants';
@@ -175,9 +175,24 @@ export default function EditCountdownPage() {
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
-                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              onModeChange={(next) => setCustomState((prev) => {
+                if (next === 'single') {
+                  return { ...prev, mode: next, secondary: prev.primary };
+                }
+                if (prev.mode === 'single') {
+                  return { ...prev, mode: next, secondary: getSuggestedSecondary(prev.primary) };
+                }
+                return { ...prev, mode: next };
+              })}
+              onPrimaryChange={(value) => setCustomState((prev) => ({
+                ...prev,
+                primary: value,
+                secondary: prev.mode === 'single' ? value : prev.secondary,
+              }))}
+              onSecondaryChange={(value) => setCustomState((prev) => ({
+                ...prev,
+                secondary: prev.mode === 'single' ? prev.primary : value,
+              }))}
               />
             )}
             <CountdownPreview
