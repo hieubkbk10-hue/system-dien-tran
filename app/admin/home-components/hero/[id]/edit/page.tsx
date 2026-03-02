@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -9,19 +9,18 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { LayoutTemplate, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
 import { HeroForm } from '../../_components/HeroForm';
 import { HeroPreview } from '../../_components/HeroPreview';
 import { DEFAULT_HERO_CONTENT } from '../../_lib/constants';
 import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_types';
-import { getSuggestedSecondary } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 
 export default function HeroEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
-  const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, initialCustom, setInitialCustom } = useTypeColorOverrideState('Hero');
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
@@ -34,10 +33,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const [heroHarmony, setHeroHarmony] = useState<HeroHarmony>('analogous');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [heroCustomEnabled, setHeroCustomEnabled] = useState(false);
-  const [heroCustomMode, setHeroCustomMode] = useState<'single' | 'dual'>('dual');
-  const [heroCustomPrimary, setHeroCustomPrimary] = useState(primary);
-  const [heroCustomSecondary, setHeroCustomSecondary] = useState(secondary || primary);
   const [initialData, setInitialData] = useState<{
     title: string;
     active: boolean;
@@ -46,48 +41,11 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     content: HeroContent;
     harmony: HeroHarmony;
   } | null>(null);
-  const [initialCustom, setInitialCustom] = useState<{
-    enabled: boolean;
-    mode: 'single' | 'dual';
-    primary: string;
-    secondary: string;
-  } | null>(null);
-
-  const showCustomBlock = Boolean(systemConfig?.typeColorOverrides?.Hero?.enabled);
-  const resolvedCustomSecondary = heroCustomMode === 'single' ? heroCustomPrimary : heroCustomSecondary;
-  const effectiveColors = useMemo(() => {
-    if (!showCustomBlock || !heroCustomEnabled) {
-      return {
-        mode,
-        primary,
-        secondary,
-      };
-    }
-    return {
-      mode: heroCustomMode,
-      primary: heroCustomPrimary,
-      secondary: resolvedCustomSecondary,
-    };
-  }, [showCustomBlock, heroCustomEnabled, heroCustomMode, heroCustomPrimary, resolvedCustomSecondary, mode, primary, secondary]);
-
-  useEffect(() => {
-    const override = systemConfig?.typeColorOverrides?.Hero;
-    const resolvedMode = override?.mode ?? mode;
-    const resolvedPrimary = override?.primary ?? primary;
-    const resolvedSecondary = override?.secondary ?? (secondary || resolvedPrimary);
-    const customSecondary = resolvedMode === 'single' ? resolvedPrimary : resolvedSecondary;
-
-    setHeroCustomEnabled(override?.enabled ?? false);
-    setHeroCustomMode(resolvedMode);
-    setHeroCustomPrimary(resolvedPrimary);
-    setHeroCustomSecondary(customSecondary);
-    setInitialCustom({
-      enabled: override?.enabled ?? false,
-      mode: resolvedMode,
-      primary: resolvedPrimary,
-      secondary: customSecondary,
-    });
-  }, [systemConfig?.typeColorOverrides?.Hero, mode, primary, secondary]);
+  const resolvedCustomSecondary = resolveSecondaryByMode(
+    customState.mode,
+    customState.primary,
+    customState.secondary,
+  );
 
   useEffect(() => {
     if (component) {
@@ -130,9 +88,9 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     const initialContent = JSON.stringify(initialData.content);
 
     const customChanged = showCustomBlock && initialCustom
-      ? heroCustomEnabled !== initialCustom.enabled
-        || heroCustomMode !== initialCustom.mode
-        || heroCustomPrimary !== initialCustom.primary
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
         || resolvedCustomSecondary !== initialCustom.secondary
       : false;
 
@@ -145,7 +103,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, showCustomBlock, heroCustomEnabled, heroCustomMode, heroCustomPrimary, resolvedCustomSecondary, initialCustom]);
+  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, showCustomBlock, customState, resolvedCustomSecondary, initialCustom]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,9 +125,9 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       });
       if (showCustomBlock) {
         await setTypeColorOverride({
-          enabled: heroCustomEnabled,
-          mode: heroCustomMode,
-          primary: heroCustomPrimary,
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
           secondary: resolvedCustomSecondary,
           type: 'Hero',
         });
@@ -185,9 +143,9 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       });
       if (showCustomBlock) {
         setInitialCustom({
-          enabled: heroCustomEnabled,
-          mode: heroCustomMode,
-          primary: heroCustomPrimary,
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
           secondary: resolvedCustomSecondary,
         });
       }
@@ -271,33 +229,34 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
             {showCustomBlock && (
               <TypeColorOverrideCard
                 title="Màu custom Hero"
-                enabled={heroCustomEnabled}
-                mode={heroCustomMode}
-                primary={heroCustomPrimary}
-                secondary={heroCustomSecondary}
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
                 compact
                 toggleLabel="Custom"
                 primaryLabel="Chính"
                 secondaryLabel="Phụ"
-                onEnabledChange={setHeroCustomEnabled}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
                 onModeChange={(next) => {
                   if (next === 'single') {
-                    setHeroCustomMode('single');
-                    setHeroCustomSecondary(heroCustomPrimary);
+                    setCustomState((prev) => ({ ...prev, mode: 'single', secondary: prev.primary }));
                     return;
                   }
-                  if (heroCustomMode === 'single') {
-                    setHeroCustomSecondary(getSuggestedSecondary(heroCustomPrimary));
-                  }
-                  setHeroCustomMode('dual');
+                  setCustomState((prev) => ({
+                    ...prev,
+                    mode: 'dual',
+                    secondary: prev.mode === 'single' ? getSuggestedSecondary(prev.primary) : prev.secondary,
+                  }));
                 }}
                 onPrimaryChange={(value) => {
-                  setHeroCustomPrimary(value);
-                  if (heroCustomMode === 'single') {
-                    setHeroCustomSecondary(value);
-                  }
+                  setCustomState((prev) => ({
+                    ...prev,
+                    primary: value,
+                    secondary: prev.mode === 'single' ? value : prev.secondary,
+                  }));
                 }}
-                onSecondaryChange={setHeroCustomSecondary}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
             <HeroPreview

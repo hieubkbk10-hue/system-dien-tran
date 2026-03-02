@@ -12,6 +12,7 @@ const SUPPORTED_CUSTOM_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 const colorMode = v.union(v.literal("single"), v.literal("dual"));
 const colorOverrideDoc = v.object({
   enabled: v.boolean(),
+  systemEnabled: v.boolean(),
   mode: colorMode,
   primary: v.string(),
   secondary: v.string(),
@@ -31,6 +32,7 @@ const normalizeColorOverride = (value: unknown) => {
   }
   const record = value as Record<string, unknown>;
   const enabled = Boolean(record.enabled);
+  const systemEnabled = typeof record.systemEnabled === "boolean" ? record.systemEnabled : enabled;
   const mode: "single" | "dual" = record.mode === "single" ? "single" : "dual";
   const primary = typeof record.primary === "string" && isValidHexColor(record.primary)
     ? record.primary
@@ -43,15 +45,16 @@ const normalizeColorOverride = (value: unknown) => {
   }
   return {
     enabled,
+    systemEnabled,
     mode,
     primary,
     secondary,
   };
 };
 
-const normalizeOverrides = (value: unknown): Record<string, { enabled: boolean; mode: "single" | "dual"; primary: string; secondary: string }> => {
+const normalizeOverrides = (value: unknown): Record<string, { enabled: boolean; systemEnabled: boolean; mode: "single" | "dual"; primary: string; secondary: string }> => {
   if (!value || typeof value !== "object") {return {};}
-  const result: Record<string, { enabled: boolean; mode: "single" | "dual"; primary: string; secondary: string }> = {};
+  const result: Record<string, { enabled: boolean; systemEnabled: boolean; mode: "single" | "dual"; primary: string; secondary: string }> = {};
   const record = value as Record<string, unknown>;
   Object.entries(record).forEach(([key, entry]) => {
     const normalized = normalizeColorOverride(entry);
@@ -110,10 +113,11 @@ export const setCreateVisibility = mutation({
 
 export const setTypeColorOverride = mutation({
   args: {
-    enabled: v.boolean(),
-    mode: colorMode,
-    primary: v.string(),
-    secondary: v.string(),
+    enabled: v.optional(v.boolean()),
+    systemEnabled: v.optional(v.boolean()),
+    mode: v.optional(colorMode),
+    primary: v.optional(v.string()),
+    secondary: v.optional(v.string()),
     type: v.string(),
   },
   handler: async (ctx, args) => {
@@ -122,16 +126,27 @@ export const setTypeColorOverride = mutation({
     }
 
     const overrides = normalizeOverrides(await getSettingValue(ctx, OVERRIDES_KEY));
-    const primary = isValidHexColor(args.primary) ? args.primary : DEFAULT_BRAND_COLOR;
-    const mode: "single" | "dual" = args.mode === "single" ? "single" : "dual";
-    let secondary = isValidHexColor(args.secondary) ? args.secondary : primary;
-    if (mode === "single") {
+    const current = normalizeColorOverride(overrides[args.type]) ?? {
+      enabled: false,
+      systemEnabled: false,
+      mode: "dual" as const,
+      primary: DEFAULT_BRAND_COLOR,
+      secondary: DEFAULT_BRAND_COLOR,
+    };
+
+    const nextMode: "single" | "dual" = args.mode ?? current.mode;
+    const primaryCandidate = args.primary ?? current.primary;
+    const primary = isValidHexColor(primaryCandidate) ? primaryCandidate : current.primary;
+    const providedSecondary = args.secondary ?? current.secondary;
+    let secondary = isValidHexColor(providedSecondary) ? providedSecondary : primary;
+    if (nextMode === "single") {
       secondary = primary;
     }
 
     overrides[args.type] = {
-      enabled: args.enabled,
-      mode,
+      enabled: typeof args.enabled === "boolean" ? args.enabled : current.enabled,
+      systemEnabled: typeof args.systemEnabled === "boolean" ? args.systemEnabled : current.systemEnabled,
+      mode: nextMode,
       primary,
       secondary,
     };
@@ -142,7 +157,7 @@ export const setTypeColorOverride = mutation({
 });
 
 export const bulkSetTypeColorOverride = mutation({
-  args: { enabled: v.boolean(), types: v.array(v.string()) },
+  args: { systemEnabled: v.boolean(), types: v.array(v.string()) },
   handler: async (ctx, args) => {
     const overrides = normalizeOverrides(await getSettingValue(ctx, OVERRIDES_KEY));
     args.types
@@ -150,11 +165,12 @@ export const bulkSetTypeColorOverride = mutation({
       .forEach((type) => {
         const current = normalizeColorOverride(overrides[type]) ?? {
           enabled: false,
+          systemEnabled: false,
           mode: "dual" as const,
           primary: DEFAULT_BRAND_COLOR,
           secondary: DEFAULT_BRAND_COLOR,
         };
-        overrides[type] = { ...current, enabled: args.enabled };
+        overrides[type] = { ...current, systemEnabled: args.systemEnabled };
       });
     await upsertSetting(ctx, OVERRIDES_KEY, overrides);
     return null;

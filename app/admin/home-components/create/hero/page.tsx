@@ -1,14 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useMutation } from 'convex/react';
-import { toast } from 'sonner';
-import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
-import { TypeColorOverrideCard } from '../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
-import { getSuggestedSecondary, resolveSecondaryByMode } from '../../_shared/lib/typeColorOverride';
 import type { HeroContent, HeroStyle } from '../../hero/_types';
 import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
 import { HeroPreview } from '../../hero/_components/HeroPreview';
@@ -26,8 +21,7 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
-  const { customState, effectiveColors, showCustomBlock, setCustomState } = useTypeColorOverrideState('Hero');
-  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('Hero');
 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', image: '', link: '', url: '' }
@@ -46,30 +40,11 @@ export default function HeroCreatePage() {
   }));
 
   const onSubmit = (e: React.FormEvent) => {
-    void (async () => {
-      e.preventDefault();
-
-      if (showCustomBlock) {
-        try {
-          await setTypeColorOverride({
-            type: 'Hero',
-            enabled: customState.enabled,
-            mode: customState.mode,
-            primary: customState.primary,
-            secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
-          });
-        } catch (error) {
-          toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu Hero.');
-          return;
-        }
-      }
-
-      await handleSubmit(e, {
-        content: needsContentForm(heroStyle) ? heroContent : undefined,
-        slides: heroSlides.map(s => ({ image: s.url || s.image, link: s.link })),
-        style: heroStyle,
-      });
-    })();
+    void handleSubmit(e, {
+      content: needsContentForm(heroStyle) ? heroContent : undefined,
+      slides: heroSlides.map(s => ({ image: s.url || s.image, link: s.link })),
+      style: heroStyle,
+    });
   };
 
   return (
@@ -81,6 +56,10 @@ export default function HeroCreatePage() {
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -172,42 +151,6 @@ export default function HeroCreatePage() {
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {showCustomBlock && (
-        <div className="mb-6">
-          <TypeColorOverrideCard
-            title="Màu custom Hero"
-            enabled={customState.enabled}
-            mode={customState.mode}
-            primary={customState.primary}
-            secondary={customState.secondary}
-            compact
-            toggleLabel="Custom"
-            primaryLabel="Chính"
-            secondaryLabel="Phụ"
-            onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-            onModeChange={(next) => {
-              if (next === 'single') {
-                setCustomState((prev) => ({ ...prev, mode: 'single', secondary: prev.primary }));
-                return;
-              }
-              setCustomState((prev) => ({
-                ...prev,
-                mode: 'dual',
-                secondary: prev.mode === 'single' ? getSuggestedSecondary(prev.primary) : prev.secondary,
-              }));
-            }}
-            onPrimaryChange={(value) => {
-              setCustomState((prev) => ({
-                ...prev,
-                primary: value,
-                secondary: prev.mode === 'single' ? value : prev.secondary,
-              }));
-            }}
-            onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
-          />
-        </div>
       )}
 
       <HeroPreview 

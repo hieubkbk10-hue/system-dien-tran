@@ -13,6 +13,7 @@ const CUSTOM_SUPPORTED_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 
 type ColorOverride = {
   enabled: boolean;
+  systemEnabled: boolean;
   mode: 'single' | 'dual';
   primary: string;
   secondary: string;
@@ -81,6 +82,7 @@ export default function SystemHomeComponentsPage() {
     const secondary = mode === 'single' ? primary : (systemColors.secondary || primary);
     return {
       enabled: false,
+      systemEnabled: false,
       mode,
       primary,
       secondary,
@@ -90,20 +92,17 @@ export default function SystemHomeComponentsPage() {
   const toggleCustomType = async (type: string) => {
     if (!CUSTOM_SUPPORTED_TYPES.has(type)) {return;}
     const current = getDefaultOverride(type);
-    const nextEnabled = !current.enabled;
+    const nextEnabled = !current.systemEnabled;
     const resolvedSecondary = current.mode === 'single' ? current.primary : current.secondary;
     const nextOverride = {
       ...current,
-      enabled: nextEnabled,
+      systemEnabled: nextEnabled,
       secondary: resolvedSecondary,
     };
     setTypeOverrides((prev) => ({ ...prev, [type]: nextOverride }));
     try {
       await setTypeColorOverride({
-        enabled: nextOverride.enabled,
-        mode: nextOverride.mode,
-        primary: nextOverride.primary,
-        secondary: nextOverride.secondary,
+        systemEnabled: nextOverride.systemEnabled,
         type,
       });
       toast.success(nextEnabled ? 'Đã bật custom màu cho component.' : 'Đã chuyển về màu hệ thống.');
@@ -127,7 +126,7 @@ export default function SystemHomeComponentsPage() {
   const handleBulkCustom = async () => {
     if (selectedTypes.length === 0) {return;}
     try {
-      await bulkSetTypeColorOverride({ enabled: true, types: selectedTypes });
+      await bulkSetTypeColorOverride({ systemEnabled: true, types: selectedTypes });
       toast.success('Đã bật custom màu cho các component đã chọn.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể bật custom màu hàng loạt.');
@@ -223,13 +222,13 @@ export default function SystemHomeComponentsPage() {
                       disabled={!customSupported}
                       className={cn(
                         "inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs border",
-                        override.enabled
+                        override.systemEnabled
                           ? "border-cyan-200 text-cyan-600 bg-cyan-50"
                           : "border-slate-200 text-slate-500 bg-white",
                         !customSupported && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      {override.enabled ? 'Custom' : 'System'}
+                      {override.systemEnabled ? 'Custom' : 'System'}
                     </button>
                   </div>
                 </div>

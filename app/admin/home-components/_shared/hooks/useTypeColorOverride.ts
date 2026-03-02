@@ -45,13 +45,14 @@ export const useTypeColorOverride = (type: string) => {
     overrides,
   ]);
   const isSupportedType = HOME_COMPONENT_TYPE_VALUES.includes(type);
+  const systemEnabled = Boolean(overrides?.[type]?.systemEnabled);
 
   return {
     overrideState,
     resolvedColors,
-    showCustomBlock: isSupportedType,
+    showCustomBlock: isSupportedType && systemEnabled,
     systemColors,
-    typeOverrides: overrides as Record<string, ColorOverrideState> | null,
+    typeOverrides: overrides as Record<string, ColorOverrideState & { systemEnabled?: boolean }> | null,
   };
 };
 
