@@ -39,6 +39,8 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
     items: StatsFormItem[];
     style: StatsStyle;
   } | null>(null);
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const resolvedInitialSecondary = resolveSecondaryByMode(initialCustom.mode, initialCustom.primary, initialCustom.secondary);
 
   useEffect(() => {
     if (component) {
@@ -72,12 +74,11 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
 
     const currentItems = JSON.stringify(statsItems);
     const initialItems = JSON.stringify(initialData.items);
-    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
     const customChanged = showCustomBlock
       ? customState.enabled !== initialCustom.enabled
         || customState.mode !== initialCustom.mode
         || customState.primary !== initialCustom.primary
-        || resolvedCustomSecondary !== initialCustom.secondary
+        || resolvedCustomSecondary !== resolvedInitialSecondary
       : false;
 
     const changed = title !== initialData.title
@@ -105,7 +106,6 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
         title,
       });
       if (showCustomBlock) {
-        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
@@ -126,7 +126,7 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+          secondary: resolvedCustomSecondary,
         });
       }
       setHasChanges(false);
