@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useConvex, useMutation, useQuery } from 'convex/react';
+import { useAction, useConvex, useMutation, useQuery } from 'convex/react';
 import { Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
@@ -153,10 +153,10 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const productsRef = useRef(productsList ?? []);
 
   const seedBulk = useMutation(api.seedManager.seedBulk);
-  const seedModule = useMutation(api.seedManager.seedModule);
   const clearAll = useMutation(api.seedManager.clearAll);
   const clearModule = useMutation(api.seedManager.clearModule);
   const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
+  const seedAllModulesConfig = useAction(api.seed.seedAllModulesConfig);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
   const createModuleFeature = useMutation(api.admin.modules.createModuleFeature);
   const toggleModuleFeature = useMutation(api.admin.modules.toggleModuleFeature);
@@ -183,12 +183,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     },
   };
 
-  const customerFeatureDefaults: Record<string, {
-    description: string;
-    name: string;
-    enabled: boolean;
-    linkedFieldKey?: string;
-  }> = {
+  const customerFeatureDefaults: Record<string, { description: string; name: string; enabled: boolean; linkedFieldKey?: string }> = {
     enableLogin: {
       description: 'Cho phép khách hàng tạo tài khoản và đăng nhập',
       enabled: false,
@@ -664,27 +659,27 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     try {
       if (state.clearBeforeSeed) {
         await clearAll({ excludeSystem: false, forceStorageCleanup: true });
-        await seedModule({ module: 'adminModules', quantity: 0 });
-        await seedModule({ module: 'systemPresets', quantity: 0 });
+        await seedAllModulesConfig({});
       }
 
       if (state.clearBeforeSeed && hasProducts) {
         await clearProductVariantData({});
       }
 
-      await syncModules(modulesForEnable);
-
-      if (hasCalendar) {
-        await Promise.all(
-          Object.entries(state.calendarFeatures).map(([featureKey, enabled]) =>
-            toggleModuleFeature({
-              enabled,
-              featureKey,
-              moduleKey: 'calendar',
-            })
-          )
+      if (!state.clearBeforeSeed) {
+        const modulesToCheck = selectedModules.length > 0 ? selectedModules : ['products'];
+        const missingConfigs = await Promise.all(
+          modulesToCheck.map(async (moduleKey) => {
+            const fields = await convex.query(api.admin.modules.listModuleFields, { moduleKey });
+            return !fields || fields.length === 0 ? moduleKey : null;
+          })
         );
+        if (missingConfigs.some(Boolean)) {
+          await seedAllModulesConfig({});
+        }
       }
+
+      await syncModules(modulesForEnable);
 
       if (!hasServices) {
         await clearModule({ module: 'services' });
@@ -706,8 +701,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         await setModuleSetting({ moduleKey: 'products', settingKey: 'imageChangeAnimation', value: 'fade' });
         await setModuleSetting({
           moduleKey: 'products',
-          settingKey: 'enableDigitalProducts',
-          value: state.productType !== 'physical',
+          settingKey: 'productTypeMode',
+          value: state.productType,
         });
         await setModuleSetting({
           moduleKey: 'products',
@@ -762,6 +757,44 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       }
 
       const seedResults = await seedBulk({ configs: seedConfigs });
+
+      if (hasCalendar) {
+        await Promise.all(
+          Object.entries(state.calendarFeatures).map(([featureKey, enabled]) =>
+            toggleModuleFeature({
+              enabled,
+              featureKey,
+              moduleKey: 'calendar',
+            })
+          )
+        );
+      }
+
+      if (selectedModules.includes('customers') || customerLoginRequired) {
+        const customerFeatureReady = await ensureModuleFeature(
+          'customers',
+          'enableLogin',
+          customerFeatureDefaults.enableLogin
+        );
+        if (customerFeatureReady) {
+          await toggleModuleFeature({
+            enabled: resolvedCustomerLoginEnabled,
+            featureKey: 'enableLogin',
+            moduleKey: 'customers',
+          });
+        }
+      }
+
+      const settingsFeaturesToEnable = ['enableContact', 'enableSEO', 'enableSocial'];
+      for (const featureKey of settingsFeaturesToEnable) {
+        const payload = settingsFeatureDefaults[featureKey];
+        const settingsFeatureReady = payload
+          ? await ensureModuleFeature('settings', featureKey, payload)
+          : false;
+        if (settingsFeatureReady) {
+          await toggleModuleFeature({ enabled: true, featureKey, moduleKey: 'settings' });
+        }
+      }
 
       if (hasOrders) {
         const preset = state.quickConfig.orderStatusPreset || DEFAULT_ORDER_STATUS_PRESET;
@@ -865,32 +898,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           { group: 'admin', key: 'admin_permission_mode', value: state.adminPermissionMode },
         ],
       });
-
-      if (selectedModules.includes('customers') || customerLoginRequired) {
-        const customerFeatureReady = await ensureModuleFeature(
-          'customers',
-          'enableLogin',
-          customerFeatureDefaults.enableLogin
-        );
-        if (customerFeatureReady) {
-          await toggleModuleFeature({
-            enabled: resolvedCustomerLoginEnabled,
-            featureKey: 'enableLogin',
-            moduleKey: 'customers',
-          });
-        }
-      }
-
-      const settingsFeaturesToEnable = ['enableContact', 'enableSEO', 'enableSocial'];
-      for (const featureKey of settingsFeaturesToEnable) {
-        const payload = settingsFeatureDefaults[featureKey];
-        const settingsFeatureReady = payload
-          ? await ensureModuleFeature('settings', featureKey, payload)
-          : false;
-        if (settingsFeatureReady) {
-          await toggleModuleFeature({ enabled: true, featureKey, moduleKey: 'settings' });
-        }
-      }
 
       const experienceSettings = Object.entries(experiencePreset.settings)
         .filter(([key]) => {
