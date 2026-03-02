@@ -88,11 +88,11 @@ export const getTypeOverrideState = (params: {
 export const resolveTypeOverrideColors = (params: {
   type: string;
   systemColors: { primary: string; secondary: string; mode: 'single' | 'dual' };
-  overrides?: Record<string, ColorOverrideState> | null;
+  overrides?: Record<string, ColorOverrideState & { systemEnabled?: boolean }> | null;
 }): ResolvedTypeColors => {
   const { type, systemColors, overrides } = params;
   const override = overrides?.[type];
-  const usingCustom = Boolean(override?.enabled);
+  const usingCustom = Boolean(override?.enabled && override?.systemEnabled !== false);
   if (!usingCustom) {
     return {
       mode: systemColors.mode,
