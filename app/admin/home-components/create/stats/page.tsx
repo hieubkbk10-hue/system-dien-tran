@@ -23,6 +23,18 @@ export default function StatsCreatePage() {
   ]);
   const [style, setStyle] = useState<StatsStyle>('horizontal');
 
+  const handleAddItem = () => {
+    setStatsItems((prev) => ([...prev, { id: Date.now(), label: '', value: '' }]));
+  };
+
+  const handleUpdateItem = (id: number, key: 'label' | 'value', value: string) => {
+    setStatsItems((prev) => prev.map((item) => (item.id === id ? { ...item, [key]: value } : item)));
+  };
+
+  const handleRemoveItem = (id: number) => {
+    setStatsItems((prev) => (prev.length <= 1 ? prev : prev.filter((item) => item.id !== id)));
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, { items: statsItems.map(s => ({ label: s.label, value: s.value })), style });
   };
@@ -48,7 +60,7 @@ export default function StatsCreatePage() {
             type="button" 
             variant="outline" 
             size="sm" 
-            onClick={() =>{  setStatsItems([...statsItems, { id: Date.now(), label: '', value: '' }]); }} 
+            onClick={handleAddItem}
             className="gap-2"
           >
             <Plus size={14} /> Thêm
@@ -63,13 +75,13 @@ export default function StatsCreatePage() {
               <Input 
                 placeholder="Số liệu (VD: 1000+)" 
                 value={item.value} 
-                onChange={(e) =>{  setStatsItems(statsItems.map(s => s.id === item.id ? {...s, value: e.target.value} : s)); }} 
+                onChange={(e) =>{  handleUpdateItem(item.id, 'value', e.target.value); }}
                 className="flex-1" 
               />
               <Input 
                 placeholder="Nhãn (VD: Khách hàng)" 
                 value={item.label} 
-                onChange={(e) =>{  setStatsItems(statsItems.map(s => s.id === item.id ? {...s, label: e.target.value} : s)); }} 
+                onChange={(e) =>{  handleUpdateItem(item.id, 'label', e.target.value); }}
                 className="flex-1" 
               />
               <Button 
@@ -77,7 +89,7 @@ export default function StatsCreatePage() {
                 variant="ghost" 
                 size="icon" 
                 className="text-red-500 h-8 w-8" 
-                onClick={() => statsItems.length > 1 && setStatsItems(statsItems.filter(s => s.id !== item.id))}
+                onClick={() =>{  handleRemoveItem(item.id); }}
               >
                 <Trash2 size={14} />
               </Button>
