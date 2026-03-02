@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { BenefitsForm } from '../../_components/BenefitsForm';
 import { BenefitsPreview } from '../../_components/BenefitsPreview';
 import { DEFAULT_BENEFITS_CONFIG, DEFAULT_BENEFITS_HARMONY } from '../../_lib/constants';
@@ -171,11 +171,12 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
   );
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const resolvedInitialSecondary = resolveSecondaryByMode(initialCustom.mode, initialCustom.primary, initialCustom.secondary);
   const customChanged = showCustomBlock
     ? customState.enabled !== initialCustom.enabled
       || customState.mode !== initialCustom.mode
       || customState.primary !== initialCustom.primary
-      || resolvedCustomSecondary !== initialCustom.secondary
+      || resolvedCustomSecondary !== resolvedInitialSecondary
     : false;
   const hasChanges = initialSnapshot !== '' && (currentSnapshot !== initialSnapshot || customChanged);
 
@@ -309,8 +310,31 @@ export default function BenefitsEditPage({ params }: { params: Promise<{ id: str
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === prev.mode) {
+                    return prev;
+                  }
+                  if (next === 'single') {
+                    return {
+                      ...prev,
+                      mode: 'single',
+                      secondary: prev.primary,
+                    };
+                  }
+                  const nextSecondary = prev.mode === 'single'
+                    ? getSuggestedSecondary(prev.primary)
+                    : prev.secondary;
+                  return {
+                    ...prev,
+                    mode: 'dual',
+                    secondary: nextSecondary,
+                  };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  primary: value,
+                  secondary: prev.mode === 'single' ? value : prev.secondary,
+                }))}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
