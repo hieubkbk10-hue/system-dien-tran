@@ -61,14 +61,14 @@ const SocialIcon = ({ platform, size = 18 }: { platform: string; size?: number }
 };
 
 const SOCIAL_ORIGINAL_COLORS: Record<string, { bg: string; icon: string }> = {
-  facebook: { bg: '#1877f2', icon: '#1877f2' },
-  instagram: { bg: '#e1306c', icon: '#e1306c' },
-  youtube: { bg: '#ff0000', icon: '#ff0000' },
-  tiktok: { bg: '#000000', icon: '#000000' },
-  zalo: { bg: '#0084ff', icon: '#0084ff' },
-  twitter: { bg: '#1da1f2', icon: '#1da1f2' },
-  linkedin: { bg: '#0a66c2', icon: '#0a66c2' },
-  github: { bg: '#0f172a', icon: '#0f172a' },
+  facebook: { bg: '#1877f2', icon: '#ffffff' },
+  instagram: { bg: '#e1306c', icon: '#ffffff' },
+  youtube: { bg: '#ff0000', icon: '#ffffff' },
+  tiktok: { bg: '#000000', icon: '#ffffff' },
+  zalo: { bg: '#0084ff', icon: '#ffffff' },
+  twitter: { bg: '#1da1f2', icon: '#ffffff' },
+  linkedin: { bg: '#0a66c2', icon: '#ffffff' },
+  github: { bg: '#0f172a', icon: '#ffffff' },
 };
 
 export function DynamicFooter() {
