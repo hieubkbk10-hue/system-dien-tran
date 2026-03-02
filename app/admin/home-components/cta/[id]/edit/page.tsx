@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CTAForm } from '../../_components/CTAForm';
 import { CTAPreview } from '../../_components/CTAPreview';
 import { getCTAValidationResult } from '../../_lib/colors';
@@ -239,8 +239,24 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => {
+                  if (next === 'single') {
+                    setCustomState((prev) => ({ ...prev, mode: 'single', secondary: prev.primary }));
+                    return;
+                  }
+                  setCustomState((prev) => ({
+                    ...prev,
+                    mode: 'dual',
+                    secondary: prev.mode === 'single' ? getSuggestedSecondary(prev.primary) : prev.secondary,
+                  }));
+                }}
+                onPrimaryChange={(value) => {
+                  setCustomState((prev) => ({
+                    ...prev,
+                    primary: value,
+                    secondary: prev.mode === 'single' ? value : prev.secondary,
+                  }));
+                }}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
