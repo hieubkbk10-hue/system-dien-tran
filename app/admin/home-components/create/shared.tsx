@@ -138,7 +138,7 @@ export function ComponentFormWrapper({
   const router = useRouter();
   const typeInfo = getComponentType(type);
   const TypeIcon = typeInfo?.icon ?? Grid;
-  const { customState, showCustomBlock, setCustomState } = useTypeColorOverrideState(type);
+  const { customState, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(type);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const handleFormSubmit = (event: React.FormEvent) => {
@@ -150,12 +150,16 @@ export function ComponentFormWrapper({
       }
       if (showCustomBlock) {
         try {
+          const isCustomEnabled = customState.enabled;
+          const mode = isCustomEnabled ? customState.mode : systemColors.mode;
+          const primary = isCustomEnabled ? customState.primary : systemColors.primary;
+          const secondary = isCustomEnabled ? customState.secondary : systemColors.secondary;
           await setTypeColorOverride({
             type,
-            enabled: customState.enabled,
-            mode: customState.mode,
-            primary: customState.primary,
-            secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+            enabled: isCustomEnabled,
+            mode,
+            primary,
+            secondary: resolveSecondaryByMode(mode, primary, secondary),
           });
         } catch (error) {
           toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu.');

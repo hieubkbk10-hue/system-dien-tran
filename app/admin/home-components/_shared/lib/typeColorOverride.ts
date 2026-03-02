@@ -59,12 +59,26 @@ export const getTypeOverrideState = (params: {
 }): ColorOverrideState => {
   const { type, systemColors, overrides } = params;
   const override = overrides?.[type];
-  const mode = override?.mode ?? systemColors.mode;
-  const primary = override?.primary ?? systemColors.primary;
-  const secondaryCandidate = override?.secondary ?? systemColors.secondary ?? primary;
+  if (!override?.enabled) {
+    const systemSecondary = resolveSecondaryByMode(
+      systemColors.mode,
+      systemColors.primary,
+      systemColors.secondary,
+    );
+    return {
+      enabled: false,
+      mode: systemColors.mode,
+      primary: systemColors.primary,
+      secondary: systemSecondary,
+    };
+  }
+
+  const mode = override.mode ?? systemColors.mode;
+  const primary = override.primary ?? systemColors.primary;
+  const secondaryCandidate = override.secondary ?? systemColors.secondary ?? primary;
   const secondary = resolveSecondaryByMode(mode, primary, secondaryCandidate);
   return {
-    enabled: override?.enabled ?? false,
+    enabled: true,
     mode,
     primary,
     secondary,

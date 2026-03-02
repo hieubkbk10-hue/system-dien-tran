@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useSystemBrandColors } from '../../create/shared';
+import { HOME_COMPONENT_TYPE_VALUES } from '@/lib/home-components/componentTypes';
 import {
   getTypeOverrideState,
   resolveSecondaryByMode,
@@ -43,11 +44,12 @@ export const useTypeColorOverride = (type: string) => {
     systemColors.secondary,
     overrides,
   ]);
+  const isSupportedType = HOME_COMPONENT_TYPE_VALUES.includes(type);
 
   return {
     overrideState,
     resolvedColors,
-    showCustomBlock: Boolean(overrides?.[type]?.enabled),
+    showCustomBlock: isSupportedType,
     systemColors,
     typeOverrides: overrides as Record<string, ColorOverrideState> | null,
   };
@@ -62,6 +64,26 @@ export const useTypeColorOverrideState = (type: string) => {
     setCustomState((current) => (isSameColorOverrideState(current, overrideState) ? current : overrideState));
     setInitialCustom((current) => (isSameColorOverrideState(current, overrideState) ? current : overrideState));
   }, [overrideState]);
+
+  useEffect(() => {
+    if (customState.enabled) {
+      return;
+    }
+    const systemSecondary = resolveSecondaryByMode(
+      systemColors.mode,
+      systemColors.primary,
+      systemColors.secondary,
+    );
+    const nextState: ColorOverrideState = {
+      enabled: false,
+      mode: systemColors.mode,
+      primary: systemColors.primary,
+      secondary: systemSecondary,
+    };
+    if (!isSameColorOverrideState(customState, nextState)) {
+      setCustomState(nextState);
+    }
+  }, [customState, systemColors.mode, systemColors.primary, systemColors.secondary]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const effectiveColors: ResolvedTypeColors = showCustomBlock && customState.enabled
