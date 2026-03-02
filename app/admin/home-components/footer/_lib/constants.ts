@@ -11,6 +11,7 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   description: '',
   logo: '',
   showSocialLinks: true,
+  useOriginalSocialIconColors: true,
   socialLinks: [
     {
       icon: 'facebook',
@@ -50,6 +51,7 @@ export const normalizeFooterConfig = (raw: Partial<FooterConfig> | null | undefi
     description: typeof safe.description === 'string' ? safe.description : DEFAULT_FOOTER_CONFIG.description,
     logo: typeof safe.logo === 'string' ? safe.logo : DEFAULT_FOOTER_CONFIG.logo,
     showSocialLinks: safe.showSocialLinks !== false,
+    useOriginalSocialIconColors: safe.useOriginalSocialIconColors !== false,
     socialLinks: socialLinks.map((social, index) => ({
       icon: typeof social.icon === 'string' ? social.icon : (typeof social.platform === 'string' ? social.platform : 'facebook'),
       id: social.id ?? index + 1,

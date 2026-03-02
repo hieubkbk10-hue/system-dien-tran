@@ -18,6 +18,7 @@ interface FooterConfig {
   socialLinks?: SocialLinkItem[];
   copyright?: string;
   showSocialLinks?: boolean;
+  useOriginalSocialIconColors?: boolean;
   style?: 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
 }
 
@@ -57,6 +58,17 @@ const SocialIcon = ({ platform, size = 18 }: { platform: string; size?: number }
     default: { return <Globe size={size} />;
     }
   }
+};
+
+const SOCIAL_ORIGINAL_COLORS: Record<string, string> = {
+  facebook: '#1877f2',
+  instagram: '#e1306c',
+  youtube: '#ff0000',
+  tiktok: '#000000',
+  zalo: '#0084ff',
+  twitter: '#1da1f2',
+  linkedin: '#0a66c2',
+  github: '#0f172a',
 };
 
 export function DynamicFooter() {
@@ -122,6 +134,10 @@ export function DynamicFooter() {
   const socials = getSocials(config);
   const columns = getColumns(config);
   const colors = getFooterLayoutColors(style, brandColor, secondary, mode as FooterBrandMode);
+  const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
+  const resolveSocialIconColor = (platform: string, fallback: string) => (
+    useOriginalSocialIconColors ? (SOCIAL_ORIGINAL_COLORS[platform] ?? fallback) : fallback
+  );
 
   // Style 1: Classic Dark - Standard layout với brand column và menu columns
   if (style === 'classic') {
@@ -156,7 +172,7 @@ export function DynamicFooter() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
-                      style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                      style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                     >
                       <SocialIcon platform={s.platform} size={16} />
                     </a>
@@ -249,7 +265,7 @@ export function DynamicFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
-                  style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                  style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                 >
                   <SocialIcon platform={s.platform} size={16} />
                 </a>
@@ -292,7 +308,7 @@ export function DynamicFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </a>
@@ -371,7 +387,7 @@ export function DynamicFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </a>
@@ -447,7 +463,7 @@ export function DynamicFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
-                  style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: colors.centeredSocialText }}
+                  style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: resolveSocialIconColor(s.platform, colors.centeredSocialText) }}
                 >
                   <SocialIcon platform={s.platform} size={16} />
                 </a>
@@ -518,7 +534,7 @@ export function DynamicFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-7 w-7 flex items-center justify-center rounded-lg transition-colors"
-                  style={{ backgroundColor: colors.stackedSocialBg, color: colors.stackedSocialText }}
+                  style={{ backgroundColor: colors.stackedSocialBg, color: resolveSocialIconColor(s.platform, colors.stackedSocialText) }}
                 >
                   <SocialIcon platform={s.platform} size={14} />
                 </a>

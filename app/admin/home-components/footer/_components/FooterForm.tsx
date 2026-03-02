@@ -254,6 +254,15 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
             />
             <Label>Hiển thị social links</Label>
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={value.useOriginalSocialIconColors !== false}
+              onChange={(e) =>{  updateConfig({ useOriginalSocialIconColors: e.target.checked }); }}
+              className="w-4 h-4 rounded"
+            />
+            <Label>Dùng màu icon gốc</Label>
+          </div>
         </CardContent>
       </Card>
 

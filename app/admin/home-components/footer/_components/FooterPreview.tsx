@@ -35,6 +35,17 @@ const SocialIcon = ({ platform, size = 18 }: { platform: string; size?: number }
   }
 };
 
+const SOCIAL_ORIGINAL_COLORS: Record<string, string> = {
+  facebook: '#1877f2',
+  instagram: '#e1306c',
+  youtube: '#ff0000',
+  tiktok: '#000000',
+  zalo: '#0084ff',
+  twitter: '#1da1f2',
+  linkedin: '#0a66c2',
+  github: '#0f172a',
+};
+
 const styles: { id: FooterStyle; label: string }[] = [
   { id: 'classic', label: '1. Classic Dark' },
   { id: 'modern', label: '2. Modern Center' },
@@ -63,6 +74,10 @@ export const FooterPreview = ({
   const previewStyle = selectedStyle ?? 'classic';
   const setPreviewStyle = (value: string) => onStyleChange?.(value as FooterStyle);
   const colors = getFooterLayoutColors(previewStyle, brandColor, secondary, mode);
+  const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
+  const resolveSocialIconColor = (platform: string, fallback: string) => (
+    useOriginalSocialIconColors ? (SOCIAL_ORIGINAL_COLORS[platform] ?? fallback) : fallback
+  );
 
   const socials = config.socialLinks?.length
     ? config.socialLinks
@@ -101,7 +116,7 @@ export const FooterPreview = ({
                       <span
                         key={`${s.id ?? 'social'}-${index}`}
                         className="h-6 w-6 flex items-center justify-center rounded-full"
-                        style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                        style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                       >
                         <SocialIcon platform={s.platform} size={14} />
                       </span>
@@ -162,7 +177,7 @@ export const FooterPreview = ({
                   <span
                     key={`${s.id ?? 'social'}-${index}`}
                     className="h-6 w-6 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </span>
@@ -195,7 +210,7 @@ export const FooterPreview = ({
                     <span
                       key={`${s.id ?? 'social'}-${index}`}
                       className="h-5 w-5 flex items-center justify-center rounded-full"
-                      style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                      style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                     >
                       <SocialIcon platform={s.platform} size={12} />
                     </span>
@@ -249,7 +264,7 @@ export const FooterPreview = ({
                   <span
                     key={`${s.id ?? 'social'}-${index}`}
                     className="h-5 w-5 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.socialBg, color: colors.socialText }}
+                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
                   >
                     <SocialIcon platform={s.platform} size={12} />
                   </span>
@@ -298,7 +313,7 @@ export const FooterPreview = ({
                   <span
                     key={`${s.id ?? 'social'}-${index}`}
                     className="h-7 w-7 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: colors.centeredSocialText }}
+                    style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: resolveSocialIconColor(s.platform, colors.centeredSocialText) }}
                   >
                     <SocialIcon platform={s.platform} size={14} />
                   </span>
@@ -342,7 +357,7 @@ export const FooterPreview = ({
                   <span
                     key={`${s.id ?? 'social'}-${index}`}
                     className="h-6 w-6 flex items-center justify-center rounded-lg"
-                    style={{ backgroundColor: colors.stackedSocialBg, color: colors.stackedSocialText }}
+                    style={{ backgroundColor: colors.stackedSocialBg, color: resolveSocialIconColor(s.platform, colors.stackedSocialText) }}
                   >
                     <SocialIcon platform={s.platform} size={12} />
                   </span>

@@ -26,6 +26,7 @@ export interface FooterConfig {
   description: string;
   logo: string;
   showSocialLinks: boolean;
+  useOriginalSocialIconColors?: boolean;
   socialLinks: FooterSocialLink[];
   style: FooterStyle;
 }
