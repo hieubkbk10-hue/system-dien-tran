@@ -17,10 +17,12 @@ import { DEFAULT_HERO_CONTENT } from '../../_lib/constants';
 import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_types';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 
+const COMPONENT_TYPE = 'Hero';
+
 export default function HeroEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { customState, effectiveColors, showCustomBlock, setCustomState, initialCustom, setInitialCustom } = useTypeColorOverrideState('Hero');
+  const { customState, effectiveColors, showCustomBlock, setCustomState, initialCustom, setInitialCustom } = useTypeColorOverrideState(COMPONENT_TYPE);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
@@ -41,11 +43,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     content: HeroContent;
     harmony: HeroHarmony;
   } | null>(null);
-  const resolvedCustomSecondary = resolveSecondaryByMode(
-    customState.mode,
-    customState.primary,
-    customState.secondary,
-  );
 
   useEffect(() => {
     if (component) {
@@ -87,11 +84,21 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     const currentContent = JSON.stringify(heroContent);
     const initialContent = JSON.stringify(initialData.content);
 
-    const customChanged = showCustomBlock && initialCustom
+    const resolvedCustomSecondary = resolveSecondaryByMode(
+      customState.mode,
+      customState.primary,
+      customState.secondary,
+    );
+    const resolvedInitialSecondary = resolveSecondaryByMode(
+      initialCustom.mode,
+      initialCustom.primary,
+      initialCustom.secondary,
+    );
+    const customChanged = showCustomBlock
       ? customState.enabled !== initialCustom.enabled
         || customState.mode !== initialCustom.mode
         || customState.primary !== initialCustom.primary
-        || resolvedCustomSecondary !== initialCustom.secondary
+        || resolvedCustomSecondary !== resolvedInitialSecondary
       : false;
 
     const changed = title !== initialData.title
@@ -103,7 +110,7 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, showCustomBlock, customState, resolvedCustomSecondary, initialCustom]);
+  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, showCustomBlock, customState, initialCustom]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,12 +131,17 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         title,
       });
       if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(
+          customState.mode,
+          customState.primary,
+          customState.secondary,
+        );
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolvedCustomSecondary,
-          type: 'Hero',
+          type: COMPONENT_TYPE,
         });
       }
       toast.success('Đã cập nhật Hero Banner');
@@ -142,6 +154,11 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         harmony: heroHarmony,
       });
       if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(
+          customState.mode,
+          customState.primary,
+          customState.secondary,
+        );
         setInitialCustom({
           enabled: customState.enabled,
           mode: customState.mode,
