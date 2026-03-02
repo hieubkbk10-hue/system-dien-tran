@@ -132,7 +132,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         title,
       });
       if (showCustomBlock) {
-        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
@@ -154,7 +153,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+          secondary: resolvedCustomSecondary,
         });
       }
       setHasChanges(false);
@@ -237,7 +236,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
                 enabled={customState.enabled}
                 mode={customState.mode}
                 primary={customState.primary}
-                secondary={customState.secondary}
+                secondary={resolvedCustomSecondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
                 onModeChange={(next) => {
                   if (next === 'single') {
