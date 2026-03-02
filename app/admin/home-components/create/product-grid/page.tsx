@@ -13,7 +13,7 @@ import type { ProductGridStyle } from '../../product-grid/_types';
 
 function ProductGridCreateContent() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm', 'ProductGrid');
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary } = useBrandColors('ProductGrid');
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState<'newest' | 'bestseller' | 'random'>('newest');

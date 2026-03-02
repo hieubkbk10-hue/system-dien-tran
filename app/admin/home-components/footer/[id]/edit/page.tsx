@@ -9,11 +9,15 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { LayoutTemplate, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FooterForm } from '../../_components/FooterForm';
 import { FooterPreview } from '../../_components/FooterPreview';
 import { DEFAULT_FOOTER_CONFIG, normalizeFooterConfig } from '../../_lib/constants';
 import type { FooterConfig, FooterStyle } from '../../_types';
+
+const COMPONENT_TYPE = 'Footer';
 
 interface FooterInitialData {
   title: string;
@@ -24,7 +28,8 @@ interface FooterInitialData {
 export default function FooterEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -35,17 +40,25 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialData, setInitialData] = useState<FooterInitialData | null>(null);
 
-  const brandMode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const brandMode: 'single' | 'dual' = effectiveColors.mode === 'single' ? 'single' : 'dual';
 
   const hasChanges = useMemo(() => {
     if (!initialData) {return false;}
 
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
     return (
       title !== initialData.title
       || active !== initialData.active
       || JSON.stringify(config) !== JSON.stringify(initialData.config)
+      || customChanged
     );
-  }, [active, config, initialData, title]);
+  }, [active, config, initialData, title, customState, initialCustom, showCustomBlock]);
 
   useEffect(() => {
     if (component) {
@@ -80,11 +93,29 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       setInitialData({
         active,
         config,
         title,
       });
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật Footer');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -151,18 +182,31 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
           </CardContent>
         </Card>
 
-        <FooterForm value={config} onChange={setConfig} primary={primary} secondary={secondary} mode={brandMode} />
+        <FooterForm value={config} onChange={setConfig} primary={effectiveColors.primary} secondary={effectiveColors.secondary} mode={brandMode} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Footer"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <FooterPreview
               config={config as any}
-              brandColor={primary}
-              secondary={secondary}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
               mode={brandMode}
               selectedStyle={config.style as any}
-              onStyleChange={(style) =>{  setConfig({ ...config, style: style as FooterStyle }); }}
+              onStyleChange={(style: FooterStyle) => { setConfig((prev) => ({ ...prev, style })); }}
             />
           </div>
         </div>

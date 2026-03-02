@@ -73,7 +73,7 @@ const toPersistConfig = (state: BenefitsEditorState): BenefitsConfig => ({
 
 export default function BenefitsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', 'Benefits');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Benefits');
   const brandMode: BenefitsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [editorState, setEditorState] = useState<BenefitsEditorState>(normalizeCreateState);

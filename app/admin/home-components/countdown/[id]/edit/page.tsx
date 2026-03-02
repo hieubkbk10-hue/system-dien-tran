@@ -7,12 +7,16 @@ import { toast } from 'sonner';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../../components/ui';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CountdownForm } from '../../_components/CountdownForm';
 import { CountdownPreview } from '../../_components/CountdownPreview';
 import { DEFAULT_COUNTDOWN_CONFIG } from '../../_lib/constants';
 import { normalizeCountdownConfig, toCountdownPersistConfig } from '../../_lib/normalize';
 import type { CountdownConfigState } from '../../_types';
-import { useBrandColors } from '../../../create/shared';
+
+const COMPONENT_TYPE = 'Countdown';
 
 const createSnapshot = (title: string, active: boolean, config: CountdownConfigState) => JSON.stringify({
   title: title.trim(),
@@ -25,9 +29,10 @@ export default function EditCountdownPage() {
   const id = params.id;
   const router = useRouter();
   const updateMutation = useMutation(api.homeComponents.update);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const component = useQuery(api.homeComponents.getById, id ? { id: id as any } : 'skip');
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
 
   const [title, setTitle] = React.useState('Khuyến mãi đặc biệt');
   const [active, setActive] = React.useState(true);
@@ -52,7 +57,14 @@ export default function EditCountdownPage() {
     [title, active, config],
   );
 
-  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -68,8 +80,26 @@ export default function EditCountdownPage() {
         active,
         config: toCountdownPersistConfig(config),
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(currentSnapshot);
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã lưu Countdown');
     } catch (error) {
       toast.error('Lỗi khi lưu Countdown');
@@ -129,24 +159,42 @@ export default function EditCountdownPage() {
         <CountdownForm
           value={config}
           onChange={setConfig}
-          brandColor={primary}
-          secondary={secondary}
-          mode={mode}
+          brandColor={effectiveColors.primary}
+          secondary={effectiveColors.secondary}
+          mode={effectiveColors.mode}
         />
 
-        <CountdownPreview
-          config={config}
-          brandColor={primary}
-          secondary={secondary}
-          mode={mode}
-          selectedStyle={config.style}
-          onStyleChange={(style) => {
-            setConfig((prev) => ({
-              ...prev,
-              style,
-            }));
-          }}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
+          <div></div>
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Countdown"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
+            <CountdownPreview
+              config={config}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
+              selectedStyle={config.style}
+              onStyleChange={(style) => {
+                setConfig((prev) => ({
+                  ...prev,
+                  style,
+                }));
+              }}
+            />
+          </div>
+        </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>

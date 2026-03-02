@@ -17,7 +17,7 @@ const DEFAULT_EDITOR_ITEMS: ServiceEditorItem[] = [
 
 export default function ServicesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', 'Services');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Services');
 
   const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(DEFAULT_EDITOR_ITEMS);
   const [style, setStyle] = useState<ServicesStyle>('elegantGrid');

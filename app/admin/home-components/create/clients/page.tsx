@@ -40,7 +40,7 @@ const toPersistItems = (items: ClientEditorItem[]): ClientsConfig['items'] => (
 
 export default function ClientsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khách hàng của chúng tôi', 'Clients');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Clients');
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
 

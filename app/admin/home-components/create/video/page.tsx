@@ -16,7 +16,7 @@ import type { VideoConfig } from '../../video/_types';
 
 export default function VideoCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', 'Video');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Video');
 
   const [config, setConfig] = React.useState<VideoConfig>(() => normalizeVideoConfig({
     autoplay: false,

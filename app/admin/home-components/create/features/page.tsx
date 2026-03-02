@@ -24,7 +24,7 @@ const defaultItems: FeatureItem[] = [
 
 export default function FeaturesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', 'Features');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Features');
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);
   const [style, setStyle] = useState<FeaturesStyle>('iconGrid');

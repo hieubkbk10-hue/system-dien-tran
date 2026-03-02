@@ -9,17 +9,22 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { GalleryForm } from '../../../gallery/_components/GalleryForm';
 import { TrustBadgesPreview } from '../../../gallery/_components/TrustBadgesPreview';
 import { DEFAULT_GALLERY_ITEMS } from '../../../gallery/_lib/constants';
 import { getGalleryPersistSafeColors, normalizeGalleryHarmony } from '../../../gallery/_lib/colors';
 import type { GalleryItem, TrustBadgesStyle } from '../../../gallery/_types';
 
+const COMPONENT_TYPE = 'TrustBadges';
+
 export default function TrustBadgesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -67,15 +72,27 @@ export default function TrustBadgesEditPage({ params }: { params: Promise<{ id: 
       style: trustBadgesStyle,
       type: component.type,
     });
-    setHasChanges(snapshot !== initialSnapshot);
-  }, [title, active, galleryItems, trustBadgesStyle, component, initialSnapshot]);
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
+    setHasChanges(snapshot !== initialSnapshot || customChanged);
+  }, [title, active, galleryItems, trustBadgesStyle, component, initialSnapshot, customState, initialCustom, showCustomBlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) {return;}
 
     const harmony = normalizeGalleryHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
-    const { autoHeal } = getGalleryPersistSafeColors({ primary, secondary, mode, harmony });
+    const { autoHeal } = getGalleryPersistSafeColors({
+      primary: effectiveColors.primary,
+      secondary: effectiveColors.secondary,
+      mode: effectiveColors.mode,
+      harmony,
+    });
 
     if (autoHeal.didAutoHealHarmony || autoHeal.didAutoHealText) {
       const messages: string[] = [];
@@ -102,6 +119,16 @@ export default function TrustBadgesEditPage({ params }: { params: Promise<{ id: 
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật component');
       setInitialSnapshot(JSON.stringify({
         title,
@@ -110,6 +137,14 @@ export default function TrustBadgesEditPage({ params }: { params: Promise<{ id: 
         style: trustBadgesStyle,
         type: component?.type,
       }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -185,12 +220,25 @@ export default function TrustBadgesEditPage({ params }: { params: Promise<{ id: 
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Chứng nhận"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <TrustBadgesPreview
               items={galleryItems.map((item, idx) => ({ id: idx + 1, link: item.link, name: item.name, url: item.url }))}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               selectedStyle={trustBadgesStyle}
               onStyleChange={setTrustBadgesStyle}
             />

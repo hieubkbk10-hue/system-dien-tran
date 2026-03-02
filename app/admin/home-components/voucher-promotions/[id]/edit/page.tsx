@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { TicketPercent, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { VoucherPromotionsPreview } from '../../_components/VoucherPromotionsPreview';
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
@@ -20,10 +22,13 @@ import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentB
 import type { VoucherPromotionsConfigState } from '../../_types';
 import { normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 
+const COMPONENT_TYPE = 'VoucherPromotions';
+
 export default function VoucherPromotionsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -65,21 +70,28 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
   }, [component, id, router]);
 
   const currentSnapshot = useMemo(() => JSON.stringify({ title, active, config }), [title, active, config]);
-  const hasChanges = initialSnapshot !== '' && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== '' && (currentSnapshot !== initialSnapshot || customChanged);
 
   const validation = useMemo(() => getVoucherPromotionsValidationResult({
-    primary,
-    secondary,
-    mode,
+    primary: effectiveColors.primary,
+    secondary: effectiveColors.secondary,
+    mode: effectiveColors.mode,
     harmony: config.harmony,
-  }), [primary, secondary, mode, config.harmony]);
+  }), [effectiveColors, config.harmony]);
 
-  const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(mode, config.style), [mode, config.style]);
+  const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(effectiveColors.mode, config.style), [effectiveColors.mode, config.style]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
 
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+    if (effectiveColors.mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
       warnings.push(`Màu chính và màu phụ đang khá gần nhau (ΔE=${validation.harmonyStatus.deltaE}).`);
     }
 
@@ -88,7 +100,7 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
     }
 
     return warnings;
-  }, [mode, validation]);
+  }, [effectiveColors.mode, validation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +121,25 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       setInitialSnapshot(JSON.stringify({ title, active, config: payloadConfig }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật Voucher Promotions');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -174,7 +204,7 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
               <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
             </div>
 
-            {mode === 'dual' && (
+            {effectiveColors.mode === 'dual' && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
                 <div className="font-medium mb-1">Accent Balance</div>
                 <div>Primary: {accentBalance.primary}% • Secondary: {accentBalance.secondary}% • Neutral: {accentBalance.neutral}%</div>
@@ -262,12 +292,25 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Voucher Promotions"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <VoucherPromotionsPreview
               config={config}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               selectedStyle={config.style}
               limit={config.limit}
               harmony={config.harmony}

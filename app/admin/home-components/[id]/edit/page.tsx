@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getEditRoute } from '../../_shared/lib/componentRoutes';
 
 export default function HomeComponentRedirectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -16,42 +17,9 @@ export default function HomeComponentRedirectPage({ params }: { params: Promise<
   useEffect(() => {
     if (!component) {return;}
 
-    const redirectMap: Record<string, string> = {
-      Hero: 'hero',
-      Stats: 'stats',
-      CaseStudy: 'case-study',
-      ServiceList: 'service-list',
-      ProductGrid: 'product-grid',
-      ProductList: 'product-list',
-      Blog: 'blog',
-      Partners: 'partners',
-      CategoryProducts: 'category-products',
-      ProductCategories: 'product-categories',
-      Gallery: 'gallery',
-      TrustBadges: 'trust-badges',
-      CTA: 'cta',
-      FAQ: 'faq',
-      Footer: 'footer',
-      Testimonials: 'testimonials',
-      Pricing: 'pricing',
-      About: 'about',
-      Services: 'services',
-      Benefits: 'benefits',
-      Contact: 'contact',
-      Team: 'team',
-      Features: 'features',
-      Process: 'process',
-      VoucherPromotions: 'voucher-promotions',
-      Career: 'career',
-      SpeedDial: 'speed-dial',
-      Clients: 'clients',
-      Video: 'video',
-      Countdown: 'countdown',
-    };
-
-    const slug = redirectMap[component.type];
-    if (slug) {
-      router.replace(`/admin/home-components/${slug}/${component._id}/edit`);
+    const route = getEditRoute(component.type, component._id);
+    if (route) {
+      router.replace(route);
       return;
     }
 

@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from './hooks';
 import { cn } from '@/app/admin/components/ui';
+import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
 import {
   getBentoColors,
   getFadeColors,
@@ -135,106 +136,104 @@ interface ComponentRendererProps {
 }
 
 export function ComponentRenderer({ component }: ComponentRendererProps) {
-  const { primary, secondary, mode } = useBrandColors();
+  const systemColors = useBrandColors();
   const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
-  const brandColor = primary;
   const { type, title, config } = component;
-  const heroOverride = systemConfig?.typeColorOverrides?.Hero;
-  const heroMode = heroOverride?.enabled ? heroOverride.mode : mode;
-  const heroPrimary = heroOverride?.enabled ? heroOverride.primary : primary;
-  const heroSecondary = heroOverride?.enabled
-    ? (heroMode === 'single' ? heroPrimary : (heroOverride.secondary || heroPrimary))
-    : secondary;
+  const resolvedColors = resolveTypeOverrideColors({
+    type,
+    systemColors,
+    overrides: systemConfig?.typeColorOverrides ?? null,
+  });
 
   // Render component dựa vào type
   switch (type) {
     case 'Hero': {
-      return <HeroSection config={config} brandColor={heroPrimary} secondary={heroSecondary} mode={heroMode} />;
+      return <HeroSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} />;
     }
     case 'Stats': {
-      return <StatsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <StatsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'About': {
-      return <AboutSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <AboutSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Services': {
-      return <ServicesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ServicesSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Benefits': {
-      return <BenefitsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <BenefitsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'FAQ': {
-      return <FAQSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <FAQSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'CTA': {
-      return <CTASection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
+      return <CTASection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} />;
     }
     case 'Testimonials': {
-      return <TestimonialsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <TestimonialsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Contact': {
-      return <ContactSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ContactSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Gallery':
     case 'Partners': {
-      return <GallerySection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} type={type} />;
+      return <GallerySection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} type={type} />;
     }
     case 'TrustBadges': {
-      return <TrustBadgesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <TrustBadgesSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Pricing': {
-      return <PricingSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <PricingSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'ProductList': {
-      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ProductListSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'ProductGrid': {
-      return <ProductListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ProductListSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'ServiceList': {
-      return <ServiceListSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ServiceListSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Blog': {
-      return <BlogSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <BlogSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Career': {
-      return <CareerSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <CareerSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'CaseStudy': {
-      return <CaseStudySection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <CaseStudySection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'SpeedDial': {
-      return <SpeedDialSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <SpeedDialSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'ProductCategories': {
-      return <ProductCategoriesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ProductCategoriesSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'CategoryProducts': {
-      return <CategoryProductsSection config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <CategoryProductsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} title={title} />;
     }
     case 'Team': {
-      return <TeamSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <TeamSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Features': {
-      return <FeaturesSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <FeaturesSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Process': {
-      return <ProcessSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ProcessSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Clients': {
-      return <ClientsSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <ClientsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Video': {
-      return <VideoSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <VideoSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Countdown': {
-      return <CountdownSectionWrapper config={config} brandColor={brandColor} secondary={secondary} title={title} />;
+      return <CountdownSectionWrapper config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} title={title} />;
     }
     case 'VoucherPromotions': {
-      return <VoucherPromotionsSectionRuntime config={config} brandColor={brandColor} secondary={secondary} mode={mode} title={title} />;
+      return <VoucherPromotionsSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'Footer': {
-      return <FooterSection config={config} brandColor={brandColor} secondary={secondary} mode={mode} />;
+      return <FooterSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} />;
     }
     default: {
       return <PlaceholderSection type={type} title={title} />;

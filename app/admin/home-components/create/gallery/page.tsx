@@ -18,7 +18,7 @@ interface GalleryItem extends ImageItem {
 
 export default function GalleryCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thư viện ảnh', 'Gallery');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Gallery');
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', url: '' },

@@ -37,7 +37,7 @@ const DEFAULT_CREATE_STEPS: ProcessFormStep[] = [
 
 export default function ProcessCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Quy trình làm việc', 'Process');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Process');
 
   const [steps, setSteps] = React.useState<ProcessFormStep[]>(DEFAULT_CREATE_STEPS);
   const [style, setStyle] = React.useState<ProcessStyle>('horizontal');

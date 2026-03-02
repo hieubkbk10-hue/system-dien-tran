@@ -9,18 +9,21 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { StatsForm, type StatsFormItem } from '../../_components/StatsForm';
 import { StatsPreview } from '../../_components/StatsPreview';
 import { DEFAULT_STATS_ITEMS } from '../../_lib/constants';
 import type { StatsBrandMode, StatsItem, StatsStyle } from '../../_types';
 
+const COMPONENT_TYPE = 'Stats';
+
 export default function StatsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode: StatsBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -69,13 +72,22 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
 
     const currentItems = JSON.stringify(statsItems);
     const initialItems = JSON.stringify(initialData.items);
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
+
     const changed = title !== initialData.title
       || active !== initialData.active
       || statsStyle !== initialData.style
-      || currentItems !== initialItems;
+      || currentItems !== initialItems
+      || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, statsItems, statsStyle, initialData]);
+  }, [title, active, statsItems, statsStyle, initialData, customState, initialCustom, showCustomBlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +104,16 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật Thống kê');
       setInitialData({
         title,
@@ -99,6 +121,14 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
         items: statsItems,
         style: statsStyle,
       });
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -169,12 +199,25 @@ export default function StatsEditPage({ params }: { params: Promise<{ id: string
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Thống kê"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <StatsPreview
               items={statsItems.map((item) => ({ label: item.label, value: item.value }))}
-              brandColor={primary}
-              secondary={secondary}
-              mode={brandMode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode as StatsBrandMode}
               selectedStyle={statsStyle}
               onStyleChange={setStatsStyle}
             />

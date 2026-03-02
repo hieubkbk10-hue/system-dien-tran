@@ -16,7 +16,7 @@ import type { TestimonialsBrandMode, TestimonialsItem, TestimonialsStyle } from 
 
 export default function TestimonialsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đánh giá / Review', 'Testimonials');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Testimonials');
   const brandMode: TestimonialsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [items, setItems] = useState<TestimonialsItem[]>([

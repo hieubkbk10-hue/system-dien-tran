@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Eye, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { AboutForm } from '../../_components/AboutForm';
 import { AboutPreview } from '../../_components/AboutPreview';
 import {
@@ -25,6 +27,8 @@ import {
   getAboutValidationResult,
 } from '../../_lib/colors';
 import type { AboutEditorState, AboutHarmony, AboutStyle } from '../../_types';
+
+const COMPONENT_TYPE = 'About';
 
 const buildAboutSnapshot = (payload: {
   title: string;
@@ -69,7 +73,8 @@ const normalizeEditorState = (rawConfig: Record<string, unknown>): AboutEditorSt
 export default function AboutEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -102,24 +107,31 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
   }, [component, id, router]);
 
   const currentSnapshot = buildAboutSnapshot({ title, active, state });
-  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
   const harmony = normalizeAboutHarmony(state.harmony);
 
   const validation = useMemo(
     () => getAboutValidationResult({
-      primary,
-      secondary,
-      mode,
+      primary: effectiveColors.primary,
+      secondary: effectiveColors.secondary,
+      mode: effectiveColors.mode,
       harmony,
       style: state.style,
     }),
-    [primary, secondary, mode, harmony, state.style],
+    [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, harmony, state.style],
   );
 
   const warningMessages = useMemo(
-    () => buildAboutWarningMessages({ mode, validation }),
-    [mode, validation],
+    () => buildAboutWarningMessages({ mode: effectiveColors.mode, validation }),
+    [effectiveColors.mode, validation],
   );
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -148,8 +160,26 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
           harmony: normalizedHarmony,
         },
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(buildAboutSnapshot({ title, active, state: { ...state, style: normalizedStyle, harmony: normalizedHarmony } }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật About');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -218,7 +248,7 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
 
         <AboutForm state={state} onChange={setState} />
 
-        {mode === 'dual' && warningMessages.length > 0 ? (
+        {effectiveColors.mode === 'dual' && warningMessages.length > 0 ? (
           <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
             <div className="space-y-2">
               {warningMessages.map((message, idx) => (
@@ -231,27 +261,42 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
           </div>
         ) : null}
 
-        <AboutPreview
-          config={{
-            subHeading: state.subHeading,
-            heading: state.heading,
-            description: state.description,
-            image: state.image,
-            imageCaption: state.imageCaption,
-            buttonText: state.buttonText,
-            buttonLink: state.buttonLink,
-            stats: toAboutPersistStats(state.stats),
-            style: state.style,
-            harmony,
-          }}
-          brandColor={validation.tokens.primary}
-          secondary={validation.tokens.secondary}
-          mode={mode}
-          selectedStyle={state.style}
-          onStyleChange={(style) => {
-            setState((prev) => ({ ...prev, style }));
-          }}
-        />
+        <div className="space-y-4">
+          {showCustomBlock && (
+            <TypeColorOverrideCard
+              title="Màu custom cho Về chúng tôi"
+              enabled={customState.enabled}
+              mode={customState.mode}
+              primary={customState.primary}
+              secondary={customState.secondary}
+              onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+              onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+              onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+              onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+            />
+          )}
+          <AboutPreview
+            config={{
+              subHeading: state.subHeading,
+              heading: state.heading,
+              description: state.description,
+              image: state.image,
+              imageCaption: state.imageCaption,
+              buttonText: state.buttonText,
+              buttonLink: state.buttonLink,
+              stats: toAboutPersistStats(state.stats),
+              style: state.style,
+              harmony,
+            }}
+            brandColor={validation.tokens.primary}
+            secondary={validation.tokens.secondary}
+            mode={effectiveColors.mode}
+            selectedStyle={state.style}
+            onStyleChange={(style) => {
+              setState((prev) => ({ ...prev, style }));
+            }}
+          />
+        </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>

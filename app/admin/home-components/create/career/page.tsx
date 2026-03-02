@@ -42,7 +42,7 @@ const DEFAULT_CREATE_JOBS: JobPosition[] = [
 
 export default function CareerCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', 'Career');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Career');
 
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [jobPositions, setJobPositions] = useState<JobPosition[]>(DEFAULT_CREATE_JOBS);

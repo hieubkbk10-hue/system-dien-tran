@@ -19,7 +19,7 @@ interface CategoryItem {
 
 export default function ProductCategoriesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', 'ProductCategories');
-  const { primary, secondary } = useBrandColors();
+  const { primary, secondary } = useBrandColors('ProductCategories');
   const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const brandMode: ProductCategoriesBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
 

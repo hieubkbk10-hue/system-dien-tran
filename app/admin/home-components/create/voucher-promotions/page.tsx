@@ -15,7 +15,7 @@ import type { VoucherPromotionsConfigState } from '../../voucher-promotions/_typ
 
 export default function VoucherPromotionsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('VoucherPromotions');
   const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
 
   const validation = useMemo(() => getVoucherPromotionsValidationResult({

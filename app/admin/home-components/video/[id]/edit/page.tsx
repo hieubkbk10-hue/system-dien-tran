@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { VideoPreview } from '../../_components/VideoPreview';
 import { VideoForm } from '../../_components/VideoForm';
 import {
@@ -19,11 +21,14 @@ import {
 } from '../../_lib/constants';
 import type { VideoConfig } from '../../_types';
 
+const COMPONENT_TYPE = 'Video';
+
 export default function VideoEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
 
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -77,9 +82,16 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
       config: normalizeVideoConfig({ ...config, style: selectedStyle }),
       title,
     });
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
 
-    return snapshot !== '' && current !== snapshot;
-  }, [active, config, selectedStyle, title, snapshot]);
+    return snapshot !== '' && (current !== snapshot || customChanged);
+  }, [active, config, selectedStyle, title, snapshot, customState, initialCustom, showCustomBlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,9 +109,27 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
         active,
         config: normalized,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setConfig(normalized);
       setSnapshot(JSON.stringify({ title, active, config: normalized }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật Video');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -172,15 +202,30 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
           selectedStyle={selectedStyle}
         />
 
-        <VideoPreview
-          config={config}
-          brandColor={primary}
-          secondary={secondary}
-          selectedStyle={selectedStyle}
-          onStyleChange={(style) => setConfig((prev) => ({ ...prev, style }))}
-          mode={mode}
-          harmony={config.harmony}
-        />
+        <div className="space-y-4">
+          {showCustomBlock && (
+            <TypeColorOverrideCard
+              title="Màu custom cho Video"
+              enabled={customState.enabled}
+              mode={customState.mode}
+              primary={customState.primary}
+              secondary={customState.secondary}
+              onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+              onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+              onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+              onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+            />
+          )}
+          <VideoPreview
+            config={config}
+            brandColor={effectiveColors.primary}
+            secondary={effectiveColors.secondary}
+            selectedStyle={selectedStyle}
+            onStyleChange={(style) => setConfig((prev) => ({ ...prev, style }))}
+            mode={effectiveColors.mode}
+            harmony={config.harmony}
+          />
+        </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <Button type="button" variant="ghost" onClick={() => router.push('/admin/home-components')} disabled={isSubmitting}>

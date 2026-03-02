@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { AlertTriangle, Eye, GripVertical, Loader2, Package, Plus, Tag, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { PricingPreview } from '../../_components/PricingPreview';
 import { TextsForm } from '../../_components/TextsForm';
 import {
@@ -81,10 +83,13 @@ const toSnapshot = (payload: {
   }>;
 }) => JSON.stringify(payload);
 
+const COMPONENT_TYPE = 'Pricing';
+
 export default function PricingEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -178,24 +183,31 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     })),
   });
 
-  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
   const validation = useMemo(() => getPricingValidationResult({
-    primary,
-    secondary,
-    mode,
+    primary: effectiveColors.primary,
+    secondary: effectiveColors.secondary,
+    mode: effectiveColors.mode,
     harmony,
-  }), [primary, secondary, mode, harmony]);
+  }), [effectiveColors, harmony]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];
 
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+    if (effectiveColors.mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
       messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
     }
 
     return messages;
-  }, [mode, validation]);
+  }, [effectiveColors.mode, validation]);
 
   const dragProps = (planId: number) => ({
     draggable: true,
@@ -287,6 +299,16 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(toSnapshot({
         title,
@@ -311,6 +333,14 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         })),
       }));
 
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật Pricing');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -561,13 +591,26 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr,420px]">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Pricing"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <PricingPreview
               title={title}
               plans={pricingPlans}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               harmony={harmony}
               selectedStyle={pricingStyle}
               onStyleChange={setPricingStyle}

@@ -17,7 +17,7 @@ import {
 
 export default function AboutCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', 'About');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('About');
 
   const [state, setState] = React.useState(DEFAULT_ABOUT_EDITOR_STATE);
 

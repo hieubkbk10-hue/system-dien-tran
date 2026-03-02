@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CareerPreview } from '../../_components/CareerPreview';
 import {
   createCareerJob,
@@ -31,6 +33,8 @@ import type {
   JobPosition,
 } from '../../_types';
 
+const COMPONENT_TYPE = 'Career';
+
 interface CareerSnapshotPayload {
   title: string;
   active: boolean;
@@ -45,7 +49,8 @@ const toSnapshot = (payload: CareerSnapshotPayload) => JSON.stringify(payload);
 export default function CareerEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -102,19 +107,26 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     texts,
   }), [title, active, normalizedJobs, careerStyle, harmony, texts]);
 
-  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
   const validation = useMemo(() => getCareerValidationResult({
-    primary,
-    secondary,
-    mode,
+    primary: effectiveColors.primary,
+    secondary: effectiveColors.secondary,
+    mode: effectiveColors.mode,
     harmony,
-  }), [primary, secondary, mode, harmony]);
+  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, harmony]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
 
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+    if (effectiveColors.mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
       warnings.push(`Màu chính và màu phụ đang khá gần nhau (deltaE=${validation.harmonyStatus.deltaE}).`);
     }
 
@@ -123,7 +135,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     }
 
     return warnings;
-  }, [mode, validation]);
+  }, [effectiveColors.mode, validation]);
 
   const updateJob = (index: number, field: keyof JobPosition, value: string) => {
     setJobs((prev) => prev.map((job, idx) => (
@@ -169,6 +181,16 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(toSnapshot({
         title,
@@ -178,6 +200,14 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
         harmony: nextConfig.harmony ?? DEFAULT_CAREER_HARMONY,
         texts: nextConfig.texts ?? DEFAULT_CAREER_TEXTS,
       }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
 
       toast.success('Đã cập nhật Career');
     } catch (error) {
@@ -379,12 +409,25 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Tuyển dụng"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <CareerPreview
               jobs={toCareerJobsForConfig(normalizedJobs)}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               harmony={harmony}
               selectedStyle={careerStyle}
               onStyleChange={setCareerStyle}

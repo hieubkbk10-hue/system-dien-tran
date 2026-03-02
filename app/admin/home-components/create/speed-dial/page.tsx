@@ -26,7 +26,7 @@ const createDefaultActions = (secondary: string): SpeedDialAction[] => {
 
 export default function SpeedDialCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Speed Dial', 'SpeedDial');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('SpeedDial');
 
   const [actions, setActions] = React.useState<SpeedDialAction[]>(createDefaultActions(secondary));
   const [style, setStyle] = React.useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));

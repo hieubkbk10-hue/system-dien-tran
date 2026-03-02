@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useBrandColors } from '../../create/shared';
+import { useSystemBrandColors } from '../../create/shared';
 import {
   getTypeOverrideState,
   resolveSecondaryByMode,
@@ -20,7 +20,7 @@ const isSameColorOverrideState = (a: ColorOverrideState, b: ColorOverrideState) 
 };
 
 export const useTypeColorOverride = (type: string) => {
-  const systemColors = useBrandColors();
+  const systemColors = useSystemBrandColors();
   const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
   const overrides = systemConfig?.typeColorOverrides ?? null;
 

@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { GripVertical, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FeaturesPreview } from '../../_components/FeaturesPreview';
 import {
   createFeatureItem,
@@ -28,10 +30,13 @@ const serializeState = (payload: {
   harmony: FeaturesHarmony;
 }) => JSON.stringify(payload);
 
+const COMPONENT_TYPE = 'Features';
+
 export default function FeaturesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -83,7 +88,14 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
     harmony,
   }), [title, active, featuresItems, style, harmony]);
 
-  const hasChanges = initialState.length > 0 && currentState !== initialState;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialState.length > 0 && (currentState !== initialState || customChanged);
 
   const dragProps = (itemId: number) => ({
     draggable: true,
@@ -135,6 +147,16 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
           harmony: normalizeFeaturesHarmony(harmony),
         },
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       const nextInitialState = serializeState({
         title,
@@ -144,6 +166,14 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
         harmony,
       });
       setInitialState(nextInitialState);
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       toast.success('Đã cập nhật Features');
     } catch (error) {
       toast.error('Lỗi khi cập nhật Features');
@@ -296,13 +326,26 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div />
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Features"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <FeaturesPreview
               items={featuresItems}
               sectionTitle={title}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               harmony={harmony}
               selectedStyle={style}
               onStyleChange={setStyle}

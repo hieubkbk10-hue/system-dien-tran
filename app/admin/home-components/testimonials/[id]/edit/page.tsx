@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Loader2, Star, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ColorInfoPanel } from '../../../_shared/components/ColorInfoPanel';
 import { TestimonialsPreview } from '../../_components/TestimonialsPreview';
 import { TestimonialsForm } from '../../_components/TestimonialsForm';
@@ -27,6 +29,8 @@ import type {
   TestimonialsStyle,
   TestimonialsBrandMode,
 } from '../../_types';
+
+const COMPONENT_TYPE = 'Testimonials';
 
 const normalizeStyle = (style: unknown): TestimonialsStyle => {
   if (
@@ -62,8 +66,9 @@ const toPersistItem = (item: TestimonialsItem): TestimonialsPersistItem => ({
 export default function TestimonialsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
-  const brandMode: TestimonialsBrandMode = mode === 'single' ? 'single' : 'dual';
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const brandMode: TestimonialsBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -78,7 +83,7 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
   const harmony = normalizeTestimonialsHarmony((component?.config as { harmony?: unknown } | undefined)?.harmony);
-  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, brandMode, harmony);
+  const resolvedSecondary = resolveSecondaryForMode(effectiveColors.primary, effectiveColors.secondary, brandMode, harmony);
 
   useEffect(() => {
     if (!component) {return;}
@@ -122,9 +127,16 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
       title,
       type: component.type,
     });
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
 
-    setHasChanges(snapshot !== initialSnapshot);
-  }, [title, active, items, style, component, initialSnapshot]);
+    setHasChanges(snapshot !== initialSnapshot || customChanged);
+  }, [title, active, items, style, component, initialSnapshot, customState, initialCustom, showCustomBlock]);
 
   useEffect(() => {
     if (!component || component.type !== 'Testimonials') {return;}
@@ -132,13 +144,13 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
     const validation = getTestimonialsValidationResult({
       harmony,
       mode: brandMode,
-      primary,
+      primary: effectiveColors.primary,
       secondary: resolvedSecondary,
       style,
     });
 
     setWarningMessages(buildTestimonialsWarningMessages({ mode: brandMode, validation }));
-  }, [component, primary, resolvedSecondary, brandMode, harmony, style]);
+  }, [component, effectiveColors.primary, resolvedSecondary, brandMode, harmony, style]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -147,7 +159,7 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
     const validation = getTestimonialsValidationResult({
       harmony,
       mode: brandMode,
-      primary,
+      primary: effectiveColors.primary,
       secondary: resolvedSecondary,
       style,
     });
@@ -164,6 +176,16 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       toast.success('Đã cập nhật Testimonials');
 
@@ -176,6 +198,14 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
       });
 
       setInitialSnapshot(snapshot);
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -259,17 +289,30 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Testimonials"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <TestimonialsPreview
               items={items}
-              brandColor={primary}
+              brandColor={effectiveColors.primary}
               secondary={resolvedSecondary}
               mode={brandMode}
               selectedStyle={style}
               onStyleChange={setStyle}
             />
             {brandMode === 'dual' && (
-              <ColorInfoPanel brandColor={primary} secondary={resolvedSecondary} />
+              <ColorInfoPanel brandColor={effectiveColors.primary} secondary={resolvedSecondary} />
             )}
           </div>
         </div>

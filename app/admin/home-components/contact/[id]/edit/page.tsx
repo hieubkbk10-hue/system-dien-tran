@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Phone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ConfigEditor } from '../../_components/ConfigEditor';
 import { ContactPreview } from '../../_components/ContactPreview';
 import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../_lib/constants';
@@ -22,10 +24,13 @@ import {
 import { validateContactConfig } from '../../_lib/validation';
 import type { ContactConfigState, ContactStyle } from '../../_types';
 
+const COMPONENT_TYPE = 'Contact';
+
 export default function ContactEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -63,19 +68,26 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
     config: normalizedConfig,
   }), [title, active, normalizedConfig]);
 
-  const hasChanges = initialSnapshot !== null && currentSnapshot !== initialSnapshot;
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
   const hasValidationErrors = !validateContactConfig(normalizedConfig).isValid;
 
   const validation = useMemo(() => getContactValidationResult({
-    primary,
-    secondary,
-    mode,
+    primary: effectiveColors.primary,
+    secondary: effectiveColors.secondary,
+    mode: effectiveColors.mode,
     harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
-  }), [primary, secondary, mode, normalizedConfig.harmony]);
+  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, normalizedConfig.harmony]);
 
   const warningMessages = useMemo(() => {
-    if (mode === 'single') {return [];}
+    if (effectiveColors.mode === 'single') {return [];}
 
     const warnings: string[] = [];
 
@@ -88,7 +100,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
     }
 
     return warnings;
-  }, [mode, validation]);
+  }, [effectiveColors.mode, validation]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -108,6 +120,16 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setConfig(nextConfig);
       setInitialSnapshot(toContactSnapshot({
@@ -115,6 +137,14 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
         active,
         config: nextConfig,
       }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
 
       toast.success('Đã cập nhật Contact');
     } catch (error) {
@@ -182,7 +212,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        {mode === 'dual' && warningMessages.length > 0 && (
+        {effectiveColors.mode === 'dual' && warningMessages.length > 0 && (
           <Card className="mb-6 border-amber-200 bg-amber-50/70">
             <CardContent className="pt-6">
               <div className="space-y-2 text-xs text-amber-800">
@@ -202,14 +232,25 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Liên hệ"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <ContactPreview
               config={normalizedConfig}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode}
-              selectedStyle={normalizedConfig.style as ContactStyle}
-              onStyleChange={(nextStyle) => { setConfig({ ...normalizedConfig, style: nextStyle }); }}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode}
               title={title}
             />
           </div>

@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { AlertTriangle, Briefcase, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ServicesForm } from '../../_components/ServicesForm';
 import { ServicesPreview } from '../../_components/ServicesPreview';
 import { DEFAULT_SERVICES_CONFIG } from '../../_lib/constants';
@@ -26,10 +28,13 @@ const getDefaultEditorItems = (): ServiceEditorItem[] => {
   }));
 };
 
+const COMPONENT_TYPE = 'Services';
+
 export default function ServicesEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -68,6 +73,14 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
     setHasChanges(false);
   }, [component, id, router]);
 
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+
   useEffect(() => {
     if (!component || component.type !== 'Services' || !initialSnapshot) {return;}
 
@@ -79,16 +92,21 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
       type: component.type,
     });
 
-    setHasChanges(snapshot !== initialSnapshot);
-  }, [title, active, servicesItems, style, component, initialSnapshot]);
+    setHasChanges(snapshot !== initialSnapshot || customChanged);
+  }, [title, active, servicesItems, style, component, initialSnapshot, customChanged]);
 
   const harmony = normalizeServicesHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
-  const validation = useMemo(() => getServicesValidationResult({ primary, secondary, mode, harmony }), [primary, secondary, mode, harmony]);
+  const validation = useMemo(() => getServicesValidationResult({
+    primary: effectiveColors.primary,
+    secondary: effectiveColors.secondary,
+    mode: effectiveColors.mode,
+    harmony,
+  }), [effectiveColors, harmony]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];
 
-    if (mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
+    if (effectiveColors.mode === 'dual' && validation.harmonyStatus.isTooSimilar) {
       messages.push(`Màu phụ đang khá gần màu chính (deltaE = ${validation.harmonyStatus.deltaE}). Nên tăng độ tách biệt.`);
     }
 
@@ -97,7 +115,7 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
     }
 
     return messages;
-  }, [mode, validation]);
+  }, [effectiveColors.mode, validation]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -116,6 +134,17 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
         title,
       });
 
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
+
       toast.success('Đã cập nhật Services');
 
       const snapshot = JSON.stringify({
@@ -126,6 +155,14 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
         type: component?.type,
       });
       setInitialSnapshot(snapshot);
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -209,12 +246,25 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Services"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <ServicesPreview
               items={toServicesPersistItems(servicesItems)}
               brandColor={validation.colors.primary}
               secondary={validation.colors.secondary}
-              mode={mode}
+              mode={effectiveColors.mode}
               selectedStyle={style}
               onStyleChange={setStyle}
               title={title}

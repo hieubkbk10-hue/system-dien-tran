@@ -27,7 +27,7 @@ interface Project {
 
 export default function CaseStudyCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', 'CaseStudy');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('CaseStudy');
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
   const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
   const [warningMessages, setWarningMessages] = useState<string[]>([]);

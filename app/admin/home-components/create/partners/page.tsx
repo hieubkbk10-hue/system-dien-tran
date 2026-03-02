@@ -18,7 +18,7 @@ interface PartnerItem extends ImageItem {
 
 export default function PartnersCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đối tác / Logos', 'Partners');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Partners');
 
   const [partnersItems, setPartnersItems] = useState<PartnerItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },

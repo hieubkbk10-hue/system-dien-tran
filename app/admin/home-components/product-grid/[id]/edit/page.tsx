@@ -9,7 +9,9 @@ import { api } from '@/convex/_generated/api';
 import { Loader2, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ProductGridForm } from '../../_components/ProductGridForm';
 import type { ProductGridProductItem } from '../../_components/ProductGridForm';
 import { ProductGridPreview } from '../../_components/ProductGridPreview';
@@ -17,10 +19,13 @@ import { DEFAULT_PRODUCT_GRID_CONFIG } from '../../_lib/constants';
 import type { ProductGridStyle } from '../../_types';
 import type { ProductListPreviewItem } from '../../../product-list/_types';
 
+const COMPONENT_TYPE = 'ProductGrid';
+
 export default function ProductGridEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const productsData = useQuery(api.products.listAll, { limit: 100 });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -144,7 +149,14 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
       subTitle,
       sectionTitle,
     });
-    setHasChanges(snapshot !== initialSnapshot);
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
+    setHasChanges(snapshot !== initialSnapshot || customChanged);
   }, [
     title,
     active,
@@ -157,6 +169,9 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
     sectionTitle,
     component,
     initialSnapshot,
+    customState,
+    initialCustom,
+    showCustomBlock,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,6 +195,16 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật Sản phẩm');
       setInitialSnapshot(JSON.stringify({
         title,
@@ -192,6 +217,14 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         subTitle,
         sectionTitle,
       }));
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -280,10 +313,23 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Sản phẩm"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <ProductGridPreview
-              brandColor={primary}
-              secondary={secondary}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
               itemCount={selectionMode === 'manual' ? selectedProductIds.length : itemCount}
               selectedStyle={style}
               onStyleChange={setStyle}

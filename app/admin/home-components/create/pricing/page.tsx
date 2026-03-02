@@ -75,7 +75,7 @@ const sanitizeFeatures = (value: string) => (
 
 export default function PricingCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Bảng giá', 'Pricing');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Pricing');
 
   const [pricingStyle, setPricingStyle] = useState<PricingStyle>('cards');
   const [pricingPlans, setPricingPlans] = useState<PricingEditorPlan[]>(DEFAULT_PLANS);

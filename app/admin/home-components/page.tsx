@@ -2,11 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  AlertCircle, Award, Briefcase, Check, Edit, FileText, Grid, 
-  GripVertical, HelpCircle, Image as ImageIcon, LayoutTemplate, Loader2, 
-  MousePointerClick, Package, Phone, Plus, Star, Tag, Trash2, User as UserIcon, Users
-} from 'lucide-react';
+import { Edit, Grid, GripVertical, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -14,6 +10,8 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Button, Card, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, cn } from '../components/ui';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
+import { COMPONENT_TYPES } from './create/shared';
+import { getEditRoute as getEditRouteByType } from './_shared/lib/componentRoutes';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -27,71 +25,9 @@ export default function HomeComponentsPageWrapper() {
   );
 }
 
-const COMPONENT_TYPES = [
-  { description: 'Banner chính đầu trang', icon: LayoutTemplate, label: 'Hero Banner', value: 'Hero' },
-  { description: 'Số liệu nổi bật', icon: AlertCircle, label: 'Thống kê', value: 'Stats' },
-  { description: 'Sản phẩm theo danh mục', icon: Package, label: 'Danh sách Sản phẩm', value: 'ProductList' },
-  { description: 'Các dịch vụ cung cấp', icon: Briefcase, label: 'Danh sách Dịch vụ', value: 'ServiceList' },
-  { description: 'Bài viết mới nhất', icon: FileText, label: 'Tin tức / Blog', value: 'Blog' },
-  { description: 'Logo đối tác, khách hàng', icon: Users, label: 'Đối tác / Logos', value: 'Partners' },
-  { description: 'Nút đăng ký, mua ngay', icon: MousePointerClick, label: 'Kêu gọi hành động (CTA)', value: 'CTA' },
-  { description: 'Hỏi đáp', icon: HelpCircle, label: 'Câu hỏi thường gặp', value: 'FAQ' },
-  { description: 'Giới thiệu ngắn gọn', icon: UserIcon, label: 'Về chúng tôi', value: 'About' },
-  { description: 'Chân trang', icon: LayoutTemplate, label: 'Footer', value: 'Footer' },
-  { description: 'Mô tả dịch vụ', icon: Briefcase, label: 'Dịch vụ chi tiết', value: 'Services' },
-  { description: 'Tại sao chọn chúng tôi', icon: Check, label: 'Lợi ích', value: 'Benefits' },
-  { description: 'Ý kiến khách hàng', icon: Star, label: 'Đánh giá / Review', value: 'Testimonials' },
-  { description: 'Giải thưởng, chứng chỉ', icon: Award, label: 'Chứng nhận', value: 'TrustBadges' },
-  { description: 'Các gói dịch vụ', icon: Tag, label: 'Bảng giá', value: 'Pricing' },
-  { description: 'Hình ảnh hoạt động', icon: ImageIcon, label: 'Thư viện ảnh', value: 'Gallery' },
-  { description: 'Case study tiêu biểu', icon: FileText, label: 'Dự án thực tế', value: 'CaseStudy' },
-  { description: 'Vị trí đang tuyển', icon: Users, label: 'Tuyển dụng', value: 'Career' },
-  { description: 'Form liên hệ, bản đồ', icon: Phone, label: 'Liên hệ', value: 'Contact' },
-  { description: 'Grid sản phẩm', icon: Package, label: 'Sản phẩm', value: 'ProductGrid' },
-  { description: 'Tin mới', icon: FileText, label: 'Tin tức', value: 'News' },
-  { description: 'Banner slider', icon: LayoutTemplate, label: 'Banner', value: 'Banner' },
-];
-
-const EDIT_ROUTE_MAP: Record<string, string> = {
-  About: 'about',
-  Benefits: 'benefits',
-  Blog: 'blog',
-  Career: 'career',
-  CaseStudy: 'case-study',
-  CategoryProducts: 'category-products',
-  Clients: 'clients',
-  Contact: 'contact',
-  Countdown: 'countdown',
-  CTA: 'cta',
-  FAQ: 'faq',
-  Features: 'features',
-  Footer: 'footer',
-  Gallery: 'gallery',
-  Hero: 'hero',
-  Partners: 'partners',
-  Pricing: 'pricing',
-  Process: 'process',
-  ProductCategories: 'product-categories',
-  ProductGrid: 'product-grid',
-  ProductList: 'product-list',
-  ServiceList: 'service-list',
-  Services: 'services',
-  SpeedDial: 'speed-dial',
-  Stats: 'stats',
-  Team: 'team',
-  Testimonials: 'testimonials',
-  TrustBadges: 'trust-badges',
-  Video: 'video',
-  VoucherPromotions: 'voucher-promotions',
-};
-
-const getEditRoute = (type: string, id: string) => {
-  const slug = EDIT_ROUTE_MAP[type];
-  if (slug) {
-    return `/admin/home-components/${slug}/${id}/edit`;
-  }
-  return `/admin/home-components/${id}/edit`;
-};
+const getEditRoute = (type: string, id: string) => (
+  getEditRouteByType(type, id) ?? `/admin/home-components/${id}/edit`
+);
 
 interface SortableRowProps {
   comp: { _id: string; title: string; type: string; active: boolean; config?: { preview?: string; description?: string } };

@@ -22,7 +22,7 @@ const SOCIAL_PLATFORMS = [
 
 export default function ContactCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Liên hệ', 'Contact');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Contact');
 
   const [config, setConfig] = useState<ContactConfigState>({
     ...DEFAULT_CONTACT_CONFIG,

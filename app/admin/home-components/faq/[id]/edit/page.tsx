@@ -9,11 +9,15 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { HelpCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FaqForm } from '../../_components/FaqForm';
 import { FaqPreview } from '../../_components/FaqPreview';
 import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_HARMONY, DEFAULT_FAQ_ITEMS, FAQ_STYLES } from '../../_lib/constants';
 import type { FaqConfig, FaqHarmony, FaqItem, FaqStyle } from '../../_types';
+
+const COMPONENT_TYPE = 'FAQ';
 
 const FALLBACK_FAQ_ITEMS: FaqItem[] = DEFAULT_FAQ_ITEMS.map((item, idx) => ({
   ...item,
@@ -67,9 +71,9 @@ const toFaqConfig = (value: Record<string, unknown> | null | undefined): FaqConf
 export default function FaqEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const brandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -121,14 +125,22 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
   useEffect(() => {
     if (!initialData) {return;}
 
+    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+    const customChanged = showCustomBlock
+      ? customState.enabled !== initialCustom.enabled
+        || customState.mode !== initialCustom.mode
+        || customState.primary !== initialCustom.primary
+        || resolvedCustomSecondary !== initialCustom.secondary
+      : false;
     const changed = title !== initialData.title
       || active !== initialData.active
       || faqStyle !== initialData.faqStyle
       || JSON.stringify(faqItems) !== JSON.stringify(initialData.faqItems)
-      || JSON.stringify(faqConfig) !== JSON.stringify(initialData.faqConfig);
+      || JSON.stringify(faqConfig) !== JSON.stringify(initialData.faqConfig)
+      || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, faqItems, faqStyle, faqConfig, initialData]);
+  }, [title, active, faqItems, faqStyle, faqConfig, initialData, customState, initialCustom, showCustomBlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +168,16 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật FAQ');
       setFaqConfig(nextConfig);
       setInitialData({
@@ -165,6 +187,14 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
         faqStyle,
         faqConfig: nextConfig,
       });
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -237,18 +267,31 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
           faqItems={faqItems}
           setFaqItems={setFaqItems}
           faqStyle={faqStyle}
-          brandColor={primary}
+          brandColor={effectiveColors.primary}
           faqConfig={faqConfig}
           setFaqConfig={setFaqConfig}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho FAQ"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <FaqPreview
               items={faqItems}
-              brandColor={primary}
-              secondary={secondary}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
               mode={brandMode}
               selectedStyle={faqStyle}
               onStyleChange={setFaqStyle}

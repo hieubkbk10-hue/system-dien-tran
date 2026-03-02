@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { FooterPreview } from '../../footer/_components/FooterPreview';
 import { FooterForm } from '../../footer/_components/FooterForm';
@@ -11,8 +9,7 @@ import type { FooterConfig } from '../../footer/_types';
 
 export default function FooterCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', 'Footer');
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
+  const { primary, secondary, mode } = useBrandColors('Footer');
 
   const [footerConfig, setFooterConfig] = useState<FooterConfig>(() => normalizeFooterConfig({
     columns: [
@@ -27,7 +24,7 @@ export default function FooterCreatePage() {
     style: 'classic',
   }));
 
-  const brandMode: 'single' | 'dual' = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const brandMode: 'single' | 'dual' = mode === 'single' ? 'single' : 'dual';
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, footerConfig as unknown as Record<string, unknown>);

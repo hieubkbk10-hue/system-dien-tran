@@ -67,7 +67,7 @@ const createDefaultMembers = (): TeamEditorMember[] => {
 
 export default function TeamCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', 'Team');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('Team');
 
   const [members, setMembers] = React.useState<TeamEditorMember[]>(createDefaultMembers);
   const [style, setStyle] = React.useState<TeamStyle>(normalizeTeamStyle(DEFAULT_TEAM_CONFIG.style));

@@ -18,7 +18,7 @@ interface TrustBadgeItem extends ImageItem {
 
 export default function TrustBadgesCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Chứng nhận', 'TrustBadges');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('TrustBadges');
 
   const [trustBadgeItems, setTrustBadgeItems] = useState<TrustBadgeItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },

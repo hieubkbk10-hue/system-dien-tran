@@ -44,7 +44,7 @@ const toIntOrDefault = (value: string, fallback: number) => Number.parseInt(valu
 
 export function ProductListCreateShared({ type, titleLabel }: ProductListCreateSharedProps) {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titleLabel ?? DEFAULT_TITLES[type], type);
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors(type);
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState(type === 'ProductList' ? 'newest' : 'popular');

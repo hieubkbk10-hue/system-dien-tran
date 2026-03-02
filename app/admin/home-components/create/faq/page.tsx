@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { FaqForm } from '../../faq/_components/FaqForm';
 import { FaqPreview } from '../../faq/_components/FaqPreview';
@@ -16,9 +14,8 @@ const INITIAL_FAQ_ITEMS: FaqItem[] = [
 
 export default function FaqCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', 'FAQ');
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { primary, secondary, mode } = useBrandColors('FAQ');
+  const brandMode = mode === 'single' ? 'single' : 'dual';
 
   const [faqItems, setFaqItems] = useState<FaqItem[]>(INITIAL_FAQ_ITEMS);
   const [style, setStyle] = useState<FaqStyle>('accordion');

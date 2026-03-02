@@ -5,11 +5,11 @@ import { useMutation, useQuery } from 'convex/react';
 import { Eye, EyeOff, LayoutTemplate } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
-import { COMPONENT_TYPES } from '@/app/admin/home-components/create/shared';
+import { COMPONENT_TYPES, HOME_COMPONENT_TYPE_VALUES } from '@/app/admin/home-components/create/shared';
 import { useBrandColors } from '@/components/site/hooks';
 import { Button, Card, CardContent, CardHeader, CardTitle, cn } from '@/app/admin/components/ui';
 
-const CUSTOM_SUPPORTED_TYPES = new Set(['Hero']);
+const CUSTOM_SUPPORTED_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 
 type ColorOverride = {
   enabled: boolean;
@@ -116,12 +116,22 @@ export default function SystemHomeComponentsPage() {
     if (selectedTypes.length === 0) {return;}
     const nextHidden = Array.from(new Set([...hiddenTypes, ...selectedTypes]));
     setHiddenTypes(nextHidden);
-    await setCreateVisibility({ hiddenTypes: nextHidden });
+    try {
+      await setCreateVisibility({ hiddenTypes: nextHidden });
+      toast.success('Đã ẩn các component đã chọn khỏi trang tạo.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể ẩn các component đã chọn.');
+    }
   };
 
   const handleBulkCustom = async () => {
     if (selectedTypes.length === 0) {return;}
-    await bulkSetTypeColorOverride({ enabled: true, types: selectedTypes });
+    try {
+      await bulkSetTypeColorOverride({ enabled: true, types: selectedTypes });
+      toast.success('Đã bật custom màu cho các component đã chọn.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể bật custom màu hàng loạt.');
+    }
   };
 
   if (config === undefined) {

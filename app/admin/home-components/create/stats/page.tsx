@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
 import { Plus, Trash2 } from 'lucide-react';
-import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '../../../components/ui';
 import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
 import { StatsPreview } from '../../stats/_components/StatsPreview';
@@ -11,9 +9,8 @@ import type { StatsBrandMode, StatsStyle } from '../../stats/_types';
 
 export default function StatsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', 'Stats');
-  const { primary, secondary } = useBrandColors();
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode: StatsBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const { primary, secondary, mode } = useBrandColors('Stats');
+  const brandMode: StatsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [statsItems, setStatsItems] = useState([
     { id: 1, label: 'Khách hàng', value: '1000+' },

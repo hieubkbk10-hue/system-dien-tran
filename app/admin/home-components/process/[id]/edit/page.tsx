@@ -9,7 +9,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { ListChecks, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
-import { useBrandColors } from '../../../create/shared';
+import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ProcessForm } from '../../_components/ProcessForm';
 import { ProcessPreview } from '../../_components/ProcessPreview';
 import {
@@ -21,10 +23,13 @@ import {
 } from '../../_lib/normalize';
 import type { ProcessBrandMode, ProcessStep, ProcessStyle } from '../../_types';
 
+const COMPONENT_TYPE = 'Process';
+
 export default function ProcessEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { primary, secondary, mode } = useBrandColors();
+  const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -66,6 +71,14 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
     }
   }, [component, id, router]);
 
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+  const customChanged = showCustomBlock
+    ? customState.enabled !== initialCustom.enabled
+      || customState.mode !== initialCustom.mode
+      || customState.primary !== initialCustom.primary
+      || resolvedCustomSecondary !== initialCustom.secondary
+    : false;
+
   useEffect(() => {
     if (!initialData) {return;}
 
@@ -77,8 +90,8 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
       || processStyle !== initialData.style
       || currentSteps !== initialSteps;
 
-    setHasChanges(changed);
-  }, [title, active, steps, processStyle, initialData]);
+    setHasChanges(changed || customChanged);
+  }, [title, active, steps, processStyle, initialData, customChanged]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -97,6 +110,16 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
         id: id as Id<'homeComponents'>,
         title,
       });
+      if (showCustomBlock) {
+        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+        await setTypeColorOverride({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       toast.success('Đã cập nhật Process');
       setInitialData({
@@ -105,6 +128,14 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
         steps: serializedSteps,
         style: processStyle,
       });
+      if (showCustomBlock) {
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -175,16 +206,29 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        <ProcessForm steps={steps} onChange={setSteps} secondary={secondary} />
+        <ProcessForm steps={steps} onChange={setSteps} secondary={effectiveColors.secondary} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
           <div></div>
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {showCustomBlock && (
+              <TypeColorOverrideCard
+                title="Màu custom cho Process"
+                enabled={customState.enabled}
+                mode={customState.mode}
+                primary={customState.primary}
+                secondary={customState.secondary}
+                onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
+                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
+                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+              />
+            )}
             <ProcessPreview
               steps={normalizedPreviewSteps}
-              brandColor={primary}
-              secondary={secondary}
-              mode={mode as ProcessBrandMode}
+              brandColor={effectiveColors.primary}
+              secondary={effectiveColors.secondary}
+              mode={effectiveColors.mode as ProcessBrandMode}
               selectedStyle={processStyle}
               onStyleChange={setProcessStyle}
             />

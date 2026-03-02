@@ -1,12 +1,13 @@
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { HOME_COMPONENT_TYPE_VALUES } from "../lib/home-components/componentTypes";
 
 const GROUP_KEY = "home_components";
 const HIDDEN_TYPES_KEY = "create_hidden_types";
 const OVERRIDES_KEY = "type_color_overrides";
 const DEFAULT_BRAND_COLOR = "#3b82f6";
-const SUPPORTED_CUSTOM_TYPES = new Set(["Hero"]);
+const SUPPORTED_CUSTOM_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 
 const colorMode = v.union(v.literal("single"), v.literal("dual"));
 const colorOverrideDoc = v.object({

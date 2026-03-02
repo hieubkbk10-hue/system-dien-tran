@@ -17,7 +17,7 @@ interface CategoryProductItem {
 
 export default function CategoryProductsCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', 'CategoryProducts');
-  const { primary, secondary, mode } = useBrandColors();
+  const { primary, secondary, mode } = useBrandColors('CategoryProducts');
   const brandMode: CategoryProductsBrandMode = mode === 'single' ? 'single' : 'dual';
   
   const categoriesData = useQuery(api.productCategories.listActive);
