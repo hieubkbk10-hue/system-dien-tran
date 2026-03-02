@@ -29,7 +29,7 @@ interface Project {
 export default function CaseStudyCreatePage() {
   const COMPONENT_TYPE = 'CaseStudy';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
   const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
@@ -110,7 +110,6 @@ export default function CaseStudyCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

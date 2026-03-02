@@ -75,7 +75,7 @@ const toPersistConfig = (state: BenefitsEditorState): BenefitsConfig => ({
 export default function BenefitsCreatePage() {
   const COMPONENT_TYPE = 'Benefits';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: BenefitsBrandMode = mode === 'single' ? 'single' : 'dual';
 
@@ -113,7 +113,6 @@ export default function BenefitsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <BenefitsForm
         state={editorState}

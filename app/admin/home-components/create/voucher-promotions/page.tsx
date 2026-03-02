@@ -17,7 +17,7 @@ import type { VoucherPromotionsConfigState } from '../../voucher-promotions/_typ
 export default function VoucherPromotionsCreatePage() {
   const COMPONENT_TYPE = 'VoucherPromotions';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
   const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
 
@@ -66,7 +66,6 @@ export default function VoucherPromotionsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader>

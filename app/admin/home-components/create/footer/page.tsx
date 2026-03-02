@@ -11,7 +11,7 @@ import type { FooterConfig } from '../../footer/_types';
 export default function FooterCreatePage() {
   const COMPONENT_TYPE = 'Footer';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
 
   const [footerConfig, setFooterConfig] = useState<FooterConfig>(() => normalizeFooterConfig({
@@ -46,7 +46,6 @@ export default function FooterCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <FooterForm value={footerConfig} onChange={setFooterConfig} primary={primary} secondary={secondary} mode={brandMode} />
 

@@ -21,7 +21,7 @@ interface CategoryItem {
 export default function ProductCategoriesCreatePage() {
   const COMPONENT_TYPE = 'ProductCategories';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: ProductCategoriesBrandMode = mode === 'single' ? 'single' : 'dual';
 
@@ -119,7 +119,6 @@ export default function ProductCategoriesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader>

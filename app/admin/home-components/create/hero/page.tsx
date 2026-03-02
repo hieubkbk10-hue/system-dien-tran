@@ -21,7 +21,7 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState('Hero', { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('Hero');
 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', image: '', link: '', url: '' }
@@ -60,7 +60,6 @@ export default function HeroCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader>

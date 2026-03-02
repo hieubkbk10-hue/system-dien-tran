@@ -15,7 +15,7 @@ import type { ProductGridStyle } from '../../product-grid/_types';
 function ProductGridCreateContent() {
   const COMPONENT_TYPE = 'ProductGrid';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary } = effectiveColors;
 
   const [itemCount, setItemCount] = useState(8);
@@ -103,7 +103,6 @@ function ProductGridCreateContent() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <ProductGridForm
         itemCount={itemCount}

@@ -44,7 +44,7 @@ const DEFAULT_CREATE_JOBS: JobPosition[] = [
 export default function CareerCreatePage() {
   const COMPONENT_TYPE = 'Career';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
   const { primary, secondary, mode } = effectiveColors;
 
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
@@ -122,7 +122,6 @@ export default function CareerCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
-      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
