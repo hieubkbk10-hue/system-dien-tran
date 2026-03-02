@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ServiceListForm } from '../../_components/ServiceListForm';
 import { ServiceListPreview } from '../../_components/ServiceListPreview';
 import {
@@ -317,8 +317,23 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === prev.mode) {
+                    return prev;
+                  }
+                  if (next === 'single') {
+                    return { ...prev, mode: 'single', secondary: prev.primary };
+                  }
+                  const nextSecondary = prev.mode === 'single'
+                    ? getSuggestedSecondary(prev.primary)
+                    : prev.secondary;
+                  return { ...prev, mode: 'dual', secondary: nextSecondary };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  primary: value,
+                  secondary: prev.mode === 'single' ? value : prev.secondary,
+                }))}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
