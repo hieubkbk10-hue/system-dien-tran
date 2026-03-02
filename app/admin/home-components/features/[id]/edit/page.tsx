@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FeaturesPreview } from '../../_components/FeaturesPreview';
 import {
   createFeatureItem,
@@ -148,7 +148,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
         },
       });
       if (showCustomBlock) {
-        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
@@ -171,7 +170,7 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+          secondary: resolvedCustomSecondary,
         });
       }
       toast.success('Đã cập nhật Features');
@@ -335,9 +334,24 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
-                onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === 'single') {
+                    return { ...prev, mode: next, secondary: prev.primary };
+                  }
+                  if (prev.mode === 'single') {
+                    return { ...prev, mode: next, secondary: getSuggestedSecondary(prev.primary) };
+                  }
+                  return { ...prev, mode: next };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  primary: value,
+                  secondary: prev.mode === 'single' ? value : prev.secondary,
+                }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  secondary: prev.mode === 'single' ? prev.primary : value,
+                }))}
               />
             )}
             <FeaturesPreview
