@@ -98,7 +98,7 @@ export function useSystemBrandColors() {
 }
 
 export function useBrandColors(type?: string) {
-  if (type) {
+  if (type && HOME_COMPONENT_TYPE_VALUES.includes(type)) {
     return useTypeColorOverrideState(type).effectiveColors;
   }
   return useSystemBrandColors();
@@ -144,6 +144,10 @@ export function ComponentFormWrapper({
   const handleFormSubmit = (event: React.FormEvent) => {
     void (async () => {
       event.preventDefault();
+      if (!HOME_COMPONENT_TYPE_VALUES.includes(type)) {
+        toast.error('Loại component không hợp lệ.');
+        return;
+      }
       if (showCustomBlock) {
         try {
           await setTypeColorOverride({
