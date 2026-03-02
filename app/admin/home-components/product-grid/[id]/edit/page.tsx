@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ProductGridForm } from '../../_components/ProductGridForm';
 import type { ProductGridProductItem } from '../../_components/ProductGridForm';
 import { ProductGridPreview } from '../../_components/ProductGridPreview';
@@ -136,6 +136,8 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
       }));
   }, [productsData, itemCount]);
 
+  const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
+
   useEffect(() => {
     if (!component || !initialSnapshot) {return;}
     const snapshot = JSON.stringify({
@@ -149,7 +151,6 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
       subTitle,
       sectionTitle,
     });
-    const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
     const customChanged = showCustomBlock
       ? customState.enabled !== initialCustom.enabled
         || customState.mode !== initialCustom.mode
@@ -172,6 +173,7 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
     customState,
     initialCustom,
     showCustomBlock,
+    resolvedCustomSecondary,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,7 +198,6 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
         title,
       });
       if (showCustomBlock) {
-        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
@@ -222,7 +223,7 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+          secondary: resolvedCustomSecondary,
         });
       }
       setHasChanges(false);
@@ -320,10 +321,24 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
                 enabled={customState.enabled}
                 mode={customState.mode}
                 primary={customState.primary}
-                secondary={customState.secondary}
+                secondary={resolvedCustomSecondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => {
+                  if (next === 'single') {
+                    setCustomState((prev) => ({ ...prev, mode: 'single', secondary: prev.primary }));
+                    return;
+                  }
+                  setCustomState((prev) => ({
+                    ...prev,
+                    mode: 'dual',
+                    secondary: prev.mode === 'single' ? getSuggestedSecondary(prev.primary) : prev.secondary,
+                  }));
+                }}
+                onPrimaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  primary: value,
+                  secondary: prev.mode === 'single' ? value : prev.secondary,
+                }))}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
