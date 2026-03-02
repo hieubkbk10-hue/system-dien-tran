@@ -155,7 +155,6 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
         title,
       });
       if (showCustomBlock) {
-        const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
         await setTypeColorOverride({
           enabled: customState.enabled,
           mode: customState.mode,
@@ -181,7 +180,7 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
           enabled: customState.enabled,
           mode: customState.mode,
           primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+          secondary: resolvedCustomSecondary,
         });
       }
 
@@ -278,7 +277,7 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
                 enabled={customState.enabled}
                 mode={customState.mode}
                 primary={customState.primary}
-                secondary={customState.secondary}
+                secondary={resolvedCustomSecondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
                 onModeChange={(next) => {
                   if (next === 'single') {
