@@ -3,13 +3,16 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { StatsPreview } from '../../stats/_components/StatsPreview';
 import type { StatsBrandMode, StatsStyle } from '../../stats/_types';
 
 export default function StatsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', 'Stats');
-  const { primary, secondary, mode } = useBrandColors('Stats');
+  const COMPONENT_TYPE = 'Stats';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode: StatsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [statsItems, setStatsItems] = useState([
@@ -26,13 +29,17 @@ export default function StatsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Stats"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

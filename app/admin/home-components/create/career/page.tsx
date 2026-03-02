@@ -3,7 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { CareerPreview } from '../../career/_components/CareerPreview';
 import {
   createCareerJob,
@@ -41,8 +42,10 @@ const DEFAULT_CREATE_JOBS: JobPosition[] = [
 ];
 
 export default function CareerCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', 'Career');
-  const { primary, secondary, mode } = useBrandColors('Career');
+  const COMPONENT_TYPE = 'Career';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [jobPositions, setJobPositions] = useState<JobPosition[]>(DEFAULT_CREATE_JOBS);
@@ -108,13 +111,17 @@ export default function CareerCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Career"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

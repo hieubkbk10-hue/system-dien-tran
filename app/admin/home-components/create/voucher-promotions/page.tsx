@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { VoucherPromotionsPreview } from '../../voucher-promotions/_components/VoucherPromotionsPreview';
 import { normalizeVoucherLimit } from '@/lib/home-components/voucher-promotions';
 import {
@@ -14,8 +15,10 @@ import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentB
 import type { VoucherPromotionsConfigState } from '../../voucher-promotions/_types';
 
 export default function VoucherPromotionsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', 'VoucherPromotions');
-  const { primary, secondary, mode } = useBrandColors('VoucherPromotions');
+  const COMPONENT_TYPE = 'VoucherPromotions';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
 
   const validation = useMemo(() => getVoucherPromotionsValidationResult({
@@ -52,13 +55,17 @@ export default function VoucherPromotionsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="VoucherPromotions"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

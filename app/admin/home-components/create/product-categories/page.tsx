@@ -5,10 +5,11 @@ import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { ProductCategoriesPreview } from '../../product-categories/_components/ProductCategoriesPreview';
 import type { ProductCategoriesBrandMode, ProductCategoriesStyle } from '../../product-categories/_types';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 
 interface CategoryItem {
   id: number;
@@ -18,10 +19,11 @@ interface CategoryItem {
 }
 
 export default function ProductCategoriesCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', 'ProductCategories');
-  const { primary, secondary } = useBrandColors('ProductCategories');
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
-  const brandMode: ProductCategoriesBrandMode = modeSetting?.value === 'single' ? 'single' : 'dual';
+  const COMPONENT_TYPE = 'ProductCategories';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
+  const brandMode: ProductCategoriesBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const categoriesData = useQuery(api.productCategories.listActive);
   
@@ -106,13 +108,17 @@ export default function ProductCategoriesCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="ProductCategories"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

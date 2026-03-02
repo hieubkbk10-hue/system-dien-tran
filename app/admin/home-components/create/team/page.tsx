@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { TeamForm } from '../../team/_components/TeamForm';
 import { TeamPreview } from '../../team/_components/TeamPreview';
 import {
@@ -66,8 +67,10 @@ const createDefaultMembers = (): TeamEditorMember[] => {
 };
 
 export default function TeamCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', 'Team');
-  const { primary, secondary, mode } = useBrandColors('Team');
+  const COMPONENT_TYPE = 'Team';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [members, setMembers] = React.useState<TeamEditorMember[]>(createDefaultMembers);
   const [style, setStyle] = React.useState<TeamStyle>(normalizeTeamStyle(DEFAULT_TEAM_CONFIG.style));
@@ -112,13 +115,17 @@ export default function TeamCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Team"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <TeamForm
         members={members}

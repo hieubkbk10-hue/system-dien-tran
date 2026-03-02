@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { FeaturesPreview } from '../../features/_components/FeaturesPreview';
 import {
   createFeatureItem,
@@ -23,8 +24,10 @@ const defaultItems: FeatureItem[] = [
 ];
 
 export default function FeaturesCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', 'Features');
-  const { primary, secondary, mode } = useBrandColors('Features');
+  const COMPONENT_TYPE = 'Features';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);
   const [style, setStyle] = useState<FeaturesStyle>('iconGrid');
@@ -75,13 +78,17 @@ export default function FeaturesCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Features"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

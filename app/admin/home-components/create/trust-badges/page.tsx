@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { TrustBadgesPreview } from '../../gallery/_components/TrustBadgesPreview';
 import type { TrustBadgesStyle } from '../../gallery/_types';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -17,8 +18,10 @@ interface TrustBadgeItem extends ImageItem {
 }
 
 export default function TrustBadgesCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Chứng nhận', 'TrustBadges');
-  const { primary, secondary, mode } = useBrandColors('TrustBadges');
+  const COMPONENT_TYPE = 'TrustBadges';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Chứng nhận', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [trustBadgeItems, setTrustBadgeItems] = useState<TrustBadgeItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -35,13 +38,17 @@ export default function TrustBadgesCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="TrustBadges"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

@@ -3,7 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Eye, GripVertical, Package, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { PricingPreview } from '../../pricing/_components/PricingPreview';
 import {
   DEFAULT_PRICING_HARMONY,
@@ -74,8 +75,10 @@ const sanitizeFeatures = (value: string) => (
 );
 
 export default function PricingCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Bảng giá', 'Pricing');
-  const { primary, secondary, mode } = useBrandColors('Pricing');
+  const COMPONENT_TYPE = 'Pricing';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Bảng giá', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [pricingStyle, setPricingStyle] = useState<PricingStyle>('cards');
   const [pricingPlans, setPricingPlans] = useState<PricingEditorPlan[]>(DEFAULT_PLANS);
@@ -190,13 +193,17 @@ export default function PricingCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Pricing"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

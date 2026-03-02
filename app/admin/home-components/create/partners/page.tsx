@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { PartnersPreview } from '../../partners/_components/PartnersPreview';
 import type { PartnersStyle } from '../../partners/_types';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -17,8 +18,10 @@ interface PartnerItem extends ImageItem {
 }
 
 export default function PartnersCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đối tác / Logos', 'Partners');
-  const { primary, secondary, mode } = useBrandColors('Partners');
+  const COMPONENT_TYPE = 'Partners';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đối tác / Logos', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [partnersItems, setPartnersItems] = useState<PartnerItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -35,13 +38,17 @@ export default function PartnersCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Partners"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

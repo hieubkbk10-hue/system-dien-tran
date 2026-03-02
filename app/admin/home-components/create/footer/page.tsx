@@ -1,15 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { FooterPreview } from '../../footer/_components/FooterPreview';
 import { FooterForm } from '../../footer/_components/FooterForm';
 import { normalizeFooterConfig } from '../../footer/_lib/constants';
 import type { FooterConfig } from '../../footer/_types';
 
 export default function FooterCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', 'Footer');
-  const { primary, secondary, mode } = useBrandColors('Footer');
+  const COMPONENT_TYPE = 'Footer';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Footer', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [footerConfig, setFooterConfig] = useState<FooterConfig>(() => normalizeFooterConfig({
     columns: [
@@ -32,13 +35,17 @@ export default function FooterCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Footer"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <FooterForm value={footerConfig} onChange={setFooterConfig} primary={primary} secondary={secondary} mode={brandMode} />
 

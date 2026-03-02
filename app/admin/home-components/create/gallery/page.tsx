@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { GalleryPreview } from '../../gallery/_components/GalleryPreview';
 import type { GalleryStyle } from '../../gallery/_types';
 import { normalizeGalleryHarmony } from '../../gallery/_lib/colors';
@@ -17,8 +18,10 @@ interface GalleryItem extends ImageItem {
 }
 
 export default function GalleryCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thư viện ảnh', 'Gallery');
-  const { primary, secondary, mode } = useBrandColors('Gallery');
+  const COMPONENT_TYPE = 'Gallery';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thư viện ảnh', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', url: '' },
@@ -39,13 +42,17 @@ export default function GalleryCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Gallery"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

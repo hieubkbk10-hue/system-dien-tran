@@ -4,7 +4,8 @@ import React, { Suspense, useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import type { ProductListPreviewItem } from '../../product-list/_types';
 import type { ProductGridProductItem } from '../../product-grid/_components/ProductGridForm';
 import { ProductGridForm } from '../../product-grid/_components/ProductGridForm';
@@ -12,8 +13,10 @@ import { ProductGridPreview } from '../../product-grid/_components/ProductGridPr
 import type { ProductGridStyle } from '../../product-grid/_types';
 
 function ProductGridCreateContent() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm', 'ProductGrid');
-  const { primary, secondary } = useBrandColors('ProductGrid');
+  const COMPONENT_TYPE = 'ProductGrid';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary } = effectiveColors;
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState<'newest' | 'bestseller' | 'random'>('newest');
@@ -89,13 +92,17 @@ function ProductGridCreateContent() {
 
   return (
     <ComponentFormWrapper
-      type="ProductGrid"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <ProductGridForm
         itemCount={itemCount}

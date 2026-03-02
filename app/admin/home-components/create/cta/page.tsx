@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { toast } from 'sonner';
 import { CTAForm } from '../../cta/_components/CTAForm';
 import { CTAPreview } from '../../cta/_components/CTAPreview';
@@ -20,8 +21,10 @@ const INITIAL_CTA_CONFIG: CTAConfig = {
 };
 
 export default function CTACreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Kêu gọi hành động (CTA)', 'CTA');
-  const { primary, secondary, mode } = useBrandColors('CTA');
+  const COMPONENT_TYPE = 'CTA';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Kêu gọi hành động (CTA)', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(INITIAL_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
@@ -48,13 +51,17 @@ export default function CTACreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="CTA"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <CTAForm
         config={ctaConfig}

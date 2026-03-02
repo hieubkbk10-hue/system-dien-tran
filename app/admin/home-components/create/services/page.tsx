@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ServicesForm } from '../../services/_components/ServicesForm';
 import { ServicesPreview } from '../../services/_components/ServicesPreview';
 import { getServicesValidationResult, normalizeServicesHarmony } from '../../services/_lib/colors';
@@ -16,8 +17,10 @@ const DEFAULT_EDITOR_ITEMS: ServiceEditorItem[] = [
 ];
 
 export default function ServicesCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', 'Services');
-  const { primary, secondary, mode } = useBrandColors('Services');
+  const COMPONENT_TYPE = 'Services';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(DEFAULT_EDITOR_ITEMS);
   const [style, setStyle] = useState<ServicesStyle>('elegantGrid');
@@ -48,13 +51,17 @@ export default function ServicesCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Services"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <ServicesForm items={servicesItems} onChange={setServicesItems} brandColor={validation.colors.primary} />
 

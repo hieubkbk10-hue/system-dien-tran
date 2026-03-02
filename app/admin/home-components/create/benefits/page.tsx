@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { BenefitsForm } from '../../benefits/_components/BenefitsForm';
 import { BenefitsPreview } from '../../benefits/_components/BenefitsPreview';
 import { DEFAULT_BENEFITS_EDITOR_STATE, DEFAULT_BENEFITS_HARMONY } from '../../benefits/_lib/constants';
@@ -72,8 +73,10 @@ const toPersistConfig = (state: BenefitsEditorState): BenefitsConfig => ({
 });
 
 export default function BenefitsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', 'Benefits');
-  const { primary, secondary, mode } = useBrandColors('Benefits');
+  const COMPONENT_TYPE = 'Benefits';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode: BenefitsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [editorState, setEditorState] = useState<BenefitsEditorState>(normalizeCreateState);
@@ -99,13 +102,17 @@ export default function BenefitsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Benefits"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <BenefitsForm
         state={editorState}

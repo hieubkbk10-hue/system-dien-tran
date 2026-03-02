@@ -7,7 +7,8 @@ import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { BlogPreview } from '../../blog/_components/BlogPreview';
 import type { BlogPostItem } from '../../blog/_components/BlogForm';
 import { getBlogValidationResult } from '../../blog/_lib/colors';
@@ -44,7 +45,8 @@ const toIntOrDefault = (value: string, fallback: number) => Number.parseInt(valu
 
 export function ProductListCreateShared({ type, titleLabel }: ProductListCreateSharedProps) {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titleLabel ?? DEFAULT_TITLES[type], type);
-  const { primary, secondary, mode } = useBrandColors(type);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(type);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState(type === 'ProductList' ? 'newest' : 'popular');
@@ -270,6 +272,10 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       {type === 'ProductList' && (
         <Card className="mb-6">

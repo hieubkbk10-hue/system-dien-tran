@@ -5,7 +5,8 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ClientsForm } from '../../clients/_components/ClientsForm';
 import { ClientsPreview } from '../../clients/_components/ClientsPreview';
 import {
@@ -39,8 +40,10 @@ const toPersistItems = (items: ClientEditorItem[]): ClientsConfig['items'] => (
 );
 
 export default function ClientsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khách hàng của chúng tôi', 'Clients');
-  const { primary, secondary, mode } = useBrandColors('Clients');
+  const COMPONENT_TYPE = 'Clients';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khách hàng của chúng tôi', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
 
@@ -153,13 +156,17 @@ export default function ClientsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Clients"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <ClientsForm
         items={clientItems}

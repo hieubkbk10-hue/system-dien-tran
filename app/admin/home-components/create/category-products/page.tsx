@@ -5,7 +5,8 @@ import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { CategoryProductsPreview } from '../../category-products/_components/CategoryProductsPreview';
 import type { CategoryProductsBrandMode, CategoryProductsStyle } from '../../category-products/_types';
 
@@ -16,8 +17,10 @@ interface CategoryProductItem {
 }
 
 export default function CategoryProductsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', 'CategoryProducts');
-  const { primary, secondary, mode } = useBrandColors('CategoryProducts');
+  const COMPONENT_TYPE = 'CategoryProducts';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode: CategoryProductsBrandMode = mode === 'single' ? 'single' : 'dual';
   
   const categoriesData = useQuery(api.productCategories.listActive);
@@ -97,13 +100,17 @@ export default function CategoryProductsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="CategoryProducts"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

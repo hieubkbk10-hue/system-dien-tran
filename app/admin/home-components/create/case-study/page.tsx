@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Eye, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import {
   getCaseStudyValidationResult,
   normalizeCaseStudyHarmony,
@@ -26,8 +27,10 @@ interface Project {
 }
 
 export default function CaseStudyCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', 'CaseStudy');
-  const { primary, secondary, mode } = useBrandColors('CaseStudy');
+  const COMPONENT_TYPE = 'CaseStudy';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
   const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
@@ -96,13 +99,17 @@ export default function CaseStudyCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="CaseStudy"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

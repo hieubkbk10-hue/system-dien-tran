@@ -3,7 +3,8 @@
 import React from 'react';
 import { Video as VideoIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { VideoPreview } from '../../video/_components/VideoPreview';
 import {
   DEFAULT_VIDEO_HARMONY,
@@ -15,8 +16,10 @@ import { VideoForm } from '../../video/_components/VideoForm';
 import type { VideoConfig } from '../../video/_types';
 
 export default function VideoCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', 'Video');
-  const { primary, secondary, mode } = useBrandColors('Video');
+  const COMPONENT_TYPE = 'Video';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [config, setConfig] = React.useState<VideoConfig>(() => normalizeVideoConfig({
     autoplay: false,
@@ -42,13 +45,17 @@ export default function VideoCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Video"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

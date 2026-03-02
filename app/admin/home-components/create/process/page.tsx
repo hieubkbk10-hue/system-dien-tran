@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ProcessForm } from '../../process/_components/ProcessForm';
 import { ProcessPreview } from '../../process/_components/ProcessPreview';
 import {
@@ -36,8 +37,10 @@ const DEFAULT_CREATE_STEPS: ProcessFormStep[] = [
 ];
 
 export default function ProcessCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Quy trình làm việc', 'Process');
-  const { primary, secondary, mode } = useBrandColors('Process');
+  const COMPONENT_TYPE = 'Process';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Quy trình làm việc', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [steps, setSteps] = React.useState<ProcessFormStep[]>(DEFAULT_CREATE_STEPS);
   const [style, setStyle] = React.useState<ProcessStyle>('horizontal');
@@ -56,13 +59,17 @@ export default function ProcessCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Process"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <ProcessForm steps={steps} onChange={setSteps} secondary={secondary} />
 

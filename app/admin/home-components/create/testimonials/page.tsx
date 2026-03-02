@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { TestimonialsPreview } from '../../testimonials/_components/TestimonialsPreview';
 import { TestimonialsForm } from '../../testimonials/_components/TestimonialsForm';
@@ -15,8 +16,10 @@ import {
 import type { TestimonialsBrandMode, TestimonialsItem, TestimonialsStyle } from '../../testimonials/_types';
 
 export default function TestimonialsCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đánh giá / Review', 'Testimonials');
-  const { primary, secondary, mode } = useBrandColors('Testimonials');
+  const COMPONENT_TYPE = 'Testimonials';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đánh giá / Review', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode: TestimonialsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [items, setItems] = useState<TestimonialsItem[]>([
@@ -73,13 +76,17 @@ export default function TestimonialsCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Testimonials"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <TestimonialsForm items={items} setItems={setItems} />
 

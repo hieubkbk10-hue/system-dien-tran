@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { FaqForm } from '../../faq/_components/FaqForm';
 import { FaqPreview } from '../../faq/_components/FaqPreview';
 import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_HARMONY } from '../../faq/_lib/constants';
@@ -13,8 +14,10 @@ const INITIAL_FAQ_ITEMS: FaqItem[] = [
 ];
 
 export default function FaqCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', 'FAQ');
-  const { primary, secondary, mode } = useBrandColors('FAQ');
+  const COMPONENT_TYPE = 'FAQ';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
   const brandMode = mode === 'single' ? 'single' : 'dual';
 
   const [faqItems, setFaqItems] = useState<FaqItem[]>(INITIAL_FAQ_ITEMS);
@@ -32,13 +35,17 @@ export default function FaqCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="FAQ"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <FaqForm
         faqItems={faqItems}

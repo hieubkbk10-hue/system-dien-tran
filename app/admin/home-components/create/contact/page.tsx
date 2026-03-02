@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ContactPreview } from '../../contact/_components/ContactPreview';
 import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY, DEFAULT_CONTACT_TEXTS, TEXT_FIELDS } from '../../contact/_lib/constants';
 import { getContactValidationResult } from '../../contact/_lib/colors';
@@ -21,8 +22,10 @@ const SOCIAL_PLATFORMS = [
 ];
 
 export default function ContactCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Liên hệ', 'Contact');
-  const { primary, secondary, mode } = useBrandColors('Contact');
+  const COMPONENT_TYPE = 'Contact';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Liên hệ', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [config, setConfig] = useState<ContactConfigState>({
     ...DEFAULT_CONTACT_CONFIG,
@@ -100,13 +103,17 @@ export default function ContactCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="Contact"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <Card className="mb-6">
         <CardHeader>

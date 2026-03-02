@@ -16,7 +16,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { HOME_COMPONENT_BASE_TYPES, HOME_COMPONENT_TYPE_VALUES as BASE_COMPONENT_TYPE_VALUES } from '@/lib/home-components/componentTypes';
 import { TypeColorOverrideCard } from '../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../_shared/hooks/useTypeColorOverride';
-import { getSuggestedSecondary, resolveSecondaryByMode } from '../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode, type ColorOverrideState } from '../_shared/lib/typeColorOverride';
 
 const ICON_MAP: Record<string, typeof LayoutTemplate> = {
   About: UserIcon,
@@ -124,7 +124,11 @@ export function ComponentFormWrapper({
   setActive, 
   onSubmit, 
   isSubmitting = false,
-  children 
+  children,
+  customState: customStateProp,
+  showCustomBlock: showCustomBlockProp,
+  setCustomState: setCustomStateProp,
+  systemColors: systemColorsProp,
 }: { 
   type: string;
   title: string;
@@ -134,11 +138,19 @@ export function ComponentFormWrapper({
   onSubmit: (e: React.FormEvent) => void;
   isSubmitting?: boolean;
   children: React.ReactNode;
+  customState?: ColorOverrideState;
+  showCustomBlock?: boolean;
+  setCustomState?: React.Dispatch<React.SetStateAction<ColorOverrideState>>;
+  systemColors?: { primary: string; secondary: string; mode: 'single' | 'dual' };
 }) {
   const router = useRouter();
   const typeInfo = getComponentType(type);
   const TypeIcon = typeInfo?.icon ?? Grid;
-  const { customState, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(type);
+  const fallbackState = useTypeColorOverrideState(type);
+  const customState = customStateProp ?? fallbackState.customState;
+  const showCustomBlock = showCustomBlockProp ?? fallbackState.showCustomBlock;
+  const setCustomState = setCustomStateProp ?? fallbackState.setCustomState;
+  const systemColors = systemColorsProp ?? fallbackState.systemColors;
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const handleFormSubmit = (event: React.FormEvent) => {

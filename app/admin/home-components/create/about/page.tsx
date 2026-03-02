@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { Eye } from 'lucide-react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { AboutForm } from '../../about/_components/AboutForm';
 import { AboutPreview } from '../../about/_components/AboutPreview';
 import {
@@ -16,8 +17,10 @@ import {
 } from '../../about/_lib/colors';
 
 export default function AboutCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', 'About');
-  const { primary, secondary, mode } = useBrandColors('About');
+  const COMPONENT_TYPE = 'About';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [state, setState] = React.useState(DEFAULT_ABOUT_EDITOR_STATE);
 
@@ -56,13 +59,17 @@ export default function AboutCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="About"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <AboutForm state={state} onChange={setState} />
 

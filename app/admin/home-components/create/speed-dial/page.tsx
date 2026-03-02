@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ComponentFormWrapper, useBrandColors, useComponentForm } from '../shared';
+import { ComponentFormWrapper, useComponentForm } from '../shared';
+import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { SpeedDialForm } from '../../speed-dial/_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../speed-dial/_components/SpeedDialPreview';
 import { normalizeSpeedDialHarmony } from '../../speed-dial/_lib/colors';
@@ -25,8 +26,10 @@ const createDefaultActions = (secondary: string): SpeedDialAction[] => {
 };
 
 export default function SpeedDialCreatePage() {
-  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Speed Dial', 'SpeedDial');
-  const { primary, secondary, mode } = useBrandColors('SpeedDial');
+  const COMPONENT_TYPE = 'SpeedDial';
+  const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Speed Dial', COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { primary, secondary, mode } = effectiveColors;
 
   const [actions, setActions] = React.useState<SpeedDialAction[]>(createDefaultActions(secondary));
   const [style, setStyle] = React.useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));
@@ -52,13 +55,17 @@ export default function SpeedDialCreatePage() {
 
   return (
     <ComponentFormWrapper
-      type="SpeedDial"
+      type={COMPONENT_TYPE}
       title={title}
       setTitle={setTitle}
       active={active}
       setActive={setActive}
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
+      customState={customState}
+      showCustomBlock={showCustomBlock}
+      setCustomState={setCustomState}
+      systemColors={systemColors}
     >
       <SpeedDialForm
         actions={actions}
