@@ -36,21 +36,26 @@ description: Playbook rollout custom color cho toàn bộ home-components (syste
   - Các edit/create page tương ứng.
 
 ## Parity Contract (must-pass)
-1) `/system/home-components` là **control center duy nhất** cho override state.
-2) Edit page đọc + cập nhật override bằng `useTypeColorOverrideState` + `setTypeColorOverride`.
-3) Preview dùng `effectiveColors` cùng logic mode.
-4) Site renderer luôn resolve qua `resolveTypeOverrideColors(...)`, **không dùng raw system color**.
-5) Single mode luôn ép `secondary = primary` ở UI state + payload + runtime.
+1) `/system/home-components` là **control center duy nhất** cho việc **hiển thị panel**.
+2) `systemEnabled` quyết định **panel có hiển thị** hay không.
+3) `enabled` quyết định **runtime dùng custom hay fallback system**.
+4) OFF runtime **không làm biến mất panel** nếu system vẫn bật.
+5) Edit page đọc + cập nhật override bằng `useTypeColorOverrideState` + `setTypeColorOverride`.
+6) Preview dùng `effectiveColors` cùng logic mode.
+7) Site renderer luôn resolve qua `resolveTypeOverrideColors(...)`, **không dùng raw system color**.
+8) Single mode luôn ép `secondary = primary` ở UI state + payload + runtime.
 
 ## Execution Flow (bắt buộc theo thứ tự)
 1) **System → Convex**
    - Đảm bảo supported types lấy từ `HOME_COMPONENT_TYPE_VALUES`.
    - Validation hex + normalize mode/secondary.
+   - `systemEnabled` chỉ do System page bật/tắt.
 2) **Admin Create**
-   - Lấy state override theo type, commit trước khi `handleSubmit`.
+   - Dùng `ComponentFormWrapper` + `useTypeColorOverrideState` làm nguồn state duy nhất.
+   - Không tự gọi `setTypeColorOverride` trong create.
    - Không hiện secondary input khi single.
 3) **Admin Edit**
-   - Custom block đặt cạnh preview.
+   - Dùng `useTypeColorOverrideState`.
    - `hasChanges` bao gồm `customChanged`.
 4) **Preview**
    - Dùng `effectiveColors` (đã resolve override + mode).
@@ -102,24 +107,25 @@ if (showCustomBlock) {
 
 ### Template B — Create Page Integration
 ```tsx
-const { customState, effectiveColors, showCustomBlock, setCustomState } = useTypeColorOverrideState('YourType');
-const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('YourType');
 
-const onSubmit = (e: React.FormEvent) => {
-  void (async () => {
-    e.preventDefault();
-    if (showCustomBlock) {
-      await setTypeColorOverride({
-        type: 'YourType',
-        enabled: customState.enabled,
-        mode: customState.mode,
-        primary: customState.primary,
-        secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
-      });
-    }
-    await handleSubmit(e, payloadConfig);
-  })();
-};
+return (
+  <ComponentFormWrapper
+    type={COMPONENT_TYPE}
+    title={title}
+    setTitle={setTitle}
+    active={active}
+    setActive={setActive}
+    onSubmit={onSubmit}
+    isSubmitting={isSubmitting}
+    customState={customState}
+    showCustomBlock={showCustomBlock}
+    setCustomState={setCustomState}
+    systemColors={systemColors}
+  >
+    {/* form + preview dùng effectiveColors */}
+  </ComponentFormWrapper>
+);
 ```
 
 ### Template C — System Page Actions
@@ -129,7 +135,7 @@ const CUSTOM_SUPPORTED_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 const toggleCustomType = async (type: string) => {
   if (!CUSTOM_SUPPORTED_TYPES.has(type)) {return;}
   try {
-    await setTypeColorOverride({ enabled, mode, primary, secondary, type });
+    await setTypeColorOverride({ systemEnabled, type });
     toast.success(enabled ? 'Đã bật custom màu cho component.' : 'Đã chuyển về màu hệ thống.');
   } catch (error) {
     toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu.');
@@ -159,12 +165,25 @@ const normalizeColorOverride = (value: unknown) => {
   if (!value || typeof value !== 'object') {return null;}
   const record = value as Record<string, unknown>;
   const enabled = Boolean(record.enabled);
+  const systemEnabled = typeof record.systemEnabled === 'boolean' ? record.systemEnabled : enabled;
   const mode: 'single' | 'dual' = record.mode === 'single' ? 'single' : 'dual';
   const primary = typeof record.primary === 'string' && isValidHexColor(record.primary) ? record.primary : DEFAULT;
   let secondary = typeof record.secondary === 'string' && isValidHexColor(record.secondary) ? record.secondary : primary;
   if (mode === 'single') {secondary = primary;}
-  return { enabled, mode, primary, secondary };
+  return { enabled, systemEnabled, mode, primary, secondary };
 };
+
+const setTypeColorOverride = mutation({
+  args: {
+    enabled: v.optional(v.boolean()),
+    systemEnabled: v.optional(v.boolean()),
+    mode: v.optional(colorMode),
+    primary: v.optional(v.string()),
+    secondary: v.optional(v.string()),
+    type: v.string(),
+  },
+  // handler: merge partial updates, giữ current nếu thiếu
+});
 ```
 
 ## Guardrails bắt buộc
@@ -180,9 +199,9 @@ Mỗi type phải pass đủ 8 check:
 1) System toggle per-row hoạt động + toast.
 2) Bulk toggle hoạt động + toast.
 3) Ẩn/hiện ở create page theo `hiddenTypes`.
-4) Edit page có custom block + hide khi system OFF.
-5) Preview đổi màu đúng khi bật custom.
-6) Site render đổi màu đúng khi bật custom.
+4) System ON + runtime OFF: panel vẫn hiện, preview/site fallback system.
+5) System ON + runtime ON: preview/site dùng custom.
+6) System OFF: panel ẩn ở create/edit.
 7) Single mode = secondary = primary, không hiển thị secondary input.
 8) Reload lại trang vẫn giữ state custom.
 
@@ -192,14 +211,18 @@ Mỗi type phải pass đủ 8 check:
 3) **Toggle không có feedback** → thêm `toast.success/error` ngay tại action.
 4) **Reset/seed làm lệch state** → kiểm tra path reset (settings key + mutation).
 5) **Type không nhận custom** → kiểm tra `HOME_COMPONENT_TYPE_VALUES` + SUPPORTED set ở Convex.
+6) **Panel biến mất khi tắt runtime** → kiểm tra `showCustomBlock` đang bind `systemEnabled`, không bind `enabled`.
+7) **Preview/site lệch khi OFF** → kiểm tra `effectiveColors` fallback system khi `enabled=false`.
 
 ## Output format bắt buộc khi báo cáo
 - Danh sách type đã áp dụng.
 - File đã sửa (System/Create/Edit/Renderer/Convex).
 - Kết quả verification matrix (pass/fail theo type).
 - Lỗi nếu có + recipe đã áp dụng.
+- Contract check `systemEnabled` vs `enabled` (pass/fail).
 
 ## Done criteria
 - Thay đổi ở `/system/home-components` phản ánh đúng trong edit/preview/site.
 - Single/dual mode nhất quán ở tất cả nơi.
 - Mọi toggle có toast, không có preview-site mismatch.
+- Panel không biến mất khi runtime OFF nếu system vẫn bật.
