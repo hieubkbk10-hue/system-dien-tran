@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Input, Label, cn } from './ui';
+import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
 
 // Available icons for categories
 const CATEGORY_ICONS = [
@@ -85,53 +86,6 @@ export function renderCategoryIcon(name: string, size: number = 24, className?: 
   if (!iconData) {return null;}
   const IconComponent = iconData.icon;
   return <IconComponent size={size} className={className} />;
-}
-
-// Slugify filename
-function slugifyFilename(filename: string): string {
-  const name = filename.replace(/\.[^/.]+$/, '');
-  const slugified = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replaceAll(/[\u0300-\u036F]/g, "")
-    .replaceAll(/[đĐ]/g, "d")
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim();
-  const timestamp = Date.now();
-  return `${slugified}-${timestamp}.webp`;
-}
-
-// Compress image to WebP
-async function compressToWebP(file: File, quality: number = 0.85): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Canvas context not available'));
-        return;
-      }
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to compress'));
-          }
-        },
-        'image/webp',
-        quality
-      );
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
 }
 
 type ImageMode = 'product-image' | 'default' | 'icon' | 'upload' | 'url';
@@ -240,25 +194,20 @@ export function CategoryImageSelector({
   };
 
   const handleFileSelect = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Kích thước file không được vượt quá 10MB');
+    const validationError = validateImageFile(file, 10);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploading(true);
     try {
-      const compressedBlob = await compressToWebP(file, 0.85);
-      const slugifiedName = slugifyFilename(file.name);
-      const compressedFile = new File([compressedBlob], slugifiedName, { type: 'image/webp' });
+      const prepared = await prepareImageForUpload(file);
 
       const uploadUrl = await generateUploadUrl();
       const response = await fetch(uploadUrl, {
-        body: compressedFile,
-        headers: { 'Content-Type': 'image/webp' },
+        body: prepared.file,
+        headers: { 'Content-Type': prepared.mimeType },
         method: 'POST',
       });
 
@@ -266,20 +215,14 @@ export function CategoryImageSelector({
 
       const { storageId } = await response.json();
 
-      const img = new window.Image();
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-        img.onload = () =>{  resolve({ height: img.height, width: img.width }); };
-        img.src = URL.createObjectURL(compressedFile);
-      });
-
       const result = await saveImage({
-        filename: slugifiedName,
+        filename: prepared.filename,
         folder: 'category-images',
-        height: dimensions.height,
-        mimeType: 'image/webp',
-        size: compressedFile.size,
+        height: prepared.height,
+        mimeType: prepared.mimeType,
+        size: prepared.size,
         storageId: storageId as Id<"_storage">,
-        width: dimensions.width,
+        width: prepared.width,
       });
 
       const imageUrl = result.url ?? '';

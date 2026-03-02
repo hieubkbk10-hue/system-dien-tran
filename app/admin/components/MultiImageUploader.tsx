@@ -9,59 +9,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { GripVertical, Image as ImageIcon, Link, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Input, cn } from './ui';
-
-const WEBP_QUALITY = 0.85;
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replaceAll(/[\u0300-\u036F]/g, '')
-    .replaceAll(/[đĐ]/g, 'd')
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim() || 'image';
-}
-
-function generateFilename(originalName: string): string {
-  const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
-  const slugified = slugify(nameWithoutExt);
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).slice(2, 6);
-  return `${slugified}-${timestamp}-${random}.webp`;
-}
-
-async function convertToWebP(file: File, quality: number = WEBP_QUALITY): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Canvas context not available'));
-        return;
-      }
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            resolve(file);
-          }
-        },
-        'image/webp',
-        quality
-      );
-    };
-    img.onerror = () =>{  reject(new Error('Failed to load image')); };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
+import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
 export interface ImageItem {
   id: string | number;
   url: string;
@@ -155,28 +103,21 @@ export function MultiImageUploader<T extends ImageItem>({
   };
 
   const handleFileUpload = useCallback(async (itemId: string | number, file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước file tối đa 5MB');
+    const validationError = validateImageFile(file, 5);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setUploadingIds(prev => new Set(prev).add(itemId));
 
     try {
-      const webpBlob = await convertToWebP(file, WEBP_QUALITY);
-      const filename = generateFilename(file.name);
-      const webpFile = new File([webpBlob], filename, { type: 'image/webp' });
-
+      const prepared = await prepareImageForUpload(file);
       const uploadUrl = await generateUploadUrl();
 
       const response = await fetch(uploadUrl, {
-        body: webpFile,
-        headers: { 'Content-Type': webpFile.type },
+        body: prepared.file,
+        headers: { 'Content-Type': prepared.mimeType },
         method: 'POST',
       });
 
@@ -184,20 +125,14 @@ export function MultiImageUploader<T extends ImageItem>({
 
       const { storageId } = await response.json();
 
-      const img = new window.Image();
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-        img.onload = () =>{  resolve({ height: img.height, width: img.width }); };
-        img.src = URL.createObjectURL(webpFile);
-      });
-
       const result = await saveImage({
-        filename,
+        filename: prepared.filename,
         folder,
-        height: dimensions.height,
-        mimeType: 'image/webp',
-        size: webpFile.size,
+        height: prepared.height,
+        mimeType: prepared.mimeType,
+        size: prepared.size,
         storageId: storageId as Id<"_storage">,
-        width: dimensions.width,
+        width: prepared.width,
       });
 
       onChange(itemsRef.current.map(item => 

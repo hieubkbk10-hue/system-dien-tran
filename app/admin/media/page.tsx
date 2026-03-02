@@ -15,69 +15,11 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, Input, cn } from '../components/ui';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
+import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
 
 const MODULE_KEY = 'media';
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'image' | 'video' | 'document';
-
-const COMPRESSION_QUALITY = 0.85;
-
-// Compress image using canvas (client-side)
-async function compressImage(file: File, quality: number = COMPRESSION_QUALITY): Promise<Blob> {
-  // Skip compression for non-image files or PNG (to preserve transparency)
-  if (!file.type.startsWith('image/') || file.type === 'image/png' || file.type === 'image/gif') {
-    return file;
-  }
-
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(file); // Fallback to original
-        return;
-      }
-      
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      
-      canvas.toBlob(
-        (blob) => {
-          if (blob && blob.size < file.size) {
-            resolve(blob);
-          } else {
-            resolve(file); // Use original if compression didn't help
-          }
-        },
-        'image/jpeg',
-        quality
-      );
-    };
-    img.onerror = () =>{  resolve(file); };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// Slugify filename
-function slugifyFilename(filename: string): string {
-  const ext = filename.split('.').pop() ?? '';
-  const name = filename.replace(/\.[^/.]+$/, '');
-  
-  const slugified = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replaceAll(/[\u0300-\u036F]/g, "")
-    .replaceAll(/[đĐ]/g, "d")
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim();
-  
-  const timestamp = Date.now();
-  return `${slugified}-${timestamp}.${ext}`;
-}
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) {return '0 B';}
@@ -204,26 +146,18 @@ function MediaContent() {
 
     try {
       for (const file of files) {
-        // Validate file
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`${file.name}: File vượt quá 10MB`);
+        const validationError = validateImageFile(file, 10);
+        if (validationError) {
+          toast.error(`${file.name}: ${validationError}`);
           continue;
         }
 
-        // Compress image (85% quality) and slugify filename
-        const compressedBlob = await compressImage(file, COMPRESSION_QUALITY);
-        const slugifiedName = slugifyFilename(file.name);
-        const finalMimeType = file.type.startsWith('image/') && file.type !== 'image/png' && file.type !== 'image/gif' 
-          ? 'image/jpeg' 
-          : file.type;
-
-        // Get upload URL
+        const prepared = await prepareImageForUpload(file);
         const uploadUrl = await generateUploadUrl();
 
-        // Upload compressed file to storage
         const response = await fetch(uploadUrl, {
-          body: compressedBlob,
-          headers: { 'Content-Type': finalMimeType },
+          body: prepared.file,
+          headers: { 'Content-Type': prepared.mimeType },
           method: 'POST',
         });
 
@@ -234,30 +168,14 @@ function MediaContent() {
 
         const { storageId } = await response.json();
 
-        // Get dimensions if image
-        let width: number | undefined;
-        let height: number | undefined;
-        
-        if (file.type.startsWith('image/')) {
-          const img = new window.Image();
-          const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-            img.onload = () =>{  resolve({ height: img.height, width: img.width }); };
-            img.onerror = () =>{  resolve({ height: 0, width: 0 }); };
-            img.src = URL.createObjectURL(compressedBlob);
-          });
-          ({ width } = dimensions);
-          ({ height } = dimensions);
-        }
-
-        // Save to database with compressed size
         await createMedia({
-          filename: slugifiedName,
+          filename: prepared.filename,
           folder: 'uploads',
-          height,
-          mimeType: finalMimeType,
-          size: compressedBlob.size,
+          height: prepared.height,
+          mimeType: prepared.mimeType,
+          size: prepared.size,
           storageId: storageId as Id<"_storage">,
-          width,
+          width: prepared.width,
         });
 
         uploadedCount++;

@@ -8,58 +8,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { ImageOff, Loader2, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, cn } from './ui';
-
-const COMPRESSION_QUALITY = 0.85;
-
-function slugifyFilename(filename: string): string {
-  const ext = filename.split('.').pop() ?? '';
-  const name = filename.replace(/\.[^/.]+$/, '');
-  const slugified = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replaceAll(/[\u0300-\u036F]/g, "")
-    .replaceAll(/[đĐ]/g, "d")
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim();
-  const timestamp = Date.now();
-  return `${slugified}-${timestamp}.${ext}`;
-}
-
-async function compressImage(file: File, quality: number = COMPRESSION_QUALITY): Promise<Blob> {
-  if (!file.type.startsWith('image/') || file.type === 'image/png' || file.type === 'image/gif') {
-    return file;
-  }
-
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(file);
-        return;
-      }
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          if (blob && blob.size < file.size) {
-            resolve(blob);
-          } else {
-            resolve(file);
-          }
-        },
-        'image/jpeg',
-        quality
-      );
-    };
-    img.onerror = () =>{  resolve(file); };
-    img.src = URL.createObjectURL(file);
-  });
-}
+import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
 
 interface ImageUploadProps {
   value?: string;
@@ -79,27 +28,20 @@ export function ImageUpload({ value, onChange, folder = 'products', className }:
   }, [value]);
 
   const handleUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước file không được vượt quá 5MB');
+    const validationError = validateImageFile(file, 5);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploading(true);
     try {
-      const compressedBlob = await compressImage(file);
-      const slugifiedName = slugifyFilename(file.name);
-      const compressedFile = new File([compressedBlob], slugifiedName, { type: compressedBlob.type });
-
+      const prepared = await prepareImageForUpload(file);
       const uploadUrl = await generateUploadUrl();
 
       const response = await fetch(uploadUrl, {
-        body: compressedFile,
-        headers: { 'Content-Type': compressedFile.type },
+        body: prepared.file,
+        headers: { 'Content-Type': prepared.mimeType },
         method: 'POST',
       });
 
@@ -110,11 +52,13 @@ export function ImageUpload({ value, onChange, folder = 'products', className }:
       const { storageId } = await response.json();
 
       const result = await saveImage({
-        filename: slugifiedName,
+        filename: prepared.filename,
         folder,
-        mimeType: compressedFile.type,
-        size: compressedFile.size,
+        height: prepared.height,
+        mimeType: prepared.mimeType,
+        size: prepared.size,
         storageId: storageId as Id<"_storage">,
+        width: prepared.width,
       });
 
       if (result.url) {

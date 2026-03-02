@@ -8,63 +8,9 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Image as ImageIcon, Link, Loader2, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Input, cn } from './ui';
+import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
 
 type InputMode = 'upload' | 'url';
-
-const WEBP_QUALITY = 0.85;
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replaceAll(/[\u0300-\u036F]/g, '')
-    .replaceAll(/[đĐ]/g, 'd')
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim() || 'image';
-}
-
-function generateFilename(originalName: string): string {
-  const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
-  const slugified = slugify(nameWithoutExt);
-  const timestamp = Date.now();
-  return `${slugified}-${timestamp}.webp`;
-}
-
-// Convert image to WebP using Canvas
-async function convertToWebP(file: File, quality: number = WEBP_QUALITY): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Canvas context not available'));
-        return;
-      }
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            // Fallback to original if WebP not supported
-            resolve(file);
-          }
-        },
-        'image/webp',
-        quality
-      );
-    };
-    img.onerror = () =>{  reject(new Error('Failed to load image')); };
-    img.src = URL.createObjectURL(file);
-  });
-}
 
 interface SettingsImageUploaderProps {
   value?: string;
@@ -106,31 +52,21 @@ export function SettingsImageUploader({
   }, [value]);
 
   const handleFileUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước file tối đa 5MB');
+    const validationError = validateImageFile(file, 5);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploading(true);
 
     try {
-      // Convert to WebP
-      const webpBlob = await convertToWebP(file, WEBP_QUALITY);
-      const filename = generateFilename(file.name);
-      const webpFile = new File([webpBlob], filename, { type: 'image/webp' });
-
-      // Get upload URL from Convex
+      const prepared = await prepareImageForUpload(file);
       const uploadUrl = await generateUploadUrl();
 
-      // Upload to Convex storage
       const response = await fetch(uploadUrl, {
-        body: webpFile,
-        headers: { 'Content-Type': webpFile.type },
+        body: prepared.file,
+        headers: { 'Content-Type': prepared.mimeType },
         method: 'POST',
       });
 
@@ -140,28 +76,20 @@ export function SettingsImageUploader({
 
       const { storageId } = await response.json();
 
-      // Get image dimensions
-      const img = new window.Image();
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-        img.onload = () =>{  resolve({ height: img.height, width: img.width }); };
-        img.src = URL.createObjectURL(webpFile);
-      });
-
-      // Save to database
       const result = await saveImage({
-        filename,
+        filename: prepared.filename,
         folder,
-        height: dimensions.height,
-        mimeType: 'image/webp',
-        size: webpFile.size,
+        height: prepared.height,
+        mimeType: prepared.mimeType,
+        size: prepared.size,
         storageId: storageId as Id<"_storage">,
-        width: dimensions.width,
+        width: prepared.width,
       });
 
       setPreview(result.url ?? undefined);
       setCurrentStorageId(storageId);
       onChange(result.url ?? undefined);
-      toast.success('Tải ảnh lên thành công (WebP 85%)');
+      toast.success('Tải ảnh lên thành công');
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error instanceof Error ? error.message : 'Không thể tải ảnh lên');
