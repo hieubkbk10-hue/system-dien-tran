@@ -62,12 +62,16 @@ export function DataCommandCenter() {
   };
 
   const handleClearAll = async () => {
-    if (!confirm('Xóa toàn bộ dữ liệu? Không thể hoàn tác.')) {
+    if (!confirm('Xóa toàn bộ dữ liệu + toàn bộ storage? Không thể hoàn tác.')) {
+      return;
+    }
+    const confirmText = prompt('Nhập CHAC CHAN để xóa cả storage');
+    if ((confirmText ?? '').trim().toLowerCase() !== 'chac chan') {
       return;
     }
     setIsGlobalClearing(true);
     try {
-      await clearAll({ excludeSystem: false });
+      await clearAll({ excludeSystem: false, forceStorageCleanup: true });
       toast.success('Đã xóa toàn bộ dữ liệu');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Clear thất bại');
@@ -77,14 +81,18 @@ export function DataCommandCenter() {
   };
 
   const handleResetAll = async () => {
-    if (!confirm('Reset = Clear + Seed lại. Tiếp tục?')) {
+    if (!confirm('Reset = Clear + Seed lại + xóa cả storage. Tiếp tục?')) {
+      return;
+    }
+    const confirmText = prompt('Nhập CHAC CHAN để xóa cả storage');
+    if ((confirmText ?? '').trim().toLowerCase() !== 'chac chan') {
       return;
     }
     const presetToUse = (currentPreset ?? 'standard') as PresetType;
     setIsGlobalClearing(true);
     setIsGlobalSeeding(true);
     try {
-      await clearAll({ excludeSystem: false });
+      await clearAll({ excludeSystem: false, forceStorageCleanup: true });
       await seedPreset({ preset: presetToUse, force: true });
       toast.success(`Đã reset với preset ${presetToUse}`);
     } catch (error) {

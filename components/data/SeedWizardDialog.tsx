@@ -588,12 +588,22 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       return;
     }
 
+    if (state.clearBeforeSeed) {
+      if (!confirm('Clear dữ liệu + xóa toàn bộ storage trước khi seed?')) {
+        return;
+      }
+      const confirmText = prompt('Nhập CHAC CHAN để xóa cả storage');
+      if ((confirmText ?? '').trim().toLowerCase() !== 'chac chan') {
+        return;
+      }
+    }
+
     setIsSeeding(true);
     const toastId = toast.loading('Đang seed theo wizard...');
 
     try {
       if (state.clearBeforeSeed) {
-        await clearAll({ excludeSystem: false });
+        await clearAll({ excludeSystem: false, forceStorageCleanup: true });
         await seedModule({ module: 'adminModules', quantity: 0 });
         await seedModule({ module: 'systemPresets', quantity: 0 });
       }

@@ -493,6 +493,7 @@ export const clearModule = mutation({
 export const clearAll = mutation({
   args: {
     excludeSystem: v.optional(v.boolean()),
+    forceStorageCleanup: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     console.log(`[SeedManager] Clearing all data (excludeSystem: ${args.excludeSystem})`);
@@ -530,7 +531,7 @@ export const clearAll = mutation({
     let storageCleanupHasMore = false;
 
     const hasImages = await ctx.db.query('images').first();
-    if (hasImages) {
+    if (hasImages && !args.forceStorageCleanup) {
       storageCleanupSkipped = true;
     } else {
       const batchSize = 100;
