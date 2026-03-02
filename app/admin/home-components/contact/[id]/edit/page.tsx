@@ -22,7 +22,7 @@ import {
   toContactSnapshot,
 } from '../../_lib/normalize';
 import { validateContactConfig } from '../../_lib/validation';
-import type { ContactConfigState, ContactStyle } from '../../_types';
+import type { ContactConfigState } from '../../_types';
 
 const COMPONENT_TYPE = 'Contact';
 

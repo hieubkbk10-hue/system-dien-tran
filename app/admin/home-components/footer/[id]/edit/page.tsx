@@ -31,7 +31,6 @@ export default function FooterEditPage({ params }: { params: Promise<{ id: strin
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
-  const modeSetting = useQuery(api.settings.getByKey, { key: 'site_brand_mode' });
   const updateMutation = useMutation(api.homeComponents.update);
 
   const [title, setTitle] = useState('');
