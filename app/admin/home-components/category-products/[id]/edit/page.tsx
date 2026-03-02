@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
-import { resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CategoryProductsForm } from '../../_components/CategoryProductsForm';
 import { CategoryProductsPreview } from '../../_components/CategoryProductsPreview';
 import { DEFAULT_CATEGORY_PRODUCTS_CONFIG } from '../../_lib/constants';
@@ -189,6 +189,12 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
           secondary: resolvedCustomSecondary,
           type: COMPONENT_TYPE,
         });
+        setInitialCustom({
+          enabled: customState.enabled,
+          mode: customState.mode,
+          primary: customState.primary,
+          secondary: resolvedCustomSecondary,
+        });
       }
       toast.success('Đã cập nhật Sản phẩm theo danh mục');
       setInitialSnapshot(JSON.stringify({
@@ -201,14 +207,6 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
         columnsMobile,
         type: component?.type,
       }));
-      if (showCustomBlock) {
-        setInitialCustom({
-          enabled: customState.enabled,
-          mode: customState.mode,
-          primary: customState.primary,
-          secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
-        });
-      }
       setHasChanges(false);
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -311,8 +309,26 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-                onModeChange={(next) => setCustomState((prev) => ({ ...prev, mode: next }))}
-                onPrimaryChange={(value) => setCustomState((prev) => ({ ...prev, primary: value }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === prev.mode) {return prev;}
+                  if (next === 'single') {
+                    return {
+                      ...prev,
+                      mode: 'single',
+                      secondary: prev.primary,
+                    };
+                  }
+                  return {
+                    ...prev,
+                    mode: 'dual',
+                    secondary: prev.mode === 'single' ? getSuggestedSecondary(prev.primary) : prev.secondary,
+                  };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => (
+                  prev.mode === 'single'
+                    ? { ...prev, primary: value, secondary: value }
+                    : { ...prev, primary: value }
+                ))}
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
