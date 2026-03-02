@@ -142,6 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const { logout, user } = useAdminAuth();
   const productSettings = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'products' });
   const userFeatures = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: 'users' });
+  const siteSettings = useQuery(api.settings.getMultiple, { keys: ['site_logo', 'site_name'] });
 
   const isActive = (route: string) => pathname.startsWith(route);
 
@@ -211,6 +212,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const displayName = user?.name ?? 'Admin';
   const displayEmail = user?.email ?? '';
   const avatarUrl = showAvatar ? user?.avatar : undefined;
+  const brandName = (siteSettings?.site_name as string)?.trim() || 'YourLogo';
+  const brandLogo = (siteSettings?.site_logo as string)?.trim() || '';
   const initials = displayName
     .split(' ')
     .filter(Boolean)
@@ -257,11 +260,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
       )}>
         <div className={cn("h-16 flex items-center border-b border-slate-100 dark:border-slate-800 transition-all duration-300", isSidebarCollapsed ? "justify-center px-0" : "px-6 justify-between")}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-              <span className="font-bold text-lg">V</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 overflow-hidden">
+              {brandLogo && isValidImageSrc(brandLogo) ? (
+                <Image
+                  src={brandLogo}
+                  alt={brandName}
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 object-cover"
+                />
+              ) : (
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                  <span className="font-bold text-lg">Y</span>
+                </div>
+              )}
             </div>
             <span className={cn("font-bold text-xl text-slate-800 dark:text-slate-100 whitespace-nowrap transition-opacity duration-300", isSidebarCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto")}>
-              VietAdmin
+              {brandName}
             </span>
           </div>
           <button className="lg:hidden" onClick={() =>{  setMobileMenuOpen(false); }}>
