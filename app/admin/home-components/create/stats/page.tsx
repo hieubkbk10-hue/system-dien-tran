@@ -11,7 +11,7 @@ import type { StatsBrandMode, StatsStyle } from '../../stats/_types';
 export default function StatsCreatePage() {
   const COMPONENT_TYPE = 'Stats';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: StatsBrandMode = mode === 'single' ? 'single' : 'dual';
 
@@ -52,6 +52,7 @@ export default function StatsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">

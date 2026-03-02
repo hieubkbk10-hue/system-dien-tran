@@ -20,7 +20,7 @@ interface TrustBadgeItem extends ImageItem {
 export default function TrustBadgesCreatePage() {
   const COMPONENT_TYPE = 'TrustBadges';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Chứng nhận', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [trustBadgeItems, setTrustBadgeItems] = useState<TrustBadgeItem[]>([
@@ -49,6 +49,7 @@ export default function TrustBadgesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader>

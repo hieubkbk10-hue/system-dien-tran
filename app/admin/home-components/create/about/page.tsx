@@ -19,7 +19,7 @@ import {
 export default function AboutCreatePage() {
   const COMPONENT_TYPE = 'About';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [state, setState] = React.useState(DEFAULT_ABOUT_EDITOR_STATE);
@@ -70,6 +70,7 @@ export default function AboutCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <AboutForm state={state} onChange={setState} />
 

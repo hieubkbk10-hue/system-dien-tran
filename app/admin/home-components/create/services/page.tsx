@@ -19,7 +19,7 @@ const DEFAULT_EDITOR_ITEMS: ServiceEditorItem[] = [
 export default function ServicesCreatePage() {
   const COMPONENT_TYPE = 'Services';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dịch vụ chi tiết', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(DEFAULT_EDITOR_ITEMS);
@@ -62,6 +62,7 @@ export default function ServicesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <ServicesForm items={servicesItems} onChange={setServicesItems} brandColor={validation.colors.primary} />
 

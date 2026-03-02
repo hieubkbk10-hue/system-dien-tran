@@ -99,7 +99,7 @@ export function useSystemBrandColors() {
 
 export function useBrandColors(type?: string) {
   if (type && HOME_COMPONENT_TYPE_VALUES.includes(type)) {
-    return useTypeColorOverrideState(type).effectiveColors;
+    return useTypeColorOverrideState(type, { lockCustomUntilTypeHasData: true }).effectiveColors;
   }
   return useSystemBrandColors();
 }
@@ -129,6 +129,7 @@ export function ComponentFormWrapper({
   showCustomBlock: showCustomBlockProp,
   setCustomState: setCustomStateProp,
   systemColors: systemColorsProp,
+  isCreateCustomLocked: isCreateCustomLockedProp,
 }: { 
   type: string;
   title: string;
@@ -142,15 +143,17 @@ export function ComponentFormWrapper({
   showCustomBlock?: boolean;
   setCustomState?: React.Dispatch<React.SetStateAction<ColorOverrideState>>;
   systemColors?: { primary: string; secondary: string; mode: 'single' | 'dual' };
+  isCreateCustomLocked?: boolean;
 }) {
   const router = useRouter();
   const typeInfo = getComponentType(type);
   const TypeIcon = typeInfo?.icon ?? Grid;
-  const fallbackState = useTypeColorOverrideState(type);
+  const fallbackState = useTypeColorOverrideState(type, { lockCustomUntilTypeHasData: true });
   const customState = customStateProp ?? fallbackState.customState;
   const showCustomBlock = showCustomBlockProp ?? fallbackState.showCustomBlock;
   const setCustomState = setCustomStateProp ?? fallbackState.setCustomState;
   const systemColors = systemColorsProp ?? fallbackState.systemColors;
+  const isCreateCustomLocked = isCreateCustomLockedProp ?? fallbackState.isCreateCustomLocked;
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const handleFormSubmit = (event: React.FormEvent) => {
@@ -160,7 +163,7 @@ export function ComponentFormWrapper({
         toast.error('Loại component không hợp lệ.');
         return;
       }
-      if (showCustomBlock) {
+      if (showCustomBlock && !isCreateCustomLocked) {
         try {
           const isCustomEnabled = customState.enabled;
           const mode = isCustomEnabled ? customState.mode : systemColors.mode;
@@ -237,14 +240,17 @@ export function ComponentFormWrapper({
           <div className="mb-6">
             <TypeColorOverrideCard
               title={`Màu custom ${typeInfo?.label ?? type}`}
-              enabled={customState.enabled}
-              mode={customState.mode}
-              primary={customState.primary}
-              secondary={customState.secondary}
+              enabled={isCreateCustomLocked ? false : customState.enabled}
+              mode={isCreateCustomLocked ? systemColors.mode : customState.mode}
+              primary={isCreateCustomLocked ? systemColors.primary : customState.primary}
+              secondary={isCreateCustomLocked
+                ? resolveSecondaryByMode(systemColors.mode, systemColors.primary, systemColors.secondary)
+                : customState.secondary}
               compact
               toggleLabel="Custom"
               primaryLabel="Chính"
               secondaryLabel="Phụ"
+              disabled={isCreateCustomLocked}
               onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
               onModeChange={(next) => {
                 if (next === 'single') {
@@ -266,6 +272,11 @@ export function ComponentFormWrapper({
               }}
               onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
             />
+            {isCreateCustomLocked ? (
+              <p className="mt-2 text-xs text-slate-500">
+                Tạo ít nhất 1 component cùng loại để bật custom màu.
+              </p>
+            ) : null}
           </div>
         )}
 

@@ -18,7 +18,7 @@ import type { TestimonialsBrandMode, TestimonialsItem, TestimonialsStyle } from 
 export default function TestimonialsCreatePage() {
   const COMPONENT_TYPE = 'Testimonials';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đánh giá / Review', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: TestimonialsBrandMode = mode === 'single' ? 'single' : 'dual';
 
@@ -87,6 +87,7 @@ export default function TestimonialsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <TestimonialsForm items={items} setItems={setItems} />
 

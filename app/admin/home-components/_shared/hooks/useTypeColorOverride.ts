@@ -20,10 +20,21 @@ const isSameColorOverrideState = (a: ColorOverrideState, b: ColorOverrideState) 
     && a.secondary === b.secondary;
 };
 
-export const useTypeColorOverride = (type: string) => {
+type TypeColorOverrideOptions = {
+  lockCustomUntilTypeHasData?: boolean;
+};
+
+export const useTypeColorOverride = (type: string, options?: TypeColorOverrideOptions) => {
   const systemColors = useSystemBrandColors();
   const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
   const overrides = systemConfig?.typeColorOverrides ?? null;
+  const shouldLockCustom = Boolean(options?.lockCustomUntilTypeHasData);
+  const typeItems = useQuery(
+    api.homeComponents.listByType,
+    shouldLockCustom ? { type } : 'skip',
+  );
+  const hasTypeData = (typeItems?.length ?? 0) > 0;
+  const isCreateCustomLocked = shouldLockCustom && !hasTypeData;
 
   const overrideState = useMemo(() => (
     getTypeOverrideState({ type, systemColors, overrides })
@@ -50,14 +61,15 @@ export const useTypeColorOverride = (type: string) => {
   return {
     overrideState,
     resolvedColors,
+    isCreateCustomLocked,
     showCustomBlock: isSupportedType && systemEnabled,
     systemColors,
     typeOverrides: overrides as Record<string, ColorOverrideState & { systemEnabled?: boolean }> | null,
   };
 };
 
-export const useTypeColorOverrideState = (type: string) => {
-  const { overrideState, showCustomBlock, systemColors } = useTypeColorOverride(type);
+export const useTypeColorOverrideState = (type: string, options?: TypeColorOverrideOptions) => {
+  const { overrideState, showCustomBlock, systemColors, isCreateCustomLocked } = useTypeColorOverride(type, options);
   const [customState, setCustomState] = useState<ColorOverrideState>(overrideState);
   const [initialCustom, setInitialCustom] = useState<ColorOverrideState>(overrideState);
 
@@ -87,7 +99,7 @@ export const useTypeColorOverrideState = (type: string) => {
   }, [customState, systemColors.mode, systemColors.primary, systemColors.secondary]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
-  const effectiveColors: ResolvedTypeColors = showCustomBlock && customState.enabled
+  const effectiveColors: ResolvedTypeColors = showCustomBlock && customState.enabled && !isCreateCustomLocked
     ? {
       mode: customState.mode,
       primary: customState.primary,
@@ -107,6 +119,7 @@ export const useTypeColorOverrideState = (type: string) => {
     initialCustom,
     setCustomState,
     setInitialCustom,
+    isCreateCustomLocked,
     showCustomBlock,
     systemColors,
   };

@@ -26,7 +26,7 @@ const defaultItems: FeatureItem[] = [
 export default function FeaturesCreatePage() {
   const COMPONENT_TYPE = 'Features';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors, isCreateCustomLocked } = useTypeColorOverrideState(COMPONENT_TYPE, { lockCustomUntilTypeHasData: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);
@@ -89,6 +89,7 @@ export default function FeaturesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      isCreateCustomLocked={isCreateCustomLocked}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
