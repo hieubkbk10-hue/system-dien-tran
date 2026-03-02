@@ -525,11 +525,42 @@ export const clearAll = mutation({
       }
     }
 
-    return { success: errors.length === 0, errors };
+    let storageDeleted = 0;
+    let storageCleanupSkipped = false;
+    let storageCleanupHasMore = false;
+
+    const hasImages = await ctx.db.query('images').first();
+    if (hasImages) {
+      storageCleanupSkipped = true;
+    } else {
+      const batchSize = 100;
+      let guard = 0;
+      while (guard < 20) {
+        const storageItems = await ctx.db.system.query('_storage').take(batchSize);
+        if (storageItems.length === 0) {
+          break;
+        }
+        await Promise.all(storageItems.map((item) => ctx.storage.delete(item._id)));
+        storageDeleted += storageItems.length;
+        guard += 1;
+      }
+      storageCleanupHasMore = guard >= 20;
+    }
+
+    return {
+      success: errors.length === 0,
+      errors,
+      storageCleanupHasMore,
+      storageCleanupSkipped,
+      storageDeleted,
+    };
   },
   returns: v.object({
     success: v.boolean(),
     errors: v.array(v.string()),
+    storageCleanupHasMore: v.boolean(),
+    storageCleanupSkipped: v.boolean(),
+    storageDeleted: v.number(),
   }),
 });
 
