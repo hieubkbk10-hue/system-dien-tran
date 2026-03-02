@@ -29,7 +29,7 @@ interface Project {
 export default function CaseStudyCreatePage() {
   const COMPONENT_TYPE = 'CaseStudy';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
   const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');

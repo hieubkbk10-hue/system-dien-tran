@@ -69,7 +69,7 @@ const createDefaultMembers = (): TeamEditorMember[] => {
 export default function TeamCreatePage() {
   const COMPONENT_TYPE = 'Team';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [members, setMembers] = React.useState<TeamEditorMember[]>(createDefaultMembers);

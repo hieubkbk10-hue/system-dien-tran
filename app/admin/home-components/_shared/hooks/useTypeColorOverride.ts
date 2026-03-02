@@ -20,6 +20,10 @@ const isSameColorOverrideState = (a: ColorOverrideState, b: ColorOverrideState) 
     && a.secondary === b.secondary;
 };
 
+type TypeColorOverrideOptions = {
+  seedCustomFromSettingsWhenTypeEmpty?: boolean;
+};
+
 export const useTypeColorOverride = (type: string) => {
   const systemColors = useSystemBrandColors();
   const systemConfig = useQuery(api.homeComponentSystemConfig.getConfig);
@@ -56,15 +60,37 @@ export const useTypeColorOverride = (type: string) => {
   };
 };
 
-export const useTypeColorOverrideState = (type: string) => {
+export const useTypeColorOverrideState = (type: string, options?: TypeColorOverrideOptions) => {
   const { overrideState, showCustomBlock, systemColors } = useTypeColorOverride(type);
+  const shouldSeedFromSettings = Boolean(options?.seedCustomFromSettingsWhenTypeEmpty);
+  const typeItems = useQuery(
+    api.homeComponents.listByType,
+    shouldSeedFromSettings ? { type } : 'skip',
+  );
+  const hasTypeData = (typeItems?.length ?? 0) > 0;
+  const shouldSeedState = shouldSeedFromSettings && !hasTypeData;
   const [customState, setCustomState] = useState<ColorOverrideState>(overrideState);
   const [initialCustom, setInitialCustom] = useState<ColorOverrideState>(overrideState);
 
+  const seededState: ColorOverrideState = useMemo(() => {
+    const systemSecondary = resolveSecondaryByMode(
+      systemColors.mode,
+      systemColors.primary,
+      systemColors.secondary,
+    );
+    return {
+      enabled: overrideState.enabled,
+      mode: systemColors.mode,
+      primary: systemColors.primary,
+      secondary: systemSecondary,
+    };
+  }, [overrideState.enabled, systemColors.mode, systemColors.primary, systemColors.secondary]);
+
   useEffect(() => {
-    setCustomState((current) => (isSameColorOverrideState(current, overrideState) ? current : overrideState));
-    setInitialCustom((current) => (isSameColorOverrideState(current, overrideState) ? current : overrideState));
-  }, [overrideState]);
+    const nextState = shouldSeedState ? seededState : overrideState;
+    setCustomState((current) => (isSameColorOverrideState(current, nextState) ? current : nextState));
+    setInitialCustom((current) => (isSameColorOverrideState(current, nextState) ? current : nextState));
+  }, [overrideState, seededState, shouldSeedState]);
 
   useEffect(() => {
     if (customState.enabled) {

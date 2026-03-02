@@ -28,7 +28,7 @@ const createDefaultActions = (secondary: string): SpeedDialAction[] => {
 export default function SpeedDialCreatePage() {
   const COMPONENT_TYPE = 'SpeedDial';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Speed Dial', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [actions, setActions] = React.useState<SpeedDialAction[]>(createDefaultActions(secondary));

@@ -44,7 +44,7 @@ const DEFAULT_CREATE_JOBS: JobPosition[] = [
 export default function CareerCreatePage() {
   const COMPONENT_TYPE = 'Career';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tuyển dụng', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');

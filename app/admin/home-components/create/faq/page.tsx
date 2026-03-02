@@ -16,7 +16,7 @@ const INITIAL_FAQ_ITEMS: FaqItem[] = [
 export default function FaqCreatePage() {
   const COMPONENT_TYPE = 'FAQ';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode = mode === 'single' ? 'single' : 'dual';
 

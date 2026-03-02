@@ -20,7 +20,7 @@ interface PartnerItem extends ImageItem {
 export default function PartnersCreatePage() {
   const COMPONENT_TYPE = 'Partners';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đối tác / Logos', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [partnersItems, setPartnersItems] = useState<PartnerItem[]>([

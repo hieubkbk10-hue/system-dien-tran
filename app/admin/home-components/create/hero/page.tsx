@@ -21,7 +21,7 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('Hero');
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('Hero', { seedCustomFromSettingsWhenTypeEmpty: true });
 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', image: '', link: '', url: '' }

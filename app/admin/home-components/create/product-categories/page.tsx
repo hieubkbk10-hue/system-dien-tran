@@ -21,7 +21,7 @@ interface CategoryItem {
 export default function ProductCategoriesCreatePage() {
   const COMPONENT_TYPE = 'ProductCategories';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: ProductCategoriesBrandMode = mode === 'single' ? 'single' : 'dual';
 

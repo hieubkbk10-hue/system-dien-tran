@@ -20,7 +20,7 @@ interface GalleryItem extends ImageItem {
 export default function GalleryCreatePage() {
   const COMPONENT_TYPE = 'Gallery';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thư viện ảnh', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([

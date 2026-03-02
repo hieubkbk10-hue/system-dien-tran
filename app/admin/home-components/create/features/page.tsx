@@ -26,7 +26,7 @@ const defaultItems: FeatureItem[] = [
 export default function FeaturesCreatePage() {
   const COMPONENT_TYPE = 'Features';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Tính năng nổi bật', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);

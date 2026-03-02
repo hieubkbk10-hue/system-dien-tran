@@ -11,7 +11,7 @@ import type { StatsBrandMode, StatsStyle } from '../../stats/_types';
 export default function StatsCreatePage() {
   const COMPONENT_TYPE = 'Stats';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: StatsBrandMode = mode === 'single' ? 'single' : 'dual';
 

@@ -99,7 +99,7 @@ export function useSystemBrandColors() {
 
 export function useBrandColors(type?: string) {
   if (type && HOME_COMPONENT_TYPE_VALUES.includes(type)) {
-    return useTypeColorOverrideState(type).effectiveColors;
+    return useTypeColorOverrideState(type, { seedCustomFromSettingsWhenTypeEmpty: true }).effectiveColors;
   }
   return useSystemBrandColors();
 }
@@ -146,7 +146,7 @@ export function ComponentFormWrapper({
   const router = useRouter();
   const typeInfo = getComponentType(type);
   const TypeIcon = typeInfo?.icon ?? Grid;
-  const fallbackState = useTypeColorOverrideState(type);
+  const fallbackState = useTypeColorOverrideState(type, { seedCustomFromSettingsWhenTypeEmpty: true });
   const customState = customStateProp ?? fallbackState.customState;
   const showCustomBlock = showCustomBlockProp ?? fallbackState.showCustomBlock;
   const setCustomState = setCustomStateProp ?? fallbackState.setCustomState;

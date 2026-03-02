@@ -77,7 +77,7 @@ const sanitizeFeatures = (value: string) => (
 export default function PricingCreatePage() {
   const COMPONENT_TYPE = 'Pricing';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Bảng giá', COMPONENT_TYPE);
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [pricingStyle, setPricingStyle] = useState<PricingStyle>('cards');

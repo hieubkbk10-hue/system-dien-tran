@@ -46,7 +46,7 @@ const toIntOrDefault = (value: string, fallback: number) => Number.parseInt(valu
 export function ProductListCreateShared({ type, titleLabel }: ProductListCreateSharedProps) {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titleLabel ?? DEFAULT_TITLES[type], type);
   const colorOverrideType = type === 'ProductList' ? 'ProductList' : type;
-  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(colorOverrideType);
+  const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
 
   const [itemCount, setItemCount] = useState(8);
