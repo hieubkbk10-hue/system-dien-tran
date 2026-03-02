@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation, useQuery } from 'convex/react';
+import { useConvex, useMutation, useQuery } from 'convex/react';
 import { Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
@@ -148,7 +148,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     [industryTemplate]
   );
 
-  const modules = useQuery(api.admin.modules.listModules);
+  const convex = useConvex();
   const productsList = useQuery(api.products.listAll, { limit: 200 });
   const productsRef = useRef(productsList ?? []);
 
@@ -469,11 +469,12 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   );
 
   const syncModules = async (desiredModules: string[]) => {
-    if (!modules) {
+    const latestModules = await convex.query(api.admin.modules.listModules);
+    if (!latestModules) {
       return;
     }
 
-    const moduleMap = new Map(modules.map((moduleItem) => [moduleItem.key, moduleItem]));
+    const moduleMap = new Map(latestModules.map((moduleItem) => [moduleItem.key, moduleItem]));
     const desiredSet = new Set(desiredModules);
 
     const toEnable = Array.from(moduleMap.values())
