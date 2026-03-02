@@ -136,6 +136,8 @@ export interface FooterLayoutColors {
   socialBg: string;
   socialText: string;
   socialIconFallback: string;
+  socialOriginalBg: string;
+  socialOriginalIcon: string;
   brandGradient: string;
   dividerGradient: string;
   centeredBrandBg: string;
@@ -205,6 +207,8 @@ export const getFooterLayoutColors = (
     socialBg,
     socialText,
     socialIconFallback,
+    socialOriginalBg: socialBg,
+    socialOriginalIcon: socialText,
     brandGradient: surface,
     dividerGradient,
     centeredBrandBg,

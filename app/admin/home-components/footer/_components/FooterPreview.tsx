@@ -35,15 +35,15 @@ const SocialIcon = ({ platform, size = 18 }: { platform: string; size?: number }
   }
 };
 
-const SOCIAL_ORIGINAL_COLORS: Record<string, string> = {
-  facebook: '#1877f2',
-  instagram: '#e1306c',
-  youtube: '#ff0000',
-  tiktok: '#000000',
-  zalo: '#0084ff',
-  twitter: '#1da1f2',
-  linkedin: '#0a66c2',
-  github: '#0f172a',
+const SOCIAL_ORIGINAL_COLORS: Record<string, { bg: string; icon: string }> = {
+  facebook: { bg: '#1877f2', icon: '#1877f2' },
+  instagram: { bg: '#e1306c', icon: '#e1306c' },
+  youtube: { bg: '#ff0000', icon: '#ff0000' },
+  tiktok: { bg: '#000000', icon: '#000000' },
+  zalo: { bg: '#0084ff', icon: '#0084ff' },
+  twitter: { bg: '#1da1f2', icon: '#1da1f2' },
+  linkedin: { bg: '#0a66c2', icon: '#0a66c2' },
+  github: { bg: '#0f172a', icon: '#0f172a' },
 };
 
 const styles: { id: FooterStyle; label: string }[] = [
@@ -75,9 +75,18 @@ export const FooterPreview = ({
   const setPreviewStyle = (value: string) => onStyleChange?.(value as FooterStyle);
   const colors = getFooterLayoutColors(previewStyle, brandColor, secondary, mode);
   const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
-  const resolveSocialIconColor = (platform: string, fallback: string) => (
-    useOriginalSocialIconColors ? (SOCIAL_ORIGINAL_COLORS[platform] ?? fallback) : fallback
-  );
+  const resolveSocialStyles = (platform: string, fallbackBg: string, fallbackText: string) => {
+    if (!useOriginalSocialIconColors) {
+      return { bg: fallbackBg, color: fallbackText };
+    }
+
+    const original = SOCIAL_ORIGINAL_COLORS[platform];
+    if (!original) {
+      return { bg: fallbackBg, color: fallbackText };
+    }
+
+    return { bg: original.bg, color: original.icon };
+  };
 
   const socials = config.socialLinks?.length
     ? config.socialLinks
@@ -112,15 +121,19 @@ export const FooterPreview = ({
                 <p className="text-xs leading-relaxed md:max-w-sm" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}</p>
                 {config.showSocialLinks && (
                   <div className="flex gap-2 justify-center md:justify-start">
-                    {socials.map((s, index) => (
-                      <span
-                        key={`${s.id ?? 'social'}-${index}`}
-                        className="h-6 w-6 flex items-center justify-center rounded-full"
-                        style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
-                      >
-                        <SocialIcon platform={s.platform} size={14} />
-                      </span>
-                    ))}
+                    {socials.map((s, index) => {
+                      const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
+
+                      return (
+                        <span
+                          key={`${s.id ?? 'social'}-${index}`}
+                          className="h-6 w-6 flex items-center justify-center rounded-full"
+                          style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                        >
+                          <SocialIcon platform={s.platform} size={14} />
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -173,15 +186,19 @@ export const FooterPreview = ({
 
             {config.showSocialLinks && (
               <div className="flex gap-3">
-                {socials.map((s, index) => (
-                  <span
-                    key={`${s.id ?? 'social'}-${index}`}
-                    className="h-6 w-6 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
-                  >
-                    <SocialIcon platform={s.platform} size={14} />
-                  </span>
-                ))}
+                  {socials.map((s, index) => {
+                    const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
+
+                    return (
+                      <span
+                        key={`${s.id ?? 'social'}-${index}`}
+                        className="h-6 w-6 flex items-center justify-center rounded-full"
+                        style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                      >
+                        <SocialIcon platform={s.platform} size={14} />
+                      </span>
+                    );
+                  })}
               </div>
             )}
 
@@ -206,15 +223,19 @@ export const FooterPreview = ({
               </div>
               {config.showSocialLinks && (
                 <div className="flex gap-2">
-                  {socials.map((s, index) => (
-                    <span
-                      key={`${s.id ?? 'social'}-${index}`}
-                      className="h-5 w-5 flex items-center justify-center rounded-full"
-                      style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
-                    >
-                      <SocialIcon platform={s.platform} size={12} />
-                    </span>
-                  ))}
+                  {socials.map((s, index) => {
+                    const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
+
+                    return (
+                      <span
+                        key={`${s.id ?? 'social'}-${index}`}
+                        className="h-5 w-5 flex items-center justify-center rounded-full"
+                        style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                      >
+                        <SocialIcon platform={s.platform} size={12} />
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -260,15 +281,19 @@ export const FooterPreview = ({
             </div>
             {config.showSocialLinks && (
               <div className="flex gap-2">
-                {socials.map((s, index) => (
-                  <span
-                    key={`${s.id ?? 'social'}-${index}`}
-                    className="h-5 w-5 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.socialBg, color: resolveSocialIconColor(s.platform, colors.socialText) }}
-                  >
-                    <SocialIcon platform={s.platform} size={12} />
-                  </span>
-                ))}
+                {socials.map((s, index) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
+
+                  return (
+                    <span
+                      key={`${s.id ?? 'social'}-${index}`}
+                      className="h-5 w-5 flex items-center justify-center rounded-full"
+                      style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={12} />
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -309,15 +334,22 @@ export const FooterPreview = ({
 
             {config.showSocialLinks && (
               <div className="flex justify-center gap-3 mb-4">
-                {socials.map((s, index) => (
-                  <span
-                    key={`${s.id ?? 'social'}-${index}`}
-                    className="h-7 w-7 flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: colors.centeredSocialBg, border: `1px solid ${colors.centeredSocialBorder}`, color: resolveSocialIconColor(s.platform, colors.centeredSocialText) }}
-                  >
-                    <SocialIcon platform={s.platform} size={14} />
-                  </span>
-                ))}
+                {socials.map((s, index) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
+                  const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
+                    ? socialStyles.bg
+                    : colors.centeredSocialBorder;
+
+                  return (
+                    <span
+                      key={`${s.id ?? 'social'}-${index}`}
+                      className="h-7 w-7 flex items-center justify-center rounded-full"
+                      style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={14} />
+                    </span>
+                  );
+                })}
               </div>
             )}
 
@@ -353,15 +385,19 @@ export const FooterPreview = ({
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             {config.showSocialLinks && (
               <div className="flex gap-2">
-                {socials.map((s, index) => (
-                  <span
-                    key={`${s.id ?? 'social'}-${index}`}
-                    className="h-6 w-6 flex items-center justify-center rounded-lg"
-                    style={{ backgroundColor: colors.stackedSocialBg, color: resolveSocialIconColor(s.platform, colors.stackedSocialText) }}
-                  >
-                    <SocialIcon platform={s.platform} size={12} />
-                  </span>
-                ))}
+                {socials.map((s, index) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.stackedSocialBg, colors.stackedSocialText);
+
+                  return (
+                    <span
+                      key={`${s.id ?? 'social'}-${index}`}
+                      className="h-6 w-6 flex items-center justify-center rounded-lg"
+                      style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={12} />
+                    </span>
+                  );
+                })}
               </div>
             )}
             <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
