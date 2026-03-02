@@ -22,7 +22,6 @@ export type HeaderMenuConfig = {
     email: string;
     hotline: string;
     show: boolean;
-    showStoreSystem: boolean;
     showTrackOrder: boolean;
     useSettingsData: boolean;
   };
@@ -316,9 +315,7 @@ export function HeaderMenuPreview({
               {device !== 'mobile' && (
                 <>
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
-                  {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
-                  {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
+                  {showTrackOrder && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
               {showUserMenu && renderUserMenu('text')}
@@ -549,9 +546,7 @@ export function HeaderMenuPreview({
               {device !== 'mobile' && (
                 <>
                   {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
-                  {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
-                  {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Hệ thống cửa hàng</a>}
-                  {(showTrackOrder || displayTopbar.showStoreSystem) && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
+                  {showTrackOrder && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
                 </>
               )}
               {showUserMenu && renderUserMenu('text')}
@@ -772,16 +767,14 @@ export function HeaderMenuPreview({
     <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface, ...classicSeparatorStyle }}>
       {displayTopbar.show && (
         <div
-          className="px-4 py-2 text-[11px] uppercase tracking-[0.3em]"
+          className="px-4 py-2 text-xs"
           style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
         >
           <div className="flex items-center justify-center gap-4">
-            <span className="font-medium">{announcementText}</span>
-            {device !== 'mobile' && (showTrackOrder || displayTopbar.showStoreSystem) && (
-              <span className="flex items-center gap-2 text-[10px] tracking-[0.2em]">
+            <span>{announcementText}</span>
+            {device !== 'mobile' && showTrackOrder && (
+              <span className="flex items-center gap-2">
                 {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn</a>}
-                {showTrackOrder && displayTopbar.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
-                {displayTopbar.showStoreSystem && <a href={defaultLinks.storeSystem} className="hover:underline">Cửa hàng</a>}
               </span>
             )}
           </div>

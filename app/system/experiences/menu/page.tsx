@@ -41,7 +41,6 @@ const DEFAULT_CONFIG: HeaderMenuConfig = {
     email: 'contact@example.com',
     hotline: '1900 1234',
     show: true,
-    showStoreSystem: true,
     showTrackOrder: true,
     useSettingsData: false,
   },
@@ -428,12 +427,6 @@ export default function HeaderMenuExperiencePage() {
                 onChange={(v) => updateTopbar('showTrackOrder', v)}
                 accentColor={resolvedBrandColor}
                 disabled={!ordersEnabled}
-              />
-              <ToggleRow
-                label="Hệ thống cửa hàng"
-                checked={config.topbar.showStoreSystem}
-                onChange={(v) => updateTopbar('showStoreSystem', v)}
-                accentColor={resolvedBrandColor}
               />
               {config.search.show && (
                 <div className="pt-2">

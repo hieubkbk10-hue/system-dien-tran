@@ -36,7 +36,6 @@ interface TopbarConfig {
   hotline?: string;
   email?: string;
   showTrackOrder?: boolean;
-  showStoreSystem?: boolean;
   useSettingsData?: boolean;
 }
 
@@ -76,7 +75,6 @@ const DEFAULT_CONFIG: HeaderConfig = {
     email: 'contact@example.com',
     hotline: '1900 1234',
     show: true,
-    showStoreSystem: true,
     showTrackOrder: true,
     useSettingsData: false,
   },
@@ -414,15 +412,9 @@ export function Header() {
                 {showTrackOrder && (
                   <>
                     <Link href={DEFAULT_LINKS.trackOrder} className="hover:underline hidden sm:inline">Theo dõi đơn hàng</Link>
-                    {topbarConfig.showStoreSystem && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
                   </>
                 )}
-                {topbarConfig.showStoreSystem && (
-                  <>
-                    <Link href={DEFAULT_LINKS.storeSystem} className="hover:underline hidden sm:inline">Hệ thống cửa hàng</Link>
-                    {showLogin && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
-                  </>
-                )}
+                {showTrackOrder && showLogin && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
                 {showUserMenu && renderUserMenu('text', '')}
                 {showLoginLink && (
                   <Link href={DEFAULT_LINKS.login} className="hover:underline flex items-center gap-1">
@@ -673,15 +665,9 @@ export function Header() {
                 {showTrackOrder && (
                   <>
                     <Link href={DEFAULT_LINKS.trackOrder} className="hover:underline hidden sm:inline">Theo dõi đơn hàng</Link>
-                    {topbarConfig.showStoreSystem && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
                   </>
                 )}
-                {topbarConfig.showStoreSystem && (
-                  <>
-                    <Link href={DEFAULT_LINKS.storeSystem} className="hover:underline hidden sm:inline">Hệ thống cửa hàng</Link>
-                    {showLogin && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
-                  </>
-                )}
+                {showTrackOrder && showLogin && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
                 {showUserMenu && renderUserMenu('text', '')}
                 {showLoginLink && (
                   <Link href={DEFAULT_LINKS.login} className="hover:underline flex items-center gap-1">
@@ -912,19 +898,15 @@ export function Header() {
     <header className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface, ...classicSeparatorStyle }}>
         {topbarConfig.show !== false && (
           <div
-            className="px-4 py-2 text-[11px] uppercase tracking-[0.3em]"
+            className="px-4 py-2 text-xs"
             style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
           >
             <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
-              <span className="font-medium">{announcementText}</span>
-              {(showTrackOrder || topbarConfig.showStoreSystem) && (
-                <span className="hidden sm:flex items-center gap-2 text-[10px] tracking-[0.2em]">
+              <span>{announcementText}</span>
+              {showTrackOrder && (
+                <span className="hidden sm:flex items-center gap-2">
                   {showTrackOrder && (
                     <Link href={DEFAULT_LINKS.trackOrder} className="hover:underline">Theo dõi đơn</Link>
-                  )}
-                  {showTrackOrder && topbarConfig.showStoreSystem && <span style={{ color: tokens.topbarDivider }}>|</span>}
-                  {topbarConfig.showStoreSystem && (
-                    <Link href={DEFAULT_LINKS.storeSystem} className="hover:underline">Cửa hàng</Link>
                   )}
                 </span>
               )}
