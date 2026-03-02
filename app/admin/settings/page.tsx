@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Loader2, Palette, Save, Trash2 } from 'lucide-react';
+import { Loader2, Palette, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { SettingsImageUploader } from '../components/SettingsImageUploader';
-import { useSettingsCleanup } from '../components/useSettingsCleanup';
 import { TagInput } from '../components/TagInput';
 import MapLocationPicker from './MapLocationPicker';
 
@@ -117,12 +116,9 @@ function SettingsContent() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [initialForm, setInitialForm] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
   const [isSecondaryAuto, setIsSecondaryAuto] = useState(true);
   const [hasCleanedSeoFields, setHasCleanedSeoFields] = useState(false);
 
-  // Hooks
-  const { cleanupUnusedImages } = useSettingsCleanup();
 
   // Queries
   const settingsData = useQuery(api.settings.listAll);
@@ -310,21 +306,6 @@ function SettingsContent() {
     }
   };
 
-  // Cleanup unused images
-  const handleCleanup = useCallback(async () => {
-    setIsCleaning(true);
-    try {
-      // Get all image field values that are being used
-      const imageFields = fieldsData?.filter(f => f.type === 'image' && f.enabled) ?? [];
-      const usedUrls = imageFields
-        .map(f => form[f.fieldKey])
-        .filter((url): url is string => Boolean(url));
-
-      await cleanupUnusedImages(usedUrls);
-    } finally {
-      setIsCleaning(false);
-    }
-  }, [fieldsData, form, cleanupUnusedImages]);
 
   // Render field based on type
   const renderField = (field: NonNullable<typeof fieldsData>[number]) => {
@@ -806,20 +787,6 @@ function SettingsContent() {
 
           {/* Save button */}
           <div className="flex justify-between items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={handleCleanup}
-              disabled={isCleaning}
-              className="text-slate-500 hover:text-red-500"
-              title="Xóa ảnh không sử dụng trong thư mục settings"
-            >
-              {isCleaning ? (
-                <Loader2 size={16} className="mr-2 animate-spin" />
-              ) : (
-                <Trash2 size={16} className="mr-2" />
-              )}
-              Dọn dẹp ảnh
-            </Button>
             <div className="flex items-center gap-3">
               {hasChanges && (
                 <span className="text-sm text-amber-600 dark:text-amber-400">
