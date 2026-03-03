@@ -1756,38 +1756,14 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
         </div>
 
         {commentsSection}
-
-        {relatedProducts.length > 0 && (
-          <section className="px-6 py-16 border-t mt-10" style={{ borderColor: tokens.divider }}>
-            <h2 className="text-2xl font-light mb-8 text-center" style={{ color: tokens.headingColor }}>Có thể bạn sẽ thích</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.map((p) => (
-                <Link key={p._id} href={`/products/${p.slug}`} className="group cursor-pointer">
-                  <div className="aspect-[3/4] mb-4 overflow-hidden relative" style={{ backgroundColor: tokens.surfaceMuted }}>
-                    {p.image ? (
-                      <Image
-                        src={p.image}
-                        alt={p.name}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package size={32} style={{ color: tokens.emptyStateIcon }} />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: tokens.surfaceSoft }} />
-                  </div>
-                  <h3 className="text-sm font-medium" style={{ color: tokens.headingColor }}>{p.name}</h3>
-                  {showPrice && (
-                    <p className="text-sm mt-1" style={{ color: tokens.metaText }}>{formatPrice(p.salePrice ?? p.price)}</p>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <RelatedProductsSection
+          products={relatedProducts}
+          categorySlug={product.categorySlug}
+          brandColor={brandColor}
+          tokens={tokens}
+          showPrice={showPrice}
+          showSalePrice={enabledFields.has('salePrice')}
+        />
       </main>
     </div>
   );
@@ -2196,12 +2172,12 @@ function RelatedProductsSection({
           <Link
             key={p._id}
             href={`/products/${p.slug}`}
-            className="group rounded-xl overflow-hidden border transition-all duration-300"
+            className="rounded-xl overflow-hidden border"
             style={{ borderColor: tokens.relatedCardBorder, backgroundColor: tokens.relatedCardBg }}
           >
             <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.surfaceMuted }}>
               {p.image ? (
-                <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
