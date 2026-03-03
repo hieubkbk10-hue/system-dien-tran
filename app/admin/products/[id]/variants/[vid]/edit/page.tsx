@@ -29,6 +29,7 @@ function ProductVariantEditContent({ params }: { params: Promise<{ id: string; v
 
   const productData = useQuery(api.products.getById, { id: productId });
   const variantData = useQuery(api.productVariants.getById, { id: variantId });
+  const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const optionsData = useQuery(api.productOptions.listActive);
   const valuesData = useQuery(api.productOptionValues.listAll, { limit: 500 });
@@ -40,6 +41,12 @@ function ProductVariantEditContent({ params }: { params: Promise<{ id: string; v
     const setting = settingsData?.find(s => s.settingKey === 'variantEnabled');
     return Boolean(setting?.value);
   }, [settingsData]);
+
+  const enabledFields = useMemo(() => {
+    const fields = new Set<string>();
+    fieldsData?.forEach(f => fields.add(f.fieldKey));
+    return fields;
+  }, [fieldsData]);
 
   const variantSettings = useMemo(() => {
     const getSetting = (key: string, fallback: string) => {
@@ -77,7 +84,7 @@ function ProductVariantEditContent({ params }: { params: Promise<{ id: string; v
     }
   };
 
-  if (productData === undefined || variantData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined) {
+  if (productData === undefined || variantData === undefined || fieldsData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 size={32} className="animate-spin text-orange-500" />
@@ -128,7 +135,7 @@ function ProductVariantEditContent({ params }: { params: Promise<{ id: string; v
         options={productOptions}
         optionValues={valuesData}
         product={productData}
-        settings={variantSettings}
+        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku') }}
         submitLabel="Lưu phiên bản"
         variant={variantData}
       />

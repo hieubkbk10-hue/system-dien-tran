@@ -124,10 +124,15 @@ export const productsModule = defineModule({
       dependsOn: 'variantEnabled',
     },
     {
-      key: 'enableDigitalProducts',
-      label: 'Bật sản phẩm Digital',
-      type: 'toggle',
-      default: false,
+      key: 'productTypeMode',
+      label: 'Loại sản phẩm',
+      type: 'select',
+      default: 'both',
+      options: [
+        { value: 'physical', label: 'Vật lý' },
+        { value: 'digital', label: 'Digital' },
+        { value: 'both', label: 'Cả hai' },
+      ],
       group: 'digital',
     },
     {
@@ -142,7 +147,6 @@ export const productsModule = defineModule({
         { value: 'custom', label: 'Tùy chỉnh' },
       ],
       group: 'digital',
-      dependsOn: 'enableDigitalProducts',
     },
    ],
 

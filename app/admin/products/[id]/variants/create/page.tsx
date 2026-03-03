@@ -27,6 +27,7 @@ function ProductVariantCreateContent({ params }: { params: Promise<{ id: string 
   const router = useRouter();
 
   const productData = useQuery(api.products.getById, { id: productId });
+  const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const optionsData = useQuery(api.productOptions.listActive);
   const valuesData = useQuery(api.productOptionValues.listAll, { limit: 500 });
@@ -38,6 +39,12 @@ function ProductVariantCreateContent({ params }: { params: Promise<{ id: string 
     const setting = settingsData?.find(s => s.settingKey === 'variantEnabled');
     return Boolean(setting?.value);
   }, [settingsData]);
+
+  const enabledFields = useMemo(() => {
+    const fields = new Set<string>();
+    fieldsData?.forEach(f => fields.add(f.fieldKey));
+    return fields;
+  }, [fieldsData]);
 
   const variantSettings = useMemo(() => {
     const getSetting = (key: string, fallback: string) => {
@@ -75,7 +82,7 @@ function ProductVariantCreateContent({ params }: { params: Promise<{ id: string 
     }
   };
 
-  if (productData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined) {
+  if (productData === undefined || fieldsData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 size={32} className="animate-spin text-orange-500" />
@@ -118,7 +125,7 @@ function ProductVariantCreateContent({ params }: { params: Promise<{ id: string 
         options={productOptions}
         optionValues={valuesData}
         product={productData}
-        settings={variantSettings}
+        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku') }}
         submitLabel="Tạo phiên bản"
       />
     </div>

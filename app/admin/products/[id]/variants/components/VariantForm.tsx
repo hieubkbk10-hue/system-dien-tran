@@ -11,6 +11,7 @@ type VariantSettings = {
   variantImages: string;
   variantPricing: string;
   variantStock: string;
+  skuEnabled: boolean;
 };
 
 export type VariantFormPayload = {
@@ -58,6 +59,7 @@ export function VariantForm({
   const [image, setImage] = useState<string | undefined>();
   const [optionSelections, setOptionSelections] = useState<Record<string, { valueId?: Id<'productOptionValues'>; customValue?: string }>>({});
   const [isLoaded, setIsLoaded] = useState(false);
+  const generatedSku = useMemo(() => `VAR-${product._id.slice(-6)}-${Date.now()}`, [product._id]);
 
   const optionValuesByOption = useMemo(() => {
     const map = new Map<string, Doc<'productOptionValues'>[]>();
@@ -97,7 +99,7 @@ export function VariantForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sku.trim()) {
+    if (settings.skuEnabled && !sku.trim()) {
       toast.error('Vui lòng nhập SKU');
       return;
     }
@@ -117,6 +119,10 @@ export function VariantForm({
       };
     });
 
+    const resolvedSku = settings.skuEnabled
+      ? sku.trim()
+      : (variant?.sku ?? (sku.trim() || generatedSku));
+
     await onSubmit({
       allowBackorder: settings.variantStock === 'variant' ? allowBackorder : undefined,
       barcode: barcode.trim() || undefined,
@@ -124,7 +130,7 @@ export function VariantForm({
       optionValues: optionValuesPayload,
       price: settings.variantPricing === 'variant' ? (price.trim() === '' ? undefined : Number.parseInt(price)) : undefined,
       salePrice: settings.variantPricing === 'variant' ? (salePrice.trim() === '' ? undefined : Number.parseInt(salePrice)) : undefined,
-      sku: sku.trim(),
+      sku: resolvedSku,
       status,
       stock: settings.variantStock === 'variant' ? (stock.trim() === '' ? undefined : Number.parseInt(stock)) : undefined,
     });
@@ -144,10 +150,12 @@ export function VariantForm({
             <CardHeader><CardTitle className="text-base">Thông tin phiên bản</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>SKU <span className="text-red-500">*</span></Label>
-                  <Input value={sku} onChange={(e) =>{  setSku(e.target.value); }} placeholder="VD: PROD-RED-M" className="font-mono" required />
-                </div>
+                {settings.skuEnabled && (
+                  <div className="space-y-2">
+                    <Label>SKU <span className="text-red-500">*</span></Label>
+                    <Input value={sku} onChange={(e) =>{  setSku(e.target.value); }} placeholder="VD: PROD-RED-M" className="font-mono" required />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Barcode</Label>
                   <Input value={barcode} onChange={(e) =>{  setBarcode(e.target.value); }} placeholder="Barcode (nếu có)" className="font-mono" />
@@ -221,10 +229,16 @@ export function VariantForm({
                   <div className="space-y-2">
                     <Label>Giá bán (VNĐ)</Label>
                     <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} placeholder="0" min="0" />
+                    {price.trim() !== '' && Number.isFinite(Number.parseInt(price)) && (
+                      <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(price))}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Giá khuyến mãi (VNĐ)</Label>
                     <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    {salePrice.trim() !== '' && Number.isFinite(Number.parseInt(salePrice)) && (
+                      <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(salePrice))}</p>
+                    )}
                   </div>
                 </div>
               ) : (

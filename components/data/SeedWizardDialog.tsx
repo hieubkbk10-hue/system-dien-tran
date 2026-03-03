@@ -702,8 +702,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         await setModuleSetting({ moduleKey: 'products', settingKey: 'imageChangeAnimation', value: 'fade' });
         await setModuleSetting({
           moduleKey: 'products',
-          settingKey: 'enableDigitalProducts',
-          value: state.productType !== 'physical',
+          settingKey: 'productTypeMode',
+          value: state.productType,
         });
         await setModuleSetting({
           moduleKey: 'products',

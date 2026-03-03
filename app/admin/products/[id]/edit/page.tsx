@@ -78,10 +78,18 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     return Boolean(setting?.value);
   }, [settingsData]);
 
-  const digitalEnabled = useMemo(() => {
-    const setting = settingsData?.find(s => s.settingKey === 'enableDigitalProducts');
-    return Boolean(setting?.value);
+  const variantPricing = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'variantPricing');
+    return (setting?.value as string) || 'variant';
   }, [settingsData]);
+
+  const productTypeMode = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'productTypeMode');
+    const value = setting?.value as 'physical' | 'digital' | 'both' | undefined;
+    return value ?? 'both';
+  }, [settingsData]);
+
+  const digitalEnabled = productTypeMode !== 'physical';
 
   const saleMode = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'saleMode');
@@ -93,6 +101,8 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   }, [settingsData]);
 
   const isAffiliateMode = saleMode === 'affiliate';
+  const showProductTypeSelector = productTypeMode === 'both';
+  const hideBasePricing = variantEnabled && hasVariants && variantPricing === 'variant';
 
   useEffect(() => {
     if (productData && !isDataLoaded) {
@@ -126,6 +136,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   }, [hasVariants]);
 
   useEffect(() => {
+    if (productTypeMode === 'physical' || productTypeMode === 'digital') {
+      setProductType(productTypeMode);
+    }
+  }, [productTypeMode]);
+
+  useEffect(() => {
     if (!isAffiliateMode) {
       setAffiliateLink('');
     }
@@ -134,7 +150,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !categoryId || !price) {
+    if (!name.trim() || !categoryId || (!hideBasePricing && !price)) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
@@ -173,8 +189,8 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           : undefined,
         name: name.trim(),
         optionIds: variantEnabled ? (hasVariants ? selectedOptionIds : []) : undefined,
-        price: parseInt(price) || 0,
-        salePrice: salePrice ? parseInt(salePrice) : undefined,
+        price: hideBasePricing ? 0 : (parseInt(price) || 0),
+        salePrice: hideBasePricing ? undefined : (salePrice ? parseInt(salePrice) : undefined),
         sku: (sku.trim() || productData?.sku) ?? `SKU-${Date.now()}`,
         slug: slug.trim(),
         status,
@@ -294,7 +310,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
                     <Input
                       value={metaTitle}
                       onChange={(e) =>{  setMetaTitle(e.target.value); }}
-                      placeholder="Tiêu đề hiển thị trên Google"
+                      placeholder="Lấy theo tên sản phẩm nếu để trống"
                     />
                   </div>
                 )}
@@ -310,7 +326,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
                       value={metaDescription}
                       onChange={(e) =>{  setMetaDescription(e.target.value); }}
                       className="w-full min-h-[90px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                      placeholder="Mô tả ngắn cho kết quả tìm kiếm"
+                      placeholder="Lấy theo mô tả sản phẩm nếu bạn để trống"
                     />
                   </div>
                 )}
@@ -332,18 +348,22 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           <Card>
             <CardHeader><CardTitle className="text-base">Giá & Kho hàng</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className={enabledFields.has('salePrice') ? "grid grid-cols-2 gap-4" : ""}>
-                <div className="space-y-2">
-                  <Label>Giá bán (VNĐ) <span className="text-red-500">*</span></Label>
-                  <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} required placeholder="0" min="0" />
-                </div>
-                {enabledFields.has('salePrice') && (
+              {hideBasePricing ? (
+                <p className="text-sm text-slate-500">Giá lấy theo phiên bản.</p>
+              ) : (
+                <div className={enabledFields.has('salePrice') ? "grid grid-cols-2 gap-4" : ""}>
                   <div className="space-y-2">
-                    <Label>Giá khuyến mãi (VNĐ)</Label>
-                    <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    <Label>Giá bán (VNĐ) <span className="text-red-500">*</span></Label>
+                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} required placeholder="0" min="0" />
                   </div>
-                )}
-              </div>
+                  {enabledFields.has('salePrice') && (
+                    <div className="space-y-2">
+                      <Label>Giá chưa giảm</Label>
+                      <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    </div>
+                  )}
+                </div>
+              )}
               {enabledFields.has('stock') && productType !== 'digital' && (
                 <div className="space-y-2">
                   <Label>Số lượng tồn kho</Label>
@@ -370,28 +390,30 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
             <Card>
               <CardHeader><CardTitle className="text-base">Loại sản phẩm</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="productType"
-                      checked={productType === 'physical'}
-                      onChange={() => setProductType('physical')}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Vật lý (cần giao hàng)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="productType"
-                      checked={productType === 'digital'}
-                      onChange={() => setProductType('digital')}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Digital (giao qua mạng)</span>
-                  </label>
-                </div>
+                {showProductTypeSelector && (
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="productType"
+                        checked={productType === 'physical'}
+                        onChange={() => setProductType('physical')}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">Vật lý (cần giao hàng)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="productType"
+                        checked={productType === 'digital'}
+                        onChange={() => setProductType('digital')}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">Digital (giao qua mạng)</span>
+                    </label>
+                  </div>
+                )}
 
                 {productType === 'digital' && (
                   <>
@@ -428,6 +450,15 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
             <Card>
               <CardHeader><CardTitle className="text-base">Phiên bản sản phẩm</CardTitle></CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Quản lý tùy chọn</Label>
+                  <Link href="/admin/product-options" target="_blank">
+                    <Button type="button" variant="outline" className="h-7 px-2 text-xs gap-1">
+                      <ExternalLink size={12} />
+                      Mở
+                    </Button>
+                  </Link>
+                </div>
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"

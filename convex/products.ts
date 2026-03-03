@@ -938,7 +938,18 @@ export const create = mutation({
     }
     const status = args.status ?? defaultStatus;
 
-    const productType = args.productType ?? "physical";
+    const productTypeSetting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "productTypeMode")
+      )
+      .unique();
+    const productTypeMode = (productTypeSetting?.value as "physical" | "digital" | "both") ?? "both";
+    const productType = productTypeMode === "physical"
+      ? "physical"
+      : productTypeMode === "digital"
+        ? "digital"
+        : (args.productType ?? "physical");
     const productId = await ctx.db.insert("products", {
       ...args,
       productType,
@@ -1028,8 +1039,22 @@ export const update = mutation({
       await updateStats(ctx, { new: args.status, old: product.status });
     }
 
+    const productTypeSetting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "productTypeMode")
+      )
+      .unique();
+    const productTypeMode = (productTypeSetting?.value as "physical" | "digital" | "both") ?? "both";
+    const resolvedProductType = productTypeMode === "physical"
+      ? "physical"
+      : productTypeMode === "digital"
+        ? "digital"
+        : (updates.productType ?? product.productType ?? "physical");
+
     const nextUpdates = {
       ...updates,
+      productType: resolvedProductType,
     } as typeof updates & {
       productType?: "physical" | "digital";
       digitalDeliveryType?: "account" | "license" | "download" | "custom";
@@ -1043,7 +1068,14 @@ export const update = mutation({
       };
     };
 
-    if (updates.productType === "physical") {
+    if (resolvedProductType === "digital") {
+      if (updates.digitalDeliveryType === undefined) {
+        nextUpdates.digitalDeliveryType = product.digitalDeliveryType;
+      }
+      if (updates.digitalCredentialsTemplate === undefined) {
+        nextUpdates.digitalCredentialsTemplate = product.digitalCredentialsTemplate;
+      }
+    } else {
       nextUpdates.digitalDeliveryType = undefined;
       nextUpdates.digitalCredentialsTemplate = undefined;
     }
