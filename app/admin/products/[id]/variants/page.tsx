@@ -898,18 +898,31 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                           </Button>
                         </div>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-3">
-                        {item.values.map((value) => (
-                          <label key={value._id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                            <input
-                              type="checkbox"
-                              className="w-4 h-4 rounded border-slate-300"
-                              checked={item.selectedSet.has(value._id)}
-                              onChange={() => toggleOptionValue(item.option._id, value._id)}
-                            />
-                            <span>{value.label}</span>
-                          </label>
-                        ))}
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {item.values.map((value) => {
+                          const label = value.label ?? value.value ?? 'N/A';
+                          const isSelected = item.selectedSet.has(value._id);
+                          return (
+                            <label
+                              key={value._id}
+                              title={label}
+                              className={cn(
+                                'flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors',
+                                isSelected
+                                  ? 'border-orange-500/50 bg-orange-500/10 text-slate-900 dark:text-slate-100'
+                                  : 'border-slate-200 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500'
+                              )}
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-slate-300"
+                                checked={isSelected}
+                                onChange={() => toggleOptionValue(item.option._id, value._id)}
+                              />
+                              <span className="truncate">{label}</span>
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
