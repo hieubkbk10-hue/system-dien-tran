@@ -83,7 +83,7 @@ const productAdminDoc = v.object({
   slug: v.string(),
   status: productStatus,
   stock: v.number(),
-  variantMinPrice: v.optional(v.number()),
+  variantMinPrice: v.optional(v.union(v.number(), v.null())),
   hasPricedActiveVariant: v.optional(v.boolean()),
 });
 
