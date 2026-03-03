@@ -352,15 +352,15 @@ export function VariantForm({
               {showVariantPricing ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Giá bán (VNĐ)</Label>
-                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} placeholder="0" min="0" />
+                    <Label>Giá so sánh (trước giảm)</Label>
+                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
                     {price.trim() !== '' && Number.isFinite(Number.parseInt(price)) && (
                       <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(price))}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Giá trước giảm</Label>
-                    <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    <Label>Giá bán (VNĐ)</Label>
+                    <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="0" min="0" />
                     {salePrice.trim() !== '' && Number.isFinite(Number.parseInt(salePrice)) && (
                       <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(salePrice))}</p>
                     )}

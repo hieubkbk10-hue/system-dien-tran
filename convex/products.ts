@@ -45,6 +45,48 @@ const productDoc = v.object({
   stock: v.number(),
 });
 
+const productAdminDoc = v.object({
+  _creationTime: v.number(),
+  _id: v.id("products"),
+  affiliateLink: v.optional(v.string()),
+  categoryId: v.id("productCategories"),
+  description: v.optional(v.string()),
+  hasVariants: v.optional(v.boolean()),
+  image: v.optional(v.string()),
+  images: v.optional(v.array(v.string())),
+  metaDescription: v.optional(v.string()),
+  metaTitle: v.optional(v.string()),
+  name: v.string(),
+  optionIds: v.optional(v.array(v.id("productOptions"))),
+  order: v.number(),
+  price: v.number(),
+  productType: v.optional(v.union(v.literal("physical"), v.literal("digital"))),
+  digitalDeliveryType: v.optional(
+    v.union(
+      v.literal("account"),
+      v.literal("license"),
+      v.literal("download"),
+      v.literal("custom")
+    )
+  ),
+  digitalCredentialsTemplate: v.optional(v.object({
+    username: v.optional(v.string()),
+    password: v.optional(v.string()),
+    licenseKey: v.optional(v.string()),
+    downloadUrl: v.optional(v.string()),
+    customContent: v.optional(v.string()),
+    expiresAt: v.optional(v.number()),
+  })),
+  salePrice: v.optional(v.number()),
+  sales: v.number(),
+  sku: v.string(),
+  slug: v.string(),
+  status: productStatus,
+  stock: v.number(),
+  variantMinPrice: v.optional(v.number()),
+  hasPricedActiveVariant: v.optional(v.boolean()),
+});
+
 const paginatedProducts = v.object({
   continueCursor: v.string(),
   isDone: v.boolean(),
@@ -129,6 +171,34 @@ async function getVariantAggregates(
   return new Map<Id<"products">, { price: number | null; stock: number }>(aggregates);
 }
 
+async function getVariantAdminAggregates(
+  ctx: VariantCtx,
+  products: Doc<"products">[]
+) {
+  const productsWithVariants = products.filter((product) => product.hasVariants);
+  const aggregates = await Promise.all(
+    productsWithVariants.map(async (product) => {
+      const variants = await ctx.db
+        .query("productVariants")
+        .withIndex("by_product_status", (q) => q.eq("productId", product._id).eq("status", "Active"))
+        .collect();
+
+      let minPrice: number | null = null;
+      variants.forEach((variant) => {
+        const effectivePrice = variant.salePrice ?? variant.price;
+        if (typeof effectivePrice !== "number") {
+          return;
+        }
+        minPrice = minPrice === null ? effectivePrice : Math.min(minPrice, effectivePrice);
+      });
+
+      return [product._id, { hasPricedActiveVariant: minPrice !== null, minPrice }] as const;
+    })
+  );
+
+  return new Map<Id<"products">, { hasPricedActiveVariant: boolean; minPrice: number | null }>(aggregates);
+}
+
 async function resolveVariantOverrides(
   ctx: VariantCtx,
   products: Doc<"products">[],
@@ -194,6 +264,7 @@ export const listAdminWithOffset = query({
     const limit = Math.min(args.limit ?? 20, 100);
     const offset = args.offset ?? 0;
     const fetchLimit = Math.min(offset + limit + 50, 1000);
+    const settings = await getVariantSettings(ctx);
 
     const queryBuilder = args.categoryId && args.status
       ? ctx.db.query("products").withIndex("by_category_status", (q) =>
@@ -217,9 +288,25 @@ export const listAdminWithOffset = query({
       );
     }
 
-    return products.slice(offset, offset + limit);
+    const page = products.slice(offset, offset + limit);
+    if (settings.variantEnabled && settings.variantPricing === "variant") {
+      const aggregates = await getVariantAdminAggregates(ctx, page);
+      return page.map((product) => {
+        if (!product.hasVariants) {
+          return { ...product, hasPricedActiveVariant: false, variantMinPrice: undefined };
+        }
+        const aggregate = aggregates.get(product._id);
+        return {
+          ...product,
+          hasPricedActiveVariant: aggregate?.hasPricedActiveVariant ?? false,
+          variantMinPrice: aggregate?.minPrice ?? null,
+        };
+      });
+    }
+
+    return page;
   },
-  returns: v.array(productDoc),
+  returns: v.array(productAdminDoc),
 });
 
 export const countAdmin = query({

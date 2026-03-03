@@ -353,13 +353,20 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
               ) : (
                 <div className={enabledFields.has('salePrice') ? "grid grid-cols-2 gap-4" : ""}>
                   <div className="space-y-2">
-                    <Label>Giá bán (VNĐ) <span className="text-red-500">*</span></Label>
-                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} required placeholder="0" min="0" />
+                    <Label>{enabledFields.has('salePrice') ? 'Giá so sánh (trước giảm)' : 'Giá bán (VNĐ)'} <span className="text-red-500">*</span></Label>
+                    <Input
+                      type="number"
+                      value={price}
+                      onChange={(e) =>{  setPrice(e.target.value); }}
+                      required
+                      placeholder={enabledFields.has('salePrice') ? 'Để trống nếu không KM' : '0'}
+                      min="0"
+                    />
                   </div>
                   {enabledFields.has('salePrice') && (
                     <div className="space-y-2">
-                      <Label>Giá chưa giảm</Label>
-                      <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                      <Label>Giá bán (VNĐ)</Label>
+                      <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="0" min="0" />
                     </div>
                   )}
                 </div>

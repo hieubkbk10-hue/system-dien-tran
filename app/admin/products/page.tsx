@@ -113,6 +113,11 @@ function ProductsContent() {
     return Boolean(setting?.value);
   }, [settingsData]);
 
+  const variantPricing = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'variantPricing');
+    return (setting?.value as string) || 'variant';
+  }, [settingsData]);
+
   const excelActionsEnabled = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'enableExcelActions');
     return setting?.value === undefined ? true : Boolean(setting?.value);
@@ -685,13 +690,25 @@ function ProductsContent() {
                 {visibleColumns.includes('price') && (
                   <TableCell>
                     <div>
-                      {product.salePrice && enabledFields.has('salePrice') ? (
-                        <>
-                          <span className="text-red-500 font-medium">{formatPrice(product.salePrice)}</span>
-                          <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.price)}</span>
-                        </>
-                      ) : (
-                        <span>{formatPrice(product.price)}</span>
+                      {variantEnabled && variantPricing === 'variant' && product.hasVariants ? (() => {
+                        const meta = product as typeof product & {
+                          hasPricedActiveVariant?: boolean;
+                          variantMinPrice?: number | null;
+                        };
+                        if (!meta.hasPricedActiveVariant) {
+                          return <span className="text-slate-500">Chưa có giá</span>;
+                        }
+                        const resolvedPrice = meta.variantMinPrice ?? product.price;
+                        return <span>{formatPrice(resolvedPrice)}</span>;
+                      })() : (
+                        product.salePrice && enabledFields.has('salePrice') ? (
+                          <>
+                            <span className="text-red-500 font-medium">{formatPrice(product.salePrice)}</span>
+                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.price)}</span>
+                          </>
+                        ) : (
+                          <span>{formatPrice(product.price)}</span>
+                        )
                       )}
                     </div>
                   </TableCell>
