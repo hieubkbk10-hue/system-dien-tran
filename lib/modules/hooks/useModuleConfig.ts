@@ -1,7 +1,7 @@
  'use client';
  
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
- import { useQuery, useMutation } from 'convex/react';
+import { useAction, useMutation, useQuery } from 'convex/react';
  import { api } from '@/convex/_generated/api';
  import { toast } from 'sonner';
  import type { ModuleDefinition } from '../define-module';
@@ -25,24 +25,52 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
    const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey });
    
    // ============ MUTATIONS ============
-   const toggleFeature = useMutation(api.admin.modules.toggleModuleFeature);
-   const updateField = useMutation(api.admin.modules.updateModuleField);
-   const setSetting = useMutation(api.admin.modules.setModuleSetting);
+  const toggleFeature = useMutation(api.admin.modules.toggleModuleFeature);
+  const updateField = useMutation(api.admin.modules.updateModuleField);
+  const setSetting = useMutation(api.admin.modules.setModuleSetting);
+  const seedAllModulesConfig = useAction(api.seed.seedAllModulesConfig);
    
    // ============ LOCAL STATE ============
    const [localFeatures, setLocalFeatures] = useState<FeaturesState>({});
    const [localFields, setLocalFields] = useState<FieldConfig[]>([]);
    const [localCategoryFields, setLocalCategoryFields] = useState<FieldConfig[]>([]);
    const [localSettings, setLocalSettings] = useState<SettingsState>({});
-   const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const hasMigratedPriorityRef = useRef(false);
   const hasMigratedPrioritySystemRef = useRef(false);
+  const hasTriggeredAutoHealRef = useRef(false);
    
    const isLoading = moduleData === undefined || 
                      featuresData === undefined || 
                      fieldsData === undefined || 
                      settingsData === undefined;
   const isModuleDisabled = moduleData?.enabled === false;
+
+  useEffect(() => {
+    if (hasTriggeredAutoHealRef.current) {
+      return;
+    }
+    if (moduleData === undefined || featuresData === undefined || fieldsData === undefined || settingsData === undefined) {
+      return;
+    }
+    if (isModuleDisabled) {
+      return;
+    }
+    if (featuresData.length > 0 && fieldsData.length > 0) {
+      return;
+    }
+    hasTriggeredAutoHealRef.current = true;
+    const run = async () => {
+      try {
+        await seedAllModulesConfig({});
+        toast.success('Đã khởi tạo preset module.');
+      } catch (error) {
+        hasTriggeredAutoHealRef.current = false;
+        toast.error(error instanceof Error ? error.message : 'Khởi tạo preset thất bại.');
+      }
+    };
+    void run();
+  }, [featuresData, fieldsData, isModuleDisabled, moduleData, seedAllModulesConfig, settingsData]);
    
    // ============ SYNC EFFECTS ============
    useEffect(() => {
