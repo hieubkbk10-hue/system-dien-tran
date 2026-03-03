@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useMutation, useQuery } from 'convex/react';
@@ -844,6 +844,53 @@ function BlurredProductImage({ src, alt, sizes }: { src: string; alt: string; si
   );
 }
 
+function ExpandableDescription({ html, className, style, buttonStyle }: { html: string; className?: string; style?: React.CSSProperties; buttonStyle?: React.CSSProperties }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
+
+  useEffect(() => {
+    if (expanded) {
+      return;
+    }
+    const element = contentRef.current;
+    if (!element) {
+      return;
+    }
+    const checkOverflow = () => {
+      setCanExpand(element.scrollHeight > element.clientHeight + 1);
+    };
+    checkOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [expanded, html]);
+
+  return (
+    <div>
+      <div
+        ref={contentRef}
+        className={`${className ?? ''} ${expanded ? '' : 'line-clamp-4 md:line-clamp-5'}`.trim()}
+        style={style}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      {canExpand && (
+        <button
+          type="button"
+          className="mt-2 text-sm font-medium"
+          style={buttonStyle}
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? 'Thu gọn' : 'Xem thêm'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 type VariantSelectionMap = Record<string, Id<'productOptionValues'>>;
 
 const buildSelectionFromVariant = (variant: ProductVariant): VariantSelectionMap =>
@@ -1129,7 +1176,12 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             {showDescription && product.description && (
               <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
                 <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
-                <div className="prose prose-sm max-w-none" style={{ color: tokens.bodyText }} dangerouslySetInnerHTML={{ __html: product.description }} />
+                <ExpandableDescription
+                  html={product.description}
+                  className="prose prose-sm max-w-none"
+                  style={{ color: tokens.bodyText }}
+                  buttonStyle={{ color: tokens.primary }}
+                />
               </div>
             )}
           </div>
@@ -1468,16 +1520,13 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
         </div>
 
         <div className="mt-12 lg:mt-16">
-          <div className="grid w-full grid-cols-2 gap-2">
-            <div className="text-center py-3 border text-sm font-medium" style={{ borderColor: tokens.border, color: tokens.bodyText }}>Mô tả</div>
-            <div className="text-center py-3 border text-sm font-medium" style={{ borderColor: tokens.border, color: tokens.bodyText }}>Thông tin</div>
-          </div>
           <div className="mt-6 border rounded-2xl p-6" style={{ borderColor: tokens.border }}>
             {showDescription && product.description ? (
-              <div
+              <ExpandableDescription
+                html={product.description}
                 className="prose prose-sm max-w-none"
                 style={{ color: tokens.bodyText }}
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                buttonStyle={{ color: tokens.primary }}
               />
             ) : (
               <p style={{ color: tokens.metaText }}>Chưa có mô tả chi tiết.</p>
@@ -1678,10 +1727,11 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 
             <div className="space-y-5 pt-0 flex-1">
               {showDescription && product.description && (
-                <div
+                <ExpandableDescription
+                  html={product.description}
                   className="leading-relaxed font-light text-justify"
                   style={{ color: tokens.bodyText }}
-                  dangerouslySetInnerHTML={{ __html: product.description }}
+                  buttonStyle={{ color: tokens.primary }}
                 />
               )}
 

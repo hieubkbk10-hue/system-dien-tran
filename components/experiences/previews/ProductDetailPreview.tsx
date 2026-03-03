@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Award,
   BadgeCheck,
@@ -84,6 +84,8 @@ const PREVIEW_IMAGES = [
   '/seed_mau/tech/products/3.webp',
 ];
 
+const PREVIEW_DESCRIPTION = 'Thiết kế sang trọng, hiệu năng bền bỉ và trải nghiệm màn hình sắc nét phù hợp nhu cầu cao cấp. Pin tối ưu cho cả ngày dài, camera linh hoạt và chất liệu hoàn thiện tinh tế.';
+
 function BlurredPreviewImage({ src, alt }: { src: string; alt: string }) {
   return (
     <>
@@ -99,6 +101,54 @@ function BlurredPreviewImage({ src, alt }: { src: string; alt: string }) {
       <div className="absolute inset-0 bg-black/10" />
       <img src={src} alt={alt} className="relative z-10 h-full w-full object-contain" />
     </>
+  );
+}
+
+function ExpandablePreviewText({ text, className, style, buttonStyle }: { text: string; className?: string; style?: React.CSSProperties; buttonStyle?: React.CSSProperties }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
+
+  useEffect(() => {
+    if (expanded) {
+      return;
+    }
+    const element = contentRef.current;
+    if (!element) {
+      return;
+    }
+    const checkOverflow = () => {
+      setCanExpand(element.scrollHeight > element.clientHeight + 1);
+    };
+    checkOverflow();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver(checkOverflow);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [expanded, text]);
+
+  return (
+    <div>
+      <div
+        ref={contentRef}
+        className={`${className ?? ''} ${expanded ? '' : 'line-clamp-4 md:line-clamp-5'}`.trim()}
+        style={style}
+      >
+        {text}
+      </div>
+      {canExpand && (
+        <button
+          type="button"
+          className="mt-2 text-sm font-medium"
+          style={buttonStyle}
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? 'Thu gọn' : 'Xem thêm'}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -300,6 +350,15 @@ export function ProductDetailPreview({
                   })}
                 </div>
               )}
+              <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
+                <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
+                <ExpandablePreviewText
+                  text={PREVIEW_DESCRIPTION}
+                  className="prose prose-sm max-w-none"
+                  style={{ color: tokens.bodyText }}
+                  buttonStyle={{ color: tokens.primary }}
+                />
+              </div>
             </div>
           </div>
 
@@ -471,6 +530,15 @@ export function ProductDetailPreview({
                   </div>
                 )}
 
+                <div className="border rounded-2xl p-5" style={{ borderColor: tokens.border }}>
+                  <ExpandablePreviewText
+                    text={PREVIEW_DESCRIPTION}
+                    className="prose prose-sm max-w-none"
+                    style={{ color: tokens.bodyText }}
+                    buttonStyle={{ color: tokens.primary }}
+                  />
+                </div>
+
                 <CommentsPreview
                   showComments={showComments}
                   showLikes={showCommentLikes}
@@ -571,9 +639,12 @@ export function ProductDetailPreview({
                 )}
 
                 <div className="space-y-4 text-sm font-light" style={{ color: tokens.metaText }}>
-                  <div className="leading-relaxed" style={{ color: tokens.metaText }}>
-                    Thiết kế tối giản, tập trung trải nghiệm và chi tiết sản phẩm.
-                  </div>
+                  <ExpandablePreviewText
+                    text={PREVIEW_DESCRIPTION}
+                    className="leading-relaxed"
+                    style={{ color: tokens.metaText }}
+                    buttonStyle={{ color: tokens.primary }}
+                  />
                   <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>SKU</span>
                     <span className="font-mono" style={{ color: tokens.bodyText }}>{sku}</span>
