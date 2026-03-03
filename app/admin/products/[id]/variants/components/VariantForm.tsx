@@ -145,6 +145,7 @@ export function VariantForm({
 
   const formatPrice = (value: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(value);
 
+  const showVariantIdentity = settings.skuEnabled || settings.barcodeEnabled;
   const showVariantPricing = settings.variantPricing === 'variant';
   const showVariantStock = settings.variantStock === 'variant';
   const showVariantImages = settings.variantImages !== 'inherit';
@@ -185,25 +186,27 @@ export function VariantForm({
     <form onSubmit={handleSubmit} className="space-y-6 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Thông tin phiên bản</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {settings.skuEnabled && (
-                  <div className="space-y-2">
-                    <Label>SKU <span className="text-red-500">*</span></Label>
-                    <Input value={sku} onChange={(e) =>{  setSku(e.target.value); }} placeholder="VD: PROD-RED-M" className="font-mono" required />
-                  </div>
-                )}
-                {settings.barcodeEnabled && (
-                  <div className="space-y-2">
-                    <Label>Barcode</Label>
-                    <Input value={barcode} onChange={(e) =>{  setBarcode(e.target.value); }} placeholder="Barcode (nếu có)" className="font-mono" />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {showVariantIdentity && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Thông tin phiên bản</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {settings.skuEnabled && (
+                    <div className="space-y-2">
+                      <Label>SKU <span className="text-red-500">*</span></Label>
+                      <Input value={sku} onChange={(e) =>{  setSku(e.target.value); }} placeholder="VD: PROD-RED-M" className="font-mono" required />
+                    </div>
+                  )}
+                  {settings.barcodeEnabled && (
+                    <div className="space-y-2">
+                      <Label>Barcode</Label>
+                      <Input value={barcode} onChange={(e) =>{  setBarcode(e.target.value); }} placeholder="Barcode (nếu có)" className="font-mono" />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle className="text-base">Tùy chọn phiên bản</CardTitle></CardHeader>
@@ -356,7 +359,7 @@ export function VariantForm({
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Giá khuyến mãi (VNĐ)</Label>
+                    <Label>Giá trước giảm</Label>
                     <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
                     {salePrice.trim() !== '' && Number.isFinite(Number.parseInt(salePrice)) && (
                       <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(salePrice))}</p>
