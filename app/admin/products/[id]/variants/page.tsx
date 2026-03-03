@@ -141,6 +141,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
   const [defaultAllowBackorder, setDefaultAllowBackorder] = useState(false);
   const [overwriteExisting, setOverwriteExisting] = useState(false);
   const [rows, setRows] = useState<CombinationRow[]>([]);
+  const [selectedValueIdsByOption, setSelectedValueIdsByOption] = useState<Record<string, Set<Id<'productOptionValues'>>>>({});
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -377,6 +378,16 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
     return map;
   }, [valuesData]);
 
+  useEffect(() => {
+    if (!isGeneratorOpen) {return;}
+    const next: Record<string, Set<Id<'productOptionValues'>>> = {};
+    productOptions.forEach((option) => {
+      const values = optionValuesByOption.get(option._id) ?? [];
+      next[option._id] = new Set(values.map((value) => value._id));
+    });
+    setSelectedValueIdsByOption(next);
+  }, [isGeneratorOpen, productOptions, optionValuesByOption]);
+
   const buildCombinationKey = (optionValues: { optionId: string; valueId: string; customValue?: string }[]) =>
     optionValues
       .slice()
@@ -399,19 +410,41 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
     const combos: { optionId: Id<'productOptions'>; valueId: Id<'productOptionValues'> }[][] = [[]];
     for (const option of productOptions) {
       const values = optionValuesByOption.get(option._id) ?? [];
-      if (values.length === 0) {
+      const selectedSet = selectedValueIdsByOption[option._id] ?? new Set(values.map((value) => value._id));
+      const filteredValues = values.filter((value) => selectedSet.has(value._id));
+      if (filteredValues.length === 0) {
         return [];
       }
       const next: typeof combos = [];
       combos.forEach((combo) => {
-        values.forEach((value) => {
+        filteredValues.forEach((value) => {
           next.push([...combo, { optionId: option._id, valueId: value._id }]);
         });
       });
       combos.splice(0, combos.length, ...next);
     }
     return combos;
-  }, [productOptions, optionValuesByOption]);
+  }, [productOptions, optionValuesByOption, selectedValueIdsByOption]);
+
+  const optionValueSelections = useMemo(() =>
+    productOptions.map((option) => {
+      const values = optionValuesByOption.get(option._id) ?? [];
+      const selectedSet = selectedValueIdsByOption[option._id] ?? new Set(values.map((value) => value._id));
+      const selectedValues = values.filter((value) => selectedSet.has(value._id));
+      return {
+        option,
+        values,
+        selectedSet,
+        selectedValues,
+      };
+    }),
+  [productOptions, optionValuesByOption, selectedValueIdsByOption]);
+
+  const hasEmptySelection = optionValueSelections.some((item) => item.values.length > 0 && item.selectedValues.length === 0);
+  const filterSummary = optionValueSelections
+    .filter((item) => item.values.length > 0)
+    .map((item) => `${item.selectedValues.length} ${item.option.name}`)
+    .join(' × ');
 
   const existingCombinationMap = useMemo(() => {
     const map = new Map<string, VariantItem>();
@@ -476,6 +509,34 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
     }));
   }, [defaultAllowBackorder, defaultPrice, defaultSalePrice, defaultStatus, defaultStock, isGeneratorOpen]);
 
+  const toggleOptionValue = (optionId: Id<'productOptions'>, valueId: Id<'productOptionValues'>) => {
+    setSelectedValueIdsByOption((prev) => {
+      const next = { ...prev };
+      const current = new Set(next[optionId] ?? []);
+      if (current.has(valueId)) {
+        current.delete(valueId);
+      } else {
+        current.add(valueId);
+      }
+      next[optionId] = current;
+      return next;
+    });
+  };
+
+  const selectAllOptionValues = (optionId: Id<'productOptions'>, values: OptionValue[]) => {
+    setSelectedValueIdsByOption((prev) => ({
+      ...prev,
+      [optionId]: new Set(values.map((value) => value._id)),
+    }));
+  };
+
+  const clearOptionValues = (optionId: Id<'productOptions'>) => {
+    setSelectedValueIdsByOption((prev) => ({
+      ...prev,
+      [optionId]: new Set<Id<'productOptionValues'>>(),
+    }));
+  };
+
   const updateRow = (index: number, updater: (row: CombinationRow) => CombinationRow) => {
     setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? updater(row) : row)));
   };
@@ -523,7 +584,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       return;
     }
     if (combinations.length === 0) {
-      toast.error('Vui lòng đảm bảo các tùy chọn có giá trị hoạt động');
+      toast.error('Vui lòng chọn ít nhất một giá trị cho mỗi tùy chọn');
       return;
     }
     const selectedRows = rows.filter((row) => row.selected && (!row.isExisting || overwriteExisting));
@@ -796,6 +857,62 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                   {hasInvalidPrices && (
                     <p className="text-xs text-red-500">Giá trước giảm không được lớn hơn giá bán.</p>
                   )}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Chọn giá trị để sinh tổ hợp</p>
+                    {filterSummary && (
+                      <p className="text-xs text-slate-500">Đang lọc: {filterSummary}</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Đổi bộ lọc sẽ làm mới danh sách tổ hợp.</p>
+                </div>
+                {hasEmptySelection && (
+                  <p className="text-xs text-red-500">Vui lòng chọn ít nhất 1 giá trị cho mỗi tùy chọn.</p>
+                )}
+                <div className="space-y-3">
+                  {optionValueSelections.map((item) => (
+                    <div key={item.option._id} className="rounded-md border border-slate-200 dark:border-slate-700 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{item.option.name}</span>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                          <span>Đã chọn {item.selectedValues.length}/{item.values.length}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => selectAllOptionValues(item.option._id, item.values)}
+                          >
+                            Chọn tất cả
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => clearOptionValues(item.option._id)}
+                          >
+                            Bỏ chọn
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-3">
+                        {item.values.map((value) => (
+                          <label key={value._id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 rounded border-slate-300"
+                              checked={item.selectedSet.has(value._id)}
+                              onChange={() => toggleOptionValue(item.option._id, value._id)}
+                            />
+                            <span>{value.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
