@@ -1,9 +1,9 @@
-import type { MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { productStatus } from "./lib/validators";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 
 const productDoc = v.object({
   _creationTime: v.number(),
@@ -52,6 +52,116 @@ const paginatedProducts = v.object({
   pageStatus: v.optional(v.union(v.literal("SplitRecommended"), v.literal("SplitRequired"), v.null())),
   splitCursor: v.optional(v.union(v.string(), v.null())),
 });
+
+type VariantPricingSetting = "product" | "variant";
+type VariantStockSetting = "product" | "variant";
+type VariantCtx = MutationCtx | QueryCtx;
+
+type VariantSettings = {
+  variantEnabled: boolean;
+  variantPricing: VariantPricingSetting;
+  variantStock: VariantStockSetting;
+};
+
+async function getVariantSettings(ctx: VariantCtx): Promise<VariantSettings> {
+  const [variantEnabled, variantPricing, variantStock] = await Promise.all([
+    ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "variantEnabled")
+      )
+      .unique(),
+    ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "variantPricing")
+      )
+      .unique(),
+    ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "variantStock")
+      )
+      .unique(),
+  ]);
+
+  return {
+    variantEnabled: Boolean(variantEnabled?.value),
+    variantPricing: (variantPricing?.value as VariantPricingSetting) ?? "variant",
+    variantStock: (variantStock?.value as VariantStockSetting) ?? "variant",
+  };
+}
+
+async function getVariantAggregates(
+  ctx: VariantCtx,
+  products: Doc<"products">[]
+) {
+  const productsWithVariants = products.filter((product) => product.hasVariants);
+  const aggregates = await Promise.all(
+    productsWithVariants.map(async (product) => {
+      const variants = await ctx.db
+        .query("productVariants")
+        .withIndex("by_product_status", (q) => q.eq("productId", product._id).eq("status", "Active"))
+        .collect();
+
+      let totalStock = 0;
+      let minPrice: number | null = null;
+
+      variants.forEach((variant) => {
+        const stockValue = variant.stock ?? 0;
+        totalStock += stockValue;
+
+        if (stockValue <= 0) {
+          return;
+        }
+
+        const effectivePrice = variant.salePrice ?? variant.price;
+        if (typeof effectivePrice !== "number") {
+          return;
+        }
+        minPrice = minPrice === null ? effectivePrice : Math.min(minPrice, effectivePrice);
+      });
+
+      return [product._id, { price: minPrice, stock: totalStock }] as const;
+    })
+  );
+
+  return new Map<Id<"products">, { price: number | null; stock: number }>(aggregates);
+}
+
+async function resolveVariantOverrides(
+  ctx: VariantCtx,
+  products: Doc<"products">[],
+  settings: VariantSettings
+) {
+  if (!settings.variantEnabled) {
+    return products;
+  }
+
+  if (settings.variantPricing !== "variant" && settings.variantStock !== "variant") {
+    return products;
+  }
+
+  const aggregates = await getVariantAggregates(ctx, products);
+  return products.map((product) => {
+    if (!product.hasVariants) {
+      return product;
+    }
+    const aggregate = aggregates.get(product._id);
+    if (!aggregate) {
+      return product;
+    }
+    const nextProduct = { ...product };
+    if (settings.variantStock === "variant") {
+      nextProduct.stock = aggregate.stock;
+    }
+    if (settings.variantPricing === "variant") {
+      nextProduct.price = aggregate.price ?? product.price;
+      nextProduct.salePrice = undefined;
+    }
+    return nextProduct;
+  });
+}
 
 // ============================================================
 // QUERIES
@@ -314,10 +424,18 @@ export const getBySku = query({
 
 export const getBySlug = query({
   args: { slug: v.string() },
-  handler: async (ctx, args) => ctx.db
+  handler: async (ctx, args) => {
+    const product = await ctx.db
       .query("products")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .unique(),
+      .unique();
+    if (!product) {
+      return null;
+    }
+    const settings = await getVariantSettings(ctx);
+    const [resolved] = await resolveVariantOverrides(ctx, [product], settings);
+    return resolved ?? product;
+  },
   returns: v.union(productDoc, v.null()),
 });
 
@@ -390,30 +508,33 @@ export const listPublishedPaginated = query({
   },
   handler: async (ctx, args) => {
     const sortBy = args.sortBy ?? "newest";
+    let result;
 
     if (args.categoryId) {
-      return ctx.db
+      result = await ctx.db
         .query("products")
         .withIndex("by_category_status", (q) =>
           q.eq("categoryId", args.categoryId!).eq("status", "Active")
         )
         .order(sortBy === "oldest" ? "asc" : "desc")
         .paginate(args.paginationOpts);
-    }
-
-    if (sortBy === "popular") {
-      return ctx.db
+    } else if (sortBy === "popular") {
+      result = await ctx.db
         .query("products")
         .withIndex("by_status_sales", (q) => q.eq("status", "Active"))
         .order("desc")
         .paginate(args.paginationOpts);
+    } else {
+      result = await ctx.db
+        .query("products")
+        .withIndex("by_status_order", (q) => q.eq("status", "Active"))
+        .order(sortBy === "oldest" ? "asc" : "desc")
+        .paginate(args.paginationOpts);
     }
 
-    return ctx.db
-      .query("products")
-      .withIndex("by_status_order", (q) => q.eq("status", "Active"))
-      .order(sortBy === "oldest" ? "asc" : "desc")
-      .paginate(args.paginationOpts);
+    const settings = await getVariantSettings(ctx);
+    const page = await resolveVariantOverrides(ctx, result.page, settings);
+    return { ...result, page };
   },
   returns: paginatedProducts,
 });
@@ -480,6 +601,9 @@ export const listPublishedWithOffset = query({
         return name.includes(searchLower) || sku.includes(searchLower);
       });
     }
+
+    const settings = await getVariantSettings(ctx);
+    products = await resolveVariantOverrides(ctx, products, settings);
 
     switch (sortBy) {
       case "newest": {
@@ -568,6 +692,9 @@ export const searchPublished = query({
       });
     }
 
+    const settings = await getVariantSettings(ctx);
+    products = await resolveVariantOverrides(ctx, products, settings);
+
     // Sort
     const sortBy = args.sortBy ?? "newest";
     switch (sortBy) {
@@ -631,11 +758,13 @@ export const listFeatured = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 8, 20);
-    return  ctx.db
+    const products = await ctx.db
       .query("products")
       .withIndex("by_status_sales", (q) => q.eq("status", "Active"))
       .order("desc")
       .take(limit);
+    const settings = await getVariantSettings(ctx);
+    return resolveVariantOverrides(ctx, products, settings);
   },
   returns: v.array(productDoc),
 });
@@ -645,11 +774,13 @@ export const listRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 8, 20);
-    return  ctx.db
+    const products = await ctx.db
       .query("products")
       .withIndex("by_status_order", (q) => q.eq("status", "Active"))
       .order("desc")
       .take(limit);
+    const settings = await getVariantSettings(ctx);
+    return resolveVariantOverrides(ctx, products, settings);
   },
   returns: v.array(productDoc),
 });
@@ -659,11 +790,13 @@ export const listPopular = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 8, 20);
-    return  ctx.db
+    const products = await ctx.db
       .query("products")
       .withIndex("by_status_sales", (q) => q.eq("status", "Active"))
       .order("desc")
       .take(limit);
+    const settings = await getVariantSettings(ctx);
+    return resolveVariantOverrides(ctx, products, settings);
   },
   returns: v.array(productDoc),
 });
