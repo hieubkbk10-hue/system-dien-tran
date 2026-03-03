@@ -102,6 +102,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
   const productId = id as Id<'products'>;
 
   const productData = useQuery(api.products.getById, { id: productId });
+  const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const optionsData = useQuery(api.productOptions.listActive);
   const valuesData = useQuery(api.productOptionValues.listAll, { limit: 500 });
@@ -109,7 +110,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
 
   const removeVariant = useMutation(api.productVariants.remove);
   const reorderVariants = useMutation(api.productVariants.reorder);
-  const createVariant = useMutation(api.productVariants.create);
+  const bulkUpsertVariants = useMutation(api.productVariants.bulkUpsertFromCombinations);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'Active' | 'Inactive'>('all');
@@ -138,6 +139,8 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
   const [defaultStock, setDefaultStock] = useState('');
   const [defaultStatus, setDefaultStatus] = useState<'Active' | 'Inactive'>('Active');
   const [defaultAllowBackorder, setDefaultAllowBackorder] = useState(false);
+  const [overwriteExisting, setOverwriteExisting] = useState(false);
+  const [rows, setRows] = useState<CombinationRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -151,6 +154,14 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       window.localStorage.setItem(`admin_product_variants_visible_columns_${productId}`, JSON.stringify(visibleColumns));
     }
   }, [visibleColumns, productId]);
+
+  const enabledFields = useMemo(() => {
+    const fields = new Set<string>();
+    fieldsData?.forEach(f => fields.add(f.fieldKey));
+    return fields;
+  }, [fieldsData]);
+
+  const skuEnabled = enabledFields.has('sku');
 
   const variantEnabled = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'variantEnabled');
@@ -193,34 +204,70 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       .sort((a, b) => a.order - b.order);
   }, [productData?.optionIds, optionsData]);
 
+  type VariantItem = NonNullable<typeof variantsData>[number];
+
+  const buildOptionSummary = (variant: VariantItem) => {
+    const summary = variant.optionValues
+      .slice()
+      .sort((a, b) => (optionsMap[a.optionId]?.order ?? 0) - (optionsMap[b.optionId]?.order ?? 0))
+      .map((item) => {
+        const optionName = optionsMap[item.optionId]?.name;
+        const valueLabel = item.customValue?.trim() || valuesMap[item.valueId]?.label || 'N/A';
+        return optionName ? `${optionName}: ${valueLabel}` : valueLabel;
+      })
+      .join(' / ');
+    return summary || '—';
+  };
+
   const filteredVariants = useMemo(() => {
     let data = variantsData ? [...variantsData] : [];
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase().trim();
-      data = data.filter(variant => variant.sku.toLowerCase().includes(searchLower));
+      data = data.filter((variant) => {
+        if (skuEnabled) {
+          return variant.sku.toLowerCase().includes(searchLower);
+        }
+        const summary = buildOptionSummary(variant).toLowerCase();
+        return summary.includes(searchLower);
+      });
     }
     if (filterStatus !== 'all') {
       data = data.filter(variant => variant.status === filterStatus);
     }
     return data.sort((a, b) => a.order - b.order);
-  }, [variantsData, searchTerm, filterStatus]);
+  }, [variantsData, searchTerm, filterStatus, skuEnabled, optionsMap, valuesMap]);
 
-  const columns = useMemo(() => [
-    { key: 'select', label: 'Chọn' },
-    { key: 'drag', label: '' },
-    { key: 'sku', label: 'SKU', required: true },
-    { key: 'options', label: 'Tùy chọn' },
-    { key: 'price', label: 'Giá bán' },
-    { key: 'stock', label: 'Tồn kho' },
-    { key: 'status', label: 'Trạng thái' },
-    { key: 'actions', label: 'Hành động', required: true },
-  ], []);
+  type Column = { key: string; label: string; required?: boolean };
+
+  const columns = useMemo(() => {
+    const base: Column[] = [
+      { key: 'select', label: 'Chọn' },
+      { key: 'drag', label: '' },
+    ];
+    if (skuEnabled) {
+      base.push({ key: 'sku', label: 'SKU', required: true });
+    }
+    base.push(
+      { key: 'options', label: 'Tùy chọn' },
+      { key: 'price', label: 'Giá bán' },
+      { key: 'stock', label: 'Tồn kho' },
+      { key: 'status', label: 'Trạng thái' },
+      { key: 'actions', label: 'Hành động', required: true }
+    );
+    return base;
+  }, [skuEnabled]);
 
   useEffect(() => {
     if (columns.length > 0 && visibleColumns.length === 0) {
       setVisibleColumns(columns.map(c => c.key));
     }
   }, [columns, visibleColumns.length]);
+
+  useEffect(() => {
+    if (!skuEnabled && visibleColumns.includes('sku')) {
+      setVisibleColumns(prev => prev.filter(key => key !== 'sku'));
+    }
+  }, [skuEnabled, visibleColumns]);
 
   const sortedData = useSortableData(filteredVariants, sortConfig);
   const isReorderEnabled = !searchTerm.trim() && filterStatus === 'all' && (sortConfig.key === 'order' || sortConfig.key === null);
@@ -290,20 +337,28 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
 
   const formatPrice = (value: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(value);
 
-  const buildOptionSummary = (variant: typeof sortedData[number]) => {
-    const summary = variant.optionValues
-      .slice()
-      .sort((a, b) => (optionsMap[a.optionId]?.order ?? 0) - (optionsMap[b.optionId]?.order ?? 0))
-      .map((item) => {
-        const optionName = optionsMap[item.optionId]?.name;
-        const valueLabel = item.customValue?.trim() || valuesMap[item.valueId]?.label || 'N/A';
-        return optionName ? `${optionName}: ${valueLabel}` : valueLabel;
-      })
-      .join(' / ');
-    return summary || '—';
+  type OptionValue = NonNullable<typeof valuesData>[number];
+  type CombinationRow = {
+    allowBackorder: boolean;
+    custom: {
+      allowBackorder: boolean;
+      price: boolean;
+      salePrice: boolean;
+      status: boolean;
+      stock: boolean;
+    };
+    existingVariant?: VariantItem;
+    isExisting: boolean;
+    key: string;
+    label: string;
+    optionValues: { optionId: Id<'productOptions'>; valueId: Id<'productOptionValues'> }[];
+    price: string;
+    salePrice: string;
+    selected: boolean;
+    status: 'Active' | 'Inactive';
+    stock: string;
   };
 
-  type OptionValue = NonNullable<typeof valuesData>[number];
   const optionValuesByOption = useMemo(() => {
     const map = new Map<string, OptionValue[]>();
     valuesData?.forEach((value) => {
@@ -315,12 +370,25 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
     return map;
   }, [valuesData]);
 
-  const combinationCount = useMemo(() => {
-    if (productOptions.length === 0) {return 0;}
-    return productOptions.reduce((acc, option) => acc * (optionValuesByOption.get(option._id)?.length ?? 0), 1);
-  }, [productOptions, optionValuesByOption]);
+  const buildCombinationKey = (optionValues: { optionId: string; valueId: string; customValue?: string }[]) =>
+    optionValues
+      .slice()
+      .sort((a, b) => a.optionId.localeCompare(b.optionId))
+      .map((item) => `${item.optionId}:${item.valueId}:${item.customValue ?? ''}`)
+      .join('|');
 
-  const buildCombinations = () => {
+  const buildCombinationLabel = (optionValues: { optionId: Id<'productOptions'>; valueId: Id<'productOptionValues'> }[]) =>
+    optionValues
+      .slice()
+      .sort((a, b) => (optionsMap[a.optionId]?.order ?? 0) - (optionsMap[b.optionId]?.order ?? 0))
+      .map((item) => {
+        const optionName = optionsMap[item.optionId]?.name;
+        const valueLabel = valuesMap[item.valueId]?.label ?? 'N/A';
+        return optionName ? `${optionName}: ${valueLabel}` : valueLabel;
+      })
+      .join(' / ');
+
+  const combinations = useMemo(() => {
     const combos: { optionId: Id<'productOptions'>; valueId: Id<'productOptionValues'> }[][] = [[]];
     for (const option of productOptions) {
       const values = optionValuesByOption.get(option._id) ?? [];
@@ -336,10 +404,110 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       combos.splice(0, combos.length, ...next);
     }
     return combos;
+  }, [productOptions, optionValuesByOption]);
+
+  const existingCombinationMap = useMemo(() => {
+    const map = new Map<string, VariantItem>();
+    (variantsData ?? []).forEach((variant) => {
+      map.set(buildCombinationKey(variant.optionValues), variant);
+    });
+    return map;
+  }, [variantsData]);
+
+  useEffect(() => {
+    if (!isGeneratorOpen) {return;}
+    const nextRows = combinations.map((combo) => {
+      const key = buildCombinationKey(combo);
+      const existing = existingCombinationMap.get(key);
+      const isExisting = Boolean(existing);
+      return {
+        allowBackorder: isExisting ? Boolean(existing?.allowBackorder) : defaultAllowBackorder,
+        custom: {
+          allowBackorder: isExisting,
+          price: isExisting,
+          salePrice: isExisting,
+          status: isExisting,
+          stock: isExisting,
+        },
+        existingVariant: existing,
+        isExisting,
+        key,
+        label: buildCombinationLabel(combo),
+        optionValues: combo,
+        price: isExisting && existing?.price != null ? String(existing.price) : defaultPrice,
+        salePrice: isExisting && existing?.salePrice != null ? String(existing.salePrice) : defaultSalePrice,
+        selected: !isExisting,
+        status: isExisting ? existing!.status : defaultStatus,
+        stock: isExisting && existing?.stock != null ? String(existing.stock) : defaultStock,
+      } satisfies CombinationRow;
+    });
+    setRows(nextRows);
+  }, [isGeneratorOpen, combinations, existingCombinationMap, defaultAllowBackorder, defaultPrice, defaultSalePrice, defaultStatus, defaultStock]);
+
+  useEffect(() => {
+    if (!isGeneratorOpen) {return;}
+    setRows((prev) => prev.map((row) => {
+      if (row.isExisting) {
+        return overwriteExisting ? { ...row, selected: true } : { ...row, selected: false };
+      }
+      return row;
+    }));
+  }, [overwriteExisting, isGeneratorOpen]);
+
+  useEffect(() => {
+    if (!isGeneratorOpen) {return;}
+    setRows((prev) => prev.map((row) => {
+      if (row.isExisting) {return row;}
+      return {
+        ...row,
+        allowBackorder: row.custom.allowBackorder ? row.allowBackorder : defaultAllowBackorder,
+        price: row.custom.price ? row.price : defaultPrice,
+        salePrice: row.custom.salePrice ? row.salePrice : defaultSalePrice,
+        status: row.custom.status ? row.status : defaultStatus,
+        stock: row.custom.stock ? row.stock : defaultStock,
+      };
+    }));
+  }, [defaultAllowBackorder, defaultPrice, defaultSalePrice, defaultStatus, defaultStock, isGeneratorOpen]);
+
+  const updateRow = (index: number, updater: (row: CombinationRow) => CombinationRow) => {
+    setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? updater(row) : row)));
   };
 
+  const handleSelectAll = () => {
+    setRows((prev) => prev.map((row) => {
+      if (row.isExisting && !overwriteExisting) {
+        return { ...row, selected: false };
+      }
+      return { ...row, selected: true };
+    }));
+  };
+
+  const handleClearAll = () => {
+    setRows((prev) => prev.map((row) => ({ ...row, selected: false })));
+  };
+
+  const handleSelectNewOnly = () => {
+    setRows((prev) => prev.map((row) => ({ ...row, selected: !row.isExisting })));
+  };
+
+  const hasInvalidPrices = useMemo(() => (
+    rows.some((row) => {
+      if (!row.selected) {return false;}
+      if (!row.price || !row.salePrice) {return false;}
+      return Number(row.salePrice) > Number(row.price);
+    })
+  ), [rows]);
+
+  const selectionSummary = useMemo(() => {
+    const total = rows.length;
+    const selected = rows.filter((row) => row.selected).length;
+    const created = rows.filter((row) => row.selected && !row.isExisting).length;
+    const updated = rows.filter((row) => row.selected && row.isExisting).length;
+    return { total, selected, created, skipped: total - selected, updated };
+  }, [rows]);
+
   const handleGenerate = async () => {
-    if (!skuPrefix.trim()) {
+    if (skuEnabled && !skuPrefix.trim()) {
       toast.error('Vui lòng nhập SKU prefix');
       return;
     }
@@ -347,62 +515,44 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       toast.error('Sản phẩm chưa có tùy chọn nào');
       return;
     }
-    const combinations = buildCombinations();
     if (combinations.length === 0) {
       toast.error('Vui lòng đảm bảo các tùy chọn có giá trị hoạt động');
       return;
     }
-
-    const existingKeys = new Set(
-      (variantsData ?? []).map((variant) => variant.optionValues
-        .slice()
-        .sort((a, b) => a.optionId.localeCompare(b.optionId))
-        .map((item) => `${item.optionId}:${item.valueId}:${item.customValue ?? ''}`)
-        .join('|'))
-    );
-
-    const toCreate = combinations.filter((combo) => {
-      const key = combo
-        .slice()
-        .sort((a, b) => a.optionId.localeCompare(b.optionId))
-        .map((item) => `${item.optionId}:${item.valueId}:`)
-        .join('|');
-      return !existingKeys.has(key);
-    });
-
-    if (toCreate.length === 0) {
-      toast.info('Tất cả combinations đã tồn tại');
+    const selectedRows = rows.filter((row) => row.selected && (!row.isExisting || overwriteExisting));
+    if (selectedRows.length === 0) {
+      toast.info('Chưa chọn phiên bản cần tạo');
+      return;
+    }
+    if (hasInvalidPrices) {
+      toast.error('Giá trước giảm không được lớn hơn giá bán');
       return;
     }
 
     setIsGenerating(true);
     try {
-      const existingSkus = new Set((variantsData ?? []).map(variant => variant.sku));
-      let counter = 1;
-      const getNextSku = () => {
-        let candidate = `${skuPrefix.trim()}-${counter}`;
-        while (existingSkus.has(candidate)) {
-          counter += 1;
-          candidate = `${skuPrefix.trim()}-${counter}`;
-        }
-        existingSkus.add(candidate);
-        counter += 1;
-        return candidate;
-      };
+      const result = await bulkUpsertVariants({
+        overwriteExisting,
+        productId,
+        rows: rows.map((row) => ({
+          allowBackorder: variantSettings.variantStock === 'variant' ? row.allowBackorder : undefined,
+          optionValues: row.optionValues,
+          price: variantSettings.variantPricing === 'variant' && row.price.trim() !== '' ? Number.parseInt(row.price) : undefined,
+          salePrice: variantSettings.variantPricing === 'variant' && row.salePrice.trim() !== '' ? Number.parseInt(row.salePrice) : undefined,
+          selected: row.selected && (!row.isExisting || overwriteExisting),
+          status: row.status,
+          stock: variantSettings.variantStock === 'variant' && row.stock.trim() !== '' ? Number.parseInt(row.stock) : undefined,
+        })),
+        skuEnabled,
+        skuPrefix: skuEnabled ? skuPrefix.trim() : undefined,
+      });
 
-      for (const combo of toCreate) {
-        await createVariant({
-          allowBackorder: variantSettings.variantStock === 'variant' ? defaultAllowBackorder : undefined,
-          optionValues: combo,
-          price: variantSettings.variantPricing === 'variant' && defaultPrice.trim() !== '' ? Number.parseInt(defaultPrice) : undefined,
-          productId,
-          salePrice: variantSettings.variantPricing === 'variant' && defaultSalePrice.trim() !== '' ? Number.parseInt(defaultSalePrice) : undefined,
-          sku: getNextSku(),
-          status: defaultStatus,
-          stock: variantSettings.variantStock === 'variant' && defaultStock.trim() !== '' ? Number.parseInt(defaultStock) : undefined,
-        });
+      const baseMessage = `Tạo mới ${result.created}, ghi đè ${result.updated}, bỏ qua ${result.skipped}`;
+      if (result.errors.length > 0) {
+        toast.error(`${baseMessage}. Lỗi ${result.errors.length} dòng.`);
+      } else {
+        toast.success(baseMessage);
       }
-      toast.success(`Đã tạo ${toCreate.length} phiên bản`);
       setIsGeneratorOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể tạo phiên bản');
@@ -411,7 +561,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
     }
   };
 
-  if (productData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined || variantsData === undefined) {
+  if (productData === undefined || fieldsData === undefined || settingsData === undefined || optionsData === undefined || valuesData === undefined || variantsData === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
@@ -468,7 +618,12 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
           <div className="flex flex-wrap gap-4 flex-1">
             <div className="relative max-w-xs flex-1 min-w-[220px]">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <Input placeholder="Tìm theo SKU..." className="pl-9" value={searchTerm} onChange={(e) =>{  setSearchTerm(e.target.value); }} />
+              <Input
+                placeholder={skuEnabled ? "Tìm theo SKU..." : "Tìm theo tùy chọn..."}
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) =>{  setSearchTerm(e.target.value); }}
+              />
             </div>
             <select
               value={filterStatus}
@@ -548,59 +703,222 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       {isGeneratorOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() =>{  if (!isGenerating) {setIsGeneratorOpen(false);} }} />
-          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-xl mx-4 p-6 space-y-4">
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-6xl mx-4 p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Tạo nhanh phiên bản</h3>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Tạo nhanh phiên bản</h3>
+                <p className="text-xs text-slate-500">Tổng tổ hợp: {selectionSummary.total} · Đã chọn: {selectionSummary.selected} · Mới: {selectionSummary.created} · Ghi đè: {selectionSummary.updated} · Bỏ qua: {selectionSummary.skipped}</p>
+              </div>
               <Button variant="ghost" size="icon" onClick={() =>{  if (!isGenerating) {setIsGeneratorOpen(false);} }}>×</Button>
             </div>
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>SKU prefix <span className="text-red-500">*</span></Label>
-                <Input value={skuPrefix} onChange={(e) =>{  setSkuPrefix(e.target.value); }} placeholder="VD: PROD-RED" />
-              </div>
-              {variantSettings.variantPricing === 'variant' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 space-y-4">
+                {skuEnabled && (
                   <div className="space-y-2">
-                    <Label>Giá mặc định</Label>
-                    <Input type="number" value={defaultPrice} onChange={(e) =>{  setDefaultPrice(e.target.value); }} placeholder="0" min="0" />
+                    <Label>SKU prefix</Label>
+                    <Input value={skuPrefix} onChange={(e) =>{  setSkuPrefix(e.target.value); }} placeholder="VD: PROD-RED" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Giá khuyến mãi</Label>
-                    <Input type="number" value={defaultSalePrice} onChange={(e) =>{  setDefaultSalePrice(e.target.value); }} placeholder="0" min="0" />
+                )}
+                {variantSettings.variantPricing === 'variant' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Giá bán</Label>
+                      <Input type="number" value={defaultPrice} onChange={(e) =>{  setDefaultPrice(e.target.value); }} placeholder="0" min="0" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Giá trước giảm</Label>
+                      <Input type="number" value={defaultSalePrice} onChange={(e) =>{  setDefaultSalePrice(e.target.value); }} placeholder="0" min="0" />
+                    </div>
                   </div>
+                )}
+                {variantSettings.variantStock === 'variant' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Tồn kho</Label>
+                      <Input type="number" value={defaultStock} onChange={(e) =>{  setDefaultStock(e.target.value); }} placeholder="0" min="0" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-6">
+                      <input
+                        type="checkbox"
+                        id="bulk-allow-backorder"
+                        checked={defaultAllowBackorder}
+                        onChange={(e) =>{  setDefaultAllowBackorder(e.target.checked); }}
+                        className="w-4 h-4 rounded border-slate-300"
+                      />
+                      <Label htmlFor="bulk-allow-backorder" className="cursor-pointer">Cho phép đặt hàng khi hết</Label>
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>Trạng thái mặc định</Label>
+                  <select
+                    value={defaultStatus}
+                    onChange={(e) =>{  setDefaultStatus(e.target.value as 'Active' | 'Inactive'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="Active">Hoạt động</option>
+                    <option value="Inactive">Ẩn</option>
+                  </select>
                 </div>
-              )}
-              {variantSettings.variantStock === 'variant' && (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label>Tồn kho mặc định</Label>
-                    <Input type="number" value={defaultStock} onChange={(e) =>{  setDefaultStock(e.target.value); }} placeholder="0" min="0" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="bulk-allow-backorder"
-                      checked={defaultAllowBackorder}
-                      onChange={(e) =>{  setDefaultAllowBackorder(e.target.checked); }}
-                      className="w-4 h-4 rounded border-slate-300"
-                    />
-                    <Label htmlFor="bulk-allow-backorder" className="cursor-pointer">Cho phép đặt hàng khi hết</Label>
-                  </div>
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label>Trạng thái mặc định</Label>
-                <select
-                  value={defaultStatus}
-                  onChange={(e) =>{  setDefaultStatus(e.target.value as 'Active' | 'Inactive'); }}
-                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                >
-                  <option value="Active">Hoạt động</option>
-                  <option value="Inactive">Ẩn</option>
-                </select>
               </div>
-              <p className="text-xs text-slate-500">Tổng combinations dự kiến: {combinationCount}</p>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="bulk-overwrite"
+                    checked={overwriteExisting}
+                    onChange={(e) =>{  setOverwriteExisting(e.target.checked); }}
+                    className="w-4 h-4 rounded border-slate-300"
+                  />
+                  <Label htmlFor="bulk-overwrite" className="cursor-pointer">Ghi đè phiên bản đã có</Label>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={handleSelectAll}>Chọn tất cả</Button>
+                  <Button variant="outline" size="sm" onClick={handleClearAll}>Bỏ chọn tất cả</Button>
+                  <Button variant="outline" size="sm" onClick={handleSelectNewOnly}>Chỉ chọn phiên bản mới</Button>
+                </div>
+                {hasInvalidPrices && (
+                  <p className="text-xs text-red-500">Giá trước giảm không được lớn hơn giá bán.</p>
+                )}
+              </div>
             </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="max-h-[420px] overflow-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-white dark:bg-slate-900 z-10">
+                    <TableRow>
+                      <TableHead className="w-[40px]" />
+                      <TableHead className="min-w-[220px]">Tổ hợp</TableHead>
+                      <TableHead className="min-w-[120px]">Hiện có</TableHead>
+                      {variantSettings.variantPricing === 'variant' && (
+                        <>
+                          <TableHead className="min-w-[140px]">Giá bán</TableHead>
+                          <TableHead className="min-w-[140px]">Giá trước giảm</TableHead>
+                        </>
+                      )}
+                      {variantSettings.variantStock === 'variant' && (
+                        <>
+                          <TableHead className="min-w-[120px]">Tồn kho</TableHead>
+                          <TableHead className="min-w-[160px]">Backorder</TableHead>
+                        </>
+                      )}
+                      <TableHead className="min-w-[120px]">Trạng thái</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map((row, index) => {
+                      const isDisabled = row.isExisting && !overwriteExisting;
+                      return (
+                        <TableRow key={row.key} className={isDisabled ? 'opacity-60' : ''}>
+                          <TableCell>
+                            <SelectCheckbox
+                              checked={row.selected}
+                              onChange={() => updateRow(index, (current) => ({ ...current, selected: !current.selected }))}
+                              disabled={isDisabled}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{row.label}</p>
+                              {row.isExisting ? (
+                                <Badge variant="secondary">Đã có{overwriteExisting ? ' (sẽ ghi đè)' : ''}</Badge>
+                              ) : (
+                                <Badge variant="default">Mới</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-slate-500">{row.isExisting ? 'Đã có dữ liệu' : 'Chưa tạo'}</span>
+                          </TableCell>
+                          {variantSettings.variantPricing === 'variant' && (
+                            <>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={row.price}
+                                  min="0"
+                                  disabled={isDisabled}
+                                  onChange={(e) => updateRow(index, (current) => ({
+                                    ...current,
+                                    price: e.target.value,
+                                    custom: { ...current.custom, price: true },
+                                  }))}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={row.salePrice}
+                                  min="0"
+                                  disabled={isDisabled}
+                                  onChange={(e) => updateRow(index, (current) => ({
+                                    ...current,
+                                    salePrice: e.target.value,
+                                    custom: { ...current.custom, salePrice: true },
+                                  }))}
+                                />
+                              </TableCell>
+                            </>
+                          )}
+                          {variantSettings.variantStock === 'variant' && (
+                            <>
+                              <TableCell>
+                                <Input
+                                  type="number"
+                                  value={row.stock}
+                                  min="0"
+                                  disabled={isDisabled}
+                                  onChange={(e) => updateRow(index, (current) => ({
+                                    ...current,
+                                    stock: e.target.value,
+                                    custom: { ...current.custom, stock: true },
+                                  }))}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={row.allowBackorder}
+                                    disabled={isDisabled}
+                                    onChange={(e) => updateRow(index, (current) => ({
+                                      ...current,
+                                      allowBackorder: e.target.checked,
+                                      custom: { ...current.custom, allowBackorder: true },
+                                    }))}
+                                    className="w-4 h-4 rounded border-slate-300"
+                                  />
+                                  <span className="text-xs text-slate-600">Cho phép</span>
+                                </div>
+                              </TableCell>
+                            </>
+                          )}
+                          <TableCell>
+                            <select
+                              value={row.status}
+                              disabled={isDisabled}
+                              onChange={(e) => updateRow(index, (current) => ({
+                                ...current,
+                                status: e.target.value as 'Active' | 'Inactive',
+                                custom: { ...current.custom, status: true },
+                              }))}
+                              className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm"
+                            >
+                              <option value="Active">Hoạt động</option>
+                              <option value="Inactive">Ẩn</option>
+                            </select>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() =>{  if (!isGenerating) {setIsGeneratorOpen(false);} }}>Hủy</Button>
               <Button variant="accent" onClick={handleGenerate} disabled={isGenerating}>

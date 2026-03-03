@@ -27,6 +27,24 @@ const variantDoc = v.object({
   stock: v.optional(v.number()),
 });
 
+const bulkRowDoc = v.object({
+  allowBackorder: v.optional(v.boolean()),
+  optionValues: v.array(optionValueDoc),
+  price: v.optional(v.number()),
+  salePrice: v.optional(v.number()),
+  selected: v.boolean(),
+  sku: v.optional(v.string()),
+  status: v.optional(variantStatus),
+  stock: v.optional(v.number()),
+});
+
+const buildVariantKey = (optionValues: { optionId: string; valueId: string; customValue?: string }[]) =>
+  optionValues
+    .slice()
+    .sort((a, b) => a.optionId.localeCompare(b.optionId))
+    .map((item) => `${item.optionId}:${item.valueId}:${item.customValue ?? ''}`)
+    .join('|');
+
 export const listAll = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -316,4 +334,154 @@ export const reorder = mutation({
     return null;
   },
   returns: v.null(),
+});
+
+export const bulkUpsertFromCombinations = mutation({
+  args: {
+    overwriteExisting: v.boolean(),
+    productId: v.id("products"),
+    rows: v.array(bulkRowDoc),
+    skuEnabled: v.boolean(),
+    skuPrefix: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const product = await ctx.db.get(args.productId);
+    if (!product) {throw new Error("Product không tồn tại");}
+
+    const rows = args.rows.filter((row) => row.selected);
+    if (rows.length === 0) {
+      return { created: 0, errors: [], skipped: args.rows.length, updated: 0 };
+    }
+
+    const existingVariants = await ctx.db
+      .query("productVariants")
+      .withIndex("by_product", (q) => q.eq("productId", args.productId))
+      .collect();
+
+    const existingByKey = new Map<string, Doc<"productVariants">>();
+    existingVariants.forEach((variant) => {
+      existingByKey.set(buildVariantKey(variant.optionValues), variant);
+    });
+
+    const existingSkus = new Set(existingVariants.map((variant) => variant.sku));
+
+    const valueIds = new Set(rows.flatMap((row) => row.optionValues.map((item) => item.valueId)));
+    const valueDocs = await Promise.all(Array.from(valueIds).map((id) => ctx.db.get(id)));
+    const valueMap = new Map<string, Doc<"productOptionValues">>();
+    valueDocs.forEach((doc) => {
+      if (doc) {valueMap.set(doc._id, doc);}
+    });
+
+    let counter = 1;
+    const nextSkuWithPrefix = (prefix: string) => {
+      let candidate = `${prefix}-${counter}`;
+      while (existingSkus.has(candidate)) {
+        counter += 1;
+        candidate = `${prefix}-${counter}`;
+      }
+      existingSkus.add(candidate);
+      counter += 1;
+      return candidate;
+    };
+
+    const nextFallbackSku = () => {
+      const stamp = Date.now();
+      let candidate = `VAR-${stamp}-${counter}`;
+      while (existingSkus.has(candidate)) {
+        counter += 1;
+        candidate = `VAR-${stamp}-${counter}`;
+      }
+      existingSkus.add(candidate);
+      counter += 1;
+      return candidate;
+    };
+
+    const lastVariant = await ctx.db
+      .query("productVariants")
+      .withIndex("by_product_order", (q) => q.eq("productId", args.productId))
+      .order("desc")
+      .first();
+    let nextOrder = lastVariant ? lastVariant.order + 1 : 0;
+
+    const result = { created: 0, errors: [] as { rowIndex: number; message: string }[], skipped: 0, updated: 0 };
+
+    for (const [index, row] of rows.entries()) {
+      try {
+        row.optionValues.forEach((item) => {
+          const valueDoc = valueMap.get(item.valueId);
+          if (!valueDoc) {throw new Error("Option value không tồn tại");}
+          if (valueDoc.optionId !== item.optionId) {throw new Error("Option value không khớp với optionId");}
+        });
+
+        const key = buildVariantKey(row.optionValues);
+        const existing = existingByKey.get(key);
+        if (existing && !args.overwriteExisting) {
+          result.skipped += 1;
+          continue;
+        }
+
+        const resolvedSku = args.skuEnabled
+          ? row.sku?.trim() || (args.skuPrefix?.trim() ? nextSkuWithPrefix(args.skuPrefix.trim()) : '')
+          : nextFallbackSku();
+
+        if (args.skuEnabled && !resolvedSku) {
+          throw new Error("Thiếu SKU prefix");
+        }
+
+        if (existing) {
+          const updates = {
+            allowBackorder: row.allowBackorder,
+            price: row.price,
+            salePrice: row.salePrice,
+            status: row.status ?? existing.status,
+            stock: row.stock,
+          };
+          if (row.sku?.trim() && row.sku.trim() !== existing.sku) {
+            const skuCandidate = row.sku.trim();
+            const skuExists = await ctx.db
+              .query("productVariants")
+              .withIndex("by_sku", (q) => q.eq("sku", skuCandidate))
+              .unique();
+            if (skuExists) {throw new Error("SKU đã tồn tại");}
+            await ctx.db.patch(existing._id, { ...updates, sku: skuCandidate });
+          } else {
+            await ctx.db.patch(existing._id, updates);
+          }
+          result.updated += 1;
+        } else {
+          const skuCandidate = resolvedSku;
+          const skuExists = await ctx.db
+            .query("productVariants")
+            .withIndex("by_sku", (q) => q.eq("sku", skuCandidate))
+            .unique();
+          if (skuExists) {throw new Error("SKU đã tồn tại");}
+
+          await ctx.db.insert("productVariants", {
+            allowBackorder: row.allowBackorder,
+            optionValues: row.optionValues,
+            order: nextOrder,
+            price: row.price,
+            productId: args.productId,
+            salePrice: row.salePrice,
+            sku: skuCandidate,
+            status: row.status ?? "Active",
+            stock: row.stock,
+          });
+          nextOrder += 1;
+          result.created += 1;
+        }
+      } catch (error) {
+        result.errors.push({ rowIndex: index, message: error instanceof Error ? error.message : "Không thể xử lý dòng" });
+      }
+    }
+
+    result.skipped += args.rows.length - rows.length;
+    return result;
+  },
+  returns: v.object({
+    created: v.number(),
+    errors: v.array(v.object({ message: v.string(), rowIndex: v.number() })),
+    skipped: v.number(),
+    updated: v.number(),
+  }),
 });
