@@ -78,6 +78,30 @@ const CLASSIC_HIGHLIGHT_ICON_MAP: Record<string, React.ElementType> = {
   Truck,
 };
 
+const PREVIEW_IMAGES = [
+  '/seed_mau/tech/products/1.webp',
+  '/seed_mau/tech/products/2.webp',
+  '/seed_mau/tech/products/3.webp',
+];
+
+function BlurredPreviewImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <>
+      <div
+        className="absolute inset-0 scale-110"
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+          filter: 'blur(24px)',
+        }}
+      />
+      <div className="absolute inset-0 bg-black/10" />
+      <img src={src} alt={alt} className="relative z-10 h-full w-full object-contain" />
+    </>
+  );
+}
+
 function VariantPreview({ tokens }: { tokens: ReturnType<typeof getProductDetailColors> }) {
   return (
     <div className="space-y-3">
@@ -160,10 +184,10 @@ export function ProductDetailPreview({
     ? { borderColor: tokens.border, backgroundColor: tokens.surfaceMuted }
     : { borderColor: tokens.border, backgroundColor: tokens.surface };
   const heroImageWrapperClass = heroStyle === 'split'
-    ? 'aspect-square flex items-center justify-center p-6'
+    ? 'relative aspect-square flex items-center justify-center p-6'
     : heroStyle === 'minimal'
-      ? 'aspect-square flex items-center justify-center p-3'
-      : 'aspect-square flex items-center justify-center p-6';
+      ? 'relative aspect-square flex items-center justify-center p-3'
+      : 'relative aspect-square flex items-center justify-center p-6';
 
   return (
     <div className="py-6 px-4 min-h-[300px]">
@@ -172,21 +196,31 @@ export function ProductDetailPreview({
           <>
             <div className={`${isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-8'}`}>
             <div className="space-y-3">
-              <div className="aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
+              <div className="relative aspect-square rounded-xl overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
+                {PREVIEW_IMAGES.length > 0 ? (
+                  <BlurredPreviewImage src={PREVIEW_IMAGES[0]} alt={productName} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-lg border-2"
-                    style={{
-                      backgroundColor: tokens.surfaceMuted,
-                      borderColor: i === 1 ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
-                    }}
-                  />
-                ))}
-              </div>
+              {PREVIEW_IMAGES.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {PREVIEW_IMAGES.slice(0, 4).map((img, index) => (
+                    <div
+                      key={img}
+                      className="aspect-square rounded-lg border-2 overflow-hidden relative"
+                      style={{
+                        borderColor: index === 0 ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
+                        backgroundColor: tokens.surfaceMuted,
+                      }}
+                    >
+                      <img src={img} alt="" className="h-full w-full object-contain" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-4">
               <div>
@@ -303,8 +337,14 @@ export function ProductDetailPreview({
                 {heroStyle === 'split' ? (
                   <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                     <div className="grid md:grid-cols-2 gap-4 items-center p-4 md:p-6">
-                      <div className="aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                        <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
+                      <div className="relative aspect-square rounded-xl overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
+                        {PREVIEW_IMAGES.length > 0 ? (
+                          <BlurredPreviewImage src={PREVIEW_IMAGES[0]} alt={productName} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
+                          </div>
+                        )}
                       </div>
                       <div className="hidden md:flex flex-col gap-3 text-sm" style={{ color: tokens.metaText }}>
                         <span className="text-xs uppercase tracking-widest" style={{ color: tokens.softText }}>Điểm nổi bật</span>
@@ -318,20 +358,26 @@ export function ProductDetailPreview({
                   </div>
                 ) : (
                   <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
-                    <div className={heroImageWrapperClass}>
-                      <div className="w-40 h-40 rounded-xl" style={{ backgroundColor: tokens.surfaceSoft }} />
+                    <div className={`${heroImageWrapperClass} overflow-hidden`}>
+                      {PREVIEW_IMAGES.length > 0 ? (
+                        <BlurredPreviewImage src={PREVIEW_IMAGES[0]} alt={productName} />
+                      ) : (
+                        <div className="w-40 h-40 rounded-xl" style={{ backgroundColor: tokens.surfaceSoft }} />
+                      )}
                     </div>
                   </div>
                 )}
 
-                {heroStyle !== 'minimal' && (
+                {heroStyle !== 'minimal' && PREVIEW_IMAGES.length > 1 && (
                   <div className="grid grid-cols-3 gap-3">
-                    {[1, 2, 3].map((i) => (
+                    {PREVIEW_IMAGES.slice(0, 3).map((img) => (
                       <div
-                        key={i}
-                        className="aspect-square rounded-xl border-2"
+                        key={img}
+                        className="aspect-square rounded-xl border-2 overflow-hidden"
                         style={{ backgroundColor: tokens.surfaceMuted, borderColor: tokens.thumbnailBorder }}
-                      />
+                      >
+                        <img src={img} alt="" className="h-full w-full object-contain" />
+                      </div>
                     ))}
                   </div>
                 )}
@@ -387,10 +433,6 @@ export function ProductDetailPreview({
                 {showVariants && <VariantPreview tokens={tokens} />}
 
                 <div className="h-px w-full" style={{ backgroundColor: tokens.divider }} />
-
-                <div className="leading-relaxed text-sm" style={{ color: tokens.metaText }}>
-                  Thiết kế sang trọng, màn hình sắc nét và hiệu năng mạnh mẽ cho nhu cầu cao cấp.
-                </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium" style={{ color: tokens.bodyText }}>Số lượng</label>
@@ -453,21 +495,29 @@ export function ProductDetailPreview({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8">
               <div className="lg:col-span-7">
                 <div className="flex flex-col-reverse md:flex-row gap-4">
+                {PREVIEW_IMAGES.length > 1 && (
                   <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto md:w-24 shrink-0">
-                    {[1, 2, 3].map((i) => (
+                    {PREVIEW_IMAGES.slice(0, 3).map((img) => (
                       <div
-                        key={i}
+                        key={img}
                         className="relative aspect-square w-20 md:w-full overflow-hidden rounded-sm border"
                         style={{ backgroundColor: tokens.surfaceMuted, borderColor: tokens.thumbnailBorder }}
-                      />
+                      >
+                        <img src={img} alt="" className="h-full w-full object-contain" />
+                      </div>
                     ))}
                   </div>
+                )}
 
-                  <div className="flex-1 relative aspect-[4/5] rounded-sm overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
+                <div className="flex-1 relative aspect-[4/5] rounded-sm overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
+                  {PREVIEW_IMAGES.length > 0 ? (
+                    <BlurredPreviewImage src={PREVIEW_IMAGES[0]} alt={productName} />
+                  ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-32 h-32 rounded-lg" style={{ backgroundColor: tokens.surfaceSoft }} />
                     </div>
-                  </div>
+                  )}
+                </div>
                 </div>
               </div>
 

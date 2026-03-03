@@ -826,6 +826,24 @@ function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 }
 
+function BlurredProductImage({ src, alt, sizes }: { src: string; alt: string; sizes?: string }) {
+  return (
+    <>
+      <div
+        className="absolute inset-0 scale-110"
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+          filter: 'blur(24px)',
+        }}
+      />
+      <div className="absolute inset-0 bg-black/10" />
+      <Image src={src} alt={alt} fill sizes={sizes} className="relative z-10 object-contain" />
+    </>
+  );
+}
+
 type VariantSelectionMap = Record<string, Id<'productOptionValues'>>;
 
 const buildSelectionFromVariant = (variant: ProductVariant): VariantSelectionMap =>
@@ -957,7 +975,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
           <div className="mb-8 lg:mb-0">
             <div className="aspect-square rounded-2xl overflow-hidden mb-4 relative" style={{ backgroundColor: tokens.surfaceMuted }}>
               {images.length > 0 ? (
-                <Image src={images[selectedImage]} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                <BlurredProductImage src={images[selectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 50vw" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
@@ -974,7 +992,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                     className="w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors"
                     style={{ borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
                   >
-                    <Image src={img} alt="" width={80} height={80} className="object-cover" />
+                    <Image src={img} alt="" width={80} height={80} className="object-contain" />
                   </button>
                 ))}
               </div>
@@ -1206,15 +1224,11 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
     ? { borderColor: tokens.border, backgroundColor: tokens.surfaceMuted }
     : { borderColor: tokens.border, backgroundColor: tokens.surface };
 
-  const heroImageClass = heroStyle === 'minimal'
-    ? 'max-w-full max-h-full object-contain'
-    : 'max-w-full max-h-full object-contain';
-
   const heroImageWrapperClass = heroStyle === 'split'
-    ? 'aspect-square flex items-center justify-center p-6'
+    ? 'relative aspect-square flex items-center justify-center p-6'
     : heroStyle === 'minimal'
-      ? 'aspect-square flex items-center justify-center p-3'
-      : 'aspect-square flex items-center justify-center p-6';
+      ? 'relative aspect-square flex items-center justify-center p-3'
+      : 'relative aspect-square flex items-center justify-center p-6';
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
@@ -1249,14 +1263,12 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
             {heroStyle === 'split' ? (
               <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                 <div className="grid md:grid-cols-2 gap-4 items-center p-4 md:p-6">
-                  <div className="relative aspect-square rounded-xl flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
+                  <div className="relative aspect-square rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
                     {images[selectedImageIndex] ? (
-                      <Image
+                      <BlurredProductImage
                         src={images[selectedImageIndex]}
                         alt={product.name}
-                        width={520}
-                        height={520}
-                        className={heroImageClass}
+                        sizes="(max-width: 1024px) 100vw, 50vw"
                       />
                     ) : (
                       <div className="text-center">
@@ -1279,12 +1291,10 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                 <div className={heroImageWrapperClass}>
                   {images[selectedImageIndex] ? (
-                    <Image
+                    <BlurredProductImage
                       src={images[selectedImageIndex]}
                       alt={product.name}
-                      width={560}
-                      height={560}
-                      className={heroImageClass}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
                     />
                   ) : (
                     <div className="text-center">
@@ -1296,7 +1306,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               </div>
             )}
 
-            {images.length > 0 && heroStyle !== 'minimal' && (
+            {images.length > 1 && heroStyle !== 'minimal' && (
               <div className="grid grid-cols-3 gap-3">
                 {images.map((image, index) => (
                   <button
@@ -1305,7 +1315,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
                     className="relative aspect-square overflow-hidden rounded-xl border-2 transition-all"
                     style={{ borderColor: selectedImageIndex === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
                   >
-                    <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
+                    <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-contain" />
                   </button>
                 ))}
               </div>
@@ -1367,14 +1377,6 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
             )}
 
             <div className="h-px w-full" style={{ backgroundColor: tokens.divider }} />
-
-            {showDescription && product.description && (
-              <div
-                className="leading-relaxed"
-                style={{ color: tokens.bodyText }}
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium" style={{ color: tokens.bodyText }}>Số lượng</label>
@@ -1578,9 +1580,9 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
           <div className="lg:col-span-7 h-[60vh] lg:h-auto lg:py-0">
             <div className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]">
               <div className="flex flex-col-reverse md:flex-row gap-4 h-full">
-                <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto no-scrollbar md:w-24 shrink-0 px-6 md:px-0">
-                  {images.length > 0 ? (
-                    images.map((img, index) => (
+                {images.length > 1 && (
+                  <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto no-scrollbar md:w-24 shrink-0 px-6 md:px-0">
+                    {images.map((img, index) => (
                       <button
                         key={img}
                         onClick={() =>{  setSelectedImage(index); }}
@@ -1591,25 +1593,15 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                           borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
                         }}
                       >
-                        <Image src={img} alt={product.name} fill sizes="(max-width: 768px) 80px, 96px" className="object-cover" />
+                        <Image src={img} alt={product.name} fill sizes="(max-width: 768px) 80px, 96px" className="object-contain" />
                       </button>
-                    ))
-                  ) : (
-                    <div className="w-20 h-20 rounded-sm flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                      <Package size={20} style={{ color: tokens.emptyStateIcon }} />
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
 
-                <div className="flex-1 relative aspect-[4/5] md:aspect-auto rounded-sm overflow-hidden group" style={{ backgroundColor: tokens.surfaceMuted }}>
+                <div className="flex-1 relative aspect-[4/5] md:aspect-auto rounded-sm overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
                   {images.length > 0 ? (
-                    <Image
-                      src={images[selectedImage]}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 60vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    <BlurredProductImage src={images[selectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 60vw" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package size={64} style={{ color: tokens.emptyStateIcon }} />
