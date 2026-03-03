@@ -699,7 +699,17 @@ export const toggleModuleFeature = mutation({
         q.eq("moduleKey", args.moduleKey).eq("featureKey", args.featureKey)
       )
       .unique();
-    if (!feature) {throw new Error("Feature not found");}
+    if (!feature) {
+      const rawName = args.featureKey.replace(/^enable/, '');
+      const derivedName = rawName.replace(/([A-Z])/g, ' $1').trim();
+      await ctx.db.insert("moduleFeatures", {
+        moduleKey: args.moduleKey,
+        featureKey: args.featureKey,
+        enabled: args.enabled,
+        name: derivedName || args.featureKey,
+      });
+      return null;
+    }
     await ctx.db.patch(feature._id, { enabled: args.enabled });
     if (feature.linkedFieldKey) {
       const fields = await ctx.db
