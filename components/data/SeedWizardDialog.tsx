@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useConvex, useMutation, useQuery } from 'convex/react';
+import { useAction, useConvex, useMutation, useQuery } from 'convex/react';
 import { Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
@@ -157,6 +157,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const clearAll = useMutation(api.seedManager.clearAll);
   const clearModule = useMutation(api.seedManager.clearModule);
   const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
+  const seedAllModulesConfig = useAction(api.seed.seedAllModulesConfig);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
   const createModuleFeature = useMutation(api.admin.modules.createModuleFeature);
   const toggleModuleFeature = useMutation(api.admin.modules.toggleModuleFeature);
@@ -659,12 +660,24 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     try {
       if (state.clearBeforeSeed) {
         await clearAll({ excludeSystem: false, forceStorageCleanup: true });
-        await seedModule({ module: 'adminModules', quantity: 0 });
-        await seedModule({ module: 'systemPresets', quantity: 0 });
+        await seedAllModulesConfig({});
       }
 
       if (state.clearBeforeSeed && hasProducts) {
         await clearProductVariantData({});
+      }
+
+      if (!state.clearBeforeSeed) {
+        const modulesToCheck = selectedModules.length > 0 ? selectedModules : ['products'];
+        const missingConfigs = await Promise.all(
+          modulesToCheck.map(async (moduleKey) => {
+            const fields = await convex.query(api.admin.modules.listModuleFields, { moduleKey });
+            return !fields || fields.length === 0 ? moduleKey : null;
+          })
+        );
+        if (missingConfigs.some(Boolean)) {
+          await seedAllModulesConfig({});
+        }
       }
 
       await syncModules(modulesForEnable);
