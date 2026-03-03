@@ -910,9 +910,10 @@ function ProductCardActions({ product, tokens, showAddToCartButton, showBuyNowBu
 
   const isOutOfStock = product.stock <= 0;
   const secondaryLabel = isOutOfStock ? 'Hết hàng' : buyNowLabel;
+  const actionHeightClass = showAddToCartButton && showBuyNowButton ? 'min-h-[76px]' : 'min-h-[36px]';
 
   return (
-    <div className="mt-3 grid grid-cols-1 gap-2 min-h-[76px]">
+    <div className={`mt-3 grid grid-cols-1 gap-2 ${actionHeightClass}`}>
       {showAddToCartButton && (
         <button
           className="w-full rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-55 disabled:cursor-not-allowed"
