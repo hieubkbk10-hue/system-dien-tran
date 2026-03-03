@@ -1726,15 +1726,6 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             )}
 
             <div className="space-y-5 pt-0 flex-1">
-              {showDescription && product.description && (
-                <ExpandableDescription
-                  html={product.description}
-                  className="leading-relaxed font-light text-justify"
-                  style={{ color: tokens.bodyText }}
-                  buttonStyle={{ color: tokens.primary }}
-                />
-              )}
-
               <div className="space-y-3 text-sm font-light" style={{ color: tokens.metaText }}>
                 {showSku && product.sku && (
                   <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
@@ -1756,6 +1747,17 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
         </div>
 
         {commentsSection}
+        {showDescription && product.description && (
+          <section className="mt-10 rounded-2xl border px-6 py-8" style={{ borderColor: tokens.border }}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h2>
+            <ExpandableDescription
+              html={product.description}
+              className="leading-relaxed font-light text-justify"
+              style={{ color: tokens.bodyText }}
+              buttonStyle={{ color: tokens.primary }}
+            />
+          </section>
+        )}
         <RelatedProductsSection
           products={relatedProducts}
           categorySlug={product.categorySlug}

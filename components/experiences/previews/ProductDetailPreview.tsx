@@ -639,12 +639,6 @@ export function ProductDetailPreview({
                 )}
 
                 <div className="space-y-4 text-sm font-light" style={{ color: tokens.metaText }}>
-                  <ExpandablePreviewText
-                    text={PREVIEW_DESCRIPTION}
-                    className="leading-relaxed"
-                    style={{ color: tokens.metaText }}
-                    buttonStyle={{ color: tokens.primary }}
-                  />
                   <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
                     <span>SKU</span>
                     <span className="font-mono" style={{ color: tokens.bodyText }}>{sku}</span>
@@ -657,6 +651,16 @@ export function ProductDetailPreview({
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-2xl border px-6 py-8" style={{ borderColor: tokens.border }}>
+              <h2 className="text-lg font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h2>
+              <ExpandablePreviewText
+                text={PREVIEW_DESCRIPTION}
+                className="leading-relaxed"
+                style={{ color: tokens.bodyText }}
+                buttonStyle={{ color: tokens.primary }}
+              />
             </div>
 
             <CommentsPreview
