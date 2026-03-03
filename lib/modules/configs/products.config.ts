@@ -1,4 +1,4 @@
-import { DollarSign, Image, Tag, Box, Package, Layers, Download } from 'lucide-react';
+import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree } from 'lucide-react';
 import { defineModule } from '../define-module';
  
 export const productsModule = defineModule({
@@ -14,6 +14,13 @@ export const productsModule = defineModule({
      { key: 'enableGallery', label: 'Thư viện ảnh', icon: Image, linkedField: 'images' },
      { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku' },
      { key: 'enableStock', label: 'Quản lý kho', icon: Box, linkedField: 'stock' },
+     {
+       key: 'enableCategoryHierarchy',
+       label: 'Danh mục cha - con',
+       description: 'Cho phép phân cấp danh mục nhiều tầng',
+       icon: FolderTree,
+       linkedField: 'parentId',
+     },
    ],
 
    settings: [

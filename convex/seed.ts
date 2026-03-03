@@ -616,6 +616,7 @@ export const seedProductsModule = mutation({
         { description: "Cho phép nhiều ảnh sản phẩm", enabled: true, featureKey: "enableGallery", linkedFieldKey: "images", moduleKey: "products", name: "Thư viện ảnh" },
         { description: "Quản lý mã SKU sản phẩm", enabled: true, featureKey: "enableSKU", linkedFieldKey: "sku", moduleKey: "products", name: "Mã SKU" },
         { description: "Theo dõi số lượng tồn kho", enabled: true, featureKey: "enableStock", linkedFieldKey: "stock", moduleKey: "products", name: "Quản lý kho" },
+        { description: "Cho phép danh mục cha - con", enabled: false, featureKey: "enableCategoryHierarchy", linkedFieldKey: "parentId", moduleKey: "products", name: "Danh mục cha - con" },
       ];
       for (const feature of features) {
         await ctx.db.insert("moduleFeatures", feature);

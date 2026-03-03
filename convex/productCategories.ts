@@ -158,6 +158,14 @@ export const create = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
+    const hierarchyFeature = await ctx.db
+      .query("moduleFeatures")
+      .withIndex("by_module_feature", (q) =>
+        q.eq("moduleKey", "products").eq("featureKey", "enableCategoryHierarchy")
+      )
+      .unique();
+    const hierarchyEnabled = hierarchyFeature?.enabled === true;
+
     const existing = await ctx.db
       .query("productCategories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -178,6 +186,7 @@ export const create = mutation({
       ...args,
       order: nextOrder,
       active: args.active ?? true,
+      parentId: hierarchyEnabled ? args.parentId : undefined,
     });
   },
   returns: v.id("productCategories"),
@@ -195,9 +204,20 @@ export const update = mutation({
     slug: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const hierarchyFeature = await ctx.db
+      .query("moduleFeatures")
+      .withIndex("by_module_feature", (q) =>
+        q.eq("moduleKey", "products").eq("featureKey", "enableCategoryHierarchy")
+      )
+      .unique();
+    const hierarchyEnabled = hierarchyFeature?.enabled === true;
+
     const { id, ...updates } = args;
     const category = await ctx.db.get(id);
     if (!category) {throw new Error("Category not found");}
+    if (!hierarchyEnabled) {
+      delete updates.parentId;
+    }
     if (args.slug && args.slug !== category.slug) {
       const newSlug = args.slug;
       const existing = await ctx.db

@@ -708,6 +708,13 @@ export const toggleModuleFeature = mutation({
         enabled: args.enabled,
         name: derivedName || args.featureKey,
       });
+      if (args.moduleKey === 'products' && args.featureKey === 'enableCategoryHierarchy' && !args.enabled) {
+        const categories = await ctx.db
+          .query('productCategories')
+          .filter((q) => q.neq(q.field('parentId'), undefined))
+          .collect();
+        await Promise.all(categories.map((category) => ctx.db.patch(category._id, { parentId: undefined })));
+      }
       return null;
     }
     await ctx.db.patch(feature._id, { enabled: args.enabled });
@@ -720,6 +727,13 @@ export const toggleModuleFeature = mutation({
       if (linkedField && !linkedField.isSystem) {
         await ctx.db.patch(linkedField._id, { enabled: args.enabled });
       }
+    }
+    if (args.moduleKey === 'products' && args.featureKey === 'enableCategoryHierarchy' && !args.enabled) {
+      const categories = await ctx.db
+        .query('productCategories')
+        .filter((q) => q.neq(q.field('parentId'), undefined))
+        .collect();
+      await Promise.all(categories.map((category) => ctx.db.patch(category._id, { parentId: undefined })));
     }
     return null;
   },

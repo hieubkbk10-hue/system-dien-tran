@@ -1,18 +1,17 @@
- 'use client';
- 
+'use client';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAction, useMutation, useQuery } from 'convex/react';
- import { api } from '@/convex/_generated/api';
- import { toast } from 'sonner';
- import type { ModuleDefinition } from '../define-module';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
+import type { ModuleDefinition } from '../define-module';
 import type { FieldConfig, FieldType } from '@/types/module-config';
- 
- type FeaturesState = Record<string, boolean>;
- type SettingsState = Record<string, string | number | boolean>;
- 
- export function useModuleConfig(config: ModuleDefinition) {
-   const moduleKey = config.key;
-   const categoryKey = config.categoryModuleKey;
+
+type FeaturesState = Record<string, boolean>;
+type SettingsState = Record<string, string | number | boolean>;
+
+export function useModuleConfig(config: ModuleDefinition) {
+  const moduleKey = config.key;
+  const categoryKey = config.categoryModuleKey;
    
    // ============ QUERIES ============
    const moduleData = useQuery(api.admin.modules.getModuleByKey, { key: moduleKey });
@@ -78,9 +77,12 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
        for (const f of featuresData) {
          state[f.featureKey] = f.enabled;
        }
+      if (moduleKey === 'products' && state.enableCategoryHierarchy === undefined) {
+        state.enableCategoryHierarchy = false;
+      }
        setLocalFeatures(state);
      }
-   }, [featuresData]);
+  }, [featuresData, moduleKey]);
    
    useEffect(() => {
      if (fieldsData) {

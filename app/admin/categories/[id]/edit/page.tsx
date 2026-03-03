@@ -22,6 +22,10 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
   const productsData = useQuery(api.products.listAll, {});
   const updateCategory = useMutation(api.productCategories.update);
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
+  const hierarchyFeature = useQuery(api.admin.modules.getModuleFeature, {
+    featureKey: 'enableCategoryHierarchy',
+    moduleKey: 'products',
+  });
 
   const [activeTab, setActiveTab] = useState('info');
   const [name, setName] = useState('');
@@ -36,6 +40,7 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
+  const isHierarchyEnabled = hierarchyFeature?.enabled === true;
 
   useEffect(() => {
     if (categoryData) {
@@ -60,7 +65,7 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
         description: description.trim() || undefined,
         id: id as Id<"productCategories">,
         name: name.trim(),
-        parentId: parentId ? parentId as Id<"productCategories"> : undefined,
+        parentId: isHierarchyEnabled && parentId ? parentId as Id<"productCategories"> : undefined,
         slug: slug.trim(),
       });
       toast.success('Cập nhật danh mục thành công');
@@ -132,19 +137,21 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
                 <Input value={slug} onChange={(e) =>{  setSlug(e.target.value); }} placeholder="slug" className="font-mono text-sm" />
               </div>
               
-              <div className="space-y-2">
-                <Label>Danh mục cha</Label>
-                <select 
-                  value={parentId}
-                  onChange={(e) =>{  setParentId(e.target.value); }}
-                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                >
-                  <option value="">-- Không có (Danh mục gốc) --</option>
-                  {categoriesData?.filter(c => c._id !== id).map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+              {isHierarchyEnabled && (
+                <div className="space-y-2">
+                  <Label>Danh mục cha</Label>
+                  <select 
+                    value={parentId}
+                    onChange={(e) =>{  setParentId(e.target.value); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="">-- Không có (Danh mục gốc) --</option>
+                    {categoriesData?.filter(c => c._id !== id).map(cat => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {enabledFields.has('description') && (
                 <div className="space-y-2">
