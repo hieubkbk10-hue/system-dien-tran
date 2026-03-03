@@ -63,10 +63,9 @@ import type { FieldConfig, FieldType } from '@/types/module-config';
     const run = async () => {
       try {
         await seedAllModulesConfig({});
-        toast.success('Đã khởi tạo preset module.');
       } catch (error) {
         hasTriggeredAutoHealRef.current = false;
-        toast.error(error instanceof Error ? error.message : 'Khởi tạo preset thất bại.');
+        console.error('[ModuleConfig] Auto-heal preset thất bại', error);
       }
     };
     void run();
