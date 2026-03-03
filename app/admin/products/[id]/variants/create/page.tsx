@@ -125,7 +125,7 @@ function ProductVariantCreateContent({ params }: { params: Promise<{ id: string 
         options={productOptions}
         optionValues={valuesData}
         product={productData}
-        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku') }}
+        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku'), barcodeEnabled: enabledFields.has('barcode') }}
         submitLabel="Tạo phiên bản"
       />
     </div>

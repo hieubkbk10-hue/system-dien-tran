@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../../components/ui';
 import { ImageUpload } from '../../../../components/ImageUpload';
@@ -11,6 +13,7 @@ type VariantSettings = {
   variantImages: string;
   variantPricing: string;
   variantStock: string;
+  barcodeEnabled: boolean;
   skuEnabled: boolean;
 };
 
@@ -58,8 +61,12 @@ export function VariantForm({
   const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
   const [image, setImage] = useState<string | undefined>();
   const [optionSelections, setOptionSelections] = useState<Record<string, { valueId?: Id<'productOptionValues'>; customValue?: string }>>({});
+  const [quickAddValue, setQuickAddValue] = useState<Record<string, string>>({});
+  const [quickAddColor, setQuickAddColor] = useState<Record<string, string>>({});
+  const [quickAddOpen, setQuickAddOpen] = useState<Record<string, boolean>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const generatedSku = useMemo(() => `VAR-${product._id.slice(-6)}-${Date.now()}`, [product._id]);
+  const createOptionValue = useMutation(api.productOptionValues.create);
 
   const optionValuesByOption = useMemo(() => {
     const map = new Map<string, Doc<'productOptionValues'>[]>();
@@ -125,7 +132,7 @@ export function VariantForm({
 
     await onSubmit({
       allowBackorder: settings.variantStock === 'variant' ? allowBackorder : undefined,
-      barcode: barcode.trim() || undefined,
+      barcode: settings.barcodeEnabled ? (barcode.trim() || undefined) : undefined,
       image: settings.variantImages === 'inherit' ? undefined : image,
       optionValues: optionValuesPayload,
       price: settings.variantPricing === 'variant' ? (price.trim() === '' ? undefined : Number.parseInt(price)) : undefined,
@@ -142,6 +149,38 @@ export function VariantForm({
   const showVariantStock = settings.variantStock === 'variant';
   const showVariantImages = settings.variantImages !== 'inherit';
 
+  const handleQuickAdd = async (optionId: Id<'productOptions'>) => {
+    const rawValue = quickAddValue[optionId]?.trim();
+    if (!rawValue) {
+      toast.error('Vui lòng nhập giá trị');
+      return;
+    }
+    const values = optionValuesByOption.get(optionId) ?? [];
+    const exists = values.some((value) => value.value.toLowerCase() === rawValue.toLowerCase());
+    if (exists) {
+      toast.error('Giá trị đã tồn tại');
+      return;
+    }
+    try {
+      const id = await createOptionValue({
+        optionId,
+        value: rawValue,
+        label: rawValue,
+        colorCode: quickAddColor[optionId],
+      });
+      setOptionSelections(prev => ({
+        ...prev,
+        [optionId]: { ...prev[optionId], valueId: id },
+      }));
+      setQuickAddValue(prev => ({ ...prev, [optionId]: '' }));
+      setQuickAddColor(prev => ({ ...prev, [optionId]: '#000000' }));
+      setQuickAddOpen(prev => ({ ...prev, [optionId]: false }));
+      toast.success('Đã thêm giá trị');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể thêm giá trị');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -156,10 +195,12 @@ export function VariantForm({
                     <Input value={sku} onChange={(e) =>{  setSku(e.target.value); }} placeholder="VD: PROD-RED-M" className="font-mono" required />
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label>Barcode</Label>
-                  <Input value={barcode} onChange={(e) =>{  setBarcode(e.target.value); }} placeholder="Barcode (nếu có)" className="font-mono" />
-                </div>
+                {settings.barcodeEnabled && (
+                  <div className="space-y-2">
+                    <Label>Barcode</Label>
+                    <Input value={barcode} onChange={(e) =>{  setBarcode(e.target.value); }} placeholder="Barcode (nếu có)" className="font-mono" />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -212,8 +253,89 @@ export function VariantForm({
                         />
                       )}
                     </div>
-                    {values.length === 0 && (
-                      <p className="text-xs text-slate-500">Option này chưa có giá trị hoạt động.</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="px-2 text-xs"
+                        onClick={() =>{
+                          setQuickAddOpen(prev => ({ ...prev, [option._id]: !prev[option._id] }));
+                          if (!quickAddColor[option._id]) {
+                            setQuickAddColor(prev => ({ ...prev, [option._id]: '#000000' }));
+                          }
+                        }}
+                      >
+                        + Thêm nhanh
+                      </Button>
+                      {values.length === 0 && (
+                        <p className="text-xs text-slate-500">Option này chưa có giá trị hoạt động.</p>
+                      )}
+                    </div>
+                    {quickAddOpen[option._id] && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                        <div className="md:col-span-2 space-y-1">
+                          <Label className="text-xs">Giá trị mới</Label>
+                          <Input
+                            value={quickAddValue[option._id] ?? ''}
+                            onChange={(e) =>{
+                              const value = e.target.value;
+                              setQuickAddValue(prev => ({ ...prev, [option._id]: value }));
+                            }}
+                            placeholder="Nhập giá trị"
+                          />
+                        </div>
+                        {option.displayType === 'color_picker' ? (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Màu</Label>
+                            <Input
+                              type="color"
+                              value={quickAddColor[option._id] ?? '#000000'}
+                              onChange={(e) =>{
+                                const value = e.target.value;
+                                setQuickAddColor(prev => ({ ...prev, [option._id]: value }));
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleQuickAdd(option._id)}
+                            >
+                              Thêm
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setQuickAddOpen(prev => ({ ...prev, [option._id]: false }))}
+                            >
+                              Hủy
+                            </Button>
+                          </div>
+                        )}
+                        {option.displayType === 'color_picker' && (
+                          <div className="flex gap-2 md:col-span-3">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleQuickAdd(option._id)}
+                            >
+                              Thêm
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setQuickAddOpen(prev => ({ ...prev, [option._id]: false }))}
+                            >
+                              Hủy
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 );

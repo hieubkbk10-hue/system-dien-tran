@@ -13,6 +13,7 @@ export const productsModule = defineModule({
      { key: 'enableSalePrice', label: 'Giá khuyến mãi', icon: DollarSign, linkedField: 'salePrice' },
      { key: 'enableGallery', label: 'Thư viện ảnh', icon: Image, linkedField: 'images' },
      { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku' },
+     { key: 'enableBarcode', label: 'Mã vạch phiên bản', icon: Tag, linkedField: 'barcode' },
      { key: 'enableStock', label: 'Quản lý kho', icon: Box, linkedField: 'stock' },
      {
        key: 'enableCategoryHierarchy',

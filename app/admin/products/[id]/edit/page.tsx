@@ -102,7 +102,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
 
   const isAffiliateMode = saleMode === 'affiliate';
   const showProductTypeSelector = productTypeMode === 'both';
-  const hideBasePricing = variantEnabled && hasVariants && variantPricing === 'variant';
+  const hideBasePricing = variantEnabled && variantPricing === 'variant';
 
   useEffect(() => {
     if (productData && !isDataLoaded) {

@@ -615,11 +615,28 @@ export const seedProductsModule = mutation({
         { description: "Hiển thị giá khuyến mãi cho sản phẩm", enabled: true, featureKey: "enableSalePrice", linkedFieldKey: "salePrice", moduleKey: "products", name: "Giá khuyến mãi" },
         { description: "Cho phép nhiều ảnh sản phẩm", enabled: true, featureKey: "enableGallery", linkedFieldKey: "images", moduleKey: "products", name: "Thư viện ảnh" },
         { description: "Quản lý mã SKU sản phẩm", enabled: true, featureKey: "enableSKU", linkedFieldKey: "sku", moduleKey: "products", name: "Mã SKU" },
+        { description: "Quản lý mã vạch cho phiên bản", enabled: false, featureKey: "enableBarcode", linkedFieldKey: "barcode", moduleKey: "products", name: "Mã vạch phiên bản" },
         { description: "Theo dõi số lượng tồn kho", enabled: true, featureKey: "enableStock", linkedFieldKey: "stock", moduleKey: "products", name: "Quản lý kho" },
         { description: "Cho phép danh mục cha - con", enabled: false, featureKey: "enableCategoryHierarchy", linkedFieldKey: "parentId", moduleKey: "products", name: "Danh mục cha - con" },
       ];
       for (const feature of features) {
         await ctx.db.insert("moduleFeatures", feature);
+      }
+    } else {
+      const features = await ctx.db
+        .query("moduleFeatures")
+        .withIndex("by_module", q => q.eq("moduleKey", "products"))
+        .collect();
+      const existingKeys = new Set(features.map((feature) => feature.featureKey));
+      if (!existingKeys.has("enableBarcode")) {
+        await ctx.db.insert("moduleFeatures", {
+          description: "Quản lý mã vạch cho phiên bản",
+          enabled: false,
+          featureKey: "enableBarcode",
+          linkedFieldKey: "barcode",
+          moduleKey: "products",
+          name: "Mã vạch phiên bản",
+        });
       }
     }
 
@@ -630,16 +647,17 @@ export const seedProductsModule = mutation({
         { enabled: true, fieldKey: "name", isSystem: true, moduleKey: "products", name: "Tên sản phẩm", order: 0, required: true, type: "text" as const },
         { enabled: true, fieldKey: "slug", isSystem: true, moduleKey: "products", name: "Slug", order: 1, required: true, type: "text" as const },
         { enabled: true, fieldKey: "sku", isSystem: false, linkedFeature: "enableSKU", moduleKey: "products", name: "Mã SKU", order: 2, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "price", isSystem: true, moduleKey: "products", name: "Giá bán", order: 3, required: true, type: "price" as const },
-        { enabled: true, fieldKey: "salePrice", isSystem: false, linkedFeature: "enableSalePrice", moduleKey: "products", name: "Giá khuyến mãi", order: 4, required: false, type: "price" as const },
-        { enabled: true, fieldKey: "stock", isSystem: false, linkedFeature: "enableStock", moduleKey: "products", name: "Tồn kho", order: 5, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "products", name: "Trạng thái", order: 6, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "categoryId", isSystem: true, moduleKey: "products", name: "Danh mục", order: 7, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "description", isSystem: false, moduleKey: "products", name: "Mô tả", order: 8, required: false, type: "richtext" as const },
-        { enabled: true, fieldKey: "image", isSystem: false, moduleKey: "products", name: "Ảnh đại diện", order: 9, required: false, type: "image" as const },
-        { enabled: true, fieldKey: "images", isSystem: false, linkedFeature: "enableGallery", moduleKey: "products", name: "Thư viện ảnh", order: 10, required: false, type: "gallery" as const },
-        { enabled: true, fieldKey: "metaTitle", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Title", order: 11, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "metaDescription", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Description", order: 12, required: false, type: "textarea" as const },
+        { enabled: false, fieldKey: "barcode", isSystem: false, linkedFeature: "enableBarcode", moduleKey: "products", name: "Mã vạch phiên bản", order: 3, required: false, type: "text" as const },
+        { enabled: true, fieldKey: "price", isSystem: true, moduleKey: "products", name: "Giá bán", order: 4, required: true, type: "price" as const },
+        { enabled: true, fieldKey: "salePrice", isSystem: false, linkedFeature: "enableSalePrice", moduleKey: "products", name: "Giá khuyến mãi", order: 5, required: false, type: "price" as const },
+        { enabled: true, fieldKey: "stock", isSystem: false, linkedFeature: "enableStock", moduleKey: "products", name: "Tồn kho", order: 6, required: false, type: "number" as const },
+        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "products", name: "Trạng thái", order: 7, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "categoryId", isSystem: true, moduleKey: "products", name: "Danh mục", order: 8, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "description", isSystem: false, moduleKey: "products", name: "Mô tả", order: 9, required: false, type: "richtext" as const },
+        { enabled: true, fieldKey: "image", isSystem: false, moduleKey: "products", name: "Ảnh đại diện", order: 10, required: false, type: "image" as const },
+        { enabled: true, fieldKey: "images", isSystem: false, linkedFeature: "enableGallery", moduleKey: "products", name: "Thư viện ảnh", order: 11, required: false, type: "gallery" as const },
+        { enabled: true, fieldKey: "metaTitle", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Title", order: 12, required: false, type: "text" as const },
+        { enabled: true, fieldKey: "metaDescription", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Description", order: 13, required: false, type: "textarea" as const },
       ];
       for (const field of productFields) {
         await ctx.db.insert("moduleFields", field);
@@ -663,17 +681,19 @@ export const seedProductsModule = mutation({
       const allFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "products")).collect();
       const existingKeys = new Set(allFields.map((field) => field.fieldKey));
       let nextOrder = Math.max(...allFields.map((field) => field.order)) + 1;
-      const seoFields = [
-        { fieldKey: "metaTitle", name: "Meta Title", type: "text" as const },
-        { fieldKey: "metaDescription", name: "Meta Description", type: "textarea" as const },
+      const extraFields = [
+        { enabled: false, fieldKey: "barcode", name: "Mã vạch phiên bản", type: "text" as const, linkedFeature: "enableBarcode" },
+        { enabled: true, fieldKey: "metaTitle", name: "Meta Title", type: "text" as const, group: "seo" },
+        { enabled: true, fieldKey: "metaDescription", name: "Meta Description", type: "textarea" as const, group: "seo" },
       ];
-      for (const field of seoFields) {
+      for (const field of extraFields) {
         if (existingKeys.has(field.fieldKey)) {continue;}
         await ctx.db.insert("moduleFields", {
-          enabled: true,
+          enabled: field.enabled,
           fieldKey: field.fieldKey,
-          group: "seo",
+          group: field.group,
           isSystem: false,
+          linkedFeature: field.linkedFeature,
           moduleKey: "products",
           name: field.name,
           order: nextOrder,

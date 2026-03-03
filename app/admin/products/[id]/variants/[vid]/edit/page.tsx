@@ -135,7 +135,7 @@ function ProductVariantEditContent({ params }: { params: Promise<{ id: string; v
         options={productOptions}
         optionValues={valuesData}
         product={productData}
-        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku') }}
+        settings={{ ...variantSettings, skuEnabled: enabledFields.has('sku'), barcodeEnabled: enabledFields.has('barcode') }}
         submitLabel="Lưu phiên bản"
         variant={variantData}
       />
