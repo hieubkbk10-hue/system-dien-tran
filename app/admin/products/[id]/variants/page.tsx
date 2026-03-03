@@ -337,6 +337,13 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
 
   const formatPrice = (value: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(value);
 
+  const formatNumberHelper = (value: string) => {
+    if (!value.trim()) {return null;}
+    const parsed = Number(value);
+    if (Number.isNaN(parsed) || parsed <= 0) {return null;}
+    return new Intl.NumberFormat('en-US').format(parsed);
+  };
+
   type OptionValue = NonNullable<typeof valuesData>[number];
   type CombinationRow = {
     allowBackorder: boolean;
@@ -703,7 +710,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       {isGeneratorOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() =>{  if (!isGenerating) {setIsGeneratorOpen(false);} }} />
-          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-6xl mx-4 p-6 space-y-5">
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-6xl mx-4 p-6 max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Tạo nhanh phiên bản</h3>
@@ -712,8 +719,9 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
               <Button variant="ghost" size="icon" onClick={() =>{  if (!isGenerating) {setIsGeneratorOpen(false);} }}>×</Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-5 pr-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 space-y-4">
                 {skuEnabled && (
                   <div className="space-y-2">
                     <Label>SKU prefix</Label>
@@ -725,10 +733,16 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                     <div className="space-y-2">
                       <Label>Giá bán</Label>
                       <Input type="number" value={defaultPrice} onChange={(e) =>{  setDefaultPrice(e.target.value); }} placeholder="0" min="0" />
+                      {formatNumberHelper(defaultPrice) && (
+                        <p className="text-[11px] text-slate-500">{formatNumberHelper(defaultPrice)}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Giá trước giảm</Label>
                       <Input type="number" value={defaultSalePrice} onChange={(e) =>{  setDefaultSalePrice(e.target.value); }} placeholder="0" min="0" />
+                      {formatNumberHelper(defaultSalePrice) && (
+                        <p className="text-[11px] text-slate-500">{formatNumberHelper(defaultSalePrice)}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -761,161 +775,174 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                     <option value="Inactive">Ẩn</option>
                   </select>
                 </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="bulk-overwrite"
+                      checked={overwriteExisting}
+                      onChange={(e) =>{  setOverwriteExisting(e.target.checked); }}
+                      className="w-4 h-4 rounded border-slate-300"
+                    />
+                    <Label htmlFor="bulk-overwrite" className="cursor-pointer">Ghi đè phiên bản đã có</Label>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={handleSelectAll}>Chọn tất cả</Button>
+                    <Button variant="outline" size="sm" onClick={handleClearAll}>Bỏ chọn tất cả</Button>
+                    <Button variant="outline" size="sm" onClick={handleSelectNewOnly}>Chỉ chọn phiên bản mới</Button>
+                  </div>
+                  {hasInvalidPrices && (
+                    <p className="text-xs text-red-500">Giá trước giảm không được lớn hơn giá bán.</p>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="bulk-overwrite"
-                    checked={overwriteExisting}
-                    onChange={(e) =>{  setOverwriteExisting(e.target.checked); }}
-                    className="w-4 h-4 rounded border-slate-300"
-                  />
-                  <Label htmlFor="bulk-overwrite" className="cursor-pointer">Ghi đè phiên bản đã có</Label>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={handleSelectAll}>Chọn tất cả</Button>
-                  <Button variant="outline" size="sm" onClick={handleClearAll}>Bỏ chọn tất cả</Button>
-                  <Button variant="outline" size="sm" onClick={handleSelectNewOnly}>Chỉ chọn phiên bản mới</Button>
-                </div>
-                {hasInvalidPrices && (
-                  <p className="text-xs text-red-500">Giá trước giảm không được lớn hơn giá bán.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="border rounded-lg overflow-hidden">
-              <div className="max-h-[420px] overflow-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-white dark:bg-slate-900 z-10">
-                    <TableRow>
-                      <TableHead className="w-[40px]" />
-                      <TableHead className="min-w-[220px]">Tổ hợp</TableHead>
-                      <TableHead className="min-w-[120px]">Hiện có</TableHead>
-                      {variantSettings.variantPricing === 'variant' && (
-                        <>
-                          <TableHead className="min-w-[140px]">Giá bán</TableHead>
-                          <TableHead className="min-w-[140px]">Giá trước giảm</TableHead>
-                        </>
-                      )}
-                      {variantSettings.variantStock === 'variant' && (
-                        <>
-                          <TableHead className="min-w-[120px]">Tồn kho</TableHead>
-                          <TableHead className="min-w-[160px]">Backorder</TableHead>
-                        </>
-                      )}
-                      <TableHead className="min-w-[120px]">Trạng thái</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((row, index) => {
-                      const isDisabled = row.isExisting && !overwriteExisting;
-                      return (
-                        <TableRow key={row.key} className={isDisabled ? 'opacity-60' : ''}>
-                          <TableCell>
-                            <SelectCheckbox
-                              checked={row.selected}
-                              onChange={() => updateRow(index, (current) => ({ ...current, selected: !current.selected }))}
-                              disabled={isDisabled}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{row.label}</p>
-                              {row.isExisting ? (
-                                <Badge variant="secondary">Đã có{overwriteExisting ? ' (sẽ ghi đè)' : ''}</Badge>
-                              ) : (
-                                <Badge variant="default">Mới</Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-xs text-slate-500">{row.isExisting ? 'Đã có dữ liệu' : 'Chưa tạo'}</span>
-                          </TableCell>
-                          {variantSettings.variantPricing === 'variant' && (
-                            <>
-                              <TableCell>
-                                <Input
-                                  type="number"
-                                  value={row.price}
-                                  min="0"
-                                  disabled={isDisabled}
-                                  onChange={(e) => updateRow(index, (current) => ({
-                                    ...current,
-                                    price: e.target.value,
-                                    custom: { ...current.custom, price: true },
-                                  }))}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Input
-                                  type="number"
-                                  value={row.salePrice}
-                                  min="0"
-                                  disabled={isDisabled}
-                                  onChange={(e) => updateRow(index, (current) => ({
-                                    ...current,
-                                    salePrice: e.target.value,
-                                    custom: { ...current.custom, salePrice: true },
-                                  }))}
-                                />
-                              </TableCell>
-                            </>
-                          )}
-                          {variantSettings.variantStock === 'variant' && (
-                            <>
-                              <TableCell>
-                                <Input
-                                  type="number"
-                                  value={row.stock}
-                                  min="0"
-                                  disabled={isDisabled}
-                                  onChange={(e) => updateRow(index, (current) => ({
-                                    ...current,
-                                    stock: e.target.value,
-                                    custom: { ...current.custom, stock: true },
-                                  }))}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={row.allowBackorder}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="max-h-[420px] overflow-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-white dark:bg-slate-900 z-10">
+                      <TableRow>
+                        <TableHead className="w-[40px]" />
+                        <TableHead className="min-w-[220px]">Tổ hợp</TableHead>
+                        <TableHead className="min-w-[120px]">Hiện có</TableHead>
+                        {variantSettings.variantPricing === 'variant' && (
+                          <>
+                            <TableHead className="min-w-[140px]">Giá bán</TableHead>
+                            <TableHead className="min-w-[140px]">Giá trước giảm</TableHead>
+                          </>
+                        )}
+                        {variantSettings.variantStock === 'variant' && (
+                          <>
+                            <TableHead className="min-w-[120px]">Tồn kho</TableHead>
+                            <TableHead className="min-w-[160px]">Đặt trước</TableHead>
+                          </>
+                        )}
+                        <TableHead className="min-w-[120px]">Trạng thái</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rows.map((row, index) => {
+                        const isDisabled = row.isExisting && !overwriteExisting;
+                        const priceHelper = formatNumberHelper(row.price);
+                        const salePriceHelper = formatNumberHelper(row.salePrice);
+                        return (
+                          <TableRow key={row.key} className={isDisabled ? 'opacity-60' : ''}>
+                            <TableCell>
+                              <SelectCheckbox
+                                checked={row.selected}
+                                onChange={() => updateRow(index, (current) => ({ ...current, selected: !current.selected }))}
+                                disabled={isDisabled}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{row.label}</p>
+                                {row.isExisting ? (
+                                  <Badge variant="secondary">Đã có{overwriteExisting ? ' (sẽ ghi đè)' : ''}</Badge>
+                                ) : (
+                                  <Badge variant="default">Mới</Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-xs text-slate-500">{row.isExisting ? 'Đã có dữ liệu' : 'Chưa tạo'}</span>
+                            </TableCell>
+                            {variantSettings.variantPricing === 'variant' && (
+                              <>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <Input
+                                      type="number"
+                                      value={row.price}
+                                      min="0"
+                                      disabled={isDisabled}
+                                      onChange={(e) => updateRow(index, (current) => ({
+                                        ...current,
+                                        price: e.target.value,
+                                        custom: { ...current.custom, price: true },
+                                      }))}
+                                    />
+                                    {priceHelper && (
+                                      <p className="text-[11px] text-slate-500">{priceHelper}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <Input
+                                      type="number"
+                                      value={row.salePrice}
+                                      min="0"
+                                      disabled={isDisabled}
+                                      onChange={(e) => updateRow(index, (current) => ({
+                                        ...current,
+                                        salePrice: e.target.value,
+                                        custom: { ...current.custom, salePrice: true },
+                                      }))}
+                                    />
+                                    {salePriceHelper && (
+                                      <p className="text-[11px] text-slate-500">{salePriceHelper}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </>
+                            )}
+                            {variantSettings.variantStock === 'variant' && (
+                              <>
+                                <TableCell>
+                                  <Input
+                                    type="number"
+                                    value={row.stock}
+                                    min="0"
                                     disabled={isDisabled}
                                     onChange={(e) => updateRow(index, (current) => ({
                                       ...current,
-                                      allowBackorder: e.target.checked,
-                                      custom: { ...current.custom, allowBackorder: true },
+                                      stock: e.target.value,
+                                      custom: { ...current.custom, stock: true },
                                     }))}
-                                    className="w-4 h-4 rounded border-slate-300"
                                   />
-                                  <span className="text-xs text-slate-600">Cho phép</span>
-                                </div>
-                              </TableCell>
-                            </>
-                          )}
-                          <TableCell>
-                            <select
-                              value={row.status}
-                              disabled={isDisabled}
-                              onChange={(e) => updateRow(index, (current) => ({
-                                ...current,
-                                status: e.target.value as 'Active' | 'Inactive',
-                                custom: { ...current.custom, status: true },
-                              }))}
-                              className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm"
-                            >
-                              <option value="Active">Hoạt động</option>
-                              <option value="Inactive">Ẩn</option>
-                            </select>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={row.allowBackorder}
+                                      disabled={isDisabled}
+                                      onChange={(e) => updateRow(index, (current) => ({
+                                        ...current,
+                                        allowBackorder: e.target.checked,
+                                        custom: { ...current.custom, allowBackorder: true },
+                                      }))}
+                                      className="w-4 h-4 rounded border-slate-300"
+                                    />
+                                    <span className="text-xs text-slate-600">Cho đặt trước</span>
+                                  </div>
+                                </TableCell>
+                              </>
+                            )}
+                            <TableCell>
+                              <select
+                                value={row.status}
+                                disabled={isDisabled}
+                                onChange={(e) => updateRow(index, (current) => ({
+                                  ...current,
+                                  status: e.target.value as 'Active' | 'Inactive',
+                                  custom: { ...current.custom, status: true },
+                                }))}
+                                className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm"
+                              >
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Ẩn</option>
+                              </select>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </div>
 
