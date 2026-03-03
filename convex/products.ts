@@ -461,17 +461,25 @@ export const count = query({
   returns: v.number(),
 });
 
-// Get counts for all statuses in one query (for dashboard)
+// Get counts for all statuses (authoritative from products table)
 export const getStats = query({
   args: {},
   handler: async (ctx) => {
-    const stats = await ctx.db.query("productStats").collect();
-    const statsMap = new Map(stats.map((s) => [s.key, s.count]));
+    const [activeProducts, draftProducts, archivedProducts] = await Promise.all([
+      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Active")).collect(),
+      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Draft")).collect(),
+      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Archived")).collect(),
+    ]);
+
+    const active = activeProducts.length;
+    const draft = draftProducts.length;
+    const archived = archivedProducts.length;
+
     return {
-      active: statsMap.get("Active") ?? 0,
-      archived: statsMap.get("Archived") ?? 0,
-      draft: statsMap.get("Draft") ?? 0,
-      total: statsMap.get("total") ?? 0,
+      active,
+      archived,
+      draft,
+      total: active + draft + archived,
     };
   },
   returns: v.object({
@@ -820,22 +828,30 @@ export const searchPublished = query({
 export const countPublished = query({
   args: {
     categoryId: v.optional(v.id("productCategories")),
+    search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (args.categoryId) {
-      const products = await ctx.db
-        .query("products")
-        .withIndex("by_category_status", (q) =>
-          q.eq("categoryId", args.categoryId!).eq("status", "Active")
-        )
-        .take(1001);
-      return products.length;
+    let products = args.categoryId
+      ? await ctx.db
+          .query("products")
+          .withIndex("by_category_status", (q) =>
+            q.eq("categoryId", args.categoryId!).eq("status", "Active")
+          )
+          .collect()
+      : await ctx.db
+          .query("products")
+          .withIndex("by_status_order", (q) => q.eq("status", "Active"))
+          .collect();
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase().trim();
+      products = products.filter((product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower)
+      );
     }
-    const stats = await ctx.db
-      .query("productStats")
-      .withIndex("by_key", (q) => q.eq("key", "Active"))
-      .unique();
-    return stats?.count ?? 0;
+
+    return products.length;
   },
   returns: v.number(),
 });

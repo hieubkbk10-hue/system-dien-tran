@@ -286,10 +286,10 @@ function ProductsContent() {
   );
   const wishlistIdSet = useMemo(() => new Set<Id<'products'>>(wishlistProductIds ?? []), [wishlistProductIds]);
 
-  const totalCountRaw = useQuery(api.products.countPublished, {
+  const totalCount = useQuery(api.products.countPublished, {
     categoryId: activeCategory ?? undefined,
+    search: debouncedSearchQuery || undefined,
   });
-  const totalCount = isSearchActive ? products.length : totalCountRaw;
 
   const categoryMap = useMemo(() => {
     if (!categories) {return new Map<string, string>();}
@@ -419,6 +419,10 @@ function ProductsContent() {
   };
 
   const handleAddToCart = async (product: ProductCardProps['product']) => {
+    if (product.stock <= 0) {
+      return;
+    }
+
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -443,6 +447,10 @@ function ProductsContent() {
   };
 
   const handleBuyNow = (product: ProductCardProps['product']) => {
+    if (product.stock <= 0) {
+      return;
+    }
+
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -461,6 +469,10 @@ function ProductsContent() {
   };
 
   const handlePrimaryAction = (product: ProductCardProps['product']) => {
+    if (product.stock <= 0) {
+      return;
+    }
+
     if (saleMode === 'contact') {
       router.push('/contact');
       return;
@@ -891,6 +903,41 @@ interface ProductCardProps {
   formatPrice: (price: number) => string;
 }
 
+function ProductCardActions({ product, tokens, showAddToCartButton, showBuyNowButton, buyNowLabel, onAddToCart, onBuyNow }: { product: ProductCardProps['product']; tokens: ProductsListColors; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void }) {
+  if (!showAddToCartButton && !showBuyNowButton) {
+    return null;
+  }
+
+  const isOutOfStock = product.stock <= 0;
+  const secondaryLabel = isOutOfStock ? 'Hết hàng' : buyNowLabel;
+
+  return (
+    <div className="mt-3 grid grid-cols-1 gap-2 min-h-[76px]">
+      {showAddToCartButton && (
+        <button
+          className="w-full rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-55 disabled:cursor-not-allowed"
+          style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
+          onClick={(event) => { event.preventDefault(); onAddToCart(product); }}
+          disabled={isOutOfStock}
+        >
+          <ShoppingCart size={14} />
+          Thêm vào giỏ
+        </button>
+      )}
+      {showBuyNowButton && (
+        <button
+          className="w-full rounded-lg py-2 text-sm font-medium border transition-colors disabled:opacity-55 disabled:cursor-not-allowed"
+          style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
+          onClick={(event) => { event.preventDefault(); onBuyNow(product); }}
+          disabled={isOutOfStock}
+        >
+          {secondaryLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, formatPrice, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; formatPrice: (price: number) => string; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -898,7 +945,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
         <Link
           key={product._id}
           href={`/products/${product.slug}`}
-          className="group rounded-xl overflow-hidden border transition-colors"
+          className="group rounded-xl overflow-hidden border transition-colors flex flex-col h-full"
           style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
         >
           <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.filterChipBg }}>
@@ -926,7 +973,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
               </button>
             )}
           </div>
-          <div className="p-4">
+          <div className="p-4 flex flex-1 flex-col">
             <p className="text-xs mb-1" style={{ color: tokens.metaText }}>{categoryMap.get(product.categoryId) ?? 'Sản phẩm'}</p>
             <h3 className="font-medium line-clamp-2 transition-colors mb-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
             {showPrice && (
@@ -935,31 +982,21 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
                 {showSalePrice && product.salePrice && <span className="text-sm line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(product.price)}</span>}
               </div>
             )}
-            {showStock && product.stock <= 5 && product.stock > 0 && <p className="text-xs mt-2" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock} sản phẩm</p>}
-            {showStock && product.stock === 0 && <p className="text-xs mt-2" style={{ color: tokens.stockOutText }}>Hết hàng</p>}
-            {(showAddToCartButton || showBuyNowButton) && (
-              <div className="mt-3 space-y-2">
-                {showAddToCartButton && (
-                  <button
-                    className="w-full rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-                    style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
-                    onClick={(event) => { event.preventDefault(); onAddToCart(product); }}
-                  >
-                    <ShoppingCart size={14} />
-                    Thêm vào giỏ
-                  </button>
-                )}
-                {showBuyNowButton && (
-                  <button
-                    className="w-full rounded-lg py-2 text-sm font-medium border transition-colors"
-                    style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
-                    onClick={(event) => { event.preventDefault(); onBuyNow(product); }}
-                  >
-                    {buyNowLabel}
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="min-h-[20px] mt-2">
+              {showStock && product.stock <= 5 && product.stock > 0 && <p className="text-xs" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock} sản phẩm</p>}
+              {showStock && product.stock === 0 && <p className="text-xs" style={{ color: tokens.stockOutText }}>Hết hàng</p>}
+            </div>
+            <div className="mt-auto">
+              <ProductCardActions
+                product={product}
+                tokens={tokens}
+                showAddToCartButton={showAddToCartButton}
+                showBuyNowButton={showBuyNowButton}
+                buyNowLabel={buyNowLabel}
+                onAddToCart={onAddToCart}
+                onBuyNow={onBuyNow}
+              />
+            </div>
           </div>
         </Link>
       ))}
@@ -1021,20 +1058,22 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             <div className="hidden md:flex items-center gap-2">
               {showAddToCartButton && (
                 <button
-                  className="p-3 rounded-full border transition-colors"
+                  className="p-3 rounded-full border transition-colors disabled:opacity-55 disabled:cursor-not-allowed"
                   style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText, backgroundColor: tokens.cardBackground }}
                   onClick={(e) => { e.preventDefault(); onAddToCart(product); }}
+                  disabled={product.stock <= 0}
                 >
                   <ShoppingCart size={20} />
                 </button>
               )}
               {showBuyNowButton && (
                 <button
-                  className="px-3 py-2 rounded-full border text-xs font-medium transition-colors"
+                  className="px-3 py-2 rounded-full border text-xs font-medium transition-colors disabled:opacity-55 disabled:cursor-not-allowed"
                   style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
                   onClick={(e) => { e.preventDefault(); onBuyNow(product); }}
+                  disabled={product.stock <= 0}
                 >
-                  {buyNowLabel}
+                  {product.stock <= 0 ? 'Hết hàng' : buyNowLabel}
                 </button>
               )}
             </div>
@@ -1197,7 +1236,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                   <Link
                     key={product._id}
                     href={`/products/${product.slug}`}
-                    className="group rounded-xl overflow-hidden border transition-colors"
+                    className="group rounded-xl overflow-hidden border transition-colors flex flex-col h-full"
                     style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
                   >
                     <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.filterChipBg }}>
@@ -1225,34 +1264,24 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                         </button>
                       )}
                     </div>
-                    <div className="p-3">
+                    <div className="p-3 flex flex-1 flex-col">
                       <h3 className="font-medium text-sm line-clamp-2 transition-colors" style={{ color: tokens.bodyText }}>{product.name}</h3>
                       {showPrice && <span className="font-bold text-sm block mt-1" style={{ color: tokens.priceColor }}>{formatPrice(product.salePrice ?? product.price)}</span>}
-                      {showStock && product.stock <= 5 && product.stock > 0 && <span className="text-xs mt-2 block" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock} sản phẩm</span>}
-                      {showStock && product.stock === 0 && <span className="text-xs mt-2 block" style={{ color: tokens.stockOutText }}>Hết hàng</span>}
-                      {(showAddToCartButton || showBuyNowButton) && (
-                        <div className="mt-3 space-y-2">
-                          {showAddToCartButton && (
-                            <button
-                              className="w-full rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-                              style={{ backgroundColor: tokens.primaryActionBg, color: tokens.primaryActionText }}
-                            onClick={(event) => { event.preventDefault(); onAddToCart(product); }}
-                            >
-                              <ShoppingCart size={14} />
-                              Thêm vào giỏ
-                            </button>
-                          )}
-                          {showBuyNowButton && (
-                            <button
-                              className="w-full rounded-lg py-2 text-sm font-medium border transition-colors"
-                              style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
-                            onClick={(event) => { event.preventDefault(); onBuyNow(product); }}
-                            >
-                              {buyNowLabel}
-                            </button>
-                          )}
-                        </div>
-                      )}
+                      <div className="min-h-[20px] mt-2">
+                        {showStock && product.stock <= 5 && product.stock > 0 && <span className="text-xs block" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock} sản phẩm</span>}
+                        {showStock && product.stock === 0 && <span className="text-xs block" style={{ color: tokens.stockOutText }}>Hết hàng</span>}
+                      </div>
+                      <div className="mt-auto">
+                        <ProductCardActions
+                          product={product}
+                          tokens={tokens}
+                          showAddToCartButton={showAddToCartButton}
+                          showBuyNowButton={showBuyNowButton}
+                          buyNowLabel={buyNowLabel}
+                          onAddToCart={onAddToCart}
+                          onBuyNow={onBuyNow}
+                        />
+                      </div>
                     </div>
                   </Link>
                 ))}
