@@ -153,7 +153,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const productsRef = useRef(productsList ?? []);
 
   const seedBulk = useMutation(api.seedManager.seedBulk);
-  const seedModule = useMutation(api.seedManager.seedModule);
   const clearAll = useMutation(api.seedManager.clearAll);
   const clearModule = useMutation(api.seedManager.clearModule);
   const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
