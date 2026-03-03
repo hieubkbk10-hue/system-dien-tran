@@ -94,7 +94,6 @@ export function useContactSettings() {
   return {
     address: settingsMap.contact_address || '',
     email: settingsMap.contact_email || '',
-    hotline: settingsMap.contact_hotline || '',
     isLoading: false,
     phone: settingsMap.contact_phone || '',
   };
@@ -103,14 +102,20 @@ export function useContactSettings() {
 // Hook lấy social links settings
 export function useSocialLinks() {
   const settings = useQuery(api.settings.listByGroup, { group: 'social' });
+  const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   
-  if (settings === undefined) {
+  if (settings === undefined || contactSettings === undefined) {
     return { isLoading: true };
   }
   
   const settingsMap: Record<string, string> = {};
   settings.forEach(s => {
     settingsMap[s.key] = s.value as string;
+  });
+
+  const contactMap: Record<string, string> = {};
+  contactSettings.forEach(s => {
+    contactMap[s.key] = s.value as string;
   });
   
   return {
@@ -121,6 +126,6 @@ export function useSocialLinks() {
     tiktok: settingsMap.social_tiktok || '',
     twitter: settingsMap.social_twitter || '',
     youtube: settingsMap.social_youtube || '',
-    zalo: settingsMap.social_zalo || '',
+    zalo: contactMap.contact_zalo || '',
   };
 }

@@ -45,14 +45,12 @@ export default function StoresPage() {
                   <div className="text-sm text-slate-500">{contact.address}</div>
                 </div>
               </div>
-              {(contact.phone || contact.hotline) && (
+              {contact.phone && (
                 <div className="flex items-start gap-3">
                   <Phone size={18} className="text-slate-500 mt-0.5" />
                   <div>
                     <div className="text-sm font-medium text-slate-700">Liên hệ</div>
-                    <div className="text-sm text-slate-500">
-                      {[contact.phone, contact.hotline].filter(Boolean).join(' · ') || 'Chưa cập nhật'}
-                    </div>
+                    <div className="text-sm text-slate-500">{contact.phone}</div>
                   </div>
                 </div>
               )}
@@ -61,13 +59,13 @@ export default function StoresPage() {
             <div className="text-sm text-slate-500">Chưa cập nhật thông tin cửa hàng.</div>
           )}
 
-          {(contact.phone || contact.hotline) && (
+          {contact.phone && (
             <a
-              href={`tel:${contact.hotline || contact.phone}`}
+              href={`tel:${contact.phone}`}
               className="mt-6 inline-flex items-center justify-center h-11 px-5 rounded-xl text-white text-sm font-semibold"
               style={{ backgroundColor: brandColor }}
             >
-              Gọi hotline
+              Gọi điện thoại
             </a>
           )}
         </div>

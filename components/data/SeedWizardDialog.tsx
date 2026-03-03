@@ -158,11 +158,71 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
   const clearModule = useMutation(api.seedManager.clearModule);
   const clearProductVariantData = useMutation(api.seedManager.clearProductVariantData);
   const setModuleSetting = useMutation(api.admin.modules.setModuleSetting);
+  const createModuleFeature = useMutation(api.admin.modules.createModuleFeature);
   const toggleModuleFeature = useMutation(api.admin.modules.toggleModuleFeature);
   const setSettings = useMutation(api.settings.setMultiple);
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
   const updateProduct = useMutation(api.products.update);
   const ensureSuperAdmin = useMutation(api.auth.ensureSuperAdminCredentials);
+
+  const settingsFeatureDefaults: Record<string, { description: string; name: string; enabled: boolean }> = {
+    enableContact: {
+      description: 'Quản lý email, phone, địa chỉ',
+      enabled: true,
+      name: 'Thông tin liên hệ',
+    },
+    enableSEO: {
+      description: 'Meta title, description, keywords',
+      enabled: true,
+      name: 'SEO cơ bản',
+    },
+    enableSocial: {
+      description: 'Links Facebook, Instagram, Youtube...',
+      enabled: true,
+      name: 'Mạng xã hội',
+    },
+  };
+
+  const customerFeatureDefaults: Record<string, {
+    description: string;
+    name: string;
+    enabled: boolean;
+    linkedFieldKey?: string;
+  }> = {
+    enableLogin: {
+      description: 'Cho phép khách hàng tạo tài khoản và đăng nhập',
+      enabled: false,
+      linkedFieldKey: 'password',
+      name: 'Đăng nhập KH',
+    },
+  };
+
+  const ensureModuleFeature = async (
+    moduleKey: string,
+    featureKey: string,
+    payload: { description: string; name: string; enabled: boolean; linkedFieldKey?: string }
+  ) => {
+    const existing = await convex.query(api.admin.modules.getModuleFeature, { featureKey, moduleKey });
+    if (existing) {
+      return true;
+    }
+
+    try {
+      await createModuleFeature({
+        description: payload.description,
+        enabled: payload.enabled,
+        featureKey,
+        linkedFieldKey: payload.linkedFieldKey,
+        moduleKey,
+        name: payload.name,
+      });
+      return true;
+    } catch (error) {
+      console.error(`[SeedWizard] Không thể tạo feature ${featureKey} cho ${moduleKey}:`, error);
+      toast.error(`Không thể tạo feature ${featureKey} cho ${moduleKey}.`);
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (productsList) {
@@ -807,17 +867,30 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       });
 
       if (selectedModules.includes('customers') || customerLoginRequired) {
-        await toggleModuleFeature({
-          enabled: resolvedCustomerLoginEnabled,
-          featureKey: 'enableLogin',
-          moduleKey: 'customers',
-        });
+        const customerFeatureReady = await ensureModuleFeature(
+          'customers',
+          'enableLogin',
+          customerFeatureDefaults.enableLogin
+        );
+        if (customerFeatureReady) {
+          await toggleModuleFeature({
+            enabled: resolvedCustomerLoginEnabled,
+            featureKey: 'enableLogin',
+            moduleKey: 'customers',
+          });
+        }
       }
 
-      await toggleModuleFeature({ enabled: true, featureKey: 'enableContact', moduleKey: 'settings' });
-      await toggleModuleFeature({ enabled: true, featureKey: 'enableSEO', moduleKey: 'settings' });
-      await toggleModuleFeature({ enabled: true, featureKey: 'enableSocial', moduleKey: 'settings' });
-      await toggleModuleFeature({ enabled: false, featureKey: 'enableMail', moduleKey: 'settings' });
+      const settingsFeaturesToEnable = ['enableContact', 'enableSEO', 'enableSocial'];
+      for (const featureKey of settingsFeaturesToEnable) {
+        const payload = settingsFeatureDefaults[featureKey];
+        const settingsFeatureReady = payload
+          ? await ensureModuleFeature('settings', featureKey, payload)
+          : false;
+        if (settingsFeatureReady) {
+          await toggleModuleFeature({ enabled: true, featureKey, moduleKey: 'settings' });
+        }
+      }
 
       const experienceSettings = Object.entries(experiencePreset.settings)
         .filter(([key]) => {

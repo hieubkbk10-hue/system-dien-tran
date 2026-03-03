@@ -92,6 +92,11 @@ const REMOVED_SEO_KEYS = new Set([
   'seo_hreflang',
 ]);
 
+const REMOVED_CONTACT_KEYS = new Set([
+  'contact_hotline',
+  'social_zalo',
+]);
+
 const BUSINESS_TYPE_OPTIONS = [
   'LocalBusiness',
   'Store',
@@ -118,6 +123,7 @@ function SettingsContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSecondaryAuto, setIsSecondaryAuto] = useState(true);
   const [hasCleanedSeoFields, setHasCleanedSeoFields] = useState(false);
+  const [hasCleanedContactFields, setHasCleanedContactFields] = useState(false);
 
 
   // Queries
@@ -161,6 +167,7 @@ function SettingsContent() {
       if (field.linkedFeature && ! enabledFeatures[field.linkedFeature]) {return;}
 
       if (REMOVED_SEO_KEYS.has(field.fieldKey)) {return;}
+      if (REMOVED_CONTACT_KEYS.has(field.fieldKey)) {return;}
 
       // Skip lat/lng fields (managed by MapLocationPicker)
       if (field.fieldKey === 'contact_lat' || field.fieldKey === 'contact_lng') {return;}
@@ -210,6 +217,17 @@ function SettingsContent() {
     void removeMultiple({ keys: Array.from(REMOVED_SEO_KEYS) })
       .finally(() => setHasCleanedSeoFields(true));
   }, [settingsData, hasCleanedSeoFields, removeMultiple]);
+
+  useEffect(() => {
+    if (!settingsData || hasCleanedContactFields) {return;}
+    const hasRemoved = settingsData.some(setting => REMOVED_CONTACT_KEYS.has(setting.key));
+    if (!hasRemoved) {
+      setHasCleanedContactFields(true);
+      return;
+    }
+    void removeMultiple({ keys: Array.from(REMOVED_CONTACT_KEYS) })
+      .finally(() => setHasCleanedContactFields(true));
+  }, [settingsData, hasCleanedContactFields, removeMultiple]);
 
   useEffect(() => {
     if (isSecondaryModeSingle && !isSecondaryAuto) {
@@ -266,6 +284,7 @@ function SettingsContent() {
           if (!f.enabled) {return false;}
           if (hasPrimaryField && f.fieldKey === 'site_brand_color') {return false;}
           if (REMOVED_SEO_KEYS.has(f.fieldKey)) {return false;}
+          if (REMOVED_CONTACT_KEYS.has(f.fieldKey)) {return false;}
           return !f.linkedFeature || enabledFeatures[f.linkedFeature];
         })
         .map(field => {

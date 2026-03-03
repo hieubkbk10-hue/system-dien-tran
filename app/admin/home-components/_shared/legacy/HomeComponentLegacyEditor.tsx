@@ -106,7 +106,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const socialInstagram = useQuery(api.settings.getByKey, { key: 'social_instagram' });
   const socialYoutube = useQuery(api.settings.getByKey, { key: 'social_youtube' });
   const socialTiktok = useQuery(api.settings.getByKey, { key: 'social_tiktok' });
-  const socialZalo = useQuery(api.settings.getByKey, { key: 'social_zalo' });
+  const socialZalo = useQuery(api.settings.getByKey, { key: 'contact_zalo' });
   
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);

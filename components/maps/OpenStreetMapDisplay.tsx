@@ -72,7 +72,7 @@ export default function OpenStreetMapDisplay({
   }
 
   return (
-    <div style={{ height }} className="relative rounded-xl overflow-hidden border">
+    <div style={{ height }} className="relative z-0 rounded-xl overflow-hidden border">
       <MapContainer
         center={[location.lat, location.lng]}
         zoom={zoom}

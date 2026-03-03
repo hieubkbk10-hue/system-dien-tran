@@ -149,7 +149,6 @@ function ContactInfoCard({
   address,
   email,
   phone,
-  hotline,
   showSocialLinks,
   socialLinks,
 }: {
@@ -158,13 +157,11 @@ function ContactInfoCard({
   address: string;
   email: string;
   phone: string;
-  hotline: string;
   showSocialLinks: boolean;
   socialLinks: SocialLinkItem[];
 }) {
   const infoItems = [
     { label: 'Điện thoại', value: phone, icon: Phone },
-    { label: 'Hotline', value: hotline, icon: Phone },
     { label: 'Email', value: email, icon: Mail },
     { label: 'Địa chỉ', value: address, icon: MapPin },
   ].filter((item) => item.value);
@@ -217,7 +214,6 @@ function CorporateSidebar({
   address,
   email,
   phone,
-  hotline,
   showSocialLinks,
   socialLinks,
   brandColor,
@@ -226,7 +222,6 @@ function CorporateSidebar({
   address: string;
   email: string;
   phone: string;
-  hotline: string;
   showSocialLinks: boolean;
   socialLinks: SocialLinkItem[];
   brandColor: string;
@@ -236,7 +231,6 @@ function CorporateSidebar({
   const glowColor = withAlpha(brandColor, 0.18);
   const infoItems = [
     { label: 'Điện thoại', value: phone, note: 'Thứ 2 - Thứ 7, 8:00 - 17:00', icon: Phone },
-    { label: 'Hotline', value: hotline, note: '', icon: Phone },
     { label: 'Email', value: email, note: 'Phản hồi trong vòng 24 giờ', icon: Mail },
     { label: 'Văn phòng', value: address, note: '', icon: MapPin },
   ].filter((item) => item.value);
@@ -335,7 +329,6 @@ export default function ContactPage() {
               address={contactData.address}
               email={contactData.email}
               phone={contactData.phone}
-              hotline={contactData.hotline}
               showSocialLinks={config.showSocialLinks}
               socialLinks={socialLinks}
               brandColor={brandColor}
@@ -361,7 +354,6 @@ export default function ContactPage() {
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
-                hotline={contactData.hotline}
                 showSocialLinks={config.showSocialLinks}
                 socialLinks={socialLinks}
               />
@@ -383,7 +375,6 @@ export default function ContactPage() {
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
-                hotline={contactData.hotline}
                 showSocialLinks={config.showSocialLinks}
                 socialLinks={socialLinks}
               />

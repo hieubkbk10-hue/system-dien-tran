@@ -2050,7 +2050,6 @@ export const seedSettingsModule = mutation({
         { group: "contact", key: "contact_email", value: "contact@vietadmin.com" },
         { group: "contact", key: "contact_phone", value: "0901234567" },
         { group: "contact", key: "contact_address", value: "123 Nguyễn Huệ, Quận 1, TP.HCM" },
-        { group: "contact", key: "contact_hotline", value: "1900 1234" },
         { group: "contact", key: "contact_zalo", value: "0901234567" },
         { group: "contact", key: "contact_messenger", value: "" },
         
@@ -2065,7 +2064,6 @@ export const seedSettingsModule = mutation({
         { group: "social", key: "social_instagram", value: "" },
         { group: "social", key: "social_youtube", value: "" },
         { group: "social", key: "social_tiktok", value: "" },
-        { group: "social", key: "social_zalo", value: "" },
         
         // Mail settings
         { group: "mail", key: "mail_from_name", value: "VietAdmin" },
@@ -2178,7 +2176,6 @@ export const seedSettingsModule = mutation({
         { enabled: true, fieldKey: "contact_email", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Email", order: 6, required: false, type: "email" as const },
         { enabled: true, fieldKey: "contact_phone", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Số điện thoại", order: 7, required: false, type: "phone" as const },
         { enabled: true, fieldKey: "contact_address", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Địa chỉ", order: 8, required: false, type: "textarea" as const },
-        { enabled: true, fieldKey: "contact_hotline", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Hotline", order: 9, required: false, type: "text" as const },
         { enabled: true, fieldKey: "contact_zalo", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Zalo", order: 10, required: false, type: "text" as const },
         { enabled: true, fieldKey: "contact_messenger", group: "contact", isSystem: false, linkedFeature: "enableContact", moduleKey: "settings", name: "Facebook Messenger", order: 11, required: false, type: "text" as const },
         // SEO fields
@@ -2191,7 +2188,6 @@ export const seedSettingsModule = mutation({
         { enabled: true, fieldKey: "social_instagram", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "Instagram", order: 15, required: false, type: "text" as const },
         { enabled: true, fieldKey: "social_youtube", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "Youtube", order: 16, required: false, type: "text" as const },
         { enabled: false, fieldKey: "social_tiktok", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "TikTok", order: 17, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "social_zalo", group: "social", isSystem: false, linkedFeature: "enableSocial", moduleKey: "settings", name: "Zalo", order: 18, required: false, type: "text" as const },
         // Mail fields
       ];
       for (const field of fields) {
