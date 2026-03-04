@@ -24,6 +24,8 @@ const SOCIAL_PLATFORMS = [
   { icon: 'youtube', key: 'youtube', label: 'Youtube' },
   { icon: 'tiktok', key: 'tiktok', label: 'TikTok' },
   { icon: 'zalo', key: 'zalo', label: 'Zalo' },
+  { icon: 'x', key: 'x', label: 'X (Twitter)' },
+  { icon: 'pinterest', key: 'pinterest', label: 'Pinterest' },
 ];
 
 const getNextId = (items: Array<{ id?: number | string }>) => {
