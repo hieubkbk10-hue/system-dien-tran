@@ -305,32 +305,32 @@ export function DynamicFooter() {
           <div className="w-16 h-px" style={{ backgroundColor: colors.dividerGradient }}></div>
 
           {/* Socials */}
-          {config.showSocialLinks !== false && (
-            <div className="flex gap-4">
-              {socials.map((s, idx) => {
-                const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
+          <div className="flex items-center gap-3">
+            {config.showSocialLinks !== false && (
+              <div className="flex gap-4">
+                {socials.map((s, idx) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
 
-                return (
-                  <a 
-                    key={s.id || `social-${idx}`} 
-                    href={s.url || '#'} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
-                  >
-                    <SocialIcon platform={s.platform} size={16} />
-                  </a>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex flex-col items-center gap-2">
+                  return (
+                    <a 
+                      key={s.id || `social-${idx}`} 
+                      href={s.url || '#'} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={16} />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
             {renderBctLogo('h-8')}
-            <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
-              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-            </div>
+          </div>
+
+          <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
+            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
           </div>
         </div>
       </footer>
@@ -437,29 +437,29 @@ export function DynamicFooter() {
                 {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
               </span>
             </div>
-            {renderBctLogo('h-7')}
+            <div className="flex items-center gap-3">
+              {config.showSocialLinks !== false && (
+                <div className="flex gap-2">
+                  {socials.map((s, idx) => {
+                    const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
 
-            {/* Right: Socials only */}
-            {config.showSocialLinks !== false && (
-              <div className="flex gap-2">
-                {socials.map((s, idx) => {
-                  const socialStyles = resolveSocialStyles(s.platform, colors.socialBg, colors.socialText);
-
-                  return (
-                    <a 
-                      key={s.id || `social-${idx}`} 
-                      href={s.url || '#'} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
-                      style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
-                    >
-                      <SocialIcon platform={s.platform} size={14} />
-                    </a>
-                  );
-                })}
-              </div>
-            )}
+                    return (
+                      <a 
+                        key={s.id || `social-${idx}`} 
+                        href={s.url || '#'} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-5 w-5 flex items-center justify-center rounded-full transition-colors"
+                        style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
+                      >
+                        <SocialIcon platform={s.platform} size={14} />
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+              {renderBctLogo('h-7')}
+            </div>
           </div>
         </div>
       </footer>
@@ -520,37 +520,36 @@ export function DynamicFooter() {
           <div className="w-16 h-px mx-auto mb-5" style={{ backgroundColor: colors.dividerGradient }}></div>
 
           {/* Socials Center */}
-          {config.showSocialLinks !== false && (
-            <div className="flex justify-center gap-3 mb-4">
-              {socials.map((s, idx) => {
-                const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
-                const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
-                  ? socialStyles.bg
-                  : colors.centeredSocialBorder;
+          <div className="flex justify-center items-center gap-4 mb-4">
+            {config.showSocialLinks !== false && (
+              <div className="flex gap-3">
+                {socials.map((s, idx) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
+                  const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
+                    ? socialStyles.bg
+                    : colors.centeredSocialBorder;
 
-                return (
-                  <a 
-                    key={s.id || `social-${idx}`} 
-                    href={s.url || '#'} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
-                    style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
-                  >
-                    <SocialIcon platform={s.platform} size={16} />
-                  </a>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Copyright */}
-          <div className="flex flex-col items-center gap-2">
+                  return (
+                    <a 
+                      key={s.id || `social-${idx}`} 
+                      href={s.url || '#'} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
+                      style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={16} />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
             {renderBctLogo('h-7')}
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-            </p>
           </div>
+
+          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+          </p>
         </div>
       </footer>
     );
