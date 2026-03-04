@@ -823,3 +823,35 @@ export const removeModuleSetting = mutation({
   },
   returns: v.null(),
 });
+
+export const resetModuleConfig = mutation({
+  args: { moduleKey: v.string() },
+  handler: async (ctx, args) => {
+    const fields = await ctx.db
+      .query("moduleFields")
+      .withIndex("by_module", (q) => q.eq("moduleKey", args.moduleKey))
+      .collect();
+    for (const field of fields) {
+      await ctx.db.delete(field._id);
+    }
+
+    const features = await ctx.db
+      .query("moduleFeatures")
+      .withIndex("by_module", (q) => q.eq("moduleKey", args.moduleKey))
+      .collect();
+    for (const feature of features) {
+      await ctx.db.delete(feature._id);
+    }
+
+    const settings = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module", (q) => q.eq("moduleKey", args.moduleKey))
+      .collect();
+    for (const setting of settings) {
+      await ctx.db.delete(setting._id);
+    }
+
+    return null;
+  },
+  returns: v.null(),
+});

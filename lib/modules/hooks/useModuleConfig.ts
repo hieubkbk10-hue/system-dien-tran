@@ -27,6 +27,7 @@ export function useModuleConfig(config: ModuleDefinition) {
   const toggleFeature = useMutation(api.admin.modules.toggleModuleFeature);
   const updateField = useMutation(api.admin.modules.updateModuleField);
   const setSetting = useMutation(api.admin.modules.setModuleSetting);
+  const resetModuleConfig = useMutation(api.admin.modules.resetModuleConfig);
   const seedAllModulesConfig = useAction(api.seed.seedAllModulesConfig);
    
    // ============ LOCAL STATE ============
@@ -35,8 +36,7 @@ export function useModuleConfig(config: ModuleDefinition) {
    const [localCategoryFields, setLocalCategoryFields] = useState<FieldConfig[]>([]);
    const [localSettings, setLocalSettings] = useState<SettingsState>({});
   const [isSaving, setIsSaving] = useState(false);
-  const hasMigratedPriorityRef = useRef(false);
-  const hasMigratedPrioritySystemRef = useRef(false);
+  const hasMigratedOrphanRef = useRef(false);
   const hasTriggeredAutoHealRef = useRef(false);
    
    const isLoading = moduleData === undefined || 
@@ -100,52 +100,30 @@ export function useModuleConfig(config: ModuleDefinition) {
    }, [fieldsData]);
 
   useEffect(() => {
-    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedPriorityRef.current) {
+    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedOrphanRef.current) {
       return;
     }
-    const priorityField = fieldsData.find(field => field.fieldKey === 'priority' && field.required);
-    if (!priorityField) {
+    if (isModuleDisabled) {
       return;
     }
-    hasMigratedPriorityRef.current = true;
-    const migratePriority = async () => {
+    const validFields = new Set(['title', 'status', 'dueDate', 'customerId', 'productId']);
+    const hasOrphan = fieldsData.some(field => !validFields.has(field.fieldKey));
+    if (!hasOrphan) {
+      return;
+    }
+    hasMigratedOrphanRef.current = true;
+    const run = async () => {
       try {
-        await updateField({ id: priorityField._id, required: false });
-        setLocalFields(prev => prev.map(field => (
-          field.key === 'priority' ? { ...field, required: false } : field
-        )));
-        toast.success('Đã cập nhật trường Ưu tiên thành tùy chọn.');
+        await resetModuleConfig({ moduleKey: 'calendar' });
+        hasMigratedOrphanRef.current = false;
       } catch (error) {
-        hasMigratedPriorityRef.current = false;
-        toast.error(error instanceof Error ? error.message : 'Cập nhật trường Ưu tiên thất bại.');
+        hasMigratedOrphanRef.current = false;
+        console.error('[ModuleConfig] Auto-heal calendar orphan thất bại', error);
       }
     };
-    void migratePriority();
-  }, [moduleKey, fieldsData, updateField]);
+    void run();
+  }, [moduleKey, fieldsData, isModuleDisabled, resetModuleConfig]);
 
-  useEffect(() => {
-    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedPrioritySystemRef.current) {
-      return;
-    }
-    const priorityField = fieldsData.find(field => field.fieldKey === 'priority' && field.isSystem);
-    if (!priorityField) {
-      return;
-    }
-    hasMigratedPrioritySystemRef.current = true;
-    const migratePrioritySystem = async () => {
-      try {
-        await updateField({ id: priorityField._id, isSystem: false });
-        setLocalFields(prev => prev.map(field => (
-          field.key === 'priority' ? { ...field, isSystem: false } : field
-        )));
-        toast.success('Đã cập nhật trường Ưu tiên thành không hệ thống.');
-      } catch (error) {
-        hasMigratedPrioritySystemRef.current = false;
-        toast.error(error instanceof Error ? error.message : 'Cập nhật trường Ưu tiên thất bại.');
-      }
-    };
-    void migratePrioritySystem();
-  }, [moduleKey, fieldsData, updateField]);
    
    useEffect(() => {
      if (categoryFieldsData) {

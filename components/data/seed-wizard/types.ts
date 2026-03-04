@@ -55,14 +55,6 @@ export type WizardState = {
   adminConfig: AdminConfig;
   adminPermissionMode: AdminPermissionMode;
   businessInfo: BusinessInfo;
-  calendarFeatures: {
-    enableAssignee: boolean;
-    enableListView: boolean;
-    enableMonthView: boolean;
-    enablePriority: boolean;
-    enableRecurring: boolean;
-    enableReminder: boolean;
-  };
   customerLoginEnabled: boolean;
   customerLoginManuallySet: boolean;
   clearBeforeSeed: boolean;
