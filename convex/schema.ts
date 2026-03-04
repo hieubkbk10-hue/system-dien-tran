@@ -591,8 +591,9 @@ export default defineSchema({
     startAt: v.optional(v.number()),
     status: v.union(
       v.literal("Todo"),
-      v.literal("InProgress"),
-      v.literal("Done")
+      v.literal("Contacted"),
+      v.literal("Renewed"),
+      v.literal("Churned")
     ),
     timezone: v.string(),
     title: v.string(),

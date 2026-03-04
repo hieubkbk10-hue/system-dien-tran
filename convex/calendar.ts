@@ -4,8 +4,9 @@ import type { Doc } from './_generated/dataModel';
 
 const calendarStatus = v.union(
   v.literal('Todo'),
-  v.literal('InProgress'),
-  v.literal('Done')
+  v.literal('Contacted'),
+  v.literal('Renewed'),
+  v.literal('Churned')
 );
 
 const calendarPriority = v.union(
@@ -626,7 +627,7 @@ export const listUpcomingTasks = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 20, 100);
     const horizon = args.now + (args.horizonHours ?? 24) * 60 * 60 * 1000;
-    const statuses: Array<Doc<'calendarTasks'>['status']> = ['Todo', 'InProgress'];
+    const statuses: Array<Doc<'calendarTasks'>['status']> = ['Todo', 'Contacted'];
 
     const overdue: Doc<'calendarTasks'>[] = [];
     const dueSoon: Doc<'calendarTasks'>[] = [];
@@ -691,7 +692,7 @@ export const createCalendarTask = mutation({
     return ctx.db.insert('calendarTasks', {
       allDay: args.allDay,
       assigneeId: args.assigneeId,
-      completedAt: args.status === 'Done' ? now : undefined,
+      completedAt: args.status === 'Renewed' ? now : undefined,
       createdAt: now,
       createdBy: args.createdBy,
       customerId: args.customerId,
@@ -751,7 +752,7 @@ export const updateCalendarTask = mutation({
     await ctx.db.patch(args.id, {
       allDay: args.allDay ?? task.allDay,
       assigneeId: args.assigneeId ?? task.assigneeId,
-      completedAt: nextStatus === 'Done' ? Date.now() : undefined,
+      completedAt: nextStatus === 'Renewed' ? Date.now() : undefined,
       customerId: args.customerId ?? task.customerId,
       description: args.description ?? task.description,
       dueDate: nextDueDate,
@@ -840,14 +841,40 @@ export const deleteCalendarTask = mutation({
   returns: v.null(),
 });
 
-export const markCalendarTaskDone = mutation({
+export const markCalendarTaskRenewed = mutation({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.id);
     if (!task) {
       throw new Error('Task không tồn tại');
     }
-    await ctx.db.patch(args.id, { status: 'Done', completedAt: Date.now(), updatedAt: Date.now() });
+    await ctx.db.patch(args.id, { status: 'Renewed', completedAt: Date.now(), updatedAt: Date.now() });
+    return null;
+  },
+  returns: v.null(),
+});
+
+export const markCalendarTaskContacted = mutation({
+  args: { id: v.id('calendarTasks') },
+  handler: async (ctx, args) => {
+    const task = await ctx.db.get(args.id);
+    if (!task) {
+      throw new Error('Task không tồn tại');
+    }
+    await ctx.db.patch(args.id, { status: 'Contacted', updatedAt: Date.now() });
+    return null;
+  },
+  returns: v.null(),
+});
+
+export const markCalendarTaskChurned = mutation({
+  args: { id: v.id('calendarTasks') },
+  handler: async (ctx, args) => {
+    const task = await ctx.db.get(args.id);
+    if (!task) {
+      throw new Error('Task không tồn tại');
+    }
+    await ctx.db.patch(args.id, { status: 'Churned', updatedAt: Date.now() });
     return null;
   },
   returns: v.null(),

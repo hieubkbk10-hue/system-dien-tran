@@ -33,7 +33,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
   generateFake(): CalendarTaskData {
     const createdBy = this.randomElement(this.users);
     const assignee = this.randomBoolean(0.6) ? this.randomElement(this.users) : undefined;
-    const statusPool: CalendarTaskData['status'][] = ['Todo', 'InProgress', 'Done'];
+    const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Renewed', 'Churned'];
     const priorityPool: CalendarTaskData['priority'][] = ['LOW', 'MEDIUM', 'HIGH'];
     const status = this.randomElement(statusPool);
     const priority = this.randomElement(priorityPool);
@@ -56,7 +56,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
     return {
       allDay,
       assigneeId: assignee?._id,
-      completedAt: status === 'Done' ? Date.now() : undefined,
+      completedAt: status === 'Renewed' ? Date.now() : undefined,
       createdAt: Date.now(),
       createdBy: createdBy._id,
       description: this.randomBoolean(0.6) ? this.faker.lorem.sentences({ min: 1, max: 2 }) : undefined,
@@ -87,13 +87,9 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
       .first();
     if (!existingFeatures) {
       const features = [
-        { description: 'Phân công người phụ trách', enabled: true, featureKey: 'enableAssignee', linkedFieldKey: 'assigneeId', moduleKey: 'calendar', name: 'Phân công' },
-        { description: 'Thiết lập nhắc việc trước hạn', enabled: true, featureKey: 'enableReminder', linkedFieldKey: 'reminderAt', moduleKey: 'calendar', name: 'Nhắc việc' },
-        { description: 'Thiết lập mức ưu tiên', enabled: true, featureKey: 'enablePriority', linkedFieldKey: 'priority', moduleKey: 'calendar', name: 'Ưu tiên' },
+        { description: 'Hiển thị dạng danh sách', enabled: true, featureKey: 'enableListView', moduleKey: 'calendar', name: 'List View' },
         { description: 'Liên kết khách hàng', enabled: true, featureKey: 'enableCustomerLink', linkedFieldKey: 'customerId', moduleKey: 'calendar', name: 'Liên kết khách hàng' },
         { description: 'Liên kết sản phẩm AI', enabled: true, featureKey: 'enableProductLink', linkedFieldKey: 'productId', moduleKey: 'calendar', name: 'Liên kết sản phẩm AI' },
-        { description: 'Hiển thị dạng danh sách', enabled: true, featureKey: 'enableListView', moduleKey: 'calendar', name: 'List View' },
-        { description: 'Hiển thị dạng month view', enabled: true, featureKey: 'enableMonthView', moduleKey: 'calendar', name: 'Month View' },
       ];
       await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
     }
@@ -105,17 +101,10 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
     if (!existingFields) {
       const fields = [
         { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'calendar', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'description', isSystem: false, moduleKey: 'calendar', name: 'Mô tả', order: 1, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'calendar', name: 'Trạng thái', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'priority', isSystem: false, linkedFeature: 'enablePriority', moduleKey: 'calendar', name: 'Ưu tiên', order: 3, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'startAt', isSystem: false, moduleKey: 'calendar', name: 'Bắt đầu', order: 4, required: false, type: 'date' as const },
-        { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'calendar', name: 'Hạn xử lý', order: 5, required: false, type: 'date' as const },
-        { enabled: true, fieldKey: 'allDay', isSystem: false, moduleKey: 'calendar', name: 'Cả ngày', order: 6, required: false, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'assigneeId', isSystem: false, linkedFeature: 'enableAssignee', moduleKey: 'calendar', name: 'Người phụ trách', order: 7, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'reminderAt', isSystem: false, linkedFeature: 'enableReminder', moduleKey: 'calendar', name: 'Nhắc việc', order: 8, required: false, type: 'date' as const },
-        { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', moduleKey: 'calendar', name: 'Khách hàng', order: 9, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'calendar', name: 'Sản phẩm AI', order: 10, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'timezone', isSystem: false, moduleKey: 'calendar', name: 'Múi giờ', order: 11, required: false, type: 'text' as const },
+        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'calendar', name: 'Trạng thái', order: 1, required: true, type: 'select' as const },
+        { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'calendar', name: 'Ngày nhắc', order: 2, required: true, type: 'date' as const },
+        { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', moduleKey: 'calendar', name: 'Khách hàng', order: 3, required: true, type: 'select' as const },
+        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'calendar', name: 'Sản phẩm AI', order: 4, required: true, type: 'select' as const },
       ];
       await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
     }
@@ -128,9 +117,6 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
       const settings = [
         { moduleKey: 'calendar', settingKey: 'calendarPerPage', value: 20 },
         { moduleKey: 'calendar', settingKey: 'defaultStatus', value: 'Todo' },
-        { moduleKey: 'calendar', settingKey: 'defaultPriority', value: 'MEDIUM' },
-        { moduleKey: 'calendar', settingKey: 'upcomingWindowPreset', value: '24h' },
-        { moduleKey: 'calendar', settingKey: 'timezoneDefault', value: 'Asia/Ho_Chi_Minh' },
         { moduleKey: 'calendar', settingKey: 'weekStartsOn', value: 'monday' },
       ];
       await Promise.all(settings.map(setting => this.ctx.db.insert('moduleSettings', setting)));
