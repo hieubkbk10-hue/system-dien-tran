@@ -32,46 +32,25 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
 
   generateFake(): CalendarTaskData {
     const createdBy = this.randomElement(this.users);
-    const assignee = this.randomBoolean(0.6) ? this.randomElement(this.users) : undefined;
     const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Renewed', 'Churned'];
-    const priorityPool: CalendarTaskData['priority'][] = ['LOW', 'MEDIUM', 'HIGH'];
     const status = this.randomElement(statusPool);
-    const priority = this.randomElement(priorityPool);
-    const baseDayOffset = this.randomInt(-5, 20);
-    const startOfDay = Date.now() + baseDayOffset * 24 * 60 * 60 * 1000;
-    const allDay = this.randomBoolean(0.35);
-    const startAt = allDay
-      ? new Date(new Date(startOfDay).toDateString()).getTime()
-      : startOfDay + this.randomInt(8, 17) * 60 * 60 * 1000;
-    const dueDate = startAt + this.randomInt(1, 6) * 60 * 60 * 1000;
-    const useRecurring = this.randomBoolean(0.25);
-    const rrule = useRecurring
-      ? this.randomElement([
-        'FREQ=DAILY;INTERVAL=1',
-        'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,FR',
-        'FREQ=MONTHLY;INTERVAL=1;BYDAY=1MO',
-      ])
-      : undefined;
+    const daysOffset = this.randomInt(-10, 60);
+    const dueDate = Date.now() + daysOffset * 24 * 60 * 60 * 1000;
+    const customerNames = ['Nguyễn Văn An', 'Trần Thị Bình', 'Lê Minh Cường', 'Phạm Thu Dung', 'Hoàng Văn Em'];
+    const productNames = ['ChatGPT Plus', 'Claude Pro', 'Gemini Advanced', 'Copilot Pro', 'Midjourney'];
+    const customerName = this.randomElement(customerNames);
+    const productName = this.randomElement(productNames);
 
     return {
-      allDay,
-      assigneeId: assignee?._id,
+      allDay: true,
       completedAt: status === 'Renewed' ? Date.now() : undefined,
       createdAt: Date.now(),
       createdBy: createdBy._id,
-      description: this.randomBoolean(0.6) ? this.faker.lorem.sentences({ min: 1, max: 2 }) : undefined,
       dueDate,
-      exdates: undefined,
-      notes: this.randomBoolean(0.3) ? this.faker.lorem.sentence({ min: 6, max: 12 }) : undefined,
       order: Date.now(),
-      priority,
-      recurrenceEndAt: rrule ? Date.now() + 90 * 24 * 60 * 60 * 1000 : undefined,
-      reminderAt: dueDate - 60 * 60 * 1000,
-      rrule,
-      startAt,
       status,
       timezone: 'Asia/Ho_Chi_Minh',
-      title: this.faker.lorem.sentence({ min: 3, max: 6 }),
+      title: `Gia hạn ${productName} — ${customerName}`,
       updatedAt: Date.now(),
     };
   }
@@ -89,7 +68,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
       const features = [
         { description: 'Hiển thị dạng danh sách', enabled: true, featureKey: 'enableListView', moduleKey: 'calendar', name: 'List View' },
         { description: 'Liên kết khách hàng', enabled: true, featureKey: 'enableCustomerLink', linkedFieldKey: 'customerId', moduleKey: 'calendar', name: 'Liên kết khách hàng' },
-        { description: 'Liên kết sản phẩm AI', enabled: true, featureKey: 'enableProductLink', linkedFieldKey: 'productId', moduleKey: 'calendar', name: 'Liên kết sản phẩm AI' },
+        { description: 'Liên kết sản phẩm', enabled: true, featureKey: 'enableProductLink', linkedFieldKey: 'productId', moduleKey: 'calendar', name: 'Liên kết sản phẩm' },
       ];
       await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
     }
@@ -104,7 +83,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'calendar', name: 'Trạng thái', order: 1, required: true, type: 'select' as const },
         { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'calendar', name: 'Ngày nhắc', order: 2, required: true, type: 'date' as const },
         { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', moduleKey: 'calendar', name: 'Khách hàng', order: 3, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'calendar', name: 'Sản phẩm AI', order: 4, required: true, type: 'select' as const },
+        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'calendar', name: 'Sản phẩm', order: 4, required: true, type: 'select' as const },
       ];
       await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
     }
@@ -118,6 +97,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { moduleKey: 'calendar', settingKey: 'calendarPerPage', value: 20 },
         { moduleKey: 'calendar', settingKey: 'defaultStatus', value: 'Todo' },
         { moduleKey: 'calendar', settingKey: 'weekStartsOn', value: 'monday' },
+        { moduleKey: 'calendar', settingKey: 'warningDays', value: 7 },
       ];
       await Promise.all(settings.map(setting => this.ctx.db.insert('moduleSettings', setting)));
     }

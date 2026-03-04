@@ -22,7 +22,6 @@ type CalendarRangeItem = {
   dueDate?: number;
   productId?: Id<'products'>;
   sourceId: Id<'calendarTasks'>;
-  startAt?: number;
   status: CalendarStatus;
   title: string;
 };
@@ -55,17 +54,8 @@ function endOfDay(date: Date) {
   return next;
 }
 
-function getWeekStart(date: Date, weekStartsOn: 'monday' | 'sunday') {
-  const day = date.getDay();
-  const weekStartIndex = weekStartsOn === 'monday' ? 1 : 0;
-  const diff = (day - weekStartIndex + 7) % 7;
-  const start = new Date(date);
-  start.setDate(date.getDate() - diff);
-  return startOfDay(start);
-}
-
-function getEffectiveDueDate(task: { dueDate?: number; startAt?: number }) {
-  return task.dueDate ?? task.startAt ?? 0;
+function getEffectiveDueDate(task: { dueDate?: number }) {
+  return task.dueDate ?? 0;
 }
 
 export default function CalendarPage() {
@@ -89,9 +79,9 @@ function CalendarWorkspace() {
     return Math.min(Math.max(raw ?? 20, 10), 100);
   }, [settingsData]);
 
-  const weekStartsOn = useMemo(() => {
-    const raw = settingsData?.find(setting => setting.settingKey === 'weekStartsOn')?.value as string | undefined;
-    return raw === 'sunday' ? 'sunday' : 'monday';
+  const warningDays = useMemo(() => {
+    const raw = settingsData?.find(setting => setting.settingKey === 'warningDays')?.value as number | undefined;
+    return Math.max(raw ?? 7, 1);
   }, [settingsData]);
 
   const [view, setView] = useState<CalendarView>('board');
@@ -118,13 +108,7 @@ function CalendarWorkspace() {
   const nowDate = useMemo(() => new Date(queryNow), [queryNow]);
   const todayStart = useMemo(() => startOfDay(nowDate).getTime(), [nowDate]);
   const todayEnd = useMemo(() => endOfDay(nowDate).getTime(), [nowDate]);
-  const weekStart = useMemo(() => getWeekStart(nowDate, weekStartsOn), [nowDate, weekStartsOn]);
-  const weekEnd = useMemo(() => {
-    const end = new Date(weekStart);
-    end.setDate(end.getDate() + 6);
-    return endOfDay(end);
-  }, [weekStart]);
-  const monthStart = useMemo(() => new Date(nowDate.getFullYear(), nowDate.getMonth(), 1), [nowDate]);
+  const warnThreshold = useMemo(() => todayStart + warningDays * 24 * 60 * 60 * 1000, [todayStart, warningDays]);
   const monthEnd = useMemo(() => new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0, 23, 59, 59, 999), [nowDate]);
 
   const statusParam = statusFilter === 'all' ? undefined : statusFilter;
@@ -193,26 +177,38 @@ function CalendarWorkspace() {
     return (upcomingRangeItems ?? []).filter(filterByKeyword).sort((a, b) => getEffectiveDueDate(a) - getEffectiveDueDate(b));
   }, [upcomingRangeItems, keywordLower, customersMap, productsMap]);
 
+  const activeOverdueItems = useMemo(() => {
+    return filteredOverdueItems.filter(item => item.status === 'Todo' || item.status === 'Contacted');
+  }, [filteredOverdueItems]);
+
+  const activeUpcomingItems = useMemo(() => {
+    return filteredUpcomingItems.filter(item => item.status === 'Todo' || item.status === 'Contacted');
+  }, [filteredUpcomingItems]);
+
   const todayItems = useMemo(() => {
-    return filteredUpcomingItems.filter(item => {
+    return activeUpcomingItems.filter(item => {
       const due = getEffectiveDueDate(item);
       return due >= todayStart && due <= todayEnd;
     });
-  }, [filteredUpcomingItems, todayStart, todayEnd]);
+  }, [activeUpcomingItems, todayStart, todayEnd]);
 
-  const weekItems = useMemo(() => {
-    return filteredUpcomingItems.filter(item => {
+  const dueSoonItems = useMemo(() => {
+    return activeUpcomingItems.filter(item => {
       const due = getEffectiveDueDate(item);
-      return due > todayEnd && due <= weekEnd.getTime();
+      return due > todayEnd && due <= warnThreshold;
     });
-  }, [filteredUpcomingItems, todayEnd, weekEnd]);
+  }, [activeUpcomingItems, todayEnd, warnThreshold]);
 
-  const monthItems = useMemo(() => {
-    return filteredUpcomingItems.filter(item => {
+  const laterItems = useMemo(() => {
+    return activeUpcomingItems.filter(item => {
       const due = getEffectiveDueDate(item);
-      return due > weekEnd.getTime() && due <= monthEnd.getTime();
+      return due > warnThreshold;
     });
-  }, [filteredUpcomingItems, weekEnd, monthEnd]);
+  }, [activeUpcomingItems, warnThreshold]);
+
+  const doneItems = useMemo(() => {
+    return [...filteredOverdueItems, ...filteredUpcomingItems].filter(item => item.status === 'Renewed' || item.status === 'Churned');
+  }, [filteredOverdueItems, filteredUpcomingItems]);
 
   const listItems = useMemo(() => {
     if (!listData?.items) {
@@ -322,17 +318,18 @@ function CalendarWorkspace() {
   const listColSpan = 7;
 
   const summaryItems = [
-    { key: 'overdue', label: 'Quá hạn', value: filteredOverdueItems.length },
+    { key: 'overdue', label: 'Quá hạn', value: activeOverdueItems.length },
     { key: 'today', label: 'Hôm nay', value: todayItems.length },
-    { key: 'week', label: 'Tuần này', value: weekItems.length },
-    { key: 'month', label: 'Tháng này', value: monthItems.length },
+    { key: 'soon', label: `Sắp hết hạn (${warningDays}n)`, value: dueSoonItems.length },
+    { key: 'later', label: 'Sắp tới', value: laterItems.length },
   ];
 
   const boardColumns = [
-    { key: 'overdue', label: 'Quá hạn', items: filteredOverdueItems },
+    { key: 'overdue', label: 'Quá hạn', items: activeOverdueItems },
     { key: 'today', label: 'Hôm nay', items: todayItems },
-    { key: 'week', label: 'Tuần này', items: weekItems },
-    { key: 'month', label: 'Tháng này', items: monthItems },
+    { key: 'soon', label: `Sắp hết hạn (${warningDays}n)`, items: dueSoonItems },
+    { key: 'later', label: 'Sắp tới', items: laterItems },
+    { key: 'done', label: 'Đã xử lý', items: doneItems },
   ];
 
   const isLoading = settingsData === undefined
@@ -432,7 +429,7 @@ function CalendarWorkspace() {
       </Card>
 
       {view === 'board' && (
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className="grid gap-4 lg:grid-cols-5">
           {boardColumns.map(column => (
             <Card key={column.key} className="p-4">
               <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
@@ -445,8 +442,14 @@ function CalendarWorkspace() {
                 )}
                 {column.items.map(task => {
                   const meta = getTaskMeta(task);
+                  const cardClass = cn(
+                    'rounded-md border px-3 py-2 text-sm',
+                    column.key === 'overdue' && 'border-red-200 bg-red-50',
+                    column.key === 'today' && 'border-blue-200 bg-blue-50',
+                    column.key === 'soon' && 'border-yellow-200 bg-yellow-50'
+                  );
                   return (
-                    <div key={task._id} className="rounded-md border border-slate-200 px-3 py-2 text-sm">
+                    <div key={task._id} className={cardClass}>
                       <button
                         type="button"
                         className="w-full text-left"

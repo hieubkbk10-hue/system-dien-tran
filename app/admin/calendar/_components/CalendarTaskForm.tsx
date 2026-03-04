@@ -80,7 +80,7 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
       return;
     }
     setStatus(task.status);
-    setDueDate(formatDateInput(task.dueDate ?? task.startAt));
+    setDueDate(formatDateInput(task.dueDate));
     if (task.customerId) {
       setCustomerMode('db');
       setCustomerId(task.customerId ?? '');

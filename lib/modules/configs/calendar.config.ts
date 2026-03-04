@@ -43,6 +43,12 @@ export const calendarModule = defineModule({
         { value: 'sunday', label: 'Chủ nhật' },
       ],
     },
+    {
+      key: 'warningDays',
+      label: 'Cảnh báo sớm (ngày)',
+      type: 'number',
+      default: 7,
+    },
   ],
 
   conventionNote: 'Tối ưu quy trình nhắc gia hạn khách hàng.',
