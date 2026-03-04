@@ -520,36 +520,36 @@ export function DynamicFooter() {
           <div className="w-16 h-px mx-auto mb-5" style={{ backgroundColor: colors.dividerGradient }}></div>
 
           {/* Socials Center */}
-          <div className="flex justify-center items-center gap-4 mb-4">
-            {config.showSocialLinks !== false && (
-              <div className="flex gap-3">
-                {socials.map((s, idx) => {
-                  const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
-                  const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
-                    ? socialStyles.bg
-                    : colors.centeredSocialBorder;
+          {config.showSocialLinks !== false && (
+            <div className="flex justify-center gap-3 mb-3">
+              {socials.map((s, idx) => {
+                const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
+                const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
+                  ? socialStyles.bg
+                  : colors.centeredSocialBorder;
 
-                  return (
-                    <a 
-                      key={s.id || `social-${idx}`} 
-                      href={s.url || '#'} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
-                      style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
-                    >
-                      <SocialIcon platform={s.platform} size={16} />
-                    </a>
-                  );
-                })}
-              </div>
-            )}
+                return (
+                  <a 
+                    key={s.id || `social-${idx}`} 
+                    href={s.url || '#'} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
+                    style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
+                  >
+                    <SocialIcon platform={s.platform} size={16} />
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex justify-center items-center gap-3">
             {renderBctLogo('h-7')}
+            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+            </p>
           </div>
-
-          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-          </p>
         </div>
       </footer>
     );

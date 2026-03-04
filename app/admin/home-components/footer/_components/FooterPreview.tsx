@@ -360,31 +360,31 @@ export const FooterPreview = ({
 
             <div className="w-12 h-px mx-auto mb-4" style={{ backgroundColor: colors.dividerGradient }}></div>
 
-            <div className="flex justify-center items-center gap-4 mb-4">
-              {config.showSocialLinks && (
-                <div className="flex gap-3">
-                  {socials.map((s, index) => {
-                    const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
-                    const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
-                      ? socialStyles.bg
-                      : colors.centeredSocialBorder;
+            {config.showSocialLinks && (
+              <div className="flex justify-center gap-3 mb-3">
+                {socials.map((s, index) => {
+                  const socialStyles = resolveSocialStyles(s.platform, colors.centeredSocialBg, colors.centeredSocialText);
+                  const socialBorder = useOriginalSocialIconColors && SOCIAL_ORIGINAL_COLORS[s.platform]
+                    ? socialStyles.bg
+                    : colors.centeredSocialBorder;
 
-                    return (
-                      <span
-                        key={`${s.id ?? 'social'}-${index}`}
-                        className="h-7 w-7 flex items-center justify-center rounded-full"
-                        style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
-                      >
-                        <SocialIcon platform={s.platform} size={14} />
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
+                  return (
+                    <span
+                      key={`${s.id ?? 'social'}-${index}`}
+                      className="h-7 w-7 flex items-center justify-center rounded-full"
+                      style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
+                    >
+                      <SocialIcon platform={s.platform} size={14} />
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex justify-center items-center gap-3">
               {renderBctLogo('h-7')}
+              <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
             </div>
-
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
           </div>
         </footer>
       );
