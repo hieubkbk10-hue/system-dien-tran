@@ -58,6 +58,10 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
   const [dragOverSocialId, setDragOverSocialId] = useState<number | string | null>(null);
 
   const colors = useMemo(() => getFooterLayoutColors(value.style ?? 'classic', primary, secondary, mode), [mode, primary, secondary, value.style]);
+  const bctLogoType = value.bctLogoType ?? 'thong-bao';
+  const bctLogoSrc = bctLogoType === 'dang-ky'
+    ? '/images/bct/logo-da-dang-ky-bct.png'
+    : '/images/bct/logo-da-thong-bao-bct.png';
 
   const updateConfig = (patch: Partial<FooterConfig>) => {
     onChange({ ...value, ...patch });
@@ -263,6 +267,66 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
             />
             <Label>Dùng màu icon gốc</Label>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Bộ Công Thương</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={value.showBctLogo === true}
+              onChange={(e) =>{  updateConfig({ showBctLogo: e.target.checked }); }}
+              className="w-4 h-4 rounded"
+            />
+            <Label>Hiển thị logo BCT</Label>
+          </div>
+          {value.showBctLogo && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Loại logo</Label>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-3 text-sm">
+                    <input
+                      type="radio"
+                      name="bct-logo-type"
+                      value="thong-bao"
+                      checked={bctLogoType === 'thong-bao'}
+                      onChange={() =>{  updateConfig({ bctLogoType: 'thong-bao' }); }}
+                    />
+                    <img src="/images/bct/logo-da-thong-bao-bct.png" alt="Đã thông báo" className="h-8 w-auto" />
+                    <span>Đã thông báo</span>
+                  </label>
+                  <label className="flex items-center gap-3 text-sm">
+                    <input
+                      type="radio"
+                      name="bct-logo-type"
+                      value="dang-ky"
+                      checked={bctLogoType === 'dang-ky'}
+                      onChange={() =>{  updateConfig({ bctLogoType: 'dang-ky' }); }}
+                    />
+                    <img src="/images/bct/logo-da-dang-ky-bct.png" alt="Đã đăng ký" className="h-8 w-auto" />
+                    <span>Đã đăng ký</span>
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Link xác thực BCT (tuỳ chọn)</Label>
+                <Input
+                  value={value.bctLogoLink ?? ''}
+                  onChange={(e) =>{  updateConfig({ bctLogoLink: e.target.value }); }}
+                  placeholder="https://online.gov.vn/Home/WebSiteDisplay/..."
+                />
+              </div>
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                <span>Preview:</span>
+                <img src={bctLogoSrc} alt="BCT Logo" className="h-8 w-auto" />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -96,6 +96,23 @@ export const FooterPreview = ({
       { icon: 'youtube', id: 3, platform: 'youtube', url: '#' },
     ];
 
+  const showBctLogo = config.showBctLogo === true;
+  const bctLogoType = config.bctLogoType ?? 'thong-bao';
+  const bctLogoLink = typeof config.bctLogoLink === 'string' ? config.bctLogoLink.trim() : '';
+  const bctLogoSrc = bctLogoType === 'dang-ky'
+    ? '/images/bct/logo-da-dang-ky-bct.png'
+    : '/images/bct/logo-da-thong-bao-bct.png';
+  const renderBctLogo = (className = 'h-8') => {
+    if (!showBctLogo) {return null;}
+    const image = <img src={bctLogoSrc} alt="Bộ Công Thương" className={`${className} w-auto object-contain`} />;
+    if (!bctLogoLink) {return image;}
+    return (
+      <a href={bctLogoLink} target="_blank" rel="noopener noreferrer">
+        {image}
+      </a>
+    );
+  };
+
   const columns = config.columns?.length
     ? config.columns
     : [
@@ -154,8 +171,12 @@ export const FooterPreview = ({
               </div>
             </div>
 
-            <div className="mt-6 pt-3" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
+            <div
+              className="mt-6 pt-3 flex flex-col md:flex-row items-center justify-between gap-2"
+              style={{ borderTop: `1px solid ${colors.borderSoft}` }}
+            >
               <p className="text-[10px] text-center md:text-left" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+              {renderBctLogo('h-8')}
             </div>
           </div>
         </footer>
@@ -202,8 +223,11 @@ export const FooterPreview = ({
               </div>
             )}
 
-            <div className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
-              {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+            <div className="flex flex-col items-center gap-2">
+              {renderBctLogo('h-8')}
+              <div className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
+                {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+              </div>
             </div>
           </div>
         </footer>
@@ -259,8 +283,9 @@ export const FooterPreview = ({
               ))}
             </div>
 
-            <div className="pt-3 text-[10px] text-center md:text-left" style={{ color: colors.textSubtle }}>
-              {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+            <div className="pt-3 flex flex-col md:flex-row items-center justify-between gap-2" style={{ color: colors.textSubtle }}>
+              <span className="text-[10px] text-center md:text-left">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</span>
+              {renderBctLogo('h-7')}
             </div>
           </div>
         </footer>
@@ -279,6 +304,7 @@ export const FooterPreview = ({
                 {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
               </span>
             </div>
+            {renderBctLogo('h-7')}
             {config.showSocialLinks && (
               <div className="flex gap-2">
                 {socials.map((s, index) => {
@@ -353,7 +379,10 @@ export const FooterPreview = ({
               </div>
             )}
 
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+            <div className="flex flex-col items-center gap-2">
+              {renderBctLogo('h-7')}
+              <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+            </div>
           </div>
         </footer>
       );
@@ -400,7 +429,10 @@ export const FooterPreview = ({
                 })}
               </div>
             )}
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              {renderBctLogo('h-7')}
+              <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+            </div>
           </div>
         </div>
       </footer>

@@ -18,6 +18,9 @@ interface FooterConfig {
   columns?: { id: number; title: string; links: { label: string; url: string }[] }[];
   socialLinks?: SocialLinkItem[];
   copyright?: string;
+  showBctLogo?: boolean;
+  bctLogoType?: 'thong-bao' | 'dang-ky';
+  bctLogoLink?: string;
   showSocialLinks?: boolean;
   useOriginalSocialIconColors?: boolean;
   style?: 'classic' | 'modern' | 'corporate' | 'minimal' | 'centered' | 'stacked';
@@ -143,6 +146,30 @@ export function DynamicFooter() {
   const columns = getColumns(config);
   const colors = getFooterLayoutColors(style, brandColor, secondary, mode as FooterBrandMode);
   const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
+  const showBctLogo = config.showBctLogo === true;
+  const bctLogoType = config.bctLogoType ?? 'thong-bao';
+  const bctLogoLink = typeof config.bctLogoLink === 'string' ? config.bctLogoLink.trim() : '';
+  const bctLogoSrc = bctLogoType === 'dang-ky'
+    ? '/images/bct/logo-da-dang-ky-bct.png'
+    : '/images/bct/logo-da-thong-bao-bct.png';
+  const renderBctLogo = (className = 'h-8') => {
+    if (!showBctLogo) {return null;}
+    const image = (
+      <Image
+        src={bctLogoSrc}
+        alt="Bộ Công Thương"
+        width={120}
+        height={40}
+        className={`${className} w-auto object-contain`}
+      />
+    );
+    if (!bctLogoLink) {return image;}
+    return (
+      <a href={bctLogoLink} target="_blank" rel="noopener noreferrer">
+        {image}
+      </a>
+    );
+  };
   const resolveSocialStyles = (platform: string, fallbackBg: string, fallbackText: string) => {
     if (!useOriginalSocialIconColors) {
       return { bg: fallbackBg, color: fallbackText };
@@ -227,8 +254,9 @@ export function DynamicFooter() {
             </div>
           </div>
 
-          <div className="mt-8 pt-4" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
+          <div className="mt-8 pt-4 flex flex-col md:flex-row items-center justify-between gap-2" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
             <p className="text-xs" style={{ color: colors.textSubtle }}>{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</p>
+            {renderBctLogo('h-8')}
           </div>
         </div>
       </footer>
@@ -298,8 +326,11 @@ export function DynamicFooter() {
             </div>
           )}
 
-          <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+          <div className="flex flex-col items-center gap-2">
+            {renderBctLogo('h-8')}
+            <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
+              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+            </div>
           </div>
         </div>
       </footer>
@@ -377,8 +408,9 @@ export function DynamicFooter() {
             ))}
           </div>
 
-          <div className="pt-4 text-xs text-center md:text-left" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+          <div className="pt-4 flex flex-col md:flex-row items-center justify-between gap-2" style={{ color: colors.textSubtle }}>
+            <span className="text-xs text-center md:text-left">{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</span>
+            {renderBctLogo('h-7')}
           </div>
         </div>
       </footer>
@@ -405,6 +437,7 @@ export function DynamicFooter() {
                 {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
               </span>
             </div>
+            {renderBctLogo('h-7')}
 
             {/* Right: Socials only */}
             {config.showSocialLinks !== false && (
@@ -512,9 +545,12 @@ export function DynamicFooter() {
           )}
 
           {/* Copyright */}
-          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            {renderBctLogo('h-7')}
+            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+            </p>
+          </div>
         </div>
       </footer>
     );
@@ -585,9 +621,12 @@ export function DynamicFooter() {
               })}
             </div>
           )}
-          <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-2">
+            {renderBctLogo('h-7')}
+            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+            </p>
+          </div>
         </div>
       </div>
     </footer>
