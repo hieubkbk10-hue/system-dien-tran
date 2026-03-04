@@ -11,7 +11,7 @@ export const calendarModule = defineModule({
   features: [
     { key: 'enableListView', label: 'List View', icon: ListTodo },
     { key: 'enableCustomerLink', label: 'Liên kết khách hàng', icon: Users, linkedField: 'customerId' },
-    { key: 'enableProductLink', label: 'Liên kết sản phẩm AI', icon: ListTodo, linkedField: 'productId' },
+    { key: 'enableProductLink', label: 'Liên kết sản phẩm', icon: ListTodo, linkedField: 'productId' },
   ],
 
   settings: [
