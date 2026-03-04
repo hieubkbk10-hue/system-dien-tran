@@ -175,7 +175,11 @@ export const FooterPreview = ({
               className="mt-6 pt-3 flex flex-col md:flex-row items-center justify-between gap-2"
               style={{ borderTop: `1px solid ${colors.borderSoft}` }}
             >
-              <p className="text-[10px] text-center md:text-left" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+              {config.showCopyright !== false && (
+                <p className="text-[10px] text-center md:text-left" style={{ color: colors.textSubtle }}>
+                  {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+                </p>
+              )}
               {renderBctLogo('h-8')}
             </div>
           </div>
@@ -226,9 +230,11 @@ export const FooterPreview = ({
               {renderBctLogo('h-8')}
             </div>
 
-            <div className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
-              {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
-            </div>
+            {config.showCopyright !== false && (
+              <div className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
+                {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+              </div>
+            )}
           </div>
         </footer>
       );
@@ -284,7 +290,11 @@ export const FooterPreview = ({
             </div>
 
             <div className="pt-3 flex flex-col md:flex-row items-center justify-between gap-2" style={{ color: colors.textSubtle }}>
-              <span className="text-[10px] text-center md:text-left">{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</span>
+              {config.showCopyright !== false && (
+                <span className="text-[10px] text-center md:text-left">
+                  {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+                </span>
+              )}
               {renderBctLogo('h-7')}
             </div>
           </div>
@@ -300,9 +310,11 @@ export const FooterPreview = ({
               {config.logo
                 ? <PreviewImage src={config.logo} alt="Logo" className="h-4 w-4 object-contain" />
                 : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
-              <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
-                {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
-              </span>
+              {config.showCopyright !== false && (
+                <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
+                  {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {config.showSocialLinks && (
@@ -361,7 +373,11 @@ export const FooterPreview = ({
             <div className="w-12 h-px mx-auto mb-4" style={{ backgroundColor: colors.dividerGradient }}></div>
 
             <div className="flex items-center justify-between">
-              <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+              {config.showCopyright !== false && (
+                <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+                  {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+                </p>
+              )}
               <div className="flex items-center gap-3">
                 {config.showSocialLinks && (
                   <div className="flex gap-2">
@@ -434,7 +450,11 @@ export const FooterPreview = ({
             )}
             <div className="flex flex-col md:flex-row items-center gap-2">
               {renderBctLogo('h-7')}
-              <p className="text-[10px]" style={{ color: colors.textSubtle }}>{config.copyright || '© 2024 VietAdmin. All rights reserved.'}</p>
+              {config.showCopyright !== false && (
+                <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+                  {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
+                </p>
+              )}
             </div>
           </div>
         </div>

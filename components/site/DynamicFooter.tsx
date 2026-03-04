@@ -18,6 +18,7 @@ interface FooterConfig {
   columns?: { id: number; title: string; links: { label: string; url: string }[] }[];
   socialLinks?: SocialLinkItem[];
   copyright?: string;
+  showCopyright?: boolean;
   showBctLogo?: boolean;
   bctLogoType?: 'thong-bao' | 'dang-ky';
   bctLogoLink?: string;
@@ -255,7 +256,11 @@ export function DynamicFooter() {
           </div>
 
           <div className="mt-8 pt-4 flex flex-col md:flex-row items-center justify-between gap-2" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
-            <p className="text-xs" style={{ color: colors.textSubtle }}>{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</p>
+            {config.showCopyright !== false && (
+              <p className="text-xs" style={{ color: colors.textSubtle }}>
+                {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+              </p>
+            )}
             {renderBctLogo('h-8')}
           </div>
         </div>
@@ -329,9 +334,11 @@ export function DynamicFooter() {
             {renderBctLogo('h-8')}
           </div>
 
-          <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
-            {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-          </div>
+          {config.showCopyright !== false && (
+            <div className="text-xs font-medium" style={{ color: colors.textSubtle }}>
+              {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+            </div>
+          )}
         </div>
       </footer>
     );
@@ -409,7 +416,11 @@ export function DynamicFooter() {
           </div>
 
           <div className="pt-4 flex flex-col md:flex-row items-center justify-between gap-2" style={{ color: colors.textSubtle }}>
-            <span className="text-xs text-center md:text-left">{config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}</span>
+            {config.showCopyright !== false && (
+              <span className="text-xs text-center md:text-left">
+                {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+              </span>
+            )}
             {renderBctLogo('h-7')}
           </div>
         </div>
@@ -433,9 +444,11 @@ export function DynamicFooter() {
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
-              <span className="text-xs font-medium" style={{ color: colors.textSubtle }}>
-                {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-              </span>
+              {config.showCopyright !== false && (
+                <span className="text-xs font-medium" style={{ color: colors.textSubtle }}>
+                  {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {config.showSocialLinks !== false && (
@@ -521,9 +534,11 @@ export function DynamicFooter() {
 
           {/* Socials Center */}
           <div className="flex items-center justify-between">
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-            </p>
+            {config.showCopyright !== false && (
+              <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+                {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+              </p>
+            )}
             <div className="flex items-center gap-3">
               {config.showSocialLinks !== false && (
                 <div className="flex gap-2">
@@ -623,9 +638,11 @@ export function DynamicFooter() {
           )}
           <div className="flex flex-col md:flex-row items-center gap-2">
             {renderBctLogo('h-7')}
-            <p className="text-[10px]" style={{ color: colors.textSubtle }}>
-              {config.copyright ?? `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
-            </p>
+            {config.showCopyright !== false && (
+              <p className="text-[10px]" style={{ color: colors.textSubtle }}>
+                {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
+              </p>
+            )}
           </div>
         </div>
       </div>

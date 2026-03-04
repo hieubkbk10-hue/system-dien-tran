@@ -10,6 +10,7 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   copyright: '',
   description: '',
   logo: '',
+  showCopyright: true,
   showBctLogo: false,
   bctLogoType: 'thong-bao',
   bctLogoLink: '',
@@ -54,6 +55,7 @@ export const normalizeFooterConfig = (raw: Partial<FooterConfig> | null | undefi
     copyright: typeof safe.copyright === 'string' ? safe.copyright : DEFAULT_FOOTER_CONFIG.copyright,
     description: typeof safe.description === 'string' ? safe.description : DEFAULT_FOOTER_CONFIG.description,
     logo: typeof safe.logo === 'string' ? safe.logo : DEFAULT_FOOTER_CONFIG.logo,
+    showCopyright: safe.showCopyright !== false,
     showBctLogo: safe.showBctLogo === true,
     bctLogoType: BCT_LOGO_TYPES.includes(safe.bctLogoType as typeof BCT_LOGO_TYPES[number])
       ? (safe.bctLogoType as typeof BCT_LOGO_TYPES[number])

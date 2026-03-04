@@ -25,6 +25,7 @@ export interface FooterConfig {
   copyright: string;
   description: string;
   logo: string;
+  showCopyright?: boolean;
   showBctLogo?: boolean;
   bctLogoType?: 'thong-bao' | 'dang-ky';
   bctLogoLink?: string;

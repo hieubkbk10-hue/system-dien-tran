@@ -242,12 +242,27 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
             />
           </div>
           <div className="space-y-2">
-            <Label>Copyright</Label>
-            <Input
-              value={value.copyright}
-              onChange={(e) =>{  updateConfig({ copyright: e.target.value }); }}
-              placeholder="© 2024 Company. All rights reserved."
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={value.showCopyright !== false}
+                onChange={(e) =>{  updateConfig({ showCopyright: e.target.checked }); }}
+                className="w-4 h-4 rounded"
+              />
+              <Label>Hiển thị Copyright</Label>
+            </div>
+            {value.showCopyright !== false && (
+              <div className="space-y-1">
+                <Input
+                  value={value.copyright}
+                  onChange={(e) =>{  updateConfig({ copyright: e.target.value }); }}
+                  placeholder={`© ${new Date().getFullYear()} Tên Web. All rights reserved.`}
+                />
+                <p className="text-xs text-slate-400">
+                  Để trống = tự động dùng: © {new Date().getFullYear()} Tên web từ Settings. All rights reserved.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <input
