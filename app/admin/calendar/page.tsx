@@ -21,8 +21,10 @@ type CalendarRangeItem = {
   _id: string;
   allDay: boolean;
   assigneeId?: Id<'users'>;
+  customerId?: Id<'customers'>;
   dueDate?: number;
   priority: CalendarPriority;
+  productId?: Id<'products'>;
   sourceId: Id<'calendarTasks'>;
   startAt?: number;
   status: CalendarStatus;
@@ -146,6 +148,14 @@ function CalendarWorkspace() {
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const users = useQuery(api.users.listAll, {});
+  const customers = useQuery(
+    api.customers.listAll,
+    fieldsData?.some(field => field.fieldKey === 'customerId') ? {} : 'skip'
+  );
+  const products = useQuery(
+    api.products.listAll,
+    fieldsData?.some(field => field.fieldKey === 'productId') ? {} : 'skip'
+  );
   const deleteTask = useMutation(api.calendar.deleteCalendarTask);
   const deleteAllTasks = useMutation(api.calendar.deleteAllCalendarTasks);
   const deleteOverdueTasks = useMutation(api.calendar.deleteOverdueCalendarTasks);
@@ -183,6 +193,8 @@ function CalendarWorkspace() {
   const [statusFilter, setStatusFilter] = useState<CalendarStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<CalendarPriority | 'all'>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<Id<'users'> | 'all'>('all');
+  const [customerFilter, setCustomerFilter] = useState<Id<'customers'> | 'all'>('all');
+  const [productFilter, setProductFilter] = useState<Id<'products'> | 'all'>('all');
   const [queryNow, setQueryNow] = useState(() => Date.now());
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -207,6 +219,8 @@ function CalendarWorkspace() {
   const enableListView = enabledFeatures.enableListView ?? true;
   const isPriorityEnabled = fieldsData?.some(field => field.fieldKey === 'priority') ?? true;
   const isAssigneeEnabled = fieldsData?.some(field => field.fieldKey === 'assigneeId') ?? true;
+  const isCustomerEnabled = fieldsData?.some(field => field.fieldKey === 'customerId') ?? true;
+  const isProductEnabled = fieldsData?.some(field => field.fieldKey === 'productId') ?? true;
 
   const refreshNow = () => setQueryNow(Date.now());
   const resetListState = () => {
@@ -236,7 +250,7 @@ function CalendarWorkspace() {
     setCurrentPage(1);
     setSelectedIds([]);
     refreshNow();
-  }, [statusFilter, priorityFilter, assigneeFilter]);
+  }, [statusFilter, priorityFilter, assigneeFilter, customerFilter, productFilter]);
 
   useEffect(() => {
     if (!isPriorityEnabled && priorityFilter !== 'all') {
@@ -249,6 +263,18 @@ function CalendarWorkspace() {
       setAssigneeFilter('all');
     }
   }, [assigneeFilter, isAssigneeEnabled]);
+
+  useEffect(() => {
+    if (!isCustomerEnabled && customerFilter !== 'all') {
+      setCustomerFilter('all');
+    }
+  }, [customerFilter, isCustomerEnabled]);
+
+  useEffect(() => {
+    if (!isProductEnabled && productFilter !== 'all') {
+      setProductFilter('all');
+    }
+  }, [productFilter, isProductEnabled]);
 
   useEffect(() => {
     if (view === 'day') {
@@ -269,8 +295,10 @@ function CalendarWorkspace() {
 
   const rangeItems = useQuery(api.calendar.listCalendarTasksRange, {
     assigneeId: isAssigneeEnabled && assigneeFilter !== 'all' ? assigneeFilter : undefined,
+    customerId: isCustomerEnabled && customerFilter !== 'all' ? customerFilter : undefined,
     from: rangeStart,
     priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
+    productId: isProductEnabled && productFilter !== 'all' ? productFilter : undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
     to: rangeEnd,
     limit: 300,
@@ -289,9 +317,11 @@ function CalendarWorkspace() {
 
   const listData = useQuery(api.calendar.listCalendarTasksPage, {
     assigneeId: isAssigneeEnabled && assigneeFilter !== 'all' ? assigneeFilter : undefined,
+    customerId: isCustomerEnabled && customerFilter !== 'all' ? customerFilter : undefined,
     cursor: currentCursor ?? undefined,
     pageSize: calendarPerPage,
     priority: isPriorityEnabled && priorityFilter !== 'all' ? priorityFilter : undefined,
+    productId: isProductEnabled && productFilter !== 'all' ? productFilter : undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
 
@@ -362,6 +392,36 @@ function CalendarWorkspace() {
     users?.forEach(user => map.set(user._id, user));
     return map;
   }, [users]);
+
+  const customersMap = useMemo(() => {
+    const map = new Map<string, Doc<'customers'>>();
+    customers?.forEach(customer => map.set(customer._id, customer));
+    return map;
+  }, [customers]);
+
+  const productsMap = useMemo(() => {
+    const map = new Map<string, Doc<'products'>>();
+    products?.forEach(product => map.set(product._id, product));
+    return map;
+  }, [products]);
+
+  const getTaskLabel = (task: { title: string; customerId?: Id<'customers'>; productId?: Id<'products'> }) => {
+    const customerName = task.customerId ? customersMap.get(task.customerId)?.name : undefined;
+    const productName = task.productId ? productsMap.get(task.productId)?.name : undefined;
+    if (customerName && productName) {
+      return `${customerName} — ${productName}`;
+    }
+    return customerName ?? productName ?? task.title;
+  };
+
+  const getTaskMeta = (task: { customerId?: Id<'customers'>; productId?: Id<'products'> }) => {
+    const customerName = task.customerId ? customersMap.get(task.customerId)?.name : undefined;
+    const productName = task.productId ? productsMap.get(task.productId)?.name : undefined;
+    if (customerName && productName) {
+      return `${customerName} — ${productName}`;
+    }
+    return customerName ?? productName ?? '';
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) {
@@ -528,8 +588,19 @@ function CalendarWorkspace() {
     }
   };
 
-  const isLoading = settingsData === undefined || featuresData === undefined || fieldsData === undefined || rangeItems === undefined || listData === undefined || upcomingData === undefined;
-  const listColSpan = 5 + (isPriorityEnabled ? 1 : 0) + (isAssigneeEnabled ? 1 : 0);
+  const isLoading = settingsData === undefined
+    || featuresData === undefined
+    || fieldsData === undefined
+    || rangeItems === undefined
+    || listData === undefined
+    || upcomingData === undefined
+    || (isCustomerEnabled && customers === undefined)
+    || (isProductEnabled && products === undefined);
+  const listColSpan = 5
+    + (isPriorityEnabled ? 1 : 0)
+    + (isAssigneeEnabled ? 1 : 0)
+    + (isCustomerEnabled ? 1 : 0)
+    + (isProductEnabled ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -697,6 +768,30 @@ function CalendarWorkspace() {
                 ))}
               </select>
             )}
+            {isCustomerEnabled && (
+              <select
+                value={customerFilter}
+                onChange={(event) => setCustomerFilter(event.target.value as Id<'customers'> | 'all')}
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">Tất cả khách hàng</option>
+                {customers?.map(customer => (
+                  <option key={customer._id} value={customer._id}>{customer.name}</option>
+                ))}
+              </select>
+            )}
+            {isProductEnabled && (
+              <select
+                value={productFilter}
+                onChange={(event) => setProductFilter(event.target.value as Id<'products'> | 'all')}
+                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">Tất cả sản phẩm</option>
+                {products?.map(product => (
+                  <option key={product._id} value={product._id}>{product.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       </Card>
@@ -721,7 +816,10 @@ function CalendarWorkspace() {
                     setModalOpen(true);
                   }}
                 >
-                  {task.title}
+                  <div className="truncate">{task.title}</div>
+                  {getTaskMeta(task) && (
+                    <div className="text-xs text-slate-400 truncate">{getTaskMeta(task)}</div>
+                  )}
                 </button>
                 <div className="flex items-center gap-2">
                   <Badge variant="destructive">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
@@ -781,7 +879,10 @@ function CalendarWorkspace() {
                     setModalOpen(true);
                   }}
                 >
-                  {task.title}
+                  <div className="truncate">{task.title}</div>
+                  {getTaskMeta(task) && (
+                    <div className="text-xs text-slate-400 truncate">{getTaskMeta(task)}</div>
+                  )}
                 </button>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}</Badge>
@@ -895,7 +996,7 @@ function CalendarWorkspace() {
                   <div className="mt-2 space-y-1">
                     {items.slice(0, 2).map(item => (
                       <div key={item._id} className="truncate text-[11px] text-slate-600">
-                        • {item.title}
+                        • {getTaskLabel(item)}
                       </div>
                     ))}
                     {items.length > 2 && (
@@ -918,6 +1019,9 @@ function CalendarWorkspace() {
                     <div key={task._id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
                       <div className="min-w-0">
                         <div className="font-medium truncate">{task.title}</div>
+                        {getTaskMeta(task) && (
+                          <div className="text-xs text-slate-500 truncate">{getTaskMeta(task)}</div>
+                        )}
                         <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -995,7 +1099,7 @@ function CalendarWorkspace() {
                   <div className="text-sm font-semibold text-slate-700">{date.getDate()}</div>
                   <div className="mt-2 space-y-1">
                     {items.slice(0, 3).map(item => (
-                      <div key={item._id} className="truncate text-[11px] text-slate-600">• {item.title}</div>
+                      <div key={item._id} className="truncate text-[11px] text-slate-600">• {getTaskLabel(item)}</div>
                     ))}
                     {items.length > 3 && (
                       <div className="text-[10px] text-slate-400">+{items.length - 3} task</div>
@@ -1017,6 +1121,9 @@ function CalendarWorkspace() {
                     <div key={task._id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
                       <div className="min-w-0">
                         <div className="font-medium truncate">{task.title}</div>
+                        {getTaskMeta(task) && (
+                          <div className="text-xs text-slate-500 truncate">{getTaskMeta(task)}</div>
+                        )}
                         <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1090,6 +1197,9 @@ function CalendarWorkspace() {
               <div key={task._id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
                 <div className="min-w-0">
                   <div className="font-medium truncate">{task.title}</div>
+                  {getTaskMeta(task) && (
+                    <div className="text-xs text-slate-500 truncate">{getTaskMeta(task)}</div>
+                  )}
                   <div className="text-xs text-slate-500">{STATUS_LABELS[task.status]}</div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1190,6 +1300,12 @@ function CalendarWorkspace() {
                     />
                   </th>
                   <th className="py-2 pr-4">Task</th>
+                  {isCustomerEnabled && (
+                    <th className="py-2 pr-4">Khách hàng</th>
+                  )}
+                  {isProductEnabled && (
+                    <th className="py-2 pr-4">Sản phẩm</th>
+                  )}
                   <th className="py-2 pr-4">Hạn</th>
                   <th className="py-2 pr-4">Trạng thái</th>
                   {isPriorityEnabled && (
@@ -1221,6 +1337,16 @@ function CalendarWorkspace() {
                         <div className="text-xs text-slate-400 line-clamp-1">{task.description}</div>
                       )}
                     </td>
+                    {isCustomerEnabled && (
+                      <td className="py-3 pr-4 text-slate-600">
+                        {task.customerId ? customersMap.get(task.customerId)?.name ?? '---' : '---'}
+                      </td>
+                    )}
+                    {isProductEnabled && (
+                      <td className="py-3 pr-4 text-slate-600">
+                        {task.productId ? productsMap.get(task.productId)?.name ?? '---' : '---'}
+                      </td>
+                    )}
                     <td className="py-3 pr-4 text-slate-600">
                       {new Date(task.dueDate ?? task.startAt ?? 0).toLocaleDateString('vi-VN')}
                     </td>

@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, ListTodo, Repeat2, Users } from 'lucide-react';
+import { Bell, CalendarDays, ListTodo, Users } from 'lucide-react';
 import { defineModule } from '../define-module';
 
 export const calendarModule = defineModule({
@@ -11,10 +11,11 @@ export const calendarModule = defineModule({
   features: [
     { key: 'enableMonthView', label: 'Month View', icon: CalendarDays },
     { key: 'enableListView', label: 'List View', icon: ListTodo },
-    { key: 'enableRecurring', label: 'Lịch lặp (RRULE)', icon: Repeat2, linkedField: 'rrule' },
     { key: 'enableAssignee', label: 'Phân công', icon: Users, linkedField: 'assigneeId' },
     { key: 'enableReminder', label: 'Nhắc việc', icon: Bell, linkedField: 'reminderAt' },
     { key: 'enablePriority', label: 'Ưu tiên', icon: ListTodo, linkedField: 'priority' },
+    { key: 'enableCustomerLink', label: 'Liên kết khách hàng', icon: Users, linkedField: 'customerId' },
+    { key: 'enableProductLink', label: 'Liên kết sản phẩm AI', icon: ListTodo, linkedField: 'productId' },
   ],
 
   settings: [
@@ -70,6 +71,6 @@ export const calendarModule = defineModule({
     },
   ],
 
-  conventionNote: 'Quản lý task theo lịch tháng và danh sách. RRULE cho phép lịch lặp đầy đủ.',
+  conventionNote: 'Quản lý task theo lịch tháng và danh sách, tối ưu nhắc gia hạn.',
   tabs: ['config'],
 });

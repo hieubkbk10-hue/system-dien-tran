@@ -574,6 +574,7 @@ export default defineSchema({
     completedAt: v.optional(v.number()),
     createdAt: v.number(),
     createdBy: v.id("users"),
+    customerId: v.optional(v.id("customers")),
     description: v.optional(v.string()),
     dueDate: v.optional(v.number()),
     notes: v.optional(v.string()),
@@ -583,6 +584,7 @@ export default defineSchema({
       v.literal("MEDIUM"),
       v.literal("HIGH")
     ),
+    productId: v.optional(v.id("products")),
     recurrenceEndAt: v.optional(v.number()),
     reminderAt: v.optional(v.number()),
     rrule: v.optional(v.string()),
@@ -600,6 +602,8 @@ export default defineSchema({
     .index("by_dueDate", ["dueDate"])
     .index("by_status_dueDate", ["status", "dueDate"])
     .index("by_assignee_dueDate", ["assigneeId", "dueDate"])
+    .index("by_customer_dueDate", ["customerId", "dueDate"])
+    .index("by_product_dueDate", ["productId", "dueDate"])
     .index("by_priority_dueDate", ["priority", "dueDate"])
     .index("by_startAt", ["startAt"])
     .index("by_createdBy_updatedAt", ["createdBy", "updatedAt"])

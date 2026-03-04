@@ -22,11 +22,13 @@ const calendarTaskDoc = v.object({
   completedAt: v.optional(v.number()),
   createdAt: v.number(),
   createdBy: v.id('users'),
+  customerId: v.optional(v.id('customers')),
   description: v.optional(v.string()),
   dueDate: v.optional(v.number()),
   notes: v.optional(v.string()),
   order: v.number(),
   priority: calendarPriority,
+  productId: v.optional(v.id('products')),
   recurrenceEndAt: v.optional(v.number()),
   reminderAt: v.optional(v.number()),
   rrule: v.optional(v.string()),
@@ -426,21 +428,27 @@ export const getCalendarTask = query({
 export const listCalendarTasksRange = query({
   args: {
     assigneeId: v.optional(v.id('users')),
+    customerId: v.optional(v.id('customers')),
     from: v.number(),
     limit: v.optional(v.number()),
     priority: v.optional(calendarPriority),
     status: v.optional(calendarStatus),
     to: v.number(),
+    productId: v.optional(v.id('products')),
   },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 200, 500);
     const tasksMap = new Map<string, Doc<'calendarTasks'>>();
 
-    const dueQuery = args.assigneeId
-      ? ctx.db.query('calendarTasks').withIndex('by_assignee_dueDate', q => q.eq('assigneeId', args.assigneeId).gte('dueDate', args.from).lt('dueDate', args.to))
-      : args.status
-        ? ctx.db.query('calendarTasks').withIndex('by_status_dueDate', q => q.eq('status', args.status!).gte('dueDate', args.from).lt('dueDate', args.to))
-        : ctx.db.query('calendarTasks').withIndex('by_dueDate', q => q.gte('dueDate', args.from).lt('dueDate', args.to));
+    const dueQuery = args.customerId
+      ? ctx.db.query('calendarTasks').withIndex('by_customer_dueDate', q => q.eq('customerId', args.customerId).gte('dueDate', args.from).lt('dueDate', args.to))
+      : args.productId
+        ? ctx.db.query('calendarTasks').withIndex('by_product_dueDate', q => q.eq('productId', args.productId).gte('dueDate', args.from).lt('dueDate', args.to))
+        : args.assigneeId
+          ? ctx.db.query('calendarTasks').withIndex('by_assignee_dueDate', q => q.eq('assigneeId', args.assigneeId).gte('dueDate', args.from).lt('dueDate', args.to))
+          : args.status
+            ? ctx.db.query('calendarTasks').withIndex('by_status_dueDate', q => q.eq('status', args.status!).gte('dueDate', args.from).lt('dueDate', args.to))
+            : ctx.db.query('calendarTasks').withIndex('by_dueDate', q => q.gte('dueDate', args.from).lt('dueDate', args.to));
 
     const dueTasks = await dueQuery.take(limit);
 
@@ -459,6 +467,12 @@ export const listCalendarTasksRange = query({
         return false;
       }
       if (args.assigneeId && task.assigneeId !== args.assigneeId) {
+        return false;
+      }
+      if (args.customerId && task.customerId !== args.customerId) {
+        return false;
+      }
+      if (args.productId && task.productId !== args.productId) {
         return false;
       }
       return true;
@@ -480,8 +494,10 @@ export const listCalendarTasksRange = query({
         _id: `${task._id}_${instanceAt}`,
         allDay: task.allDay,
         assigneeId: task.assigneeId,
+        customerId: task.customerId,
         dueDate: duration ? instanceAt + duration : instanceAt,
         priority: task.priority,
+        productId: task.productId,
         sourceId: task._id,
         startAt: instanceAt,
         status: task.status,
@@ -493,8 +509,10 @@ export const listCalendarTasksRange = query({
       _id: task._id,
       allDay: task.allDay,
       assigneeId: task.assigneeId,
+      customerId: task.customerId,
       dueDate: task.dueDate,
       priority: task.priority,
+      productId: task.productId,
       sourceId: task._id,
       startAt: task.startAt,
       status: task.status,
@@ -511,6 +529,12 @@ export const listCalendarTasksRange = query({
       if (args.assigneeId && item.assigneeId !== args.assigneeId) {
         return false;
       }
+      if (args.customerId && item.customerId !== args.customerId) {
+        return false;
+      }
+      if (args.productId && item.productId !== args.productId) {
+        return false;
+      }
       const effectiveDue = item.dueDate ?? item.startAt ?? null;
       return effectiveDue !== null && effectiveDue >= args.from && effectiveDue < args.to;
     });
@@ -521,8 +545,10 @@ export const listCalendarTasksRange = query({
     _id: v.string(),
     allDay: v.boolean(),
     assigneeId: v.optional(v.id('users')),
+    customerId: v.optional(v.id('customers')),
     dueDate: v.optional(v.number()),
     priority: v.optional(calendarPriority),
+    productId: v.optional(v.id('products')),
     sourceId: v.id('calendarTasks'),
     startAt: v.optional(v.number()),
     status: calendarStatus,
@@ -533,21 +559,27 @@ export const listCalendarTasksRange = query({
 export const listCalendarTasksPage = query({
   args: {
     assigneeId: v.optional(v.id('users')),
+    customerId: v.optional(v.id('customers')),
     cursor: v.optional(v.string()),
     pageSize: v.optional(v.number()),
     priority: v.optional(calendarPriority),
     status: v.optional(calendarStatus),
+    productId: v.optional(v.id('products')),
   },
   handler: async (ctx, args) => {
     const pageSize = Math.min(args.pageSize ?? 20, 100);
 
-    const baseQuery = args.assigneeId
-      ? ctx.db.query('calendarTasks').withIndex('by_assignee_dueDate', q => q.eq('assigneeId', args.assigneeId).gte('dueDate', 0))
-      : args.status
-        ? ctx.db.query('calendarTasks').withIndex('by_status_dueDate', q => q.eq('status', args.status!).gte('dueDate', 0))
-        : args.priority
-          ? ctx.db.query('calendarTasks').withIndex('by_priority_dueDate', q => q.eq('priority', args.priority!).gte('dueDate', 0))
-          : ctx.db.query('calendarTasks').withIndex('by_dueDate', q => q.gte('dueDate', 0));
+    const baseQuery = args.customerId
+      ? ctx.db.query('calendarTasks').withIndex('by_customer_dueDate', q => q.eq('customerId', args.customerId).gte('dueDate', 0))
+      : args.productId
+        ? ctx.db.query('calendarTasks').withIndex('by_product_dueDate', q => q.eq('productId', args.productId).gte('dueDate', 0))
+        : args.assigneeId
+          ? ctx.db.query('calendarTasks').withIndex('by_assignee_dueDate', q => q.eq('assigneeId', args.assigneeId).gte('dueDate', 0))
+          : args.status
+            ? ctx.db.query('calendarTasks').withIndex('by_status_dueDate', q => q.eq('status', args.status!).gte('dueDate', 0))
+            : args.priority
+              ? ctx.db.query('calendarTasks').withIndex('by_priority_dueDate', q => q.eq('priority', args.priority!).gte('dueDate', 0))
+              : ctx.db.query('calendarTasks').withIndex('by_dueDate', q => q.gte('dueDate', 0));
 
     const result = await baseQuery
       .order('asc')
@@ -561,6 +593,12 @@ export const listCalendarTasksPage = query({
         return false;
       }
       if (args.assigneeId && task.assigneeId !== args.assigneeId) {
+        return false;
+      }
+      if (args.customerId && task.customerId !== args.customerId) {
+        return false;
+      }
+      if (args.productId && task.productId !== args.productId) {
         return false;
       }
       return true;
@@ -624,10 +662,12 @@ export const createCalendarTask = mutation({
     allDay: v.boolean(),
     assigneeId: v.optional(v.id('users')),
     createdBy: v.id('users'),
+    customerId: v.optional(v.id('customers')),
     description: v.optional(v.string()),
     dueDate: v.optional(v.number()),
     notes: v.optional(v.string()),
     priority: v.optional(calendarPriority),
+    productId: v.optional(v.id('products')),
     recurrenceEndAt: v.optional(v.number()),
     reminderOffsetMinutes: v.optional(v.number()),
     rrule: v.optional(v.string()),
@@ -654,12 +694,14 @@ export const createCalendarTask = mutation({
       completedAt: args.status === 'Done' ? now : undefined,
       createdAt: now,
       createdBy: args.createdBy,
+      customerId: args.customerId,
       description: args.description,
       dueDate: resolvedDueDate,
       exdates: args.exdates,
       notes: args.notes,
       order: now,
       priority: args.priority ?? 'MEDIUM',
+      productId: args.productId,
       recurrenceEndAt,
       reminderAt,
       rrule: args.rrule,
@@ -677,11 +719,13 @@ export const updateCalendarTask = mutation({
   args: {
     allDay: v.optional(v.boolean()),
     assigneeId: v.optional(v.id('users')),
+    customerId: v.optional(v.id('customers')),
     description: v.optional(v.string()),
     dueDate: v.optional(v.number()),
     id: v.id('calendarTasks'),
     notes: v.optional(v.string()),
     priority: v.optional(calendarPriority),
+    productId: v.optional(v.id('products')),
     recurrenceEndAt: v.optional(v.number()),
     reminderOffsetMinutes: v.optional(v.number()),
     rrule: v.optional(v.string()),
@@ -708,11 +752,13 @@ export const updateCalendarTask = mutation({
       allDay: args.allDay ?? task.allDay,
       assigneeId: args.assigneeId ?? task.assigneeId,
       completedAt: nextStatus === 'Done' ? Date.now() : undefined,
+      customerId: args.customerId ?? task.customerId,
       description: args.description ?? task.description,
       dueDate: nextDueDate,
       exdates: args.exdates ?? task.exdates,
       notes: args.notes ?? task.notes,
       priority: args.priority ?? task.priority,
+      productId: args.productId ?? task.productId,
       recurrenceEndAt: args.rrule ? (args.recurrenceEndAt ?? FAR_FUTURE) : (args.rrule === '' ? undefined : task.recurrenceEndAt),
       reminderAt,
       rrule: args.rrule ?? task.rrule,

@@ -87,10 +87,11 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
       .first();
     if (!existingFeatures) {
       const features = [
-        { description: 'Hỗ trợ RRULE cho lịch lặp', enabled: true, featureKey: 'enableRecurring', linkedFieldKey: 'rrule', moduleKey: 'calendar', name: 'Lịch lặp (RRULE)' },
         { description: 'Phân công người phụ trách', enabled: true, featureKey: 'enableAssignee', linkedFieldKey: 'assigneeId', moduleKey: 'calendar', name: 'Phân công' },
         { description: 'Thiết lập nhắc việc trước hạn', enabled: true, featureKey: 'enableReminder', linkedFieldKey: 'reminderAt', moduleKey: 'calendar', name: 'Nhắc việc' },
         { description: 'Thiết lập mức ưu tiên', enabled: true, featureKey: 'enablePriority', linkedFieldKey: 'priority', moduleKey: 'calendar', name: 'Ưu tiên' },
+        { description: 'Liên kết khách hàng', enabled: true, featureKey: 'enableCustomerLink', linkedFieldKey: 'customerId', moduleKey: 'calendar', name: 'Liên kết khách hàng' },
+        { description: 'Liên kết sản phẩm AI', enabled: true, featureKey: 'enableProductLink', linkedFieldKey: 'productId', moduleKey: 'calendar', name: 'Liên kết sản phẩm AI' },
         { description: 'Hiển thị dạng danh sách', enabled: true, featureKey: 'enableListView', moduleKey: 'calendar', name: 'List View' },
         { description: 'Hiển thị dạng month view', enabled: true, featureKey: 'enableMonthView', moduleKey: 'calendar', name: 'Month View' },
       ];
@@ -112,8 +113,9 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
         { enabled: true, fieldKey: 'allDay', isSystem: false, moduleKey: 'calendar', name: 'Cả ngày', order: 6, required: false, type: 'boolean' as const },
         { enabled: true, fieldKey: 'assigneeId', isSystem: false, linkedFeature: 'enableAssignee', moduleKey: 'calendar', name: 'Người phụ trách', order: 7, required: false, type: 'select' as const },
         { enabled: true, fieldKey: 'reminderAt', isSystem: false, linkedFeature: 'enableReminder', moduleKey: 'calendar', name: 'Nhắc việc', order: 8, required: false, type: 'date' as const },
-        { enabled: true, fieldKey: 'rrule', isSystem: false, linkedFeature: 'enableRecurring', moduleKey: 'calendar', name: 'RRULE', order: 9, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'timezone', isSystem: false, moduleKey: 'calendar', name: 'Múi giờ', order: 10, required: false, type: 'text' as const },
+        { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', moduleKey: 'calendar', name: 'Khách hàng', order: 9, required: false, type: 'select' as const },
+        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'calendar', name: 'Sản phẩm AI', order: 10, required: false, type: 'select' as const },
+        { enabled: true, fieldKey: 'timezone', isSystem: false, moduleKey: 'calendar', name: 'Múi giờ', order: 11, required: false, type: 'text' as const },
       ];
       await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
     }
