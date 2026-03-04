@@ -3197,6 +3197,64 @@ export const clearServicesConfig = mutation({
   returns: v.null(),
 });
 
+// ============ CALENDAR MODULE ============
+
+export const seedCalendarModule = mutation({
+  args: { configOnly: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const configOnly = args.configOnly ?? false;
+    if (!configOnly) {
+      return null;
+    }
+
+    const existingFeatures = await ctx.db
+      .query("moduleFeatures")
+      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
+      .first();
+    if (!existingFeatures) {
+      const features = [
+        { description: "Hiển thị dạng danh sách", enabled: true, featureKey: "enableListView", moduleKey: "calendar", name: "List View" },
+        { description: "Liên kết khách hàng", enabled: true, featureKey: "enableCustomerLink", linkedFieldKey: "customerId", moduleKey: "calendar", name: "Liên kết khách hàng" },
+        { description: "Liên kết sản phẩm", enabled: true, featureKey: "enableProductLink", linkedFieldKey: "productId", moduleKey: "calendar", name: "Liên kết sản phẩm" },
+      ];
+      for (const feature of features) {
+        await ctx.db.insert("moduleFeatures", feature);
+      }
+    }
+
+    const existingFields = await ctx.db
+      .query("moduleFields")
+      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
+      .first();
+    if (!existingFields) {
+      const fields = [
+        { enabled: true, fieldKey: "title", isSystem: true, moduleKey: "calendar", name: "Tiêu đề", order: 0, required: true, type: "text" as const },
+        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "calendar", name: "Trạng thái", order: 1, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "dueDate", isSystem: false, moduleKey: "calendar", name: "Ngày nhắc", order: 2, required: true, type: "date" as const },
+        { enabled: true, fieldKey: "customerId", isSystem: false, linkedFeature: "enableCustomerLink", moduleKey: "calendar", name: "Khách hàng", order: 3, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "productId", isSystem: false, linkedFeature: "enableProductLink", moduleKey: "calendar", name: "Sản phẩm", order: 4, required: true, type: "select" as const },
+      ];
+      for (const field of fields) {
+        await ctx.db.insert("moduleFields", field);
+      }
+    }
+
+    const existingSettings = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
+      .first();
+    if (!existingSettings) {
+      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "calendarPerPage", value: 20 });
+      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "defaultStatus", value: "Todo" });
+      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "weekStartsOn", value: "monday" });
+      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "warningDays", value: 7 });
+    }
+
+    return null;
+  },
+  returns: v.null(),
+});
+
 export const seedAllModulesConfig = action({
   args: {},
   handler: async (ctx) => {
@@ -3220,6 +3278,7 @@ export const seedAllModulesConfig = action({
     await ctx.runMutation(api.seed.seedNotificationsModule, configArgs);
     await ctx.runMutation(api.seed.seedPromotionsModule, configArgs);
     await ctx.runMutation(api.seed.seedServicesModule, configArgs);
+    await ctx.runMutation(api.seed.seedCalendarModule, configArgs);
     return null;
   },
 });
