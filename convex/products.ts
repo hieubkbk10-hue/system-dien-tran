@@ -1137,7 +1137,7 @@ export const create = mutation({
     optionIds: v.optional(v.array(v.id("productOptions"))),
     order: v.optional(v.number()),
     price: v.number(),
-    salePrice: v.optional(v.number()),
+    salePrice: v.optional(v.union(v.number(), v.null())),
     sku: v.string(),
     slug: v.string(),
     status: v.optional(productStatus),
@@ -1200,8 +1200,10 @@ export const create = mutation({
       : productTypeMode === "digital"
         ? "digital"
         : (args.productType ?? "physical");
+    const { salePrice, ...restArgs } = args;
+    const resolvedSalePrice = typeof salePrice === "number" && salePrice > 0 ? salePrice : undefined;
     const productId = await ctx.db.insert("products", {
-      ...args,
+      ...restArgs,
       productType,
       digitalDeliveryType: productType === "digital" ? args.digitalDeliveryType : undefined,
       digitalCredentialsTemplate: productType === "digital" ? args.digitalCredentialsTemplate : undefined,
@@ -1211,6 +1213,7 @@ export const create = mutation({
       order: args.order ?? nextOrder,
       hasVariants: args.hasVariants ?? false,
       optionIds: args.optionIds,
+      salePrice: resolvedSalePrice,
     });
 
     // Update stats counters
@@ -1253,14 +1256,16 @@ export const update = mutation({
     optionIds: v.optional(v.array(v.id("productOptions"))),
     order: v.optional(v.number()),
     price: v.optional(v.number()),
-    salePrice: v.optional(v.number()),
+    salePrice: v.optional(v.union(v.number(), v.null())),
     sku: v.optional(v.string()),
     slug: v.optional(v.string()),
     status: v.optional(productStatus),
     stock: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    const { id, salePrice, ...updates } = args;
+    const hasSalePrice = Object.prototype.hasOwnProperty.call(args, "salePrice");
+    const resolvedSalePrice = typeof salePrice === "number" && salePrice > 0 ? salePrice : undefined;
     const product = await ctx.db.get(id);
     if (!product) {throw new Error("Product not found");}
 
@@ -1331,7 +1336,12 @@ export const update = mutation({
         customContent?: string;
         expiresAt?: number;
       };
+      salePrice?: number;
     };
+
+    if (hasSalePrice) {
+      nextUpdates.salePrice = resolvedSalePrice;
+    }
 
     if (resolvedProductType === "digital") {
       if (updates.digitalDeliveryType === undefined) {

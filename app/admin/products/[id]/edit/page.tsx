@@ -148,6 +148,18 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     }
   }, [isAffiliateMode]);
 
+  const resolveSalePrice = (value: string) => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return null;
+    }
+    const parsedValue = Number.parseInt(trimmedValue);
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+      return null;
+    }
+    return parsedValue;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -174,6 +186,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       const resolvedMetaTitle = truncateText(name.trim(), 60);
       const resolvedMetaDescription = truncateText(stripHtml(description || ''), 160);
       const resolvedImages = galleryItems.map(item => item.url).filter(Boolean);
+      const resolvedSalePrice = hideBasePricing ? undefined : resolveSalePrice(salePrice);
       await updateProduct({
         ...(isAffiliateMode ? { affiliateLink: affiliateLink.trim() || undefined } : {}),
         categoryId: categoryId as Id<"productCategories">,
@@ -191,7 +204,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         name: name.trim(),
         optionIds: variantEnabled ? (hasVariants ? selectedOptionIds : []) : undefined,
         price: hideBasePricing ? 0 : (parseInt(price) || 0),
-        salePrice: hideBasePricing ? undefined : (salePrice ? parseInt(salePrice) : undefined),
+        salePrice: resolvedSalePrice,
         sku: (sku.trim() || productData?.sku) ?? `SKU-${Date.now()}`,
         slug: slug.trim(),
         status,
