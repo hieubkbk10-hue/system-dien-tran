@@ -30,6 +30,7 @@ import { MESSAGES, useExperienceConfig } from '@/lib/experiences';
 const DEFAULT_CONFIG: HeaderMenuConfig = {
   brandName: 'YourBrand',
   showBrandName: true,
+  logoSizeLevel: 2,
   headerBackground: 'white',
   headerSeparator: 'none',
   headerSticky: true,
@@ -61,6 +62,7 @@ const HINTS = [
   'Topbar phù hợp site bán hàng cần hotline + search.',
   'Allbirds phù hợp brand cần header tối giản, tập trung nav.',
   'Tắt Tên thương hiệu hoặc CTA để tăng không gian menu trước khi More.',
+  'Logo lớn + bật Tên thương hiệu + CTA sẽ làm menu phải co lại trước khi More.',
   'Login chỉ hiển thị khi bật Module Khách hàng + tính năng Đăng nhập KH.',
   'Cart/Wishlist chỉ bật khi module tương ứng đang active.',
 ];
@@ -136,6 +138,7 @@ export default function HeaderMenuExperiencePage() {
       ...raw,
       brandName: resolvedBrandName,
       showBrandName: raw?.showBrandName ?? true,
+      logoSizeLevel: raw?.logoSizeLevel ?? 2,
       topbar: { ...DEFAULT_CONFIG.topbar, ...raw?.topbar },
       search: { ...DEFAULT_CONFIG.search, ...raw?.search },
       cta: { ...DEFAULT_CONFIG.cta, ...raw?.cta, text: 'Liên hệ' },
@@ -215,6 +218,10 @@ export default function HeaderMenuExperiencePage() {
     setConfig(prev => ({ ...prev, showBrandName: value }));
   };
 
+  const updateLogoSizeLevel = (value: HeaderMenuConfig['logoSizeLevel']) => {
+    setConfig(prev => ({ ...prev, logoSizeLevel: value }));
+  };
+
   const normalizedConfig = useMemo(() => ({
     ...config,
     brandName: resolvedBrandName,
@@ -272,6 +279,8 @@ export default function HeaderMenuExperiencePage() {
 
   const showLoginToggle = Boolean(config.login?.show);
   const showCtaToggle = Boolean(config.cta?.show);
+  const logoSizeLabels = ['Nhỏ hơn', 'Mặc định', 'Lớn 1', 'Lớn 2', 'Lớn 3'] as const;
+  const logoSizeLabel = logoSizeLabels[(config.logoSizeLevel ?? 2) - 1] ?? 'Mặc định';
   const cartEnabled = cartModule?.enabled ?? false;
   const wishlistEnabled = wishlistModule?.enabled ?? false;
   const productsEnabled = productsModule?.enabled ?? false;
@@ -416,6 +425,26 @@ export default function HeaderMenuExperiencePage() {
               onChange={updateShowBrandName}
               accentColor={resolvedBrandColor}
             />
+            <div className="space-y-2 pt-1">
+              <Label className="text-xs">Kích thước logo</Label>
+              <input
+                type="range"
+                min={1}
+                max={5}
+                step={1}
+                value={config.logoSizeLevel ?? 2}
+                onChange={(event) => updateLogoSizeLevel(Number(event.target.value) as HeaderMenuConfig['logoSizeLevel'])}
+                className="w-full"
+              />
+              <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <span>Nhỏ hơn</span>
+                <span>Mặc định</span>
+                <span>Lớn 1</span>
+                <span>Lớn 2</span>
+                <span>Lớn 3</span>
+              </div>
+              <div className="text-xs font-medium text-slate-600">Đang chọn: {logoSizeLabel}</div>
+            </div>
             <ToggleRow
               label="CTA"
               checked={showCtaToggle}

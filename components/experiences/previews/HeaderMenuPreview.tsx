@@ -11,6 +11,7 @@ export type HeaderLayoutStyle = 'classic' | 'topbar' | 'allbirds';
 export type HeaderMenuConfig = {
   brandName: string;
   showBrandName: boolean;
+  logoSizeLevel: 1 | 2 | 3 | 4 | 5;
   headerBackground: 'white' | 'dots' | 'stripes';
   headerSeparator: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky: boolean;
@@ -93,6 +94,14 @@ export function HeaderMenuPreview({
   } as React.CSSProperties;
   const brandLabel = config.brandName || 'YourBrand';
   const showBrandName = config.showBrandName !== false;
+  const logoSizeLevel = config.logoSizeLevel ?? 2;
+  const logoSizeMap: Record<HeaderLayoutStyle, number[]> = {
+    classic: [24, 32, 36, 40, 44],
+    topbar: [28, 36, 40, 44, 48],
+    allbirds: [18, 24, 28, 32, 36],
+  };
+  const logoSize = logoSizeMap[layoutStyle][logoSizeLevel - 1];
+  const logoDotSize = Math.max(2, Math.round(logoSize / 4));
   const ctaLabel = config.cta.text || 'Liên hệ';
   const loginLabel = config.login.text || 'Đăng nhập';
   const defaultLinks = useMemo(() => ({
@@ -113,6 +122,10 @@ export function HeaderMenuPreview({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [visibleRootCount, setVisibleRootCount] = useState<number | null>(null);
   const navRef = useRef<HTMLDivElement | null>(null);
+  const headerRowRef = useRef<HTMLDivElement | null>(null);
+  const brandBlockRef = useRef<HTMLDivElement | null>(null);
+  const actionsRef = useRef<HTMLDivElement | null>(null);
+  const measureContainerRef = useRef<HTMLDivElement | null>(null);
   const measureItemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const moreMeasureRef = useRef<HTMLDivElement | null>(null);
 
@@ -147,39 +160,87 @@ export function HeaderMenuPreview({
   }
 
   useLayoutEffect(() => {
-    if (!navRef.current || rootItems.length === 0) {
+    if (!headerRowRef.current || rootItems.length === 0) {
       setVisibleRootCount(rootItems.length);
       return;
     }
 
+    const parseGap = (element: HTMLElement | null) => {
+      if (!element) {return 0;}
+      const style = window.getComputedStyle(element);
+      const gap = parseFloat(style.columnGap || style.gap || '0');
+      return Number.isNaN(gap) ? 0 : gap;
+    };
+
     const calculate = () => {
-      const containerWidth = navRef.current?.clientWidth ?? 0;
-      if (!containerWidth) {return;}
+      const rowWidth = headerRowRef.current?.clientWidth ?? 0;
+      if (!rowWidth) {return;}
+
+      const brandWidth = brandBlockRef.current?.offsetWidth ?? 0;
+      const actionsWidth = actionsRef.current?.offsetWidth ?? 0;
+      const rowGap = parseGap(headerRowRef.current);
+      const availableNavWidth = rowWidth - brandWidth - actionsWidth - rowGap * 2;
+      if (availableNavWidth <= 0) {
+        setVisibleRootCount(0);
+        return;
+      }
 
       const widths = measureItemRefs.current.map((item) => item?.offsetWidth ?? 0);
       const moreWidth = moreMeasureRef.current?.offsetWidth ?? 0;
-      let used = 0;
-      let count = 0;
+      const itemGap = parseGap(measureContainerRef.current);
+      const totalItems = widths.length;
 
-      for (let i = 0; i < widths.length; i += 1) {
-        const remaining = widths.length - (i + 1);
-        const reserved = remaining > 0 ? moreWidth : 0;
-        if (used + widths[i] + reserved > containerWidth) {break;}
-        used += widths[i];
-        count += 1;
+      if (totalItems === 0) {
+        setVisibleRootCount(0);
+        return;
       }
 
-      setVisibleRootCount(Math.max(0, count));
+      const prefix: number[] = [];
+      widths.forEach((width, index) => {
+        prefix[index] = width + (index > 0 ? prefix[index - 1] + itemGap : 0);
+      });
+
+      const widthForCount = (count: number) => {
+        if (count <= 0) {
+          return totalItems > 0 ? moreWidth : 0;
+        }
+        const itemsWidth = prefix[count - 1];
+        if (count < totalItems) {
+          return itemsWidth + itemGap + moreWidth;
+        }
+        return itemsWidth;
+      };
+
+      let low = 0;
+      let high = totalItems;
+      let best = 0;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const totalWidth = widthForCount(mid);
+        if (totalWidth <= availableNavWidth) {
+          best = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      setVisibleRootCount(Math.max(0, best));
     };
 
     const resizeObserver = new ResizeObserver(calculate);
-    resizeObserver.observe(navRef.current);
+    resizeObserver.observe(headerRowRef.current);
+    if (brandBlockRef.current) {resizeObserver.observe(brandBlockRef.current);}    
+    if (actionsRef.current) {resizeObserver.observe(actionsRef.current);}    
+    if (navRef.current) {resizeObserver.observe(navRef.current);}    
+    if (measureContainerRef.current) {resizeObserver.observe(measureContainerRef.current);}    
     measureItemRefs.current.forEach((item) => { if (item) {resizeObserver.observe(item);} });
     if (moreMeasureRef.current) {resizeObserver.observe(moreMeasureRef.current);}    
     calculate();
 
     return () => resizeObserver.disconnect();
-  }, [rootItems.length]);
+  }, [rootItems.length, logoSizeLevel, showBrandName, layoutStyle, config.cta.show, config.cart.show, config.wishlist.show]);
 
   const displayTopbar = useMemo(() => {
     if (config.topbar.useSettingsData) {
@@ -393,9 +454,12 @@ export function HeaderMenuPreview({
         <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
       <div className="px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
+        <div ref={headerRowRef} className="flex items-center gap-4">
+          <div ref={brandBlockRef} className="flex items-center gap-3 flex-shrink-0">
+            <div
+              className="rounded-lg"
+              style={{ backgroundColor: tokens.brandBadgeBg, width: logoSize, height: logoSize }}
+            ></div>
             {showBrandName && (
               <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
             )}
@@ -542,7 +606,7 @@ export function HeaderMenuPreview({
               </nav>
 
               <div className="absolute opacity-0 pointer-events-none -z-10 h-0 overflow-hidden" aria-hidden>
-                <div className="flex items-center gap-1">
+                <div ref={measureContainerRef} className="flex items-center gap-1">
                   {rootItems.map((item, index) => (
                     <div
                       key={`${item._id}-measure`}
@@ -558,7 +622,7 @@ export function HeaderMenuPreview({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div ref={actionsRef} className="flex items-center gap-3 flex-shrink-0">
                 {showSearch && (
                   <div className="relative">
                     <input
@@ -727,8 +791,8 @@ export function HeaderMenuPreview({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-shrink-0">
             <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center font-bold"
-              style={{ backgroundColor: tokens.brandBadgeBg, color: tokens.brandBadgeText }}
+              className="rounded-lg flex items-center justify-center font-bold"
+              style={{ backgroundColor: tokens.brandBadgeBg, color: tokens.brandBadgeText, width: logoSize, height: logoSize }}
             >
               {brandLabel.charAt(0)}
             </div>
@@ -970,7 +1034,10 @@ export function HeaderMenuPreview({
         {device !== 'mobile' ? (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
+              <div
+                className="rounded-full"
+                style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
+              ></div>
               {showBrandName && (
                 <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
               )}
@@ -1110,7 +1177,10 @@ export function HeaderMenuPreview({
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
+              <div
+                className="rounded-full"
+                style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
+              ></div>
               {showBrandName && (
                 <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
               )}
