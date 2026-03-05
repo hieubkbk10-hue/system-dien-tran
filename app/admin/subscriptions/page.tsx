@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
-import { BulkDeleteConfirmDialog } from '../components/BulkDeleteConfirmDialog';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { SubscriptionModal } from './_components/SubscriptionModal';
 import { useAdminAuth } from '../auth/context';
