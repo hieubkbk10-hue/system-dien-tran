@@ -268,7 +268,7 @@ export function Header() {
     });
   }, [menuItems]);
 
-  const topbarSlogan = typeof settings.topbar_slogan === 'string' ? settings.topbar_slogan.trim() : '';
+  const topbarSlogan = typeof settings.site_tagline === 'string' ? settings.site_tagline.trim() : '';
   const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? true) !== false;
   const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
 

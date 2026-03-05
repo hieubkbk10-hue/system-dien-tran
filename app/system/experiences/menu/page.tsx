@@ -86,7 +86,7 @@ export default function HeaderMenuExperiencePage() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
   const siteNameSetting = useQuery(api.settings.getByKey, { key: 'site_name' });
-  const topbarSloganSetting = useQuery(api.settings.getByKey, { key: 'topbar_slogan' });
+  const topbarSloganSetting = useQuery(api.settings.getByKey, { key: 'site_tagline' });
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
   const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
@@ -443,7 +443,7 @@ export default function HeaderMenuExperiencePage() {
                 accentColor={resolvedBrandColor}
               />
               <div className="space-y-1">
-                <Label className="text-xs">Nội dung slogan</Label>
+                <Label className="text-xs">Slogan</Label>
                 <Input
                   value={resolvedTopbarSlogan}
                   className="h-8 text-sm"
