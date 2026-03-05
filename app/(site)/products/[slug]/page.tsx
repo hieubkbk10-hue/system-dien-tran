@@ -898,6 +898,8 @@ function ExpandableDescription({ html, className, style, buttonStyle }: { html: 
 
 type VariantSelectionMap = Record<string, Id<'productOptionValues'>>;
 
+const RATING_STAR_ACTIVE_COLOR = '#f59e0b';
+
 const buildSelectionFromVariant = (variant: ProductVariant): VariantSelectionMap =>
   variant.optionValues.reduce<VariantSelectionMap>((acc, optionValue) => {
     acc[optionValue.optionId] = optionValue.valueId;
@@ -918,6 +920,9 @@ const findExactVariant = (variants: ProductVariant[], selection: VariantSelectio
   ) ?? null;
 
 function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: ProductDetailColors }) {
+  if (!summary.average || summary.count <= 0) {
+    return null;
+  }
   const average = summary.average ?? 0;
   return (
     <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
@@ -927,16 +932,12 @@ function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: Pro
             key={star}
             size={14}
             style={star <= Math.round(average)
-              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+              ? { color: RATING_STAR_ACTIVE_COLOR, fill: RATING_STAR_ACTIVE_COLOR }
               : { color: tokens.ratingStarInactive }}
           />
         ))}
       </div>
-      {summary.average ? (
-        <span>{summary.average.toFixed(1)} ({summary.count})</span>
-      ) : (
-        <span>Chưa có đánh giá</span>
-      )}
+      <span>{summary.average.toFixed(1)} ({summary.count})</span>
     </div>
   );
 }
@@ -1824,7 +1825,7 @@ function RatingStars({ value, size = 14, onChange, tokens }: { value: number; si
           <Star
             size={size}
             style={star <= Math.round(value)
-              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+              ? { color: RATING_STAR_ACTIVE_COLOR, fill: RATING_STAR_ACTIVE_COLOR }
               : { color: tokens.ratingStarInactive }}
           />
         </button>
@@ -1921,14 +1922,12 @@ function ProductCommentsSection({
           <div>
             <h3 className="text-lg font-semibold" style={{ color: tokens.headingColor }}>Đánh giá & Bình luận</h3>
             <div className="mt-1 flex items-center gap-2 text-sm" style={{ color: tokens.metaText }}>
-              {ratingSummary.average ? (
+              {ratingSummary.average && ratingSummary.count > 0 ? (
                 <>
                   <RatingStars value={ratingSummary.average} size={14} tokens={tokens} />
                   <span>{ratingSummary.average.toFixed(1)} ({ratingSummary.count} đánh giá)</span>
                 </>
-              ) : (
-                <span>Chưa có đánh giá</span>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

@@ -85,6 +85,7 @@ const PREVIEW_IMAGES = [
 ];
 
 const PREVIEW_DESCRIPTION = 'Thiết kế sang trọng, hiệu năng bền bỉ và trải nghiệm màn hình sắc nét phù hợp nhu cầu cao cấp. Pin tối ưu cho cả ngày dài, camera linh hoạt và chất liệu hoàn thiện tinh tế.';
+const RATING_STAR_ACTIVE_COLOR = '#f59e0b';
 
 function BlurredPreviewImage({ src, alt }: { src: string; alt: string }) {
   return (
@@ -219,6 +220,7 @@ export function ProductDetailPreview({
   const originalPrice = 36990000;
   const rating = 4.8;
   const reviews = 234;
+  const hasRatingData = reviews > 0 && rating > 0;
   const discountPercent = Math.round((1 - price / originalPrice) * 100);
   const contentWidthClass = contentWidth === 'narrow'
     ? 'max-w-4xl'
@@ -275,7 +277,7 @@ export function ProductDetailPreview({
             <div className="space-y-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-bold" style={{ color: tokens.headingColor }}>{productName}</h1>
-                {showRating && (
+                {showRating && hasRatingData && (
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) => (
@@ -283,7 +285,7 @@ export function ProductDetailPreview({
                           key={i}
                           size={16}
                           style={i < Math.floor(rating)
-                            ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                            ? { color: RATING_STAR_ACTIVE_COLOR, fill: RATING_STAR_ACTIVE_COLOR }
                             : { color: tokens.ratingStarInactive }}
                         />
                       ))}
@@ -459,7 +461,7 @@ export function ProductDetailPreview({
 
                 <h1 className="text-2xl md:text-3xl font-light tracking-tight" style={{ color: tokens.headingColor }}>{productName}</h1>
 
-                {showRating && (
+                {showRating && hasRatingData && (
                   <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -467,7 +469,7 @@ export function ProductDetailPreview({
                           key={star}
                           size={14}
                           style={star <= Math.round(rating)
-                            ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                            ? { color: RATING_STAR_ACTIVE_COLOR, fill: RATING_STAR_ACTIVE_COLOR }
                             : { color: tokens.ratingStarInactive }}
                         />
                       ))}
@@ -592,7 +594,7 @@ export function ProductDetailPreview({
               <div className="lg:col-span-5 px-0 md:px-2 py-6 lg:py-0 flex flex-col justify-center">
                 <div className="mb-6">
                   <h1 className="text-3xl md:text-4xl font-light tracking-tight mb-4" style={{ color: tokens.headingColor }}>{productName}</h1>
-                  {showRating && (
+                  {showRating && hasRatingData && (
                     <div className="flex items-center gap-2 text-xs" style={{ color: tokens.ratingText }}>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -600,7 +602,7 @@ export function ProductDetailPreview({
                             key={star}
                             size={14}
                             style={star <= Math.round(rating)
-                              ? { color: tokens.ratingStarActive, fill: tokens.ratingStarActive }
+                              ? { color: RATING_STAR_ACTIVE_COLOR, fill: RATING_STAR_ACTIVE_COLOR }
                               : { color: tokens.ratingStarInactive }}
                           />
                         ))}
