@@ -461,9 +461,10 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
     setQuickRouteSearch('');
   };
 
-  const handleSelectQuickRoute = (url: string) => {
+  const handleSelectQuickRoute = (option: QuickRouteOption) => {
     if (!quickPickerTargetId) {return;}
-    handleUpdateField(quickPickerTargetId, 'url', url);
+    handleUpdateField(quickPickerTargetId, 'url', option.url);
+    handleUpdateField(quickPickerTargetId, 'label', option.label);
     handleCloseQuickPicker();
   };
 
@@ -732,7 +733,7 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
                       <button
                         key={`${option.url}-${option.source}`}
                         type="button"
-                        onClick={() => handleSelectQuickRoute(option.url)}
+                        onClick={() => handleSelectQuickRoute(option)}
                         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         <div className="min-w-0">
