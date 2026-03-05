@@ -219,11 +219,6 @@ export function HeaderMenuPreview({
   const topbarSloganEnabled = displayTopbar.sloganEnabled !== false;
   const showSlogan = Boolean(displayTopbar.show && topbarSloganEnabled && topbarSlogan);
 
-  const announcementText = useMemo(() => {
-    const items = [displayTopbar.hotline, displayTopbar.email].filter(Boolean);
-    return items.length > 0 ? items.join(' · ') : 'Shop New Arrivals';
-  }, [displayTopbar.email, displayTopbar.hotline]);
-  const allbirdsAnnouncement = showSlogan ? topbarSlogan : announcementText;
 
   const classicBackgroundStyle: React.CSSProperties = (() => {
     if (config.headerBackground === 'dots') {
@@ -783,17 +778,36 @@ export function HeaderMenuPreview({
   const renderAllbirdsStyle = () => (
     <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface, ...classicSeparatorStyle }}>
       {displayTopbar.show && (
-        <div
-          className="px-4 py-2 text-xs"
-          style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
-        >
-          <div className="flex items-center justify-center gap-4">
-            <span className={cn('truncate', device === 'mobile' && 'text-[11px]')}>{allbirdsAnnouncement}</span>
-            {device !== 'mobile' && showTrackOrder && (
-              <span className="flex items-center gap-2">
-                {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn</a>}
-              </span>
+        <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
+          <div className="flex items-center justify-between gap-4 min-w-0">
+            <div className="flex items-center gap-4">
+              {displayTopbar.hotline && (
+                <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
+              )}
+              {device !== 'mobile' && displayTopbar.email && (
+                <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
+              )}
+            </div>
+            {showSlogan && (
+              <div className={cn('flex-1 px-4 text-center truncate', device === 'mobile' && 'text-[11px]')}>
+                {topbarSlogan}
+              </div>
             )}
+            <div className="flex items-center gap-3">
+              {device !== 'mobile' && (
+                <>
+                  {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn hàng</a>}
+                  {showTrackOrder && showLoginLink && <span style={{ color: tokens.topbarDivider }}>|</span>}
+                </>
+              )}
+              {showUserMenu && renderUserMenu('text')}
+              {showLoginLink && (
+                <a href={defaultLinks.login} className="hover:underline flex items-center gap-1">
+                  <User size={12} />
+                  {loginLabel}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}

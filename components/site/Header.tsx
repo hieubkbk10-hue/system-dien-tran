@@ -272,11 +272,6 @@ export function Header() {
   const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? true) !== false;
   const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
 
-  const announcementText = useMemo(() => {
-    const items = [topbarConfig.hotline, topbarConfig.email].filter(Boolean);
-    return items.length > 0 ? items.join(' · ') : 'Shop New Arrivals';
-  }, [topbarConfig.email, topbarConfig.hotline]);
-  const allbirdsAnnouncement = showTopbarSlogan ? topbarSlogan : announcementText;
 
   const toggleMobileItem = (id: string) => {
     setExpandedMobileItems(prev => 
@@ -916,19 +911,42 @@ export function Header() {
   return (
     <header className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface, ...classicSeparatorStyle }}>
         {topbarConfig.show !== false && (
-          <div
-            className="px-4 py-2 text-xs"
-            style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
-          >
-            <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
-              <span className="truncate text-[11px] sm:text-xs">{allbirdsAnnouncement}</span>
-              {showTrackOrder && (
-                <span className="hidden sm:flex items-center gap-2">
-                  {showTrackOrder && (
-                    <Link href={DEFAULT_LINKS.trackOrder} className="hover:underline">Theo dõi đơn</Link>
-                  )}
-                </span>
+          <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
+              <div className="flex items-center gap-4">
+                {topbarConfig.hotline && (
+                  <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
+                    <Phone size={12} />
+                    <span>{topbarConfig.hotline}</span>
+                  </a>
+                )}
+                {topbarConfig.email && (
+                  <a href={`mailto:${topbarConfig.email}`} className="hidden sm:flex items-center gap-1">
+                    <Mail size={12} />
+                    <span>{topbarConfig.email}</span>
+                  </a>
+                )}
+              </div>
+              {showTopbarSlogan && (
+                <div className="flex-1 px-4 text-center truncate text-[11px] sm:text-xs">
+                  {topbarSlogan}
+                </div>
               )}
+              <div className="flex items-center gap-3">
+                {showTrackOrder && (
+                  <>
+                    <Link href={DEFAULT_LINKS.trackOrder} className="hover:underline hidden sm:inline">Theo dõi đơn hàng</Link>
+                  </>
+                )}
+                {showTrackOrder && showLogin && <span className="hidden sm:inline" style={{ color: tokens.topbarDivider }}>|</span>}
+                {showUserMenu && renderUserMenu('text', '')}
+                {showLoginLink && (
+                  <Link href={DEFAULT_LINKS.login} className="hover:underline flex items-center gap-1">
+                    <User size={12} />
+                    {config.login?.text ?? 'Đăng nhập'}
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}
