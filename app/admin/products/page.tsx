@@ -118,6 +118,17 @@ function ProductsContent() {
     return (setting?.value as string) || 'variant';
   }, [settingsData]);
 
+  const saleMode = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'saleMode');
+    const value = setting?.value;
+    if (value === 'contact' || value === 'affiliate') {
+      return value;
+    }
+    return 'cart';
+  }, [settingsData]);
+
+  const isContactLikeMode = saleMode === 'contact' || saleMode === 'affiliate';
+
   const excelActionsEnabled = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'enableExcelActions');
     return setting?.value === undefined ? true : Boolean(setting?.value);
@@ -560,6 +571,11 @@ function ProductsContent() {
   };
 
   const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
+  const renderContactPrice = (resolvedPrice: number) => (
+    isContactLikeMode && resolvedPrice <= 0
+      ? <span className="text-slate-500">Giá liên hệ</span>
+      : <span>{formatPrice(resolvedPrice)}</span>
+  );
 
   if (isLoading) {
     return (
@@ -698,16 +714,16 @@ function ProductsContent() {
                         if (!meta.hasPricedActiveVariant) {
                           return <span className="text-slate-500">Chưa có giá</span>;
                         }
-                        const resolvedPrice = meta.variantMinPrice ?? product.price;
-                        return <span>{formatPrice(resolvedPrice)}</span>;
+                        const resolvedPrice = meta.variantMinPrice ?? product.price ?? 0;
+                        return renderContactPrice(resolvedPrice);
                       })() : (
-                        product.salePrice && enabledFields.has('salePrice') ? (
+                        (product.salePrice ?? 0) > 0 && enabledFields.has('salePrice') ? (
                           <>
-                            <span className="text-red-500 font-medium">{formatPrice(product.salePrice)}</span>
-                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.price)}</span>
+                            <span className="text-red-500 font-medium">{formatPrice(product.salePrice ?? 0)}</span>
+                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.price ?? 0)}</span>
                           </>
                         ) : (
-                          <span>{formatPrice(product.price)}</span>
+                          renderContactPrice(product.price ?? 0)
                         )
                       )}
                     </div>
