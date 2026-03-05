@@ -17,9 +17,18 @@ import { SimpleMenuPreview } from './SimpleMenuPreview';
 
 const MODULE_KEY = 'menus';
 
-const CORE_ROUTE_OPTIONS = [
-  { label: 'Trang chủ', url: '/', source: 'Core' },
-  { label: 'Liên hệ', url: '/contact', source: 'Core' },
+const QUICK_ROUTE_GROUPS = ['Trang cơ bản', 'Module', 'Danh mục'] as const;
+
+type QuickRouteOption = {
+  group: (typeof QUICK_ROUTE_GROUPS)[number];
+  label: string;
+  source: string;
+  url: string;
+};
+
+const CORE_ROUTE_OPTIONS: QuickRouteOption[] = [
+  { label: 'Trang chủ', url: '/', source: 'Core', group: 'Trang cơ bản' },
+  { label: 'Liên hệ', url: '/contact', source: 'Core', group: 'Trang cơ bản' },
 ];
 
 const MODULE_SITE_ROUTE_CATALOG: Record<string, { label: string; url: string }[]> = {
@@ -52,6 +61,7 @@ const MODULE_SITE_ROUTE_CATALOG: Record<string, { label: string; url: string }[]
     { label: 'Wishlist', url: '/wishlist' },
   ],
 };
+
 
 interface MenuItem {
   _id: Id<"menuItems">;
@@ -132,6 +142,9 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
   const enabledModules = useQuery(api.admin.modules.listEnabledModules);
+  const productCategories = useQuery(api.productCategories.listActive);
+  const postCategories = useQuery(api.postCategories.listActive, { limit: 100 });
+  const serviceCategories = useQuery(api.serviceCategories.listActive, { limit: 100 });
   const saveMenuItemsBulk = useMutation(api.menus.saveMenuItemsBulk);
 
   const [draftItems, setDraftItems] = useState<DraftMenuItem[]>([]);
@@ -167,24 +180,57 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
 
   const quickRouteOptions = useMemo(() => {
     const enabledKeys = new Set((enabledModules ?? []).map(moduleItem => moduleItem.key));
-    const options: { label: string; url: string; source: string }[] = [...CORE_ROUTE_OPTIONS];
+    const options: QuickRouteOption[] = [...CORE_ROUTE_OPTIONS];
 
     Object.entries(MODULE_SITE_ROUTE_CATALOG).forEach(([moduleKey, routes]) => {
       if (!enabledKeys.has(moduleKey)) {return;}
       routes.forEach(route => {
-        options.push({ ...route, source: moduleKey });
+        options.push({ ...route, source: moduleKey, group: 'Module' });
       });
     });
 
-    const deduped = new Map<string, { label: string; url: string; source: string }>();
+    if (enabledKeys.has('products')) {
+      (productCategories ?? []).forEach(category => {
+        options.push({
+          group: 'Danh mục',
+          label: category.name,
+          source: 'products',
+          url: `/products?category=${category.slug}`,
+        });
+      });
+    }
+
+    if (enabledKeys.has('posts')) {
+      (postCategories ?? []).forEach(category => {
+        options.push({
+          group: 'Danh mục',
+          label: category.name,
+          source: 'posts',
+          url: `/posts?catpost=${category.slug}`,
+        });
+      });
+    }
+
+    if (enabledKeys.has('services')) {
+      (serviceCategories ?? []).forEach(category => {
+        options.push({
+          group: 'Danh mục',
+          label: category.name,
+          source: 'services',
+          url: `/services?category=${category.slug}`,
+        });
+      });
+    }
+
+    const deduped = new Map<string, QuickRouteOption>();
     options.forEach(option => {
       if (!deduped.has(option.url)) {
         deduped.set(option.url, option);
       }
     });
 
-    return Array.from(deduped.values()).sort((a, b) => a.label.localeCompare(b.label));
-  }, [enabledModules]);
+    return Array.from(deduped.values());
+  }, [enabledModules, postCategories, productCategories, serviceCategories]);
 
   const filteredQuickRoutes = useMemo(() => {
     const keyword = quickRouteSearch.trim().toLowerCase();
@@ -195,6 +241,24 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
       || option.source.toLowerCase().includes(keyword)
     );
   }, [quickRouteOptions, quickRouteSearch]);
+
+  const groupedQuickRoutes = useMemo(() => {
+    const groups = new Map<QuickRouteOption['group'], QuickRouteOption[]>();
+    filteredQuickRoutes.forEach(option => {
+      const list = groups.get(option.group) ?? [];
+      list.push(option);
+      groups.set(option.group, list);
+    });
+
+    return QUICK_ROUTE_GROUPS.flatMap(group => {
+      const options = groups.get(group);
+      if (!options || options.length === 0) {return [];}
+      return [{
+        group,
+        options: options.slice().sort((a, b) => a.label.localeCompare(b.label)),
+      }];
+    });
+  }, [filteredQuickRoutes]);
 
   const buildDraftItems = (items: MenuItem[]) => items
     .slice()
@@ -515,30 +579,37 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
                           />
                         </div>
                         <div className="max-h-56 overflow-auto">
-                          {filteredQuickRoutes.length === 0 && (
+                          {groupedQuickRoutes.length === 0 && (
                             <div className="px-3 py-4 text-xs text-slate-500">Không có gợi ý phù hợp.</div>
                           )}
-                          {filteredQuickRoutes.map(option => (
-                            <button
-                              key={`${option.url}-${option.source}`}
-                              type="button"
-                              onClick={() => {
-                                handleUpdateField(item.localId, 'url', option.url);
-                                setActiveQuickPickerId(null);
-                                setQuickRouteSearch('');
-                              }}
-                              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-                            >
-                              <div className="min-w-0">
-                                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
-                                  {option.label}
-                                </div>
-                                <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
+                          {groupedQuickRoutes.map(group => (
+                            <div key={group.group} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
+                              <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                {group.group}
                               </div>
-                              <span className="text-[10px] uppercase tracking-wide text-slate-400">
-                                {option.source}
-                              </span>
-                            </button>
+                              {group.options.map(option => (
+                                <button
+                                  key={`${option.url}-${option.source}`}
+                                  type="button"
+                                  onClick={() => {
+                                    handleUpdateField(item.localId, 'url', option.url);
+                                    setActiveQuickPickerId(null);
+                                    setQuickRouteSearch('');
+                                  }}
+                                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                                >
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                      {option.label}
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
+                                  </div>
+                                  <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                                    {option.source}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                           ))}
                         </div>
                       </div>
