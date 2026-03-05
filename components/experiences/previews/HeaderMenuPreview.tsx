@@ -465,7 +465,7 @@ export function HeaderMenuPreview({
                   >
                     <button
                       className={cn(
-                        'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1 max-w-[160px] truncate',
+                        'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
                         hoveredItem === item._id
                           ? 'text-[var(--menu-hover-text)]'
                           : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
@@ -476,7 +476,7 @@ export function HeaderMenuPreview({
                       }}
                       title={item.label}
                     >
-                      <span className="truncate max-w-[120px]">{item.label}</span>
+                      <span>{item.label}</span>
                       {item.children.length > 0 && (
                         <ChevronDown size={14} className={cn('transition-transform', hoveredItem === item._id && 'rotate-180')} />
                       )}
@@ -537,7 +537,7 @@ export function HeaderMenuPreview({
                         ...menuVars,
                       }}
                     >
-                      More
+                      Thêm
                       <ChevronDown size={14} className={cn('transition-transform', hoveredItem === moreKey && 'rotate-180')} />
                     </button>
 
@@ -599,14 +599,14 @@ export function HeaderMenuPreview({
                     <div
                       key={`${item._id}-measure`}
                       ref={(el) => { measureItemRefs.current[index] = el; }}
-                      className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1 max-w-[160px]"
+                      className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1"
                     >
-                      <span className="truncate max-w-[120px]">{item.label}</span>
+                      <span>{item.label}</span>
                       {item.children.length > 0 && <ChevronDown size={14} />}
                     </div>
                   ))}
                   <div ref={moreMeasureRef} className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1">
-                    More <ChevronDown size={14} />
+                    Thêm <ChevronDown size={14} />
                   </div>
                 </div>
               </div>
