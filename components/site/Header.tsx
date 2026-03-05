@@ -170,9 +170,9 @@ export function Header() {
   const showBrandName = config.showBrandName !== false;
   const logoSizeLevel = config.logoSizeLevel ?? 2;
   const logoSizeMap: Record<HeaderStyle, number[]> = {
-    classic: [24, 32, 36, 40, 44],
-    topbar: [28, 36, 40, 44, 48],
-    allbirds: [18, 24, 28, 32, 36],
+    classic: [24, 32, 40, 48, 56],
+    topbar: [28, 36, 44, 52, 60],
+    allbirds: [16, 24, 32, 40, 48],
   };
   const logoSize = logoSizeMap[headerStyle][logoSizeLevel - 1];
   const logoDotSize = Math.max(2, Math.round(logoSize / 4));
@@ -296,7 +296,7 @@ export function Header() {
   }
 
   useLayoutEffect(() => {
-    if (!headerRowRef.current || rootItems.length === 0) {
+    if (!navRef.current || rootItems.length === 0) {
       setVisibleRootCount(rootItems.length);
       return;
     }
@@ -309,17 +309,8 @@ export function Header() {
     };
 
     const calculate = () => {
-      const rowWidth = headerRowRef.current?.clientWidth ?? 0;
-      if (!rowWidth) {return;}
-
-      const brandWidth = brandBlockRef.current?.offsetWidth ?? 0;
-      const actionsWidth = actionsRef.current?.offsetWidth ?? 0;
-      const rowGap = parseGap(headerRowRef.current);
-      const availableNavWidth = rowWidth - brandWidth - actionsWidth - rowGap * 2;
-      if (availableNavWidth <= 0) {
-        setVisibleRootCount(0);
-        return;
-      }
+      const availableNavWidth = navRef.current?.clientWidth ?? 0;
+      if (!availableNavWidth) {return;}
 
       const widths = measureItemRefs.current.map((item) => item?.offsetWidth ?? 0);
       const moreWidth = moreMeasureRef.current?.offsetWidth ?? 0;
@@ -366,9 +357,6 @@ export function Header() {
     };
 
     const resizeObserver = new ResizeObserver(calculate);
-    resizeObserver.observe(headerRowRef.current);
-    if (brandBlockRef.current) {resizeObserver.observe(brandBlockRef.current);}    
-    if (actionsRef.current) {resizeObserver.observe(actionsRef.current);}    
     if (navRef.current) {resizeObserver.observe(navRef.current);}    
     if (measureContainerRef.current) {resizeObserver.observe(measureContainerRef.current);}    
     measureItemRefs.current.forEach((item) => { if (item) {resizeObserver.observe(item);} });
