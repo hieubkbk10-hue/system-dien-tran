@@ -108,6 +108,15 @@ const BUSINESS_TYPE_OPTIONS = [
   'ProfessionalService',
 ];
 
+const extractIframeSrc = (iframe: string): string => {
+  const match = iframe.match(/\ssrc\s*=\s*"([^"]+)"|\ssrc\s*=\s*'([^']+)'/i);
+  const src = match?.[1] || match?.[2] || '';
+  if (!src || (!src.startsWith('http://') && !src.startsWith('https://'))) {
+    return '';
+  }
+  return src;
+};
+
 export default function SettingsPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
@@ -533,6 +542,8 @@ function SettingsContent() {
           const googleIframe = typeof form.contact_google_map_embed_iframe === 'string'
             ? form.contact_google_map_embed_iframe
             : '';
+          const googleMapSrc = extractIframeSrc(googleIframe);
+          const canOpenGoogleMap = Boolean(googleMapSrc);
 
           return (
             <div className="space-y-2" key={key}>
@@ -590,6 +601,26 @@ function SettingsContent() {
                     className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
                     placeholder="Dán nguyên mã iframe Google Maps..."
                   />
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (canOpenGoogleMap) {
+                          window.open(googleMapSrc, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                      disabled={!canOpenGoogleMap}
+                    >
+                      Mở Google Maps
+                    </Button>
+                    <span className="text-xs text-slate-500">
+                      {canOpenGoogleMap
+                        ? 'Đã sẵn sàng mở Google Maps ở tab mới.'
+                        : 'Iframe chưa hợp lệ nên chưa mở được.'}
+                    </span>
+                  </div>
                   <p className="text-xs text-slate-500">Chỉ dán mã iframe do Google Maps cung cấp.</p>
                 </div>
               )}
