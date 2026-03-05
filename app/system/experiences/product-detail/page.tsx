@@ -90,6 +90,7 @@ type ModernLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
+  showHighlights: boolean;
   heroStyle: 'full' | 'split' | 'minimal';
 };
 
@@ -100,6 +101,7 @@ type MinimalLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
+  showHighlights: boolean;
   contentWidth: 'narrow' | 'medium' | 'wide';
 };
 
@@ -143,8 +145,8 @@ const DEFAULT_CONFIG: ProductDetailExperienceConfig = {
   layoutStyle: 'classic',
   layouts: {
     classic: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showClassicHighlights: true },
-    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, heroStyle: 'full' },
-    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, contentWidth: 'medium' },
+    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showHighlights: true, heroStyle: 'full' },
+    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showHighlights: true, contentWidth: 'medium' },
   },
   showBuyNow: true,
 };
@@ -315,8 +317,8 @@ export default function ProductDetailExperiencePage() {
       layoutStyle: raw?.layoutStyle ?? legacyStyle ?? DEFAULT_CONFIG.layoutStyle,
       layouts: {
         classic: { ...DEFAULT_CONFIG.layouts.classic, showClassicHighlights: legacyHighlights, ...raw?.layouts?.classic },
-        modern: { ...DEFAULT_CONFIG.layouts.modern, ...raw?.layouts?.modern },
-        minimal: { ...DEFAULT_CONFIG.layouts.minimal, ...raw?.layouts?.minimal },
+        modern: { ...DEFAULT_CONFIG.layouts.modern, showHighlights: legacyHighlights, ...raw?.layouts?.modern },
+        minimal: { ...DEFAULT_CONFIG.layouts.minimal, showHighlights: legacyHighlights, ...raw?.layouts?.minimal },
       },
       showBuyNow: raw?.showBuyNow ?? true,
     };
@@ -432,9 +434,9 @@ export default function ProductDetailExperiencePage() {
       contentWidth: config.layoutStyle === 'minimal'
         ? (currentLayoutConfig as MinimalLayoutConfig).contentWidth
         : 'medium',
-      showClassicHighlights: config.layoutStyle === 'classic' 
-        ? (currentLayoutConfig as ClassicLayoutConfig).showClassicHighlights 
-        : false,
+      showHighlights: config.layoutStyle === 'classic'
+        ? (currentLayoutConfig as ClassicLayoutConfig).showClassicHighlights
+        : (currentLayoutConfig as ModernLayoutConfig | MinimalLayoutConfig).showHighlights,
       classicHighlights,
       device: previewDevice,
       brandColor,
@@ -531,31 +533,49 @@ export default function ProductDetailExperiencePage() {
     if (config.layoutStyle === 'modern') {
       const layoutConfig = currentLayoutConfig as ModernLayoutConfig;
       return (
-        <SelectRow
-          label="Hero Style"
-          value={layoutConfig.heroStyle}
-          options={[
-            { label: 'Full Width', value: 'full' },
-            { label: 'Split Layout', value: 'split' },
-            { label: 'Minimal', value: 'minimal' },
-          ]}
-          onChange={(v) => updateLayoutConfig('heroStyle' as keyof typeof currentLayoutConfig, v as never)}
-        />
+        <div className="space-y-3">
+          <ToggleRow
+            label="Highlights"
+            description="Hiện tính năng nổi bật"
+            checked={layoutConfig.showHighlights}
+            onChange={(v) => updateLayoutConfig('showHighlights' as keyof typeof currentLayoutConfig, v as never)}
+            accentColor={brandColor}
+          />
+          <SelectRow
+            label="Hero Style"
+            value={layoutConfig.heroStyle}
+            options={[
+              { label: 'Full Width', value: 'full' },
+              { label: 'Split Layout', value: 'split' },
+              { label: 'Minimal', value: 'minimal' },
+            ]}
+            onChange={(v) => updateLayoutConfig('heroStyle' as keyof typeof currentLayoutConfig, v as never)}
+          />
+        </div>
       );
     }
     if (config.layoutStyle === 'minimal') {
       const layoutConfig = currentLayoutConfig as MinimalLayoutConfig;
       return (
-        <SelectRow
-          label="Content Width"
-          value={layoutConfig.contentWidth}
-          options={[
-            { label: 'Narrow', value: 'narrow' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Wide', value: 'wide' },
-          ]}
-          onChange={(v) => updateLayoutConfig('contentWidth' as keyof typeof currentLayoutConfig, v as never)}
-        />
+        <div className="space-y-3">
+          <ToggleRow
+            label="Highlights"
+            description="Hiện tính năng nổi bật"
+            checked={layoutConfig.showHighlights}
+            onChange={(v) => updateLayoutConfig('showHighlights' as keyof typeof currentLayoutConfig, v as never)}
+            accentColor={brandColor}
+          />
+          <SelectRow
+            label="Content Width"
+            value={layoutConfig.contentWidth}
+            options={[
+              { label: 'Narrow', value: 'narrow' },
+              { label: 'Medium', value: 'medium' },
+              { label: 'Wide', value: 'wide' },
+            ]}
+            onChange={(v) => updateLayoutConfig('contentWidth' as keyof typeof currentLayoutConfig, v as never)}
+          />
+        </div>
       );
     }
     return null;

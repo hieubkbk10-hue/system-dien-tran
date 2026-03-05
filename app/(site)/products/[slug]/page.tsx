@@ -39,6 +39,7 @@ type ModernLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
+  showHighlights: boolean;
   heroStyle: ModernHeroStyle;
 };
 
@@ -49,6 +50,7 @@ type MinimalLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
+  showHighlights: boolean;
   contentWidth: MinimalContentWidth;
 };
 
@@ -56,6 +58,7 @@ type ProductDetailExperienceConfig = {
   layoutStyle: ProductDetailStyle;
   showAddToCart: boolean;
   showClassicHighlights: boolean;
+  showHighlights: boolean;
   showRating: boolean;
   showComments: boolean;
   showCommentLikes: boolean;
@@ -195,10 +198,15 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
     const configShowAddToCart = layoutConfig?.showAddToCart ?? raw?.showAddToCart ?? true;
     const layoutHighlights = layoutStyle === 'classic'
       ? (layoutConfig as Partial<ClassicLayoutConfig>)?.showClassicHighlights
-      : undefined;
+      : (layoutConfig as Partial<ModernLayoutConfig & MinimalLayoutConfig>)?.showHighlights;
     const legacyLayoutHighlights = layoutStyle === 'classic'
       ? (layoutConfig as Partial<Record<'showHighlights', boolean>>)?.showHighlights
       : undefined;
+    const resolvedHighlights = layoutHighlights
+      ?? legacyLayoutHighlights
+      ?? raw?.showClassicHighlights
+      ?? raw?.showHighlights
+      ?? legacyHighlightsEnabled;
     const layoutComments = layoutConfig as Partial<ClassicLayoutConfig & ModernLayoutConfig & MinimalLayoutConfig> | undefined;
     const showComments = layoutComments?.showComments ?? raw?.showComments ?? true;
     const showCommentLikes = layoutComments?.showCommentLikes ?? raw?.showCommentLikes ?? true;
@@ -206,7 +214,8 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
     return {
       layoutStyle,
       showAddToCart: configShowAddToCart && cartAvailable,
-      showClassicHighlights: layoutHighlights ?? legacyLayoutHighlights ?? raw?.showClassicHighlights ?? raw?.showHighlights ?? legacyHighlightsEnabled,
+      showClassicHighlights: layoutStyle === 'classic' ? resolvedHighlights : legacyHighlightsEnabled,
+      showHighlights: resolvedHighlights,
       showRating: (layoutConfig?.showRating ?? raw?.showRating ?? true) && canUseComments,
       showComments: canUseComments ? showComments : false,
       showCommentLikes: canUseCommentLikes ? showCommentLikes : false,
@@ -714,6 +723,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           enabledFields={enabledFields}
           variants={variants ?? []}
           variantOptions={variantOptions}
+          highlights={classicHighlights}
+          showHighlights={experienceConfig.showHighlights}
           ratingSummary={ratingSummary}
           saleMode={saleMode}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
@@ -739,6 +750,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           enabledFields={enabledFields}
           variants={variants ?? []}
           variantOptions={variantOptions}
+          highlights={classicHighlights}
+          showHighlights={experienceConfig.showHighlights}
           ratingSummary={ratingSummary}
           saleMode={saleMode}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
@@ -822,6 +835,11 @@ interface ExperienceBlocksProps {
   onBuyNow: (quantity: number, variantId?: Id<'productVariants'>) => void;
 }
 
+interface HighlightBlockProps {
+  highlights: ClassicHighlightItem[];
+  showHighlights: boolean;
+}
+
 interface ClassicStyleProps extends StyleProps, ExperienceBlocksProps {
   highlights: ClassicHighlightItem[];
   highlightsEnabled: boolean;
@@ -846,6 +864,25 @@ function BlurredProductImage({ src, alt, sizes }: { src: string; alt: string; si
       <div className="absolute inset-0 bg-black/10" />
       <Image src={src} alt={alt} fill sizes={sizes} className="relative z-10 object-contain" />
     </>
+  );
+}
+
+function HighlightsGrid({ highlights, tokens }: { highlights: ClassicHighlightItem[]; tokens: ProductDetailColors }) {
+  if (highlights.length === 0) {
+    return null;
+  }
+  return (
+    <div className="grid grid-cols-3 gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.highlightBg }}>
+      {highlights.map((item, index) => {
+        const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon];
+        return (
+          <div key={`${item.icon}-${index}`} className="text-center">
+            <Icon size={24} className="mx-auto mb-2" style={{ color: tokens.highlightIcon }} />
+            <p className="text-xs" style={{ color: tokens.highlightText }}>{item.text}</p>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1220,7 +1257,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 // ====================================================================================
 // STYLE 2: MODERN - Landing page style with hero
 // ====================================================================================
-function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { heroStyle: ModernHeroStyle }) {
+function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, showHighlights, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { heroStyle: ModernHeroStyle }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -1505,6 +1542,8 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               </div>
             )}
 
+            {showHighlights && <HighlightsGrid highlights={highlights} tokens={tokens} />}
+
             {showStock && (
               <div className="grid grid-cols-3 gap-4 pt-2">
                 <div className="text-center space-y-2">
@@ -1566,7 +1605,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
 // ====================================================================================
 // STYLE 3: MINIMAL - Clean, focused design
 // ====================================================================================
-function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { contentWidth: MinimalContentWidth }) {
+function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, showHighlights, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { contentWidth: MinimalContentWidth }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
@@ -1736,6 +1775,8 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                 )}
               </div>
             )}
+
+            {showHighlights && <HighlightsGrid highlights={highlights} tokens={tokens} />}
 
             <div className="space-y-5 pt-0 flex-1">
               <div className="space-y-3 text-sm font-light" style={{ color: tokens.metaText }}>

@@ -42,7 +42,7 @@ type ProductDetailPreviewProps = {
   showAddToCart: boolean;
   showBuyNow: boolean;
   showVariants?: boolean;
-  showClassicHighlights: boolean;
+  showHighlights: boolean;
   classicHighlights?: { icon: string; text: string }[];
   heroStyle?: 'full' | 'split' | 'minimal';
   contentWidth?: 'narrow' | 'medium' | 'wide';
@@ -201,7 +201,7 @@ export function ProductDetailPreview({
   showAddToCart,
   showBuyNow,
   showVariants = true,
-  showClassicHighlights,
+  showHighlights,
   classicHighlights = [],
   heroStyle = 'full',
   contentWidth = 'medium',
@@ -222,6 +222,13 @@ export function ProductDetailPreview({
   const reviews = 234;
   const hasRatingData = reviews > 0 && rating > 0;
   const discountPercent = Math.round((1 - price / originalPrice) * 100);
+  const fallbackHighlights = [
+    { icon: 'Star', text: 'Chip A17 Pro mạnh mẽ' },
+    { icon: 'Star', text: 'Camera 48MP chuyên nghiệp' },
+    { icon: 'Star', text: 'Titanium siêu bền' },
+  ];
+  const highlightItems = classicHighlights.length > 0 ? classicHighlights : fallbackHighlights;
+  const showHighlightBlock = showHighlights && highlightItems.length > 0;
   const contentWidthClass = contentWidth === 'narrow'
     ? 'max-w-4xl'
     : contentWidth === 'wide'
@@ -240,6 +247,20 @@ export function ProductDetailPreview({
     : heroStyle === 'minimal'
       ? 'relative aspect-square flex items-center justify-center p-3'
       : 'relative aspect-square flex items-center justify-center p-6';
+
+  const renderHighlights = () => (
+    <div className="grid grid-cols-3 gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.highlightBg }}>
+      {highlightItems.map((item, index) => {
+        const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon] ?? Star;
+        return (
+          <div key={`${item.icon}-${index}`} className="text-center">
+            <Icon size={24} className="mx-auto mb-2" style={{ color: tokens.highlightIcon }} />
+            <p className="text-xs" style={{ color: tokens.highlightText }}>{item.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="py-6 px-4 min-h-[300px]">
@@ -335,23 +356,7 @@ export function ProductDetailPreview({
                 </button>
               </div>
 
-              {showClassicHighlights && (
-                <div className="grid grid-cols-3 gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.highlightBg }}>
-                  {(classicHighlights.length > 0 ? classicHighlights : [
-                    { icon: 'Star', text: 'Chip A17 Pro mạnh mẽ' },
-                    { icon: 'Star', text: 'Camera 48MP chuyên nghiệp' },
-                    { icon: 'Star', text: 'Titanium siêu bền' },
-                  ]).map((item, index) => {
-                    const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon] ?? Star;
-                    return (
-                      <div key={`${item.icon}-${index}`} className="text-center">
-                        <Icon size={24} className="mx-auto mb-2" style={{ color: tokens.highlightIcon }} />
-                        <p className="text-xs" style={{ color: tokens.highlightText }}>{item.text}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {showHighlightBlock && renderHighlights()}
               <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
                 <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
                 <ExpandablePreviewText
@@ -532,6 +537,8 @@ export function ProductDetailPreview({
                   </div>
                 )}
 
+                {showHighlightBlock && renderHighlights()}
+
                 <div className="border rounded-2xl p-5" style={{ borderColor: tokens.border }}>
                   <ExpandablePreviewText
                     text={PREVIEW_DESCRIPTION}
@@ -639,6 +646,8 @@ export function ProductDetailPreview({
                     )}
                   </div>
                 )}
+
+                {showHighlightBlock && renderHighlights()}
 
                 <div className="space-y-4 text-sm font-light" style={{ color: tokens.metaText }}>
                   <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
