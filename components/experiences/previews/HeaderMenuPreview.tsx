@@ -10,6 +10,7 @@ export type HeaderLayoutStyle = 'classic' | 'topbar' | 'allbirds';
 
 export type HeaderMenuConfig = {
   brandName: string;
+  showBrandName: boolean;
   headerBackground: 'white' | 'dots' | 'stripes';
   headerSeparator: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky: boolean;
@@ -91,6 +92,7 @@ export function HeaderMenuPreview({
     '--menu-icon-hover': tokens.iconButtonHoverText,
   } as React.CSSProperties;
   const brandLabel = config.brandName || 'YourBrand';
+  const showBrandName = config.showBrandName !== false;
   const ctaLabel = config.cta.text || 'Liên hệ';
   const loginLabel = config.login.text || 'Đăng nhập';
   const defaultLinks = useMemo(() => ({
@@ -394,7 +396,9 @@ export function HeaderMenuPreview({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
-            <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+            {showBrandName && (
+              <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+            )}
           </div>
 
           {device !== 'mobile' ? (
@@ -728,7 +732,9 @@ export function HeaderMenuPreview({
             >
               {brandLabel.charAt(0)}
             </div>
-            <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+            {showBrandName && (
+              <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+            )}
           </div>
 
           {device !== 'mobile' && showSearch && (
@@ -965,7 +971,9 @@ export function HeaderMenuPreview({
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
-              <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+              {showBrandName && (
+                <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+              )}
             </div>
             <nav className="flex items-center gap-6">
               {menuTree.map((item) => {
@@ -1103,7 +1111,9 @@ export function HeaderMenuPreview({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
-              <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+              {showBrandName && (
+                <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               {showSearch && (

@@ -29,6 +29,7 @@ import { MESSAGES, useExperienceConfig } from '@/lib/experiences';
 
 const DEFAULT_CONFIG: HeaderMenuConfig = {
   brandName: 'YourBrand',
+  showBrandName: true,
   headerBackground: 'white',
   headerSeparator: 'none',
   headerSticky: true,
@@ -59,6 +60,7 @@ const HINTS = [
   'Menu items được quản lý ở /admin/menus.',
   'Topbar phù hợp site bán hàng cần hotline + search.',
   'Allbirds phù hợp brand cần header tối giản, tập trung nav.',
+  'Tắt Tên thương hiệu hoặc CTA để tăng không gian menu trước khi More.',
   'Login chỉ hiển thị khi bật Module Khách hàng + tính năng Đăng nhập KH.',
   'Cart/Wishlist chỉ bật khi module tương ứng đang active.',
 ];
@@ -133,6 +135,7 @@ export default function HeaderMenuExperiencePage() {
       ...DEFAULT_CONFIG,
       ...raw,
       brandName: resolvedBrandName,
+      showBrandName: raw?.showBrandName ?? true,
       topbar: { ...DEFAULT_CONFIG.topbar, ...raw?.topbar },
       search: { ...DEFAULT_CONFIG.search, ...raw?.search },
       cta: { ...DEFAULT_CONFIG.cta, ...raw?.cta, text: 'Liên hệ' },
@@ -206,6 +209,10 @@ export default function HeaderMenuExperiencePage() {
 
   const updateHeaderSticky = (value: boolean) => {
     setConfig(prev => ({ ...prev, headerSticky: value }));
+  };
+
+  const updateShowBrandName = (value: boolean) => {
+    setConfig(prev => ({ ...prev, showBrandName: value }));
   };
 
   const normalizedConfig = useMemo(() => ({
@@ -402,6 +409,12 @@ export default function HeaderMenuExperiencePage() {
               onChange={(v) => updateLogin('show', v)}
               accentColor={resolvedBrandColor}
               disabled={!loginEnabled}
+            />
+            <ToggleRow
+              label="Tên thương hiệu"
+              checked={config.showBrandName}
+              onChange={updateShowBrandName}
+              accentColor={resolvedBrandColor}
             />
             <ToggleRow
               label="CTA"

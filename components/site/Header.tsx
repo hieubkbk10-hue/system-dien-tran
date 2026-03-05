@@ -51,6 +51,7 @@ interface SearchConfig {
 
 interface HeaderConfig {
   brandName?: string;
+  showBrandName?: boolean;
   headerBackground?: 'white' | 'dots' | 'stripes';
   headerSeparator?: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky?: boolean;
@@ -65,6 +66,7 @@ interface HeaderConfig {
 
 const DEFAULT_CONFIG: HeaderConfig = {
   brandName: 'YourBrand',
+  showBrandName: true,
   headerBackground: 'white',
   headerSeparator: 'none',
   headerSticky: true,
@@ -163,6 +165,7 @@ export function Header() {
   const showWishlist = Boolean(config.wishlist?.show && (wishlistModule?.enabled ?? false));
   
   const displayName = (siteName ?? config.brandName) ?? 'YourBrand';
+  const showBrandName = config.showBrandName !== false;
 
   const tokens = useMemo<MenuColors>(
     () => getMenuColors(brandColors.primary, brandColors.secondary, brandColors.mode),
@@ -497,7 +500,9 @@ export function Header() {
               ) : (
                 <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
               )}
-              <span className="font-semibold" style={{ color: tokens.textPrimary }}>{displayName}</span>
+              {showBrandName && (
+                <span className="font-semibold" style={{ color: tokens.textPrimary }}>{displayName}</span>
+              )}
             </Link>
 
             {/* Desktop Navigation */}
@@ -861,7 +866,9 @@ export function Header() {
                   {displayName.charAt(0)}
                 </div>
               )}
-              <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{displayName}</span>
+              {showBrandName && (
+                <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{displayName}</span>
+              )}
             </Link>
 
             {/* Search Bar */}
@@ -1113,9 +1120,11 @@ export function Header() {
               ) : (
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot }}></div>
               )}
-              <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>
-                {displayName}
-              </span>
+              {showBrandName && (
+                <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>
+                  {displayName}
+                </span>
+              )}
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6">
