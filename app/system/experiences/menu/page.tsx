@@ -87,7 +87,6 @@ export default function HeaderMenuExperiencePage() {
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
   const siteNameSetting = useQuery(api.settings.getByKey, { key: 'site_name' });
   const topbarSloganSetting = useQuery(api.settings.getByKey, { key: 'topbar_slogan' });
-  const topbarSloganEnabledSetting = useQuery(api.settings.getByKey, { key: 'topbar_slogan_enabled' });
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
   const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
@@ -147,7 +146,6 @@ export default function HeaderMenuExperiencePage() {
     || headerConfigSetting === undefined
     || siteNameSetting === undefined
     || topbarSloganSetting === undefined
-    || topbarSloganEnabledSetting === undefined
     || menuData === undefined
     || contactSettings === undefined
     || cartModule === undefined
@@ -165,11 +163,6 @@ export default function HeaderMenuExperiencePage() {
   const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
   const settingsEmail = contactSettings?.find(s => s.key === 'contact_email')?.value as string | undefined;
   const resolvedTopbarSlogan = typeof topbarSloganSetting?.value === 'string' ? topbarSloganSetting.value.trim() : '';
-  const resolvedTopbarSloganEnabled = useMemo(() => {
-    const rawValue = topbarSloganEnabledSetting?.value;
-    if (rawValue === undefined || rawValue === null) {return true;}
-    return rawValue === true || rawValue === 'true';
-  }, [topbarSloganEnabledSetting?.value]);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
@@ -238,10 +231,8 @@ export default function HeaderMenuExperiencePage() {
       searchServices: servicesEnabled ? normalizedConfig.search.searchServices : false,
     };
 
-    const configSlogan = typeof normalizedConfig.topbar.slogan === 'string' ? normalizedConfig.topbar.slogan.trim() : '';
-    const configSloganEnabled = normalizedConfig.topbar.sloganEnabled;
-    const effectiveSloganEnabled = configSloganEnabled ?? resolvedTopbarSloganEnabled;
-    const effectiveSlogan = configSlogan || resolvedTopbarSlogan;
+    const effectiveSloganEnabled = normalizedConfig.topbar.sloganEnabled ?? true;
+    const effectiveSlogan = resolvedTopbarSlogan;
 
     return {
       ...normalizedConfig,
@@ -270,7 +261,6 @@ export default function HeaderMenuExperiencePage() {
     customersModule?.enabled,
     customerLoginFeature?.enabled,
     resolvedTopbarSlogan,
-    resolvedTopbarSloganEnabled,
   ]);
 
   const showLoginToggle = Boolean(config.login?.show);
@@ -296,6 +286,7 @@ export default function HeaderMenuExperiencePage() {
       const ordersEnabled = ordersModule?.enabled ?? false;
       const loginEnabled = customersEnabled && (customerLoginFeature?.enabled ?? false);
 
+      const { slogan: _topbarSlogan, ...topbarRest } = normalizedConfig.topbar;
       const configToSave = {
         ...normalizedConfig,
         search: {
@@ -308,7 +299,7 @@ export default function HeaderMenuExperiencePage() {
         wishlist: { ...normalizedConfig.wishlist, show: normalizedConfig.wishlist.show && wishlistEnabled },
         login: { ...normalizedConfig.login, show: normalizedConfig.login.show && loginEnabled },
         topbar: {
-          ...normalizedConfig.topbar,
+          ...topbarRest,
           showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled,
         },
       };
@@ -454,10 +445,9 @@ export default function HeaderMenuExperiencePage() {
               <div className="space-y-1">
                 <Label className="text-xs">Nội dung slogan</Label>
                 <Input
-                  value={config.topbar.slogan ?? ''}
-                  onChange={(e) => updateTopbar('slogan', e.target.value)}
+                  value={resolvedTopbarSlogan}
                   className="h-8 text-sm"
-                  disabled={(config.topbar.sloganEnabled ?? true) === false}
+                  disabled
                 />
               </div>
               <ToggleRow

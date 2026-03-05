@@ -338,9 +338,6 @@ function SettingsContent() {
     const metaLimit = SEO_META_LIMITS[key];
     const showCounter = Boolean(metaLimit);
     const counterText = showCounter ? `${stringValue.length}/${metaLimit}` : null;
-    const isTopbarSlogan = key === 'topbar_slogan';
-    const sloganEnabled = form.topbar_slogan_enabled !== false && form.topbar_slogan_enabled !== 'false';
-    const isSloganDisabled = isTopbarSlogan && !sloganEnabled;
 
     switch (field.type) {
       case 'color': {
@@ -728,7 +725,6 @@ function SettingsContent() {
             <Input
               value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
-              disabled={isSloganDisabled}
               placeholder={
                 key === 'seo_opening_hours'
                   ? 'Mo-Su 08:00-22:00'
