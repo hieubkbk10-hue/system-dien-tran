@@ -6,7 +6,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { 
-  Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn
+  Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Label, cn
 } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { 
@@ -154,7 +154,8 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [activeQuickPickerId, setActiveQuickPickerId] = useState<string | null>(null);
+  const [isQuickPickerOpen, setIsQuickPickerOpen] = useState(false);
+  const [quickPickerTargetId, setQuickPickerTargetId] = useState<string | null>(null);
   const [quickRouteSearch, setQuickRouteSearch] = useState('');
 
   // Settings from System Config
@@ -314,17 +315,10 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   }, [menuItemsData, pendingSync, originalItems.length, hasChanges]);
 
   useEffect(() => {
-    if (!activeQuickPickerId) {return;}
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) {return;}
-      if (target.closest(`[data-quick-picker="${activeQuickPickerId}"]`)) {return;}
-      setActiveQuickPickerId(null);
-      setQuickRouteSearch('');
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeQuickPickerId]);
+    if (isQuickPickerOpen) {return;}
+    if (!quickRouteSearch) {return;}
+    setQuickRouteSearch('');
+  }, [isQuickPickerOpen, quickRouteSearch]);
 
   // Pagination
   const totalPages = Math.ceil(draftItems.length / menusPerPage);
@@ -457,8 +451,20 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   };
 
   const handleOpenQuickPicker = (itemId: string) => {
-    setActiveQuickPickerId(prev => prev === itemId ? null : itemId);
+    setQuickPickerTargetId(itemId);
+    setIsQuickPickerOpen(true);
+  };
+
+  const handleCloseQuickPicker = () => {
+    setIsQuickPickerOpen(false);
+    setQuickPickerTargetId(null);
     setQuickRouteSearch('');
+  };
+
+  const handleSelectQuickRoute = (url: string) => {
+    if (!quickPickerTargetId) {return;}
+    handleUpdateField(quickPickerTargetId, 'url', url);
+    handleCloseQuickPicker();
   };
 
   const handleSaveAll = async () => {
@@ -551,69 +557,21 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">URL</Label>
-                  <div className="relative" data-quick-picker={item.localId}>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        value={item.url} 
-                        onChange={(e) =>{  handleUpdateField(item.localId, 'url', e.target.value); }} 
-                        className="h-8 text-sm font-mono text-xs min-w-0" 
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 whitespace-nowrap"
-                        onClick={() => handleOpenQuickPicker(item.localId)}
-                      >
-                        Gợi ý
-                      </Button>
-                    </div>
-                    {activeQuickPickerId === item.localId && (
-                      <div className="absolute left-0 right-0 top-10 z-30 rounded-md border border-slate-200 bg-white shadow-md dark:border-slate-700 dark:bg-slate-900">
-                        <div className="p-2 border-b border-slate-100 dark:border-slate-800">
-                          <Input
-                            value={quickRouteSearch}
-                            onChange={(e) => setQuickRouteSearch(e.target.value)}
-                            placeholder="Tìm nhanh theo tên hoặc URL"
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                        <div className="max-h-56 overflow-auto">
-                          {groupedQuickRoutes.length === 0 && (
-                            <div className="px-3 py-4 text-xs text-slate-500">Không có gợi ý phù hợp.</div>
-                          )}
-                          {groupedQuickRoutes.map(group => (
-                            <div key={group.group} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
-                              <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                {group.group}
-                              </div>
-                              {group.options.map(option => (
-                                <button
-                                  key={`${option.url}-${option.source}`}
-                                  type="button"
-                                  onClick={() => {
-                                    handleUpdateField(item.localId, 'url', option.url);
-                                    setActiveQuickPickerId(null);
-                                    setQuickRouteSearch('');
-                                  }}
-                                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-                                >
-                                  <div className="min-w-0">
-                                    <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
-                                      {option.label}
-                                    </div>
-                                    <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
-                                  </div>
-                                  <span className="text-[10px] uppercase tracking-wide text-slate-400">
-                                    {option.source}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={item.url} 
+                      onChange={(e) =>{  handleUpdateField(item.localId, 'url', e.target.value); }} 
+                      className="h-8 text-sm font-mono text-xs min-w-0" 
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 whitespace-nowrap"
+                      onClick={() => handleOpenQuickPicker(item.localId)}
+                    >
+                      Gợi ý
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -747,6 +705,54 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
           }))}
         />
       </div>
+
+      <Dialog open={isQuickPickerOpen} onOpenChange={(open) =>{  open ? setIsQuickPickerOpen(true) : handleCloseQuickPicker(); }}>
+        <DialogContent className="max-w-4xl w-[80vw]">
+          <DialogHeader>
+            <DialogTitle>Chọn nhanh URL</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={quickRouteSearch}
+              onChange={(e) => setQuickRouteSearch(e.target.value)}
+              placeholder="Tìm nhanh theo tên hoặc URL"
+              className="h-9 text-sm"
+            />
+            <div className="max-h-[60vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
+              {groupedQuickRoutes.length === 0 && (
+                <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
+              )}
+              {groupedQuickRoutes.map(group => (
+                <div key={group.group} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
+                  <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    {group.group}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2">
+                    {group.options.map(option => (
+                      <button
+                        key={`${option.url}-${option.source}`}
+                        type="button"
+                        onClick={() => handleSelectQuickRoute(option.url)}
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                            {option.label}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                          {option.source}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
