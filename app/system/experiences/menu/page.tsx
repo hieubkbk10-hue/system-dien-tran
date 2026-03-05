@@ -43,6 +43,8 @@ const DEFAULT_CONFIG: HeaderMenuConfig = {
     show: true,
     showTrackOrder: true,
     useSettingsData: false,
+    sloganEnabled: true,
+    slogan: '',
   },
   wishlist: { show: true },
 };
@@ -236,6 +238,11 @@ export default function HeaderMenuExperiencePage() {
       searchServices: servicesEnabled ? normalizedConfig.search.searchServices : false,
     };
 
+    const configSlogan = typeof normalizedConfig.topbar.slogan === 'string' ? normalizedConfig.topbar.slogan.trim() : '';
+    const configSloganEnabled = normalizedConfig.topbar.sloganEnabled;
+    const effectiveSloganEnabled = configSloganEnabled ?? resolvedTopbarSloganEnabled;
+    const effectiveSlogan = configSlogan || resolvedTopbarSlogan;
+
     return {
       ...normalizedConfig,
       cart: { ...normalizedConfig.cart, show: normalizedConfig.cart.show && cartEnabled },
@@ -244,8 +251,8 @@ export default function HeaderMenuExperiencePage() {
       topbar: {
         ...normalizedConfig.topbar,
         showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled,
-        slogan: resolvedTopbarSlogan,
-        sloganEnabled: resolvedTopbarSloganEnabled,
+        slogan: effectiveSlogan,
+        sloganEnabled: effectiveSloganEnabled,
       },
       search: {
         ...search,
@@ -436,6 +443,21 @@ export default function HeaderMenuExperiencePage() {
                   onChange={(e) => updateTopbar('email', e.target.value)}
                   className="h-8 text-sm"
                   disabled={config.topbar.useSettingsData}
+                />
+              </div>
+              <ToggleRow
+                label="Slogan topbar"
+                checked={config.topbar.sloganEnabled ?? true}
+                onChange={(v) => updateTopbar('sloganEnabled', v)}
+                accentColor={resolvedBrandColor}
+              />
+              <div className="space-y-1">
+                <Label className="text-xs">Nội dung slogan</Label>
+                <Input
+                  value={config.topbar.slogan ?? ''}
+                  onChange={(e) => updateTopbar('slogan', e.target.value)}
+                  className="h-8 text-sm"
+                  disabled={(config.topbar.sloganEnabled ?? true) === false}
                 />
               </div>
               <ToggleRow

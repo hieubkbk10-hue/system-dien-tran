@@ -79,6 +79,8 @@ const DEFAULT_CONFIG: HeaderConfig = {
     show: true,
     showTrackOrder: true,
     useSettingsData: false,
+    sloganEnabled: true,
+    slogan: '',
   },
   wishlist: { show: true },
 };
@@ -266,11 +268,14 @@ export function Header() {
     });
   }, [menuItems]);
 
-  const topbarSlogan = typeof settings.topbar_slogan === 'string' ? settings.topbar_slogan.trim() : '';
+  const settingsTopbarSlogan = typeof settings.topbar_slogan === 'string' ? settings.topbar_slogan.trim() : '';
   const rawTopbarSloganEnabled = settings.topbar_slogan_enabled;
-  const topbarSloganEnabled = rawTopbarSloganEnabled === undefined
+  const settingsTopbarSloganEnabled = rawTopbarSloganEnabled === undefined
     ? true
     : rawTopbarSloganEnabled === true || rawTopbarSloganEnabled === 'true';
+  const configTopbarSlogan = typeof topbarConfig.slogan === 'string' ? topbarConfig.slogan.trim() : '';
+  const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? settingsTopbarSloganEnabled) !== false;
+  const topbarSlogan = configTopbarSlogan || settingsTopbarSlogan;
   const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
 
   const announcementText = useMemo(() => {
