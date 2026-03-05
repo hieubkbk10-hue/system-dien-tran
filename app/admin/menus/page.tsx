@@ -706,7 +706,7 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
         />
       </div>
 
-      <Dialog open={isQuickPickerOpen} onOpenChange={(open) =>{  open ? setIsQuickPickerOpen(true) : handleCloseQuickPicker(); }}>
+      <Dialog open={isQuickPickerOpen} onOpenChange={(open) =>{ if (open) { setIsQuickPickerOpen(true); } else { handleCloseQuickPicker(); } }}>
         <DialogContent className="max-w-4xl w-[80vw]">
           <DialogHeader>
             <DialogTitle>Chọn nhanh URL</DialogTitle>

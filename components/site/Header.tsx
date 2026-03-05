@@ -557,7 +557,7 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <nav ref={navRef} className="hidden lg:flex flex-1 min-w-0 items-center gap-1 whitespace-nowrap">
-              {visibleRootItems.map((item, index) => (
+              {visibleRootItems.map((item) => (
                 <div
                   key={item._id}
                   className="relative"
