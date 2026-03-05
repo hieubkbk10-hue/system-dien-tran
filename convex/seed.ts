@@ -2071,6 +2071,8 @@ export const seedSettingsModule = mutation({
         { group: "contact", key: "contact_email", value: "contact@vietadmin.com" },
         { group: "contact", key: "contact_phone", value: "0901234567" },
         { group: "contact", key: "contact_address", value: "123 Nguyễn Huệ, Quận 1, TP.HCM" },
+        { group: "contact", key: "contact_map_provider", value: "openstreetmap" },
+        { group: "contact", key: "contact_google_map_embed_iframe", value: "" },
         { group: "contact", key: "contact_zalo", value: "0901234567" },
         { group: "contact", key: "contact_messenger", value: "" },
         

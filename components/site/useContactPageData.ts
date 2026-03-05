@@ -25,6 +25,8 @@ type ContactData = {
   phone: string;
   lat: number;
   lng: number;
+  mapProvider: 'openstreetmap' | 'google_embed';
+  googleMapEmbedIframe: string;
 };
 
 const normalizeZaloLink = (raw: string): string => {
@@ -74,12 +76,18 @@ export function useContactPageData(): {
       settingsMap[setting.key] = setting.value;
     });
 
+    const mapProvider = settingsMap.contact_map_provider === 'google_embed'
+      ? 'google_embed'
+      : 'openstreetmap';
+
     return {
       address: (settingsMap.contact_address as string) || '',
       email: (settingsMap.contact_email as string) || '',
       phone: (settingsMap.contact_phone as string) || '',
       lat: (settingsMap.contact_lat as number) || 10.762622,
       lng: (settingsMap.contact_lng as number) || 106.660172,
+      mapProvider,
+      googleMapEmbedIframe: (settingsMap.contact_google_map_embed_iframe as string) || '',
     };
   }, [contactSettings]);
 

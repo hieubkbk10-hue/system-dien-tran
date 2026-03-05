@@ -33,6 +33,8 @@ export interface ContactSettings {
   contact_phone: string;
   contact_address: string;
   contact_zalo: string;
+  contact_map_provider: string;
+  contact_google_map_embed_iframe: string;
 }
 
 export interface PublicSettings {
@@ -42,7 +44,14 @@ export interface PublicSettings {
 }
 
 const SETTINGS_KEYS = {
-  contact: ["contact_email", "contact_phone", "contact_address", "contact_zalo"],
+  contact: [
+    "contact_email",
+    "contact_phone",
+    "contact_address",
+    "contact_zalo",
+    "contact_map_provider",
+    "contact_google_map_embed_iframe",
+  ],
   seo: [
     "seo_title",
     "seo_description",
@@ -114,6 +123,8 @@ export const getContactSettings =  async (): Promise<ContactSettings> => {
   }).then((settings) => ({
     contact_address: (settings.contact_address as string) || "",
     contact_email: (settings.contact_email as string) || "",
+    contact_google_map_embed_iframe: (settings.contact_google_map_embed_iframe as string) || "",
+    contact_map_provider: (settings.contact_map_provider as string) || "openstreetmap",
     contact_phone: (settings.contact_phone as string) || "",
     contact_zalo: (settings.contact_zalo as string) || "",
   }));

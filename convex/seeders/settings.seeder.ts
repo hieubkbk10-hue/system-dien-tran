@@ -73,6 +73,8 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       { group: 'contact', key: 'contact_address', value: '123 Nguyễn Huệ, Quận 1, TP.HCM' },
       { group: 'contact', key: 'contact_zalo', value: '0901234567' },
       { group: 'contact', key: 'contact_messenger', value: '' },
+      { group: 'contact', key: 'contact_map_provider', value: 'openstreetmap' },
+      { group: 'contact', key: 'contact_google_map_embed_iframe', value: '' },
       { group: 'seo', key: 'seo_title', value: 'VietAdmin - Hệ thống quản trị website' },
       { group: 'seo', key: 'seo_description', value: 'VietAdmin là hệ thống quản trị website hiện đại, dễ sử dụng' },
       { group: 'seo', key: 'seo_keywords', value: 'admin, quản trị, website, cms' },

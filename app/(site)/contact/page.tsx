@@ -49,6 +49,17 @@ const resolveSecondary = (primary: string, secondary: string, mode: 'single' | '
   return primary;
 };
 
+const sanitizeIframeHtml = (html: string) => {
+  const trimmed = html.trim();
+  if (!trimmed.includes('<iframe') || !trimmed.includes('</iframe>')) {
+    return '';
+  }
+  return trimmed
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
+};
+
 function ContactForm({ brandColor, secondaryColor }: { brandColor: string; secondaryColor: string }) {
   return (
     <form
@@ -290,7 +301,36 @@ function CorporateSidebar({
   );
 }
 
-function MapPreview({ address, lat, lng }: { address: string; lat: number; lng: number }) {
+function GoogleMapEmbed({ iframeHtml }: { iframeHtml: string }) {
+  const sanitized = sanitizeIframeHtml(iframeHtml);
+  if (!sanitized) {
+    return null;
+  }
+  return (
+    <div
+      className="rounded-xl overflow-hidden border"
+      dangerouslySetInnerHTML={{ __html: sanitized }}
+    />
+  );
+}
+
+function MapPreview({
+  address,
+  lat,
+  lng,
+  mapProvider,
+  googleMapEmbedIframe,
+}: {
+  address: string;
+  lat: number;
+  lng: number;
+  mapProvider: 'openstreetmap' | 'google_embed';
+  googleMapEmbedIframe: string;
+}) {
+  const sanitized = sanitizeIframeHtml(googleMapEmbedIframe);
+  if (mapProvider === 'google_embed' && sanitized) {
+    return <GoogleMapEmbed iframeHtml={sanitized} />;
+  }
   return (
     <OpenStreetMapDisplay
       location={{ lat, lng, address }}
@@ -337,14 +377,30 @@ export default function ContactPage() {
           )}
           <div className={`${config.showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
             <CorporateContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
-            {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
+            {config.showMap && (
+              <MapPreview
+                address={contactData.address}
+                lat={contactData.lat}
+                lng={contactData.lng}
+                mapProvider={contactData.mapProvider}
+                googleMapEmbedIframe={contactData.googleMapEmbedIframe}
+              />
+            )}
           </div>
         </div>
       )}
 
       {config.layoutStyle === 'with-map' && (
         <div className="space-y-4">
-          {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
+          {config.showMap && (
+            <MapPreview
+              address={contactData.address}
+              lat={contactData.lat}
+              lng={contactData.lng}
+              mapProvider={contactData.mapProvider}
+              googleMapEmbedIframe={contactData.googleMapEmbedIframe}
+            />
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
             {config.showContactInfo && (
@@ -379,7 +435,15 @@ export default function ContactPage() {
                 socialLinks={socialLinks}
               />
             )}
-            {config.showMap && <MapPreview address={contactData.address} lat={contactData.lat} lng={contactData.lng} />}
+            {config.showMap && (
+              <MapPreview
+                address={contactData.address}
+                lat={contactData.lat}
+                lng={contactData.lng}
+                mapProvider={contactData.mapProvider}
+                googleMapEmbedIframe={contactData.googleMapEmbedIframe}
+              />
+            )}
           </div>
         </div>
       )}

@@ -201,6 +201,12 @@ function SettingsContent() {
       if (!values.contact_lng) {
         values.contact_lng = '106.660172';
       }
+      if (!values.contact_map_provider) {
+        values.contact_map_provider = 'openstreetmap';
+      }
+      if (!values.contact_google_map_embed_iframe) {
+        values.contact_google_map_embed_iframe = '';
+      }
       setIsSecondaryAuto(values.site_brand_mode === 'single' ? true : !values.site_brand_secondary);
       setForm(values);
       setInitialForm(values);
@@ -261,6 +267,18 @@ function SettingsContent() {
       }
     }
 
+    const mapProvider = form.contact_map_provider === 'google_embed' ? 'google_embed' : 'openstreetmap';
+    const googleIframe = typeof form.contact_google_map_embed_iframe === 'string'
+      ? form.contact_google_map_embed_iframe.trim()
+      : '';
+    if (mapProvider === 'google_embed' && googleIframe) {
+      const hasIframe = googleIframe.includes('<iframe') && googleIframe.includes('</iframe>');
+      if (!hasIframe) {
+        toast.error('Google Maps: Vui lòng dán đúng mã iframe nhúng.');
+        return false;
+      }
+    }
+
     // Validate required fields
     const requiredFields = fieldsData?.filter(f => f.required && f.enabled) ?? [];
     for (const field of requiredFields) {
@@ -316,6 +334,20 @@ function SettingsContent() {
       }
       if (form.contact_lng && !settingsToSave.some((item) => item.key === 'contact_lng')) {
         settingsToSave.push({ group: 'contact', key: 'contact_lng', value: form.contact_lng });
+      }
+      if (!settingsToSave.some((item) => item.key === 'contact_map_provider')) {
+        settingsToSave.push({
+          group: 'contact',
+          key: 'contact_map_provider',
+          value: form.contact_map_provider || 'openstreetmap',
+        });
+      }
+      if (!settingsToSave.some((item) => item.key === 'contact_google_map_embed_iframe')) {
+        settingsToSave.push({
+          group: 'contact',
+          key: 'contact_google_map_embed_iframe',
+          value: form.contact_google_map_embed_iframe || '',
+        });
       }
 
       await setMultiple({ settings: settingsToSave });
@@ -495,6 +527,12 @@ function SettingsContent() {
         if (key === 'contact_address') {
           const lat = typeof form.contact_lat === 'string' ? form.contact_lat : '10.762622';
           const lng = typeof form.contact_lng === 'string' ? form.contact_lng : '106.660172';
+          const mapProvider = form.contact_map_provider === 'google_embed'
+            ? 'google_embed'
+            : 'openstreetmap';
+          const googleIframe = typeof form.contact_google_map_embed_iframe === 'string'
+            ? form.contact_google_map_embed_iframe
+            : '';
 
           return (
             <div className="space-y-2" key={key}>
@@ -505,16 +543,56 @@ function SettingsContent() {
                 className="w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                 placeholder="Nhập địa chỉ..."
               />
-              <MapLocationPicker
-                address={stringValue}
-                lat={lat}
-                lng={lng}
-                onLocationChange={(data) => {
-                  updateField('contact_address', data.address);
-                  updateField('contact_lat', data.lat);
-                  updateField('contact_lng', data.lng);
-                }}
-              />
+              <div className="space-y-2">
+                <Label>Loại bản đồ</Label>
+                <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="contact_map_provider"
+                      value="openstreetmap"
+                      checked={mapProvider === 'openstreetmap'}
+                      onChange={() => updateField('contact_map_provider', 'openstreetmap')}
+                      className="rounded-full border-slate-300"
+                    />
+                    OpenStreetMap
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="contact_map_provider"
+                      value="google_embed"
+                      checked={mapProvider === 'google_embed'}
+                      onChange={() => updateField('contact_map_provider', 'google_embed')}
+                      className="rounded-full border-slate-300"
+                    />
+                    Google Maps nhúng
+                  </label>
+                </div>
+              </div>
+              {mapProvider === 'openstreetmap' ? (
+                <MapLocationPicker
+                  address={stringValue}
+                  lat={lat}
+                  lng={lng}
+                  onLocationChange={(data) => {
+                    updateField('contact_address', data.address);
+                    updateField('contact_lat', data.lat);
+                    updateField('contact_lng', data.lng);
+                  }}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Label>Mã Google Maps iframe</Label>
+                  <textarea
+                    value={googleIframe}
+                    onChange={(e) => updateField('contact_google_map_embed_iframe', e.target.value)}
+                    className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                    placeholder="Dán nguyên mã iframe Google Maps..."
+                  />
+                  <p className="text-xs text-slate-500">Chỉ dán mã iframe do Google Maps cung cấp.</p>
+                </div>
+              )}
             </div>
           );
         }
