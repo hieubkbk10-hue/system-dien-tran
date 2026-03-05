@@ -27,16 +27,6 @@ export const calendarModule = defineModule({
       ],
     },
     {
-      key: 'weekStartsOn',
-      label: 'Bắt đầu tuần',
-      type: 'select',
-      default: 'monday',
-      options: [
-        { value: 'monday', label: 'Thứ 2' },
-        { value: 'sunday', label: 'Chủ nhật' },
-      ],
-    },
-    {
       key: 'warningDays',
       label: 'Cảnh báo sớm (ngày)',
       type: 'number',
