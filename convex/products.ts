@@ -1180,6 +1180,20 @@ export const create = mutation({
         q.eq("moduleKey", "products").eq("settingKey", "productTypeMode")
       )
       .unique();
+    const saleModeSetting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "saleMode")
+      )
+      .unique();
+    const saleMode = saleModeSetting?.value === "contact" || saleModeSetting?.value === "affiliate"
+      ? saleModeSetting.value
+      : "cart";
+    const variantSettings = await getVariantSettings(ctx);
+    const hideBasePricing = variantSettings.variantEnabled && variantSettings.variantPricing === "variant";
+    if (saleMode === "cart" && !hideBasePricing && args.price <= 0) {
+      throw new Error("Giá bán phải lớn hơn 0");
+    }
     const productTypeMode = (productTypeSetting?.value as "physical" | "digital" | "both") ?? "both";
     const productType = productTypeMode === "physical"
       ? "physical"
@@ -1281,6 +1295,21 @@ export const update = mutation({
         q.eq("moduleKey", "products").eq("settingKey", "productTypeMode")
       )
       .unique();
+    const saleModeSetting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "saleMode")
+      )
+      .unique();
+    const saleMode = saleModeSetting?.value === "contact" || saleModeSetting?.value === "affiliate"
+      ? saleModeSetting.value
+      : "cart";
+    const variantSettings = await getVariantSettings(ctx);
+    const hideBasePricing = variantSettings.variantEnabled && variantSettings.variantPricing === "variant";
+    const nextPrice = updates.price ?? product.price;
+    if (saleMode === "cart" && !hideBasePricing && (!Number.isFinite(nextPrice) || nextPrice <= 0)) {
+      throw new Error("Giá bán phải lớn hơn 0");
+    }
     const productTypeMode = (productTypeSetting?.value as "physical" | "digital" | "both") ?? "both";
     const resolvedProductType = productTypeMode === "physical"
       ? "physical"

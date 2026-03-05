@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { VariantSelector, type VariantSelectorOption } from '@/components/products/VariantSelector';
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 type QuickAddProduct = {
   _id: Id<'products'>;
@@ -84,12 +85,10 @@ const findExactVariant = (variants: ProductVariant[], selection: VariantSelectio
     variant.optionValues.every((optionValue) => selection[optionValue.optionId] === optionValue.valueId)
   ) ?? null;
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
-
 export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel, onClose, onConfirm }: QuickAddVariantModalProps) {
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
   const [quantity, setQuantity] = useState(1);
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
 
   const variants = useQuery(
     api.productVariants.listByProductActive,
@@ -172,7 +171,14 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
   }
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const displayPrice = salePrice ?? basePrice;
+  const saleMode = useMemo<'cart' | 'contact' | 'affiliate'>(() => {
+    const value = saleModeSetting?.value;
+    if (value === 'contact' || value === 'affiliate') {
+      return value;
+    }
+    return 'cart';
+  }, [saleModeSetting?.value]);
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = stockValue > 0;
   const isLoading = variants === undefined || (hasVariantData && (!variantOptionsSource || !variantValuesSource));
@@ -222,9 +228,11 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-base font-semibold" style={{ color: brandColor }}>{formatPrice(displayPrice)}</span>
-              {salePrice && (
-                <span className="text-sm text-slate-400 line-through">{formatPrice(basePrice)}</span>
+              <span className="text-base font-semibold" style={{ color: brandColor }}>{priceDisplay.label}</span>
+              {priceDisplay.comparePrice && salePrice && (
+                <span className="text-sm text-slate-400 line-through">
+                  {getPublicPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                </span>
               )}
             </div>
             <p className={`text-xs mt-1 ${inStock ? 'text-emerald-600' : 'text-red-500'}`}>

@@ -15,6 +15,7 @@ import { notifyAddToCart, useCart } from '@/lib/cart';
 import { QuickAddVariantModal } from '@/components/products/QuickAddVariantModal';
 import { ChevronDown, Heart, Package, Search, ShoppingCart, SlidersHorizontal, X } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 type ProductSortOption = 'newest' | 'oldest' | 'popular' | 'price_asc' | 'price_desc' | 'name';
 type ProductsListLayout = 'grid' | 'list' | 'catalog';
@@ -348,7 +349,6 @@ function ProductsContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams, pathname, router]);
 
-  const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
   const prevFilterKeyRef = useRef(filterKey);
@@ -654,7 +654,7 @@ function ProductsContent() {
           showPrice={showPrice}
           showSalePrice={showSalePrice}
           showStock={showStock}
-          formatPrice={formatPrice}
+          saleMode={saleMode}
           totalCount={totalCount}
           paginationNode={paginationNode}
           showWishlistButton={showWishlistButton}
@@ -690,7 +690,7 @@ function ProductsContent() {
           showPrice={showPrice}
           showSalePrice={showSalePrice}
           showStock={showStock}
-          formatPrice={formatPrice}
+          saleMode={saleMode}
           totalCount={totalCount}
           paginationNode={paginationNode}
           showWishlistButton={showWishlistButton}
@@ -858,7 +858,7 @@ function ProductsContent() {
             showPrice={showPrice}
             showSalePrice={showSalePrice}
             showStock={showStock}
-            formatPrice={formatPrice}
+            saleMode={saleMode}
             showWishlistButton={showWishlistButton}
             showAddToCartButton={showAddToCartButton}
             showBuyNowButton={showBuyNowButton}
@@ -900,7 +900,6 @@ interface ProductCardProps {
   showPrice: boolean;
   showSalePrice: boolean;
   showStock: boolean;
-  formatPrice: (price: number) => string;
 }
 
 function ProductCardActions({ product, tokens, showAddToCartButton, showBuyNowButton, buyNowLabel, onAddToCart, onBuyNow }: { product: ProductCardProps['product']; tokens: ProductsListColors; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void }) {
@@ -939,10 +938,13 @@ function ProductCardActions({ product, tokens, showAddToCartButton, showBuyNowBu
   );
 }
 
-function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, formatPrice, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; formatPrice: (price: number) => string; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
+function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
       {products.map((product) => (
+        (() => {
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+          return (
         <Link
           key={product._id}
           href={`/products/${product.slug}`}
@@ -955,7 +957,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={48} style={{ color: tokens.neutralTextLight }} /></div>
             )}
-            {showPromotionBadge && showSalePrice && product.salePrice && (
+            {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                 style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
@@ -979,8 +981,12 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             <h3 className="font-medium line-clamp-2 transition-colors mb-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
             {showPrice && (
               <div className="flex items-center gap-2">
-                <span className="font-bold" style={{ color: tokens.priceColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                {showSalePrice && product.salePrice && <span className="text-sm line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(product.price)}</span>}
+                <span className="font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
+                {showSalePrice && priceDisplay.comparePrice && (
+                  <span className="text-sm line-through" style={{ color: tokens.priceOriginalText }}>
+                    {getPublicPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                  </span>
+                )}
               </div>
             )}
             <div className="min-h-[20px] mt-2">
@@ -1000,15 +1006,20 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             </div>
           </div>
         </Link>
+          );
+        })()
       ))}
     </div>
   );
 }
 
-function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, formatPrice, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; formatPrice: (price: number) => string; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
+function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
   return (
     <div className="space-y-4">
       {products.map((product) => (
+        (() => {
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+          return (
         <Link
           key={product._id}
           href={`/products/${product.slug}`}
@@ -1021,7 +1032,7 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
             )}
-            {showPromotionBadge && showSalePrice && product.salePrice && (
+            {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                 style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
@@ -1047,8 +1058,12 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             <div className="flex items-center gap-4">
               {showPrice && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold" style={{ color: tokens.priceColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                  {showSalePrice && product.salePrice && <span className="text-sm line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(product.price)}</span>}
+                  <span className="text-xl font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
+                  {showSalePrice && priceDisplay.comparePrice && (
+                    <span className="text-sm line-through" style={{ color: tokens.priceOriginalText }}>
+                      {getPublicPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                    </span>
+                  )}
                 </div>
               )}
               {showStock && product.stock <= 5 && product.stock > 0 && <span className="text-xs" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock}</span>}
@@ -1080,6 +1095,8 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             </div>
           )}
         </Link>
+          );
+        })()
       ))}
     </div>
   );
@@ -1123,7 +1140,7 @@ interface LayoutProps {
   showPrice: boolean;
   showSalePrice: boolean;
   showStock: boolean;
-  formatPrice: (price: number) => string;
+  saleMode: ProductsSaleMode;
   totalCount: number | undefined;
   paginationNode?: React.ReactNode;
   showWishlistButton: boolean;
@@ -1138,7 +1155,7 @@ interface LayoutProps {
   canUseWishlist: boolean;
 }
 
-function CatalogLayout({ products, categories, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, formatPrice, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
+function CatalogLayout({ products, categories, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
   return (
     <div className="py-8 md:py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -1234,6 +1251,9 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {products.map((product) => (
+                  (() => {
+                    const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                    return (
                   <Link
                     key={product._id}
                     href={`/products/${product.slug}`}
@@ -1246,7 +1266,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
                       )}
-                      {showPromotionBadge && showSalePrice && product.salePrice && (
+                      {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
                         <span
                           className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                           style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
@@ -1267,7 +1287,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                     </div>
                     <div className="p-3 flex flex-1 flex-col">
                       <h3 className="font-medium text-sm line-clamp-2 transition-colors" style={{ color: tokens.bodyText }}>{product.name}</h3>
-                      {showPrice && <span className="font-bold text-sm block mt-1" style={{ color: tokens.priceColor }}>{formatPrice(product.salePrice ?? product.price)}</span>}
+                      {showPrice && <span className="font-bold text-sm block mt-1" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>}
                       <div className="min-h-[20px] mt-2">
                         {showStock && product.stock <= 5 && product.stock > 0 && <span className="text-xs block" style={{ color: tokens.stockLowText }}>Chỉ còn {product.stock} sản phẩm</span>}
                         {showStock && product.stock === 0 && <span className="text-xs block" style={{ color: tokens.stockOutText }}>Hết hàng</span>}
@@ -1285,6 +1305,8 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                       </div>
                     </div>
                   </Link>
+                    );
+                  })()
                 ))}
               </div>
             )}
@@ -1299,7 +1321,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
 
 // ========== LIST LAYOUT (Full width list view) ==========
 
-function ListLayout({ products, categories, categoryMap, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, formatPrice, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
+function ListLayout({ products, categories, categoryMap, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
   return (
     <div className="py-8 md:py-12 px-4">
       <div className="max-w-5xl mx-auto">
@@ -1378,7 +1400,7 @@ function ListLayout({ products, categories, categoryMap, selectedCategory, onCat
             showPrice={showPrice}
             showSalePrice={showSalePrice}
             showStock={showStock}
-            formatPrice={formatPrice}
+            saleMode={saleMode}
             showWishlistButton={showWishlistButton}
             showAddToCartButton={showAddToCartButton}
             showBuyNowButton={showBuyNowButton}

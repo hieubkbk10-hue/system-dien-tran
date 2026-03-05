@@ -189,6 +189,7 @@ function ProductCreateContent() {
   }, [settingsData]);
 
   const isAffiliateMode = saleMode === 'affiliate';
+  const isPriceRequired = saleMode === 'cart';
   const showProductTypeSelector = productTypeMode === 'both';
   const hideBasePricing = variantEnabled && variantPricing === 'variant';
 
@@ -237,7 +238,7 @@ function ProductCreateContent() {
     e.preventDefault();
     
     // Validate required fields
-    if (!name.trim() || !categoryId || (!hideBasePricing && !price)) {
+    if (!name.trim() || !categoryId || (!hideBasePricing && isPriceRequired && (!price || Number(price) <= 0))) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
@@ -400,20 +401,25 @@ function ProductCreateContent() {
               ) : (
                 <div className={enabledFields.has('salePrice') ? "grid grid-cols-2 gap-4" : ""}>
                   <div className="space-y-2">
-                    <Label>{enabledFields.has('salePrice') ? 'Giá so sánh (trước giảm)' : 'Giá bán (VNĐ)'} <span className="text-red-500">*</span></Label>
+                    <Label>
+                      Giá bán (VNĐ)
+                      {isPriceRequired && <span className="text-red-500">*</span>}
+                    </Label>
                     <Input
                       type="number"
                       value={price}
                       onChange={(e) =>{  setPrice(e.target.value); }}
-                      required
-                      placeholder={enabledFields.has('salePrice') ? 'Để trống nếu không KM' : '0'}
+                      required={isPriceRequired}
+                      placeholder="0"
                       min="0"
                     />
+                    <p className="text-xs text-slate-500">VD: 100,000</p>
                   </div>
                   {enabledFields.has('salePrice') && (
                     <div className="space-y-2">
-                      <Label>Giá bán (VNĐ)</Label>
+                      <Label>Giá so sánh (trước giảm)</Label>
                       <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="0" min="0" />
+                      <p className="text-xs text-slate-500">VD: 100,000</p>
                     </div>
                   )}
                 </div>

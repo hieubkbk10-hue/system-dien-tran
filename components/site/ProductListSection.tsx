@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Package } from 'lucide-react';
 import { BrandBadge, SaleBadge } from '@/components/site/shared/BrandColorHelpers';
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 // 6 Styles theo mẫu previews.tsx
 // 'minimal' = Luxury Minimal, 'commerce' = Commerce Card, 'bento' = Bento Grid
@@ -65,6 +66,14 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   const sectionTitle = (config.sectionTitle as string) || title;
   const carouselId = React.useId();
   const carouselElementId = `product-carousel-${carouselId.replaceAll(':', '')}`;
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const saleMode = React.useMemo<'cart' | 'contact' | 'affiliate'>(() => {
+    const value = saleModeSetting?.value;
+    if (value === 'contact' || value === 'affiliate') {
+      return value;
+    }
+    return 'cart';
+  }, [saleModeSetting?.value]);
   
   // Query products based on selection mode
   const productsData = useQuery(
@@ -112,14 +121,14 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   }
 
   // Format price
-  const formatPrice = (price?: number) => {
-    if (!price) {return '';}
-    return price.toLocaleString('vi-VN') + 'đ';
-  };
+  const getPriceDisplay = (price?: number, salePrice?: number) =>
+    getPublicPriceLabel({ saleMode, price, salePrice });
 
-  // Calculate discount
-  const getDiscount = (price?: number, salePrice?: number) => {
-    if (!price || !salePrice || salePrice >= price) {return null;}
+  const formatComparePrice = (price?: number) =>
+    price ? getPublicPriceLabel({ saleMode: 'cart', price }).label : '';
+
+  const getDiscount = (price?: number, salePrice?: number, isContactPrice?: boolean) => {
+    if (isContactPrice || !price || !salePrice || salePrice >= price) {return null;}
     return `-${Math.round(((price - salePrice) / price) * 100)}%`;
   };
 
@@ -134,7 +143,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 md:gap-x-6 md:gap-y-10">
             {products.slice(0, 4).map((product) => {
-              const discount = getDiscount(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer">
                   {/* Image Container */}
@@ -174,10 +184,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-slate-900" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                      {product.salePrice && product.price && product.salePrice < product.price && (
+                      <span className="font-bold text-slate-900" style={{ color: brandColor }}>{priceDisplay.label}</span>
+                      {priceDisplay.comparePrice && (
                         <span className="text-xs text-slate-400 line-through">
-                          {formatPrice(product.price)}
+                          {formatComparePrice(priceDisplay.comparePrice)}
                         </span>
                       )}
                     </div>
@@ -201,7 +211,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {products.slice(0, 4).map((product) => {
-              const discount = getDiscount(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
               return (
                 <Link 
                   key={product._id} 
@@ -237,10 +248,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </h3>
                     
                     <div className="flex items-baseline gap-2 mb-4 mt-auto pt-2">
-                      <span className="text-base font-bold text-slate-900 group-hover:opacity-80 transition-colors" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                      {product.salePrice && product.price && product.salePrice < product.price && (
+                      <span className="text-base font-bold text-slate-900 group-hover:opacity-80 transition-colors" style={{ color: brandColor }}>{priceDisplay.label}</span>
+                      {priceDisplay.comparePrice && (
                         <span className="text-xs text-slate-400 line-through">
-                          {formatPrice(product.price)}
+                          {formatComparePrice(priceDisplay.comparePrice)}
                         </span>
                       )}
                     </div>
@@ -380,7 +391,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               }}
             >
               {displayedProducts.map((product) => {
-                const discount = getDiscount(product.price, product.salePrice);
+                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
                 return (
                   <Link
                     key={product._id}
@@ -409,9 +421,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </div>
                     <h3 className="font-medium text-slate-900 text-sm truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="font-bold text-sm" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                      {product.salePrice && product.price && product.salePrice < product.price && (
-                        <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
+                    <span className="font-bold text-sm" style={{ color: brandColor }}>{priceDisplay.label}</span>
+                    {priceDisplay.comparePrice && (
+                      <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
                       )}
                     </div>
                   </Link>
@@ -443,7 +455,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Compact Grid - More items, smaller cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {products.slice(0, 6).map((product) => {
-              const discount = getDiscount(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer bg-white rounded-lg border border-slate-100 p-2 hover:shadow-md hover:border-slate-200 transition-all">
                   <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 mb-2">
@@ -465,7 +478,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                   </div>
                   <h3 className="font-medium text-xs text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h3>
-                  <span className="font-bold text-xs mt-0.5 block" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                  <span className="font-bold text-xs mt-0.5 block" style={{ color: brandColor }}>{priceDisplay.label}</span>
                 </Link>
               );
             })}
@@ -479,7 +492,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   if (style === 'showcase') {
     const showcaseFeatured = products[0];
     const showcaseOthers = products.slice(1, 5);
-    const showcaseDiscount = getDiscount(showcaseFeatured?.price, showcaseFeatured?.salePrice);
+    const showcasePriceDisplay = showcaseFeatured
+      ? getPriceDisplay(showcaseFeatured.price, showcaseFeatured.salePrice)
+      : null;
+    const showcaseDiscount = getDiscount(showcasePriceDisplay?.comparePrice, showcaseFeatured?.salePrice, showcasePriceDisplay?.isContactPrice);
 
     return (
       <section className="py-10 md:py-16 px-4 md:px-6">
@@ -489,7 +505,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Showcase Layout - Mobile */}
           <div className="grid md:hidden grid-cols-2 gap-3">
             {products.slice(0, 4).map((product) => {
-              const discount = getDiscount(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
                   <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">
@@ -505,7 +522,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     )}
                   </div>
                   <h4 className="font-medium text-sm text-slate-900 truncate">{product.name}</h4>
-                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                  <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{priceDisplay.label}</span>
                 </Link>
               );
             })}
@@ -540,7 +557,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">{showcaseFeatured?.name}</h3>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-white line-clamp-1">{formatPrice(showcaseFeatured?.salePrice ?? showcaseFeatured?.price)}</span>
+                  <span className="text-xl font-bold text-white line-clamp-1">{showcasePriceDisplay?.label ?? ''}</span>
                   <span className="h-9 px-4 rounded-lg text-white text-sm font-medium shrink-0 inline-flex items-center" style={{ backgroundColor: brandColor }}>Xem chi tiết</span>
                 </div>
               </div>
@@ -549,7 +566,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             {/* Right Grid - 2x2 */}
             <div className="col-span-2 grid grid-cols-2 gap-3">
               {showcaseOthers.map((product) => {
-                const discount = getDiscount(product.price, product.salePrice);
+                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
                 return (
                   <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 transition-all">
                     <div className="relative aspect-square w-full rounded-lg bg-slate-50 overflow-hidden mb-3">
@@ -566,9 +584,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     </div>
                     <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-bold" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
-                      {product.salePrice && product.price && product.salePrice < product.price && (
-                        <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
+                    <span className="text-sm font-bold" style={{ color: brandColor }}>{priceDisplay.label}</span>
+                    {priceDisplay.comparePrice && (
+                      <span className="text-[10px] text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
                       )}
                     </div>
                   </Link>
@@ -584,7 +602,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   // Style 3: Bento Grid - Asymmetric layout với hero card lớn (default)
   const featured = products.at(-1) ?? products[0];
   const others = products.slice(0, 4);
-  const featuredDiscount = getDiscount(featured?.price, featured?.salePrice);
+  const featuredPriceDisplay = featured
+    ? getPriceDisplay(featured.price, featured.salePrice)
+    : null;
+  const featuredDiscount = getDiscount(featuredPriceDisplay?.comparePrice, featured?.salePrice, featuredPriceDisplay?.isContactPrice);
 
   return (
     <section className="py-10 md:py-16 px-4 md:px-6">
@@ -626,7 +647,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               <h3 className="text-2xl md:text-4xl font-bold mb-3 leading-tight text-white">{featured?.name}</h3>
               
               <div className="flex flex-row items-center justify-between gap-4 mt-2">
-                <span className="text-2xl font-bold text-white">{formatPrice(featured?.salePrice ?? featured?.price)}</span>
+                <span className="text-2xl font-bold text-white">{featuredPriceDisplay?.label ?? ''}</span>
                 
                 <span className="rounded-full px-6 py-2 text-white border-0 shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 4px 6px ${brandColor}20` }}>
                   Xem chi tiết
@@ -637,7 +658,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
           {/* Small Grid Items */}
           {others.slice(0, 4).map((product) => {
-            const discount = getDiscount(product.price, product.salePrice);
+            const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+            const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
             return (
               <Link 
                 key={product._id}
@@ -681,13 +703,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     {product.name}
                   </h4>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm font-bold" style={{ color: brandColor }}>
-                      {formatPrice(product.salePrice ?? product.price)}
-                    </span>
-                    {product.salePrice && product.price && product.salePrice < product.price && (
-                      <span className="text-[10px] text-slate-400 line-through opacity-70">
-                        {formatPrice(product.price)}
-                      </span>
+                    <span className="text-sm font-bold" style={{ color: brandColor }}>{priceDisplay.label}</span>
+                    {priceDisplay.comparePrice && (
+                      <span className="text-[10px] text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
                     )}
                   </div>
                 </div>
@@ -698,8 +716,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
         {/* Mobile: 2x2 simple grid */}
         <div className="grid md:hidden grid-cols-2 gap-3">
-          {products.slice(0, 4).map((product) => {
-            const discount = getDiscount(product.price, product.salePrice);
+        {products.slice(0, 4).map((product) => {
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
             return (
               <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
                 <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">
@@ -715,7 +734,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   )}
                 </div>
                 <h4 className="font-medium text-sm text-slate-900 truncate group-hover:opacity-80 transition-colors">{product.name}</h4>
-                <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{formatPrice(product.salePrice ?? product.price)}</span>
+                <span className="text-sm font-bold mt-1" style={{ color: brandColor }}>{priceDisplay.label}</span>
               </Link>
             );
           })}

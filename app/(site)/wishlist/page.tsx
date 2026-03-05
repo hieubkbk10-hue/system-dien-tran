@@ -14,10 +14,7 @@ import { useCartConfig } from '@/lib/experiences';
 import { useRouter } from 'next/navigation';
 import type { Id } from '@/convex/_generated/dataModel';
 import { getWishlistColors } from '@/components/site/wishlist/colors';
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
-}
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 export default function WishlistPage() {
   const brandColors = useBrandColors();
@@ -28,6 +25,7 @@ export default function WishlistPage() {
   const config = useWishlistConfig();
   const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
   const itemsPerPageSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'wishlist', settingKey: 'itemsPerPage' });
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const toggleWishlist = useMutation(api.wishlist.toggle);
 
   const itemsPerPage = useMemo(() => {
@@ -50,6 +48,17 @@ export default function WishlistPage() {
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<'newest' | 'price-asc' | 'price-desc' | 'name-asc'>('newest');
+  const saleMode = useMemo<'cart' | 'contact' | 'affiliate'>(() => {
+    const value = saleModeSetting?.value;
+    if (value === 'contact' || value === 'affiliate') {
+      return value;
+    }
+    return 'cart';
+  }, [saleModeSetting?.value]);
+  const getPriceDisplay = (price?: number, salePrice?: number) =>
+    getPublicPriceLabel({ saleMode, price, salePrice });
+  const formatComparePrice = (price?: number) =>
+    price ? getPublicPriceLabel({ saleMode: 'cart', price }).label : '';
 
   const filteredItems = useMemo(() => {
     if (layoutStyle !== 'table') {
@@ -242,7 +251,7 @@ export default function WishlistPage() {
                 {filteredItems.map((item) => {
                   const product = item.product;
                   if (!product) {return null;}
-                  const price = product.salePrice ?? product.price;
+                  const priceDisplay = getPriceDisplay(product.price, product.salePrice);
 
                   return (
                     <tr key={item._id} className="border-t" style={{ borderColor: tokens.tableRowBorder }}>
@@ -272,9 +281,9 @@ export default function WishlistPage() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="font-semibold" style={{ color: tokens.priceText }}>{formatPrice(price)}</div>
-                        {product.salePrice && (
-                          <div className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(product.price)}</div>
+                        <div className="font-semibold" style={{ color: tokens.priceText }}>{priceDisplay.label}</div>
+                        {priceDisplay.comparePrice && (
+                          <div className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatComparePrice(priceDisplay.comparePrice)}</div>
                         )}
                       </td>
                       <td className="px-4 py-4">
@@ -322,7 +331,7 @@ export default function WishlistPage() {
             {filteredItems.map((item) => {
               const product = item.product;
               if (!product) {return null;}
-              const price = product.salePrice ?? product.price;
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
 
               return (
                 <div
@@ -351,7 +360,7 @@ export default function WishlistPage() {
                     >
                       {product.name}
                     </Link>
-                    <div className="text-sm font-bold mt-1" style={{ color: tokens.priceText }}>{formatPrice(price)}</div>
+                    <div className="text-sm font-bold mt-1" style={{ color: tokens.priceText }}>{priceDisplay.label}</div>
                     {config.showNote && item.note && (
                       <p className="mt-1 text-xs line-clamp-2" style={{ color: tokens.metaText }}>{item.note}</p>
                     )}
@@ -386,7 +395,7 @@ export default function WishlistPage() {
           {items.map((item) => {
             const product = item.product;
             if (!product) {return null;}
-            const price = product.salePrice ?? product.price;
+            const priceDisplay = getPriceDisplay(product.price, product.salePrice);
 
             if (layoutStyle === 'grid') {
               return (
@@ -415,7 +424,7 @@ export default function WishlistPage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-sm mb-1 line-clamp-2" style={{ color: tokens.bodyText }}>{product.name}</h3>
-                    <div className="font-bold text-sm" style={{ color: tokens.priceText }}>{formatPrice(price)}</div>
+                    <div className="font-bold text-sm" style={{ color: tokens.priceText }}>{priceDisplay.label}</div>
                     {config.showNote && item.note && (
                       <p className="mt-2 text-xs line-clamp-2" style={{ color: tokens.metaText }}>{item.note}</p>
                     )}
@@ -462,7 +471,7 @@ export default function WishlistPage() {
                   >
                     {product.name}
                   </Link>
-                  <div className="font-bold text-sm mt-1" style={{ color: tokens.priceText }}>{formatPrice(price)}</div>
+                  <div className="font-bold text-sm mt-1" style={{ color: tokens.priceText }}>{priceDisplay.label}</div>
                   {config.showNote && item.note && (
                     <p className="mt-2 text-sm" style={{ color: tokens.metaText }}>{item.note}</p>
                   )}

@@ -15,6 +15,7 @@ import { useCartConfig, useCheckoutConfig } from '@/lib/experiences';
 import { ArrowLeft, Award, BadgeCheck, Bell, Bolt, Calendar, Camera, Check, CheckCircle2, ChevronRight, Clock, CreditCard, Gift, Globe, Heart, HeartHandshake, Leaf, Lock, MapPin, MessageSquare, Minus, Package, Phone, Plus, Reply, RotateCcw, Share2, Shield, ShoppingBag, ShoppingCart, Star, ThumbsUp, Truck } from 'lucide-react';
 import { VariantSelector, type VariantSelectorOption } from '@/components/products/VariantSelector';
 import type { Id } from '@/convex/_generated/dataModel';
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 type ProductDetailStyle = 'classic' | 'modern' | 'minimal';
 type ModernHeroStyle = 'full' | 'split' | 'minimal';
@@ -690,6 +691,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           highlights={classicHighlights}
           highlightsEnabled={classicHighlightsEnabled}
           ratingSummary={ratingSummary}
+          saleMode={saleMode}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
@@ -713,6 +715,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           variants={variants ?? []}
           variantOptions={variantOptions}
           ratingSummary={ratingSummary}
+          saleMode={saleMode}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
@@ -737,6 +740,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           variants={variants ?? []}
           variantOptions={variantOptions}
           ratingSummary={ratingSummary}
+          saleMode={saleMode}
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
@@ -800,6 +804,7 @@ interface StyleProps {
   enabledFields: Set<string>;
   variants: ProductVariant[];
   variantOptions: VariantSelectorOption[];
+  saleMode: ProductsSaleMode;
   commentsSection?: React.ReactNode;
 }
 
@@ -939,7 +944,7 @@ function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: Pro
 // ====================================================================================
 // STYLE 1: CLASSIC - Standard e-commerce product page
 // ====================================================================================
-function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
+function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -989,8 +994,10 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const discountPercent = salePrice ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-  const displayPrice = salePrice ?? basePrice;
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const discountPercent = priceDisplay.comparePrice && salePrice
+    ? Math.round((1 - salePrice / priceDisplay.comparePrice) * 100)
+    : 0;
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
@@ -1026,7 +1033,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
-              {showSalePrice && salePrice && (
+              {showSalePrice && priceDisplay.comparePrice && salePrice && (
                 <span className="absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{discountPercent}%</span>
               )}
             </div>
@@ -1065,11 +1072,11 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 
             {showPrice && (
               <div className="flex items-end gap-3 mb-6">
-                <span className="text-3xl font-bold" style={{ color: tokens.priceColor }}>{formatPrice(displayPrice)}</span>
-                {showSalePrice && salePrice && (
+                <span className="text-3xl font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
+                {showSalePrice && priceDisplay.comparePrice && salePrice && (
                   <>
-                    <span className="text-xl line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(basePrice)}</span>
-                    <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>Tiết kiệm {formatPrice(basePrice - salePrice)}</span>
+                    <span className="text-xl line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(priceDisplay.comparePrice)}</span>
+                    <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>Tiết kiệm {formatPrice(priceDisplay.comparePrice - salePrice)}</span>
                   </>
                 )}
               </div>
@@ -1196,6 +1203,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
           tokens={tokens}
           showPrice={enabledFields.has('price') || enabledFields.size === 0}
           showSalePrice={enabledFields.has('salePrice')}
+          saleMode={saleMode}
         />
 
         <div className="mt-12 pt-8 border-t" style={{ borderColor: tokens.divider }}>
@@ -1211,7 +1219,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 // ====================================================================================
 // STYLE 2: MODERN - Landing page style with hero
 // ====================================================================================
-function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { heroStyle: ModernHeroStyle }) {
+function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { heroStyle: ModernHeroStyle }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -1260,8 +1268,10 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const discountPercent = salePrice ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-  const displayPrice = salePrice ?? basePrice;
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const discountPercent = priceDisplay.comparePrice && salePrice
+    ? Math.round((1 - salePrice / priceDisplay.comparePrice) * 100)
+    : 0;
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
@@ -1399,15 +1409,15 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               <div className="space-y-2">
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl lg:text-4xl font-light" style={{ color: tokens.priceColor }}>
-                    {formatPrice(displayPrice)}
+                    {priceDisplay.label}
                   </span>
-                  {showSalePrice && salePrice && (
+                  {showSalePrice && priceDisplay.comparePrice && salePrice && (
                     <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>
-                      {formatPrice(basePrice)}
+                      {formatPrice(priceDisplay.comparePrice)}
                     </span>
                   )}
                 </div>
-                {showSalePrice && salePrice && (
+                {showSalePrice && priceDisplay.comparePrice && salePrice && (
                   <span
                     className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
                     style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}
@@ -1544,6 +1554,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
             tokens={tokens}
             showPrice={showPrice}
             showSalePrice={showSalePrice}
+          saleMode={saleMode}
           />
         </div>
       </main>
@@ -1554,7 +1565,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
 // ====================================================================================
 // STYLE 3: MINIMAL - Clean, focused design
 // ====================================================================================
-function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { contentWidth: MinimalContentWidth }) {
+function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & { contentWidth: MinimalContentWidth }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
@@ -1602,7 +1613,7 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const displayPrice = salePrice ?? basePrice;
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
@@ -1669,7 +1680,7 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
               {showPrice && (
                 <p className="text-2xl font-light" style={{ color: tokens.priceColor }}>
-                  {formatPrice(displayPrice)}
+                  {priceDisplay.label}
                 </p>
               )}
             </div>
@@ -1765,6 +1776,7 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
           tokens={tokens}
           showPrice={showPrice}
           showSalePrice={enabledFields.has('salePrice')}
+          saleMode={saleMode}
         />
       </main>
     </div>
@@ -2149,6 +2161,7 @@ function RelatedProductsSection({
   tokens,
   showPrice,
   showSalePrice,
+  saleMode,
 }: {
   products: RelatedProduct[];
   categorySlug?: string;
@@ -2156,6 +2169,7 @@ function RelatedProductsSection({
   tokens: ProductDetailColors;
   showPrice: boolean;
   showSalePrice: boolean;
+  saleMode: ProductsSaleMode;
 }) {
   if (products.length === 0) {return null;}
 
@@ -2170,7 +2184,9 @@ function RelatedProductsSection({
         )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {products.map((p) => (
+        {products.map((p) => {
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: p.price, salePrice: p.salePrice });
+          return (
           <Link
             key={p._id}
             href={`/products/${p.slug}`}
@@ -2183,7 +2199,7 @@ function RelatedProductsSection({
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
-              {showSalePrice && p.salePrice && (
+              {showSalePrice && p.salePrice && !priceDisplay.isContactPrice && (
                 <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - p.salePrice / p.price) * 100)}%</span>
               )}
             </div>
@@ -2191,13 +2207,16 @@ function RelatedProductsSection({
               <h3 className="font-medium line-clamp-2 transition-colors mb-2 text-sm" style={{ color: tokens.headingColor }}>{p.name}</h3>
               {showPrice && (
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm" style={{ color: tokens.priceColor }}>{formatPrice(p.salePrice ?? p.price)}</span>
-                  {showSalePrice && p.salePrice && <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(p.price)}</span>}
+                  <span className="font-bold text-sm" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
+                  {showSalePrice && priceDisplay.comparePrice && (
+                    <span className="text-xs line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(priceDisplay.comparePrice)}</span>
+                  )}
                 </div>
               )}
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

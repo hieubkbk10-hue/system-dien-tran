@@ -5,6 +5,7 @@ import { parseHreflang } from '@/lib/seo';
 import { JsonLd, generateBreadcrumbSchema, generateProductSchema } from '@/components/seo/JsonLd';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getPublicPriceLabel } from '@/lib/products/public-price';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -24,10 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
-    const [product, site, seo] = await Promise.all([
+    const [product, site, seo, saleModeSetting] = await Promise.all([
       client.query(api.products.getBySlug, { slug }),
       getSiteSettings(),
       getSEOSettings(),
+      client.query(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' }),
     ]);
 
     if (!product) {
@@ -44,8 +46,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const keywords = seo.seo_keywords ? seo.seo_keywords.split(',').map(k => k.trim()) : [];
     const languages = parseHreflang(seo.seo_hreflang);
     
-    const price = product.salePrice ?? product.price;
-    const formattedPrice = new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
+    const saleModeValue = saleModeSetting?.value;
+    const saleMode = saleModeValue === 'contact' || saleModeValue === 'affiliate' ? saleModeValue : 'cart';
+    const formattedPrice = getPublicPriceLabel({
+      saleMode,
+      price: product.price,
+      salePrice: product.salePrice,
+    }).label;
 
     return {
       alternates: {
