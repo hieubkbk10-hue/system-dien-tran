@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -182,8 +182,12 @@ export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([]);
+  const [visibleRootCount, setVisibleRootCount] = useState<number | null>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const measureItemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const moreMeasureRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -267,6 +271,47 @@ export function Header() {
       };
     });
   }, [menuItems]);
+
+  const rootItems = menuTree;
+
+  if (measureItemRefs.current.length !== rootItems.length) {
+    measureItemRefs.current = Array(rootItems.length).fill(null);
+  }
+
+  useLayoutEffect(() => {
+    if (!navRef.current || rootItems.length === 0) {
+      setVisibleRootCount(rootItems.length);
+      return;
+    }
+
+    const calculate = () => {
+      const containerWidth = navRef.current?.clientWidth ?? 0;
+      if (!containerWidth) {return;}
+
+      const widths = measureItemRefs.current.map((item) => item?.offsetWidth ?? 0);
+      const moreWidth = moreMeasureRef.current?.offsetWidth ?? 0;
+      let used = 0;
+      let count = 0;
+
+      for (let i = 0; i < widths.length; i += 1) {
+        const remaining = widths.length - (i + 1);
+        const reserved = remaining > 0 ? moreWidth : 0;
+        if (used + widths[i] + reserved > containerWidth) {break;}
+        used += widths[i];
+        count += 1;
+      }
+
+      setVisibleRootCount(Math.max(0, count));
+    };
+
+    const resizeObserver = new ResizeObserver(calculate);
+    resizeObserver.observe(navRef.current);
+    measureItemRefs.current.forEach((item) => { if (item) {resizeObserver.observe(item);} });
+    if (moreMeasureRef.current) {resizeObserver.observe(moreMeasureRef.current);}    
+    calculate();
+
+    return () => resizeObserver.disconnect();
+  }, [rootItems.length]);
 
   const topbarSlogan = typeof settings.site_tagline === 'string' ? settings.site_tagline.trim() : '';
   const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? true) !== false;
@@ -393,6 +438,11 @@ export function Header() {
 
   // Classic Style
   if (headerStyle === 'classic') {
+    const visibleCount = visibleRootCount ?? rootItems.length;
+    const visibleRootItems = rootItems.slice(0, visibleCount);
+    const overflowRootItems = rootItems.slice(visibleCount);
+    const moreKey = '__more__';
+
     return (
       <header className={cn(classicPositionClass)} style={{ ...classicBackgroundStyle, ...classicSeparatorStyle }}>
         {topbarConfig.show !== false && (
@@ -438,140 +488,242 @@ export function Header() {
         {config.showBrandAccent && (
           <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
         )}
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            {logo ? (
-              <Image src={logo} alt={displayName} width={32} height={32} className="h-8 w-auto" />
-            ) : (
-              <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
-            )}
-            <span className="font-semibold" style={{ color: tokens.textPrimary }}>{displayName}</span>
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+          <div className="flex items-center gap-4">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+              {logo ? (
+                <Image src={logo} alt={displayName} width={32} height={32} className="h-8 w-auto" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
+              )}
+              <span className="font-semibold" style={{ color: tokens.textPrimary }}>{displayName}</span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {menuTree.map((item) => (
-              <div
-                key={item._id}
-                className="relative"
-                onMouseEnter={() =>{  handleMenuEnter(item._id); }}
-                onMouseLeave={handleMenuLeave}
-              >
-                <Link
-                  href={item.url}
-                  target={item.openInNewTab ? '_blank' : undefined}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1",
-                    hoveredItem === item._id
-                      ? "text-[var(--menu-hover-text)]"
-                      : "hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]"
-                  )}
-                  style={{
-                    ...(hoveredItem === item._id
-                      ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText }
-                      : { color: tokens.navItemText }),
-                    ...menuVars,
-                  }}
+            {/* Desktop Navigation */}
+            <nav ref={navRef} className="hidden lg:flex flex-1 min-w-0 items-center gap-1 whitespace-nowrap">
+              {visibleRootItems.map((item, index) => (
+                <div
+                  key={item._id}
+                  className="relative"
+                  onMouseEnter={() =>{  handleMenuEnter(item._id); }}
+                  onMouseLeave={handleMenuLeave}
                 >
-                  {item.label}
-                  {item.children.length > 0 && (
-                    <ChevronDown size={14} className={cn("transition-transform", hoveredItem === item._id && "rotate-180")} />
-                  )}
-                </Link>
+                  <Link
+                    href={item.url}
+                    target={item.openInNewTab ? '_blank' : undefined}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1 max-w-[160px] truncate",
+                      hoveredItem === item._id
+                        ? "text-[var(--menu-hover-text)]"
+                        : "hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]"
+                    )}
+                    style={{
+                      ...(hoveredItem === item._id
+                        ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText }
+                        : { color: tokens.navItemText }),
+                      ...menuVars,
+                    }}
+                    title={item.label}
+                  >
+                    <span className="truncate max-w-[120px]">{item.label}</span>
+                    {item.children.length > 0 && (
+                      <ChevronDown size={14} className={cn("transition-transform", hoveredItem === item._id && "rotate-180")} />
+                    )}
+                  </Link>
 
-                {item.children.length > 0 && hoveredItem === item._id && (
-                  <div className="absolute top-full left-0 pt-2 z-50">
-                    <div
-                      className="rounded-lg border py-2 min-w-[200px]"
-                      style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                    >
-                      {item.children.map((child) => (
-                        <div key={child._id} className="relative group/child">
-                          <Link
-                            href={child.url}
-                            target={child.openInNewTab ? '_blank' : undefined}
-                            className="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
-                            style={{ color: tokens.dropdownItemText, ...menuVars }}
-                          >
-                            {child.label}
-                            {child.children?.length > 0 && <ChevronRight size={14} />}
-                          </Link>
-                          {child.children?.length > 0 && (
-                            <div className="absolute left-full top-0 pl-1 hidden group-hover/child:block">
-                              <div
-                                className="rounded-lg border py-2 min-w-[180px]"
-                                style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                              >
-                                {child.children.map((sub) => (
-                                  <Link
-                                    key={sub._id}
-                                    href={sub.url}
-                                    target={sub.openInNewTab ? '_blank' : undefined}
-                                    className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                    style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                  >
-                                    {sub.label}
-                                  </Link>
+                  {item.children.length > 0 && hoveredItem === item._id && (
+                    <div className="absolute top-full left-0 pt-2 z-50">
+                      <div
+                        className="rounded-lg border py-2 min-w-[200px]"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
+                        {item.children.map((child) => (
+                          <div key={child._id} className="relative group/child">
+                            <Link
+                              href={child.url}
+                              target={child.openInNewTab ? '_blank' : undefined}
+                              className="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                              style={{ color: tokens.dropdownItemText, ...menuVars }}
+                            >
+                              {child.label}
+                              {child.children?.length > 0 && <ChevronRight size={14} />}
+                            </Link>
+                            {child.children?.length > 0 && (
+                              <div className="absolute left-full top-0 pl-1 hidden group-hover/child:block">
+                                <div
+                                  className="rounded-lg border py-2 min-w-[180px]"
+                                  style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                                >
+                                  {child.children.map((sub) => (
+                                    <Link
+                                      key={sub._id}
+                                      href={sub.url}
+                                      target={sub.openInNewTab ? '_blank' : undefined}
+                                      className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                      style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                    >
+                                      {sub.label}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {overflowRootItems.length > 0 && (
+                <div
+                  className="relative"
+                  onMouseEnter={() =>{  handleMenuEnter(moreKey); }}
+                  onMouseLeave={handleMenuLeave}
+                >
+                  <button
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1",
+                      hoveredItem === moreKey
+                        ? "text-[var(--menu-hover-text)]"
+                        : "hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]"
+                    )}
+                    style={{
+                      ...(hoveredItem === moreKey
+                        ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText }
+                        : { color: tokens.navItemText }),
+                      ...menuVars,
+                    }}
+                  >
+                    More
+                    <ChevronDown size={14} className={cn("transition-transform", hoveredItem === moreKey && "rotate-180")} />
+                  </button>
+
+                  {hoveredItem === moreKey && (
+                    <div className="absolute top-full left-0 pt-2 z-50">
+                      <div
+                        className="rounded-lg border py-2 min-w-[240px]"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
+                        {overflowRootItems.map((root) => (
+                          <div key={root._id} className="px-3 py-2">
+                            <Link
+                              href={root.url}
+                              target={root.openInNewTab ? '_blank' : undefined}
+                              className="flex items-center justify-between text-sm font-semibold transition-colors hover:text-[var(--menu-dropdown-hover-text)]"
+                              style={{ color: tokens.dropdownItemText, ...menuVars }}
+                            >
+                              {root.label}
+                              {root.children.length > 0 && <ChevronRight size={14} />}
+                            </Link>
+
+                            {root.children.length > 0 && (
+                              <div className="mt-2 space-y-2 border-l pl-3" style={{ borderColor: tokens.border }}>
+                                {root.children.map((child) => (
+                                  <div key={child._id} className="space-y-1">
+                                    <Link
+                                      href={child.url}
+                                      target={child.openInNewTab ? '_blank' : undefined}
+                                      className="block text-sm transition-colors hover:text-[var(--menu-dropdown-hover-text)]"
+                                      style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                    >
+                                      {child.label}
+                                    </Link>
+                                    {child.children?.length > 0 && (
+                                      <div className="space-y-1 pl-3">
+                                        {child.children.map((sub) => (
+                                          <Link
+                                            key={sub._id}
+                                            href={sub.url}
+                                            target={sub.openInNewTab ? '_blank' : undefined}
+                                            className="block text-sm transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                            style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                          >
+                                            {sub.label}
+                                          </Link>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                 ))}
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+                  )}
+                </div>
+              )}
+            </nav>
 
-          <div className="flex items-center gap-3">
-            {showSearch && (
-              <div className="hidden lg:block">
-                <HeaderSearchAutocomplete
-                  placeholder={config.search?.placeholder}
-                  searchProducts={canSearchProducts}
-                  searchPosts={canSearchPosts}
-                  searchServices={canSearchServices}
-                  tokens={tokens}
-                  className="w-48"
-                  inputClassName="w-full pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
-                  inputStyle={{
-                    backgroundColor: tokens.searchInputBg,
-                    borderColor: tokens.searchInputBorder,
-                    color: tokens.searchInputText,
-                  }}
-                  buttonClassName="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full"
-                />
+            <div className="absolute opacity-0 pointer-events-none -z-10 h-0 overflow-hidden" aria-hidden>
+              <div className="flex items-center gap-1">
+                {rootItems.map((item, index) => (
+                  <div
+                    key={`${item._id}-measure`}
+                    ref={(el) => { measureItemRefs.current[index] = el; }}
+                    className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1 max-w-[160px]"
+                  >
+                    <span className="truncate max-w-[120px]">{item.label}</span>
+                    {item.children.length > 0 && <ChevronDown size={14} />}
+                  </div>
+                ))}
+                <div ref={moreMeasureRef} className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1">
+                  More <ChevronDown size={14} />
+                </div>
               </div>
-            )}
-            {showCart && (
-              <CartIcon variant="mobile" className="hidden lg:flex" tokens={tokens} />
-            )}
-            {config.cta?.show && (
-              <Link
-                href={DEFAULT_LINKS.cta}
-                className="hidden lg:inline-flex px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
-              >
-                {config.cta.text ?? 'Liên hệ'}
-              </Link>
-            )}
-            <div className="flex items-center gap-1 lg:hidden">
+            </div>
+
+            <div className="flex items-center gap-3 flex-shrink-0">
               {showSearch && (
-                <button
-                  onClick={() => { setSearchOpen((prev) => !prev); }}
-                  className="p-2"
-                  style={{ color: tokens.iconButtonText }}
-                >
-                  <Search size={20} />
-                </button>
+                <div className="hidden lg:block">
+                  <HeaderSearchAutocomplete
+                    placeholder={config.search?.placeholder}
+                    searchProducts={canSearchProducts}
+                    searchPosts={canSearchPosts}
+                    searchServices={canSearchServices}
+                    tokens={tokens}
+                    className="w-48"
+                    inputClassName="w-full pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
+                    inputStyle={{
+                      backgroundColor: tokens.searchInputBg,
+                      borderColor: tokens.searchInputBorder,
+                      color: tokens.searchInputText,
+                    }}
+                    buttonClassName="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full"
+                  />
+                </div>
               )}
               {showCart && (
-                <CartIcon variant="mobile" tokens={tokens} />
+                <CartIcon variant="mobile" className="hidden lg:flex" tokens={tokens} />
               )}
-              {renderMobileMenuButton(false)}
+              {config.cta?.show && (
+                <Link
+                  href={DEFAULT_LINKS.cta}
+                  className="hidden lg:inline-flex px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+                >
+                  {config.cta.text ?? 'Liên hệ'}
+                </Link>
+              )}
+              <div className="flex items-center gap-1 lg:hidden">
+                {showSearch && (
+                  <button
+                    onClick={() => { setSearchOpen((prev) => !prev); }}
+                    className="p-2"
+                    style={{ color: tokens.iconButtonText }}
+                  >
+                    <Search size={20} />
+                  </button>
+                )}
+                {showCart && (
+                  <CartIcon variant="mobile" tokens={tokens} />
+                )}
+                {renderMobileMenuButton(false)}
+              </div>
             </div>
           </div>
         </div>

@@ -300,6 +300,73 @@ export const reorderMenuItems = mutation({
   returns: v.null(),
 });
 
+export const saveMenuItemsBulk = mutation({
+  args: {
+    menuId: v.id("menus"),
+    items: v.array(v.object({
+      id: v.optional(v.id("menuItems")),
+      label: v.string(),
+      url: v.string(),
+      depth: v.number(),
+      active: v.boolean(),
+      icon: v.optional(v.string()),
+      openInNewTab: v.optional(v.boolean()),
+      parentId: v.optional(v.id("menuItems")),
+    })),
+  },
+  handler: async (ctx, args) => {
+    const existingItems = await ctx.db
+      .query("menuItems")
+      .withIndex("by_menu_order", (q) => q.eq("menuId", args.menuId))
+      .collect();
+
+    const existingById = new Map(existingItems.map(item => [item._id, item] as const));
+    const keepIds = new Set<string>();
+
+    for (const [index, item] of args.items.entries()) {
+      const url = item.url.trim();
+      if (!url) {
+        throw new Error("URL không được để trống");
+      }
+      if (!url.startsWith("/") && !url.startsWith("#") && !url.startsWith("http")) {
+        throw new Error("URL phải bắt đầu bằng /, # hoặc http");
+      }
+
+      if (item.id && existingById.has(item.id)) {
+        keepIds.add(item.id);
+        await ctx.db.patch(item.id, {
+          label: item.label,
+          url,
+          depth: item.depth,
+          active: item.active,
+          icon: item.icon,
+          openInNewTab: item.openInNewTab,
+          parentId: item.parentId,
+          order: index,
+        });
+      } else {
+        const insertedId = await ctx.db.insert("menuItems", {
+          menuId: args.menuId,
+          label: item.label,
+          url,
+          depth: item.depth,
+          active: item.active,
+          icon: item.icon,
+          openInNewTab: item.openInNewTab,
+          parentId: item.parentId,
+          order: index,
+        });
+        keepIds.add(insertedId);
+      }
+    }
+
+    const toDelete = existingItems.filter(item => !keepIds.has(item._id));
+    await Promise.all(toDelete.map( async item => ctx.db.delete(item._id)));
+    return null;
+  },
+  returns: v.null(),
+});
+
 // ============ FULL MENU WITH ITEMS ============
 
 export const getFullMenu = query({

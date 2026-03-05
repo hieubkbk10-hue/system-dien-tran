@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ChevronDown, ChevronRight, Eye, Heart, LogOut, Mail, Package, Phone, Search, ShoppingCart, User } from 'lucide-react';
 import { Card, CardContent, cn } from '@/app/admin/components/ui';
@@ -109,6 +109,10 @@ export function HeaderMenuPreview({
   const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [visibleRootCount, setVisibleRootCount] = useState<number | null>(null);
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const measureItemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const moreMeasureRef = useRef<HTMLDivElement | null>(null);
 
   const activeItems = useMemo(() => menuItems.filter(item => item.active), [menuItems]);
 
@@ -133,6 +137,47 @@ export function HeaderMenuPreview({
       };
     });
   }, [activeItems]);
+
+  const rootItems = menuTree;
+
+  if (measureItemRefs.current.length !== rootItems.length) {
+    measureItemRefs.current = Array(rootItems.length).fill(null);
+  }
+
+  useLayoutEffect(() => {
+    if (!navRef.current || rootItems.length === 0) {
+      setVisibleRootCount(rootItems.length);
+      return;
+    }
+
+    const calculate = () => {
+      const containerWidth = navRef.current?.clientWidth ?? 0;
+      if (!containerWidth) {return;}
+
+      const widths = measureItemRefs.current.map((item) => item?.offsetWidth ?? 0);
+      const moreWidth = moreMeasureRef.current?.offsetWidth ?? 0;
+      let used = 0;
+      let count = 0;
+
+      for (let i = 0; i < widths.length; i += 1) {
+        const remaining = widths.length - (i + 1);
+        const reserved = remaining > 0 ? moreWidth : 0;
+        if (used + widths[i] + reserved > containerWidth) {break;}
+        used += widths[i];
+        count += 1;
+      }
+
+      setVisibleRootCount(Math.max(0, count));
+    };
+
+    const resizeObserver = new ResizeObserver(calculate);
+    resizeObserver.observe(navRef.current);
+    measureItemRefs.current.forEach((item) => { if (item) {resizeObserver.observe(item);} });
+    if (moreMeasureRef.current) {resizeObserver.observe(moreMeasureRef.current);}    
+    calculate();
+
+    return () => resizeObserver.disconnect();
+  }, [rootItems.length]);
 
   const displayTopbar = useMemo(() => {
     if (config.topbar.useSettingsData) {
@@ -300,7 +345,13 @@ export function HeaderMenuPreview({
     );
   }
 
-  const renderClassicStyle = () => (
+  const renderClassicStyle = () => {
+    const visibleCount = visibleRootCount ?? rootItems.length;
+    const visibleRootItems = rootItems.slice(0, visibleCount);
+    const overflowRootItems = rootItems.slice(visibleCount);
+    const moreKey = '__more__';
+
+    return (
     <div className={cn(classicPositionClass)} style={{ ...classicBackgroundStyle, ...classicSeparatorStyle }}>
       {displayTopbar.show && (
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
@@ -339,97 +390,219 @@ export function HeaderMenuPreview({
       {config.showBrandAccent && (
         <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className="px-6 py-4 flex items-center justify-between border-b" style={{ borderColor: tokens.border }}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
-          <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
-        </div>
+      <div className="px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg }}></div>
+            <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
+          </div>
 
-        {device !== 'mobile' ? (
-          <>
-            <nav className="flex items-center gap-1">
-              {menuTree.map((item) => (
-                <div
-                  key={item._id}
-                  className="relative"
-                  onMouseEnter={() => setHoveredItem(item._id)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <button
-                    className={cn(
-                      'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
-                      hoveredItem === item._id
-                        ? 'text-[var(--menu-hover-text)]'
-                        : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
-                    )}
-                    style={{
-                      ...(hoveredItem === item._id ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText } : { color: tokens.navItemText }),
-                      ...menuVars,
-                    }}
+          {device !== 'mobile' ? (
+            <>
+              <nav ref={navRef} className="flex-1 min-w-0 flex items-center gap-1 whitespace-nowrap">
+                {visibleRootItems.map((item) => (
+                  <div
+                    key={item._id}
+                    className="relative"
+                    onMouseEnter={() => setHoveredItem(item._id)}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
-                    {item.label}
-                    {item.children.length > 0 && (
-                      <ChevronDown size={14} className={cn('transition-transform', hoveredItem === item._id && 'rotate-180')} />
-                    )}
-                  </button>
-
-                  {item.children.length > 0 && hoveredItem === item._id && (
-                    <div
-                      className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
-                      style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                    <button
+                      className={cn(
+                        'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1 max-w-[160px] truncate',
+                        hoveredItem === item._id
+                          ? 'text-[var(--menu-hover-text)]'
+                          : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
+                      )}
+                      style={{
+                        ...(hoveredItem === item._id ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText } : { color: tokens.navItemText }),
+                        ...menuVars,
+                      }}
+                      title={item.label}
                     >
-                      {item.children.map((child) => (
-                        <div key={child._id} className="relative group">
-                          {renderLink(child, 'flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]', (
-                            <>
-                              {child.label}
-                              {child.children?.length > 0 && <ChevronRight size={14} />}
-                            </>
-                          ), { color: tokens.dropdownItemText, ...menuVars })}
-                          {child.children?.length > 0 && (
-                            <div
-                              className="absolute left-full top-0 ml-1 rounded-lg border py-2 min-w-[180px] hidden group-hover:block"
-                              style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                            >
-                              {child.children.map((sub) => (
-                                <a
-                                  key={sub._id}
-                                  href={sub.url}
-                                  className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                  style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                >
-                                  {sub.label}
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </nav>
-            <div className="flex items-center gap-3">
-              {showSearch && (
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={config.search.placeholder}
-                    className="w-48 pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
-                    style={{
-                      backgroundColor: tokens.searchInputBg,
-                      borderColor: tokens.searchInputBorder,
-                      color: tokens.searchInputText,
-                    }}
-                  />
-                  <button
-                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full"
-                    style={{ backgroundColor: tokens.searchButtonBg, color: tokens.searchButtonText }}
+                      <span className="truncate max-w-[120px]">{item.label}</span>
+                      {item.children.length > 0 && (
+                        <ChevronDown size={14} className={cn('transition-transform', hoveredItem === item._id && 'rotate-180')} />
+                      )}
+                    </button>
+
+                    {item.children.length > 0 && hoveredItem === item._id && (
+                      <div
+                        className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
+                        {item.children.map((child) => (
+                          <div key={child._id} className="relative group">
+                            {renderLink(child, 'flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]', (
+                              <>
+                                {child.label}
+                                {child.children?.length > 0 && <ChevronRight size={14} />}
+                              </>
+                            ), { color: tokens.dropdownItemText, ...menuVars })}
+                            {child.children?.length > 0 && (
+                              <div
+                                className="absolute left-full top-0 ml-1 rounded-lg border py-2 min-w-[180px] hidden group-hover:block"
+                                style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                              >
+                                {child.children.map((sub) => (
+                                  <a
+                                    key={sub._id}
+                                    href={sub.url}
+                                    className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                    style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                  >
+                                    {sub.label}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {overflowRootItems.length > 0 && (
+                  <div
+                    className="relative"
+                    onMouseEnter={() => setHoveredItem(moreKey)}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
-                    <Search size={14} />
-                  </button>
+                    <button
+                      className={cn(
+                        'px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1',
+                        hoveredItem === moreKey
+                          ? 'text-[var(--menu-hover-text)]'
+                          : 'hover:bg-[var(--menu-hover-bg)] hover:text-[var(--menu-hover-text)]'
+                      )}
+                      style={{
+                        ...(hoveredItem === moreKey ? { backgroundColor: tokens.navItemHoverBg, color: tokens.navItemHoverText } : { color: tokens.navItemText }),
+                        ...menuVars,
+                      }}
+                    >
+                      More
+                      <ChevronDown size={14} className={cn('transition-transform', hoveredItem === moreKey && 'rotate-180')} />
+                    </button>
+
+                    {hoveredItem === moreKey && (
+                      <div
+                        className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[240px] z-50"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
+                        {overflowRootItems.map((root) => (
+                          <div key={root._id} className="px-3 py-2">
+                            <a
+                              href={root.url}
+                              className="flex items-center justify-between text-sm font-semibold transition-colors hover:text-[var(--menu-dropdown-hover-text)]"
+                              style={{ color: tokens.dropdownItemText, ...menuVars }}
+                            >
+                              {root.label}
+                              {root.children.length > 0 && <ChevronRight size={14} />}
+                            </a>
+
+                            {root.children.length > 0 && (
+                              <div className="mt-2 space-y-2 border-l pl-3" style={{ borderColor: tokens.border }}>
+                                {root.children.map((child) => (
+                                  <div key={child._id} className="space-y-1">
+                                    {renderLink(
+                                      child,
+                                      'block text-sm transition-colors hover:text-[var(--menu-dropdown-hover-text)]',
+                                      child.label,
+                                      { color: tokens.dropdownItemText, ...menuVars }
+                                    )}
+                                    {child.children?.length > 0 && (
+                                      <div className="space-y-1 pl-3">
+                                        {child.children.map((sub) => (
+                                          <a
+                                            key={sub._id}
+                                            href={sub.url}
+                                            className="block text-sm transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                            style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                          >
+                                            {sub.label}
+                                          </a>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </nav>
+
+              <div className="absolute opacity-0 pointer-events-none -z-10 h-0 overflow-hidden" aria-hidden>
+                <div className="flex items-center gap-1">
+                  {rootItems.map((item, index) => (
+                    <div
+                      key={`${item._id}-measure`}
+                      ref={(el) => { measureItemRefs.current[index] = el; }}
+                      className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1 max-w-[160px]"
+                    >
+                      <span className="truncate max-w-[120px]">{item.label}</span>
+                      {item.children.length > 0 && <ChevronDown size={14} />}
+                    </div>
+                  ))}
+                  <div ref={moreMeasureRef} className="px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-1">
+                    More <ChevronDown size={14} />
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                {showSearch && (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={config.search.placeholder}
+                      className="w-48 pl-4 pr-10 py-2 rounded-full border text-sm focus:outline-none"
+                      style={{
+                        backgroundColor: tokens.searchInputBg,
+                        borderColor: tokens.searchInputBorder,
+                        color: tokens.searchInputText,
+                      }}
+                    />
+                    <button
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full"
+                      style={{ backgroundColor: tokens.searchButtonBg, color: tokens.searchButtonText }}
+                    >
+                      <Search size={14} />
+                    </button>
+                  </div>
+                )}
+                {config.cart.show && (
+                  <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
+                    <ShoppingCart size={20} />
+                    <span
+                      className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
+                    >
+                      0
+                    </span>
+                  </a>
+                )}
+                {config.cta.show && (
+                  <a
+                    href={defaultLinks.cta}
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                    style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
+                  >
+                    {ctaLabel}
+                  </a>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="ml-auto flex items-center gap-2">
+              {showSearch && (
+                <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
+                  <Search size={20} />
+                </button>
               )}
               {config.cart.show && (
                 <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
@@ -442,38 +615,10 @@ export function HeaderMenuPreview({
                   </span>
                 </a>
               )}
-              {config.cta.show && (
-                <a
-                  href={defaultLinks.cta}
-                  className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                  style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaText }}
-                >
-                  {ctaLabel}
-                </a>
-              )}
+              {renderMobileMenuButton(false)}
             </div>
-          </>
-        ) : (
-          <div className="flex items-center gap-2">
-            {showSearch && (
-              <button onClick={() => setSearchOpen((prev) => !prev)} className="p-2" style={{ color: tokens.iconButtonText }}>
-                <Search size={20} />
-              </button>
-            )}
-            {config.cart.show && (
-              <a href={defaultLinks.cart} className="p-2 relative" style={{ color: tokens.iconButtonText }}>
-                <ShoppingCart size={20} />
-                <span
-                  className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: tokens.badgeBg, color: tokens.badgeText }}
-                >
-                  0
-                </span>
-              </a>
-            )}
-            {renderMobileMenuButton(false)}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {showSearch && searchOpen && (
@@ -534,7 +679,8 @@ export function HeaderMenuPreview({
       )}
       {classicSeparatorElement}
     </div>
-  );
+    );
+  };
 
   const renderTopbarStyle = () => (
     <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface }}>

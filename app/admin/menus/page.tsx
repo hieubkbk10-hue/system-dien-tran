@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -10,8 +10,8 @@ import {
 } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { 
-  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ExternalLink, Eye, EyeOff, 
-  GripVertical, Loader2, Menu, Plus, Save, Trash2
+  ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Copy, ExternalLink, Eye, EyeOff, 
+  GripVertical, Loader2, Menu, Plus, Trash2
 } from 'lucide-react';
 import { SimpleMenuPreview } from './SimpleMenuPreview';
 
@@ -21,6 +21,19 @@ interface MenuItem {
   _id: Id<"menuItems">;
   _creationTime: number;
   menuId: Id<"menus">;
+  label: string;
+  url: string;
+  order: number;
+  depth: number;
+  parentId?: Id<"menuItems">;
+  icon?: string;
+  openInNewTab?: boolean;
+  active: boolean;
+}
+
+interface DraftMenuItem {
+  id?: Id<"menuItems">;
+  localId: string;
   label: string;
   url: string;
   order: number;
@@ -82,13 +95,12 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const menuItemsData = useQuery(api.menus.listMenuItems, { menuId });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
-  const createMenuItem = useMutation(api.menus.createMenuItem);
-  const updateMenuItem = useMutation(api.menus.updateMenuItem);
-  const removeMenuItem = useMutation(api.menus.removeMenuItem);
-  const reorderMenuItems = useMutation(api.menus.reorderMenuItems);
+  const saveMenuItemsBulk = useMutation(api.menus.saveMenuItemsBulk);
 
-  const [editingItems, setEditingItems] = useState<Map<string, { label: string; url: string }>>(new Map());
-  const [isSaving, setIsSaving] = useState(false);
+  const [draftItems, setDraftItems] = useState<DraftMenuItem[]>([]);
+  const [originalItems, setOriginalItems] = useState<DraftMenuItem[]>([]);
+  const [isSavingAll, setIsSavingAll] = useState(false);
+  const [pendingSync, setPendingSync] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -114,34 +126,82 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const showNested = enabledFeatures.enableNested ?? true;
   const showNewTab = enabledFeatures.enableNewTab ?? true;
 
-  const items = useMemo(() => menuItemsData ? [...menuItemsData].sort((a, b) => a.order - b.order) : [], [menuItemsData]);
+  const buildDraftItems = (items: MenuItem[]) => items
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((item, index) => ({
+      id: item._id,
+      localId: item._id,
+      label: item.label,
+      url: item.url,
+      order: index,
+      depth: item.depth,
+      parentId: item.parentId,
+      icon: item.icon,
+      openInNewTab: item.openInNewTab,
+      active: item.active,
+    }));
+
+  const normalizeOrders = (items: DraftMenuItem[]) => items.map((item, index) => ({ ...item, order: index }));
+
+  const createLocalItem = (partial: Partial<DraftMenuItem>): DraftMenuItem => ({
+    localId: `new-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    label: 'Liên kết mới',
+    url: '/',
+    depth: 0,
+    order: 0,
+    active: true,
+    ...partial,
+  });
+
+  const hasChanges = useMemo(() => {
+    const normalize = (items: DraftMenuItem[]) => items.map(item => ({
+      id: item.id,
+      label: item.label,
+      url: item.url,
+      depth: item.depth,
+      active: item.active,
+      icon: item.icon,
+      openInNewTab: item.openInNewTab,
+      parentId: item.parentId,
+      order: item.order,
+    }));
+    return JSON.stringify(normalize(draftItems)) !== JSON.stringify(normalize(originalItems));
+  }, [draftItems, originalItems]);
+
+  useEffect(() => {
+    if (!menuItemsData) {return;}
+    const nextItems = buildDraftItems(menuItemsData);
+    if (pendingSync || originalItems.length === 0 || !hasChanges) {
+      setDraftItems(nextItems);
+      setOriginalItems(nextItems);
+      setPendingSync(false);
+    }
+  }, [menuItemsData, pendingSync, originalItems.length, hasChanges]);
 
   // Pagination
-  const totalPages = Math.ceil(items.length / menusPerPage);
+  const totalPages = Math.ceil(draftItems.length / menusPerPage);
   const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * menusPerPage;
-    return items.slice(start, start + menusPerPage);
-  }, [items, currentPage, menusPerPage]);
+    return draftItems.slice(start, start + menusPerPage);
+  }, [draftItems, currentPage, menusPerPage]);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const isLoading = menuItemsData === undefined;
 
-  // TICKET #10 FIX: Show detailed error message
-  const handleMove = async (index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === items.length - 1)) {return;}
-    
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    const newItems = [...items];
-    
-    const updates = [
-      { id: newItems[index]._id, order: newItems[swapIndex].order },
-      { id: newItems[swapIndex]._id, order: newItems[index].order },
-    ];
-    
-    try {
-      await reorderMenuItems({ items: updates });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi khi sắp xếp');
-    }
+  const handleMove = (index: number, direction: 'up' | 'down') => {
+    setDraftItems(prev => {
+      if ((direction === 'up' && index === 0) || (direction === 'down' && index === prev.length - 1)) {return prev;}
+      const next = [...prev];
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+      return normalizeOrders(next);
+    });
   };
 
   // Drag & Drop handlers
@@ -163,7 +223,7 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
     setDragOverIndex(null);
   };
 
-  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
@@ -171,33 +231,12 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
       return;
     }
 
-    const newItems = [...items];
-    const updates: { id: Id<"menuItems">; order: number }[] = [];
-
-    if (draggedIndex < dropIndex) {
-      for (let i = draggedIndex; i <= dropIndex; i++) {
-        if (i === draggedIndex) {
-          updates.push({ id: newItems[i]._id, order: newItems[dropIndex].order });
-        } else {
-          updates.push({ id: newItems[i]._id, order: newItems[i].order - 1 });
-        }
-      }
-    } else {
-      for (let i = dropIndex; i <= draggedIndex; i++) {
-        if (i === draggedIndex) {
-          updates.push({ id: newItems[i]._id, order: newItems[dropIndex].order });
-        } else {
-          updates.push({ id: newItems[i]._id, order: newItems[i].order + 1 });
-        }
-      }
-    }
-
-    try {
-      await reorderMenuItems({ items: updates });
-      toast.success('Đã sắp xếp lại menu');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi khi sắp xếp');
-    }
+    setDraftItems(prev => {
+      const next = [...prev];
+      const [removed] = next.splice(draggedIndex, 1);
+      next.splice(dropIndex, 0, removed);
+      return normalizeOrders(next);
+    });
 
     setDraggedIndex(null);
     setDragOverIndex(null);
@@ -208,101 +247,91 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
     setDragOverIndex(null);
   };
 
-  // TICKET #10 FIX: Show detailed error message
-  const handleIndent = async (item: MenuItem, direction: 'in' | 'out') => {
+  const handleIndent = (item: DraftMenuItem, direction: 'in' | 'out') => {
     const newDepth = direction === 'in' 
       ? Math.min(item.depth + 1, maxDepth - 1) 
       : Math.max(item.depth - 1, 0);
     
     if (newDepth === item.depth) {return;}
-    
-    try {
-      await updateMenuItem({ depth: newDepth, id: item._id });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi khi cập nhật');
-    }
+
+    setDraftItems(prev => prev.map(current => current.localId === item.localId ? { ...current, depth: newDepth } : current));
   };
 
-  // TICKET #10 FIX: Show detailed error message
-  const handleToggleActive = async (item: MenuItem) => {
-    try {
-      await updateMenuItem({ active: !item.active, id: item._id });
-      toast.success(item.active ? 'Đã ẩn menu item' : 'Đã hiện menu item');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi khi cập nhật');
-    }
+  const handleToggleActive = (item: DraftMenuItem) => {
+    setDraftItems(prev => prev.map(current => current.localId === item.localId ? { ...current, active: !current.active } : current));
   };
 
-  // TICKET #10 FIX: Show detailed error message
-  const handleDelete = async (id: Id<"menuItems">) => {
+  const handleDelete = (item: DraftMenuItem) => {
     if (confirm('Xóa liên kết này?')) {
-      try {
-        await removeMenuItem({ id });
-        toast.success('Đã xóa');
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Có lỗi khi xóa');
-      }
+      setDraftItems(prev => normalizeOrders(prev.filter(current => current.localId !== item.localId)));
     }
   };
 
-  // TICKET #10 FIX: Show detailed error message
-  const handleAdd = async () => {
-    try {
-      await createMenuItem({
-        active: true,
-        depth: 0,
-        label: 'Liên kết mới',
-        menuId,
-        url: '/',
-      });
-      toast.success('Đã thêm liên kết mới');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi khi thêm');
-    }
-  };
-
-  const startEditing = (item: MenuItem) => {
-    setEditingItems(prev => new Map(prev).set(item._id, { label: item.label, url: item.url }));
-  };
-
-  const updateEditingItem = (id: string, field: 'label' | 'url', value: string) => {
-    setEditingItems(prev => {
-      const newMap = new Map(prev);
-      const current = newMap.get(id);
-      if (current) {
-        newMap.set(id, { ...current, [field]: value });
-      }
-      return newMap;
+  const handleAdd = () => {
+    setDraftItems(prev => {
+      const next = [...prev, createLocalItem({ order: prev.length })];
+      return normalizeOrders(next);
     });
   };
 
-  const handleSaveItem = async (item: MenuItem) => {
-    const edited = editingItems.get(item._id);
-    if (!edited) {return;}
-    
-    if (edited.label === item.label && edited.url === item.url) {
-      setEditingItems(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(item._id);
-        return newMap;
+  const handleAddBelow = (item: DraftMenuItem) => {
+    setDraftItems(prev => {
+      const index = prev.findIndex(current => current.localId === item.localId);
+      const next = [...prev];
+      const newItem = createLocalItem({
+        depth: item.depth,
+        parentId: item.parentId,
       });
-      return;
-    }
-    
-    setIsSaving(true);
+      next.splice(index + 1, 0, newItem);
+      return normalizeOrders(next);
+    });
+  };
+
+  const handleCopy = (item: DraftMenuItem) => {
+    setDraftItems(prev => {
+      const index = prev.findIndex(current => current.localId === item.localId);
+      const next = [...prev];
+      const newItem = createLocalItem({
+        label: `${item.label} (copy)`,
+        url: item.url,
+        depth: item.depth,
+        active: item.active,
+        parentId: item.parentId,
+        icon: item.icon,
+        openInNewTab: item.openInNewTab,
+      });
+      next.splice(index + 1, 0, newItem);
+      return normalizeOrders(next);
+    });
+  };
+
+  const handleUpdateField = (itemId: string, field: 'label' | 'url', value: string) => {
+    setDraftItems(prev => prev.map(item => item.localId === itemId ? { ...item, [field]: value } : item));
+  };
+
+  const handleSaveAll = async () => {
+    if (!hasChanges) {return;}
+    setIsSavingAll(true);
     try {
-      await updateMenuItem({ id: item._id, label: edited.label, url: edited.url });
-      setEditingItems(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(item._id);
-        return newMap;
+      await saveMenuItemsBulk({
+        menuId,
+        items: draftItems.map(item => ({
+          id: item.id,
+          label: item.label,
+          url: item.url,
+          depth: item.depth,
+          active: item.active,
+          icon: item.icon,
+          openInNewTab: item.openInNewTab,
+          parentId: item.parentId,
+        })),
       });
-      toast.success('Đã lưu');
+      toast.success('Đã lưu tất cả thay đổi');
+      setPendingSync(true);
     } catch (error) {
-      // TICKET #10 FIX: Show detailed error message
       toast.error(error instanceof Error ? error.message : 'Có lỗi khi lưu');
     } finally {
-      setIsSaving(false);
+      setIsSavingAll(false);
     }
   };
 
@@ -315,27 +344,37 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   }
 
   // Get actual index in full items array for move operations
-  const getActualIndex = (item: MenuItem) => items.findIndex(i => i._id === item._id);
+  const getActualIndex = (item: DraftMenuItem) => draftItems.findIndex(i => i.localId === item.localId);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-slate-500">Chỉnh sửa menu và bấm lưu để áp dụng</p>
+          <Button
+            type="button"
+            onClick={handleSaveAll}
+            disabled={!hasChanges || isSavingAll}
+            className="gap-2"
+          >
+            {isSavingAll && <Loader2 size={14} className="animate-spin" />}
+            {hasChanges ? 'Lưu tất cả' : 'Đã lưu'}
+          </Button>
+        </div>
         {paginatedItems.map((item) => {
-          const isEditing = editingItems.has(item._id);
-          const editedValues = editingItems.get(item._id);
           const actualIndex = getActualIndex(item);
           
           return (
             <div 
-              key={item._id}
+              key={item.localId}
               draggable
               onDragStart={(e) =>{  handleDragStart(e, actualIndex); }}
               onDragOver={(e) =>{  handleDragOver(e, actualIndex); }}
               onDragLeave={handleDragLeave}
-              onDrop={ async (e) => handleDrop(e, actualIndex)}
+              onDrop={(e) => handleDrop(e, actualIndex)}
               onDragEnd={handleDragEnd}
               className={cn(
-                "flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border rounded-lg shadow-sm transition-all",
+                "flex items-center gap-2 p-3 bg-white dark:bg-slate-900 border rounded-lg shadow-sm transition-all min-w-0",
                 showNested && item.depth === 1 ? "ml-8 border-l-4 border-l-orange-500/30" : "",
                 showNested && item.depth === 2 ? "ml-16 border-l-4 border-l-orange-500/50" : "border-slate-200 dark:border-slate-700",
                 !item.active && "opacity-50",
@@ -346,79 +385,52 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
               <div className="flex flex-col gap-1 text-slate-300 cursor-grab active:cursor-grabbing">
                 <button type="button" onClick={ async () => handleMove(actualIndex, 'up')} className="hover:text-orange-600 disabled:opacity-30" disabled={actualIndex === 0}><ArrowUp size={14}/></button>
                 <GripVertical size={14} className="text-slate-400" />
-                <button type="button" onClick={ async () => handleMove(actualIndex, 'down')} className="hover:text-orange-600 disabled:opacity-30" disabled={actualIndex === items.length - 1}><ArrowDown size={14}/></button>
+                <button type="button" onClick={ async () => handleMove(actualIndex, 'down')} className="hover:text-orange-600 disabled:opacity-30" disabled={actualIndex === draftItems.length - 1}><ArrowDown size={14}/></button>
               </div>
               
-              <div className="flex-1 grid grid-cols-2 gap-4">
+              <div className="flex-1 grid grid-cols-2 gap-3 min-w-0">
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">Nhãn hiển thị</Label>
-                  {isEditing ? (
-                    <Input 
-                      value={editedValues?.label ?? ''} 
-                      onChange={(e) =>{  updateEditingItem(item._id, 'label', e.target.value); }} 
-                      className="h-8 text-sm" 
-                    />
-                  ) : (
-                    <div 
-                      className="h-8 px-3 py-1.5 text-sm rounded-md bg-slate-50 dark:bg-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
-                      onClick={() =>{  startEditing(item); }}
-                    >
-                      {item.label}
-                    </div>
-                  )}
+                  <Input 
+                    value={item.label} 
+                    onChange={(e) =>{  handleUpdateField(item.localId, 'label', e.target.value); }} 
+                    className="h-8 text-sm min-w-0" 
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">URL</Label>
-                  {isEditing ? (
-                    <Input 
-                      value={editedValues?.url ?? ''} 
-                      onChange={(e) =>{  updateEditingItem(item._id, 'url', e.target.value); }} 
-                      className="h-8 text-sm font-mono text-xs" 
-                    />
-                  ) : (
-                    <div 
-                      className="h-8 px-3 py-1.5 text-sm font-mono text-xs rounded-md bg-slate-50 dark:bg-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 truncate"
-                      onClick={() =>{  startEditing(item); }}
-                    >
-                      {item.url}
-                    </div>
-                  )}
+                  <Input 
+                    value={item.url} 
+                    onChange={(e) =>{  handleUpdateField(item.localId, 'url', e.target.value); }} 
+                    className="h-8 text-sm font-mono text-xs min-w-0" 
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 border-l border-slate-100 dark:border-slate-700 pl-3">
-                {isEditing ? (
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-green-600 hover:bg-green-50" 
-                    onClick={ async () => handleSaveItem(item)}
-                    disabled={isSaving}
-                  >
-                    <Save size={14}/>
-                  </Button>
-                ) : (
+              <div className="flex items-center gap-0.5 border-l border-slate-100 dark:border-slate-700 pl-2">
+                {showNested && (
                   <>
-                    {showNested && (
-                      <>
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={ async () => handleIndent(item, 'out')} disabled={item.depth === 0} title="Thụt lề trái">
-                          <ChevronRight size={14} className="rotate-180"/>
-                        </Button>
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={ async () => handleIndent(item, 'in')} disabled={item.depth >= maxDepth - 1} title="Thụt lề phải">
-                          <ChevronRight size={14}/>
-                        </Button>
-                      </>
-                    )}
-                    {showNewTab && item.openInNewTab && (
-                      <span title="Mở tab mới"><ExternalLink size={14} className="text-slate-400" /></span>
-                    )}
-                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={ async () => handleToggleActive(item)} title={item.active ? 'Ẩn' : 'Hiện'}>
-                      {item.active ? <Eye size={14}/> : <EyeOff size={14} className="text-slate-400"/>}
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleIndent(item, 'out')} disabled={item.depth === 0} title="Thụt lề trái">
+                      <ChevronRight size={14} className="rotate-180"/>
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleIndent(item, 'in')} disabled={item.depth >= maxDepth - 1} title="Thụt lề phải">
+                      <ChevronRight size={14}/>
                     </Button>
                   </>
                 )}
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={ async () => handleDelete(item._id)}>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAddBelow(item)} title="Thêm ngay bên dưới">
+                  <Plus size={14}/>
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(item)} title="Copy menu item">
+                  <Copy size={14}/>
+                </Button>
+                {showNewTab && item.openInNewTab && (
+                  <span title="Mở tab mới"><ExternalLink size={14} className="text-slate-400" /></span>
+                )}
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleToggleActive(item)} title={item.active ? 'Ẩn' : 'Hiện'}>
+                  {item.active ? <Eye size={14}/> : <EyeOff size={14} className="text-slate-400"/>}
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(item)}>
                   <Trash2 size={14}/>
                 </Button>
               </div>
@@ -434,7 +446,7 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
         {totalPages > 1 && (
           <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
             <div className="text-sm text-slate-500">
-              Hiển thị {(currentPage - 1) * menusPerPage + 1}-{Math.min(currentPage * menusPerPage, items.length)} / {items.length}
+              Hiển thị {(currentPage - 1) * menusPerPage + 1}-{Math.min(currentPage * menusPerPage, draftItems.length)} / {draftItems.length}
             </div>
             <div className="flex items-center gap-2">
               <Button 
@@ -467,27 +479,27 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Tổng menu items:</span>
-              <span className="font-medium">{items.length}</span>
+              <span className="font-medium">{draftItems.length}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Đang hiện:</span>
-              <span className="font-medium text-green-600">{items.filter(i => i.active).length}</span>
+              <span className="font-medium text-green-600">{draftItems.filter(i => i.active).length}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Đang ẩn:</span>
-              <span className="font-medium text-slate-400">{items.filter(i => !i.active).length}</span>
+              <span className="font-medium text-slate-400">{draftItems.filter(i => !i.active).length}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Cấp 1 (Root):</span>
-              <span className="font-medium">{items.filter(i => i.depth === 0).length}</span>
+              <span className="font-medium">{draftItems.filter(i => i.depth === 0).length}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Cấp 2 (Dropdown):</span>
-              <span className="font-medium">{items.filter(i => i.depth === 1).length}</span>
+              <span className="font-medium">{draftItems.filter(i => i.depth === 1).length}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Cấp 3 (Sub-menu):</span>
-              <span className="font-medium">{items.filter(i => i.depth === 2).length}</span>
+              <span className="font-medium">{draftItems.filter(i => i.depth === 2).length}</span>
             </div>
           </CardContent>
         </Card>
@@ -513,7 +525,16 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
 
       {/* Menu Preview Section */}
       <div className="lg:col-span-3">
-        <SimpleMenuPreview items={items} />
+        <SimpleMenuPreview
+          items={draftItems.map(item => ({
+            _id: (item.id ?? item.localId) as Id<"menuItems">,
+            label: item.label,
+            url: item.url,
+            order: item.order,
+            depth: item.depth,
+            active: item.active,
+          }))}
+        />
       </div>
     </div>
   );
