@@ -17,6 +17,42 @@ import { SimpleMenuPreview } from './SimpleMenuPreview';
 
 const MODULE_KEY = 'menus';
 
+const CORE_ROUTE_OPTIONS = [
+  { label: 'Trang chủ', url: '/', source: 'Core' },
+  { label: 'Liên hệ', url: '/contact', source: 'Core' },
+];
+
+const MODULE_SITE_ROUTE_CATALOG: Record<string, { label: string; url: string }[]> = {
+  cart: [
+    { label: 'Giỏ hàng', url: '/cart' },
+  ],
+  customers: [
+    { label: 'Đăng nhập', url: '/account/login' },
+    { label: 'Đăng ký', url: '/account/register' },
+    { label: 'Tài khoản', url: '/account/profile' },
+    { label: 'Đơn hàng', url: '/account/orders' },
+  ],
+  orders: [
+    { label: 'Đơn hàng', url: '/account/orders' },
+    { label: 'Checkout', url: '/checkout' },
+  ],
+  posts: [
+    { label: 'Danh sách bài viết', url: '/posts' },
+  ],
+  products: [
+    { label: 'Danh sách sản phẩm', url: '/products' },
+  ],
+  promotions: [
+    { label: 'Khuyến mãi', url: '/promotions' },
+  ],
+  services: [
+    { label: 'Danh sách dịch vụ', url: '/services' },
+  ],
+  wishlist: [
+    { label: 'Wishlist', url: '/wishlist' },
+  ],
+};
+
 interface MenuItem {
   _id: Id<"menuItems">;
   _creationTime: number;
@@ -95,6 +131,7 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const menuItemsData = useQuery(api.menus.listMenuItems, { menuId });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: MODULE_KEY });
+  const enabledModules = useQuery(api.admin.modules.listEnabledModules);
   const saveMenuItemsBulk = useMutation(api.menus.saveMenuItemsBulk);
 
   const [draftItems, setDraftItems] = useState<DraftMenuItem[]>([]);
@@ -104,6 +141,8 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [activeQuickPickerId, setActiveQuickPickerId] = useState<string | null>(null);
+  const [quickRouteSearch, setQuickRouteSearch] = useState('');
 
   // Settings from System Config
   const menusPerPage = useMemo(() => {
@@ -125,6 +164,37 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
 
   const showNested = enabledFeatures.enableNested ?? true;
   const showNewTab = enabledFeatures.enableNewTab ?? true;
+
+  const quickRouteOptions = useMemo(() => {
+    const enabledKeys = new Set((enabledModules ?? []).map(moduleItem => moduleItem.key));
+    const options: { label: string; url: string; source: string }[] = [...CORE_ROUTE_OPTIONS];
+
+    Object.entries(MODULE_SITE_ROUTE_CATALOG).forEach(([moduleKey, routes]) => {
+      if (!enabledKeys.has(moduleKey)) {return;}
+      routes.forEach(route => {
+        options.push({ ...route, source: moduleKey });
+      });
+    });
+
+    const deduped = new Map<string, { label: string; url: string; source: string }>();
+    options.forEach(option => {
+      if (!deduped.has(option.url)) {
+        deduped.set(option.url, option);
+      }
+    });
+
+    return Array.from(deduped.values()).sort((a, b) => a.label.localeCompare(b.label));
+  }, [enabledModules]);
+
+  const filteredQuickRoutes = useMemo(() => {
+    const keyword = quickRouteSearch.trim().toLowerCase();
+    if (!keyword) {return quickRouteOptions;}
+    return quickRouteOptions.filter(option =>
+      option.label.toLowerCase().includes(keyword)
+      || option.url.toLowerCase().includes(keyword)
+      || option.source.toLowerCase().includes(keyword)
+    );
+  }, [quickRouteOptions, quickRouteSearch]);
 
   const buildDraftItems = (items: MenuItem[]) => items
     .slice()
@@ -178,6 +248,19 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
       setPendingSync(false);
     }
   }, [menuItemsData, pendingSync, originalItems.length, hasChanges]);
+
+  useEffect(() => {
+    if (!activeQuickPickerId) {return;}
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) {return;}
+      if (target.closest(`[data-quick-picker="${activeQuickPickerId}"]`)) {return;}
+      setActiveQuickPickerId(null);
+      setQuickRouteSearch('');
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeQuickPickerId]);
 
   // Pagination
   const totalPages = Math.ceil(draftItems.length / menusPerPage);
@@ -309,6 +392,11 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
     setDraftItems(prev => prev.map(item => item.localId === itemId ? { ...item, [field]: value } : item));
   };
 
+  const handleOpenQuickPicker = (itemId: string) => {
+    setActiveQuickPickerId(prev => prev === itemId ? null : itemId);
+    setQuickRouteSearch('');
+  };
+
   const handleSaveAll = async () => {
     if (!hasChanges) {return;}
     setIsSavingAll(true);
@@ -399,11 +487,63 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-slate-500">URL</Label>
-                  <Input 
-                    value={item.url} 
-                    onChange={(e) =>{  handleUpdateField(item.localId, 'url', e.target.value); }} 
-                    className="h-8 text-sm font-mono text-xs min-w-0" 
-                  />
+                  <div className="relative" data-quick-picker={item.localId}>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        value={item.url} 
+                        onChange={(e) =>{  handleUpdateField(item.localId, 'url', e.target.value); }} 
+                        className="h-8 text-sm font-mono text-xs min-w-0" 
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 whitespace-nowrap"
+                        onClick={() => handleOpenQuickPicker(item.localId)}
+                      >
+                        Gợi ý
+                      </Button>
+                    </div>
+                    {activeQuickPickerId === item.localId && (
+                      <div className="absolute left-0 right-0 top-10 z-30 rounded-md border border-slate-200 bg-white shadow-md dark:border-slate-700 dark:bg-slate-900">
+                        <div className="p-2 border-b border-slate-100 dark:border-slate-800">
+                          <Input
+                            value={quickRouteSearch}
+                            onChange={(e) => setQuickRouteSearch(e.target.value)}
+                            placeholder="Tìm nhanh theo tên hoặc URL"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div className="max-h-56 overflow-auto">
+                          {filteredQuickRoutes.length === 0 && (
+                            <div className="px-3 py-4 text-xs text-slate-500">Không có gợi ý phù hợp.</div>
+                          )}
+                          {filteredQuickRoutes.map(option => (
+                            <button
+                              key={`${option.url}-${option.source}`}
+                              type="button"
+                              onClick={() => {
+                                handleUpdateField(item.localId, 'url', option.url);
+                                setActiveQuickPickerId(null);
+                                setQuickRouteSearch('');
+                              }}
+                              className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                            >
+                              <div className="min-w-0">
+                                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                  {option.label}
+                                </div>
+                                <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
+                              </div>
+                              <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                                {option.source}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
