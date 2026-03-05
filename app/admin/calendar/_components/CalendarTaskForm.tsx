@@ -23,7 +23,6 @@ const MODULE_KEY = 'calendar';
 const STATUS_OPTIONS = [
   { value: 'Todo', label: 'Chưa nhắc' },
   { value: 'Contacted', label: 'Đã liên hệ' },
-  { value: 'Renewed', label: 'Đã gia hạn' },
   { value: 'Churned', label: 'Không gia hạn' },
 ];
 
@@ -175,7 +174,7 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
           customerId: customerMode === 'db' ? customerId || undefined : undefined,
           dueDate: dueDateValue,
           productId: productId || undefined,
-          status: status as 'Todo' | 'Contacted' | 'Renewed' | 'Churned',
+          status: status as 'Todo' | 'Contacted' | 'Churned',
           timezone: 'Asia/Ho_Chi_Minh',
           title: title.trim(),
         });
@@ -187,7 +186,7 @@ export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTa
           dueDate: dueDateValue,
           id: task._id,
           productId: productId || undefined,
-          status: status as 'Todo' | 'Contacted' | 'Renewed' | 'Churned',
+          status: status as 'Todo' | 'Contacted' | 'Churned',
           timezone: 'Asia/Ho_Chi_Minh',
           title: title.trim(),
         });

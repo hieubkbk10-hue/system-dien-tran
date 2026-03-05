@@ -5,7 +5,6 @@ import type { Doc } from './_generated/dataModel';
 const calendarStatus = v.union(
   v.literal('Todo'),
   v.literal('Contacted'),
-  v.literal('Renewed'),
   v.literal('Churned')
 );
 
@@ -203,7 +202,6 @@ export const createCalendarTask = mutation({
 
     return ctx.db.insert('calendarTasks', {
       allDay: args.allDay,
-      completedAt: args.status === 'Renewed' ? now : undefined,
       createdAt: now,
       createdBy: args.createdBy,
       customerId: args.customerId,
@@ -239,7 +237,6 @@ export const updateCalendarTask = mutation({
 
     await ctx.db.patch(args.id, {
       allDay: args.allDay ?? task.allDay,
-      completedAt: nextStatus === 'Renewed' ? Date.now() : undefined,
       customerId: args.customerId ?? task.customerId,
       dueDate: args.dueDate ?? task.dueDate,
       productId: args.productId ?? task.productId,
@@ -320,14 +317,34 @@ export const deleteCalendarTask = mutation({
   returns: v.null(),
 });
 
-export const markCalendarTaskRenewed = mutation({
-  args: { id: v.id('calendarTasks') },
+export const renewCalendarTask = mutation({
+  args: {
+    createdBy: v.id('users'),
+    id: v.id('calendarTasks'),
+    newDueDate: v.number(),
+  },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.id);
     if (!task) {
       throw new Error('Task không tồn tại');
     }
-    await ctx.db.patch(args.id, { status: 'Renewed', completedAt: Date.now(), updatedAt: Date.now() });
+
+    const now = Date.now();
+    await ctx.db.insert('calendarTasks', {
+      allDay: task.allDay,
+      createdAt: now,
+      createdBy: args.createdBy,
+      customerId: task.customerId,
+      dueDate: args.newDueDate,
+      order: now,
+      productId: task.productId,
+      status: 'Todo',
+      timezone: task.timezone,
+      title: task.title,
+      updatedAt: now,
+    });
+
+    await ctx.db.patch(args.id, { status: 'Churned', completedAt: now, updatedAt: now });
     return null;
   },
   returns: v.null(),

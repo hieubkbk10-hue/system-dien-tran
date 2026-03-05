@@ -3207,21 +3207,6 @@ export const seedCalendarModule = mutation({
       return null;
     }
 
-    const existingFeatures = await ctx.db
-      .query("moduleFeatures")
-      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: "Hiển thị dạng danh sách", enabled: true, featureKey: "enableListView", moduleKey: "calendar", name: "List View" },
-        { description: "Liên kết khách hàng", enabled: true, featureKey: "enableCustomerLink", linkedFieldKey: "customerId", moduleKey: "calendar", name: "Liên kết khách hàng" },
-        { description: "Liên kết sản phẩm", enabled: true, featureKey: "enableProductLink", linkedFieldKey: "productId", moduleKey: "calendar", name: "Liên kết sản phẩm" },
-      ];
-      for (const feature of features) {
-        await ctx.db.insert("moduleFeatures", feature);
-      }
-    }
-
     const existingFields = await ctx.db
       .query("moduleFields")
       .withIndex("by_module", q => q.eq("moduleKey", "calendar"))

@@ -32,7 +32,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
 
   generateFake(): CalendarTaskData {
     const createdBy = this.randomElement(this.users);
-    const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Renewed', 'Churned'];
+    const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Churned'];
     const status = this.randomElement(statusPool);
     const daysOffset = this.randomInt(-10, 60);
     const dueDate = Date.now() + daysOffset * 24 * 60 * 60 * 1000;
@@ -43,7 +43,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
 
     return {
       allDay: true,
-      completedAt: status === 'Renewed' ? Date.now() : undefined,
+      completedAt: status === 'Churned' ? Date.now() : undefined,
       createdAt: Date.now(),
       createdBy: createdBy._id,
       dueDate,
@@ -60,19 +60,6 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'calendar'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Hiển thị dạng danh sách', enabled: true, featureKey: 'enableListView', moduleKey: 'calendar', name: 'List View' },
-        { description: 'Liên kết khách hàng', enabled: true, featureKey: 'enableCustomerLink', linkedFieldKey: 'customerId', moduleKey: 'calendar', name: 'Liên kết khách hàng' },
-        { description: 'Liên kết sản phẩm', enabled: true, featureKey: 'enableProductLink', linkedFieldKey: 'productId', moduleKey: 'calendar', name: 'Liên kết sản phẩm' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
     const existingFields = await this.ctx.db
       .query('moduleFields')
       .withIndex('by_module', q => q.eq('moduleKey', 'calendar'))

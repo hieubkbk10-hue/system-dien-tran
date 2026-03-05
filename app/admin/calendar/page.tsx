@@ -6,12 +6,13 @@ import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { CalendarDays, ListTodo, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Badge, Button, Card, Input, cn } from '../components/ui';
+import { Badge, Button, Card, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Input, Label, cn } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
 import { BulkDeleteConfirmDialog } from '../components/BulkDeleteConfirmDialog';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { CalendarTaskModal } from './_components/CalendarTaskModal';
+import { useAdminAuth } from '../auth/context';
 
 type CalendarStatus = Doc<'calendarTasks'>['status'];
 type CalendarView = 'board' | 'list';
@@ -31,14 +32,12 @@ const MODULE_KEY = 'calendar';
 const STATUS_LABELS: Record<CalendarStatus, string> = {
   Todo: 'Chưa nhắc',
   Contacted: 'Đã liên hệ',
-  Renewed: 'Đã gia hạn',
   Churned: 'Không gia hạn',
 };
 
 const STATUS_BADGES: Record<CalendarStatus, { variant: 'default' | 'warning' | 'secondary' | 'destructive' }> = {
   Todo: { variant: 'default' },
   Contacted: { variant: 'warning' },
-  Renewed: { variant: 'secondary' },
   Churned: { variant: 'destructive' },
 };
 
@@ -58,6 +57,24 @@ function getEffectiveDueDate(task: { dueDate?: number }) {
   return task.dueDate ?? 0;
 }
 
+function parseDateInput(value: string): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return new Date(`${value}T00:00:00`).getTime();
+}
+
+function formatDateInput(timestamp: number | undefined): string {
+  if (!timestamp) {
+    return '';
+  }
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function CalendarPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
@@ -67,12 +84,13 @@ export default function CalendarPage() {
 }
 
 function CalendarWorkspace() {
+  const { user } = useAdminAuth();
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const customers = useQuery(api.customers.listAll, {});
   const products = useQuery(api.products.listAll, {});
   const deleteTask = useMutation(api.calendar.deleteCalendarTask);
   const markContacted = useMutation(api.calendar.markCalendarTaskContacted);
-  const markRenewed = useMutation(api.calendar.markCalendarTaskRenewed);
+  const renewTask = useMutation(api.calendar.renewCalendarTask);
 
   const calendarPerPage = useMemo(() => {
     const raw = settingsData?.find(setting => setting.settingKey === 'calendarPerPage')?.value as number | undefined;
@@ -102,6 +120,10 @@ function CalendarWorkspace() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [editingTaskId, setEditingTaskId] = useState<Id<'calendarTasks'> | null>(null);
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [renewTargetId, setRenewTargetId] = useState<Id<'calendarTasks'> | null>(null);
+  const [renewDate, setRenewDate] = useState('');
+  const [isRenewing, setIsRenewing] = useState(false);
 
   const refreshNow = () => setQueryNow(Date.now());
 
@@ -207,7 +229,7 @@ function CalendarWorkspace() {
   }, [activeUpcomingItems, warnThreshold]);
 
   const doneItems = useMemo(() => {
-    return [...filteredOverdueItems, ...filteredUpcomingItems].filter(item => item.status === 'Renewed' || item.status === 'Churned');
+    return [...filteredOverdueItems, ...filteredUpcomingItems].filter(item => item.status === 'Churned');
   }, [filteredOverdueItems, filteredUpcomingItems]);
 
   const listItems = useMemo(() => {
@@ -245,13 +267,43 @@ function CalendarWorkspace() {
     }
   };
 
-  const handleMarkRenewed = async (taskId: Id<'calendarTasks'>) => {
+  const handleRenew = (taskId: Id<'calendarTasks'>) => {
+    setRenewTargetId(taskId);
+    setRenewDate('');
+    setRenewModalOpen(true);
+  };
+
+  const applyRenewFromToday = (days: number) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setRenewDate(formatDateInput(today.getTime() + days * 24 * 60 * 60 * 1000));
+  };
+
+  const handleConfirmRenew = async () => {
+    if (!renewTargetId) {
+      return;
+    }
+    if (!user?.id) {
+      toast.error('Không xác định được tài khoản admin');
+      return;
+    }
+    const newDueDate = parseDateInput(renewDate);
+    if (!newDueDate) {
+      toast.error('Vui lòng chọn ngày gia hạn');
+      return;
+    }
+    setIsRenewing(true);
     try {
-      await markRenewed({ id: taskId });
-      toast.success('Đã gia hạn');
+      await renewTask({ id: renewTargetId, newDueDate, createdBy: user.id as Id<'users'> });
+      toast.success('Đã tạo nhắc mới');
+      setRenewModalOpen(false);
+      setRenewTargetId(null);
+      setRenewDate('');
       refreshNow();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Cập nhật thất bại');
+    } finally {
+      setIsRenewing(false);
     }
   };
 
@@ -329,7 +381,7 @@ function CalendarWorkspace() {
     { key: 'today', label: 'Hôm nay', items: todayItems },
     { key: 'soon', label: `Sắp hết hạn (${warningDays}n)`, items: dueSoonItems },
     { key: 'later', label: 'Sắp tới', items: laterItems },
-    { key: 'done', label: 'Đã xử lý', items: doneItems },
+    { key: 'done', label: 'Không gia hạn', items: doneItems },
   ];
 
   const isLoading = settingsData === undefined
@@ -475,7 +527,7 @@ function CalendarWorkspace() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleMarkContacted(task.sourceId)}
-                          disabled={task.status === 'Contacted' || task.status === 'Renewed' || task.status === 'Churned'}
+                          disabled={task.status === 'Contacted' || task.status === 'Churned'}
                         >
                           Đã liên hệ
                         </Button>
@@ -483,8 +535,8 @@ function CalendarWorkspace() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => handleMarkRenewed(task.sourceId)}
-                          disabled={task.status === 'Renewed' || task.status === 'Churned'}
+                          onClick={() => handleRenew(task.sourceId)}
+                          disabled={task.status === 'Churned'}
                         >
                           Gia hạn ✓
                         </Button>
@@ -582,11 +634,11 @@ function CalendarWorkspace() {
                       >
                         Sửa
                       </button>
-                      {task.status !== 'Renewed' && task.status !== 'Churned' && (
+                      {task.status !== 'Churned' && (
                         <button
                           type="button"
                           className="text-xs text-emerald-600"
-                          onClick={() => handleMarkRenewed(task._id)}
+                          onClick={() => handleRenew(task._id)}
                         >
                           Gia hạn
                         </button>
@@ -655,6 +707,33 @@ function CalendarWorkspace() {
           refreshNow();
         }}
       />
+
+      <Dialog open={renewModalOpen} onOpenChange={(next) => { if (!next) {setRenewModalOpen(false);} }}>
+        <DialogContent className="max-w-lg w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Gia hạn</DialogTitle>
+            <DialogDescription>Chọn ngày gia hạn mới để tạo nhắc tiếp theo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Ngày gia hạn mới</Label>
+              <Input type="date" value={renewDate} onChange={(event) => setRenewDate(event.target.value)} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => applyRenewFromToday(30)}>+1 tháng</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => applyRenewFromToday(90)}>+3 tháng</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => applyRenewFromToday(180)}>+6 tháng</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => applyRenewFromToday(365)}>+1 năm</Button>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setRenewModalOpen(false)}>Hủy</Button>
+              <Button type="button" variant="accent" onClick={handleConfirmRenew} disabled={isRenewing}>
+                {isRenewing ? 'Đang lưu...' : 'Tạo nhắc mới'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {isLoading && (
         <div className="text-sm text-slate-400">Đang tải dữ liệu...</div>

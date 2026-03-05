@@ -1,4 +1,4 @@
-import { CalendarDays, ListTodo, Users } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { defineModule } from '../define-module';
 
 export const calendarModule = defineModule({
@@ -7,12 +7,6 @@ export const calendarModule = defineModule({
   description: 'Quản lý lịch nhắc gia hạn theo danh sách và board',
   icon: CalendarDays,
   color: 'blue',
-
-  features: [
-    { key: 'enableListView', label: 'List View', icon: ListTodo },
-    { key: 'enableCustomerLink', label: 'Liên kết khách hàng', icon: Users, linkedField: 'customerId' },
-    { key: 'enableProductLink', label: 'Liên kết sản phẩm', icon: ListTodo, linkedField: 'productId' },
-  ],
 
   settings: [
     {
@@ -29,7 +23,6 @@ export const calendarModule = defineModule({
       options: [
         { value: 'Todo', label: 'Chưa nhắc' },
         { value: 'Contacted', label: 'Đã liên hệ' },
-        { value: 'Renewed', label: 'Đã gia hạn' },
         { value: 'Churned', label: 'Không gia hạn' },
       ],
     },
