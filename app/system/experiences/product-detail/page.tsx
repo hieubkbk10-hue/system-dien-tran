@@ -90,7 +90,6 @@ type ModernLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
-  showHighlights: boolean;
   heroStyle: 'full' | 'split' | 'minimal';
 };
 
@@ -101,7 +100,6 @@ type MinimalLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
-  showHighlights: boolean;
   contentWidth: 'narrow' | 'medium' | 'wide';
 };
 
@@ -145,8 +143,8 @@ const DEFAULT_CONFIG: ProductDetailExperienceConfig = {
   layoutStyle: 'classic',
   layouts: {
     classic: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showClassicHighlights: true },
-    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showHighlights: true, heroStyle: 'full' },
-    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showHighlights: true, contentWidth: 'medium' },
+    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, heroStyle: 'full' },
+    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, contentWidth: 'medium' },
   },
   showBuyNow: true,
 };
@@ -312,13 +310,16 @@ export default function ProductDetailExperiencePage() {
   }, [brandColors.primary, brandColors.secondary, brandColors.mode]);
 
   const serverConfig = useMemo<ProductDetailExperienceConfig>(() => {
-    const raw = experienceSetting?.value as Partial<ProductDetailExperienceConfig> | undefined;
+    const raw = experienceSetting?.value as Partial<ProductDetailExperienceConfig & { showClassicHighlights?: boolean }> | undefined;
+    const classicHighlightsSetting = raw?.layouts?.classic?.showClassicHighlights
+      ?? raw?.showClassicHighlights
+      ?? legacyHighlights;
     return {
       layoutStyle: raw?.layoutStyle ?? legacyStyle ?? DEFAULT_CONFIG.layoutStyle,
       layouts: {
-        classic: { ...DEFAULT_CONFIG.layouts.classic, showClassicHighlights: legacyHighlights, ...raw?.layouts?.classic },
-        modern: { ...DEFAULT_CONFIG.layouts.modern, showHighlights: legacyHighlights, ...raw?.layouts?.modern },
-        minimal: { ...DEFAULT_CONFIG.layouts.minimal, showHighlights: legacyHighlights, ...raw?.layouts?.minimal },
+        classic: { ...DEFAULT_CONFIG.layouts.classic, showClassicHighlights: classicHighlightsSetting, ...raw?.layouts?.classic },
+        modern: { ...DEFAULT_CONFIG.layouts.modern, ...raw?.layouts?.modern },
+        minimal: { ...DEFAULT_CONFIG.layouts.minimal, ...raw?.layouts?.minimal },
       },
       showBuyNow: raw?.showBuyNow ?? true,
     };
@@ -434,9 +435,7 @@ export default function ProductDetailExperiencePage() {
       contentWidth: config.layoutStyle === 'minimal'
         ? (currentLayoutConfig as MinimalLayoutConfig).contentWidth
         : 'medium',
-      showHighlights: config.layoutStyle === 'classic'
-        ? (currentLayoutConfig as ClassicLayoutConfig).showClassicHighlights
-        : (currentLayoutConfig as ModernLayoutConfig | MinimalLayoutConfig).showHighlights,
+      showHighlights: config.layouts.classic.showClassicHighlights,
       classicHighlights,
       device: previewDevice,
       brandColor,
@@ -459,123 +458,119 @@ export default function ProductDetailExperiencePage() {
     setClassicHighlights(prev => prev.filter((_, i) => i !== index));
   };
 
-  const renderLayoutSpecificControls = () => {
-    if (config.layoutStyle === 'classic') {
-      const layoutConfig = currentLayoutConfig as ClassicLayoutConfig;
-      return (
-        <div className="space-y-3">
-          <ToggleRow
-            label="Highlights"
-            description="Hiện tính năng nổi bật"
-            checked={layoutConfig.showClassicHighlights}
-            onChange={(v) => updateLayoutConfig('showClassicHighlights' as keyof typeof currentLayoutConfig, v as never)}
-            accentColor={brandColor}
-          />
-          {classicHighlights.map((item, index) => {
-            const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon];
-            return (
-              <div key={`${item.icon}-${index}`} className="space-y-2 rounded-md border border-slate-200 bg-white p-2">
-                <div className="grid grid-cols-6 gap-1">
-                  {HIGHLIGHT_ICON_OPTIONS.map((icon) => {
-                    const IconOption = CLASSIC_HIGHLIGHT_ICON_MAP[icon];
-                    const isActive = icon === item.icon;
-                    return (
-                      <button
-                        key={`${icon}-${index}`}
-                        type="button"
-                        aria-label={icon}
-                        onClick={() => updateHighlight(index, { icon })}
-                        className="h-7 w-7 rounded border flex items-center justify-center transition-colors"
-                        style={isActive
-                          ? { borderColor: brandColor, color: brandColor }
-                          : { borderColor: '#e2e8f0', color: '#64748b' }}
-                      >
-                        <IconOption size={14} />
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded border border-slate-200 flex items-center justify-center text-slate-600">
-                    <Icon size={14} />
-                  </div>
-                  <Input
-                    value={item.text}
-                    onChange={(e) => updateHighlight(index, { text: e.target.value })}
-                    className="h-8 text-xs"
-                  />
-                  <Button
+  const updateClassicLayoutConfig = <K extends keyof ClassicLayoutConfig>(
+    key: K,
+    value: ClassicLayoutConfig[K]
+  ) => {
+    setConfig(prev => ({
+      ...prev,
+      layouts: {
+        ...prev.layouts,
+        classic: {
+          ...prev.layouts.classic,
+          [key]: value,
+        },
+      },
+    }));
+  };
+
+  const renderHighlightsControls = () => (
+    <div className="space-y-3">
+      <ToggleRow
+        label="Highlights"
+        description="Hiện tính năng nổi bật"
+        checked={config.layouts.classic.showClassicHighlights}
+        onChange={(v) => updateClassicLayoutConfig('showClassicHighlights', v)}
+        accentColor={brandColor}
+      />
+      {classicHighlights.map((item, index) => {
+        const Icon = CLASSIC_HIGHLIGHT_ICON_MAP[item.icon];
+        return (
+          <div key={`${item.icon}-${index}`} className="space-y-2 rounded-md border border-slate-200 bg-white p-2">
+            <div className="grid grid-cols-6 gap-1">
+              {HIGHLIGHT_ICON_OPTIONS.map((icon) => {
+                const IconOption = CLASSIC_HIGHLIGHT_ICON_MAP[icon];
+                const isActive = icon === item.icon;
+                return (
+                  <button
+                    key={`${icon}-${index}`}
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeHighlight(index)}
-                    className="h-8 w-8"
+                    aria-label={icon}
+                    onClick={() => updateHighlight(index, { icon })}
+                    className="h-7 w-7 rounded border flex items-center justify-center transition-colors"
+                    style={isActive
+                      ? { borderColor: brandColor, color: brandColor }
+                      : { borderColor: '#e2e8f0', color: '#64748b' }}
                   >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
+                    <IconOption size={14} />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded border border-slate-200 flex items-center justify-center text-slate-600">
+                <Icon size={14} />
               </div>
-            );
-          })}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addHighlight}
-            className="gap-1.5 text-xs"
-          >
-            <Plus size={12} />
-            Thêm highlight
-          </Button>
-        </div>
-      );
-    }
+              <Input
+                value={item.text}
+                onChange={(e) => updateHighlight(index, { text: e.target.value })}
+                className="h-8 text-xs"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeHighlight(index)}
+                className="h-8 w-8"
+              >
+                <Trash2 size={14} />
+              </Button>
+            </div>
+          </div>
+        );
+      })}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={addHighlight}
+        className="gap-1.5 text-xs"
+      >
+        <Plus size={12} />
+        Thêm highlight
+      </Button>
+    </div>
+  );
+
+  const renderLayoutSpecificControls = () => {
     if (config.layoutStyle === 'modern') {
       const layoutConfig = currentLayoutConfig as ModernLayoutConfig;
       return (
-        <div className="space-y-3">
-          <ToggleRow
-            label="Highlights"
-            description="Hiện tính năng nổi bật"
-            checked={layoutConfig.showHighlights}
-            onChange={(v) => updateLayoutConfig('showHighlights' as keyof typeof currentLayoutConfig, v as never)}
-            accentColor={brandColor}
-          />
-          <SelectRow
-            label="Hero Style"
-            value={layoutConfig.heroStyle}
-            options={[
-              { label: 'Full Width', value: 'full' },
-              { label: 'Split Layout', value: 'split' },
-              { label: 'Minimal', value: 'minimal' },
-            ]}
-            onChange={(v) => updateLayoutConfig('heroStyle' as keyof typeof currentLayoutConfig, v as never)}
-          />
-        </div>
+        <SelectRow
+          label="Hero Style"
+          value={layoutConfig.heroStyle}
+          options={[
+            { label: 'Full Width', value: 'full' },
+            { label: 'Split Layout', value: 'split' },
+            { label: 'Minimal', value: 'minimal' },
+          ]}
+          onChange={(v) => updateLayoutConfig('heroStyle' as keyof typeof currentLayoutConfig, v as never)}
+        />
       );
     }
     if (config.layoutStyle === 'minimal') {
       const layoutConfig = currentLayoutConfig as MinimalLayoutConfig;
       return (
-        <div className="space-y-3">
-          <ToggleRow
-            label="Highlights"
-            description="Hiện tính năng nổi bật"
-            checked={layoutConfig.showHighlights}
-            onChange={(v) => updateLayoutConfig('showHighlights' as keyof typeof currentLayoutConfig, v as never)}
-            accentColor={brandColor}
-          />
-          <SelectRow
-            label="Content Width"
-            value={layoutConfig.contentWidth}
-            options={[
-              { label: 'Narrow', value: 'narrow' },
-              { label: 'Medium', value: 'medium' },
-              { label: 'Wide', value: 'wide' },
-            ]}
-            onChange={(v) => updateLayoutConfig('contentWidth' as keyof typeof currentLayoutConfig, v as never)}
-          />
-        </div>
+        <SelectRow
+          label="Content Width"
+          value={layoutConfig.contentWidth}
+          options={[
+            { label: 'Narrow', value: 'narrow' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Wide', value: 'wide' },
+          ]}
+          onChange={(v) => updateLayoutConfig('contentWidth' as keyof typeof currentLayoutConfig, v as never)}
+        />
       );
     }
     return null;
@@ -706,8 +701,11 @@ export default function ProductDetailExperiencePage() {
             />
           </ControlCard>
 
-          <ControlCard title={config.layoutStyle === 'classic' ? 'Highlights (Classic)' : `Cấu hình ${config.layoutStyle}`}>
-            {renderLayoutSpecificControls()}
+          <ControlCard title="Highlights">
+            <div className="space-y-4">
+              {renderHighlightsControls()}
+              {renderLayoutSpecificControls()}
+            </div>
           </ControlCard>
 
           <ControlCard title="Module liên quan">

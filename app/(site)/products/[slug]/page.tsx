@@ -39,7 +39,6 @@ type ModernLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
-  showHighlights: boolean;
   heroStyle: ModernHeroStyle;
 };
 
@@ -50,7 +49,6 @@ type MinimalLayoutConfig = {
   showCommentReplies: boolean;
   showWishlist: boolean;
   showAddToCart: boolean;
-  showHighlights: boolean;
   contentWidth: MinimalContentWidth;
 };
 
@@ -196,13 +194,12 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
     const layoutStyle = raw?.layoutStyle ?? legacyStyle;
     const layoutConfig = raw?.layouts?.[layoutStyle];
     const configShowAddToCart = layoutConfig?.showAddToCart ?? raw?.showAddToCart ?? true;
-    const layoutHighlights = layoutStyle === 'classic'
-      ? (layoutConfig as Partial<ClassicLayoutConfig>)?.showClassicHighlights
-      : (layoutConfig as Partial<ModernLayoutConfig & MinimalLayoutConfig>)?.showHighlights;
-    const legacyLayoutHighlights = layoutStyle === 'classic'
-      ? (layoutConfig as Partial<Record<'showHighlights', boolean>>)?.showHighlights
+    const classicLayoutHighlights = raw?.layouts?.classic?.showClassicHighlights
+      ?? (layoutConfig as Partial<Record<'showClassicHighlights', boolean>>)?.showClassicHighlights;
+    const legacyLayoutHighlights = raw?.layouts?.classic
+      ? (raw.layouts.classic as Partial<Record<'showHighlights', boolean>>)?.showHighlights
       : undefined;
-    const resolvedHighlights = layoutHighlights
+    const resolvedHighlights = classicLayoutHighlights
       ?? legacyLayoutHighlights
       ?? raw?.showClassicHighlights
       ?? raw?.showHighlights
@@ -214,7 +211,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
     return {
       layoutStyle,
       showAddToCart: configShowAddToCart && cartAvailable,
-      showClassicHighlights: layoutStyle === 'classic' ? resolvedHighlights : legacyHighlightsEnabled,
+      showClassicHighlights: resolvedHighlights,
       showHighlights: resolvedHighlights,
       showRating: (layoutConfig?.showRating ?? raw?.showRating ?? true) && canUseComments,
       showComments: canUseComments ? showComments : false,
@@ -230,11 +227,6 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
         : 'medium',
     };
   }, [experienceSetting?.value, legacyHighlightsEnabled, legacyStyle, cartAvailable, canUseComments, canUseCommentLikes, canUseCommentReplies, canUseWishlist, ordersEnabled]);
-}
-
-function useClassicHighlightsEnabled(): boolean {
-  const setting = useQuery(api.settings.getByKey, { key: 'products_detail_classic_highlights_enabled' });
-  return (setting?.value as boolean) ?? true;
 }
 
 type RatingSummary = { average: number | null; count: number };
@@ -305,7 +297,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   );
   const experienceConfig = useProductDetailExperienceConfig();
   const classicHighlights = useClassicHighlights();
-  const classicHighlightsEnabled = useClassicHighlightsEnabled() && experienceConfig.showClassicHighlights;
+  const classicHighlightsEnabled = experienceConfig.showHighlights;
   const enabledFields = useEnabledProductFields();
   const { customer, isAuthenticated, openLoginModal } = useCustomerAuth();
   const { addItem, openDrawer } = useCart();
