@@ -160,6 +160,21 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     return parsedValue;
   };
 
+  const formatNumberHelper = (value: string) => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return '';
+    }
+    const parsedValue = Number.parseInt(trimmedValue);
+    if (!Number.isFinite(parsedValue)) {
+      return '';
+    }
+    return new Intl.NumberFormat('en-US').format(parsedValue);
+  };
+
+  const priceHelper = formatNumberHelper(price);
+  const salePriceHelper = formatNumberHelper(salePrice);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -379,13 +394,17 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
                       placeholder="0"
                       min="0"
                     />
-                    <p className="text-xs text-slate-500">VD: 100,000</p>
+                    {priceHelper && (
+                      <p className="text-xs text-slate-500">{priceHelper}</p>
+                    )}
                   </div>
                   {enabledFields.has('salePrice') && (
                     <div className="space-y-2">
                       <Label>Giá so sánh (trước giảm)</Label>
                       <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="0" min="0" />
-                      <p className="text-xs text-slate-500">VD: 100,000</p>
+                      {salePriceHelper && (
+                        <p className="text-xs text-slate-500">{salePriceHelper}</p>
+                      )}
                     </div>
                   )}
                 </div>
