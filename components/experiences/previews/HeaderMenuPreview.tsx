@@ -24,6 +24,8 @@ export type HeaderMenuConfig = {
     show: boolean;
     showTrackOrder: boolean;
     useSettingsData: boolean;
+    slogan?: string;
+    sloganEnabled?: boolean;
   };
   wishlist: { show: boolean };
 };
@@ -213,10 +215,15 @@ export function HeaderMenuPreview({
     </div>
   );
 
+  const topbarSlogan = typeof displayTopbar.slogan === 'string' ? displayTopbar.slogan.trim() : '';
+  const topbarSloganEnabled = displayTopbar.sloganEnabled !== false;
+  const showSlogan = Boolean(displayTopbar.show && topbarSloganEnabled && topbarSlogan);
+
   const announcementText = useMemo(() => {
     const items = [displayTopbar.hotline, displayTopbar.email].filter(Boolean);
     return items.length > 0 ? items.join(' · ') : 'Shop New Arrivals';
   }, [displayTopbar.email, displayTopbar.hotline]);
+  const allbirdsAnnouncement = showSlogan ? topbarSlogan : announcementText;
 
   const classicBackgroundStyle: React.CSSProperties = (() => {
     if (config.headerBackground === 'dots') {
@@ -300,9 +307,9 @@ export function HeaderMenuPreview({
 
   const renderClassicStyle = () => (
     <div className={cn(classicPositionClass)} style={{ ...classicBackgroundStyle, ...classicSeparatorStyle }}>
-      {config.topbar.show && (
+      {displayTopbar.show && (
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 min-w-0">
             <div className="flex items-center gap-4">
               {displayTopbar.hotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
@@ -311,6 +318,11 @@ export function HeaderMenuPreview({
                 <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
               )}
             </div>
+            {showSlogan && (
+              <div className={cn('flex-1 px-4 text-center truncate', device === 'mobile' && 'text-[11px]')}>
+                {topbarSlogan}
+              </div>
+            )}
             <div className="flex items-center gap-3">
               {device !== 'mobile' && (
                 <>
@@ -533,7 +545,7 @@ export function HeaderMenuPreview({
     <div className={cn(classicPositionClass)} style={{ backgroundColor: tokens.surface }}>
       {displayTopbar.show && (
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4 min-w-0">
             <div className="flex items-center gap-4">
               {displayTopbar.hotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
@@ -542,6 +554,11 @@ export function HeaderMenuPreview({
                 <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
               )}
             </div>
+            {showSlogan && (
+              <div className={cn('flex-1 px-4 text-center truncate', device === 'mobile' && 'text-[11px]')}>
+                {topbarSlogan}
+              </div>
+            )}
             <div className="flex items-center gap-3">
               {device !== 'mobile' && (
                 <>
@@ -771,7 +788,7 @@ export function HeaderMenuPreview({
           style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
         >
           <div className="flex items-center justify-center gap-4">
-            <span>{announcementText}</span>
+            <span className={cn('truncate', device === 'mobile' && 'text-[11px]')}>{allbirdsAnnouncement}</span>
             {device !== 'mobile' && showTrackOrder && (
               <span className="flex items-center gap-2">
                 {showTrackOrder && <a href={defaultLinks.trackOrder} className="hover:underline">Theo dõi đơn</a>}

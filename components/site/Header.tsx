@@ -37,6 +37,8 @@ interface TopbarConfig {
   email?: string;
   showTrackOrder?: boolean;
   useSettingsData?: boolean;
+  slogan?: string;
+  sloganEnabled?: boolean;
 }
 
 interface SearchConfig {
@@ -98,7 +100,7 @@ function cn(...classes: (string | boolean | undefined)[]) {
 
 export function Header() {
   const brandColors = useBrandColors();
-  const { siteName, logo } = useSiteSettings();
+  const { siteName, logo, settings } = useSiteSettings();
   const menuData = useQuery(api.menus.getFullMenu, { location: 'header' });
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
@@ -264,10 +266,18 @@ export function Header() {
     });
   }, [menuItems]);
 
+  const topbarSlogan = typeof settings.topbar_slogan === 'string' ? settings.topbar_slogan.trim() : '';
+  const rawTopbarSloganEnabled = settings.topbar_slogan_enabled;
+  const topbarSloganEnabled = rawTopbarSloganEnabled === undefined
+    ? true
+    : rawTopbarSloganEnabled === true || rawTopbarSloganEnabled === 'true';
+  const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
+
   const announcementText = useMemo(() => {
     const items = [topbarConfig.hotline, topbarConfig.email].filter(Boolean);
     return items.length > 0 ? items.join(' · ') : 'Shop New Arrivals';
   }, [topbarConfig.email, topbarConfig.hotline]);
+  const allbirdsAnnouncement = showTopbarSlogan ? topbarSlogan : announcementText;
 
   const toggleMobileItem = (id: string) => {
     setExpandedMobileItems(prev => 
@@ -393,7 +403,7 @@ export function Header() {
       <header className={cn(classicPositionClass)} style={{ ...classicBackgroundStyle, ...classicSeparatorStyle }}>
         {topbarConfig.show !== false && (
           <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
               <div className="flex items-center gap-4">
                 {topbarConfig.hotline && (
                   <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
@@ -408,6 +418,11 @@ export function Header() {
                   </a>
                 )}
               </div>
+              {showTopbarSlogan && (
+                <div className="flex-1 px-4 text-center truncate text-[11px] sm:text-xs">
+                  {topbarSlogan}
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 {showTrackOrder && (
                   <>
@@ -646,7 +661,7 @@ export function Header() {
         {/* Topbar */}
         {topbarConfig.show !== false && (
           <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
               <div className="flex items-center gap-4">
                 {topbarConfig.hotline && (
                   <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
@@ -661,6 +676,11 @@ export function Header() {
                   </a>
                 )}
               </div>
+              {showTopbarSlogan && (
+                <div className="flex-1 px-4 text-center truncate text-[11px] sm:text-xs">
+                  {topbarSlogan}
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 {showTrackOrder && (
                   <>
@@ -902,7 +922,7 @@ export function Header() {
             style={{ backgroundColor: tokens.allbirdsAnnouncementBg, color: tokens.allbirdsAnnouncementText }}
           >
             <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
-              <span>{announcementText}</span>
+              <span className="truncate text-[11px] sm:text-xs">{allbirdsAnnouncement}</span>
               {showTrackOrder && (
                 <span className="hidden sm:flex items-center gap-2">
                   {showTrackOrder && (

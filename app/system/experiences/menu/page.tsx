@@ -84,6 +84,8 @@ export default function HeaderMenuExperiencePage() {
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
   const siteNameSetting = useQuery(api.settings.getByKey, { key: 'site_name' });
+  const topbarSloganSetting = useQuery(api.settings.getByKey, { key: 'topbar_slogan' });
+  const topbarSloganEnabledSetting = useQuery(api.settings.getByKey, { key: 'topbar_slogan_enabled' });
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
   const [secondaryColor, setSecondaryColor] = useState(brandColors.secondary || '');
@@ -142,6 +144,8 @@ export default function HeaderMenuExperiencePage() {
   const isLoading = headerStyleSetting === undefined
     || headerConfigSetting === undefined
     || siteNameSetting === undefined
+    || topbarSloganSetting === undefined
+    || topbarSloganEnabledSetting === undefined
     || menuData === undefined
     || contactSettings === undefined
     || cartModule === undefined
@@ -158,6 +162,12 @@ export default function HeaderMenuExperiencePage() {
   const menuItems = menuData?.items ?? [];
   const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
   const settingsEmail = contactSettings?.find(s => s.key === 'contact_email')?.value as string | undefined;
+  const resolvedTopbarSlogan = typeof topbarSloganSetting?.value === 'string' ? topbarSloganSetting.value.trim() : '';
+  const resolvedTopbarSloganEnabled = useMemo(() => {
+    const rawValue = topbarSloganEnabledSetting?.value;
+    if (rawValue === undefined || rawValue === null) {return true;}
+    return rawValue === true || rawValue === 'true';
+  }, [topbarSloganEnabledSetting?.value]);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONFIG, isLoading);
 
@@ -231,7 +241,12 @@ export default function HeaderMenuExperiencePage() {
       cart: { ...normalizedConfig.cart, show: normalizedConfig.cart.show && cartEnabled },
       wishlist: { ...normalizedConfig.wishlist, show: normalizedConfig.wishlist.show && wishlistEnabled },
       login: { ...normalizedConfig.login, show: normalizedConfig.login.show && loginEnabled },
-      topbar: { ...normalizedConfig.topbar, showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled },
+      topbar: {
+        ...normalizedConfig.topbar,
+        showTrackOrder: normalizedConfig.topbar.showTrackOrder && ordersEnabled,
+        slogan: resolvedTopbarSlogan,
+        sloganEnabled: resolvedTopbarSloganEnabled,
+      },
       search: {
         ...search,
         show: search.show && (search.searchProducts || search.searchPosts || search.searchServices),
@@ -247,6 +262,8 @@ export default function HeaderMenuExperiencePage() {
     ordersModule?.enabled,
     customersModule?.enabled,
     customerLoginFeature?.enabled,
+    resolvedTopbarSlogan,
+    resolvedTopbarSloganEnabled,
   ]);
 
   const showLoginToggle = Boolean(config.login?.show);

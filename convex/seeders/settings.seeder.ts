@@ -59,6 +59,8 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
     const settingsData: SettingData[] = [
       { group: 'site', key: 'site_name', value: 'VietAdmin' },
       { group: 'site', key: 'site_tagline', value: 'Hệ thống quản trị website' },
+      { group: 'site', key: 'topbar_slogan_enabled', value: true },
+      { group: 'site', key: 'topbar_slogan', value: 'Công Ty TNHH TM - DV Kỹ Thuật Hải Chương với đội ngũ chuyên gia, kỹ sư, kỹ thuật viên có chuyên môn cao' },
       { group: 'site', key: 'site_url', value: '' },
       { group: 'site', key: 'site_logo', value: '' },
       { group: 'site', key: 'site_favicon', value: '' },
@@ -179,6 +181,8 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       const fields = [
         { enabled: true, fieldKey: 'site_name', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Tên website', order: 0, required: true, type: 'text' as const },
         { enabled: true, fieldKey: 'site_tagline', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Slogan', order: 1, required: false, type: 'text' as const },
+        { enabled: true, fieldKey: 'topbar_slogan_enabled', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Bật slogan topbar', order: 1.2, required: false, type: 'boolean' as const },
+        { enabled: true, fieldKey: 'topbar_slogan', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Slogan topbar', order: 1.3, required: false, type: 'text' as const },
         { enabled: true, fieldKey: 'site_url', group: 'site', isSystem: true, moduleKey: 'settings', name: 'URL Website', order: 2, required: false, type: 'text' as const },
         { enabled: true, fieldKey: 'site_logo', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Logo', order: 3, required: false, type: 'image' as const },
         { enabled: true, fieldKey: 'site_favicon', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Favicon', order: 4, required: false, type: 'image' as const },

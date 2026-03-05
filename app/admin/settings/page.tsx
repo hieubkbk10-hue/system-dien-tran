@@ -118,8 +118,8 @@ export default function SettingsPage() {
 
 function SettingsContent() {
   const [activeTab, setActiveTab] = useState('site');
-  const [form, setForm] = useState<Record<string, string>>({});
-  const [initialForm, setInitialForm] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<Record<string, string | boolean>>({});
+  const [initialForm, setInitialForm] = useState<Record<string, string | boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isSecondaryAuto, setIsSecondaryAuto] = useState(true);
   const [hasCleanedSeoFields, setHasCleanedSeoFields] = useState(false);
@@ -188,9 +188,9 @@ function SettingsContent() {
   // Sync form with settings data
   useEffect(() => {
     if (settingsData) {
-      const values: Record<string, string> = {};
+      const values: Record<string, string | boolean> = {};
       settingsData.forEach(s => {
-        values[s.key] = typeof s.value === 'string' ? s.value : String(s.value ?? '');
+        values[s.key] = typeof s.value === 'boolean' ? s.value : (typeof s.value === 'string' ? s.value : String(s.value ?? ''));
       });
       if (!values.site_brand_primary && values.site_brand_color) {
         values.site_brand_primary = values.site_brand_color;
@@ -245,7 +245,7 @@ function SettingsContent() {
   // Detect changes
   const hasChanges = useMemo(() => Object.keys(form).some(key => form[key] !== initialForm[key]), [form, initialForm]);
 
-  const updateField = (key: string, value: string) => {
+  const updateField = (key: string, value: string | boolean) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
@@ -255,7 +255,7 @@ function SettingsContent() {
     const colorFields = fieldsData?.filter(f => f.type === 'color') ?? [];
     for (const field of colorFields) {
       const value = form[field.fieldKey];
-      if (value && !isValidHexColor(value)) {
+      if (typeof value === 'string' && value && !isValidHexColor(value)) {
         toast.error(`${field.name}: Mã màu không hợp lệ (cần format #RRGGBB)`);
         return false;
       }
@@ -264,7 +264,8 @@ function SettingsContent() {
     // Validate required fields
     const requiredFields = fieldsData?.filter(f => f.required && f.enabled) ?? [];
     for (const field of requiredFields) {
-      if (!form[field.fieldKey]?.trim()) {
+      const value = form[field.fieldKey];
+      if (typeof value === 'string' ? !value.trim() : value === undefined || value === null) {
         toast.error(`${field.name} là bắt buộc`);
         return false;
       }
@@ -289,6 +290,9 @@ function SettingsContent() {
         })
         .map(field => {
           let value = form[field.fieldKey] ?? '';
+          if (field.type === 'boolean') {
+            value = value === true || value === 'true';
+          }
           if (field.fieldKey === 'site_brand_primary' && !value && form.site_brand_color) {
             value = form.site_brand_color;
           }
@@ -328,19 +332,23 @@ function SettingsContent() {
 
   // Render field based on type
   const renderField = (field: NonNullable<typeof fieldsData>[number]) => {
-    const value = form[field.fieldKey] ?? '';
+    const value = form[field.fieldKey];
+    const stringValue = typeof value === 'string' ? value : '';
     const key = field.fieldKey;
     const metaLimit = SEO_META_LIMITS[key];
     const showCounter = Boolean(metaLimit);
-    const counterText = showCounter ? `${value.length}/${metaLimit}` : null;
+    const counterText = showCounter ? `${stringValue.length}/${metaLimit}` : null;
+    const isTopbarSlogan = key === 'topbar_slogan';
+    const sloganEnabled = form.topbar_slogan_enabled !== false && form.topbar_slogan_enabled !== 'false';
+    const isSloganDisabled = isTopbarSlogan && !sloganEnabled;
 
     switch (field.type) {
       case 'color': {
         if (key === 'site_brand_secondary') {
-          const primaryColor = form.site_brand_primary || form.site_brand_color || '#3b82f6';
+          const primaryColor = (form.site_brand_primary as string) || (form.site_brand_color as string) || '#3b82f6';
           const normalizedPrimary = isValidHexColor(primaryColor) ? primaryColor : '#3b82f6';
           const derivedSecondary = generateComplementary(normalizedPrimary);
-          const displayColor = isSecondaryModeSingle ? derivedSecondary : (isSecondaryAuto ? derivedSecondary : value);
+          const displayColor = isSecondaryModeSingle ? derivedSecondary : (isSecondaryAuto ? derivedSecondary : stringValue);
           const isSecondaryDisabled = isSecondaryAuto || isSecondaryModeSingle;
 
           return (
@@ -367,8 +375,8 @@ function SettingsContent() {
               </div>
               <div className="flex items-center gap-3">
                 <input
-                  type="color"
-                  value={isValidHexColor(displayColor) ? displayColor : derivedSecondary}
+                type="color"
+                value={isValidHexColor(displayColor) ? displayColor : derivedSecondary}
                   onChange={(e) => {
                     if (!isSecondaryDisabled) {
                       updateField(key, e.target.value);
@@ -422,17 +430,17 @@ function SettingsContent() {
         }
 
         return (
-          <div className="space-y-2" key={key}>
+        <div className="space-y-2" key={key}>
             <Label>{field.name}</Label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={isValidHexColor(value) ? value : '#3b82f6'}
+              value={isValidHexColor(stringValue) ? stringValue : '#3b82f6'}
                 onChange={(e) =>{  updateField(key, e.target.value); }}
                 className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
               />
               <Input
-                value={value.toUpperCase()}
+              value={stringValue.toUpperCase()}
                 onChange={(e) => {
                   const val = e.target.value;
                   updateField(key, val);
@@ -443,9 +451,9 @@ function SettingsContent() {
               />
               <Palette size={16} className="text-slate-400" />
             </div>
-            {value && isValidHexColor(value) && (
+            {stringValue && isValidHexColor(stringValue) && (
               <div className="flex rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                {generateTintsShades(value).map((shade, idx) => (
+                {generateTintsShades(stringValue).map((shade, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -468,22 +476,40 @@ function SettingsContent() {
         );
       }
 
+      case 'boolean': {
+        const checked = value === true || value === 'true';
+        return (
+          <div className="flex items-center justify-between gap-3" key={key}>
+            <Label>{field.name}</Label>
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={(e) => { updateField(key, e.target.checked); }}
+                className="rounded border-slate-300"
+              />
+              {checked ? 'Đang bật' : 'Đang tắt'}
+            </label>
+          </div>
+        );
+      }
+
       case 'textarea': {
         if (key === 'contact_address') {
-          const lat = form.contact_lat || '10.762622';
-          const lng = form.contact_lng || '106.660172';
+          const lat = typeof form.contact_lat === 'string' ? form.contact_lat : '10.762622';
+          const lng = typeof form.contact_lng === 'string' ? form.contact_lng : '106.660172';
 
           return (
             <div className="space-y-2" key={key}>
               <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
               <textarea
-                value={value}
+                value={stringValue}
                 onChange={(e) => updateField(key, e.target.value)}
                 className="w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                 placeholder="Nhập địa chỉ..."
               />
               <MapLocationPicker
-                address={value}
+                address={stringValue}
                 lat={lat}
                 lng={lng}
                 onLocationChange={(data) => {
@@ -501,13 +527,13 @@ function SettingsContent() {
             <div className="flex items-center justify-between gap-3">
               <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
               {counterText && (
-                <span className={`text-xs ${value.length > metaLimit ? 'text-red-500' : 'text-slate-400'}`}>
+                <span className={`text-xs ${stringValue.length > metaLimit ? 'text-red-500' : 'text-slate-400'}`}>
                   {counterText}
                 </span>
               )}
             </div>
             <textarea
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
               className={`w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm ${key === 'seo_robots' || key === 'seo_hreflang' ? 'font-mono text-xs' : ''}`}
               placeholder={
@@ -530,7 +556,7 @@ function SettingsContent() {
             <div className="space-y-2" key={key}>
               <Label>{field.name}</Label>
               <select
-                value={value}
+                value={stringValue}
                 onChange={(e) =>{  updateField(key, e.target.value); }}
                 className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               >
@@ -547,7 +573,7 @@ function SettingsContent() {
             <div className="space-y-2" key={key}>
               <Label>{field.name}</Label>
               <select
-                value={value}
+                value={stringValue}
                 onChange={(e) =>{  updateField(key, e.target.value); }}
                 className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               >
@@ -562,7 +588,7 @@ function SettingsContent() {
             <div className="space-y-2" key={key}>
               <Label>{field.name}</Label>
               <select
-                value={value}
+                value={stringValue}
                 onChange={(e) =>{  updateField(key, e.target.value); }}
                 className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
               >
@@ -579,7 +605,7 @@ function SettingsContent() {
           <div className="space-y-2" key={key}>
             <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
               placeholder={`Nhập ${field.name.toLowerCase()}...`}
             />
@@ -593,7 +619,7 @@ function SettingsContent() {
             <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
               type="number"
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
               placeholder={`Nhập ${field.name.toLowerCase()}...`}
             />
@@ -603,12 +629,13 @@ function SettingsContent() {
 
       case 'image': {
         const isFaviconField = key === 'site_favicon';
+        const logoValue = typeof form.site_logo === 'string' ? form.site_logo : '';
         const handleUseLogoAsFavicon = () => {
-          if (!form.site_logo) {
+          if (!logoValue) {
             toast.error('Chưa có logo để dùng làm favicon.');
             return;
           }
-          updateField('site_favicon', form.site_logo);
+          updateField('site_favicon', logoValue);
           toast.success('Đã dùng logo làm favicon.');
         };
 
@@ -616,7 +643,7 @@ function SettingsContent() {
           <div className="space-y-2" key={key}>
             <SettingsImageUploader
               label={field.name}
-              value={value}
+              value={stringValue}
               onChange={(url) =>{  updateField(key, url ?? ''); }}
               folder="settings"
               previewSize={key.includes('favicon') ? 'sm' : 'md'}
@@ -651,7 +678,7 @@ function SettingsContent() {
             <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
               type="email"
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
               placeholder="example@domain.com"
             />
@@ -665,7 +692,7 @@ function SettingsContent() {
             <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
               type="tel"
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
               placeholder="0901234567"
             />
@@ -678,7 +705,7 @@ function SettingsContent() {
           <div className="space-y-2" key={key}>
             <Label>{field.name}</Label>
             <TagInput
-              value={value}
+              value={stringValue}
               onChange={(val) =>{  updateField(key, val); }}
               placeholder="Nhập từ khóa và nhấn Enter..."
             />
@@ -693,14 +720,15 @@ function SettingsContent() {
             <div className="flex items-center justify-between gap-3">
               <Label>{field.name} {field.required && <span className="text-red-500">*</span>}</Label>
               {counterText && (
-                <span className={`text-xs ${value.length > metaLimit ? 'text-red-500' : 'text-slate-400'}`}>
+                <span className={`text-xs ${stringValue.length > metaLimit ? 'text-red-500' : 'text-slate-400'}`}>
                   {counterText}
                 </span>
               )}
             </div>
             <Input
-              value={value}
+              value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
+              disabled={isSloganDisabled}
               placeholder={
                 key === 'seo_opening_hours'
                   ? 'Mo-Su 08:00-22:00'
