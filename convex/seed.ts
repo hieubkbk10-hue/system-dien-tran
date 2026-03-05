@@ -3197,9 +3197,9 @@ export const clearServicesConfig = mutation({
   returns: v.null(),
 });
 
-// ============ CALENDAR MODULE ============
+// ============ SUBSCRIPTIONS MODULE ============
 
-export const seedCalendarModule = mutation({
+export const seedSubscriptionsModule = mutation({
   args: { configOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     const configOnly = args.configOnly ?? false;
@@ -3209,15 +3209,15 @@ export const seedCalendarModule = mutation({
 
     const existingFields = await ctx.db
       .query("moduleFields")
-      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
+      .withIndex("by_module", q => q.eq("moduleKey", "subscriptions"))
       .first();
     if (!existingFields) {
       const fields = [
-        { enabled: true, fieldKey: "title", isSystem: true, moduleKey: "calendar", name: "Tiêu đề", order: 0, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "calendar", name: "Trạng thái", order: 1, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "dueDate", isSystem: false, moduleKey: "calendar", name: "Ngày nhắc", order: 2, required: true, type: "date" as const },
-        { enabled: true, fieldKey: "customerId", isSystem: false, linkedFeature: "enableCustomerLink", moduleKey: "calendar", name: "Khách hàng", order: 3, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "productId", isSystem: false, linkedFeature: "enableProductLink", moduleKey: "calendar", name: "Sản phẩm", order: 4, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "title", isSystem: true, moduleKey: "subscriptions", name: "Tiêu đề", order: 0, required: true, type: "text" as const },
+        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "subscriptions", name: "Trạng thái", order: 1, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "dueDate", isSystem: false, moduleKey: "subscriptions", name: "Ngày nhắc", order: 2, required: true, type: "date" as const },
+        { enabled: true, fieldKey: "customerId", isSystem: false, linkedFeature: "enableCustomerLink", moduleKey: "subscriptions", name: "Khách hàng", order: 3, required: true, type: "select" as const },
+        { enabled: true, fieldKey: "productId", isSystem: false, linkedFeature: "enableProductLink", moduleKey: "subscriptions", name: "Sản phẩm", order: 4, required: true, type: "select" as const },
       ];
       for (const field of fields) {
         await ctx.db.insert("moduleFields", field);
@@ -3226,13 +3226,12 @@ export const seedCalendarModule = mutation({
 
     const existingSettings = await ctx.db
       .query("moduleSettings")
-      .withIndex("by_module", q => q.eq("moduleKey", "calendar"))
+      .withIndex("by_module", q => q.eq("moduleKey", "subscriptions"))
       .first();
     if (!existingSettings) {
-      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "calendarPerPage", value: 20 });
-      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "defaultStatus", value: "Todo" });
-      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "weekStartsOn", value: "monday" });
-      await ctx.db.insert("moduleSettings", { moduleKey: "calendar", settingKey: "warningDays", value: 7 });
+      await ctx.db.insert("moduleSettings", { moduleKey: "subscriptions", settingKey: "subscriptionsPerPage", value: 20 });
+      await ctx.db.insert("moduleSettings", { moduleKey: "subscriptions", settingKey: "defaultStatus", value: "Todo" });
+      await ctx.db.insert("moduleSettings", { moduleKey: "subscriptions", settingKey: "warningDays", value: 7 });
     }
 
     return null;
@@ -3263,7 +3262,7 @@ export const seedAllModulesConfig = action({
     await ctx.runMutation(api.seed.seedNotificationsModule, configArgs);
     await ctx.runMutation(api.seed.seedPromotionsModule, configArgs);
     await ctx.runMutation(api.seed.seedServicesModule, configArgs);
-    await ctx.runMutation(api.seed.seedCalendarModule, configArgs);
+    await ctx.runMutation(api.seed.seedSubscriptionsModule, configArgs);
     return null;
   },
 });

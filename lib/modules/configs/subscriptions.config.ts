@@ -1,16 +1,16 @@
 import { CalendarDays } from 'lucide-react';
 import { defineModule } from '../define-module';
 
-export const calendarModule = defineModule({
-  key: 'calendar',
-  name: 'Calendar',
-  description: 'Quản lý lịch nhắc gia hạn theo danh sách và board',
+export const subscriptionsModule = defineModule({
+  key: 'subscriptions',
+  name: 'Subscriptions',
+  description: 'Quản lý gia hạn subscription khách hàng',
   icon: CalendarDays,
   color: 'blue',
 
   settings: [
     {
-      key: 'calendarPerPage',
+      key: 'subscriptionsPerPage',
       label: 'Số dòng mỗi trang',
       type: 'number',
       default: 20,

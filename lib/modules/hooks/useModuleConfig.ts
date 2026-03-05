@@ -100,7 +100,7 @@ export function useModuleConfig(config: ModuleDefinition) {
    }, [fieldsData]);
 
   useEffect(() => {
-    if (moduleKey !== 'calendar' || !fieldsData || hasMigratedOrphanRef.current) {
+    if (moduleKey !== 'subscriptions' || !fieldsData || hasMigratedOrphanRef.current) {
       return;
     }
     if (isModuleDisabled) {
@@ -114,11 +114,11 @@ export function useModuleConfig(config: ModuleDefinition) {
     hasMigratedOrphanRef.current = true;
     const run = async () => {
       try {
-        await resetModuleConfig({ moduleKey: 'calendar' });
+        await resetModuleConfig({ moduleKey: 'subscriptions' });
         hasMigratedOrphanRef.current = false;
       } catch (error) {
         hasMigratedOrphanRef.current = false;
-        console.error('[ModuleConfig] Auto-heal calendar orphan thất bại', error);
+        console.error('[ModuleConfig] Auto-heal subscriptions orphan thất bại', error);
       }
     };
     void run();
@@ -248,7 +248,7 @@ export function useModuleConfig(config: ModuleDefinition) {
        ));
      }
 
-    if (moduleKey === 'calendar' && key === 'enablePriority') {
+    if (moduleKey === 'subscriptions' && key === 'enablePriority') {
       setLocalFields(prev => prev.map(field => (
         field.key === 'priority' ? { ...field, enabled: newState } : field
       )));

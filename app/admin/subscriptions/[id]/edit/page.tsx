@@ -4,22 +4,22 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ModuleGuard } from '../../../components/ModuleGuard';
 
-const MODULE_KEY = 'calendar';
+const MODULE_KEY = 'subscriptions';
 
-export default function CalendarEditPage() {
+export default function SubscriptionsEditPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
-      <CalendarRedirect />
+      <SubscriptionsRedirect />
     </ModuleGuard>
   );
 }
 
-function CalendarRedirect() {
+function SubscriptionsRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/admin/calendar');
+    router.replace('/admin/subscriptions');
   }, [router]);
 
-  return <div className="text-sm text-slate-400">Đang chuyển về lịch...</div>;
+  return <div className="text-sm text-slate-400">Đang chuyển về danh sách gia hạn...</div>;
 }

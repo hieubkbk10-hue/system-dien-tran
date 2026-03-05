@@ -11,32 +11,32 @@ import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
 import { BulkDeleteConfirmDialog } from '../components/BulkDeleteConfirmDialog';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
-import { CalendarTaskModal } from './_components/CalendarTaskModal';
+import { SubscriptionModal } from './_components/SubscriptionModal';
 import { useAdminAuth } from '../auth/context';
 
-type CalendarStatus = Doc<'calendarTasks'>['status'];
-type CalendarView = 'board' | 'list';
+type SubscriptionStatus = Doc<'calendarTasks'>['status'];
+type SubscriptionView = 'board' | 'list';
 
-type CalendarRangeItem = {
+type SubscriptionRangeItem = {
   _id: string;
   customerId?: Id<'customers'>;
   dueDate?: number;
   productId?: Id<'products'>;
   sourceId: Id<'calendarTasks'>;
-  status: CalendarStatus;
+  status: SubscriptionStatus;
   title: string;
 };
 
-const MODULE_KEY = 'calendar';
+const MODULE_KEY = 'subscriptions';
 
-const STATUS_LABELS: Record<CalendarStatus, string> = {
+const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   Todo: 'Chưa nhắc',
   Contacted: 'Đã liên hệ',
   Renewed: 'Đã gia hạn',
   Churned: 'Không gia hạn',
 };
 
-const STATUS_BADGES: Record<CalendarStatus, { variant: 'default' | 'warning' | 'secondary' | 'destructive' }> = {
+const STATUS_BADGES: Record<SubscriptionStatus, { variant: 'default' | 'warning' | 'secondary' | 'destructive' }> = {
   Todo: { variant: 'default' },
   Contacted: { variant: 'warning' },
   Renewed: { variant: 'secondary' },
@@ -77,25 +77,25 @@ function formatDateInput(timestamp: number | undefined): string {
   return `${year}-${month}-${day}`;
 }
 
-export default function CalendarPage() {
+export default function SubscriptionsPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
-      <CalendarWorkspace />
+      <SubscriptionsWorkspace />
     </ModuleGuard>
   );
 }
 
-function CalendarWorkspace() {
+function SubscriptionsWorkspace() {
   const { user } = useAdminAuth();
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const customers = useQuery(api.customers.listAll, {});
   const products = useQuery(api.products.listAll, {});
-  const deleteTask = useMutation(api.calendar.deleteCalendarTask);
-  const markContacted = useMutation(api.calendar.markCalendarTaskContacted);
-  const renewTask = useMutation(api.calendar.renewCalendarTask);
+  const deleteTask = useMutation(api.subscriptions.deleteSubscription);
+  const markContacted = useMutation(api.subscriptions.markSubscriptionContacted);
+  const renewTask = useMutation(api.subscriptions.renewSubscription);
 
-  const calendarPerPage = useMemo(() => {
-    const raw = settingsData?.find(setting => setting.settingKey === 'calendarPerPage')?.value as number | undefined;
+  const subscriptionsPerPage = useMemo(() => {
+    const raw = settingsData?.find(setting => setting.settingKey === 'subscriptionsPerPage')?.value as number | undefined;
     return Math.min(Math.max(raw ?? 20, 10), 100);
   }, [settingsData]);
 
@@ -104,9 +104,9 @@ function CalendarWorkspace() {
     return Math.max(raw ?? 7, 1);
   }, [settingsData]);
 
-  const [view, setView] = useState<CalendarView>('board');
+  const [view, setView] = useState<SubscriptionView>('board');
   const [keyword, setKeyword] = useState('');
-  const [statusFilter, setStatusFilter] = useState<CalendarStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | 'all'>('all');
   const [productFilter, setProductFilter] = useState<Id<'products'> | 'all'>('all');
   const [queryNow, setQueryNow] = useState(() => Date.now());
 
@@ -138,7 +138,7 @@ function CalendarWorkspace() {
   const statusParam = statusFilter === 'all' ? undefined : statusFilter;
   const productParam = productFilter === 'all' ? undefined : productFilter;
 
-  const overdueRangeItems = useQuery(api.calendar.listCalendarTasksRange, {
+  const overdueRangeItems = useQuery(api.subscriptions.listSubscriptionsRange, {
     from: 0,
     to: todayStart,
     status: statusParam,
@@ -146,7 +146,7 @@ function CalendarWorkspace() {
     limit: 300,
   });
 
-  const upcomingRangeItems = useQuery(api.calendar.listCalendarTasksRange, {
+  const upcomingRangeItems = useQuery(api.subscriptions.listSubscriptionsRange, {
     from: todayStart,
     to: monthEnd.getTime(),
     status: statusParam,
@@ -154,9 +154,9 @@ function CalendarWorkspace() {
     limit: 300,
   });
 
-  const listData = useQuery(api.calendar.listCalendarTasksPage, {
+  const listData = useQuery(api.subscriptions.listSubscriptionsPage, {
     cursor: currentCursor ?? undefined,
-    pageSize: calendarPerPage,
+    pageSize: subscriptionsPerPage,
     productId: productParam,
     status: statusParam,
   });
@@ -184,7 +184,7 @@ function CalendarWorkspace() {
   };
 
   const keywordLower = keyword.trim().toLowerCase();
-  const filterByKeyword = (task: CalendarRangeItem | Doc<'calendarTasks'>) => {
+  const filterByKeyword = (task: SubscriptionRangeItem | Doc<'calendarTasks'>) => {
     if (!keywordLower) {
       return true;
     }
@@ -397,8 +397,8 @@ function CalendarWorkspace() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Nhắc gia hạn</h1>
-          <p className="text-sm text-slate-500">Theo dõi và nhắc khách gia hạn sản phẩm AI.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Quản lý gia hạn</h1>
+          <p className="text-sm text-slate-500">Theo dõi và nhắc khách gia hạn subscription.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -445,7 +445,7 @@ function CalendarWorkspace() {
           <div className="flex flex-wrap gap-2">
             <select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as CalendarStatus | 'all')}
+              onChange={(event) => setStatusFilter(event.target.value as SubscriptionStatus | 'all')}
               className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               <option value="all">Tất cả trạng thái</option>
@@ -699,7 +699,7 @@ function CalendarWorkspace() {
         isLoading={isBulkDeleting}
       />
 
-      <CalendarTaskModal
+      <SubscriptionModal
         open={modalOpen}
         mode={modalMode}
         taskId={editingTaskId ?? undefined}

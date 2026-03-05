@@ -4,7 +4,7 @@ import type { BaseSeeder } from './base';
 import { AdminModulesSeeder } from './adminModules.seeder';
 import { AnalyticsSeeder } from './analytics.seeder';
 import { CartSeeder } from './cart.seeder';
-import { CalendarSeeder } from './calendar.seeder';
+import { SubscriptionsSeeder } from './subscriptions.seeder';
 import { CommentsSeeder } from './comments.seeder';
 import { CustomerSeeder } from './customers.seeder';
 import { HomepageSeeder } from './homepage.seeder';
@@ -31,7 +31,7 @@ export type SeederConstructor = new (ctx: GenericMutationCtx<DataModel>) => Base
 export const SEEDER_REGISTRY: Record<string, SeederConstructor> = {
   adminModules: AdminModulesSeeder,
   analytics: AnalyticsSeeder,
-  calendar: CalendarSeeder,
+  subscriptions: SubscriptionsSeeder,
   cart: CartSeeder,
   comments: CommentsSeeder,
   customers: CustomerSeeder,

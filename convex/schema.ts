@@ -567,7 +567,7 @@ export default defineSchema({
     .index("by_column_order", ["columnId", "order"])
     .index("by_assignee", ["assigneeId"]),
 
-  // 19d. calendarTasks - Công việc dạng lịch
+  // 19d. calendarTasks - Subscription gia hạn
   calendarTasks: defineTable({
     allDay: v.boolean(),
     completedAt: v.optional(v.number()),

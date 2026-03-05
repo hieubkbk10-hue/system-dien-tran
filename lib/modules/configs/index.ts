@@ -1,5 +1,5 @@
 export { analyticsModule } from './analytics.config';
-export { calendarModule } from './calendar.config';
+export { subscriptionsModule } from './subscriptions.config';
 export { cartModule } from './cart.config';
  export { commentsModule } from './comments.config';
  export { customersModule } from './customers.config';

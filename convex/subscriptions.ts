@@ -29,7 +29,7 @@ const calendarTaskDoc = v.object({
 function getEffectiveDueDate(task: Doc<'calendarTasks'>): number | null {
   return task.dueDate ?? null;
 }
-export const getCalendarTask = query({
+export const getSubscription = query({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {
     return ctx.db.get(args.id);
@@ -37,7 +37,7 @@ export const getCalendarTask = query({
   returns: v.union(v.null(), calendarTaskDoc),
 });
 
-export const listCalendarTasksRange = query({
+export const listSubscriptionsRange = query({
   args: {
     customerId: v.optional(v.id('customers')),
     from: v.number(),
@@ -95,7 +95,7 @@ export const listCalendarTasksRange = query({
   })),
 });
 
-export const listCalendarTasksPage = query({
+export const listSubscriptionsPage = query({
   args: {
     customerId: v.optional(v.id('customers')),
     cursor: v.optional(v.string()),
@@ -144,7 +144,7 @@ export const listCalendarTasksPage = query({
   }),
 });
 
-export const listUpcomingTasks = query({
+export const listUpcomingSubscriptions = query({
   args: {
     horizonHours: v.optional(v.number()),
     limit: v.optional(v.number()),
@@ -184,7 +184,7 @@ export const listUpcomingTasks = query({
   }),
 });
 
-export const createCalendarTask = mutation({
+export const createSubscription = mutation({
   args: {
     allDay: v.boolean(),
     createdBy: v.id('users'),
@@ -218,7 +218,7 @@ export const createCalendarTask = mutation({
   returns: v.id('calendarTasks'),
 });
 
-export const updateCalendarTask = mutation({
+export const updateSubscription = mutation({
   args: {
     allDay: v.optional(v.boolean()),
     customerId: v.optional(v.id('customers')),
@@ -263,7 +263,7 @@ async function bulkDeleteTasks(
   }
 }
 
-export const deleteAllCalendarTasks = mutation({
+export const deleteAllSubscriptions = mutation({
   args: {},
   handler: async (ctx) => {
     let deletedCount = 0;
@@ -286,7 +286,7 @@ export const deleteAllCalendarTasks = mutation({
   returns: v.object({ deletedCount: v.number() }),
 });
 
-export const deleteOverdueCalendarTasks = mutation({
+export const deleteOverdueSubscriptions = mutation({
   args: { now: v.number() },
   handler: async (ctx, args) => {
     let deletedCount = 0;
@@ -309,7 +309,7 @@ export const deleteOverdueCalendarTasks = mutation({
   returns: v.object({ deletedCount: v.number() }),
 });
 
-export const deleteCalendarTask = mutation({
+export const deleteSubscription = mutation({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -318,7 +318,7 @@ export const deleteCalendarTask = mutation({
   returns: v.null(),
 });
 
-export const renewCalendarTask = mutation({
+export const renewSubscription = mutation({
   args: {
     createdBy: v.id('users'),
     id: v.id('calendarTasks'),
@@ -351,7 +351,7 @@ export const renewCalendarTask = mutation({
   returns: v.null(),
 });
 
-export const markCalendarTaskContacted = mutation({
+export const markSubscriptionContacted = mutation({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.id);
@@ -364,7 +364,7 @@ export const markCalendarTaskContacted = mutation({
   returns: v.null(),
 });
 
-export const markCalendarTaskChurned = mutation({
+export const markSubscriptionChurned = mutation({
   args: { id: v.id('calendarTasks') },
   handler: async (ctx, args) => {
     const task = await ctx.db.get(args.id);

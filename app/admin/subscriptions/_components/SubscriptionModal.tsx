@@ -11,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../components/ui';
-import { CalendarTaskForm } from './CalendarTaskForm';
+import { SubscriptionForm } from './SubscriptionForm';
 
-type CalendarTaskModalProps = {
+type SubscriptionModalProps = {
   open: boolean;
   mode: 'create' | 'edit';
   taskId?: Id<'calendarTasks'> | null;
@@ -21,9 +21,9 @@ type CalendarTaskModalProps = {
   onSuccess: () => void;
 };
 
-export function CalendarTaskModal({ open, mode, taskId, onClose, onSuccess }: CalendarTaskModalProps) {
+export function SubscriptionModal({ open, mode, taskId, onClose, onSuccess }: SubscriptionModalProps) {
   const task = useQuery(
-    api.calendar.getCalendarTask,
+    api.subscriptions.getSubscription,
     mode === 'edit' && taskId ? { id: taskId } : 'skip'
   );
 
@@ -44,7 +44,7 @@ export function CalendarTaskModal({ open, mode, taskId, onClose, onSuccess }: Ca
           <div className="text-sm text-slate-400">Task không tồn tại.</div>
         )}
         {(mode === 'create' || task) && (
-          <CalendarTaskForm
+          <SubscriptionForm
             mode={mode}
             task={task ?? undefined}
             onCancel={onClose}

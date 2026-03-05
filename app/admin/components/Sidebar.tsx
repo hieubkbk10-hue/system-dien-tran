@@ -195,7 +195,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showUsersSection = isModuleEnabled('users') || isModuleEnabled('roles');
   const showWebsiteSection = isModuleEnabled('menus') || isModuleEnabled('homepage');
   const showKanbanSection = isModuleEnabled('kanban');
-  const showCalendarSection = isModuleEnabled('calendar');
+  const showSubscriptionsSection = isModuleEnabled('subscriptions');
   const showSettingsSection = isModuleEnabled('settings');
   const showNotificationsSection = isModuleEnabled('notifications');
   const showPromotionsSection = isModuleEnabled('promotions');
@@ -434,7 +434,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
             )}
 
             {/* System Section */}
-            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection || showCalendarSection) && (
+            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection || showSubscriptionsSection) && (
               <div className="space-y-1">
                 {!isSidebarCollapsed && <div className="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Hệ thống</div>}
                 
@@ -488,12 +488,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
                   />
                 )}
 
-                {showCalendarSection && (
+                {showSubscriptionsSection && (
                   <SidebarItem
                     icon={CalendarDays}
-                    label="Calendar"
-                    href="/admin/calendar"
-                    active={isActive('/admin/calendar')}
+                    label="Subscriptions"
+                    href="/admin/subscriptions"
+                    active={isActive('/admin/subscriptions')}
                     isCollapsed={isSidebarCollapsed}
                     isExpanded={false}
                     onToggle={() => {}}

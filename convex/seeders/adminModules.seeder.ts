@@ -51,7 +51,7 @@ export class AdminModulesSeeder extends BaseSeeder<AdminModuleData> {
       { category: 'marketing', description: 'Báo cáo và phân tích dữ liệu', enabled: true, icon: 'BarChart3', isCore: false, key: 'analytics', name: 'Thống kê', order: 16 },
       { category: 'content', description: 'Quản lý dịch vụ và danh mục dịch vụ', enabled: true, icon: 'Briefcase', isCore: false, key: 'services', name: 'Dịch vụ', order: 17 },
       { category: 'system', description: 'Bảng Kanban quản lý công việc nội bộ', enabled: true, icon: 'LayoutGrid', isCore: false, key: 'kanban', name: 'Kanban Board', order: 18 },
-      { category: 'system', description: 'Lịch nhắc việc và theo dõi công việc nội bộ', enabled: true, icon: 'CalendarDays', isCore: false, key: 'calendar', name: 'Calendar', order: 19 },
+      { category: 'system', description: 'Quản lý gia hạn subscription khách hàng', enabled: true, icon: 'CalendarDays', isCore: false, key: 'subscriptions', name: 'Subscriptions', order: 19 },
     ];
 
     await Promise.all(modules.map(module => this.ctx.db.insert('adminModules', module)));

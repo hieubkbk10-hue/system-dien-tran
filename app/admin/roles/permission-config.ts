@@ -13,7 +13,7 @@ export const ACTION_LABELS: Record<PermissionAction, string> = {
 const MODULE_ACTIONS: Partial<Record<string, PermissionActionList>> = {
   analytics: ['view'],
   cart: ['view', 'edit', 'delete'],
-  calendar: ['view', 'create', 'edit', 'delete'],
+  subscriptions: ['view', 'create', 'edit', 'delete'],
   kanban: ['view', 'create', 'edit', 'delete'],
 };
 

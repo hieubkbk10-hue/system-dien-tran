@@ -9,16 +9,16 @@ import { toast } from 'sonner';
 import { Button, Input, Label } from '../../components/ui';
 import { useAdminAuth } from '../../auth/context';
 
-type CalendarTaskFormMode = 'create' | 'edit';
+type SubscriptionFormMode = 'create' | 'edit';
 
-type CalendarTaskFormProps = {
-  mode: CalendarTaskFormMode;
+type SubscriptionFormProps = {
+  mode: SubscriptionFormMode;
   task?: Doc<'calendarTasks'> | null;
   onCancel: () => void;
   onSuccess: () => void;
 };
 
-const MODULE_KEY = 'calendar';
+const MODULE_KEY = 'subscriptions';
 
 const STATUS_OPTIONS = [
   { value: 'Todo', label: 'Chưa nhắc' },
@@ -44,10 +44,10 @@ function formatDateInput(timestamp: number | undefined): string {
   return `${year}-${month}-${day}`;
 }
 
-export function CalendarTaskForm({ mode, task, onCancel, onSuccess }: CalendarTaskFormProps) {
+export function SubscriptionForm({ mode, task, onCancel, onSuccess }: SubscriptionFormProps) {
   const { user } = useAdminAuth();
-  const createTask = useMutation(api.calendar.createCalendarTask);
-  const updateTask = useMutation(api.calendar.updateCalendarTask);
+  const createTask = useMutation(api.subscriptions.createSubscription);
+  const updateTask = useMutation(api.subscriptions.updateSubscription);
   const createCustomer = useMutation(api.customers.create);
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
   const customers = useQuery(api.customers.listAll, {});
