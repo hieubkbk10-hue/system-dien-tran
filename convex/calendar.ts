@@ -5,6 +5,7 @@ import type { Doc } from './_generated/dataModel';
 const calendarStatus = v.union(
   v.literal('Todo'),
   v.literal('Contacted'),
+  v.literal('Renewed'),
   v.literal('Churned')
 );
 
@@ -344,7 +345,7 @@ export const renewCalendarTask = mutation({
       updatedAt: now,
     });
 
-    await ctx.db.patch(args.id, { status: 'Churned', completedAt: now, updatedAt: now });
+    await ctx.db.patch(args.id, { status: 'Renewed', completedAt: now, updatedAt: now });
     return null;
   },
   returns: v.null(),

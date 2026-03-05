@@ -32,12 +32,14 @@ const MODULE_KEY = 'calendar';
 const STATUS_LABELS: Record<CalendarStatus, string> = {
   Todo: 'Chưa nhắc',
   Contacted: 'Đã liên hệ',
+  Renewed: 'Đã gia hạn',
   Churned: 'Không gia hạn',
 };
 
 const STATUS_BADGES: Record<CalendarStatus, { variant: 'default' | 'warning' | 'secondary' | 'destructive' }> = {
   Todo: { variant: 'default' },
   Contacted: { variant: 'warning' },
+  Renewed: { variant: 'secondary' },
   Churned: { variant: 'destructive' },
 };
 
@@ -229,7 +231,7 @@ function CalendarWorkspace() {
   }, [activeUpcomingItems, warnThreshold]);
 
   const doneItems = useMemo(() => {
-    return [...filteredOverdueItems, ...filteredUpcomingItems].filter(item => item.status === 'Churned');
+    return [...filteredOverdueItems, ...filteredUpcomingItems].filter(item => item.status === 'Renewed' || item.status === 'Churned');
   }, [filteredOverdueItems, filteredUpcomingItems]);
 
   const listItems = useMemo(() => {
@@ -381,7 +383,7 @@ function CalendarWorkspace() {
     { key: 'today', label: 'Hôm nay', items: todayItems },
     { key: 'soon', label: `Sắp hết hạn (${warningDays}n)`, items: dueSoonItems },
     { key: 'later', label: 'Sắp tới', items: laterItems },
-    { key: 'done', label: 'Không gia hạn', items: doneItems },
+    { key: 'done', label: 'Đã xử lý', items: doneItems },
   ];
 
   const isLoading = settingsData === undefined
@@ -527,7 +529,7 @@ function CalendarWorkspace() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleMarkContacted(task.sourceId)}
-                          disabled={task.status === 'Contacted' || task.status === 'Churned'}
+                          disabled={task.status === 'Contacted' || task.status === 'Renewed' || task.status === 'Churned'}
                         >
                           Đã liên hệ
                         </Button>
@@ -536,7 +538,7 @@ function CalendarWorkspace() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleRenew(task.sourceId)}
-                          disabled={task.status === 'Churned'}
+                          disabled={task.status === 'Renewed' || task.status === 'Churned'}
                         >
                           Gia hạn ✓
                         </Button>
@@ -634,7 +636,7 @@ function CalendarWorkspace() {
                       >
                         Sửa
                       </button>
-                      {task.status !== 'Churned' && (
+                      {task.status !== 'Renewed' && task.status !== 'Churned' && (
                         <button
                           type="button"
                           className="text-xs text-emerald-600"

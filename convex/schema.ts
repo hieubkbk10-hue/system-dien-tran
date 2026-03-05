@@ -580,6 +580,7 @@ export default defineSchema({
     status: v.union(
       v.literal("Todo"),
       v.literal("Contacted"),
+      v.literal("Renewed"),
       v.literal("Churned")
     ),
     timezone: v.string(),

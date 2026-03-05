@@ -32,7 +32,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
 
   generateFake(): CalendarTaskData {
     const createdBy = this.randomElement(this.users);
-    const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Churned'];
+    const statusPool: CalendarTaskData['status'][] = ['Todo', 'Contacted', 'Renewed', 'Churned'];
     const status = this.randomElement(statusPool);
     const daysOffset = this.randomInt(-10, 60);
     const dueDate = Date.now() + daysOffset * 24 * 60 * 60 * 1000;
@@ -43,7 +43,7 @@ export class CalendarSeeder extends BaseSeeder<CalendarTaskData> {
 
     return {
       allDay: true,
-      completedAt: status === 'Churned' ? Date.now() : undefined,
+      completedAt: status === 'Renewed' ? Date.now() : undefined,
       createdAt: Date.now(),
       createdBy: createdBy._id,
       dueDate,
