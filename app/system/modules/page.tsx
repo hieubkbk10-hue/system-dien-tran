@@ -18,6 +18,7 @@ export default function ModuleManagementPage() {
   const modulesData = useQuery(api.admin.modules.listModules);
   const presetsData = useQuery(api.admin.presets.listPresets);
   const toggleModuleWithCascade = useMutation(api.admin.modules.toggleModuleWithCascade);
+  const migrateCalendarToSubscriptions = useMutation(api.admin.modules.migrateCalendarToSubscriptions);
   const applyPreset = useMutation(api.admin.presets.applyPreset);
   const seedModule = useMutation(api.seedManager.seedModule);
   
@@ -27,6 +28,7 @@ export default function ModuleManagementPage() {
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
   const [applyingPreset, setApplyingPreset] = useState(false);
   const [isReseeding, setIsReseeding] = useState(false);
+  const [hasMigrated, setHasMigrated] = useState(false);
   
   // SYS-004: State cho cascade confirmation dialog
   const [cascadeDialog, setCascadeDialog] = useState<{
@@ -60,6 +62,23 @@ export default function ModuleManagementPage() {
       }
     })();
   }, [modulesData, presetsData, seedModule]);
+
+  React.useEffect(() => {
+    if (hasMigrated) {
+      return;
+    }
+    setHasMigrated(true);
+    void (async () => {
+      try {
+        const result = await migrateCalendarToSubscriptions({});
+        if (result.changed) {
+          toast.success('Đã đồng bộ module Calendar → Subscriptions');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [hasMigrated, migrateCalendarToSubscriptions]);
 
   const handlePresetSelect = async (presetKey: string) => {
     setSelectedPreset(presetKey);

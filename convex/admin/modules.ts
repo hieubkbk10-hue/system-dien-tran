@@ -105,6 +105,64 @@ async function resetHomeComponentCreateVisibility(ctx: MutationCtx) {
   await ctx.db.insert("settings", { group: "home_components", key: "create_hidden_types", value: [] });
 }
 
+export const migrateCalendarToSubscriptions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const calendarModule = await ctx.db
+      .query("adminModules")
+      .withIndex("by_key", (q) => q.eq("key", "calendar"))
+      .unique();
+    const subscriptionsModule = await ctx.db
+      .query("adminModules")
+      .withIndex("by_key", (q) => q.eq("key", "subscriptions"))
+      .unique();
+
+    let changed = false;
+
+    const migrateModuleKey = async (table: "moduleSettings" | "moduleFeatures" | "moduleFields") => {
+      const records = await ctx.db
+        .query(table)
+        .withIndex("by_module", (q) => q.eq("moduleKey", "calendar"))
+        .collect();
+      if (records.length === 0) {
+        return;
+      }
+      changed = true;
+      await Promise.all(records.map((record) => ctx.db.patch(record._id, { moduleKey: "subscriptions" })));
+    };
+
+    if (calendarModule && subscriptionsModule) {
+      await ctx.db.delete(calendarModule._id);
+      changed = true;
+    } else if (calendarModule && !subscriptionsModule) {
+      await ctx.db.patch(calendarModule._id, {
+        description: "Quản lý gia hạn subscription khách hàng",
+        icon: "CalendarDays",
+        key: "subscriptions",
+        name: "Subscriptions",
+      });
+      changed = true;
+    }
+
+    await Promise.all([
+      migrateModuleKey("moduleSettings"),
+      migrateModuleKey("moduleFeatures"),
+      migrateModuleKey("moduleFields"),
+    ]);
+
+    return {
+      changed,
+      message: changed ? "Migrated calendar module to subscriptions" : "No migration needed",
+      success: true,
+    };
+  },
+  returns: v.object({
+    changed: v.boolean(),
+    message: v.string(),
+    success: v.boolean(),
+  }),
+});
+
 export const listModules = query({
   args: {},
   handler: async (ctx) => {
