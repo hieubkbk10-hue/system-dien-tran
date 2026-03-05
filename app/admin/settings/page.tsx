@@ -108,14 +108,6 @@ const BUSINESS_TYPE_OPTIONS = [
   'ProfessionalService',
 ];
 
-const extractIframeSrc = (iframe: string): string => {
-  const match = iframe.match(/\ssrc\s*=\s*"([^"]+)"|\ssrc\s*=\s*'([^']+)'/i);
-  const src = match?.[1] || match?.[2] || '';
-  if (!src || (!src.startsWith('http://') && !src.startsWith('https://'))) {
-    return '';
-  }
-  return src;
-};
 
 export default function SettingsPage() {
   return (
@@ -542,8 +534,6 @@ function SettingsContent() {
           const googleIframe = typeof form.contact_google_map_embed_iframe === 'string'
             ? form.contact_google_map_embed_iframe
             : '';
-          const googleMapSrc = extractIframeSrc(googleIframe);
-          const canOpenGoogleMap = Boolean(googleMapSrc);
 
           return (
             <div className="space-y-2" key={key}>
@@ -607,18 +597,13 @@ function SettingsContent() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (canOpenGoogleMap) {
-                          window.open(googleMapSrc, '_blank', 'noopener,noreferrer');
-                        }
+                        window.open('https://www.google.com/maps', '_blank', 'noopener,noreferrer');
                       }}
-                      disabled={!canOpenGoogleMap}
                     >
                       Mở Google Maps
                     </Button>
                     <span className="text-xs text-slate-500">
-                      {canOpenGoogleMap
-                        ? 'Đã sẵn sàng mở Google Maps ở tab mới.'
-                        : 'Iframe chưa hợp lệ nên chưa mở được.'}
+                      Mở Google Maps để lấy mã nhúng iframe rồi dán vào ô phía trên.
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">Chỉ dán mã iframe do Google Maps cung cấp.</p>
