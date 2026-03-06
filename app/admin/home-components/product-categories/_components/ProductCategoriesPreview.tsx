@@ -106,10 +106,20 @@ export const ProductCategoriesPreview = ({
     })
     .filter(Boolean) as (CategoryData & { itemId: number; displayImage?: string; displayIcon?: string; imageMode: string })[];
 
+  const getColumnsByDevice = () => {
+    if (isMobile) {return config.columnsMobile || 2;}
+    if (isTablet) {
+      const desktopCols = config.columnsDesktop || 4;
+      return Math.min(Math.max(desktopCols, 3), 4);
+    }
+    return config.columnsDesktop || 4;
+  };
+
   const getGridCols = () => {
-    if (isMobile) {return config.columnsMobile === 3 ? 'grid-cols-3' : 'grid-cols-2';}
-    if (isTablet) {return 'grid-cols-3';}
-    switch (config.columnsDesktop) {
+    const columns = getColumnsByDevice();
+    switch (columns) {
+      case 2: { return 'grid-cols-2';
+      }
       case 3: { return 'grid-cols-3';
       }
       case 5: { return 'grid-cols-5';
@@ -121,9 +131,10 @@ export const ProductCategoriesPreview = ({
     }
   };
 
-  const MAX_VISIBLE = isMobile ? 4 : (isTablet ? 6 : 8);
-  const visibleCategories = resolvedCategories.slice(0, MAX_VISIBLE);
-  const remainingCount = resolvedCategories.length - MAX_VISIBLE;
+  const getVisibleCount = (rows: number = 2) => Math.max(getColumnsByDevice(), 1) * rows;
+  const maxVisible = getVisibleCount();
+  const visibleCategories = resolvedCategories.slice(0, maxVisible);
+  const remainingCount = Math.max(resolvedCategories.length - maxVisible, 0);
 
   const renderEmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -259,7 +270,7 @@ export const ProductCategoriesPreview = ({
         ) : (
           <div className={cn("overflow-x-auto pb-4 scrollbar-hide", isMobile ? 'px-3' : 'px-6')}>
             <div className={cn("flex", isMobile ? 'gap-3' : 'gap-4')}>
-              {resolvedCategories.map((cat) => (
+              {visibleCategories.map((cat) => (
                 <div 
                   key={cat.itemId} 
                   className={cn("flex-shrink-0 group cursor-pointer", isMobile ? 'w-28' : 'w-40')}
@@ -288,7 +299,7 @@ export const ProductCategoriesPreview = ({
   );
 
   const renderCardsStyle = () => {
-    const displayItems = isMobile ? resolvedCategories.slice(0, 3) : resolvedCategories.slice(0, 6);
+    const displayItems = visibleCategories;
     
     return (
       <section className={cn("w-full", isMobile ? 'py-6 px-3' : 'py-10 px-6')} style={{ backgroundColor: colors.sectionBg }}>
@@ -305,7 +316,7 @@ export const ProductCategoriesPreview = ({
           />
           
           {resolvedCategories.length === 0 ? renderEmptyState() : (
-            <div className={cn("grid", isMobile ? 'grid-cols-1 gap-3' : (isTablet ? 'grid-cols-2 gap-4' : 'grid-cols-3 gap-4'))}>
+            <div className={cn("grid", getGridCols(), isMobile ? 'gap-3' : 'gap-4')}>
               {displayItems.map((cat) => (
                 <div 
                   key={cat.itemId} 
@@ -358,8 +369,8 @@ export const ProductCategoriesPreview = ({
         </div>
         
         {resolvedCategories.length === 0 ? renderEmptyState() : (
-          <div className={cn("flex flex-wrap", isMobile ? 'gap-2' : 'gap-3')}>
-            {resolvedCategories.map((cat) => {
+          <div className={cn("grid", getGridCols(), isMobile ? 'gap-2' : 'gap-3')}>
+            {visibleCategories.map((cat) => {
               const iconData = cat.displayIcon ? getCategoryIcon(cat.displayIcon) : null;
               return (
                 <div 
@@ -425,7 +436,7 @@ export const ProductCategoriesPreview = ({
             <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none" />
             
             <div className="flex animate-marquee">
-              {[...resolvedCategories, ...resolvedCategories].map((cat, idx) => (
+              {[...visibleCategories, ...visibleCategories].map((cat, idx) => (
                 <div 
                   key={`${cat._id}-${idx}`} 
                   className={cn(
@@ -549,7 +560,7 @@ export const ProductCategoriesPreview = ({
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('resize', updateCircularPagination);
     };
-  }, [previewStyle, resolvedCategories.length, device, updateCircularPagination]);
+  }, [previewStyle, visibleCategories.length, device, updateCircularPagination]);
 
   const renderCircularStyle = () => (
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
@@ -583,7 +594,7 @@ export const ProductCategoriesPreview = ({
               onScroll={handleCircularScroll}
               style={{ scrollBehavior: 'auto', WebkitOverflowScrolling: 'touch' }}
             >
-              {resolvedCategories.map((cat) => (
+              {visibleCategories.map((cat) => (
                 <div
                   key={cat.itemId}
                   className={cn("flex-shrink-0 snap-start group", isMobile ? 'w-[125px]' : 'w-[140px]')}

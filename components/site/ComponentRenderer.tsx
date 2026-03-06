@@ -2802,6 +2802,14 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
   const circularScrollRef = React.useRef<HTMLDivElement>(null);
   const [circularScrollPosition, setCircularScrollPosition] = React.useState(0);
   const [circularPageCount, setCircularPageCount] = React.useState(1);
+
+  const getColumnsByDevice = () => {
+    if (device === 'mobile') {return columnsMobile;}
+    if (device === 'tablet') {return Math.min(Math.max(columnsDesktop, 3), 4);}
+    return columnsDesktop;
+  };
+
+  const getVisibleCount = (rows: number = 2) => Math.max(getColumnsByDevice(), 1) * rows;
   
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, {});
@@ -2898,9 +2906,9 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
   };
 
   const getMobileGridCols = () => columnsMobile === 3 ? 'grid-cols-3' : 'grid-cols-2';
-  const maxVisible = device === 'mobile' ? 4 : (device === 'tablet' ? 6 : 8);
+  const maxVisible = getVisibleCount();
   const visibleCategories = resolvedCategories.slice(0, maxVisible);
-  const remainingCount = resolvedCategories.length - maxVisible;
+  const remainingCount = Math.max(resolvedCategories.length - maxVisible, 0);
 
   const updateCircularPagination = React.useCallback(() => {
     if (!circularScrollRef.current) {return;}
@@ -3031,7 +3039,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
     const cardWidth = 160;
     const gap = 16;
     // Responsive: Desktop ~7 items (160px each), chỉ hiện arrows khi có > 6 items
-    const showArrows = resolvedCategories.length > 6;
+    const showArrows = resolvedCategories.length > visibleCategories.length;
 
     return (
       <section className="py-10 md:py-16">
@@ -3100,7 +3108,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                 el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
               }}
             >
-              {resolvedCategories.map((cat) => (
+              {visibleCategories.map((cat) => (
                 <a
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
@@ -3140,8 +3148,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 text-center" style={{ color: colors.primary.solid }}>{title}</h2>
           <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
-          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {resolvedCategories.map((cat) => (
+          <div className={cn("grid gap-3 md:gap-4", getMobileGridCols(), getGridCols())}>
+            {visibleCategories.map((cat) => (
               <a 
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
@@ -3189,8 +3197,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
               Tất cả →
             </Link>
           </div>
-          <div className="flex flex-wrap gap-2 md:gap-3">
-            {resolvedCategories.map((cat) => {
+          <div className={cn("grid gap-2 md:gap-3", getMobileGridCols(), getGridCols())}>
+            {visibleCategories.map((cat) => {
               const iconData = cat.displayIcon ? getCategoryIcon(cat.displayIcon) : null;
               return (
                 <a 
@@ -3240,7 +3248,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
             style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
             onScroll={handleCircularScroll}
           >
-            {resolvedCategories.map((cat) => (
+            {visibleCategories.map((cat) => (
               <a
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
@@ -3335,7 +3343,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
               animation: 'marquee-scroll 25s linear infinite',
             }}
           >
-            {[...resolvedCategories, ...resolvedCategories].map((cat, idx) => (
+            {[...visibleCategories, ...visibleCategories].map((cat, idx) => (
               <a 
                 key={`${cat.id}-${idx}`}
                 href={`/products?category=${cat.slug}`}
