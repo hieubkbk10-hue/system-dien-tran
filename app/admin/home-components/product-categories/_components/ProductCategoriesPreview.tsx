@@ -132,6 +132,22 @@ export const ProductCategoriesPreview = ({
   };
 
   const getVisibleCount = (rows: number = 2) => Math.max(getColumnsByDevice(), 1) * rows;
+  const getCarouselItemStyle = () => {
+    const columns = Math.max(getColumnsByDevice(), 1);
+    return {
+      flexBasis: `calc((100% - (var(--carousel-gap) * ${columns - 1})) / ${columns})`,
+      maxWidth: `calc((100% - (var(--carousel-gap) * ${columns - 1})) / ${columns})`,
+      minWidth: 0,
+    } as React.CSSProperties;
+  };
+  const getCircularItemStyle = () => {
+    const columns = Math.max(getColumnsByDevice(), 1);
+    return {
+      flexBasis: `calc((100% - (var(--circular-gap) * ${columns - 1})) / ${columns})`,
+      maxWidth: `calc((100% - (var(--circular-gap) * ${columns - 1})) / ${columns})`,
+      minWidth: 0,
+    } as React.CSSProperties;
+  };
   const maxVisible = getVisibleCount();
   const visibleCategories = resolvedCategories.slice(0, maxVisible);
   const remainingCount = Math.max(resolvedCategories.length - maxVisible, 0);
@@ -269,11 +285,15 @@ export const ProductCategoriesPreview = ({
           <div className={cn(isMobile ? 'px-3' : 'px-6')}>{renderEmptyState()}</div>
         ) : (
           <div className={cn("overflow-x-auto pb-4 scrollbar-hide", isMobile ? 'px-3' : 'px-6')}>
-            <div className={cn("flex", isMobile ? 'gap-3' : 'gap-4')}>
-              {visibleCategories.map((cat) => (
+            <div
+              className={cn("flex", isMobile ? 'gap-3' : 'gap-4')}
+              style={{ '--carousel-gap': isMobile ? '12px' : '16px' } as React.CSSProperties}
+            >
+              {resolvedCategories.map((cat) => (
                 <div 
                   key={cat.itemId} 
-                  className={cn("flex-shrink-0 group cursor-pointer", isMobile ? 'w-28' : 'w-40')}
+                  className="flex-shrink-0 group cursor-pointer"
+                  style={getCarouselItemStyle()}
                 >
                   <div 
                     className="aspect-square rounded-xl overflow-hidden mb-2 transition-all"
@@ -376,7 +396,7 @@ export const ProductCategoriesPreview = ({
                 <div 
                   key={cat.itemId} 
                   className={cn(
-                    "flex items-center gap-2 rounded-full cursor-pointer transition-all",
+                    "flex items-center gap-2 rounded-full cursor-pointer transition-all min-w-0",
                     isMobile ? 'px-3 py-2' : 'px-4 py-2.5'
                   )}
                   style={{ 
@@ -399,7 +419,11 @@ export const ProductCategoriesPreview = ({
                   ) : (
                     <Package size={isMobile ? 14 : 16} style={{ color: colors.primary.solid }} />
                   ))}
-                  <span className={cn("font-medium whitespace-nowrap", isMobile ? 'text-xs' : 'text-sm')} style={{ color: colors.categoryNameText }}>
+                  <span
+                    className={cn("font-medium truncate min-w-0 flex-1", isMobile ? 'text-xs' : 'text-sm')}
+                    style={{ color: colors.categoryNameText }}
+                    title={cat.name}
+                  >
                     {cat.name}
                   </span>
                   {config.showProductCount && (
@@ -560,7 +584,7 @@ export const ProductCategoriesPreview = ({
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('resize', updateCircularPagination);
     };
-  }, [previewStyle, visibleCategories.length, device, updateCircularPagination]);
+  }, [previewStyle, resolvedCategories.length, device, updateCircularPagination]);
 
   const renderCircularStyle = () => (
     <section className={cn("w-full", isMobile ? 'py-6' : 'py-10')}>
@@ -592,12 +616,13 @@ export const ProductCategoriesPreview = ({
               onMouseUp={handleCircularMouseUp}
               onMouseMove={handleCircularMouseMove}
               onScroll={handleCircularScroll}
-              style={{ scrollBehavior: 'auto', WebkitOverflowScrolling: 'touch' }}
+              style={{ scrollBehavior: 'auto', WebkitOverflowScrolling: 'touch', '--circular-gap': '20px' } as React.CSSProperties}
             >
-              {visibleCategories.map((cat) => (
+              {resolvedCategories.map((cat) => (
                 <div
                   key={cat.itemId}
-                  className={cn("flex-shrink-0 snap-start group", isMobile ? 'w-[125px]' : 'w-[140px]')}
+                  className="flex-shrink-0 snap-start group"
+                  style={getCircularItemStyle()}
                   onClick={(e) => { if (isCircularDragging) {e.preventDefault();} }}
                 >
                   <div

@@ -2810,6 +2810,22 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
   };
 
   const getVisibleCount = (rows: number = 2) => Math.max(getColumnsByDevice(), 1) * rows;
+  const getCarouselItemStyle = () => {
+    const columns = Math.max(getColumnsByDevice(), 1);
+    return {
+      flexBasis: `calc((100% - (var(--carousel-gap) * ${columns - 1})) / ${columns})`,
+      maxWidth: `calc((100% - (var(--carousel-gap) * ${columns - 1})) / ${columns})`,
+      minWidth: 0,
+    } as React.CSSProperties;
+  };
+  const getCircularItemStyle = () => {
+    const columns = Math.max(getColumnsByDevice(), 1);
+    return {
+      flexBasis: `calc((100% - (var(--circular-gap) * ${columns - 1})) / ${columns})`,
+      maxWidth: `calc((100% - (var(--circular-gap) * ${columns - 1})) / ${columns})`,
+      minWidth: 0,
+    } as React.CSSProperties;
+  };
   
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, {});
@@ -3036,10 +3052,12 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
 
   // Style 2: Carousel - Horizontal scroll with navigation
   if (style === 'carousel') {
-    const cardWidth = 160;
-    const gap = 16;
-    // Responsive: Desktop ~7 items (160px each), chỉ hiện arrows khi có > 6 items
-    const showArrows = resolvedCategories.length > visibleCategories.length;
+    const showArrows = resolvedCategories.length > getColumnsByDevice();
+    const getScrollAmount = (container: Element | null) => {
+      if (!container) {return 200;}
+      const columns = Math.max(getColumnsByDevice(), 1);
+      return (container as HTMLElement).clientWidth / columns;
+    };
 
     return (
       <section className="py-10 md:py-16">
@@ -3054,7 +3072,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                     aria-label="Cuộn trước"
                     onClick={() => {
                       const container = document.querySelector(`#${productCatCarouselId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
+                      if (container) {container.scrollBy({ behavior: 'smooth', left: -getScrollAmount(container) });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
                     style={{ borderColor: colors.cardBorder }}
@@ -3066,7 +3084,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                     aria-label="Cuộn sau"
                     onClick={() => {
                       const container = document.querySelector(`#${productCatCarouselId}`);
-                      if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
+                      if (container) {container.scrollBy({ behavior: 'smooth', left: getScrollAmount(container) });}
                     }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
                     style={{ borderColor: colors.cardBorder }}
@@ -3089,7 +3107,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
             <div
               id={productCatCarouselId}
               className="flex overflow-x-auto snap-x snap-mandatory gap-3 md:gap-4 py-2 cursor-grab active:cursor-grabbing select-none"
-              style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+              style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none', '--carousel-gap': device === 'mobile' ? '12px' : '16px' } as React.CSSProperties}
               onMouseDown={(e) => {
                 const el = e.currentTarget;
                 el.dataset.isDown = 'true';
@@ -3108,11 +3126,12 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                 el.scrollLeft = Number(el.dataset.scrollLeft) - walk;
               }}
             >
-              {visibleCategories.map((cat) => (
+              {resolvedCategories.map((cat) => (
                 <a
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
-                  className="snap-start flex-shrink-0 w-32 md:w-40 group cursor-pointer"
+                  className="snap-start flex-shrink-0 group cursor-pointer"
+                  style={getCarouselItemStyle()}
                   draggable={false}
                 >
                   <div
@@ -3204,7 +3223,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                 <a 
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full cursor-pointer transition-all"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full cursor-pointer transition-all min-w-0"
                   style={{ backgroundColor: colors.pillBg, border: `1px solid ${colors.pillBorder}` }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = colors.primary.surface;
@@ -3222,7 +3241,13 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
                   ) : (
                     <Package size={16} style={{ color: colors.primary.solid }} />
                   ))}
-                  <span className="font-medium text-xs md:text-sm whitespace-nowrap" style={{ color: colors.categoryNameText }}>{cat.name}</span>
+                  <span
+                    className="font-medium text-xs md:text-sm truncate min-w-0 flex-1"
+                    style={{ color: colors.categoryNameText }}
+                    title={cat.name}
+                  >
+                    {cat.name}
+                  </span>
                   {showProductCount && (
                     <span className="text-xs" style={{ color: colors.productCountText }}>({cat.productCount})</span>
                   )}
@@ -3245,14 +3270,15 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
           <div
             ref={circularScrollRef}
             className="flex overflow-x-auto scrollbar-hide pb-4 gap-4 md:gap-6 snap-x snap-mandatory px-4 md:px-6"
-            style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+            style={{ WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none', '--circular-gap': device === 'mobile' ? '16px' : '24px' } as React.CSSProperties}
             onScroll={handleCircularScroll}
           >
-            {visibleCategories.map((cat) => (
+            {resolvedCategories.map((cat) => (
               <a
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
-                className="flex-shrink-0 snap-start group flex flex-col items-center w-28 md:w-36"
+                className="flex-shrink-0 snap-start group flex flex-col items-center"
+                style={getCircularItemStyle()}
               >
                 <div
                   className="rounded-full overflow-hidden transition-all duration-300 mb-3"
