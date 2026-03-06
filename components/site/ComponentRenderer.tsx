@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { useBrandColors } from './hooks';
 import { cn } from '@/app/admin/components/ui';
 import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '@/app/admin/home-components/_shared/lib/productPrice';
 import {
   getBentoColors,
   getFadeColors,
@@ -3412,6 +3413,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   // Query categories and products
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
   // Resolve sections with category and products data
   const resolvedSections = sections
@@ -3449,10 +3452,10 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
 
   const getMobileGridCols = () => columnsMobile === 1 ? 'grid-cols-1' : 'grid-cols-2';
 
-  const formatPrice = (price?: number) => {
-    if (!price) {return '0đ';}
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
-  };
+  const getPriceDisplay = (price?: number, salePrice?: number) =>
+    getHomeComponentPriceLabel({ saleMode, price, salePrice });
+  const formatComparePrice = (price?: number) =>
+    price ? getHomeComponentPriceLabel({ saleMode: 'cart', price }).label : '';
 
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
@@ -3472,18 +3475,24 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
       </div>
       <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name || 'Tên sản phẩm'}</h4>
       <div className="flex flex-col mt-auto">
-        {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-          <>
+        {(() => {
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          if (priceDisplay.comparePrice) {
+            return (
+              <>
+                <span className="font-bold text-sm" style={{ color: secondary }}>
+                  {priceDisplay.label}
+                </span>
+                <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+              </>
+            );
+          }
+          return (
             <span className="font-bold text-sm" style={{ color: secondary }}>
-              {formatPrice(product.salePrice)}
+              {priceDisplay.label}
             </span>
-            <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
-          </>
-        ) : (
-          <span className="font-bold text-sm" style={{ color: secondary }}>
-            {formatPrice(product.price)}
-          </span>
-        )}
+          );
+        })()}
       </div>
     </a>
   );
@@ -3652,7 +3661,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h4>
                           <span className="font-bold text-base" style={{ color: secondary }}>
-                            {formatPrice(product.salePrice ?? product.price)}
+                            {getPriceDisplay(product.price, product.salePrice).label}
                           </span>
                         </a>
                       ))}
@@ -3807,14 +3816,18 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
                             <h3 className="font-bold text-lg line-clamp-2 mb-1">{featured.name}</h3>
                             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                              {featured.salePrice && featured.salePrice < (featured.price ?? 0) ? (
-                                <>
-                                  <span className="font-bold text-lg">{formatPrice(featured.salePrice)}</span>
-                                  <span className="text-xs text-white/60 line-through">{formatPrice(featured.price)}</span>
-                                </>
-                              ) : (
-                                <span className="font-bold text-lg">{formatPrice(featured.price)}</span>
-                              )}
+                              {(() => {
+                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                                if (priceDisplay.comparePrice) {
+                                  return (
+                                    <>
+                                      <span className="font-bold text-lg">{priceDisplay.label}</span>
+                                      <span className="text-xs text-white/60 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                                    </>
+                                  );
+                                }
+                                return <span className="font-bold text-lg">{priceDisplay.label}</span>;
+                              })()}
                             </div>
                           </div>
                         </a>
@@ -3841,7 +3854,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                           <div className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform">
                             <h4 className="font-medium text-sm line-clamp-1">{product.name}</h4>
-                            <span className="font-bold text-sm">{formatPrice(product.salePrice ?? product.price)}</span>
+                            <span className="font-bold text-sm">{getPriceDisplay(product.price, product.salePrice).label}</span>
                           </div>
                         </a>
                       ))}
@@ -3930,14 +3943,18 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-3" />
                             <h3 className="font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featured.name}</h3>
                             <div className="flex items-baseline gap-3">
-                              {featured.salePrice && featured.salePrice < (featured.price ?? 0) ? (
-                                <>
-                                  <span className="font-bold text-2xl">{formatPrice(featured.salePrice)}</span>
-                                  <span className="text-sm text-white/60 line-through">{formatPrice(featured.price)}</span>
-                                </>
-                              ) : (
-                                <span className="font-bold text-2xl">{formatPrice(featured.price)}</span>
-                              )}
+                              {(() => {
+                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                                if (priceDisplay.comparePrice) {
+                                  return (
+                                    <>
+                                      <span className="font-bold text-2xl">{priceDisplay.label}</span>
+                                      <span className="text-sm text-white/60 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                                    </>
+                                  );
+                                }
+                                return <span className="font-bold text-2xl">{priceDisplay.label}</span>;
+                              })()}
                             </div>
                           </div>
                         </a>
@@ -3981,18 +3998,24 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             </div>
                             <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
                             <div className="flex items-baseline gap-2 mt-1">
-                              {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-                                <>
+                              {(() => {
+                                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                                if (priceDisplay.comparePrice) {
+                                  return (
+                                    <>
+                                      <span className="font-bold text-sm" style={{ color: secondary }}>
+                                        {priceDisplay.label}
+                                      </span>
+                                      <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                                    </>
+                                  );
+                                }
+                                return (
                                   <span className="font-bold text-sm" style={{ color: secondary }}>
-                                    {formatPrice(product.salePrice)}
+                                    {priceDisplay.label}
                                   </span>
-                                  <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
-                                </>
-                              ) : (
-                                <span className="font-bold text-sm" style={{ color: secondary }}>
-                                  {formatPrice(product.price)}
-                                </span>
-                              )}
+                                );
+                              })()}
                             </div>
                           </a>
                         ))}
@@ -4105,18 +4128,24 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                     <div className="space-y-1">
                       <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity">{product.name}</h4>
                       <div className="flex flex-col">
-                        {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-                          <>
+                        {(() => {
+                          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                          if (priceDisplay.comparePrice) {
+                            return (
+                              <>
+                                <span className="font-bold text-sm" style={{ color: secondary }}>
+                                  {priceDisplay.label}
+                                </span>
+                                <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                              </>
+                            );
+                          }
+                          return (
                             <span className="font-bold text-sm" style={{ color: secondary }}>
-                              {formatPrice(product.salePrice)}
+                              {priceDisplay.label}
                             </span>
-                            <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
-                          </>
-                        ) : (
-                          <span className="font-bold text-sm" style={{ color: secondary }}>
-                            {formatPrice(product.price)}
-                          </span>
-                        )}
+                          );
+                        })()}
                       </div>
                     </div>
                   </a>

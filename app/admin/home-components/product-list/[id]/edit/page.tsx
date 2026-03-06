@@ -12,6 +12,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '../../../_shared/lib/productPrice';
 import { ProductListForm } from '../../_components/ProductListForm';
 import { ProductListPreview } from '../../_components/ProductListPreview';
 import { DEFAULT_PRODUCT_LIST_CONFIG, DEFAULT_PRODUCT_LIST_TEXT } from '../../_lib/constants';
@@ -40,6 +41,8 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
   const filteredProducts = useMemo(() => {
     if (!productsData) {return [];}
@@ -313,14 +316,32 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
               id: product._id,
               image: product.image,
               name: product.name,
-              price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
+              ...(() => {
+                const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                const hasBasePrice = product.price != null || product.salePrice != null;
+                return {
+                  price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+                  originalPrice: priceDisplay.comparePrice
+                    ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+                    : undefined,
+                };
+              })(),
               }))
               : filteredProducts.slice(0, productListConfig.itemCount).map((product) => ({
               description: product.description,
               id: product._id,
               image: product.image,
               name: product.name,
-              price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
+              ...(() => {
+                const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                const hasBasePrice = product.price != null || product.salePrice != null;
+                return {
+                  price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+                  originalPrice: priceDisplay.comparePrice
+                    ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+                    : undefined,
+                };
+              })(),
               }))
               }
               subTitle={productSubTitle}

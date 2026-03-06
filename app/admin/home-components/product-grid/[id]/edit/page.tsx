@@ -12,6 +12,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '../../../_shared/lib/productPrice';
 import { ProductGridForm } from '../../_components/ProductGridForm';
 import type { ProductGridProductItem } from '../../_components/ProductGridForm';
 import { ProductGridPreview } from '../../_components/ProductGridPreview';
@@ -28,7 +29,9 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const updateMutation = useMutation(api.homeComponents.update);
+  const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
@@ -114,27 +117,41 @@ export default function ProductGridEditPage({ params }: { params: Promise<{ id: 
       }));
   }, [productsData, selectedProductIds]);
 
-  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((p) => ({
-    description: p.name,
-    id: p._id,
-    image: p.image ?? undefined,
-    name: p.name,
-    price: p.price ? `${p.price.toLocaleString('vi-VN')}đ` : undefined,
-  })), [selectedProducts]);
+  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((p) => {
+    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: p.price ?? undefined });
+    const hasBasePrice = p.price != null;
+    return {
+      description: p.name,
+      id: p._id,
+      image: p.image ?? undefined,
+      name: p.name,
+      price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+      originalPrice: priceDisplay.comparePrice
+        ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+        : undefined,
+    };
+  }), [selectedProducts, saleMode]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
     if (!productsData) {return [];}
     return productsData
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
-      .map(product => ({
-        description: product.name,
-        id: product._id,
-        image: product.image ?? undefined,
-        name: product.name,
-        price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
-      }));
-  }, [productsData, itemCount]);
+      .map(product => {
+        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price ?? undefined, salePrice: product.salePrice ?? undefined });
+        const hasBasePrice = product.price != null || product.salePrice != null;
+        return {
+          description: product.name,
+          id: product._id,
+          image: product.image ?? undefined,
+          name: product.name,
+          price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+          originalPrice: priceDisplay.comparePrice
+            ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+            : undefined,
+        };
+      });
+  }, [productsData, itemCount, saleMode]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
 

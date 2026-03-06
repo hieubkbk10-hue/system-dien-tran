@@ -9,6 +9,7 @@ import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lu
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
 import { BlogPreview } from '../../blog/_components/BlogPreview';
 import type { BlogPostItem } from '../../blog/_components/BlogForm';
 import { getBlogValidationResult } from '../../blog/_lib/colors';
@@ -69,6 +70,8 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const [postSearchTerm, setPostSearchTerm] = useState('');
 
   const productsData = useQuery(api.products.listAll, type === 'ProductList' ? { limit: 100 } : 'skip');
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, type === 'ProductList' ? { moduleKey: 'products', settingKey: 'saleMode' } : 'skip');
+  const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
   const servicesData = useQuery(api.services.listAll, type === 'ServiceList' ? { limit: 100 } : 'skip');
   const postsData = useQuery(api.posts.listAll, type === 'Blog' ? { limit: 100 } : 'skip');
   const postCategoriesData = useQuery(api.postCategories.listAll, type === 'Blog' ? { limit: 200 } : 'skip');
@@ -88,27 +91,41 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
       .filter((product): product is NonNullable<typeof product> => product !== undefined);
   }, [productsData, selectedProductIds]);
 
-  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((product) => ({
-    description: product.description,
-    id: product._id,
-    image: product.image,
-    name: product.name,
-    price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
-  })), [selectedProducts]);
+  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((product) => {
+    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+    const hasBasePrice = product.price != null || product.salePrice != null;
+    return {
+      description: product.description,
+      id: product._id,
+      image: product.image,
+      name: product.name,
+      price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+      originalPrice: priceDisplay.comparePrice
+        ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+        : undefined,
+    };
+  }), [selectedProducts, saleMode]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
     if (!productsData) {return [];}
     return productsData
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
-      .map(product => ({
-        description: product.description,
-        id: product._id,
-        image: product.image,
-        name: product.name,
-        price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
-      }));
-  }, [productsData, itemCount]);
+      .map(product => {
+        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+        const hasBasePrice = product.price != null || product.salePrice != null;
+        return {
+          description: product.description,
+          id: product._id,
+          image: product.image,
+          name: product.name,
+          price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+          originalPrice: priceDisplay.comparePrice
+            ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+            : undefined,
+        };
+      });
+  }, [productsData, itemCount, saleMode]);
 
   const filteredServices = useMemo(() => {
     if (!servicesData) {return [];}

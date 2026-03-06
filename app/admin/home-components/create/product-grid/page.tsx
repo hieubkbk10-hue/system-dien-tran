@@ -6,6 +6,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
 import type { ProductListPreviewItem } from '../../product-list/_types';
 import type { ProductGridProductItem } from '../../product-grid/_components/ProductGridForm';
 import { ProductGridForm } from '../../product-grid/_components/ProductGridForm';
@@ -28,6 +29,8 @@ function ProductGridCreateContent() {
   const [style, setStyle] = useState<ProductGridStyle>('commerce');
 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
   const filteredProducts = useMemo<ProductGridProductItem[]>(() => {
     if (!productsData) {return [];}
@@ -56,27 +59,41 @@ function ProductGridCreateContent() {
       }));
   }, [productsData, selectedProductIds]);
 
-  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((p) => ({
-    description: p.name,
-    id: p._id,
-    image: p.image ?? undefined,
-    name: p.name,
-    price: p.price ? `${p.price.toLocaleString('vi-VN')}đ` : undefined,
-  })), [selectedProducts]);
+  const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((p) => {
+    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: p.price ?? undefined });
+    const hasBasePrice = p.price != null;
+    return {
+      description: p.name,
+      id: p._id,
+      image: p.image ?? undefined,
+      name: p.name,
+      price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+      originalPrice: priceDisplay.comparePrice
+        ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+        : undefined,
+    };
+  }), [selectedProducts, saleMode]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
     if (!productsData) {return [];} 
     return productsData
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
-      .map(product => ({
-        description: product.name,
-        id: product._id,
-        image: product.image ?? undefined,
-        name: product.name,
-        price: product.price ? `${product.price.toLocaleString('vi-VN')}đ` : undefined,
-      }));
-  }, [productsData, itemCount]);
+      .map(product => {
+        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price ?? undefined, salePrice: product.salePrice ?? undefined });
+        const hasBasePrice = product.price != null || product.salePrice != null;
+        return {
+          description: product.name,
+          id: product._id,
+          image: product.image ?? undefined,
+          name: product.name,
+          price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+          originalPrice: priceDisplay.comparePrice
+            ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+            : undefined,
+        };
+      });
+  }, [productsData, itemCount, saleMode]);
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, {

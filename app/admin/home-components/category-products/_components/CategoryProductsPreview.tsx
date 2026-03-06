@@ -1,5 +1,7 @@
 import React from 'react';
 import { ArrowRight, Package } from 'lucide-react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
@@ -8,6 +10,7 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { CATEGORY_PRODUCTS_STYLES } from '../_lib/constants';
 import { getCategoryProductsColors } from '../_lib/colors';
+import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
 import type {
   CategoryProductsBrandMode,
   CategoryProductsConfig,
@@ -44,6 +47,8 @@ export const CategoryProductsPreview = ({
     () => getCategoryProductsColors(_brandColor, secondary, mode),
     [_brandColor, secondary, mode]
   );
+  const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
   // Resolve sections with category and products data
   const resolvedSections = config.sections
@@ -83,10 +88,8 @@ export const CategoryProductsPreview = ({
     }
   };
 
-  const formatPrice = (price?: number) => {
-    if (!price) {return '0đ';}
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
-  };
+  const getPriceDisplay = (price?: number, salePrice?: number) =>
+    getHomeComponentPriceLabel({ saleMode, price, salePrice });
 
   // Get info for PreviewWrapper based on style with image size recommendations
   const getPreviewInfo = () => {
@@ -168,18 +171,26 @@ export const CategoryProductsPreview = ({
         {product.name || 'Tên sản phẩm'}
       </h4>
       <div className="flex flex-col mt-auto">
-        {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-          <>
+        {(() => {
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          if (priceDisplay.comparePrice) {
+            return (
+              <>
+                <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: colors.priceText }}>
+                  {priceDisplay.label}
+                </span>
+                <span className="text-[10px] text-slate-400 line-through">
+                  {getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                </span>
+              </>
+            );
+          }
+          return (
             <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: colors.priceText }}>
-              {formatPrice(product.salePrice)}
+              {priceDisplay.label}
             </span>
-            <span className="text-[10px] text-slate-400 line-through">{formatPrice(product.price)}</span>
-          </>
-        ) : (
-          <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')} style={{ color: colors.priceText }}>
-            {formatPrice(product.price)}
-          </span>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
@@ -295,7 +306,7 @@ export const CategoryProductsPreview = ({
                           device === 'mobile' ? 'text-xs' : 'text-sm'
                         )}>{product.name}</h4>
                         <span className={cn('font-bold', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: colors.buttonText }}>
-                          {formatPrice(product.salePrice ?? product.price)}
+                          {getPriceDisplay(product.price, product.salePrice).label}
                         </span>
                       </div>
                     ))}
@@ -457,14 +468,20 @@ export const CategoryProductsPreview = ({
                           </span>
                           <h3 className="font-bold text-base line-clamp-2 mb-1">{featured.name}</h3>
                           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                            {featured.salePrice && featured.salePrice < (featured.price ?? 0) ? (
-                              <>
-                                <span className="font-bold text-base">{formatPrice(featured.salePrice)}</span>
-                                <span className="text-xs text-white/60 line-through">{formatPrice(featured.price)}</span>
-                              </>
-                            ) : (
-                              <span className="font-bold text-base">{formatPrice(featured.price)}</span>
-                            )}
+                            {(() => {
+                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                              if (priceDisplay.comparePrice) {
+                                return (
+                                  <>
+                                    <span className="font-bold text-base">{priceDisplay.label}</span>
+                                    <span className="text-xs text-white/60 line-through">
+                                      {getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                                    </span>
+                                  </>
+                                );
+                              }
+                              return <span className="font-bold text-base">{priceDisplay.label}</span>;
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -485,7 +502,7 @@ export const CategoryProductsPreview = ({
                         )}
                         <div className="absolute inset-x-0 bottom-0 p-3 text-white bg-black/55">
                           <h4 className="font-medium text-xs line-clamp-1">{product.name}</h4>
-                          <span className="font-bold text-xs">{formatPrice(product.salePrice ?? product.price)}</span>
+                          <span className="font-bold text-xs">{getPriceDisplay(product.price, product.salePrice).label}</span>
                         </div>
                       </div>
                     ))}
@@ -578,14 +595,20 @@ export const CategoryProductsPreview = ({
                           </span>
                           <h3 className="font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featured.name}</h3>
                           <div className="flex items-baseline gap-3">
-                            {featured.salePrice && featured.salePrice < (featured.price ?? 0) ? (
-                              <>
-                                <span className="font-bold text-2xl">{formatPrice(featured.salePrice)}</span>
-                                <span className="text-sm text-white/60 line-through">{formatPrice(featured.price)}</span>
-                              </>
-                            ) : (
-                              <span className="font-bold text-2xl">{formatPrice(featured.price)}</span>
-                            )}
+                            {(() => {
+                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                              if (priceDisplay.comparePrice) {
+                                return (
+                                  <>
+                                    <span className="font-bold text-2xl">{priceDisplay.label}</span>
+                                    <span className="text-sm text-white/60 line-through">
+                                      {getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                                    </span>
+                                  </>
+                                );
+                              }
+                              return <span className="font-bold text-2xl">{priceDisplay.label}</span>;
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -622,18 +645,26 @@ export const CategoryProductsPreview = ({
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
                           <div className="flex items-baseline gap-2 mt-1">
-                            {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-                              <>
-                                <span className="font-bold text-sm" style={{ color: colors.buttonText }}>
-                                  {formatPrice(product.salePrice)}
+                            {(() => {
+                              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                              if (priceDisplay.comparePrice) {
+                                return (
+                                  <>
+                                    <span className={cn('font-bold', 'text-sm')}>
+                                      {priceDisplay.label}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 line-through">
+                                      {getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                                    </span>
+                                  </>
+                                );
+                              }
+                              return (
+                                <span className={cn('font-bold', 'text-sm')}>
+                                  {priceDisplay.label}
                                 </span>
-                                <span className="text-xs text-slate-400 line-through">{formatPrice(product.price)}</span>
-                              </>
-                            ) : (
-                              <span className="font-bold text-sm" style={{ color: colors.buttonText }}>
-                                {formatPrice(product.price)}
-                              </span>
-                            )}
+                              );
+                            })()}
                           </div>
                         </div>
                       ))}
@@ -742,18 +773,26 @@ export const CategoryProductsPreview = ({
                             {product.name}
                           </h4>
                           <div className="flex flex-col mt-1">
-                            {product.salePrice && product.salePrice < (product.price ?? 0) ? (
-                              <>
+                            {(() => {
+                              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                              if (priceDisplay.comparePrice) {
+                                return (
+                                  <>
+                                    <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')}>
+                                      {priceDisplay.label}
+                                    </span>
+                                    <span className="text-[10px] text-white/70 line-through">
+                                      {getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
+                                    </span>
+                                  </>
+                                );
+                              }
+                              return (
                                 <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')}>
-                                  {formatPrice(product.salePrice)}
+                                  {priceDisplay.label}
                                 </span>
-                                <span className="text-[10px] text-white/70 line-through">{formatPrice(product.price)}</span>
-                              </>
-                            ) : (
-                              <span className={cn('font-bold', device === 'mobile' ? 'text-xs' : 'text-sm')}>
-                                {formatPrice(product.price)}
-                              </span>
-                            )}
+                              );
+                            })()}
                           </div>
                         </div>
 
