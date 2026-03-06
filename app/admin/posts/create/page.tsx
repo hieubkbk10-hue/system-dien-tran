@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUploader } from '../../components/ImageUploader';
-import { useFormShortcuts } from '../../components/useKeyboardShortcuts';
 import { QuickCreateCategoryModal } from '../../components/QuickCreateCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
 
@@ -46,23 +45,6 @@ export default function PostCreatePage() {
       }
     }
   }, [settingsData]);
-
-  // FIX LOW-002: Keyboard shortcuts
-  const handleSaveShortcut = useCallback(() => {
-    const form = document.querySelector('form');
-    if (form && title.trim() && categoryId) {
-      form.requestSubmit();
-    }
-  }, [title, categoryId]);
-
-  const handleCancelShortcut = useCallback(() => {
-    router.push('/admin/posts');
-  }, [router]);
-
-  useFormShortcuts({
-    onCancel: handleCancelShortcut,
-    onSave: handleSaveShortcut,
-  });
 
   // Check which fields are enabled
   const enabledFields = useMemo(() => {
@@ -277,16 +259,11 @@ export default function PostCreatePage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/posts'); }} title="Hủy (Esc)">Hủy bỏ</Button>
-        <div className="flex gap-2">
-          <span className="text-xs text-slate-400 self-center hidden sm:block">Ctrl+S để lưu</span>
-          <Button type="button" variant="secondary" onClick={() => { setStatus('Draft'); }}>Lưu nháp</Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting} title="Lưu (Ctrl+S)">
-            {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-            Đăng bài
-          </Button>
-        </div>
+      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end items-center z-10">
+        <Button type="submit" variant="accent" disabled={isSubmitting || !title.trim() || !categoryId}>
+          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+          Đăng bài
+        </Button>
       </div>
     </form>
     </>

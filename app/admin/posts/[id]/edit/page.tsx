@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
-import { useFormShortcuts } from '../../../components/useKeyboardShortcuts';
 import { QuickCreateCategoryModal } from '../../../components/QuickCreateCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
 
@@ -37,23 +36,18 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-
-  // Keyboard shortcuts
-  const handleSaveShortcut = useCallback(() => {
-    const form = document.querySelector('form');
-    if (form && title.trim()) {
-      form.requestSubmit();
-    }
-  }, [title]);
-
-  const handleCancelShortcut = useCallback(() => {
-    router.push('/admin/posts');
-  }, [router]);
-
-  useFormShortcuts({
-    onCancel: handleCancelShortcut,
-    onSave: handleSaveShortcut,
-  });
+  const initialSnapshotRef = useRef<{
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    metaTitle: string;
+    metaDescription: string;
+    thumbnail: string;
+    categoryId: string;
+    authorName: string;
+    status: 'Draft' | 'Published' | 'Archived';
+  } | null>(null);
 
   // Check which fields are enabled
   const enabledFields = useMemo(() => {
@@ -61,6 +55,26 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
+
+  const currentSnapshot = useMemo(() => ({
+    authorName: authorName.trim(),
+    categoryId,
+    content,
+    excerpt: excerpt.trim(),
+    metaDescription: metaDescription.trim(),
+    metaTitle: metaTitle.trim(),
+    slug: slug.trim(),
+    status,
+    thumbnail: thumbnail ?? '',
+    title: title.trim(),
+  }), [authorName, categoryId, content, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
+
+  const hasChanges = useMemo(() => {
+    if (!initialSnapshotRef.current) {return false;}
+    const initialSnapshot = initialSnapshotRef.current;
+    return (Object.keys(initialSnapshot) as Array<keyof typeof initialSnapshot>)
+      .some((key) => initialSnapshot[key] !== currentSnapshot[key]);
+  }, [currentSnapshot]);
 
   useEffect(() => {
     if (postData) {
@@ -74,6 +88,18 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       setCategoryId(postData.categoryId);
       setAuthorName(postData.authorName ?? '');
       setStatus(postData.status);
+      initialSnapshotRef.current = {
+        authorName: (postData.authorName ?? '').trim(),
+        categoryId: postData.categoryId,
+        content: postData.content,
+        excerpt: (postData.excerpt ?? '').trim(),
+        metaDescription: (postData.metaDescription ?? '').trim(),
+        metaTitle: (postData.metaTitle ?? '').trim(),
+        slug: postData.slug.trim(),
+        status: postData.status,
+        thumbnail: postData.thumbnail ?? '',
+        title: postData.title.trim(),
+      };
     }
   }, [postData]);
 
@@ -105,6 +131,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         thumbnail,
         title: title.trim(),
       });
+      initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật bài viết thành công");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể cập nhật bài viết");
@@ -297,16 +324,11 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/posts'); }} title="Hủy (Esc)">Hủy bỏ</Button>
-        <div className="flex gap-2">
-          <span className="text-xs text-slate-400 self-center hidden sm:block">Ctrl+S để lưu</span>
-          <Button type="button" variant="secondary" onClick={() =>{  setStatus('Draft'); }}>Lưu nháp</Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting} title="Lưu (Ctrl+S)">
-            {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-            Cập nhật
-          </Button>
-        </div>
+      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end items-center z-10">
+        <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+          {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Cập nhật' : 'Đã lưu')}
+        </Button>
       </div>
     </form>
     </>
