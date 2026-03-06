@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
@@ -66,6 +66,34 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     customContent?: string;
     expiresAt?: number;
   }>({});
+  const initialSnapshotRef = useRef<{
+    affiliateLink: string;
+    categoryId: string;
+    description: string;
+    digitalCredentialsTemplate: {
+      username?: string;
+      password?: string;
+      licenseKey?: string;
+      downloadUrl?: string;
+      customContent?: string;
+      expiresAt?: number;
+    };
+    digitalDeliveryType: 'account' | 'license' | 'download' | 'custom';
+    galleryImages: string[];
+    hasVariants: boolean;
+    image: string;
+    metaDescription: string;
+    metaTitle: string;
+    name: string;
+    price: string;
+    productType: 'physical' | 'digital';
+    salePrice: string;
+    selectedOptionIds: Id<'productOptions'>[];
+    sku: string;
+    slug: string;
+    status: 'Draft' | 'Active' | 'Archived';
+    stock: string;
+  } | null>(null);
 
   const enabledFields = useMemo(() => {
     const fields = new Set<string>();
@@ -105,6 +133,53 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const showProductTypeSelector = productTypeMode === 'both';
   const hideBasePricing = variantEnabled && variantPricing === 'variant';
 
+  const currentSnapshot = useMemo(() => ({
+    affiliateLink: affiliateLink.trim(),
+    categoryId,
+    description: description.trim(),
+    digitalCredentialsTemplate: digitalCredentialsTemplate ?? {},
+    digitalDeliveryType,
+    galleryImages: galleryItems.map(item => item.url).filter(Boolean),
+    hasVariants,
+    image: image ?? '',
+    metaDescription: metaDescription.trim(),
+    metaTitle: metaTitle.trim(),
+    name: name.trim(),
+    price: price.trim(),
+    productType,
+    salePrice: salePrice.trim(),
+    selectedOptionIds: [...selectedOptionIds].sort(),
+    sku: sku.trim(),
+    slug: slug.trim(),
+    status,
+    stock: stock.trim(),
+  }), [
+    affiliateLink,
+    categoryId,
+    description,
+    digitalCredentialsTemplate,
+    digitalDeliveryType,
+    galleryItems,
+    hasVariants,
+    image,
+    metaDescription,
+    metaTitle,
+    name,
+    price,
+    productType,
+    salePrice,
+    selectedOptionIds,
+    sku,
+    slug,
+    status,
+    stock,
+  ]);
+
+  const hasChanges = useMemo(() => {
+    if (!initialSnapshotRef.current) {return false;}
+    return JSON.stringify(initialSnapshotRef.current) !== JSON.stringify(currentSnapshot);
+  }, [currentSnapshot]);
+
   useEffect(() => {
     if (productData && !isDataLoaded) {
       setName(productData.name);
@@ -126,6 +201,27 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       setProductType(productData.productType ?? 'physical');
       setDigitalDeliveryType(productData.digitalDeliveryType ?? 'account');
       setDigitalCredentialsTemplate(productData.digitalCredentialsTemplate ?? {});
+      initialSnapshotRef.current = {
+        affiliateLink: ((productData as { affiliateLink?: string }).affiliateLink ?? '').trim(),
+        categoryId: productData.categoryId,
+        description: (productData.description ?? '').trim(),
+        digitalCredentialsTemplate: productData.digitalCredentialsTemplate ?? {},
+        digitalDeliveryType: productData.digitalDeliveryType ?? 'account',
+        galleryImages: (productData.images ?? []).filter(Boolean),
+        hasVariants: productData.hasVariants ?? false,
+        image: productData.image ?? '',
+        metaDescription: (productData.metaDescription ?? '').trim(),
+        metaTitle: (productData.metaTitle ?? '').trim(),
+        name: productData.name.trim(),
+        price: productData.price.toString(),
+        productType: productData.productType ?? 'physical',
+        salePrice: productData.salePrice?.toString() ?? '',
+        selectedOptionIds: [...(productData.optionIds ?? [])].sort(),
+        sku: productData.sku.trim(),
+        slug: productData.slug.trim(),
+        status: productData.status,
+        stock: productData.stock.toString(),
+      };
       setIsDataLoaded(true);
     }
   }, [productData, isDataLoaded]);
@@ -230,6 +326,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           ? digitalCredentialsTemplate
           : undefined,
       });
+      initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật sản phẩm thành công");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể cập nhật sản phẩm");
@@ -625,9 +722,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
         <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/products'); }}>Hủy bỏ</Button>
-        <Button type="submit" variant="accent" disabled={isSubmitting}>
+        <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
           {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          Lưu thay đổi
+          {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
         </Button>
       </div>
     </form>
