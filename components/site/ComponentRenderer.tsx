@@ -25,7 +25,6 @@ import {
   getIconsColors,
   getMinimalColors,
 } from '@/app/admin/home-components/stats/_lib/colors';
-import { getCategoryProductsColors } from '@/app/admin/home-components/category-products/_lib/colors';
 import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
 import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
@@ -3416,10 +3415,6 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
-  const colors = React.useMemo(
-    () => getCategoryProductsColors(brandColor, secondary, 'single'),
-    [brandColor, secondary]
-  );
 
   // Resolve sections with category and products data
   const resolvedSections = sections
@@ -3465,7 +3460,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
     <a href={`/products/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
+      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${secondary}08` }}>
         {product.image ? (
           <SiteImage 
             src={product.image} 
@@ -3474,18 +3469,18 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package size={24} style={{ color: colors.emptyStateIcon }} />
+            <Package size={24} style={{ color: `${secondary}40` }} />
           </div>
         )}
       </div>
-      <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name || 'Tên sản phẩm'}</h4>
+      <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name || 'Tên sản phẩm'}</h4>
       <div className="flex flex-col mt-auto">
         {(() => {
           const priceDisplay = getPriceDisplay(product.price, product.salePrice);
           if (priceDisplay.comparePrice) {
             return (
               <>
-                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+                <span className="font-bold text-sm" style={{ color: secondary }}>
                   {priceDisplay.label}
                 </span>
                 <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
@@ -3493,7 +3488,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             );
           }
           return (
-            <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+            <span className="font-bold text-sm" style={{ color: secondary }}>
               {priceDisplay.label}
             </span>
           );
@@ -3506,15 +3501,15 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   const EmptyProductsState = ({ message }: { message: string }) => (
     <div 
       className="text-center py-8 rounded-xl flex flex-col items-center justify-center"
-      style={{ backgroundColor: colors.emptyStateBackground }}
+      style={{ backgroundColor: `${secondary}05` }}
     >
       <div 
         className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-        style={{ backgroundColor: colors.emptyStateIconBackground }}
+        style={{ backgroundColor: `${secondary}10` }}
       >
-        <Package size={24} style={{ color: colors.emptyStateIcon }} />
+        <Package size={24} style={{ color: `${secondary}50` }} />
       </div>
-      <p className="text-sm" style={{ color: colors.emptyStateText }}>{message}</p>
+      <p className="text-sm text-slate-500">{message}</p>
     </div>
   );
 
@@ -3530,12 +3525,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
           <section key={idx} className="px-4">
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
+                <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
                 {showViewAll && (
                   <a 
                     href={`/products?category=${section.category.slug ?? section.category._id}`}
                     className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg border transition-colors"
-                    style={{ borderColor: colors.buttonBorder, color: colors.buttonText }}
+                    style={{ borderColor: `${secondary}30`, color: secondary }}
                   >
                     Xem danh mục
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3576,7 +3571,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <section key={idx}>
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between px-4 mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
+                  <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
                   <div className="flex items-center gap-2 md:gap-4">
                     {showArrows && (
                       <div className="flex gap-2">
@@ -3587,9 +3582,9 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: colors.buttonBorder }}
+                          style={{ borderColor: `${secondary}20` }}
                         >
-                          <ChevronLeft size={18} style={{ color: colors.buttonText }} />
+                          <ChevronLeft size={18} style={{ color: secondary }} />
                         </button>
                         <button
                           type="button"
@@ -3598,9 +3593,9 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: colors.buttonBorder }}
+                          style={{ borderColor: `${secondary}20` }}
                         >
-                          <ChevronRight size={18} style={{ color: colors.buttonText }} />
+                          <ChevronRight size={18} style={{ color: secondary }} />
                         </button>
                       </div>
                     )}
@@ -3608,7 +3603,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       <a
                         href={`/products?category=${section.category.slug ?? section.category._id}`}
                         className="text-sm font-medium flex items-center gap-1 hover:underline"
-                        style={{ color: colors.buttonText }}
+                        style={{ color: secondary }}
                       >
                         Xem danh mục
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3650,7 +3645,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           className="snap-start flex-shrink-0 w-40 md:w-48 group cursor-pointer"
                           draggable={false}
                         >
-                          <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
+                          <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 mb-2">
                             {product.image ? (
                               <SiteImage
                                 src={product.image}
@@ -3660,12 +3655,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Package size={24} style={{ color: colors.emptyStateIcon }} />
+                                <Package size={24} className="text-slate-300" />
                               </div>
                             )}
                           </div>
-                          <h4 className="font-medium text-sm line-clamp-2 mb-1" style={{ color: colors.bodyText }}>{product.name}</h4>
-                          <span className="font-bold text-base" style={{ color: colors.priceText }}>
+                          <h4 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h4>
+                          <span className="font-bold text-base" style={{ color: secondary }}>
                             {getPriceDisplay(product.price, product.salePrice).label}
                           </span>
                         </a>
@@ -3699,12 +3694,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <div className="max-w-7xl mx-auto">
               <div 
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${colors.cardBorder}` }}
+                style={{ border: `1px solid ${secondary}20` }}
               >
                 {/* Category Header */}
                 <div 
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: colors.neutralBackground }}
+                  style={{ backgroundColor: `${secondary}08` }}
                 >
                   <div className="flex items-center gap-3">
                     {section.category.image && (
@@ -3716,13 +3711,13 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         />
                       </div>
                     )}
-                    <h2 className="text-lg font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
+                    <h2 className="text-lg font-bold">{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                      style={{ backgroundColor: `${secondary}15`, color: secondary }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3733,7 +3728,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                 </div>
                 
                 {/* Products Grid */}
-                <div className="p-4" style={{ backgroundColor: colors.cardBackground }}>
+                <div className="p-4 bg-white">
                   {section.products.length > 0 ? (
                     <div className={`grid gap-4 ${getMobileGridCols()} ${getGridCols()}`}>
                       {section.products.map((product) => (
@@ -3768,15 +3763,15 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-1 h-8 rounded-full"
-                      style={{ backgroundColor: colors.sectionAccent }}
+                      style={{ backgroundColor: secondary }}
                     />
-                    <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
+                    <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full transition-all hover:shadow-md"
-                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                      style={{ backgroundColor: `${secondary}10`, color: secondary }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3803,8 +3798,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {featured && (
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
-                          className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden bg-slate-100"
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -3814,7 +3808,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={48} style={{ color: colors.emptyStateIcon }} />
+                              <Package size={48} className="text-slate-300" />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -3844,8 +3838,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         <a 
                           key={product._id}
                           href={`/products/${product.slug ?? product._id}`}
-                          className="group cursor-pointer relative rounded-xl overflow-hidden"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-100"
                         >
                           {product.image ? (
                             <SiteImage 
@@ -3855,7 +3848,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={24} style={{ color: colors.emptyStateIcon }} />
+                              <Package size={24} className="text-slate-300" />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -3888,21 +3881,21 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <section key={sectionIdx} className="px-4">
               <div className="max-w-7xl mx-auto">
                 {/* Editorial Header */}
-                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: colors.neutralBorder }}>
+                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${secondary}20` }}>
                   <div>
                     <span 
                       className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: colors.buttonText }}
+                      style={{ color: secondary }}
                     >
                       Bộ sưu tập
                     </span>
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mt-1" style={{ color: colors.heading }}>{section.category.name}</h2>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mt-1">{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="font-semibold flex items-center gap-2 transition-all hover:gap-3"
-                      style={{ color: colors.buttonText }}
+                      style={{ color: secondary }}
                     >
                       Xem tất cả
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3930,7 +3923,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
                           className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          style={{ backgroundColor: `${secondary}08` }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -3940,7 +3933,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={48} style={{ color: colors.emptyStateIcon }} />
+                              <Package size={48} style={{ color: `${secondary}30` }} />
                             </div>
                           )}
                           {/* Gradient overlay */}
@@ -3977,7 +3970,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           >
                             <div 
                               className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                            style={{ backgroundColor: colors.imageBackground }}
+                              style={{ backgroundColor: `${secondary}08` }}
                             >
                               {product.image ? (
                                 <SiteImage 
@@ -3987,29 +3980,30 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                <Package size={24} style={{ color: colors.emptyStateIcon }} />
+                                  <Package size={24} style={{ color: `${secondary}30` }} />
                                 </div>
                               )}
                               {/* Quick view overlay */}
                               <div 
-                              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ backgroundColor: `${secondary}20` }}
                               >
                                 <span 
-                                className="px-4 py-2 rounded-full text-sm font-medium"
-                                style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                                  className="px-4 py-2 rounded-full text-sm font-medium text-white"
+                                  style={{ backgroundColor: secondary }}
                                 >
                                   Xem nhanh
                                 </span>
                               </div>
                             </div>
-                          <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name}</h4>
+                            <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
                             <div className="flex items-baseline gap-2 mt-1">
                               {(() => {
                                 const priceDisplay = getPriceDisplay(product.price, product.salePrice);
                                 if (priceDisplay.comparePrice) {
                                   return (
                                     <>
-                                    <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+                                      <span className="font-bold text-sm" style={{ color: secondary }}>
                                         {priceDisplay.label}
                                       </span>
                                       <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
@@ -4017,7 +4011,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                                   );
                                 }
                                 return (
-                                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+                                  <span className="font-bold text-sm" style={{ color: secondary }}>
                                     {priceDisplay.label}
                                   </span>
                                 );
@@ -4048,26 +4042,26 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
               <div>
                 <span 
                   className="text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: colors.buttonText }}
+                  style={{ color: secondary }}
                 >
                   Bộ sưu tập
                 </span>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1" style={{ color: colors.heading }}>{section.category.name}</h2>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1">{section.category.name}</h2>
                 <div 
                   className="h-1 w-16 rounded-full mt-2"
-                    style={{ background: `linear-gradient(to right, ${colors.sectionAccent}, ${colors.sectionAccent}40)` }}
+                  style={{ background: `linear-gradient(to right, ${secondary}, ${secondary}40)` }}
                 />
               </div>
               {showViewAll && (
                 <a 
                   href={`/products?category=${section.category.slug ?? section.category._id}`}
                   className="group flex items-center gap-2 text-sm font-medium transition-colors"
-                    style={{ color: colors.buttonText }}
+                  style={{ color: secondary }}
                 >
                   Xem tất cả 
                   <span 
                     className="w-8 h-8 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform"
-                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}` }}
+                    style={{ backgroundColor: `${secondary}15` }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -4093,7 +4087,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       <div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                         style={{ 
-                          background: `linear-gradient(135deg, ${colors.sectionAccent}20 0%, transparent 50%, ${colors.sectionAccent}10 100%)` 
+                          background: `linear-gradient(135deg, ${secondary}20 0%, transparent 50%, ${secondary}10 100%)` 
                         }}
                       />
                       
@@ -4104,8 +4098,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.imageBackground }}>
-                          <Package size={32} style={{ color: colors.emptyStateIcon }} />
+                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                          <Package size={32} className="text-slate-300" />
                         </div>
                       )}
                       
@@ -4115,8 +4109,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {/* Quick action button */}
                       <div className="absolute bottom-3 left-3 right-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-30">
                         <span 
-                          className="block w-full py-2.5 rounded-xl text-sm font-medium text-center backdrop-blur-sm"
-                          style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
+                          className="block w-full py-2.5 rounded-xl text-sm font-medium text-white text-center backdrop-blur-sm"
+                          style={{ backgroundColor: `${secondary}dd` }}
                         >
                           Xem chi tiết
                         </span>
@@ -4132,14 +4126,14 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                     
                     {/* Product info */}
                     <div className="space-y-1">
-                      <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity" style={{ color: colors.bodyText }}>{product.name}</h4>
+                      <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity">{product.name}</h4>
                       <div className="flex flex-col">
                         {(() => {
                           const priceDisplay = getPriceDisplay(product.price, product.salePrice);
                           if (priceDisplay.comparePrice) {
                             return (
                               <>
-                                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+                                <span className="font-bold text-sm" style={{ color: secondary }}>
                                   {priceDisplay.label}
                                 </span>
                                 <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
@@ -4147,7 +4141,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             );
                           }
                           return (
-                            <span className="font-bold text-sm" style={{ color: colors.priceText }}>
+                            <span className="font-bold text-sm" style={{ color: secondary }}>
                               {priceDisplay.label}
                             </span>
                           );
