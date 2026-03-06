@@ -345,7 +345,16 @@ export const listPublishedWithOffset = query({
     let services: Doc<"services">[] = [];
     const fetchLimit = offset + limit + 10;
 
-    if (args.categoryId) {
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase().trim();
+      const searchQuery = ctx.db
+        .query("services")
+        .withSearchIndex("search_title", (q) => {
+          const builder = q.search("title", searchLower).eq("status", "Published");
+          return args.categoryId ? builder.eq("categoryId", args.categoryId) : builder;
+        });
+      services = await searchQuery.take(fetchLimit);
+    } else if (args.categoryId) {
       services = await ctx.db
         .query("services")
         .withIndex("by_category_status", (q) =>
@@ -364,14 +373,6 @@ export const listPublishedWithOffset = query({
         .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
         .order(sortBy === "oldest" ? "asc" : "desc")
         .take(fetchLimit);
-    }
-
-    if (args.search && args.search.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      services = services.filter(s =>
-        s.title.toLowerCase().includes(searchLower) ||
-        (s.excerpt?.toLowerCase().includes(searchLower))
-      );
     }
 
     switch (sortBy) {

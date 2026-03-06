@@ -444,7 +444,16 @@ export const listPublishedWithOffset = query({
     // Fetch more than needed to handle offset (Convex doesn't have native offset)
     const fetchLimit = offset + limit + 10;
     
-    if (args.categoryId) {
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase().trim();
+      const searchQuery = ctx.db
+        .query("posts")
+        .withSearchIndex("search_title", (q) => {
+          const builder = q.search("title", searchLower).eq("status", "Published");
+          return args.categoryId ? builder.eq("categoryId", args.categoryId) : builder;
+        });
+      posts = await searchQuery.take(fetchLimit);
+    } else if (args.categoryId) {
       posts = await ctx.db
         .query("posts")
         .withIndex("by_category_status", (q) => 
@@ -463,15 +472,6 @@ export const listPublishedWithOffset = query({
         .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
         .order(sortBy === "oldest" ? "asc" : "desc")
         .take(fetchLimit);
-    }
-    
-    // Client-side text search filter
-    if (args.search && args.search.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      posts = posts.filter(post => 
-        post.title.toLowerCase().includes(searchLower) ||
-        (post.excerpt?.toLowerCase().includes(searchLower))
-      );
     }
     
     // Sort by title if needed
