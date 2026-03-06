@@ -1,5 +1,6 @@
 import { query } from './_generated/server';
 import { v } from 'convex/values';
+import { rankByFuzzyMatches } from './lib/search';
 
 const suggestionItem = v.object({
   id: v.string(),
@@ -15,16 +16,6 @@ const searchResult = v.object({
   services: v.array(suggestionItem),
 });
 
-const normalizeText = (value: string) => value
-  .toLowerCase()
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .replace(/đ/g, 'd');
-
-const filterByQuery = <T>(items: T[], query: string, getText: (item: T) => string) => {
-  const normalizedQuery = normalizeText(query);
-  return items.filter(item => normalizeText(getText(item)).includes(normalizedQuery));
-};
 
 export const autocomplete = query({
   args: {
@@ -60,28 +51,22 @@ export const autocomplete = query({
     const collectMatches = <T extends { _id: string }>(
       initial: T[],
       fallback: T[],
-      getTitle: (item: T) => string,
+      getSearchTexts: (item: T) => string[],
     ) => {
-      const result: T[] = [];
+      const merged: T[] = [];
       const seen = new Set<string>();
-      const pushItem = (item: T) => {
+
+      for (const item of [...initial, ...fallback]) {
         if (seen.has(item._id)) {
-          return;
+          continue;
         }
         seen.add(item._id);
-        result.push(item);
-      };
-
-      filterByQuery(initial, searchLower, getTitle).forEach(pushItem);
-      if (result.length < limit) {
-        filterByQuery(fallback, searchLower, getTitle).forEach((item) => {
-          if (result.length >= limit) {
-            return;
-          }
-          pushItem(item);
-        });
+        merged.push(item);
       }
-      return result.slice(0, limit);
+
+      return rankByFuzzyMatches(merged, rawQuery, getSearchTexts, 42)
+        .slice(0, limit)
+        .map((entry) => entry.item);
     };
 
     const [posts, products, services] = await Promise.all([
@@ -96,7 +81,7 @@ export const autocomplete = query({
             .withIndex('by_status_publishedAt', q => q.eq('status', 'Published'))
             .order('desc')
             .take(200);
-          return collectMatches(primary, fallback, (item) => item.title);
+          return collectMatches(primary, fallback, (item) => [item.title ?? '', item.excerpt ?? '']);
         })()
         : Promise.resolve([]),
       args.searchProducts
@@ -110,7 +95,7 @@ export const autocomplete = query({
             .withIndex('by_status_order', q => q.eq('status', 'Active'))
             .order('desc')
             .take(200);
-          return collectMatches(primary, fallback, (item) => item.name);
+          return collectMatches(primary, fallback, (item) => [item.name ?? '', item.sku ?? '']);
         })()
         : Promise.resolve([]),
       args.searchServices
@@ -124,7 +109,7 @@ export const autocomplete = query({
             .withIndex('by_status_publishedAt', q => q.eq('status', 'Published'))
             .order('desc')
             .take(200);
-          return collectMatches(primary, fallback, (item) => item.title);
+          return collectMatches(primary, fallback, (item) => [item.title ?? '', item.excerpt ?? '']);
         })()
         : Promise.resolve([]),
     ]);

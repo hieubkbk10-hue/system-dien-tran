@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { contentStatus } from "./lib/validators";
+import { rankByFuzzyMatches } from "./lib/search";
 import * as ServicesModel from "./model/services";
 import type { Doc } from "./_generated/dataModel";
 
@@ -375,24 +376,36 @@ export const listPublishedWithOffset = query({
         .take(fetchLimit);
     }
 
-    switch (sortBy) {
-      case "oldest":
-        services.sort((a, b) => (a.publishedAt ?? 0) - (b.publishedAt ?? 0));
-        break;
-      case "popular":
-        services.sort((a, b) => b.views - a.views);
-        break;
-      case "title":
-        services.sort((a, b) => a.title.localeCompare(b.title, 'vi'));
-        break;
-      case "price_asc":
-        services.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-        break;
-      case "price_desc":
-        services.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-        break;
-      default:
-        services.sort((a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0));
+    if (args.search?.trim() && services.length > 0) {
+      const ranked = rankByFuzzyMatches(
+        services,
+        args.search,
+        (s) => [s.title ?? "", s.excerpt ?? ""],
+        42,
+      );
+      services = ranked.map((entry) => entry.item);
+    }
+
+    if (!args.search?.trim()) {
+      switch (sortBy) {
+        case "oldest":
+          services.sort((a, b) => (a.publishedAt ?? 0) - (b.publishedAt ?? 0));
+          break;
+        case "popular":
+          services.sort((a, b) => b.views - a.views);
+          break;
+        case "title":
+          services.sort((a, b) => a.title.localeCompare(b.title, 'vi'));
+          break;
+        case "price_asc":
+          services.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+          break;
+        case "price_desc":
+          services.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+          break;
+        default:
+          services.sort((a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0));
+      }
     }
 
     return services.slice(offset, offset + limit);

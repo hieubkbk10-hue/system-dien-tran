@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { contentStatus } from "./lib/validators";
+import { rankByFuzzyMatches } from "./lib/search";
 import * as PostsModel from "./model/posts";
 import type { Doc } from "./_generated/dataModel";
 
@@ -474,8 +475,15 @@ export const listPublishedWithOffset = query({
         .take(fetchLimit);
     }
     
-    // Sort by title if needed
-    if (sortBy === "title") {
+    if (args.search?.trim() && posts.length > 0) {
+      const ranked = rankByFuzzyMatches(
+        posts,
+        args.search,
+        (post) => [post.title ?? "", post.excerpt ?? ""],
+        42,
+      );
+      posts = ranked.map((entry) => entry.item);
+    } else if (sortBy === "title") {
       posts.sort((a, b) => a.title.localeCompare(b.title, 'vi'));
     } else if (args.categoryId) {
       // Re-sort if filtered by category

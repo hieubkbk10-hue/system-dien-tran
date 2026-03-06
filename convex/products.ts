@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { productStatus } from "./lib/validators";
+import { rankByFuzzyMatches } from "./lib/search";
 import type { Doc, Id } from "./_generated/dataModel";
 
 const productDoc = v.object({
@@ -688,42 +689,45 @@ export const listPublishedWithOffset = query({
         .take(fetchLimit);
     }
 
-    if (args.search && args.search.trim() && products.length > 0) {
-      const searchLower = args.search.toLowerCase().trim();
-      products = products.filter((p) => {
-        const name = p.name?.toLowerCase() ?? '';
-        const sku = p.sku?.toLowerCase() ?? '';
-        return name.includes(searchLower) || sku.includes(searchLower);
-      });
+    if (args.search?.trim() && products.length > 0) {
+      const ranked = rankByFuzzyMatches(
+        products,
+        args.search,
+        (p) => [p.name ?? "", p.sku ?? ""],
+        42,
+      );
+      products = ranked.map((entry) => entry.item);
     }
 
     const settings = await getVariantSettings(ctx);
     products = await resolveVariantOverrides(ctx, products, settings);
 
-    switch (sortBy) {
-      case "newest": {
-        products.sort((a, b) => b._creationTime - a._creationTime);
-        break;
-      }
-      case "oldest": {
-        products.sort((a, b) => a._creationTime - b._creationTime);
-        break;
-      }
-      case "popular": {
-        products.sort((a, b) => b.sales - a.sales);
-        break;
-      }
-      case "price_asc": {
-        products.sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
-        break;
-      }
-      case "price_desc": {
-        products.sort((a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
-        break;
-      }
-      case "name": {
-        products.sort((a, b) => a.name.localeCompare(b.name));
-        break;
+    if (!args.search?.trim()) {
+      switch (sortBy) {
+        case "newest": {
+          products.sort((a, b) => b._creationTime - a._creationTime);
+          break;
+        }
+        case "oldest": {
+          products.sort((a, b) => a._creationTime - b._creationTime);
+          break;
+        }
+        case "popular": {
+          products.sort((a, b) => b.sales - a.sales);
+          break;
+        }
+        case "price_asc": {
+          products.sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
+          break;
+        }
+        case "price_desc": {
+          products.sort((a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
+          break;
+        }
+        case "name": {
+          products.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        }
       }
     }
 
