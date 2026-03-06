@@ -176,7 +176,6 @@ function PostsContent() {
   const urlPage = Number(searchParams.get('page')) || 1;
   
   // Filter states (client-side for search)
-  const [selectedCategory, setSelectedCategory] = useState<Id<"postCategories"> | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -207,7 +206,7 @@ function PostsContent() {
     return matchedCategory?._id ?? null;
   }, [searchParams, categories]);
 
-  const activeCategory = selectedCategory ?? categoryFromUrl;
+  const activeCategory = categoryFromUrl;
   
   // Map sortBy to the limited options supported by listPublishedPaginated
   const paginatedSortBy = sortBy === 'popular' ? 'popular' : (sortBy === 'oldest' ? 'oldest' : 'newest');
@@ -294,10 +293,8 @@ function PostsContent() {
 
   // Handlers
   const handleCategoryChange = useCallback((categoryId: Id<"postCategories"> | null) => {
-    setSelectedCategory(categoryId);
-    
-    // Update URL query param
     const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
     if (categoryId && categories) {
       const category = categories.find(c => c._id === categoryId);
       if (category) {
@@ -341,6 +338,17 @@ function PostsContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams, pathname, router]);
+
+  useEffect(() => {
+    const catSlug = searchParams.get('catpost');
+    if (!catSlug || !categories) {return;}
+    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (hasMatch) {return;}
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('catpost');
+    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [categories, pathname, router, searchParams]);
   
   // Reset page to 1 when search/filter/page size changes
   useEffect(() => {
@@ -383,7 +391,7 @@ function PostsContent() {
               <div className="mb-5">
                 <PostsFilter
                   categories={categories}
-                  selectedCategory={selectedCategory}
+                  selectedCategory={activeCategory}
                   onCategoryChange={handleCategoryChange}
                   searchQuery={searchQuery}
                   onSearchChange={handleSearchChange}
@@ -422,7 +430,7 @@ function PostsContent() {
               tokens={tokens}
               categoryMap={categoryMap}
               categories={categories}
-              selectedCategory={selectedCategory}
+              selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -445,7 +453,7 @@ function PostsContent() {
               tokens={tokens}
               categoryMap={categoryMap}
               categories={categories}
-              selectedCategory={selectedCategory}
+              selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
