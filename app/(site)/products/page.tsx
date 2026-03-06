@@ -199,7 +199,6 @@ function ProductsContent() {
 
   const urlPage = Number(searchParams.get('page')) || 1;
 
-  const [selectedCategory, setSelectedCategory] = useState<Id<"productCategories"> | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProductSortOption>('newest');
   const [showFilters, setShowFilters] = useState(false);
@@ -229,7 +228,7 @@ function ProductsContent() {
     return matchedCategory?._id ?? null;
   }, [searchParams, categories]);
 
-  const activeCategory = selectedCategory ?? categoryFromUrl;
+  const activeCategory = categoryFromUrl;
 
   const paginatedSortBy = sortBy === 'popular' ? 'popular' : (sortBy === 'oldest' ? 'oldest' : 'newest');
 
@@ -316,8 +315,8 @@ function ProductsContent() {
   }, [useCursorPagination, infiniteStatus, infiniteResults.length, requiredCount, loadMore]);
 
   const handleCategoryChange = useCallback((categoryId: Id<"productCategories"> | null) => {
-    setSelectedCategory(categoryId);
     const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
     if (categoryId && categories) {
       const category = categories.find(c => c._id === categoryId);
       if (category) {
@@ -348,6 +347,17 @@ function ProductsContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams, pathname, router]);
+
+  useEffect(() => {
+    const catSlug = searchParams.get('category');
+    if (!catSlug || !categories) {return;}
+    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (hasMatch) {return;}
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('category');
+    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [categories, pathname, router, searchParams]);
 
 
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
@@ -644,7 +654,7 @@ function ProductsContent() {
           products={isLoadingProducts ? [] : products}
           categories={categories}
           categoryMap={categoryMap}
-          selectedCategory={selectedCategory}
+          selectedCategory={activeCategory}
           onCategoryChange={handleCategoryChange}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -680,7 +690,7 @@ function ProductsContent() {
           products={isLoadingProducts ? [] : products}
           categories={categories}
           categoryMap={categoryMap}
-          selectedCategory={selectedCategory}
+          selectedCategory={activeCategory}
           onCategoryChange={handleCategoryChange}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -755,7 +765,7 @@ function ProductsContent() {
             <div className="hidden lg:flex items-center gap-2">
               <div className="relative">
                 <select
-                  value={selectedCategory ?? ''}
+                  value={activeCategory ?? ''}
                   onChange={(e) =>{  handleCategoryChange(e.target.value ? e.target.value as Id<"productCategories"> : null); }}
                   className="h-10 w-[220px] pl-3 pr-8 rounded-lg border text-sm outline-none appearance-none truncate"
                   style={{
@@ -812,7 +822,7 @@ function ProductsContent() {
                 <button
                   onClick={() =>{  handleCategoryChange(null); }}
                   className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                  style={selectedCategory === null
+                  style={activeCategory === null
                     ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
                     : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
                   }
@@ -824,7 +834,7 @@ function ProductsContent() {
                     key={cat._id}
                     onClick={() =>{  handleCategoryChange(cat._id); }}
                     className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                    style={selectedCategory === cat._id
+                    style={activeCategory === cat._id
                       ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
                       : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
                     }

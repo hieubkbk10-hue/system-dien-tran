@@ -156,7 +156,6 @@ function ServicesContent() {
 
   const urlPage = Number(searchParams.get('page')) || 1;
   
-  const [selectedCategory, setSelectedCategory] = useState<Id<"serviceCategories"> | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ServiceSortOption>('newest');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -185,7 +184,7 @@ function ServicesContent() {
     return matchedCategory?._id ?? null;
   }, [searchParams, categories]);
 
-  const activeCategory = selectedCategory ?? categoryFromUrl;
+  const activeCategory = categoryFromUrl;
 
   const paginatedSortBy = sortBy === 'popular' ? 'popular' : (sortBy === 'oldest' ? 'oldest' : 'newest');
 
@@ -261,9 +260,8 @@ function ServicesContent() {
 
   // Handlers
   const handleCategoryChange = useCallback((categoryId: Id<"serviceCategories"> | null) => {
-    setSelectedCategory(categoryId);
-    
     const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
     if (categoryId && categories) {
       const category = categories.find(c => c._id === categoryId);
       if (category) {
@@ -304,6 +302,17 @@ function ServicesContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams, pathname, router]);
 
+  useEffect(() => {
+    const catSlug = searchParams.get('category');
+    if (!catSlug || !categories) {return;}
+    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (hasMatch) {return;}
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('category');
+    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [categories, pathname, router, searchParams]);
+
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
   const prevFilterKeyRef = useRef(filterKey);
 
@@ -343,7 +352,7 @@ function ServicesContent() {
             <div className="mb-8">
               <ServicesFilter
                 categories={categories ?? []}
-                selectedCategory={selectedCategory}
+                selectedCategory={activeCategory}
                 onCategoryChange={handleCategoryChange}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
@@ -377,7 +386,7 @@ function ServicesContent() {
               tokens={tokens}
               categoryMap={categoryMap}
               categories={categories ?? []}
-              selectedCategory={selectedCategory}
+              selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
@@ -399,7 +408,7 @@ function ServicesContent() {
               tokens={tokens}
               categoryMap={categoryMap}
               categories={categories ?? []}
-              selectedCategory={selectedCategory}
+              selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
               onSearchChange={handleSearchChange}
