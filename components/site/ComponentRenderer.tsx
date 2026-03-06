@@ -25,6 +25,7 @@ import {
   getIconsColors,
   getMinimalColors,
 } from '@/app/admin/home-components/stats/_lib/colors';
+import { getCategoryProductsColors } from '@/app/admin/home-components/category-products/_lib/colors';
 import { getProductCategoriesColors } from '@/app/admin/home-components/product-categories/_lib/colors';
 import { getCTAColors } from '@/app/admin/home-components/cta/_lib/colors';
 import { CTASectionShared } from '@/app/admin/home-components/cta/_components/CTASectionShared';
@@ -210,7 +211,15 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
       return <ProductCategoriesSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
     }
     case 'CategoryProducts': {
-      return <CategoryProductsSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} title={title} />;
+      return (
+        <CategoryProductsSection
+          config={config}
+          brandColor={resolvedColors.primary}
+          secondary={resolvedColors.secondary}
+          mode={resolvedColors.mode}
+          title={title}
+        />
+      );
     }
     case 'Team': {
       return <TeamSectionRuntime config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} title={title} />;
@@ -3400,8 +3409,19 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
 // Sản phẩm theo danh mục - Mỗi section là 1 danh mục với các sản phẩm thuộc danh mục đó
 type CategoryProductsStyle = 'grid' | 'carousel' | 'cards' | 'bento' | 'magazine' | 'showcase';
 
-function CategoryProductsSection({ config, brandColor, secondary, title: _title }: { config: Record<string, unknown>; brandColor: string;
-  secondary: string; title: string }) {
+function CategoryProductsSection({
+  config,
+  brandColor,
+  secondary,
+  mode,
+  title: _title,
+}: {
+  config: Record<string, unknown>;
+  brandColor: string;
+  secondary: string;
+  mode: 'single' | 'dual';
+  title: string;
+}) {
   const sections = (config.sections as { categoryId: string; itemCount: number }[]) || [];
   const style = (config.style as CategoryProductsStyle) || 'grid';
   const catProductCarouselBaseId = useSafeId('catproduct-carousel');
@@ -3409,6 +3429,10 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   const columnsDesktop = (config.columnsDesktop as number) || 4;
   const columnsMobile = (config.columnsMobile as number) || 2;
   const sectionTitle = _title || 'Sản phẩm';
+  const colors = React.useMemo(
+    () => getCategoryProductsColors(brandColor, secondary, mode),
+    [brandColor, secondary, mode]
+  );
 
   // Query categories and products
   const categoriesData = useQuery(api.productCategories.listActive);
@@ -3460,7 +3484,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
     <a href={`/products/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: `${secondary}08` }}>
+      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
         {product.image ? (
           <SiteImage 
             src={product.image} 
@@ -3469,26 +3493,26 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package size={24} style={{ color: `${secondary}40` }} />
+            <Package size={24} style={{ color: colors.emptyStateIcon }} />
           </div>
         )}
       </div>
-      <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name || 'Tên sản phẩm'}</h4>
+      <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name || 'Tên sản phẩm'}</h4>
       <div className="flex flex-col mt-auto">
         {(() => {
           const priceDisplay = getPriceDisplay(product.price, product.salePrice);
           if (priceDisplay.comparePrice) {
             return (
               <>
-                <span className="font-bold text-sm" style={{ color: secondary }}>
+                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
                   {priceDisplay.label}
                 </span>
-                <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                <span className="text-xs line-through" style={{ color: colors.mutedText }}>{formatComparePrice(priceDisplay.comparePrice)}</span>
               </>
             );
           }
           return (
-            <span className="font-bold text-sm" style={{ color: secondary }}>
+            <span className="font-bold text-sm" style={{ color: colors.priceText }}>
               {priceDisplay.label}
             </span>
           );
@@ -3501,15 +3525,15 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
   const EmptyProductsState = ({ message }: { message: string }) => (
     <div 
       className="text-center py-8 rounded-xl flex flex-col items-center justify-center"
-      style={{ backgroundColor: `${secondary}05` }}
+      style={{ backgroundColor: colors.emptyStateBackground }}
     >
       <div 
         className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-        style={{ backgroundColor: `${secondary}10` }}
+        style={{ backgroundColor: colors.emptyStateIconBackground }}
       >
-        <Package size={24} style={{ color: `${secondary}50` }} />
+        <Package size={24} style={{ color: colors.emptyStateIcon }} />
       </div>
-      <p className="text-sm text-slate-500">{message}</p>
+      <p className="text-sm" style={{ color: colors.emptyStateText }}>{message}</p>
     </div>
   );
 
@@ -3525,12 +3549,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
           <section key={idx} className="px-4">
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
+                <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
                 {showViewAll && (
                   <a 
                     href={`/products?category=${section.category.slug ?? section.category._id}`}
                     className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg border transition-colors"
-                    style={{ borderColor: `${secondary}30`, color: secondary }}
+                    style={{ borderColor: colors.buttonBorder, color: colors.buttonText }}
                   >
                     Xem danh mục
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3571,7 +3595,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <section key={idx}>
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between px-4 mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
+                <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
                   <div className="flex items-center gap-2 md:gap-4">
                     {showArrows && (
                       <div className="flex gap-2">
@@ -3582,9 +3606,9 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             if (container) {container.scrollBy({ behavior: 'smooth', left: -(cardWidth + gap) });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: `${secondary}20` }}
+                          style={{ borderColor: colors.buttonBorder, backgroundColor: colors.buttonBackground }}
                         >
-                          <ChevronLeft size={18} style={{ color: secondary }} />
+                          <ChevronLeft size={18} style={{ color: colors.buttonText }} />
                         </button>
                         <button
                           type="button"
@@ -3593,9 +3617,9 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             if (container) {container.scrollBy({ behavior: 'smooth', left: cardWidth + gap });}
                           }}
                           className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md border flex items-center justify-center hover:scale-110 transition-transform"
-                          style={{ borderColor: `${secondary}20` }}
+                          style={{ borderColor: colors.buttonBorder, backgroundColor: colors.buttonBackground }}
                         >
-                          <ChevronRight size={18} style={{ color: secondary }} />
+                          <ChevronRight size={18} style={{ color: colors.buttonText }} />
                         </button>
                       </div>
                     )}
@@ -3603,7 +3627,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       <a
                         href={`/products?category=${section.category.slug ?? section.category._id}`}
                         className="text-sm font-medium flex items-center gap-1 hover:underline"
-                        style={{ color: secondary }}
+                        style={{ color: colors.buttonText }}
                       >
                         Xem danh mục
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3645,7 +3669,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           className="snap-start flex-shrink-0 w-40 md:w-48 group cursor-pointer"
                           draggable={false}
                         >
-                          <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 mb-2">
+                          <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
                             {product.image ? (
                               <SiteImage
                                 src={product.image}
@@ -3655,12 +3679,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Package size={24} className="text-slate-300" />
+                                <Package size={24} style={{ color: colors.emptyStateIcon }} />
                               </div>
                             )}
                           </div>
-                          <h4 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h4>
-                          <span className="font-bold text-base" style={{ color: secondary }}>
+                          <h4 className="font-medium text-sm line-clamp-2 mb-1" style={{ color: colors.bodyText }}>{product.name}</h4>
+                          <span className="font-bold text-base" style={{ color: colors.priceText }}>
                             {getPriceDisplay(product.price, product.salePrice).label}
                           </span>
                         </a>
@@ -3668,8 +3692,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       <div className="flex-shrink-0 w-4" />
                     </div>
                     {/* Fade edges */}
-                    <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
+                    <div className="absolute left-0 top-0 bottom-0 w-4 md:w-6 pointer-events-none" style={{ background: `linear-gradient(to right, ${colors.neutralSurface}, transparent)` }} />
+                    <div className="absolute right-0 top-0 bottom-0 w-4 md:w-6 pointer-events-none" style={{ background: `linear-gradient(to left, ${colors.neutralSurface}, transparent)` }} />
                     <style>{`#${catProductCarouselId}::-webkit-scrollbar { display: none; }`}</style>
                   </div>
                 ) : (
@@ -3694,12 +3718,12 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <div className="max-w-7xl mx-auto">
               <div 
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${secondary}20` }}
+                style={{ border: `1px solid ${colors.cardBorder}` }}
               >
                 {/* Category Header */}
                 <div 
                   className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: `${secondary}08` }}
+                  style={{ backgroundColor: colors.neutralBackground }}
                 >
                   <div className="flex items-center gap-3">
                     {section.category.image && (
@@ -3711,13 +3735,13 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         />
                       </div>
                     )}
-                    <h2 className="text-lg font-bold">{section.category.name}</h2>
+                    <h2 className="text-lg font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1 hover:underline px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ backgroundColor: `${secondary}15`, color: secondary }}
+                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3728,7 +3752,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                 </div>
                 
                 {/* Products Grid */}
-                <div className="p-4 bg-white">
+                <div className="p-4" style={{ backgroundColor: colors.cardBackground }}>
                   {section.products.length > 0 ? (
                     <div className={`grid gap-4 ${getMobileGridCols()} ${getGridCols()}`}>
                       {section.products.map((product) => (
@@ -3763,15 +3787,15 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-1 h-8 rounded-full"
-                      style={{ backgroundColor: secondary }}
+                      style={{ backgroundColor: colors.sectionAccent }}
                     />
-                    <h2 className="text-xl md:text-2xl font-bold">{section.category.name}</h2>
+                    <h2 className="text-xl md:text-2xl font-bold" style={{ color: colors.heading }}>{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="text-sm font-medium flex items-center gap-1.5 px-4 py-2 rounded-full transition-all hover:shadow-md"
-                      style={{ backgroundColor: `${secondary}10`, color: secondary }}
+                      style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                     >
                       Xem danh mục
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3798,7 +3822,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {featured && (
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
-                          className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden bg-slate-100"
+                          className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden"
+                          style={{ backgroundColor: colors.imageBackground }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -3808,12 +3833,17 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={48} className="text-slate-300" />
+                              <Package size={48} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                            <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-2" />
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mb-2"
+                              style={{ backgroundColor: colors.featuredBadgeBackground, color: colors.featuredBadgeText }}
+                            >
+                              Nổi bật
+                            </span>
                             <h3 className="font-bold text-lg line-clamp-2 mb-1">{featured.name}</h3>
                             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
                               {(() => {
@@ -3838,7 +3868,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         <a 
                           key={product._id}
                           href={`/products/${product.slug ?? product._id}`}
-                          className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-100"
+                          className="group cursor-pointer relative rounded-xl overflow-hidden"
+                          style={{ backgroundColor: colors.imageBackground }}
                         >
                           {product.image ? (
                             <SiteImage 
@@ -3848,7 +3879,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={24} className="text-slate-300" />
+                              <Package size={24} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -3881,21 +3912,21 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
             <section key={sectionIdx} className="px-4">
               <div className="max-w-7xl mx-auto">
                 {/* Editorial Header */}
-                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: `${secondary}20` }}>
+                <div className="flex items-end justify-between mb-6 pb-4 border-b-2" style={{ borderColor: colors.neutralBorder }}>
                   <div>
                     <span 
                       className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: secondary }}
+                      style={{ color: colors.pillText }}
                     >
                       Bộ sưu tập
                     </span>
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mt-1">{section.category.name}</h2>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mt-1" style={{ color: colors.heading }}>{section.category.name}</h2>
                   </div>
                   {showViewAll && (
                     <a 
                       href={`/products?category=${section.category.slug ?? section.category._id}`}
                       className="font-semibold flex items-center gap-2 transition-all hover:gap-3"
-                      style={{ color: secondary }}
+                      style={{ color: colors.buttonText }}
                     >
                       Xem tất cả
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3923,7 +3954,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
                           className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]"
-                          style={{ backgroundColor: `${secondary}08` }}
+                          style={{ backgroundColor: colors.imageBackground }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -3933,14 +3964,19 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Package size={48} style={{ color: `${secondary}30` }} />
+                              <Package size={48} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
                           {/* Gradient overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                           {/* Content */}
                           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                            <BrandBadge text="Nổi bật" variant="solid" brandColor={brandColor} secondary={secondary} className="mb-3" />
+                            <span
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3"
+                              style={{ backgroundColor: colors.featuredBadgeBackground, color: colors.featuredBadgeText }}
+                            >
+                              Nổi bật
+                            </span>
                             <h3 className="font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featured.name}</h3>
                             <div className="flex items-baseline gap-3">
                               {(() => {
@@ -3970,7 +4006,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           >
                             <div 
                               className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                              style={{ backgroundColor: `${secondary}08` }}
+                            style={{ backgroundColor: colors.imageBackground }}
                             >
                               {product.image ? (
                                 <SiteImage 
@@ -3980,38 +4016,38 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Package size={24} style={{ color: `${secondary}30` }} />
+                                <Package size={24} style={{ color: colors.emptyStateIcon }} />
                                 </div>
                               )}
                               {/* Quick view overlay */}
                               <div 
                                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ backgroundColor: `${secondary}20` }}
+                              style={{ backgroundColor: colors.neutralSurface }}
                               >
                                 <span 
-                                  className="px-4 py-2 rounded-full text-sm font-medium text-white"
-                                  style={{ backgroundColor: secondary }}
+                                className="px-4 py-2 rounded-full text-sm font-medium"
+                                style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                                 >
                                   Xem nhanh
                                 </span>
                               </div>
                             </div>
-                            <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
+                          <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name}</h4>
                             <div className="flex items-baseline gap-2 mt-1">
                               {(() => {
                                 const priceDisplay = getPriceDisplay(product.price, product.salePrice);
                                 if (priceDisplay.comparePrice) {
                                   return (
                                     <>
-                                      <span className="font-bold text-sm" style={{ color: secondary }}>
+                                    <span className="font-bold text-sm" style={{ color: colors.priceText }}>
                                         {priceDisplay.label}
                                       </span>
-                                      <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                                    <span className="text-xs line-through" style={{ color: colors.mutedText }}>{formatComparePrice(priceDisplay.comparePrice)}</span>
                                     </>
                                   );
                                 }
                                 return (
-                                  <span className="font-bold text-sm" style={{ color: secondary }}>
+                                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
                                     {priceDisplay.label}
                                   </span>
                                 );
@@ -4042,26 +4078,26 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
               <div>
                 <span 
                   className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: secondary }}
+                      style={{ color: colors.pillText }}
                 >
                   Bộ sưu tập
                 </span>
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1">{section.category.name}</h2>
+                    <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mt-1" style={{ color: colors.heading }}>{section.category.name}</h2>
                 <div 
                   className="h-1 w-16 rounded-full mt-2"
-                  style={{ background: `linear-gradient(to right, ${secondary}, ${secondary}40)` }}
+                      style={{ backgroundColor: colors.sectionAccent }}
                 />
               </div>
               {showViewAll && (
                 <a 
                   href={`/products?category=${section.category.slug ?? section.category._id}`}
                   className="group flex items-center gap-2 text-sm font-medium transition-colors"
-                  style={{ color: secondary }}
+                      style={{ color: colors.buttonText }}
                 >
                   Xem tất cả 
                   <span 
                     className="w-8 h-8 rounded-full flex items-center justify-center group-hover:translate-x-1 transition-transform"
-                    style={{ backgroundColor: `${secondary}15` }}
+                        style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}` }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -4086,9 +4122,7 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {/* Background gradient on hover */}
                       <div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${secondary}20 0%, transparent 50%, ${secondary}10 100%)` 
-                        }}
+                        style={{ background: `linear-gradient(135deg, ${colors.neutralBorder} 0%, transparent 50%, ${colors.neutralBackground} 100%)` }}
                       />
                       
                       {product.image ? (
@@ -4098,8 +4132,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                       ) : (
-                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                          <Package size={32} className="text-slate-300" />
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: colors.imageBackground }}>
+                          <Package size={32} style={{ color: colors.emptyStateIcon }} />
                         </div>
                       )}
                       
@@ -4109,8 +4143,8 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                       {/* Quick action button */}
                       <div className="absolute bottom-3 left-3 right-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-30">
                         <span 
-                          className="block w-full py-2.5 rounded-xl text-sm font-medium text-white text-center backdrop-blur-sm"
-                          style={{ backgroundColor: `${secondary}dd` }}
+                          className="block w-full py-2.5 rounded-xl text-sm font-medium text-center backdrop-blur-sm"
+                          style={{ backgroundColor: colors.buttonBackground, border: `1px solid ${colors.buttonBorder}`, color: colors.buttonText }}
                         >
                           Xem chi tiết
                         </span>
@@ -4126,22 +4160,22 @@ function CategoryProductsSection({ config, brandColor, secondary, title: _title 
                     
                     {/* Product info */}
                     <div className="space-y-1">
-                      <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity">{product.name}</h4>
+                      <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity" style={{ color: colors.bodyText }}>{product.name}</h4>
                       <div className="flex flex-col">
                         {(() => {
                           const priceDisplay = getPriceDisplay(product.price, product.salePrice);
                           if (priceDisplay.comparePrice) {
                             return (
                               <>
-                                <span className="font-bold text-sm" style={{ color: secondary }}>
+                                <span className="font-bold text-sm" style={{ color: colors.priceText }}>
                                   {priceDisplay.label}
                                 </span>
-                                <span className="text-xs text-slate-400 line-through">{formatComparePrice(priceDisplay.comparePrice)}</span>
+                                <span className="text-xs line-through" style={{ color: colors.mutedText }}>{formatComparePrice(priceDisplay.comparePrice)}</span>
                               </>
                             );
                           }
                           return (
-                            <span className="font-bold text-sm" style={{ color: secondary }}>
+                            <span className="font-bold text-sm" style={{ color: colors.priceText }}>
                               {priceDisplay.label}
                             </span>
                           );
