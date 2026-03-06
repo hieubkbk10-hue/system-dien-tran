@@ -29,7 +29,7 @@ const levenshteinDistance = (a: string, b: string, maxDistance = 2) => {
   }
 
   const prev = Array.from({ length: bLen + 1 }, (_, i) => i);
-  const curr = new Array<number>(bLen + 1);
+  const curr = Array.from({ length: bLen + 1 }, () => 0);
 
   for (let i = 1; i <= aLen; i += 1) {
     curr[0] = i;
