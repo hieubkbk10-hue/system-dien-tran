@@ -44,7 +44,6 @@ const DEFAULT_CONFIG: HeaderMenuConfig = {
     hotline: '1900 1234',
     show: true,
     showTrackOrder: true,
-    useSettingsData: false,
     sloganEnabled: true,
     slogan: '',
   },
@@ -323,10 +322,11 @@ export default function HeaderMenuExperiencePage() {
       if (!productsEnabled && !postsEnabled && !servicesEnabled) {
         configToSave.search = { ...configToSave.search, show: false };
       }
+      const { email: _email, hotline: _hotline, useSettingsData: _useSettingsData, ...topbarNext } = configToSave.topbar as HeaderMenuConfig['topbar'] & { useSettingsData?: boolean };
       await setMultipleSettings({
         settings: [
           { group: 'site', key: 'header_style', value: previewStyle },
-          { group: 'site', key: 'header_config', value: configToSave },
+          { group: 'site', key: 'header_config', value: { ...configToSave, topbar: topbarNext } },
         ],
       });
       toast.success('Đã lưu cấu hình Header Menu');
@@ -454,28 +454,20 @@ export default function HeaderMenuExperiencePage() {
           </ControlCard>
           <ControlCard title="Topbar & Search">
             <div className="space-y-2">
-              <ToggleRow
-                label="Dùng settings liên hệ"
-                checked={config.topbar.useSettingsData}
-                onChange={(v) => updateTopbar('useSettingsData', v)}
-                accentColor={resolvedBrandColor}
-              />
               <div className="space-y-1">
                 <Label className="text-xs">Hotline</Label>
                 <Input
-                  value={config.topbar.hotline}
-                  onChange={(e) => updateTopbar('hotline', e.target.value)}
+                  value={settingsPhone ?? ''}
                   className="h-8 text-sm"
-                  disabled={config.topbar.useSettingsData}
+                  disabled
                 />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Email</Label>
                 <Input
-                  value={config.topbar.email}
-                  onChange={(e) => updateTopbar('email', e.target.value)}
+                  value={settingsEmail ?? ''}
                   className="h-8 text-sm"
-                  disabled={config.topbar.useSettingsData}
+                  disabled
                 />
               </div>
               <ToggleRow

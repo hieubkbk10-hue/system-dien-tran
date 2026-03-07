@@ -36,7 +36,6 @@ interface TopbarConfig {
   hotline?: string;
   email?: string;
   showTrackOrder?: boolean;
-  useSettingsData?: boolean;
   slogan?: string;
   sloganEnabled?: boolean;
 }
@@ -82,7 +81,6 @@ const DEFAULT_CONFIG: HeaderConfig = {
     hotline: '1900 1234',
     show: true,
     showTrackOrder: true,
-    useSettingsData: false,
     sloganEnabled: true,
     slogan: '',
   },
@@ -136,21 +134,16 @@ export function Header() {
     login: { ...DEFAULT_CONFIG.login, ...savedConfig.login },
   };
   
-  // Get contact settings when useSettingsData is enabled
   const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
   const settingsEmail = contactSettings?.find(s => s.key === 'contact_email')?.value as string | undefined;
   
-  // Merge topbar data with settings if useSettingsData is enabled
   const topbarConfig = useMemo(() => {
     const base = config.topbar ?? {};
-    if (base.useSettingsData) {
-      return {
-        ...base,
-        hotline: settingsPhone ?? base.hotline,
-        email: settingsEmail ?? base.email,
-      };
-    }
-    return base;
+    return {
+      ...base,
+      hotline: settingsPhone ?? '',
+      email: settingsEmail ?? '',
+    };
   }, [config.topbar, settingsPhone, settingsEmail]);
 
   const canLogin = (customersModule?.enabled ?? false) && (customerLoginFeature?.enabled ?? false);

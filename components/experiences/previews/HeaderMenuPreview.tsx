@@ -25,7 +25,6 @@ export type HeaderMenuConfig = {
     hotline: string;
     show: boolean;
     showTrackOrder: boolean;
-    useSettingsData: boolean;
     slogan?: string;
     sloganEnabled?: boolean;
   };
@@ -230,16 +229,11 @@ export function HeaderMenuPreview({
     return () => resizeObserver.disconnect();
   }, [rootItems.length, logoSizeLevel, showBrandName, layoutStyle, config.cta.show, config.cart.show, config.wishlist.show]);
 
-  const displayTopbar = useMemo(() => {
-    if (config.topbar.useSettingsData) {
-      return {
-        ...config.topbar,
-        hotline: settingsPhone || config.topbar.hotline,
-        email: settingsEmail || config.topbar.email,
-      };
-    }
-    return config.topbar;
-  }, [config.topbar, settingsEmail, settingsPhone]);
+  const displayTopbar = useMemo(() => ({
+    ...config.topbar,
+    hotline: settingsPhone || config.topbar.hotline,
+    email: settingsEmail || config.topbar.email,
+  }), [config.topbar, settingsEmail, settingsPhone]);
 
   const canLogin = customersEnabled && loginFeatureEnabled;
   const showLogin = config.login.show && canLogin;
