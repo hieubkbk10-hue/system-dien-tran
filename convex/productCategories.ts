@@ -106,6 +106,33 @@ export const listActive = query({
   returns: v.array(categoryDoc),
 });
 
+export const listNonEmptyCategoryIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const categories = await ctx.db
+      .query("productCategories")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+
+    if (categories.length === 0) {
+      return [];
+    }
+
+    const results = await Promise.all(
+      categories.map(async (category) => {
+        const preview = await ctx.db
+          .query("products")
+          .withIndex("by_category_status", (q) => q.eq("categoryId", category._id).eq("status", "Active"))
+          .take(1);
+        return preview.length > 0 ? category._id : null;
+      })
+    );
+
+    return results.filter((id): id is Id<"productCategories"> => id !== null);
+  },
+  returns: v.array(v.id("productCategories")),
+});
+
 export const listByParent = query({
   args: { parentId: v.optional(v.id("productCategories")) },
   handler: async (ctx, args) => {

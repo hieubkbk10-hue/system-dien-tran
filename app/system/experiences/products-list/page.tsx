@@ -43,6 +43,7 @@ type ProductsListExperienceConfig = {
   showBuyNowButton: boolean;
   showPromotionBadge: boolean;
   enableQuickAddVariant: boolean;
+  hideEmptyCategories: boolean;
 };
 
 type LayoutConfig = {
@@ -79,6 +80,7 @@ const DEFAULT_CONFIG: ProductsListExperienceConfig = {
   showBuyNowButton: true,
   showPromotionBadge: true,
   enableQuickAddVariant: true,
+  hideEmptyCategories: true,
 };
 
 const HINTS = [
@@ -131,6 +133,7 @@ export default function ProductsListExperiencePage() {
       showBuyNowButton?: boolean;
       showPromotionBadge?: boolean;
       enableQuickAddVariant?: boolean;
+      hideEmptyCategories?: boolean;
     } | undefined;
     
     const normalizePaginationType = (value?: string | boolean): PaginationType => {
@@ -162,6 +165,7 @@ export default function ProductsListExperiencePage() {
       showBuyNowButton: raw?.showBuyNowButton ?? true,
       showPromotionBadge: raw?.showPromotionBadge ?? true,
       enableQuickAddVariant: raw?.enableQuickAddVariant ?? true,
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
     };
   }, [experienceSetting?.value]);
 
@@ -293,6 +297,13 @@ export default function ProductsListExperiencePage() {
               onChange={(v) => updateLayoutConfig('showCategories', v)}
               accentColor={brandColor}
               disabled={!canUseProducts}
+            />
+            <ToggleRow
+              label="Ẩn danh mục rỗng"
+              description="Ngoài public chỉ hiện danh mục có sản phẩm"
+              checked={config.hideEmptyCategories}
+              onChange={(v) => setConfig(prev => ({ ...prev, hideEmptyCategories: v }))}
+              accentColor={brandColor}
             />
           </ControlCard>
 

@@ -38,6 +38,7 @@ type ServicesListExperienceConfig = {
     sidebar: LayoutConfig;
     masonry: LayoutConfig;
   };
+  hideEmptyCategories: boolean;
 };
 
 type LayoutConfig = {
@@ -69,6 +70,7 @@ const DEFAULT_CONFIG: ServicesListExperienceConfig = {
     sidebar: { ...DEFAULT_LAYOUT_CONFIG },
     masonry: { ...DEFAULT_LAYOUT_CONFIG },
   },
+  hideEmptyCategories: true,
 };
 
 const HINTS = [
@@ -114,6 +116,7 @@ export default function ServicesListExperiencePage() {
         sidebar: normalizeLayoutConfig(raw?.layouts?.sidebar as Partial<LayoutConfig & { showPagination?: boolean }>),
         masonry: normalizeLayoutConfig(raw?.layouts?.masonry as Partial<LayoutConfig & { showPagination?: boolean }>),
       },
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
     };
   }, [experienceSetting?.value]);
 
@@ -230,6 +233,13 @@ export default function ServicesListExperiencePage() {
               onChange={(v) => updateLayoutConfig('showCategories', v)}
               accentColor={brandColor}
               disabled={!canUseServices}
+            />
+            <ToggleRow
+              label="Ẩn danh mục rỗng"
+              description="Ngoài public chỉ hiện danh mục có dịch vụ"
+              checked={config.hideEmptyCategories}
+              onChange={(v) => setConfig(prev => ({ ...prev, hideEmptyCategories: v }))}
+              accentColor={brandColor}
             />
           </ControlCard>
 

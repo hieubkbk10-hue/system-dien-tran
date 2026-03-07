@@ -220,13 +220,27 @@ function ProductsContent() {
   }, [searchQuery]);
 
   const categories = useQuery(api.productCategories.listActive);
+  const nonEmptyCategoryIds = useQuery(api.productCategories.listNonEmptyCategoryIds);
+
+  const visibleCategories = useMemo(() => {
+    if (!categories) {return undefined;}
+    if (!listConfig.hideEmptyCategories) {return categories;}
+    if (!nonEmptyCategoryIds) {return categories;}
+    const nonEmptySet = new Set(nonEmptyCategoryIds);
+    return categories.filter((category) => nonEmptySet.has(category._id));
+  }, [categories, listConfig.hideEmptyCategories, nonEmptyCategoryIds]);
+
+  const categoryOptions = useMemo(
+    () => visibleCategories ?? categories ?? [],
+    [visibleCategories, categories]
+  );
 
   const categoryFromUrl = useMemo(() => {
     const catSlug = searchParams.get('category');
-    if (!catSlug || !categories) {return null;}
-    const matchedCategory = categories.find((c) => c.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) {return null;}
+    const matchedCategory = categoryOptions.find((c) => c.slug === catSlug);
     return matchedCategory?._id ?? null;
-  }, [searchParams, categories]);
+  }, [searchParams, categoryOptions]);
 
   const activeCategory = categoryFromUrl;
 
@@ -317,8 +331,8 @@ function ProductsContent() {
   const handleCategoryChange = useCallback((categoryId: Id<"productCategories"> | null) => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('page');
-    if (categoryId && categories) {
-      const category = categories.find(c => c._id === categoryId);
+    if (categoryId && categoryOptions.length > 0) {
+      const category = categoryOptions.find(c => c._id === categoryId);
       if (category) {
         params.set('category', category.slug);
       }
@@ -327,7 +341,7 @@ function ProductsContent() {
     }
     const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
     router.push(newUrl, { scroll: false });
-  }, [searchParams, categories, router]);
+  }, [searchParams, categoryOptions, router]);
 
   const handlePageSizeChange = useCallback((value: number) => {
     setPageSizeOverride(value);
@@ -350,14 +364,14 @@ function ProductsContent() {
 
   useEffect(() => {
     const catSlug = searchParams.get('category');
-    if (!catSlug || !categories) {return;}
-    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) {return;}
+    const hasMatch = categoryOptions.some((category) => category.slug === catSlug);
     if (hasMatch) {return;}
     const params = new URLSearchParams(searchParams.toString());
     params.delete('category');
     const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [categories, pathname, router, searchParams]);
+  }, [categoryOptions, pathname, router, searchParams]);
 
 
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
@@ -652,7 +666,7 @@ function ProductsContent() {
       <>
         <CatalogLayout
           products={isLoadingProducts ? [] : products}
-          categories={categories}
+          categories={categoryOptions}
           categoryMap={categoryMap}
           selectedCategory={activeCategory}
           onCategoryChange={handleCategoryChange}
@@ -688,7 +702,7 @@ function ProductsContent() {
       <>
         <ListLayout
           products={isLoadingProducts ? [] : products}
-          categories={categories}
+          categories={categoryOptions}
           categoryMap={categoryMap}
           selectedCategory={activeCategory}
           onCategoryChange={handleCategoryChange}
@@ -775,7 +789,7 @@ function ProductsContent() {
                   }}
                 >
                   <option value="">Tất cả danh mục</option>
-                  {categories.map((cat) => (
+                  {categoryOptions.map((cat) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
@@ -829,7 +843,7 @@ function ProductsContent() {
                 >
                   Tất cả
                 </button>
-                {categories.map((cat) => (
+                {categoryOptions.map((cat) => (
                   <button
                     key={cat._id}
                     onClick={() =>{  handleCategoryChange(cat._id); }}

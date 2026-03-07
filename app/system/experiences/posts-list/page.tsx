@@ -34,6 +34,7 @@ type PostsListExperienceConfig = {
   layoutStyle: ListLayoutStyle;
   showSearch: boolean;
   showCategories: boolean;
+  hideEmptyCategories: boolean;
   paginationType: PaginationType;
   postsPerPage: number;
 };
@@ -53,6 +54,7 @@ const DEFAULT_CONFIG: PostsListExperienceConfig = {
   layoutStyle: 'fullwidth',
   showSearch: true,
   showCategories: true,
+  hideEmptyCategories: true,
   paginationType: 'pagination',
   postsPerPage: 12,
 };
@@ -100,6 +102,7 @@ export default function PostsListExperiencePage() {
       layoutStyle: normalizeLayoutStyle(rawLayout ?? legacyLayout),
       showSearch: raw?.showSearch ?? true,
       showCategories: raw?.showCategories ?? true,
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
       paginationType: normalizePaginationType(raw?.paginationType ?? (raw as { showPagination?: boolean })?.showPagination),
       postsPerPage: raw?.postsPerPage ?? 12,
     };
@@ -173,6 +176,13 @@ export default function PostsListExperiencePage() {
           <ControlCard title="Hiển thị">
             <ToggleRow label="Tìm kiếm" checked={config.showSearch} onChange={(v) => setConfig(prev => ({ ...prev, showSearch: v }))} accentColor={brandColor} />
             <ToggleRow label="Danh mục" checked={config.showCategories} onChange={(v) => setConfig(prev => ({ ...prev, showCategories: v }))} accentColor={brandColor} />
+            <ToggleRow
+              label="Ẩn danh mục rỗng"
+              description="Ngoài public chỉ hiện danh mục có bài viết"
+              checked={config.hideEmptyCategories}
+              onChange={(v) => setConfig(prev => ({ ...prev, hideEmptyCategories: v }))}
+              accentColor={brandColor}
+            />
           </ControlCard>
 
           <ControlCard title="Phân trang">

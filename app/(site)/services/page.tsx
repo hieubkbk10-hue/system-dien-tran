@@ -176,13 +176,27 @@ function ServicesContent() {
 
   // Queries
   const categories = useQuery(api.serviceCategories.listActive, { limit: 20 });
+  const nonEmptyCategoryIds = useQuery(api.serviceCategories.listNonEmptyCategoryIds, { limit: 20 });
+
+  const visibleCategories = useMemo(() => {
+    if (!categories) {return undefined;}
+    if (!listConfig.hideEmptyCategories) {return categories;}
+    if (!nonEmptyCategoryIds) {return categories;}
+    const nonEmptySet = new Set(nonEmptyCategoryIds);
+    return categories.filter((category) => nonEmptySet.has(category._id));
+  }, [categories, listConfig.hideEmptyCategories, nonEmptyCategoryIds]);
+
+  const categoryOptions = useMemo(
+    () => visibleCategories ?? categories ?? [],
+    [visibleCategories, categories]
+  );
 
   const categoryFromUrl = useMemo(() => {
     const catSlug = searchParams.get('category');
-    if (!catSlug || !categories) return null;
-    const matchedCategory = categories.find((c) => c.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) return null;
+    const matchedCategory = categoryOptions.find((c) => c.slug === catSlug);
     return matchedCategory?._id ?? null;
-  }, [searchParams, categories]);
+  }, [searchParams, categoryOptions]);
 
   const activeCategory = categoryFromUrl;
 
@@ -262,8 +276,8 @@ function ServicesContent() {
   const handleCategoryChange = useCallback((categoryId: Id<"serviceCategories"> | null) => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('page');
-    if (categoryId && categories) {
-      const category = categories.find(c => c._id === categoryId);
+    if (categoryId && categoryOptions.length > 0) {
+      const category = categoryOptions.find(c => c._id === categoryId);
       if (category) {
         params.set('category', category.slug);
       }
@@ -273,7 +287,7 @@ function ServicesContent() {
     
     const newUrl = params.toString() ? `/services?${params.toString()}` : '/services';
     router.push(newUrl, { scroll: false });
-  }, [searchParams, categories, router]);
+  }, [searchParams, categoryOptions, router]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -304,14 +318,14 @@ function ServicesContent() {
 
   useEffect(() => {
     const catSlug = searchParams.get('category');
-    if (!catSlug || !categories) {return;}
-    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) {return;}
+    const hasMatch = categoryOptions.some((category) => category.slug === catSlug);
     if (hasMatch) {return;}
     const params = new URLSearchParams(searchParams.toString());
     params.delete('category');
     const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [categories, pathname, router, searchParams]);
+  }, [categoryOptions, pathname, router, searchParams]);
 
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
   const prevFilterKeyRef = useRef(filterKey);
@@ -351,7 +365,7 @@ function ServicesContent() {
           <>
             <div className="mb-8">
               <ServicesFilter
-                categories={categories ?? []}
+                categories={categoryOptions}
                 selectedCategory={activeCategory}
                 onCategoryChange={handleCategoryChange}
                 searchQuery={searchQuery}
@@ -385,7 +399,7 @@ function ServicesContent() {
               services={services}
               tokens={tokens}
               categoryMap={categoryMap}
-              categories={categories ?? []}
+              categories={categoryOptions}
               selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
@@ -407,7 +421,7 @@ function ServicesContent() {
               services={services}
               tokens={tokens}
               categoryMap={categoryMap}
-              categories={categories ?? []}
+              categories={categoryOptions}
               selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}

@@ -198,13 +198,27 @@ function PostsContent() {
 
   // Queries
   const categories = useQuery(api.postCategories.listActive, { limit: 20 });
+  const nonEmptyCategoryIds = useQuery(api.postCategories.listNonEmptyCategoryIds, { limit: 20 });
+
+  const visibleCategories = useMemo(() => {
+    if (!categories) {return undefined;}
+    if (!listConfig.hideEmptyCategories) {return categories;}
+    if (!nonEmptyCategoryIds) {return categories;}
+    const nonEmptySet = new Set(nonEmptyCategoryIds);
+    return categories.filter((category) => nonEmptySet.has(category._id));
+  }, [categories, listConfig.hideEmptyCategories, nonEmptyCategoryIds]);
+
+  const categoryOptions = useMemo(
+    () => visibleCategories ?? categories ?? [],
+    [visibleCategories, categories]
+  );
   
   const categoryFromUrl = useMemo(() => {
     const catSlug = searchParams.get('catpost');
-    if (!catSlug || !categories) {return null;}
-    const matchedCategory = categories.find((c) => c.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) {return null;}
+    const matchedCategory = categoryOptions.find((c) => c.slug === catSlug);
     return matchedCategory?._id ?? null;
-  }, [searchParams, categories]);
+  }, [searchParams, categoryOptions]);
 
   const activeCategory = categoryFromUrl;
   
@@ -295,8 +309,8 @@ function PostsContent() {
   const handleCategoryChange = useCallback((categoryId: Id<"postCategories"> | null) => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete('page');
-    if (categoryId && categories) {
-      const category = categories.find(c => c._id === categoryId);
+    if (categoryId && categoryOptions.length > 0) {
+      const category = categoryOptions.find(c => c._id === categoryId);
       if (category) {
         params.set('catpost', category.slug);
       }
@@ -306,7 +320,7 @@ function PostsContent() {
     
     const newUrl = params.toString() ? `/posts?${params.toString()}` : '/posts';
     router.push(newUrl, { scroll: false });
-  }, [searchParams, categories, router]);
+  }, [searchParams, categoryOptions, router]);
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -341,14 +355,14 @@ function PostsContent() {
 
   useEffect(() => {
     const catSlug = searchParams.get('catpost');
-    if (!catSlug || !categories) {return;}
-    const hasMatch = categories.some((category) => category.slug === catSlug);
+    if (!catSlug || categoryOptions.length === 0) {return;}
+    const hasMatch = categoryOptions.some((category) => category.slug === catSlug);
     if (hasMatch) {return;}
     const params = new URLSearchParams(searchParams.toString());
     params.delete('catpost');
     const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [categories, pathname, router, searchParams]);
+  }, [categoryOptions, pathname, router, searchParams]);
   
   // Reset page to 1 when search/filter/page size changes
   useEffect(() => {
@@ -390,7 +404,7 @@ function PostsContent() {
             {(listConfig.showSearch || listConfig.showCategories) && (
               <div className="mb-5">
                 <PostsFilter
-                  categories={categories}
+                  categories={categoryOptions}
                   selectedCategory={activeCategory}
                   onCategoryChange={handleCategoryChange}
                   searchQuery={searchQuery}
@@ -429,7 +443,7 @@ function PostsContent() {
               brandColor={brandColor}
               tokens={tokens}
               categoryMap={categoryMap}
-              categories={categories}
+              categories={categoryOptions}
               selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}
@@ -452,7 +466,7 @@ function PostsContent() {
               brandColor={brandColor}
               tokens={tokens}
               categoryMap={categoryMap}
-              categories={categories}
+              categories={categoryOptions}
               selectedCategory={activeCategory}
               onCategoryChange={handleCategoryChange}
               searchQuery={searchQuery}

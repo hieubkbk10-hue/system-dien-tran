@@ -16,6 +16,7 @@ type PostsListConfig = {
   paginationType: PaginationType;
   showSearch: boolean;
   showCategories: boolean;
+  hideEmptyCategories: boolean;
   postsPerPage: number;
 };
 
@@ -91,6 +92,7 @@ export function usePostsListConfig(): PostsListConfig {
       paginationType: normalizePaginationType(raw?.paginationType ?? raw?.showPagination),
       showSearch: raw?.showSearch ?? true,
       showCategories: raw?.showCategories ?? true,
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
       postsPerPage: raw?.postsPerPage ?? 12,
     };
   }, [experienceSetting?.value]);
@@ -146,6 +148,7 @@ type ProductsListConfig = {
   paginationType: PaginationType;
   showSearch: boolean;
   showCategories: boolean;
+  hideEmptyCategories: boolean;
   postsPerPage: number;
   showWishlistButton: boolean;
   showAddToCartButton: boolean;
@@ -168,6 +171,7 @@ export function useProductsListConfig(): ProductsListConfig {
       showPagination?: boolean;
       showSearch?: boolean;
       showCategories?: boolean;
+      hideEmptyCategories?: boolean;
       postsPerPage?: number;
       showWishlistButton?: boolean;
       showAddToCartButton?: boolean;
@@ -193,6 +197,7 @@ export function useProductsListConfig(): ProductsListConfig {
       paginationType: normalizePaginationType(layoutConfig?.paginationType ?? raw?.paginationType ?? layoutConfig?.showPagination ?? raw?.showPagination),
       showSearch: layoutConfig?.showSearch ?? raw?.showSearch ?? true,
       showCategories: layoutConfig?.showCategories ?? raw?.showCategories ?? true,
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
       postsPerPage: layoutConfig?.postsPerPage ?? raw?.postsPerPage ?? 12,
       showWishlistButton: (raw?.showWishlistButton ?? true) && wishlistEnabled,
       showAddToCartButton: configShowAddToCart && cartAvailable,
@@ -247,6 +252,7 @@ type ServicesListConfig = {
   paginationType: PaginationType;
   showSearch: boolean;
   showCategories: boolean;
+  hideEmptyCategories: boolean;
   postsPerPage: number;
 };
 
@@ -262,6 +268,7 @@ export function useServicesListConfig(): ServicesListConfig {
       showPagination?: boolean;
       showSearch?: boolean;
       showCategories?: boolean;
+      hideEmptyCategories?: boolean;
       postsPerPage?: number;
     } | undefined;
 
@@ -274,6 +281,7 @@ export function useServicesListConfig(): ServicesListConfig {
       paginationType: normalizePaginationType(layoutConfig?.paginationType ?? raw?.paginationType ?? layoutConfig?.showPagination ?? raw?.showPagination),
       showSearch: layoutConfig?.showSearch ?? raw?.showSearch ?? true,
       showCategories: layoutConfig?.showCategories ?? raw?.showCategories ?? true,
+      hideEmptyCategories: raw?.hideEmptyCategories ?? true,
       postsPerPage: layoutConfig?.postsPerPage ?? raw?.postsPerPage ?? 12,
     };
   }, [experienceSetting?.value]);

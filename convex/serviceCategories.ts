@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import * as CategoriesModel from "./model/serviceCategories";
 
 const categoryDoc = v.object({
@@ -24,6 +25,29 @@ export const listActive = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => CategoriesModel.listActive(ctx, { limit: args.limit }),
   returns: v.array(categoryDoc),
+});
+
+export const listNonEmptyCategoryIds = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const categories = await CategoriesModel.listActive(ctx, { limit: args.limit });
+    if (categories.length === 0) {
+      return [];
+    }
+
+    const results = await Promise.all(
+      categories.map(async (category) => {
+        const preview = await ctx.db
+          .query("services")
+          .withIndex("by_category_status", (q) => q.eq("categoryId", category._id).eq("status", "Published"))
+          .take(1);
+        return preview.length > 0 ? category._id : null;
+      })
+    );
+
+    return results.filter((id): id is Id<"serviceCategories"> => id !== null);
+  },
+  returns: v.array(v.id("serviceCategories")),
 });
 
 export const listByParent = query({
