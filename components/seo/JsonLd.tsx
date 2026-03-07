@@ -132,7 +132,7 @@ export const generateProductSchema = (params: {
       availability: params.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
-      price: params.salePrice ?? params.price,
+      price: params.price,
       priceCurrency: params.currency ?? 'VND',
       url: params.url,
     },

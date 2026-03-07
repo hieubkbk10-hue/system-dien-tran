@@ -127,9 +127,9 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   const formatComparePrice = (price?: number) =>
     price ? getPublicPriceLabel({ saleMode: 'cart', price }).label : '';
 
-  const getDiscount = (price?: number, salePrice?: number, isContactPrice?: boolean) => {
-    if (isContactPrice || !price || !salePrice || salePrice >= price) {return null;}
-    return `-${Math.round(((price - salePrice) / price) * 100)}%`;
+  const getDiscount = (currentPrice?: number, comparePrice?: number, isContactPrice?: boolean) => {
+    if (isContactPrice || !currentPrice || !comparePrice || comparePrice <= currentPrice) {return null;}
+    return `-${Math.round(((comparePrice - currentPrice) / comparePrice) * 100)}%`;
   };
 
 
@@ -144,7 +144,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 md:gap-x-6 md:gap-y-10">
             {products.slice(0, 4).map((product) => {
               const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+              const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer">
                   {/* Image Container */}
@@ -212,7 +212,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {products.slice(0, 4).map((product) => {
               const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+              const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link 
                   key={product._id} 
@@ -392,7 +392,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             >
               {displayedProducts.map((product) => {
                 const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-                const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+                const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
                 return (
                   <Link
                     key={product._id}
@@ -456,7 +456,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {products.slice(0, 6).map((product) => {
               const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+              const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer bg-white rounded-lg border border-slate-100 p-2 hover:shadow-md hover:border-slate-200 transition-all">
                   <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 mb-2">
@@ -495,7 +495,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
     const showcasePriceDisplay = showcaseFeatured
       ? getPriceDisplay(showcaseFeatured.price, showcaseFeatured.salePrice)
       : null;
-    const showcaseDiscount = getDiscount(showcasePriceDisplay?.comparePrice, showcaseFeatured?.salePrice, showcasePriceDisplay?.isContactPrice);
+    const showcaseDiscount = getDiscount(showcaseFeatured?.price, showcasePriceDisplay?.comparePrice, showcasePriceDisplay?.isContactPrice);
 
     return (
       <section className="py-10 md:py-16 px-4 md:px-6">
@@ -506,7 +506,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <div className="grid md:hidden grid-cols-2 gap-3">
             {products.slice(0, 4).map((product) => {
               const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-              const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+              const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
                   <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">
@@ -567,7 +567,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             <div className="col-span-2 grid grid-cols-2 gap-3">
               {showcaseOthers.map((product) => {
                 const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-                const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+                const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
                 return (
                   <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 transition-all">
                     <div className="relative aspect-square w-full rounded-lg bg-slate-50 overflow-hidden mb-3">
@@ -605,7 +605,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   const featuredPriceDisplay = featured
     ? getPriceDisplay(featured.price, featured.salePrice)
     : null;
-  const featuredDiscount = getDiscount(featuredPriceDisplay?.comparePrice, featured?.salePrice, featuredPriceDisplay?.isContactPrice);
+  const featuredDiscount = getDiscount(featured?.price, featuredPriceDisplay?.comparePrice, featuredPriceDisplay?.isContactPrice);
 
   return (
     <section className="py-10 md:py-16 px-4 md:px-6">
@@ -659,7 +659,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Small Grid Items */}
           {others.slice(0, 4).map((product) => {
             const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-            const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+            const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
             return (
               <Link 
                 key={product._id}
@@ -718,7 +718,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
         <div className="grid md:hidden grid-cols-2 gap-3">
         {products.slice(0, 4).map((product) => {
           const priceDisplay = getPriceDisplay(product.price, product.salePrice);
-          const discount = getDiscount(priceDisplay.comparePrice, product.salePrice, priceDisplay.isContactPrice);
+          const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
             return (
               <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
                 <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">

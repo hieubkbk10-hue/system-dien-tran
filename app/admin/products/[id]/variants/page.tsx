@@ -738,13 +738,22 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                       optionSummary={buildOptionSummary(variant)}
                       priceDisplay={
                         variantSettings.variantPricing === 'product'
-                          ? formatPrice(productData.salePrice ?? productData.price)
-                          : (
-                            variant.salePrice
+                          ? (
+                            (productData.salePrice ?? 0) > (productData.price ?? 0)
                               ? (
                                 <div>
-                                  <span className="text-red-500 font-medium">{formatPrice(variant.salePrice)}</span>
-                                  <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(variant.price ?? 0)}</span>
+                                  <span className="text-red-500 font-medium">{formatPrice(productData.price ?? 0)}</span>
+                                  <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(productData.salePrice ?? 0)}</span>
+                                </div>
+                              )
+                              : formatPrice(productData.price ?? 0)
+                          )
+                          : (
+                            (variant.salePrice ?? 0) > (variant.price ?? 0)
+                              ? (
+                                <div>
+                                  <span className="text-red-500 font-medium">{formatPrice(variant.price ?? 0)}</span>
+                                  <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(variant.salePrice ?? 0)}</span>
                                 </div>
                               )
                               : formatPrice(variant.price ?? 0)

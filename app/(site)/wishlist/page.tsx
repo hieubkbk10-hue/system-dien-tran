@@ -75,10 +75,10 @@ export default function WishlistPage() {
 
     switch (sortOption) {
       case 'price-asc':
-        result = [...result].sort((a, b) => (a.product?.salePrice ?? a.product?.price ?? 0) - (b.product?.salePrice ?? b.product?.price ?? 0));
+        result = [...result].sort((a, b) => (a.product?.price ?? 0) - (b.product?.price ?? 0));
         break;
       case 'price-desc':
-        result = [...result].sort((a, b) => (b.product?.salePrice ?? b.product?.price ?? 0) - (a.product?.salePrice ?? a.product?.price ?? 0));
+        result = [...result].sort((a, b) => (b.product?.price ?? 0) - (a.product?.price ?? 0));
         break;
       case 'name-asc':
         result = [...result].sort((a, b) => (a.product?.name ?? '').localeCompare(b.product?.name ?? ''));

@@ -231,7 +231,7 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
             <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
             <div className="mt-1 flex items-center gap-2">
               <span className="text-base font-semibold" style={{ color: brandColor }}>{priceDisplay.label}</span>
-              {priceDisplay.comparePrice && salePrice && (
+              {priceDisplay.comparePrice && (
                 <span className="text-sm text-slate-400 line-through">
                   {getPublicPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label}
                 </span>

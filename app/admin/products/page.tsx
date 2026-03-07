@@ -717,10 +717,10 @@ function ProductsContent() {
                         const resolvedPrice = meta.variantMinPrice ?? product.price ?? 0;
                         return renderContactPrice(resolvedPrice);
                       })() : (
-                        (product.salePrice ?? 0) > 0 && enabledFields.has('salePrice') ? (
+                        (product.salePrice ?? 0) > (product.price ?? 0) && enabledFields.has('salePrice') ? (
                           <>
-                            <span className="text-red-500 font-medium">{formatPrice(product.salePrice ?? 0)}</span>
-                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.price ?? 0)}</span>
+                            <span className="text-red-500 font-medium">{formatPrice(product.price ?? 0)}</span>
+                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.salePrice ?? 0)}</span>
                           </>
                         ) : (
                           renderContactPrice(product.price ?? 0)

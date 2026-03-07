@@ -4151,11 +4151,15 @@ function CategoryProductsSection({
                       </div>
                       
                       {/* Badge for sale */}
-                      {product.salePrice && product.salePrice < (product.price ?? 0) && (
-                        <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white bg-red-500 z-30">
-                          -{Math.round((1 - product.salePrice / (product.price ?? 1)) * 100)}%
-                        </div>
-                      )}
+                      {(() => {
+                        const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                        if (!priceDisplay.comparePrice) {return null;}
+                        return (
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white bg-red-500 z-30">
+                            -{Math.round((1 - (product.price ?? 0) / priceDisplay.comparePrice) * 100)}%
+                          </div>
+                        );
+                      })()}
                     </div>
                     
                     {/* Product info */}

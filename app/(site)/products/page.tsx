@@ -967,12 +967,12 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={48} style={{ color: tokens.neutralTextLight }} /></div>
             )}
-            {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
+            {showPromotionBadge && showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                 style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
               >
-                -{Math.round((1 - product.salePrice / product.price) * 100)}%
+                -{Math.round((1 - product.price / priceDisplay.comparePrice) * 100)}%
               </span>
             )}
             {showWishlistButton && canUseWishlist && (
@@ -1043,12 +1043,12 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
             )}
-            {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
+            {showPromotionBadge && showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                 style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
               >
-                -{Math.round((1 - product.salePrice / product.price) * 100)}%
+                -{Math.round((1 - product.price / priceDisplay.comparePrice) * 100)}%
               </span>
             )}
             {showWishlistButton && canUseWishlist && (
@@ -1277,12 +1277,12 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
                       )}
-                      {showPromotionBadge && showSalePrice && product.salePrice && !priceDisplay.isContactPrice && (
+                      {showPromotionBadge && showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
                         <span
                           className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
                           style={{ backgroundColor: tokens.promotionBadgeBg, color: tokens.promotionBadgeText }}
                         >
-                          Sale
+                          -{Math.round((1 - product.price / priceDisplay.comparePrice) * 100)}%
                         </span>
                       )}
                       {showWishlistButton && canUseWishlist && (

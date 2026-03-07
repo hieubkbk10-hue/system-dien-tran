@@ -1026,8 +1026,8 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
   const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
-  const discountPercent = priceDisplay.comparePrice && salePrice
-    ? Math.round((1 - salePrice / priceDisplay.comparePrice) * 100)
+  const discountPercent = priceDisplay.comparePrice
+    ? Math.round((1 - basePrice / priceDisplay.comparePrice) * 100)
     : 0;
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
@@ -1064,7 +1064,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
-              {showSalePrice && priceDisplay.comparePrice && salePrice && (
+              {showSalePrice && priceDisplay.comparePrice && (
                 <span className="absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{discountPercent}%</span>
               )}
             </div>
@@ -1104,10 +1104,10 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             {showPrice && (
               <div className="flex items-end gap-3 mb-6">
                 <span className="text-3xl font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
-                {showSalePrice && priceDisplay.comparePrice && salePrice && (
+                {showSalePrice && priceDisplay.comparePrice && (
                   <>
                     <span className="text-xl line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(priceDisplay.comparePrice)}</span>
-                    <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>Tiết kiệm {formatPrice(priceDisplay.comparePrice - salePrice)}</span>
+                    <span className="px-2 py-0.5 text-sm font-medium rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>Tiết kiệm {formatPrice(priceDisplay.comparePrice - basePrice)}</span>
                   </>
                 )}
               </div>
@@ -1300,8 +1300,8 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
   const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
-  const discountPercent = priceDisplay.comparePrice && salePrice
-    ? Math.round((1 - salePrice / priceDisplay.comparePrice) * 100)
+  const discountPercent = priceDisplay.comparePrice
+    ? Math.round((1 - basePrice / priceDisplay.comparePrice) * 100)
     : 0;
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
@@ -1442,13 +1442,13 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
                   <span className="text-3xl lg:text-4xl font-light" style={{ color: tokens.priceColor }}>
                     {priceDisplay.label}
                   </span>
-                  {showSalePrice && priceDisplay.comparePrice && salePrice && (
+                  {showSalePrice && priceDisplay.comparePrice && (
                     <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>
                       {formatPrice(priceDisplay.comparePrice)}
                     </span>
                   )}
                 </div>
-                {showSalePrice && priceDisplay.comparePrice && salePrice && (
+                {showSalePrice && priceDisplay.comparePrice && (
                   <span
                     className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
                     style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}
@@ -2232,8 +2232,8 @@ function RelatedProductsSection({
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
-              {showSalePrice && p.salePrice && !priceDisplay.isContactPrice && (
-                <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - p.salePrice / p.price) * 100)}%</span>
+              {showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
+                <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - p.price / priceDisplay.comparePrice) * 100)}%</span>
               )}
             </div>
             <div className="p-4">

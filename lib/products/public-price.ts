@@ -12,11 +12,11 @@ export function getPublicPriceLabel({
   price?: number;
   salePrice?: number;
 }) {
-  const effectivePrice = salePrice ?? price ?? 0;
+  const effectivePrice = price ?? 0;
   const isContactPrice = saleMode !== 'cart' && (!effectivePrice || effectivePrice <= 0);
   return {
     label: isContactPrice ? 'Giá liên hệ' : formatVnd(effectivePrice),
-    comparePrice: !isContactPrice && salePrice && price && salePrice < price ? price : undefined,
+    comparePrice: !isContactPrice && salePrice && price && salePrice > price ? salePrice : undefined,
     effectivePrice,
     isContactPrice,
   };

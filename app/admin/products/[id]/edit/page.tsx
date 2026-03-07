@@ -726,7 +726,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
         <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/products'); }}>Hủy bỏ</Button>
-        <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+        <Button
+          type="submit"
+          variant="accent"
+          disabled={isSubmitting || !hasChanges}
+          className={!hasChanges && !isSubmitting ? 'bg-slate-300 hover:bg-slate-300 text-slate-600' : undefined}
+        >
           {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
           {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
         </Button>

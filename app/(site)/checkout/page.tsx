@@ -410,8 +410,7 @@ function CheckoutContent() {
   }, [cartOptions, cartValues, cartVariants]);
 
   const basePrice = selectedVariant?.price ?? product?.price ?? 0;
-  const salePrice = selectedVariant ? selectedVariant.salePrice : product?.salePrice;
-  const unitPrice = salePrice ?? basePrice;
+  const unitPrice = basePrice;
   const subtotal = unitPrice * quantity;
   const selectedShipping = shippingMethods.find((method) => method.id === shippingMethodId);
   const selectedPayment = paymentMethods.find((method) => method.id === paymentMethodId);
