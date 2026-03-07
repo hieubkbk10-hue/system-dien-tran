@@ -5,10 +5,7 @@ import {
   generateOrganizationSchema,
   generateWebsiteSchema,
 } from '@/components/seo/JsonLd';
-import { DynamicFooter } from '@/components/site/DynamicFooter';
-import { Header } from '@/components/site/Header';
-import { CartDrawer } from '@/components/site/CartDrawer';
-import { SiteProviders } from '@/components/site/SiteProviders';
+import { SiteShell } from '@/components/site/SiteShell';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
 import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
@@ -172,20 +169,13 @@ const SiteLayout = ({
     });
 
     return (
-      <SiteProviders>
-        <div className="min-h-screen flex flex-col">
-          <JsonLd data={organizationSchema} />
-          <JsonLd data={localBusinessSchema} />
-          <JsonLd data={websiteSchema} />
-          {headerItems.length > 0 && <JsonLd data={navigationSchema} />}
-          <Header />
-          <CartDrawer />
-          <main className="flex-1 overflow-x-hidden">
-            {children}
-          </main>
-          <DynamicFooter />
-        </div>
-      </SiteProviders>
+      <SiteShell>
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={localBusinessSchema} />
+        <JsonLd data={websiteSchema} />
+        {headerItems.length > 0 && <JsonLd data={navigationSchema} />}
+        {children}
+      </SiteShell>
     );
   });
 };
