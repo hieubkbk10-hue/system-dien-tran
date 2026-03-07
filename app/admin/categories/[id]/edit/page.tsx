@@ -42,6 +42,12 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
   }, [fieldsData]);
   const isHierarchyEnabled = hierarchyFeature?.enabled === true;
 
+  const generateSlugFromName = (value: string) => value.toLowerCase()
+    .normalize("NFD").replaceAll(/[\u0300-\u036F]/g, "")
+    .replaceAll(/[đĐ]/g, "d")
+    .replaceAll(/[^a-z0-9\s]/g, '')
+    .replaceAll(/\s+/g, '-');
+
   useEffect(() => {
     if (categoryData) {
       setName(categoryData.name);
@@ -53,6 +59,12 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
   }, [categoryData]);
 
   const relatedProducts = useMemo(() => productsData?.filter(p => p.categoryId === id) ?? [], [productsData, id]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setName(val);
+    setSlug(generateSlugFromName(val));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +141,7 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
             <CardContent className="p-6 space-y-4">
               <div className="space-y-2">
                 <Label>Tên danh mục <span className="text-red-500">*</span></Label>
-                <Input value={name} onChange={(e) =>{  setName(e.target.value); }} required placeholder="Ví dụ: Điện thoại, Áo sơ mi..." autoFocus />
+                <Input value={name} onChange={handleNameChange} required placeholder="Ví dụ: Điện thoại, Áo sơ mi..." autoFocus />
               </div>
 
               <div className="space-y-2">
