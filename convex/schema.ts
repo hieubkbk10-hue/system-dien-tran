@@ -297,7 +297,9 @@ export default defineSchema({
     .index("by_status_stock", ["status", "stock"])
     .index("by_status_sales", ["status", "sales"])
     .index("by_status_order", ["status", "order"])
-    .searchIndex("search_name", { filterFields: ["status", "categoryId"], searchField: "name" }),
+    .index("by_order", ["order"])
+    .searchIndex("search_name", { filterFields: ["status", "categoryId"], searchField: "name" })
+    .searchIndex("search_sku", { filterFields: ["status", "categoryId"], searchField: "sku" }),
 
   // 10a. productOptions - Loại option cho variants
   productOptions: defineTable({

@@ -106,6 +106,17 @@ type VariantSettings = {
   variantStock: VariantStockSetting;
 };
 
+type AdminSearchArgs = {
+  categoryId?: Id<"productCategories">;
+  search?: string;
+  status?: Doc<"products">["status"];
+};
+
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const normalizeSku = (value: string) => value.trim().toLowerCase();
+const normalizeSlug = (value: string) => value.trim().toLowerCase();
+
 async function getVariantSettings(ctx: VariantCtx): Promise<VariantSettings> {
   const [variantEnabled, variantPricing, variantStock] = await Promise.all([
     ctx.db
@@ -133,6 +144,57 @@ async function getVariantSettings(ctx: VariantCtx): Promise<VariantSettings> {
     variantPricing: (variantPricing?.value as VariantPricingSetting) ?? "variant",
     variantStock: (variantStock?.value as VariantStockSetting) ?? "variant",
   };
+}
+
+function buildAdminQuery(ctx: QueryCtx, args: AdminSearchArgs) {
+  if (args.categoryId && args.status) {
+    return ctx.db.query("products").withIndex("by_category_status", (q) =>
+      q.eq("categoryId", args.categoryId!).eq("status", args.status!)
+    );
+  }
+  if (args.categoryId) {
+    return ctx.db.query("products").withIndex("by_category_status", (q) =>
+      q.eq("categoryId", args.categoryId!)
+    );
+  }
+  if (args.status) {
+    return ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!));
+  }
+  return ctx.db.query("products").withIndex("by_order");
+}
+
+async function searchAdminProducts(ctx: QueryCtx, args: AdminSearchArgs, limit?: number) {
+  const searchLower = args.search?.toLowerCase().trim();
+  if (!searchLower) {
+    return [] as Doc<"products">[];
+  }
+
+  const buildSearchQuery = (indexName: "search_name" | "search_sku", field: "name" | "sku") =>
+    ctx.db.query("products").withSearchIndex(indexName, (q) => {
+      let builder = q.search(field, searchLower);
+      if (args.status) {
+        builder = builder.eq("status", args.status);
+      }
+      if (args.categoryId) {
+        builder = builder.eq("categoryId", args.categoryId);
+      }
+      return builder;
+    });
+
+  const nameQuery = buildSearchQuery("search_name", "name");
+  const skuQuery = buildSearchQuery("search_sku", "sku");
+
+  const [nameResults, skuResults] = await Promise.all([
+    limit ? nameQuery.take(limit) : nameQuery.collect(),
+    limit ? skuQuery.take(limit) : skuQuery.collect(),
+  ]);
+
+  const combined = new Map<Id<"products">, Doc<"products">>();
+  [...nameResults, ...skuResults].forEach((product) => {
+    combined.set(product._id, product);
+  });
+
+  return Array.from(combined.values());
 }
 
 async function getVariantAggregates(
@@ -264,30 +326,17 @@ export const listAdminWithOffset = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 20, 100);
     const offset = args.offset ?? 0;
-    const fetchLimit = Math.min(offset + limit + 50, 1000);
+    const fetchLimit = Math.min(offset + limit + 50, 5000);
     const settings = await getVariantSettings(ctx);
 
-    const queryBuilder = args.categoryId && args.status
-      ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-        q.eq("categoryId", args.categoryId!).eq("status", args.status!)
-      )
-      : args.categoryId
-        ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-          q.eq("categoryId", args.categoryId!)
-        )
-        : args.status
-          ? ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!))
-          : ctx.db.query("products").withIndex("by_status_order");
-
-    let products = await queryBuilder.order("desc").take(fetchLimit);
-
+    let products: Doc<"products">[] = [];
     if (args.search?.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      products = products.filter((product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.sku.toLowerCase().includes(searchLower)
-      );
+      products = await searchAdminProducts(ctx, args, fetchLimit);
+    } else {
+      products = await buildAdminQuery(ctx, args).order("desc").take(fetchLimit);
     }
+
+    products.sort((a, b) => b.order - a.order);
 
     const page = products.slice(offset, offset + limit);
     if (settings.variantEnabled && settings.variantPricing === "variant") {
@@ -317,32 +366,14 @@ export const countAdmin = query({
     status: v.optional(productStatus),
   },
   handler: async (ctx, args) => {
-    const limit = 5000;
-    const fetchLimit = limit + 1;
-
-    const queryBuilder = args.categoryId && args.status
-      ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-        q.eq("categoryId", args.categoryId!).eq("status", args.status!)
-      )
-      : args.categoryId
-        ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-          q.eq("categoryId", args.categoryId!)
-        )
-        : args.status
-          ? ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!))
-          : ctx.db.query("products");
-
-    let products = await queryBuilder.take(fetchLimit);
-
+    let products: Doc<"products">[] = [];
     if (args.search?.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      products = products.filter((product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.sku.toLowerCase().includes(searchLower)
-      );
+      products = await searchAdminProducts(ctx, args);
+    } else {
+      products = await buildAdminQuery(ctx, args).collect();
     }
 
-    return { count: Math.min(products.length, limit), hasMore: products.length > limit };
+    return { count: products.length, hasMore: false };
   },
   returns: v.object({ count: v.number(), hasMore: v.boolean() }),
 });
@@ -358,28 +389,14 @@ export const listAdminIds = query({
     const limit = Math.min(args.limit ?? 5000, 5000);
     const fetchLimit = limit + 1;
 
-    const queryBuilder = args.categoryId && args.status
-      ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-        q.eq("categoryId", args.categoryId!).eq("status", args.status!)
-      )
-      : args.categoryId
-        ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-          q.eq("categoryId", args.categoryId!)
-        )
-        : args.status
-          ? ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!))
-          : ctx.db.query("products");
-
-    let products = await queryBuilder.take(fetchLimit);
-
+    let products: Doc<"products">[] = [];
     if (args.search?.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      products = products.filter((product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.sku.toLowerCase().includes(searchLower)
-      );
+      products = await searchAdminProducts(ctx, args, fetchLimit);
+    } else {
+      products = await buildAdminQuery(ctx, args).order("desc").take(fetchLimit);
     }
 
+    products.sort((a, b) => b.order - a.order);
     const hasMore = products.length > limit;
     return { ids: products.slice(0, limit).map((product) => product._id), hasMore };
   },
@@ -410,28 +427,14 @@ export const listAdminExport = query({
     const limit = Math.min(args.limit ?? 5000, 5000);
     const fetchLimit = Math.min(limit + 200, 5000);
 
-    const queryBuilder = args.categoryId && args.status
-      ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-        q.eq("categoryId", args.categoryId!).eq("status", args.status!)
-      )
-      : args.categoryId
-        ? ctx.db.query("products").withIndex("by_category_status", (q) =>
-          q.eq("categoryId", args.categoryId!)
-        )
-        : args.status
-          ? ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", args.status!))
-          : ctx.db.query("products").withIndex("by_status_order");
-
-    let products = await queryBuilder.order("desc").take(fetchLimit);
-
+    let products: Doc<"products">[] = [];
     if (args.search?.trim()) {
-      const searchLower = args.search.toLowerCase().trim();
-      products = products.filter((product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.sku.toLowerCase().includes(searchLower)
-      );
+      products = await searchAdminProducts(ctx, args, fetchLimit);
+    } else {
+      products = await buildAdminQuery(ctx, args).order("desc").take(fetchLimit);
     }
 
+    products.sort((a, b) => b.order - a.order);
     return products.slice(0, limit).map((product) => ({
       categoryId: product.categoryId,
       description: product.description,
@@ -466,22 +469,19 @@ export const count = query({
 export const getStats = query({
   args: {},
   handler: async (ctx) => {
-    const [activeProducts, draftProducts, archivedProducts] = await Promise.all([
-      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Active")).collect(),
-      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Draft")).collect(),
-      ctx.db.query("products").withIndex("by_status_order", (q) => q.eq("status", "Archived")).collect(),
+    const [activeStats, draftStats, archivedStats, totalStats] = await Promise.all([
+      ctx.db.query("productStats").withIndex("by_key", (q) => q.eq("key", "Active")).unique(),
+      ctx.db.query("productStats").withIndex("by_key", (q) => q.eq("key", "Draft")).unique(),
+      ctx.db.query("productStats").withIndex("by_key", (q) => q.eq("key", "Archived")).unique(),
+      ctx.db.query("productStats").withIndex("by_key", (q) => q.eq("key", "total")).unique(),
     ]);
 
-    const active = activeProducts.length;
-    const draft = draftProducts.length;
-    const archived = archivedProducts.length;
+    const active = activeStats?.count ?? 0;
+    const draft = draftStats?.count ?? 0;
+    const archived = archivedStats?.count ?? 0;
+    const total = totalStats?.count ?? active + draft + archived;
 
-    return {
-      active,
-      archived,
-      draft,
-      total: active + draft + archived,
-    };
+    return { active, archived, draft, total };
   },
   returns: v.object({
     active: v.number(),
@@ -1012,8 +1012,10 @@ export const importFromExcelRows = mutation({
       .collect();
     const categoryMap = new Map(categories.map((category) => [category.slug.toLowerCase(), category._id]));
 
-    const uniqueSkus = Array.from(new Set(rows.map((row) => row.sku.trim()).filter(Boolean)));
-    const uniqueSlugs = Array.from(new Set(rows.map((row) => row.slug.trim()).filter(Boolean)));
+    const skuCandidates = rows.map((row) => row.sku.trim()).filter(Boolean);
+    const slugCandidates = rows.map((row) => row.slug.trim()).filter(Boolean);
+    const uniqueSkus = Array.from(new Set(skuCandidates.flatMap((sku) => [sku, sku.toLowerCase(), sku.toUpperCase()])));
+    const uniqueSlugs = Array.from(new Set(slugCandidates.flatMap((slug) => [slug, slug.toLowerCase(), slug.toUpperCase()])));
 
     const [existingSkuList, existingSlugList] = await Promise.all([
       Promise.all(uniqueSkus.map((sku) =>
@@ -1024,8 +1026,8 @@ export const importFromExcelRows = mutation({
       )),
     ]);
 
-    const existingSkus = new Set(existingSkuList.filter(Boolean).map((product) => product!.sku));
-    const existingSlugs = new Set(existingSlugList.filter(Boolean).map((product) => product!.slug));
+    const existingSkus = new Set(existingSkuList.filter(Boolean).map((product) => product!.sku.toLowerCase()));
+    const existingSlugs = new Set(existingSlugList.filter(Boolean).map((product) => product!.slug.toLowerCase()));
     const seenSkus = new Set<string>();
     const seenSlugs = new Set<string>();
 
@@ -1040,6 +1042,23 @@ export const importFromExcelRows = mutation({
       defaultStatus = "Active";
     }
 
+    const saleModeSetting = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module_setting", (q) =>
+        q.eq("moduleKey", "products").eq("settingKey", "saleMode")
+      )
+      .unique();
+    const saleMode = saleModeSetting?.value === "contact" || saleModeSetting?.value === "affiliate"
+      ? saleModeSetting.value
+      : "cart";
+    const variantSettings = await getVariantSettings(ctx);
+    const hideBasePricing = variantSettings.variantEnabled && variantSettings.variantPricing === "variant";
+    const totalStats = await ctx.db
+      .query("productStats")
+      .withIndex("by_key", (q) => q.eq("key", "total"))
+      .unique();
+    let nextOrder = totalStats?.lastOrder ?? 0;
+
     const errors: { row: number; message: string }[] = [];
     let created = 0;
     let skipped = 0;
@@ -1047,18 +1066,43 @@ export const importFromExcelRows = mutation({
     for (const [index, row] of rows.entries()) {
       const rowNumber = row.rowNumber ?? index + 2;
       const name = row.name.trim();
-      const slug = row.slug.trim();
-      const sku = row.sku.trim();
-      const categorySlug = row.categorySlug.trim().toLowerCase();
+      const slug = normalizeSlug(row.slug);
+      const sku = normalizeSku(row.sku);
+      const categorySlug = normalizeSlug(row.categorySlug);
 
       if (!name || !slug || !sku || !categorySlug) {
         errors.push({ message: "Thiếu dữ liệu bắt buộc", row: rowNumber });
         continue;
       }
 
-      if (!Number.isFinite(row.price)) {
+      if (!slugPattern.test(slug)) {
+        errors.push({ message: "Slug không đúng định dạng", row: rowNumber });
+        continue;
+      }
+
+      if (!Number.isFinite(row.price) || row.price < 0) {
         errors.push({ message: "Giá bán không hợp lệ", row: rowNumber });
         continue;
+      }
+      if (saleMode === "cart" && !hideBasePricing && row.price <= 0) {
+        errors.push({ message: "Giá bán phải lớn hơn 0", row: rowNumber });
+        continue;
+      }
+
+      if (Number.isFinite(row.stock ?? 0) && (row.stock ?? 0) < 0) {
+        errors.push({ message: "Tồn kho không hợp lệ", row: rowNumber });
+        continue;
+      }
+
+      if (typeof row.salePrice === "number") {
+        if (row.salePrice < 0) {
+          errors.push({ message: "Giá khuyến mãi không hợp lệ", row: rowNumber });
+          continue;
+        }
+        if (row.salePrice > 0 && row.salePrice >= row.price) {
+          errors.push({ message: "Giá khuyến mãi phải nhỏ hơn giá bán", row: rowNumber });
+          continue;
+        }
       }
 
       const categoryId = categoryMap.get(categorySlug);
@@ -1069,19 +1113,22 @@ export const importFromExcelRows = mutation({
 
       if (existingSkus.has(sku) || existingSlugs.has(slug) || seenSkus.has(sku) || seenSlugs.has(slug)) {
         skipped += 1;
+        errors.push({ message: "SKU/Slug bị trùng", row: rowNumber });
         continue;
       }
 
-      const nextOrder = await getNextOrder(ctx);
+      const orderValue = nextOrder;
+      nextOrder += 1;
       const status = row.status ?? defaultStatus;
       const stockValue = Number.isFinite(row.stock ?? 0) ? (row.stock ?? 0) : 0;
       const salePrice = row.salePrice && row.salePrice > 0 ? row.salePrice : undefined;
+      const normalizedImages = row.images?.map((image) => image.trim()).filter(Boolean);
 
       await ctx.db.insert("products", {
         categoryId,
         description: row.description?.trim() || undefined,
         image: row.image?.trim() || undefined,
-        images: row.images?.length ? row.images : undefined,
+        images: normalizedImages?.length ? normalizedImages : undefined,
         name,
         price: row.price,
         salePrice,
@@ -1090,7 +1137,7 @@ export const importFromExcelRows = mutation({
         status,
         stock: stockValue,
         sales: 0,
-        order: nextOrder,
+        order: orderValue,
       });
 
       await updateStats(ctx, { new: status });

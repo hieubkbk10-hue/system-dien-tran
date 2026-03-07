@@ -80,11 +80,18 @@ function ProductsContent() {
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"products"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [excelActionState, setExcelActionState] = useState<'idle' | 'template' | 'import' | 'export-filter' | 'export-all'>('idle');
+  const [isExcelMenuOpen, setIsExcelMenuOpen] = useState(false);
+  const [excelImportSummary, setExcelImportSummary] = useState<{
+    created: number;
+    skipped: number;
+    errorCount: number;
+    messages: string[];
+  } | null>(null);
   const [exportRequested, setExportRequested] = useState(false);
   const [exportMode, setExportMode] = useState<'filter' | 'all' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const excelMenuRef = useRef<HTMLDivElement>(null);
 
   const isSelectAllActive = selectionMode === 'all';
 
@@ -100,6 +107,24 @@ function ProductsContent() {
       window.localStorage.setItem('admin_products_visible_columns', JSON.stringify(visibleColumns));
     }
   }, [visibleColumns]);
+
+  useEffect(() => {
+    if (!isExcelMenuOpen) {
+      return;
+    }
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!excelMenuRef.current) {
+        return;
+      }
+      if (!excelMenuRef.current.contains(event.target as Node)) {
+        setIsExcelMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExcelMenuOpen]);
 
   // Get productsPerPage from module settings
   const productsPerPage = useMemo(() => {
@@ -117,6 +142,7 @@ function ProductsContent() {
     const setting = settingsData?.find(s => s.settingKey === 'variantPricing');
     return (setting?.value as string) || 'variant';
   }, [settingsData]);
+  const hideBasePricing = variantEnabled && variantPricing === 'variant';
 
   const saleMode = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'saleMode');
@@ -137,6 +163,10 @@ function ProductsContent() {
   const resolvedProductsPerPage = pageSizeOverride ?? productsPerPage;
   const offset = (currentPage - 1) * resolvedProductsPerPage;
   const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
+  const hasFilters = Boolean(resolvedSearch || filterCategory || filterStatus);
+  const isImporting = excelActionState === 'import';
+  const isTemplateDownloading = excelActionState === 'template';
+  const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
   const productsData = useQuery(api.products.listAdminWithOffset, {
     limit: resolvedProductsPerPage,
@@ -259,7 +289,7 @@ function ProductsContent() {
       toast.error('Không có dữ liệu để xuất Excel');
       setExportRequested(false);
       setExportMode(null);
-      setIsExporting(false);
+      setExcelActionState('idle');
       return;
     }
 
@@ -287,7 +317,7 @@ function ProductsContent() {
       } finally {
         setExportRequested(false);
         setExportMode(null);
-        setIsExporting(false);
+        setExcelActionState('idle');
       }
     };
 
@@ -313,6 +343,11 @@ function ProductsContent() {
     if (!excelActionsEnabled) {
       return;
     }
+    if (excelActionState !== 'idle') {
+      return;
+    }
+    setExcelActionState('template');
+    setIsExcelMenuOpen(false);
     try {
       const { Workbook } = await import('exceljs');
       const workbook = new Workbook();
@@ -323,6 +358,8 @@ function ProductsContent() {
       toast.success('Đã tải file mẫu');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể tạo file mẫu');
+    } finally {
+      setExcelActionState('idle');
     }
   };
 
@@ -330,18 +367,24 @@ function ProductsContent() {
     if (!excelActionsEnabled) {
       return;
     }
-    if (isExporting) {
+    if (excelActionState !== 'idle') {
       return;
     }
-    setIsExporting(true);
+    setExcelActionState(mode === 'filter' ? 'export-filter' : 'export-all');
     setExportMode(mode);
     setExportRequested(true);
+    setIsExcelMenuOpen(false);
   };
 
   const handleImportClick = () => {
     if (!excelActionsEnabled) {
       return;
     }
+    if (excelActionState !== 'idle') {
+      return;
+    }
+    setExcelImportSummary(null);
+    setIsExcelMenuOpen(false);
     fileInputRef.current?.click();
   };
 
@@ -350,7 +393,7 @@ function ProductsContent() {
     if (!file) {
       return;
     }
-    setIsImporting(true);
+    setExcelActionState('import');
     try {
       const { Workbook } = await import('exceljs');
       const buffer = await file.arrayBuffer();
@@ -415,9 +458,17 @@ function ProductsContent() {
           continue;
         }
 
+        const normalizedSlug = values.slug.trim().toLowerCase();
+        const normalizedSku = values.sku.trim().toLowerCase();
+        const normalizedCategory = values.categorySlug.trim().toLowerCase();
+
         const price = parseExcelNumber(values.price);
-        if (price === null) {
+        if (price === null || price < 0) {
           clientErrors.push({ message: 'Giá bán không hợp lệ', row: rowIndex });
+          continue;
+        }
+        if (saleMode === 'cart' && !hideBasePricing && price <= 0) {
+          clientErrors.push({ message: 'Giá bán phải lớn hơn 0', row: rowIndex });
           continue;
         }
 
@@ -429,12 +480,28 @@ function ProductsContent() {
         }
 
         const salePrice = values.salePrice ? parseExcelNumber(values.salePrice) : null;
+        if (salePrice !== null && salePrice < 0) {
+          clientErrors.push({ message: 'Giá khuyến mãi không hợp lệ', row: rowIndex });
+          continue;
+        }
+        if (salePrice !== null && salePrice > 0 && salePrice >= price) {
+          clientErrors.push({ message: 'Giá khuyến mãi phải nhỏ hơn giá bán', row: rowIndex });
+          continue;
+        }
         const stock = values.stock ? parseExcelNumber(values.stock) : null;
+        if (stock !== null && stock < 0) {
+          clientErrors.push({ message: 'Tồn kho không hợp lệ', row: rowIndex });
+          continue;
+        }
+        if (normalizedSlug && !slugPattern.test(normalizedSlug)) {
+          clientErrors.push({ message: 'Slug không đúng định dạng', row: rowIndex });
+          continue;
+        }
         const imageUrls = parseExcelImageUrls(values.image);
         const primaryImage = imageUrls[0];
 
         payloadRows.push({
-          categorySlug: values.categorySlug,
+          categorySlug: normalizedCategory,
           description: values.description || undefined,
           image: primaryImage,
           images: imageUrls.length ? imageUrls : undefined,
@@ -442,8 +509,8 @@ function ProductsContent() {
           price,
           rowNumber: rowIndex,
           salePrice: salePrice ?? undefined,
-          sku: values.sku,
-          slug: values.slug,
+          sku: normalizedSku,
+          slug: normalizedSlug,
           status: parsedStatus ?? undefined,
           stock: stock ?? undefined,
         });
@@ -456,14 +523,30 @@ function ProductsContent() {
 
       const result = await importProducts({ rows: payloadRows });
       const totalErrors = clientErrors.length + result.errors.length;
-      toast.success(`Đã tạo ${result.created} sản phẩm, bỏ qua ${result.skipped}`);
-      if (totalErrors > 0) {
-        toast.error(`Có ${totalErrors} dòng lỗi cần kiểm tra`);
+      const summaryMessages = [] as string[];
+      if (result.errors.length > 0) {
+        summaryMessages.push(`Lỗi server: ${result.errors.length} dòng`);
       }
+      if (clientErrors.length > 0) {
+        summaryMessages.push(`Lỗi client: ${clientErrors.length} dòng`);
+      }
+      if (result.skipped > 0) {
+        summaryMessages.push(`Bỏ qua: ${result.skipped} dòng`);
+      }
+      toast.success(`Đã tạo ${result.created} sản phẩm`);
+      if (totalErrors > 0 || result.skipped > 0) {
+        toast.error(`Có ${totalErrors + result.skipped} dòng cần kiểm tra`);
+      }
+      setExcelImportSummary({
+        created: result.created,
+        skipped: result.skipped,
+        errorCount: totalErrors,
+        messages: summaryMessages,
+      });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Import Excel thất bại');
     } finally {
-      setIsImporting(false);
+      setExcelActionState('idle');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -587,7 +670,7 @@ function ProductsContent() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Sản phẩm</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -599,33 +682,116 @@ function ProductsContent() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
-          {excelActionsEnabled && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx"
-                className="hidden"
-                onChange={handleImportFile}
-              />
-              <Button variant="outline" className="gap-2" onClick={handleDownloadTemplate}>
-                <Download size={16} /> Tải file mẫu
-              </Button>
-              <Button variant="outline" className="gap-2" onClick={handleImportClick} disabled={isImporting}>
-                <Upload size={16} /> {isImporting ? 'Đang import...' : 'Import Excel'}
-              </Button>
-              <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('filter'); }} disabled={isExporting || exportRequested}>
-                <Download size={16} /> Xuất theo lọc
-              </Button>
-              <Button variant="outline" className="gap-2" onClick={() =>{  handleExport('all'); }} disabled={isExporting || exportRequested}>
-                <Download size={16} /> Xuất toàn bộ
-              </Button>
-            </>
-          )}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative" ref={excelMenuRef}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() =>{  if (excelActionsEnabled) { setIsExcelMenuOpen((prev) => !prev); } }}
+              aria-expanded={isExcelMenuOpen}
+              disabled={!excelActionsEnabled || excelActionState !== 'idle'}
+            >
+              <Download size={16} /> Excel Actions <ChevronDown size={16} className="text-slate-400" />
+            </Button>
+            {!excelActionsEnabled && (
+              <div className="mt-1 text-xs text-slate-500">Excel actions đang tắt trong module settings</div>
+            )}
+            {excelActionsEnabled && isExcelMenuOpen && (
+              <div className="absolute right-0 z-20 mt-2 w-[320px] max-w-[calc(100vw-2rem)] rounded-md border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:w-[360px]">
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Template</div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    disabled={excelActionState !== 'idle'}
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
+                  >
+                    <Download size={16} className="mt-0.5 text-slate-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">Tải mẫu (Template)</div>
+                      <div className="text-xs text-slate-500">File mẫu có hướng dẫn và lỗi mẫu.</div>
+                    </div>
+                    {isTemplateDownloading && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
+                  </button>
+
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Import</div>
+                  <button
+                    type="button"
+                    onClick={handleImportClick}
+                    disabled={excelActionState !== 'idle'}
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
+                  >
+                    <Upload size={16} className="mt-0.5 text-slate-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">Nhập Excel (Import)</div>
+                      <div className="text-xs text-slate-500">Chọn file .xlsx để tạo sản phẩm hàng loạt.</div>
+                    </div>
+                    {isImporting && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
+                  </button>
+
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Export</div>
+                  <button
+                    type="button"
+                    onClick={() =>{  handleExport('filter'); }}
+                    disabled={!hasFilters || excelActionState !== 'idle'}
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
+                  >
+                    <Download size={16} className="mt-0.5 text-slate-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">Xuất theo lọc (Export Filtered)</div>
+                      <div className="text-xs text-slate-500">Áp dụng bộ lọc hiện tại, tối đa 5.000 dòng.</div>
+                    </div>
+                    {excelActionState === 'export-filter' && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
+                  </button>
+                  {!hasFilters && (
+                    <div className="px-3 text-xs text-slate-500">Chưa có bộ lọc, vui lòng chọn lọc trước khi xuất.</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>{  handleExport('all'); }}
+                    disabled={excelActionState !== 'idle'}
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
+                  >
+                    <Download size={16} className="mt-0.5 text-slate-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">Xuất toàn bộ (Export All)</div>
+                      <div className="text-xs text-slate-500">Tối đa 5.000 dòng mỗi lần export.</div>
+                    </div>
+                    {excelActionState === 'export-all' && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <Link href="/admin/products/create"><Button className="gap-2"><Plus size={16}/> Thêm sản phẩm</Button></Link>
         </div>
       </div>
+
+      {excelImportSummary && (
+        <Card className="border border-orange-200 bg-orange-50/40 p-4 text-sm text-slate-700">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="font-semibold text-slate-900">Tóm tắt import Excel</div>
+              <div className="mt-1 text-xs text-slate-600">Tạo: {excelImportSummary.created} · Bỏ qua: {excelImportSummary.skipped} · Lỗi: {excelImportSummary.errorCount}</div>
+              {excelImportSummary.messages.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-600">
+                  {excelImportSummary.messages.map((message) => (
+                    <li key={message}>{message}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" onClick={() =>{  setExcelImportSummary(null); }}>Đóng</Button>
+          </div>
+        </Card>
+      )}
 
       <BulkActionBar 
         selectedCount={selectedIds.length} 
