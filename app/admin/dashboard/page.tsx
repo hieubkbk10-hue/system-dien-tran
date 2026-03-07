@@ -82,6 +82,11 @@ function DashboardContent() {
     return feature?.enabled ?? false;
   };
 
+  const showContactInboxWidget = (contactInboxModule?.enabled ?? false) && (contactInboxFeature?.enabled ?? false);
+  const inboxStats = useQuery(api.contactInbox.getInboxStats, showContactInboxWidget ? {} : 'skip');
+  const recentInbox = useQuery(api.contactInbox.listRecentInbox, showContactInboxWidget ? { limit: 5 } : 'skip');
+  const hasInboxData = showContactInboxWidget && (inboxStats?.total ?? 0) > 0 && (recentInbox?.length ?? 0) > 0;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -94,12 +99,6 @@ function DashboardContent() {
   const showCustomers = isFeatureEnabled('enableCustomers');
   const showProducts = isFeatureEnabled('enableProducts');
   const showTraffic = isFeatureEnabled('enableTraffic');
-  const showContactInboxWidget = (contactInboxModule?.enabled ?? false) && (contactInboxFeature?.enabled ?? false);
-
-  const inboxStats = useQuery(api.contactInbox.getInboxStats, showContactInboxWidget ? {} : 'skip');
-  const recentInbox = useQuery(api.contactInbox.listRecentInbox, showContactInboxWidget ? { limit: 5 } : 'skip');
-  const hasInboxData = showContactInboxWidget && (inboxStats?.total ?? 0) > 0 && (recentInbox?.length ?? 0) > 0;
-
   const hasAnyFeature = showSales || showCustomers || showProducts || showTraffic;
 
   if (!hasAnyFeature) {
