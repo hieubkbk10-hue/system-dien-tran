@@ -109,7 +109,7 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa danh mục</h1>
           <Link href="/admin/categories" className="text-sm text-orange-600 hover:underline">Quay lại danh sách</Link>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => window.open(`/category/${slug}`, '_blank')}>
+        <Button variant="outline" className="gap-2" onClick={() => window.open(`/products?category=${encodeURIComponent(slug)}`, '_blank')}>
           <ExternalLink size={16}/> Xem trên web
         </Button>
       </div>

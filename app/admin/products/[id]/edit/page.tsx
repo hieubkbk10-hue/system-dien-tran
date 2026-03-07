@@ -21,6 +21,19 @@ import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickC
 
 const MODULE_KEY = 'products';
 
+const getProductMutationErrorMessage = (error: unknown, fallback: string) => {
+  if (!(error instanceof Error) || !error.message) {
+    return fallback;
+  }
+  if (error.message === 'Slug already exists') {
+    return 'Slug đã tồn tại, vui lòng chọn slug khác';
+  }
+  if (error.message === 'SKU already exists') {
+    return 'Mã SKU đã tồn tại';
+  }
+  return error.message;
+};
+
 export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <ModuleGuard moduleKey="products">
@@ -332,7 +345,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật sản phẩm thành công");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể cập nhật sản phẩm");
+      toast.error(getProductMutationErrorMessage(error, 'Không thể cập nhật sản phẩm'));
     } finally {
       setIsSubmitting(false);
     }

@@ -206,7 +206,7 @@ function CategoriesContent() {
   };
 
   const openFrontend = (slug: string) => {
-    window.open(`/category/${slug}`, '_blank');
+    window.open(`/products?category=${encodeURIComponent(slug)}`, '_blank');
   };
 
   if (isLoading) {

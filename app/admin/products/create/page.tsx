@@ -21,6 +21,19 @@ import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickC
 
 const MODULE_KEY = 'products';
 
+const getProductMutationErrorMessage = (error: unknown, fallback: string) => {
+  if (!(error instanceof Error) || !error.message) {
+    return fallback;
+  }
+  if (error.message === 'Slug already exists') {
+    return 'Slug đã tồn tại, vui lòng chọn slug khác';
+  }
+  if (error.message === 'SKU already exists') {
+    return 'Mã SKU đã tồn tại';
+  }
+  return error.message;
+};
+
 export default function ProductCreatePage() {
   return (
     <ModuleGuard moduleKey="products">
@@ -242,7 +255,7 @@ function ProductCreateContent() {
       toast.success("Tạo sản phẩm mới thành công");
       router.push('/admin/products');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể tạo sản phẩm");
+      toast.error(getProductMutationErrorMessage(error, 'Không thể tạo sản phẩm'));
     } finally {
       setIsSubmitting(false);
     }
