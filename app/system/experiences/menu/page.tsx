@@ -43,6 +43,8 @@ const DEFAULT_CONFIG: HeaderMenuConfig = {
     email: 'contact@example.com',
     hotline: '1900 1234',
     show: true,
+    showEmail: true,
+    showHotline: true,
     showTrackOrder: true,
     sloganEnabled: true,
     slogan: '',
@@ -470,6 +472,18 @@ export default function HeaderMenuExperiencePage() {
                   disabled
                 />
               </div>
+              <ToggleRow
+                label="Hiển thị hotline"
+                checked={config.topbar.showHotline ?? true}
+                onChange={(v) => updateTopbar('showHotline', v)}
+                accentColor={resolvedBrandColor}
+              />
+              <ToggleRow
+                label="Hiển thị email"
+                checked={config.topbar.showEmail ?? true}
+                onChange={(v) => updateTopbar('showEmail', v)}
+                accentColor={resolvedBrandColor}
+              />
               <ToggleRow
                 label="Slogan topbar"
                 checked={config.topbar.sloganEnabled ?? true}

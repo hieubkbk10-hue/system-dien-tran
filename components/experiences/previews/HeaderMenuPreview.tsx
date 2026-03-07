@@ -24,6 +24,8 @@ export type HeaderMenuConfig = {
     email: string;
     hotline: string;
     show: boolean;
+    showEmail?: boolean;
+    showHotline?: boolean;
     showTrackOrder: boolean;
     slogan?: string;
     sloganEnabled?: boolean;
@@ -308,6 +310,8 @@ export function HeaderMenuPreview({
   const topbarSlogan = typeof displayTopbar.slogan === 'string' ? displayTopbar.slogan.trim() : '';
   const topbarSloganEnabled = displayTopbar.sloganEnabled !== false;
   const showSlogan = Boolean(displayTopbar.show && topbarSloganEnabled && topbarSlogan);
+  const showTopbarHotline = Boolean(displayTopbar.show && (displayTopbar.showHotline ?? true) && displayTopbar.hotline);
+  const showTopbarEmail = Boolean(displayTopbar.show && (displayTopbar.showEmail ?? true) && displayTopbar.email);
 
 
   const classicBackgroundStyle: React.CSSProperties = (() => {
@@ -402,10 +406,10 @@ export function HeaderMenuPreview({
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
           <div className="flex items-center justify-between gap-4 min-w-0">
             <div className="flex items-center gap-4">
-              {displayTopbar.hotline && (
+              {showTopbarHotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
               )}
-              {device !== 'mobile' && displayTopbar.email && (
+              {device !== 'mobile' && showTopbarEmail && (
                 <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
               )}
             </div>
@@ -738,10 +742,10 @@ export function HeaderMenuPreview({
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
           <div className="flex items-center justify-between gap-4 min-w-0">
             <div className="flex items-center gap-4">
-              {displayTopbar.hotline && (
+              {showTopbarHotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
               )}
-              {device !== 'mobile' && displayTopbar.email && (
+              {device !== 'mobile' && showTopbarEmail && (
                 <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
               )}
             </div>
@@ -979,10 +983,10 @@ export function HeaderMenuPreview({
         <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
           <div className="flex items-center justify-between gap-4 min-w-0">
             <div className="flex items-center gap-4">
-              {displayTopbar.hotline && (
+              {showTopbarHotline && (
                 <span className="flex items-center gap-1"><Phone size={12} /><span>{displayTopbar.hotline}</span></span>
               )}
-              {device !== 'mobile' && displayTopbar.email && (
+              {device !== 'mobile' && showTopbarEmail && (
                 <span className="flex items-center gap-1"><Mail size={12} /><span>{displayTopbar.email}</span></span>
               )}
             </div>

@@ -35,6 +35,8 @@ interface TopbarConfig {
   show?: boolean;
   hotline?: string;
   email?: string;
+  showEmail?: boolean;
+  showHotline?: boolean;
   showTrackOrder?: boolean;
   slogan?: string;
   sloganEnabled?: boolean;
@@ -80,6 +82,8 @@ const DEFAULT_CONFIG: HeaderConfig = {
     email: 'contact@example.com',
     hotline: '1900 1234',
     show: true,
+    showEmail: true,
+    showHotline: true,
     showTrackOrder: true,
     sloganEnabled: true,
     slogan: '',
@@ -362,6 +366,8 @@ export function Header() {
   const topbarSlogan = typeof settings.site_tagline === 'string' ? settings.site_tagline.trim() : '';
   const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? true) !== false;
   const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
+  const showTopbarHotline = Boolean(topbarConfig.show !== false && (topbarConfig.showHotline ?? true) && topbarConfig.hotline);
+  const showTopbarEmail = Boolean(topbarConfig.show !== false && (topbarConfig.showEmail ?? true) && topbarConfig.email);
 
 
   const toggleMobileItem = (id: string) => {
@@ -495,13 +501,13 @@ export function Header() {
           <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
               <div className="flex items-center gap-4">
-                {topbarConfig.hotline && (
+                {showTopbarHotline && (
                   <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
                     <Phone size={12} />
                     <span>{topbarConfig.hotline}</span>
                   </a>
                 )}
-                {topbarConfig.email && (
+                {showTopbarEmail && (
                   <a href={`mailto:${topbarConfig.email}`} className="hidden sm:flex items-center gap-1">
                     <Mail size={12} />
                     <span>{topbarConfig.email}</span>
@@ -857,13 +863,13 @@ export function Header() {
           <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
               <div className="flex items-center gap-4">
-                {topbarConfig.hotline && (
+                {showTopbarHotline && (
                   <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
                     <Phone size={12} />
                     <span>{topbarConfig.hotline}</span>
                   </a>
                 )}
-                {topbarConfig.email && (
+                {showTopbarEmail && (
                   <a href={`mailto:${topbarConfig.email}`} className="hidden sm:flex items-center gap-1">
                     <Mail size={12} />
                     <span>{topbarConfig.email}</span>
@@ -1116,13 +1122,13 @@ export function Header() {
           <div className="px-4 py-2 text-xs" style={{ backgroundColor: tokens.topbarBg, color: tokens.topbarText }}>
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
               <div className="flex items-center gap-4">
-                {topbarConfig.hotline && (
+                {showTopbarHotline && (
                   <a href={`tel:${topbarConfig.hotline}`} className="flex items-center gap-1">
                     <Phone size={12} />
                     <span>{topbarConfig.hotline}</span>
                   </a>
                 )}
-                {topbarConfig.email && (
+                {showTopbarEmail && (
                   <a href={`mailto:${topbarConfig.email}`} className="hidden sm:flex items-center gap-1">
                     <Mail size={12} />
                     <span>{topbarConfig.email}</span>
