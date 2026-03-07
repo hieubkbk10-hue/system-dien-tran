@@ -170,7 +170,7 @@ export const create = mutation({
       .query("productCategories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (existing) {throw new Error("Slug already exists");}
+    if (existing) {throw new Error("Slug này đã được sử dụng, vui lòng chọn slug khác");}
     
     // FIX: Get last order instead of fetching ALL
     let nextOrder = args.order;
@@ -224,7 +224,7 @@ export const update = mutation({
         .query("productCategories")
         .withIndex("by_slug", (q) => q.eq("slug", newSlug))
         .unique();
-      if (existing) {throw new Error("Slug already exists");}
+      if (existing) {throw new Error("Slug này đã được sử dụng, vui lòng chọn slug khác");}
     }
     await ctx.db.patch(id, updates);
     return null;
