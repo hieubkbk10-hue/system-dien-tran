@@ -419,6 +419,7 @@ const productExportDoc = v.object({
 export const listAdminExport = query({
   args: {
     categoryId: v.optional(v.id("productCategories")),
+    ids: v.optional(v.array(v.id("products"))),
     limit: v.optional(v.number()),
     search: v.optional(v.string()),
     status: v.optional(productStatus),
@@ -426,6 +427,25 @@ export const listAdminExport = query({
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 5000, 5000);
     const fetchLimit = Math.min(limit + 200, 5000);
+
+    if (args.ids?.length) {
+      const ids = args.ids.slice(0, limit);
+      const products = (await Promise.all(ids.map((id) => ctx.db.get(id))))
+        .filter((product): product is Doc<"products"> => Boolean(product));
+      products.sort((a, b) => b.order - a.order);
+      return products.map((product) => ({
+        categoryId: product.categoryId,
+        description: product.description,
+        image: product.image,
+        name: product.name,
+        price: product.price,
+        salePrice: product.salePrice,
+        sku: product.sku,
+        slug: product.slug,
+        status: product.status,
+        stock: product.stock,
+      }));
+    }
 
     let products: Doc<"products">[] = [];
     if (args.search?.trim()) {

@@ -80,7 +80,7 @@ function ProductsContent() {
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"products"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [excelActionState, setExcelActionState] = useState<'idle' | 'template' | 'import' | 'export-filter' | 'export-all'>('idle');
+  const [excelActionState, setExcelActionState] = useState<'idle' | 'template' | 'import' | 'export-filter' | 'export-all' | 'export-selected'>('idle');
   const [isExcelMenuOpen, setIsExcelMenuOpen] = useState(false);
   const [excelImportSummary, setExcelImportSummary] = useState<{
     created: number;
@@ -89,7 +89,7 @@ function ProductsContent() {
     messages: string[];
   } | null>(null);
   const [exportRequested, setExportRequested] = useState(false);
-  const [exportMode, setExportMode] = useState<'filter' | 'all' | null>(null);
+  const [exportMode, setExportMode] = useState<'filter' | 'all' | 'selected' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const excelMenuRef = useRef<HTMLDivElement>(null);
 
@@ -198,15 +198,23 @@ function ProductsContent() {
       : 'skip'
   );
 
+  const selectedIds = isSelectAllActive && selectAllData ? selectAllData.ids : manualSelectedIds;
+  const isSelectingAll = isSelectAllActive && selectAllData === undefined;
+
   const exportData = useQuery(
     api.products.listAdminExport,
     exportRequested
-      ? {
-          limit: 5000,
-          categoryId: exportMode === 'filter' ? (filterCategory || undefined) : undefined,
-          search: exportMode === 'filter' ? resolvedSearch : undefined,
-          status: exportMode === 'filter' ? (filterStatus || undefined) : undefined,
-        }
+      ? exportMode === 'selected'
+        ? {
+            limit: 5000,
+            ids: selectedIds.slice(0, 5000),
+          }
+        : {
+            limit: 5000,
+            categoryId: exportMode === 'filter' ? (filterCategory || undefined) : undefined,
+            search: exportMode === 'filter' ? resolvedSearch : undefined,
+            status: exportMode === 'filter' ? (filterStatus || undefined) : undefined,
+          }
       : 'skip'
   );
 
@@ -363,14 +371,19 @@ function ProductsContent() {
     }
   };
 
-  const handleExport = (mode: 'filter' | 'all') => {
+  const handleExport = (mode: 'filter' | 'all' | 'selected') => {
     if (!excelActionsEnabled) {
       return;
     }
     if (excelActionState !== 'idle') {
       return;
     }
-    setExcelActionState(mode === 'filter' ? 'export-filter' : 'export-all');
+    if (mode === 'selected' && selectedIds.length > 5000) {
+      toast.error('Tối đa 5.000 mục mỗi lần export.');
+      return;
+    }
+    const nextState = mode === 'filter' ? 'export-filter' : mode === 'selected' ? 'export-selected' : 'export-all';
+    setExcelActionState(nextState);
     setExportMode(mode);
     setExportRequested(true);
     setIsExcelMenuOpen(false);
@@ -563,8 +576,9 @@ function ProductsContent() {
   const totalPages = totalCount ? Math.ceil(totalCount / resolvedProductsPerPage) : 1;
   const paginatedData = sortedData;
   const tableColumnCount = visibleColumns.length;
-  const selectedIds = isSelectAllActive && selectAllData ? selectAllData.ids : manualSelectedIds;
-  const isSelectingAll = isSelectAllActive && selectAllData === undefined;
+  const hasManualSelection = selectedIds.length > 0;
+  const isFilteredExportDisabled = !hasFilters || hasManualSelection || excelActionState !== 'idle';
+  const isSelectedExportDisabled = !hasManualSelection || selectedIds.length > 5000 || excelActionState !== 'idle';
 
   const applyManualSelection = (nextIds: Id<"products">[]) => {
     setSelectionMode('manual');
@@ -740,7 +754,7 @@ function ProductsContent() {
                   <button
                     type="button"
                     onClick={() =>{  handleExport('filter'); }}
-                    disabled={!hasFilters || excelActionState !== 'idle'}
+                    disabled={isFilteredExportDisabled}
                     className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
                   >
                     <Download size={16} className="mt-0.5 text-slate-500" />
@@ -750,8 +764,30 @@ function ProductsContent() {
                     </div>
                     {excelActionState === 'export-filter' && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
                   </button>
-                  {!hasFilters && (
+                  {!hasFilters && !hasManualSelection && (
                     <div className="px-3 text-xs text-slate-500">Chưa có bộ lọc, vui lòng chọn lọc trước khi xuất.</div>
+                  )}
+                  {hasManualSelection && (
+                    <div className="px-3 text-xs text-slate-500">Đang chọn thủ công, vui lòng Bỏ chọn tất cả để dùng Xuất theo lọc.</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>{  handleExport('selected'); }}
+                    disabled={isSelectedExportDisabled}
+                    className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-slate-800"
+                  >
+                    <Download size={16} className="mt-0.5 text-slate-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">Xuất đã chọn (Export Selected)</div>
+                      <div className="text-xs text-slate-500">Chỉ xuất các sản phẩm đang được tick trong danh sách.</div>
+                    </div>
+                    {excelActionState === 'export-selected' && <Loader2 size={14} className="mt-0.5 animate-spin text-slate-500" />}
+                  </button>
+                  {!hasManualSelection && (
+                    <div className="px-3 text-xs text-slate-500">Chưa có lựa chọn thủ công, vui lòng tick sản phẩm để xuất.</div>
+                  )}
+                  {selectedIds.length > 5000 && (
+                    <div className="px-3 text-xs text-slate-500">Tối đa 5.000 mục mỗi lần export.</div>
                   )}
                   <button
                     type="button"
