@@ -16,6 +16,8 @@ import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import { ModuleGuard } from '../../../components/ModuleGuard';
 import { DigitalCredentialsForm } from '@/components/orders/DigitalCredentialsForm';
 import { stripHtml, truncateText } from '@/lib/seo';
+import { ProductCategoryCombobox } from '@/app/admin/products/components/ProductCategoryCombobox';
+import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickCreateCategoryModal';
 
 const MODULE_KEY = 'products';
 
@@ -54,6 +56,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [hasVariants, setHasVariants] = useState(false);
   const [selectedOptionIds, setSelectedOptionIds] = useState<Id<'productOptions'>[]>([]);
   const [productType, setProductType] = useState<'physical' | 'digital'>('physical');
@@ -352,6 +355,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
+    <>
+      <QuickCreateCategoryModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onCreated={(createdId) => setCategoryId(createdId)}
+      />
     <form onSubmit={handleSubmit} className="space-y-6 pb-20">
       <div className="flex justify-between items-center">
         <div>
@@ -659,17 +668,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
               </div>
               <div className="space-y-2">
                 <Label>Danh mục <span className="text-red-500">*</span></Label>
-                <select 
-                  value={categoryId} 
-                  onChange={(e) =>{  setCategoryId(e.target.value); }}
-                  required
-                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                >
-                  <option value="">-- Chọn danh mục --</option>
-                  {categoriesData?.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
+                <ProductCategoryCombobox
+                  categories={categoriesData}
+                  value={categoryId}
+                  onChange={setCategoryId}
+                  onQuickCreate={() => setShowCategoryModal(true)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -728,5 +732,6 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         </Button>
       </div>
     </form>
+    </>
   );
 }
