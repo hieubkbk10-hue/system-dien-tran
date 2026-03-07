@@ -159,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
       pathname.startsWith('/admin/orders') ||
       pathname.startsWith('/admin/wishlist')
     ) {
-      return 'E-Commerce';
+      return 'Bán hàng & sản phẩm';
     }
     if (pathname.startsWith('/admin/users') || pathname.startsWith('/admin/roles')) {
       return 'Người dùng';
@@ -360,12 +360,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
                 {!isSidebarCollapsed && <div className="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Bán hàng</div>}
                 <SidebarItem 
                   icon={ShoppingCart} 
-                  label="E-Commerce" 
+                  label="Bán hàng & sản phẩm" 
                   href="/admin/products"
                   active={isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-options') || isActive('/admin/customers') || isActive('/admin/reviews') || isActive('/admin/orders') || isActive('/admin/wishlist')}
                   isCollapsed={isSidebarCollapsed}
-                  isExpanded={currentExpandedMenu === 'E-Commerce'}
-                  onToggle={() =>{  handleMenuToggle('E-Commerce'); }}
+                  isExpanded={currentExpandedMenu === 'Bán hàng & sản phẩm'}
+                  onToggle={() =>{  handleMenuToggle('Bán hàng & sản phẩm'); }}
                   pathname={pathname}
                   isModuleEnabled={isModuleEnabled}
                   subItems={[
