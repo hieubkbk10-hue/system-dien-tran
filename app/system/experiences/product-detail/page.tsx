@@ -79,6 +79,7 @@ type ClassicLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   showClassicHighlights: boolean;
 };
@@ -89,6 +90,7 @@ type ModernLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   heroStyle: 'full' | 'split' | 'minimal';
 };
@@ -99,6 +101,7 @@ type MinimalLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   contentWidth: 'narrow' | 'medium' | 'wide';
 };
@@ -142,9 +145,9 @@ const LAYOUT_STYLES: LayoutOption<ProductsDetailStyle>[] = [
 const DEFAULT_CONFIG: ProductDetailExperienceConfig = {
   layoutStyle: 'classic',
   layouts: {
-    classic: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, showClassicHighlights: true },
-    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, heroStyle: 'full' },
-    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showAddToCart: true, contentWidth: 'medium' },
+    classic: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showShare: true, showAddToCart: true, showClassicHighlights: true },
+    modern: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showShare: true, showAddToCart: true, heroStyle: 'full' },
+    minimal: { showRating: true, showComments: true, showCommentLikes: true, showCommentReplies: true, showWishlist: true, showShare: true, showAddToCart: true, contentWidth: 'medium' },
   },
   showBuyNow: true,
 };
@@ -423,6 +426,7 @@ export default function ProductDetailExperiencePage() {
       layoutStyle: config.layoutStyle,
       showRating: currentLayoutConfig.showRating && canUseComments,
       showWishlist: currentLayoutConfig.showWishlist && canUseWishlist,
+      showShare: currentLayoutConfig.showShare,
       showAddToCart: currentLayoutConfig.showAddToCart && canUseCart,
       showBuyNow: config.showBuyNow && canUseOrders,
       showComments: currentLayoutConfig.showComments && canUseComments,
@@ -637,6 +641,12 @@ export default function ProductDetailExperiencePage() {
               onChange={(v) => updateLayoutConfig('showWishlist', v)}
               accentColor={brandColor}
               disabled={!canUseWishlist}
+            />
+            <ToggleRow
+              label="Nút chia sẻ"
+              checked={currentLayoutConfig.showShare}
+              onChange={(v) => updateLayoutConfig('showShare', v)}
+              accentColor={brandColor}
             />
             <ToggleRow
               label="Add to Cart"

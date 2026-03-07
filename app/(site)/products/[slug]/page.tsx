@@ -28,6 +28,7 @@ type ClassicLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   showClassicHighlights: boolean;
 };
@@ -38,6 +39,7 @@ type ModernLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   heroStyle: ModernHeroStyle;
 };
@@ -48,6 +50,7 @@ type MinimalLayoutConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   contentWidth: MinimalContentWidth;
 };
@@ -62,6 +65,7 @@ type ProductDetailExperienceConfig = {
   showCommentLikes: boolean;
   showCommentReplies: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showBuyNow: boolean;
   heroStyle: ModernHeroStyle;
   contentWidth: MinimalContentWidth;
@@ -187,6 +191,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
       showCommentLikes: boolean;
       showCommentReplies: boolean;
       showWishlist: boolean;
+      showShare: boolean;
       showBuyNow: boolean;
       heroStyle: ModernHeroStyle;
       contentWidth: MinimalContentWidth;
@@ -208,6 +213,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
     const showComments = layoutComments?.showComments ?? raw?.showComments ?? true;
     const showCommentLikes = layoutComments?.showCommentLikes ?? raw?.showCommentLikes ?? true;
     const showCommentReplies = layoutComments?.showCommentReplies ?? raw?.showCommentReplies ?? true;
+    const showShare = layoutComments?.showShare ?? raw?.showShare ?? true;
     return {
       layoutStyle,
       showAddToCart: configShowAddToCart && cartAvailable,
@@ -218,6 +224,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
       showCommentLikes: canUseCommentLikes ? showCommentLikes : false,
       showCommentReplies: canUseCommentReplies ? showCommentReplies : false,
       showWishlist: canUseWishlist ? (layoutConfig?.showWishlist ?? raw?.showWishlist ?? true) : false,
+      showShare,
       showBuyNow: (raw?.showBuyNow ?? true) && ordersEnabled,
       heroStyle: layoutStyle === 'modern'
         ? (layoutConfig as Partial<ModernLayoutConfig>)?.heroStyle ?? raw?.heroStyle ?? 'full'
@@ -456,6 +463,22 @@ export default function ProductDetailPage({ params }: PageProps) {
       return;
     }
     await toggleWishlist({ customerId: customer.id as Id<'customers'>, productId: product._id });
+  };
+
+  const handleShare = async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (!navigator.clipboard) {
+      toast.error('Trình duyệt không hỗ trợ sao chép liên kết.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Đã sao chép liên kết sản phẩm');
+    } catch {
+      toast.error('Không thể sao chép liên kết. Vui lòng thử lại.');
+    }
   };
 
   const handleAddToCart = async (quantity: number, variantId?: Id<'productVariants'>) => {
@@ -697,11 +720,13 @@ export default function ProductDetailPage({ params }: PageProps) {
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
+          showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
           requireStockForBuyNow={requireStockForBuyNow}
           isWishlisted={isWishlisted}
           onToggleWishlist={handleWishlistToggle}
+          onShare={handleShare}
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
@@ -723,12 +748,14 @@ export default function ProductDetailPage({ params }: PageProps) {
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
+          showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
           requireStockForBuyNow={requireStockForBuyNow}
           heroStyle={experienceConfig.heroStyle}
           isWishlisted={isWishlisted}
           onToggleWishlist={handleWishlistToggle}
+          onShare={handleShare}
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
@@ -750,12 +777,14 @@ export default function ProductDetailPage({ params }: PageProps) {
           showAddToCart={canUseCartActions ? experienceConfig.showAddToCart : false}
           showRating={canShowRating}
           showWishlist={canUseWishlist}
+          showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
           requireStockForBuyNow={requireStockForBuyNow}
           contentWidth={experienceConfig.contentWidth}
           isWishlisted={isWishlisted}
           onToggleWishlist={handleWishlistToggle}
+          onShare={handleShare}
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
@@ -819,11 +848,13 @@ interface ExperienceBlocksProps {
   showAddToCart: boolean;
   showRating: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showBuyNow: boolean;
   buyNowLabel: string;
   requireStockForBuyNow: boolean;
   isWishlisted: boolean;
   onToggleWishlist: () => void;
+  onShare: () => void;
   onAddToCart: (quantity: number, variantId?: Id<'productVariants'>) => void;
   onBuyNow: (quantity: number, variantId?: Id<'productVariants'>) => void;
 }
@@ -975,7 +1006,7 @@ function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: Pro
 // ====================================================================================
 // STYLE 1: CLASSIC - Standard e-commerce product page
 // ====================================================================================
-function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
+function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showShare, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onShare, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -1192,9 +1223,17 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                   <Heart size={20} className={isWishlisted ? 'fill-current' : ''} style={{ color: isWishlisted ? tokens.stockDangerText : tokens.wishlistIcon }} />
                 </button>
               )}
-              <button className="p-3.5 rounded-xl border transition-colors" style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}>
-                <Share2 size={20} style={{ color: tokens.shareIcon }} />
-              </button>
+              {showShare && (
+                <button
+                  type="button"
+                  onClick={onShare}
+                  className="p-3.5 rounded-xl border transition-colors"
+                  style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}
+                  aria-label="Chia sẻ sản phẩm"
+                >
+                  <Share2 size={20} style={{ color: tokens.shareIcon }} />
+                </button>
+              )}
             </div>
 
             {highlightsEnabled && highlights.length > 0 && (

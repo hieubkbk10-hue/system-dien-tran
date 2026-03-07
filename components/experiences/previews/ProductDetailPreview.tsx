@@ -39,6 +39,7 @@ type ProductDetailPreviewProps = {
   showCommentLikes?: boolean;
   showCommentReplies?: boolean;
   showWishlist: boolean;
+  showShare: boolean;
   showAddToCart: boolean;
   showBuyNow: boolean;
   showVariants?: boolean;
@@ -198,6 +199,7 @@ export function ProductDetailPreview({
   showCommentLikes,
   showCommentReplies,
   showWishlist,
+  showShare,
   showAddToCart,
   showBuyNow,
   showVariants = true,
@@ -351,9 +353,11 @@ export function ProductDetailPreview({
                     <Heart size={20} style={{ color: tokens.wishlistIcon }} />
                   </button>
                 )}
-                <button className="p-3.5 rounded-xl border" style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}>
-                  <Share2 size={20} style={{ color: tokens.shareIcon }} />
-                </button>
+                {showShare && (
+                  <button className="p-3.5 rounded-xl border" style={{ borderColor: tokens.shareBorder, backgroundColor: tokens.shareBg }}>
+                    <Share2 size={20} style={{ color: tokens.shareIcon }} />
+                  </button>
+                )}
               </div>
 
               {showHighlightBlock && renderHighlights()}
