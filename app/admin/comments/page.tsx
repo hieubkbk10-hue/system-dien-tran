@@ -294,15 +294,20 @@ function CommentsContent() {
         </div>
       </div>
 
-      <BulkActionBar selectedCount={selectedIds.length} onDelete={handleBulkDelete} onClearSelection={() =>{  applyManualSelection([]); }} />
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        entityLabel="bình luận"
+        selectionScope={isSelectAllActive ? 'all_results' : isPageSelected ? 'page' : 'partial'}
+        pageItemCount={paginatedComments.length}
+        totalMatchingCount={totalCount}
+        onSelectPage={() =>{  applyManualSelection(paginatedComments.map(comment => comment.id)); }}
+        onSelectAllResults={() =>{  setSelectionMode('all'); }}
+        isSelectingAllResults={isSelectingAll}
+        onDelete={handleBulkDelete}
+        onClearSelection={() =>{  applyManualSelection([]); }}
+      />
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2 text-sm">
-          <Button variant="outline" size="sm" onClick={() =>{  applyManualSelection(paginatedComments.map(comment => comment.id)); }}>
-            Chọn trang này
-          </Button>
-          <Button variant="outline" size="sm" onClick={() =>{  setSelectionMode('all'); }} disabled={isSelectingAll}>
-            {isSelectingAll ? 'Đang chọn...' : 'Chọn tất cả kết quả'}
-          </Button>
           <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700" onClick={handleBulkApprove}>
             <Check size={14} /> Duyệt
           </Button>

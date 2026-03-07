@@ -318,6 +318,7 @@ function RolesTable({
       {selectionEnabled && (
         <BulkActionBar
           selectedCount={resolvedSelectedIds.length}
+          entityLabel="vai trò"
           onDelete={handleBulkDelete}
           onClearSelection={() =>{  setSelectedIds([]); }}
           isLoading={isBulkDeleting}

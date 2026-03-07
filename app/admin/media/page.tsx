@@ -286,6 +286,7 @@ function MediaContent() {
       {/* Bulk Actions */}
       <BulkActionBar 
         selectedCount={selectedIds.length} 
+        entityLabel="tệp"
         onDelete={handleBulkDelete} 
         onClearSelection={() =>{  setSelectedIds([]); }} 
       />

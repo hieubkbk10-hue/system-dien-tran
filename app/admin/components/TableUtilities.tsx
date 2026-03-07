@@ -97,22 +97,77 @@ export function useSortableData<T>(items: T[], config: { key: string | null; dir
   }, [items, config]);
 }
 
-// FIX #10: Add loading state support
-export const BulkActionBar = ({ selectedCount, onDelete, onClearSelection, isLoading }: {
+export type BulkSelectionScope = 'partial' | 'page' | 'all_results';
+
+export const BulkActionBar = ({
+  selectedCount,
+  entityLabel,
+  selectionScope = 'partial',
+  pageItemCount,
+  totalMatchingCount,
+  onSelectPage,
+  onSelectAllResults,
+  isSelectingAllResults,
+  onDelete,
+  onClearSelection,
+  isLoading,
+}: {
   selectedCount: number;
+  entityLabel: string;
+  selectionScope?: BulkSelectionScope;
+  pageItemCount?: number;
+  totalMatchingCount?: number;
+  onSelectPage?: () => void;
+  onSelectAllResults?: () => void;
+  isSelectingAllResults?: boolean;
   onDelete: () => void;
   onClearSelection: () => void;
   isLoading?: boolean;
 }) => {
   if (selectedCount === 0) {return null;}
+
+  const resolvedTotalMatchingCount = totalMatchingCount ?? selectedCount;
+  const resolvedPageItemCount = pageItemCount ?? selectedCount;
+  const canSelectPage = selectionScope === 'partial' && onSelectPage && resolvedPageItemCount > selectedCount;
+  const canSelectAllResults = selectionScope === 'page' && onSelectAllResults && resolvedTotalMatchingCount > resolvedPageItemCount;
+  const primaryMessage = selectionScope === 'all_results'
+    ? `Đã chọn toàn bộ ${resolvedTotalMatchingCount} ${entityLabel} phù hợp`
+    : selectionScope === 'page'
+      ? `Đã chọn ${selectedCount} ${entityLabel} trên trang này`
+      : `Đã chọn ${selectedCount} ${entityLabel}`;
   
   return (
     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Đã chọn {selectedCount} mục</span>
-        <button onClick={onClearSelection} className="text-xs text-slate-500 hover:text-slate-700 underline" disabled={isLoading}>
-          Bỏ chọn
-        </button>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{primaryMessage}</span>
+          <button onClick={onClearSelection} className="text-xs text-slate-500 hover:text-slate-700 underline" disabled={isLoading}>
+            Bỏ chọn tất cả
+          </button>
+        </div>
+        {selectionScope === 'all_results' && (
+          <span className="text-xs text-slate-500">Bao gồm tất cả kết quả theo bộ lọc hiện tại</span>
+        )}
+        {canSelectPage && (
+          <button
+            type="button"
+            onClick={onSelectPage}
+            disabled={isLoading}
+            className="text-xs text-blue-600 hover:text-blue-700 underline text-left"
+          >
+            Chọn toàn bộ {resolvedPageItemCount} {entityLabel} trên trang này
+          </button>
+        )}
+        {canSelectAllResults && (
+          <button
+            type="button"
+            onClick={onSelectAllResults}
+            disabled={isLoading || isSelectingAllResults}
+            className="text-xs text-blue-600 hover:text-blue-700 underline text-left"
+          >
+            {isSelectingAllResults ? 'Đang chọn...' : `Chọn tất cả ${resolvedTotalMatchingCount} ${entityLabel} phù hợp`}
+          </button>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={onDelete} disabled={isLoading}>

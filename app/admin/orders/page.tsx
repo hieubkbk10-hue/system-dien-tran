@@ -323,20 +323,17 @@ function OrdersContent() {
 
       <BulkActionBar 
         selectedCount={selectedIds.length} 
+        entityLabel="đơn hàng"
+        selectionScope={isSelectAllActive ? 'all_results' : isPageSelected ? 'page' : 'partial'}
+        pageItemCount={paginatedData.length}
+        totalMatchingCount={totalCount}
+        onSelectPage={() =>{  applyManualSelection(paginatedData.map(order => order._id)); }}
+        onSelectAllResults={() =>{  setSelectionMode('all'); }}
+        isSelectingAllResults={isSelectingAll}
         onDelete={handleBulkDelete} 
         onClearSelection={() =>{  applyManualSelection([]); }} 
         isLoading={isDeleting}
       />
-      {selectedIds.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Button variant="outline" size="sm" onClick={() =>{  applyManualSelection(paginatedData.map(order => order._id)); }}>
-            Chọn trang này
-          </Button>
-          <Button variant="outline" size="sm" onClick={() =>{  setSelectionMode('all'); }} disabled={isSelectingAll}>
-            {isSelectingAll ? 'Đang chọn...' : 'Chọn tất cả kết quả'}
-          </Button>
-        </div>
-      )}
 
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 justify-between">

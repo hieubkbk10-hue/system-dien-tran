@@ -465,20 +465,17 @@ function UsersTable({
       {selectionEnabled && canDelete && (
         <BulkActionBar
           selectedCount={resolvedSelectedIds.length}
+          entityLabel="người dùng"
+          selectionScope={isSelectAllActive ? 'all_results' : isPageSelected ? 'page' : 'partial'}
+          pageItemCount={paginatedUsers.length}
+          totalMatchingCount={totalCount}
+          onSelectPage={() =>{  applyManualSelection(paginatedUsers.map(user => user._id)); }}
+          onSelectAllResults={() =>{  setSelectionMode('all'); }}
+          isSelectingAllResults={isSelectingAll}
           onDelete={handleBulkDelete}
           onClearSelection={() =>{  applyManualSelection([]); }}
           isLoading={isBulkDeleting}
         />
-      )}
-      {selectionEnabled && resolvedSelectedIds.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Button variant="outline" size="sm" onClick={() =>{  applyManualSelection(paginatedUsers.map(user => user._id)); }}>
-            Chọn trang này
-          </Button>
-          <Button variant="outline" size="sm" onClick={() =>{  setSelectionMode('all'); }} disabled={isSelectingAll}>
-            {isSelectingAll ? 'Đang chọn...' : 'Chọn tất cả kết quả'}
-          </Button>
-        </div>
       )}
       {selectionEnabled && canEdit && resolvedSelectedIds.length > 0 && (
         <div className="flex flex-wrap items-center gap-3">

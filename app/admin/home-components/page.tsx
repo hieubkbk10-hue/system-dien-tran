@@ -182,7 +182,12 @@ function HomeComponentsPage() {
         </Link>
       </div>
 
-      <BulkActionBar selectedCount={selectedIds.length} onDelete={handleBulkDelete} onClearSelection={() =>{  setSelectedIds([]); }} />
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        entityLabel="component"
+        onDelete={handleBulkDelete}
+        onClearSelection={() =>{  setSelectedIds([]); }}
+      />
 
       <Card>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

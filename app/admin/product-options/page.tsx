@@ -260,7 +260,12 @@ function ProductOptionsContent() {
         </Link>
       </div>
 
-      <BulkActionBar selectedCount={selectedIds.length} onDelete={handleBulkDelete} onClearSelection={() =>{  setSelectedIds([]); }} />
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        entityLabel="tùy chọn"
+        onDelete={handleBulkDelete}
+        onClearSelection={() =>{  setSelectedIds([]); }}
+      />
 
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 justify-between">

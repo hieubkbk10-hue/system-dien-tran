@@ -679,7 +679,13 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
         </div>
       </div>
 
-      <BulkActionBar selectedCount={selectedIds.length} onDelete={handleBulkDelete} onClearSelection={() =>{  setSelectedIds([]); }} isLoading={isDeleting} />
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        entityLabel="phiên bản"
+        onDelete={handleBulkDelete}
+        onClearSelection={() =>{  setSelectedIds([]); }}
+        isLoading={isDeleting}
+      />
 
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 justify-between">

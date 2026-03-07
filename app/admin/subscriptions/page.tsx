@@ -569,6 +569,7 @@ function SubscriptionsWorkspace() {
           </div>
           <BulkActionBar
             selectedCount={selectedIds.length}
+            entityLabel="nhắc"
             onDelete={() => setBulkDeleteDialogOpen(true)}
             onClearSelection={() => setSelectedIds([])}
             isLoading={isBulkDeleting}

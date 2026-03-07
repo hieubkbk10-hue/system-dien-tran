@@ -266,17 +266,18 @@ function ReviewsContent() {
         <div />
       </div>
 
-      <BulkActionBar selectedCount={selectedIds.length} onDelete={handleBulkDelete} onClearSelection={() =>{  applyManualSelection([]); }} />
-      {selectedIds.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Button variant="outline" size="sm" onClick={() =>{  applyManualSelection(paginatedReviews.map(review => review._id)); }}>
-            Chọn trang này
-          </Button>
-          <Button variant="outline" size="sm" onClick={() =>{  setSelectionMode('all'); }} disabled={isSelectingAll}>
-            {isSelectingAll ? 'Đang chọn...' : 'Chọn tất cả kết quả'}
-          </Button>
-        </div>
-      )}
+      <BulkActionBar
+        selectedCount={selectedIds.length}
+        entityLabel="đánh giá"
+        selectionScope={isSelectAllActive ? 'all_results' : isPageSelected ? 'page' : 'partial'}
+        pageItemCount={paginatedReviews.length}
+        totalMatchingCount={totalCount}
+        onSelectPage={() =>{  applyManualSelection(paginatedReviews.map(review => review._id)); }}
+        onSelectAllResults={() =>{  setSelectionMode('all'); }}
+        isSelectingAllResults={isSelectingAll}
+        onDelete={handleBulkDelete}
+        onClearSelection={() =>{  applyManualSelection([]); }}
+      />
 
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
