@@ -50,6 +50,12 @@ export const SEED_MODULE_METADATA: Record<string, SeedModuleMetadata> = {
     description: 'Bình luận và đánh giá',
     name: 'Comments',
   },
+  contactInbox: {
+    category: 'system',
+    defaultQuantity: 0,
+    description: 'Hộp thư liên hệ từ website',
+    name: 'Contact Inbox',
+  },
   customers: {
     category: 'user',
     defaultQuantity: 20,

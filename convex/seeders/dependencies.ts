@@ -145,6 +145,10 @@ export const SEED_DEPENDENCIES: Record<string, ModuleDependency> = {
     deps: [],
     type: 'all',
   },
+  contactInbox: {
+    deps: ['settings'],
+    type: 'all',
+  },
   media: {
     deps: [],
     type: 'all',

@@ -741,6 +741,35 @@ export default defineSchema({
     .index("by_scheduledAt", ["scheduledAt"])
     .index("by_status_order", ["status", "order"]),
 
+  // 24a. contactInquiries - Tin nhắn liên hệ
+  contactInquiries: defineTable({
+    createdAt: v.number(),
+    email: v.optional(v.string()),
+    handledAt: v.optional(v.number()),
+    handledBy: v.optional(v.id("users")),
+    message: v.string(),
+    name: v.string(),
+    phone: v.optional(v.string()),
+    sourcePath: v.string(),
+    status: v.union(
+      v.literal("new"),
+      v.literal("in_progress"),
+      v.literal("resolved"),
+      v.literal("spam")
+    ),
+    subject: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_status_createdAt", ["status", "createdAt"])
+    .index("by_createdAt", ["createdAt"])
+    .index("by_email_createdAt", ["email", "createdAt"]),
+
+  // 24b. contactInboxStats - Counter table cho inbox
+  contactInboxStats: defineTable({
+    key: v.string(), // total, new, in_progress, resolved, spam
+    count: v.number(),
+  }).index("by_key", ["key"]),
+
   // 25. pageViews - Tracking lượt truy cập
   pageViews: defineTable({
     browser: v.optional(v.string()),

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { 
   Bell, Briefcase, CalendarDays, ChevronRight, ChevronsLeft, 
-  ChevronsRight, FileText, Globe, Image as ImageIcon, LayoutDashboard, LayoutGrid, Loader2,
+  ChevronsRight, FileText, Globe, Image as ImageIcon, Inbox, LayoutDashboard, LayoutGrid, Loader2,
   LogOut, Settings, ShoppingCart, Ticket, User, Users, X
 } from 'lucide-react';
 import { cn } from './ui';
@@ -197,6 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
   const showKanbanSection = isModuleEnabled('kanban');
   const showSubscriptionsSection = isModuleEnabled('subscriptions');
   const showSettingsSection = isModuleEnabled('settings');
+  const showContactInboxSection = isModuleEnabled('contactInbox');
   const showNotificationsSection = isModuleEnabled('notifications');
   const showPromotionsSection = isModuleEnabled('promotions');
   const variantEnabled = Boolean(productSettings?.find(setting => setting.settingKey === 'variantEnabled')?.value);
@@ -434,7 +435,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
             )}
 
             {/* System Section */}
-            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection || showSubscriptionsSection) && (
+            {(showUsersSection || showWebsiteSection || showSettingsSection || showKanbanSection || showSubscriptionsSection || showContactInboxSection) && (
               <div className="space-y-1">
                 {!isSidebarCollapsed && <div className="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Hệ thống</div>}
                 
@@ -471,6 +472,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
                       { href: '/admin/menus', label: 'Menu', moduleKey: 'menus' },
                       { href: '/admin/home-components', label: 'Giao diện trang chủ', moduleKey: 'homepage' },
                     ]}
+                  />
+                )}
+
+                {showContactInboxSection && (
+                  <SidebarItem
+                    icon={Inbox}
+                    label="Contact Inbox"
+                    href="/admin/contact-inbox"
+                    active={isActive('/admin/contact-inbox')}
+                    isCollapsed={isSidebarCollapsed}
+                    isExpanded={false}
+                    onToggle={() => {}}
+                    pathname={pathname}
+                    isModuleEnabled={isModuleEnabled}
                   />
                 )}
 

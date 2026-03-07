@@ -34,12 +34,13 @@ export const seedModules = mutation({
       { category: "system" as const, description: "Cấu hình website và hệ thống", enabled: true, icon: "Settings", isCore: true, key: "settings", name: "Cài đặt hệ thống", order: 11 },
       { category: "system" as const, description: "Quản lý menu header, footer", enabled: true, icon: "Menu", isCore: false, key: "menus", name: "Menu điều hướng", order: 12 },
       { category: "system" as const, description: "Cấu hình components trang chủ", enabled: true, icon: "LayoutGrid", isCore: false, key: "homepage", name: "Trang chủ", order: 13 },
+      { category: "system" as const, dependencies: ["settings"], dependencyType: "all" as const, description: "Lưu trữ và quản lý inbox liên hệ", enabled: true, icon: "Inbox", isCore: false, key: "contactInbox", name: "Contact Inbox", order: 14 },
       
-      { category: "marketing" as const, description: "Gửi thông báo cho người dùng", enabled: true, icon: "Bell", isCore: false, key: "notifications", name: "Thông báo", order: 14 },
-      { category: "marketing" as const, dependencies: ["products", "orders"], dependencyType: "all" as const, description: "Quản lý mã giảm giá, voucher", enabled: false, icon: "Megaphone", isCore: false, key: "promotions", name: "Khuyến mãi", order: 15 },
-      { category: "marketing" as const, description: "Báo cáo và phân tích dữ liệu", enabled: true, icon: "BarChart3", isCore: false, key: "analytics", name: "Thống kê", order: 16 },
-      { category: "content" as const, description: "Quản lý dịch vụ và danh mục dịch vụ", enabled: true, icon: "Briefcase", isCore: false, key: "services", name: "Dịch vụ", order: 17 },
-      { category: "system" as const, description: "Bảng Kanban quản lý công việc nội bộ", enabled: true, icon: "LayoutGrid", isCore: false, key: "kanban", name: "Kanban Board", order: 18 },
+      { category: "marketing" as const, description: "Gửi thông báo cho người dùng", enabled: true, icon: "Bell", isCore: false, key: "notifications", name: "Thông báo", order: 15 },
+      { category: "marketing" as const, dependencies: ["products", "orders"], dependencyType: "all" as const, description: "Quản lý mã giảm giá, voucher", enabled: false, icon: "Megaphone", isCore: false, key: "promotions", name: "Khuyến mãi", order: 16 },
+      { category: "marketing" as const, description: "Báo cáo và phân tích dữ liệu", enabled: true, icon: "BarChart3", isCore: false, key: "analytics", name: "Thống kê", order: 17 },
+      { category: "content" as const, description: "Quản lý dịch vụ và danh mục dịch vụ", enabled: true, icon: "Briefcase", isCore: false, key: "services", name: "Dịch vụ", order: 18 },
+      { category: "system" as const, description: "Bảng Kanban quản lý công việc nội bộ", enabled: true, icon: "LayoutGrid", isCore: false, key: "kanban", name: "Kanban Board", order: 19 },
     ];
 
     for (const mod of modules) {
@@ -63,35 +64,35 @@ export const seedPresets = mutation({
     const presets = [
       {
         description: "Blog với bài viết và bình luận",
-        enabledModules: ["posts", "comments", "media", "customers", "users", "roles", "settings", "menus", "homepage", "analytics"],
+        enabledModules: ["posts", "comments", "media", "customers", "users", "roles", "settings", "menus", "homepage", "contactInbox", "analytics"],
         isDefault: false,
         key: "blog",
         name: "Blog / News",
       },
       {
         description: "Trang giới thiệu đơn giản",
-        enabledModules: ["posts", "media", "users", "roles", "settings", "menus", "homepage"],
+        enabledModules: ["posts", "media", "users", "roles", "settings", "menus", "homepage", "contactInbox"],
         isDefault: false,
         key: "landing",
         name: "Landing Page",
       },
       {
         description: "Trưng bày sản phẩm không giỏ hàng",
-        enabledModules: ["products", "media", "customers", "users", "roles", "settings", "menus", "homepage", "notifications", "analytics"],
+        enabledModules: ["products", "media", "customers", "users", "roles", "settings", "menus", "homepage", "contactInbox", "notifications", "analytics"],
         isDefault: false,
         key: "catalog",
         name: "Catalog",
       },
       {
         description: "Shop đơn giản với giỏ hàng",
-        enabledModules: ["products", "orders", "cart", "media", "customers", "users", "roles", "settings", "menus", "homepage", "notifications", "analytics"],
+        enabledModules: ["products", "orders", "cart", "media", "customers", "users", "roles", "settings", "menus", "homepage", "contactInbox", "notifications", "analytics"],
         isDefault: false,
         key: "ecommerce-basic",
         name: "eCommerce Basic",
       },
       {
         description: "Shop đầy đủ: giỏ hàng, wishlist, khuyến mãi",
-        enabledModules: ["posts", "comments", "media", "products", "orders", "cart", "wishlist", "customers", "users", "roles", "settings", "menus", "homepage", "notifications", "promotions", "analytics"],
+        enabledModules: ["posts", "comments", "media", "products", "orders", "cart", "wishlist", "customers", "users", "roles", "settings", "menus", "homepage", "contactInbox", "notifications", "promotions", "analytics"],
         isDefault: true,
         key: "ecommerce-full",
         name: "eCommerce Full",
@@ -2704,6 +2705,41 @@ export const seedNotificationsModule = mutation({
   returns: v.null(),
 });
 
+// ============ CONTACT INBOX MODULE ============
+export const seedContactInboxModule = mutation({
+  args: { configOnly: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    void args;
+    const existingFeatures = await ctx.db
+      .query("moduleFeatures")
+      .withIndex("by_module", q => q.eq("moduleKey", "contactInbox"))
+      .first();
+    if (!existingFeatures) {
+      const features = [
+        { description: "Cho phép gửi form liên hệ", enabled: true, featureKey: "enableContactFormSubmission", moduleKey: "contactInbox", name: "Cho phép gửi form" },
+        { description: "Hiển thị trang quản trị inbox", enabled: true, featureKey: "enableContactInboxAdmin", moduleKey: "contactInbox", name: "Quản trị inbox" },
+        { description: "Hiển thị widget dashboard inbox", enabled: true, featureKey: "enableContactDashboardWidget", moduleKey: "contactInbox", name: "Widget dashboard" },
+      ];
+      await Promise.all(features.map(feature => ctx.db.insert("moduleFeatures", feature)));
+    }
+
+    const existingSettings = await ctx.db
+      .query("moduleSettings")
+      .withIndex("by_module", q => q.eq("moduleKey", "contactInbox"))
+      .first();
+    if (!existingSettings) {
+      await Promise.all([
+        ctx.db.insert("moduleSettings", { moduleKey: "contactInbox", settingKey: "requireEmail", value: false }),
+        ctx.db.insert("moduleSettings", { moduleKey: "contactInbox", settingKey: "requirePhone", value: false }),
+        ctx.db.insert("moduleSettings", { moduleKey: "contactInbox", settingKey: "inboxRetentionDays", value: 0 }),
+      ]);
+    }
+
+    return null;
+  },
+  returns: v.null(),
+});
+
 // Clear notifications DATA only
 export const clearNotificationsData = mutation({
   args: {},
@@ -3261,6 +3297,7 @@ export const seedAllModulesConfig = action({
     await ctx.runMutation(api.seed.seedSettingsModule, configArgs);
     await ctx.runMutation(api.seed.seedMenusModule, configArgs);
     await ctx.runMutation(api.seed.seedHomepageModule, configArgs);
+    await ctx.runMutation(api.seed.seedContactInboxModule, configArgs);
     await ctx.runMutation(api.seed.seedNotificationsModule, configArgs);
     await ctx.runMutation(api.seed.seedPromotionsModule, configArgs);
     await ctx.runMutation(api.seed.seedServicesModule, configArgs);

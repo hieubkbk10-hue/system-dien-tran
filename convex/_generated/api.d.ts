@@ -15,6 +15,7 @@ import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as cart from "../cart.js";
 import type * as comments from "../comments.js";
+import type * as contactInbox from "../contactInbox.js";
 import type * as convexDashboard from "../convexDashboard.js";
 import type * as customers from "../customers.js";
 import type * as dataManager from "../dataManager.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   cart: typeof cart;
   comments: typeof comments;
+  contactInbox: typeof contactInbox;
   convexDashboard: typeof convexDashboard;
   customers: typeof customers;
   dataManager: typeof dataManager;

@@ -7,7 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AlertTriangle, Eye, Globe, Loader2, Package, TrendingUp, Users } from 'lucide-react';
+import { AlertTriangle, Eye, Globe, Loader2, Mail, Package, TrendingUp, Users } from 'lucide-react';
 import { Badge } from '../components/ui';
 
 type TimeRange = '7d' | '30d' | '90d' | '1y';
@@ -45,6 +45,8 @@ function DashboardContent() {
   // Fetch features and settings from server
   const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: 'analytics' });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'analytics' });
+  const contactInboxModule = useQuery(api.admin.modules.getModuleByKey, { key: 'contactInbox' });
+  const contactInboxFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactDashboardWidget' });
   
   // Get default period from settings, fallback to '30d'
   const defaultPeriod = useMemo(() => {
@@ -70,7 +72,10 @@ function DashboardContent() {
   const trafficSources = useQuery(api.pageViews.getTrafficSources, { limit: 5, period: timeRange });
   const deviceStats = useQuery(api.pageViews.getDeviceStats, { period: timeRange });
   
-  const isLoading = featuresData === undefined || settingsData === undefined;
+  const isLoading = featuresData === undefined
+    || settingsData === undefined
+    || contactInboxModule === undefined
+    || contactInboxFeature === undefined;
   
   const isFeatureEnabled = (featureKey: string): boolean => {
     const feature = featuresData?.find(f => f.featureKey === featureKey);
@@ -89,6 +94,11 @@ function DashboardContent() {
   const showCustomers = isFeatureEnabled('enableCustomers');
   const showProducts = isFeatureEnabled('enableProducts');
   const showTraffic = isFeatureEnabled('enableTraffic');
+  const showContactInboxWidget = (contactInboxModule?.enabled ?? false) && (contactInboxFeature?.enabled ?? false);
+
+  const inboxStats = useQuery(api.contactInbox.getInboxStats, showContactInboxWidget ? {} : 'skip');
+  const recentInbox = useQuery(api.contactInbox.listRecentInbox, showContactInboxWidget ? { limit: 5 } : 'skip');
+  const hasInboxData = showContactInboxWidget && (inboxStats?.total ?? 0) > 0 && (recentInbox?.length ?? 0) > 0;
 
   const hasAnyFeature = showSales || showCustomers || showProducts || showTraffic;
 
@@ -352,6 +362,34 @@ function DashboardContent() {
             </Card>
           )}
         </div>
+      )}
+
+      {hasInboxData && (
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+            <CardTitle className="text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Mail size={18} /> Tin nhắn liên hệ mới
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Badge variant="warning">Mới: {inboxStats?.new ?? 0}</Badge>
+              <Badge variant="secondary">Tổng: {inboxStats?.total ?? 0}</Badge>
+              <a href="/admin/contact-inbox" className="text-sm text-cyan-600 hover:underline">Xem tất cả</a>
+            </div>
+            <div className="space-y-3">
+              {(recentInbox ?? []).map((item) => (
+                <div key={item._id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{item.name}</div>
+                    <div className="text-xs text-slate-500 truncate">{item.subject}</div>
+                  </div>
+                  <div className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString('vi-VN')}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Traffic Report */}

@@ -46,12 +46,13 @@ export class AdminModulesSeeder extends BaseSeeder<AdminModuleData> {
       { category: 'system', description: 'Cấu hình website và hệ thống', enabled: true, icon: 'Settings', isCore: true, key: 'settings', name: 'Cài đặt hệ thống', order: 11 },
       { category: 'system', description: 'Quản lý menu header, footer', enabled: true, icon: 'Menu', isCore: false, key: 'menus', name: 'Menu điều hướng', order: 12 },
       { category: 'system', description: 'Cấu hình components trang chủ', enabled: true, icon: 'LayoutGrid', isCore: false, key: 'homepage', name: 'Trang chủ', order: 13 },
-      { category: 'marketing', description: 'Gửi thông báo cho người dùng', enabled: true, icon: 'Bell', isCore: false, key: 'notifications', name: 'Thông báo', order: 14 },
-      { category: 'marketing', dependencies: ['products', 'orders'], dependencyType: 'all', description: 'Quản lý mã giảm giá, voucher', enabled: false, icon: 'Megaphone', isCore: false, key: 'promotions', name: 'Khuyến mãi', order: 15 },
-      { category: 'marketing', description: 'Báo cáo và phân tích dữ liệu', enabled: true, icon: 'BarChart3', isCore: false, key: 'analytics', name: 'Thống kê', order: 16 },
-      { category: 'content', description: 'Quản lý dịch vụ và danh mục dịch vụ', enabled: true, icon: 'Briefcase', isCore: false, key: 'services', name: 'Dịch vụ', order: 17 },
-      { category: 'system', description: 'Bảng Kanban quản lý công việc nội bộ', enabled: true, icon: 'LayoutGrid', isCore: false, key: 'kanban', name: 'Kanban Board', order: 18 },
-      { category: 'system', description: 'Quản lý gia hạn subscription khách hàng', enabled: true, icon: 'CalendarDays', isCore: false, key: 'subscriptions', name: 'Subscriptions', order: 19 },
+      { category: 'system', dependencies: ['settings'], dependencyType: 'all', description: 'Lưu trữ và quản lý inbox liên hệ', enabled: true, icon: 'Inbox', isCore: false, key: 'contactInbox', name: 'Contact Inbox', order: 14 },
+      { category: 'marketing', description: 'Gửi thông báo cho người dùng', enabled: true, icon: 'Bell', isCore: false, key: 'notifications', name: 'Thông báo', order: 15 },
+      { category: 'marketing', dependencies: ['products', 'orders'], dependencyType: 'all', description: 'Quản lý mã giảm giá, voucher', enabled: false, icon: 'Megaphone', isCore: false, key: 'promotions', name: 'Khuyến mãi', order: 16 },
+      { category: 'marketing', description: 'Báo cáo và phân tích dữ liệu', enabled: true, icon: 'BarChart3', isCore: false, key: 'analytics', name: 'Thống kê', order: 17 },
+      { category: 'content', description: 'Quản lý dịch vụ và danh mục dịch vụ', enabled: true, icon: 'Briefcase', isCore: false, key: 'services', name: 'Dịch vụ', order: 18 },
+      { category: 'system', description: 'Bảng Kanban quản lý công việc nội bộ', enabled: true, icon: 'LayoutGrid', isCore: false, key: 'kanban', name: 'Kanban Board', order: 19 },
+      { category: 'system', description: 'Quản lý gia hạn subscription khách hàng', enabled: true, icon: 'CalendarDays', isCore: false, key: 'subscriptions', name: 'Subscriptions', order: 20 },
     ];
 
     await Promise.all(modules.map(module => this.ctx.db.insert('adminModules', module)));

@@ -16,6 +16,7 @@ export { ServiceSeeder } from './services.seeder';
 export { ServiceCategorySeeder } from './serviceCategories.seeder';
 export { AnalyticsSeeder } from './analytics.seeder';
 export { CommentsSeeder } from './comments.seeder';
+export { ContactInboxSeeder } from './contactInbox.seeder';
 export { CartSeeder } from './cart.seeder';
 export { SubscriptionsSeeder } from './subscriptions.seeder';
 export { WishlistSeeder } from './wishlist.seeder';

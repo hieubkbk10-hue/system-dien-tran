@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
 import { Mail, MapPin, MessageSquare, Phone, Send } from 'lucide-react';
 import { useContactPageData } from '@/components/site/useContactPageData';
 import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
+import { api } from '@/convex/_generated/api';
 
 type SocialLinkItem = { label: string; href: string; color: string; icon: React.ElementType };
 
@@ -60,10 +62,40 @@ const sanitizeIframeHtml = (html: string) => {
     .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
 };
 
-function ContactForm({ brandColor, secondaryColor }: { brandColor: string; secondaryColor: string }) {
+type ContactFormValues = {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+};
+
+function ContactForm({
+  brandColor,
+  secondaryColor,
+  formValues,
+  onChange,
+  onSubmit,
+  isSubmitting,
+  isDisabled,
+  requireEmail,
+  requirePhone,
+  submitMessage,
+}: {
+  brandColor: string;
+  secondaryColor: string;
+  formValues: ContactFormValues;
+  onChange: (field: keyof ContactFormValues, value: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+  isDisabled: boolean;
+  requireEmail: boolean;
+  requirePhone: boolean;
+  submitMessage: string | null;
+}) {
   return (
     <form
-      onSubmit={(event) => event.preventDefault()}
+      onSubmit={onSubmit}
       className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm"
     >
       <div className="flex items-center gap-2 mb-4">
@@ -72,29 +104,98 @@ function ContactForm({ brandColor, secondaryColor }: { brandColor: string; secon
       </div>
       <div className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input type="text" placeholder="Họ tên" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" />
-          <input type="email" placeholder="Email" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" />
+          <input
+            type="text"
+            placeholder="Họ tên"
+            value={formValues.name}
+            onChange={(event) => onChange('name', event.target.value)}
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+            required
+            disabled={isDisabled}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={formValues.email}
+            onChange={(event) => onChange('email', event.target.value)}
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+            required={requireEmail}
+            disabled={isDisabled}
+          />
         </div>
-        <input type="text" placeholder="Số điện thoại" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" />
-        <input type="text" placeholder="Chủ đề" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" />
-        <textarea placeholder="Nội dung tin nhắn..." className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm resize-none" rows={4} />
+        <input
+          type="text"
+          placeholder="Số điện thoại"
+          value={formValues.phone}
+          onChange={(event) => onChange('phone', event.target.value)}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+          required={requirePhone}
+          disabled={isDisabled}
+        />
+        <input
+          type="text"
+          placeholder="Chủ đề"
+          value={formValues.subject}
+          onChange={(event) => onChange('subject', event.target.value)}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
+          required
+          disabled={isDisabled}
+        />
+        <textarea
+          placeholder="Nội dung tin nhắn..."
+          value={formValues.message}
+          onChange={(event) => onChange('message', event.target.value)}
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm resize-none"
+          rows={4}
+          required
+          disabled={isDisabled}
+        />
+        {submitMessage && (
+          <div className="text-xs text-slate-500">{submitMessage}</div>
+        )}
+        {isDisabled && (
+          <div className="text-xs text-amber-600">Biểu mẫu tạm tắt. Vui lòng liên hệ qua các kênh khác.</div>
+        )}
         <button
           type="submit"
-          className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
           style={{ backgroundColor: brandColor }}
+          disabled={isDisabled || isSubmitting}
         >
           <Send size={16} />
-          Gửi tin nhắn
+          {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
         </button>
       </div>
     </form>
   );
 }
 
-function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: { brandColor: string; secondaryColor: string }) {
+function CorporateContactForm({
+  brandColor,
+  secondaryColor: _secondaryColor,
+  formValues,
+  onChange,
+  onSubmit,
+  isSubmitting,
+  isDisabled,
+  requireEmail,
+  requirePhone,
+  submitMessage,
+}: {
+  brandColor: string;
+  secondaryColor: string;
+  formValues: ContactFormValues;
+  onChange: (field: keyof ContactFormValues, value: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+  isDisabled: boolean;
+  requireEmail: boolean;
+  requirePhone: boolean;
+  submitMessage: string | null;
+}) {
   return (
     <form
-      onSubmit={(event) => event.preventDefault()}
+      onSubmit={onSubmit}
       className="space-y-4"
     >
       <h3 className="text-xl font-semibold text-slate-800 border-b border-slate-100 pb-3">Gửi tin nhắn</h3>
@@ -104,7 +205,11 @@ function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: {
           <input
             type="text"
             placeholder="Nguyễn Văn A"
+            value={formValues.name}
+            onChange={(event) => onChange('name', event.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
+            required
+            disabled={isDisabled}
           />
         </div>
         <div className="space-y-2">
@@ -112,7 +217,11 @@ function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: {
           <input
             type="email"
             placeholder="example@company.com"
+            value={formValues.email}
+            onChange={(event) => onChange('email', event.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
+            required={requireEmail}
+            disabled={isDisabled}
           />
         </div>
         <div className="space-y-2">
@@ -120,7 +229,11 @@ function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: {
           <input
             type="text"
             placeholder="09xx xxx xxx"
+            value={formValues.phone}
+            onChange={(event) => onChange('phone', event.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
+            required={requirePhone}
+            disabled={isDisabled}
           />
         </div>
         <div className="space-y-2">
@@ -128,25 +241,40 @@ function CorporateContactForm({ brandColor, secondaryColor: _secondaryColor }: {
           <input
             type="text"
             placeholder="Hợp tác kinh doanh..."
+            value={formValues.subject}
+            onChange={(event) => onChange('subject', event.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
+            required
+            disabled={isDisabled}
           />
         </div>
         <div className="space-y-2 md:col-span-2">
           <label className="text-sm font-medium text-slate-700">Nội dung tin nhắn</label>
           <textarea
             placeholder="Nhập nội dung cần hỗ trợ..."
+            value={formValues.message}
+            onChange={(event) => onChange('message', event.target.value)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800 resize-none"
             rows={4}
+            required
+            disabled={isDisabled}
           />
         </div>
+        {(submitMessage || isDisabled) && (
+          <div className="md:col-span-2 text-xs text-slate-500">
+            {submitMessage}
+            {isDisabled && ' Biểu mẫu tạm tắt. Vui lòng liên hệ qua các kênh khác.'}
+          </div>
+        )}
         <div className="md:col-span-2">
           <button
             type="submit"
-            className="w-full md:w-auto px-8 py-2.5 rounded-lg text-white font-semibold flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-8 py-2.5 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
             style={{ backgroundColor: brandColor }}
+            disabled={isDisabled || isSubmitting}
           >
             <Send size={16} />
-            Gửi tin nhắn
+            {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
           </button>
         </div>
       </div>
@@ -341,10 +469,55 @@ function MapPreview({
 }
 
 export default function ContactPage() {
-  const { isLoading, brandColor, secondaryColor, colorMode, config, contactData, socialLinks } = useContactPageData();
+  const { isLoading: isContactLoading, brandColor, secondaryColor, colorMode, config, contactData, socialLinks } = useContactPageData();
+  const submitContactInquiry = useMutation(api.contactInbox.submitContactInquiry);
+  const inboxFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactFormSubmission' });
+  const inboxSettings = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'contactInbox' });
+  const [formValues, setFormValues] = useState<ContactFormValues>({
+    email: '',
+    message: '',
+    name: '',
+    phone: '',
+    subject: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
+  const isModuleLoading = inboxFeature === undefined || inboxSettings === undefined;
+  const isContactLoadingState = isContactLoading || isModuleLoading;
+  const isFormEnabled = (inboxFeature?.enabled ?? false) && !isModuleLoading;
+  const requireEmail = Boolean(inboxSettings?.find(setting => setting.settingKey === 'requireEmail')?.value);
+  const requirePhone = Boolean(inboxSettings?.find(setting => setting.settingKey === 'requirePhone')?.value);
 
-  if (isLoading) {
+  const handleFormChange = (field: keyof ContactFormValues, value: string) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!isFormEnabled || isSubmitting) {
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+    try {
+      await submitContactInquiry({
+        email: formValues.email || undefined,
+        message: formValues.message,
+        name: formValues.name,
+        phone: formValues.phone || undefined,
+        subject: formValues.subject,
+      });
+      setSubmitMessage('Cảm ơn bạn! Chúng tôi đã nhận được tin nhắn.');
+      setFormValues({ email: '', message: '', name: '', phone: '', subject: '' });
+    } catch (error) {
+      setSubmitMessage(error instanceof Error ? error.message : 'Gửi tin nhắn thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isContactLoadingState) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-10">
         <div className="h-8 w-48 bg-slate-200 rounded-lg animate-pulse" />
@@ -376,7 +549,18 @@ export default function ContactPage() {
             />
           )}
           <div className={`${config.showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
-            <CorporateContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+            <CorporateContactForm
+              brandColor={brandColor}
+              secondaryColor={resolvedSecondary}
+              formValues={formValues}
+              onChange={handleFormChange}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              isDisabled={!isFormEnabled}
+              requireEmail={requireEmail}
+              requirePhone={requirePhone}
+              submitMessage={submitMessage}
+            />
             {config.showMap && (
               <MapPreview
                 address={contactData.address}
@@ -402,7 +586,18 @@ export default function ContactPage() {
             />
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+            <ContactForm
+              brandColor={brandColor}
+              secondaryColor={resolvedSecondary}
+              formValues={formValues}
+              onChange={handleFormChange}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              isDisabled={!isFormEnabled}
+              requireEmail={requireEmail}
+              requirePhone={requirePhone}
+              submitMessage={submitMessage}
+            />
             {config.showContactInfo && (
               <ContactInfoCard
                 brandColor={brandColor}
@@ -421,7 +616,18 @@ export default function ContactPage() {
       {config.layoutStyle === 'with-info' && (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3">
-            <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+            <ContactForm
+              brandColor={brandColor}
+              secondaryColor={resolvedSecondary}
+              formValues={formValues}
+              onChange={handleFormChange}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              isDisabled={!isFormEnabled}
+              requireEmail={requireEmail}
+              requirePhone={requirePhone}
+              submitMessage={submitMessage}
+            />
           </div>
           <div className="lg:col-span-2 space-y-6">
             {config.showContactInfo && (

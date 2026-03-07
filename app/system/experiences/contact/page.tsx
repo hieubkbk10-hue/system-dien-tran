@@ -46,6 +46,7 @@ const LAYOUT_STYLES: LayoutOption<ContactLayoutStyle>[] = [
 const HINTS = [
   'Preview mock giúp xem thay đổi ngay, không cần lưu mới thấy.',
   'Thông tin liên hệ và social phụ thuộc module Settings.',
+  'Gửi form liên hệ phụ thuộc module Contact Inbox.',
   'Nếu feature Settings bị tắt, block tương ứng sẽ không hiển thị ở preview.',
   'Các khối hiển thị dùng chung giữa các layout.',
 ];
@@ -82,9 +83,11 @@ function ModuleFeatureStatus({
 export default function ContactExperiencePage() {
   const experienceSetting = useQuery(api.settings.getByKey, { key: CONTACT_EXPERIENCE_KEY });
   const settingsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'settings' });
+  const contactInboxModule = useQuery(api.admin.modules.getModuleByKey, { key: 'contactInbox' });
   const contactFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableContact' });
   const socialFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableSocial' });
   const mailFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableMail' });
+  const contactFormFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactFormSubmission' });
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
@@ -98,14 +101,18 @@ export default function ContactExperiencePage() {
 
   const isLoading = experienceSetting === undefined
     || settingsModule === undefined
+    || contactInboxModule === undefined
     || contactFeature === undefined
     || socialFeature === undefined
-    || mailFeature === undefined;
+    || mailFeature === undefined
+    || contactFormFeature === undefined;
 
   const settingsEnabled = settingsModule?.enabled ?? false;
+  const contactInboxEnabled = contactInboxModule?.enabled ?? false;
   const contactEnabled = settingsEnabled && (contactFeature?.enabled ?? false);
   const socialEnabled = settingsEnabled && (socialFeature?.enabled ?? false);
   const mailEnabled = settingsEnabled && (mailFeature?.enabled ?? false);
+  const formEnabled = contactInboxEnabled && (contactFormFeature?.enabled ?? false);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONTACT_CONFIG, isLoading);
   const beforeSaveTransform = (rawConfig: unknown) => {
@@ -225,11 +232,24 @@ export default function ContactExperiencePage() {
               title="System Settings"
               colorScheme="cyan"
             />
+            <ExperienceModuleLink
+              enabled={contactInboxEnabled}
+              href="/system/modules/contactInbox"
+              icon={Mail}
+              title="Contact Inbox"
+              colorScheme="green"
+            />
             <ModuleFeatureStatus
               label="Thông tin liên hệ"
               enabled={contactEnabled}
               href="/system/modules/settings"
               moduleName="Module Settings"
+            />
+            <ModuleFeatureStatus
+              label="Gửi form liên hệ"
+              enabled={formEnabled}
+              href="/system/modules/contactInbox"
+              moduleName="Module Contact Inbox"
             />
             <ModuleFeatureStatus
               label="Mạng xã hội"
