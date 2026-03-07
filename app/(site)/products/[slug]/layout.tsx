@@ -95,10 +95,11 @@ export default async function ProductLayout({ params, children }: Props) {
       notFound();
     }
 
-    const [product, site, seo] = await Promise.all([
+    const [product, site, seo, enabledFields] = await Promise.all([
       client.query(api.products.getBySlug, { slug }),
       getSiteSettings(),
       getSEOSettings(),
+      client.query(api.admin.modules.listEnabledModuleFields, { moduleKey: 'products' }),
     ]);
 
     if (!product) {return children;}
@@ -112,6 +113,8 @@ export default async function ProductLayout({ params, children }: Props) {
       targetType: 'product',
     });
 
+    const showStock = enabledFields ? enabledFields.some((field) => field.fieldKey === 'stock') : true;
+
     const productSchema = generateProductSchema({
       aggregateRating: ratingSummary.count > 0
         ? { ratingValue: Number(ratingSummary.average.toFixed(2)), reviewCount: ratingSummary.count }
@@ -119,7 +122,7 @@ export default async function ProductLayout({ params, children }: Props) {
       brand: site.site_name,
       description: (product.metaDescription ?? product.description?.replace(/<[^>]*>/g, '').slice(0, 160)) ?? seo.seo_description,
       image,
-      inStock: product.stock > 0,
+      inStock: showStock ? product.stock > 0 : true,
       name: product.metaTitle ?? product.name,
       price: product.price,
       salePrice: product.salePrice,

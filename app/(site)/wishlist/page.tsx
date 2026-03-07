@@ -26,6 +26,7 @@ export default function WishlistPage() {
   const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
   const itemsPerPageSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'wishlist', settingKey: 'itemsPerPage' });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const stockFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableStock', moduleKey: 'products' });
   const toggleWishlist = useMutation(api.wishlist.toggle);
 
   const itemsPerPage = useMemo(() => {
@@ -55,6 +56,7 @@ export default function WishlistPage() {
     }
     return 'cart';
   }, [saleModeSetting?.value]);
+  const showStock = stockFeature?.enabled ?? true;
   const getPriceDisplay = (price?: number, salePrice?: number) =>
     getPublicPriceLabel({ saleMode, price, salePrice });
   const formatComparePrice = (price?: number) =>
@@ -287,15 +289,17 @@ export default function WishlistPage() {
                         )}
                       </td>
                       <td className="px-4 py-4">
-                        <span
-                          className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
-                          style={{
-                            backgroundColor: product.stock > 0 ? tokens.badgeInStockBg : tokens.badgeOutStockBg,
-                            color: product.stock > 0 ? tokens.badgeInStockText : tokens.badgeOutStockText,
-                          }}
-                        >
-                          {product.stock > 0 ? 'Sẵn hàng' : 'Hết hàng'}
-                        </span>
+                        {showStock && (
+                          <span
+                            className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                            style={{
+                              backgroundColor: product.stock > 0 ? tokens.badgeInStockBg : tokens.badgeOutStockBg,
+                              color: product.stock > 0 ? tokens.badgeInStockText : tokens.badgeOutStockText,
+                            }}
+                          >
+                            {product.stock > 0 ? 'Sẵn hàng' : 'Hết hàng'}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-4" style={{ color: tokens.metaText }}>—</td>
                       <td className="px-4 py-4 text-right">
@@ -312,7 +316,7 @@ export default function WishlistPage() {
                               onClick={() => { void handleAddToCart(product._id); }}
                               className="px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
                               style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
-                              disabled={product.stock === 0}
+                              disabled={showStock && product.stock === 0}
                             >
                               <ShoppingCart size={12} />
                               Thêm
@@ -378,7 +382,7 @@ export default function WishlistPage() {
                         onClick={() => { void handleAddToCart(product._id); }}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
                         style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
-                        disabled={product.stock === 0}
+                        disabled={showStock && product.stock === 0}
                       >
                         <ShoppingCart size={12} />
                         Thêm
@@ -433,10 +437,10 @@ export default function WishlistPage() {
                         onClick={(event) => { event.preventDefault(); void handleAddToCart(product._id); }}
                         className="mt-3 w-full py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
                         style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
-                        disabled={product.stock === 0}
+                        disabled={showStock && product.stock === 0}
                       >
                         <ShoppingCart size={14} />
-                        {product.stock === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
+                        {showStock && product.stock === 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
                       </button>
                     )}
                   </div>
@@ -488,10 +492,10 @@ export default function WishlistPage() {
                     onClick={() => { void handleAddToCart(product._id); }}
                     className="self-start px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50"
                     style={{ backgroundColor: tokens.primaryButtonBg, color: tokens.primaryButtonText }}
-                    disabled={product.stock === 0}
+                    disabled={showStock && product.stock === 0}
                   >
                     <ShoppingCart size={12} />
-                    {product.stock === 0 ? 'Hết hàng' : 'Thêm'}
+                    {showStock && product.stock === 0 ? 'Hết hàng' : 'Thêm'}
                   </button>
                 )}
               </div>

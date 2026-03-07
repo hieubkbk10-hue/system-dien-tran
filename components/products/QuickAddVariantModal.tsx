@@ -89,6 +89,7 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
   const [quantity, setQuantity] = useState(1);
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const stockFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableStock', moduleKey: 'products' });
 
   const variants = useQuery(
     api.productVariants.listByProductActive,
@@ -178,9 +179,10 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
     }
     return 'cart';
   }, [saleModeSetting?.value]);
+  const showStock = stockFeature?.enabled ?? true;
   const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
   const stockValue = selectedVariant?.stock ?? product.stock;
-  const inStock = stockValue > 0;
+  const inStock = !showStock || stockValue > 0;
   const isLoading = variants === undefined || (hasVariantData && (!variantOptionsSource || !variantValuesSource));
 
   const handleSelectOption = (optionId: Id<'productOptions'>, valueId: Id<'productOptionValues'>) => {
@@ -235,9 +237,11 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
                 </span>
               )}
             </div>
-            <p className={`text-xs mt-1 ${inStock ? 'text-emerald-600' : 'text-red-500'}`}>
-              {inStock ? 'Còn hàng' : 'Hết hàng'}
-            </p>
+            {showStock && (
+              <p className={`text-xs mt-1 ${inStock ? 'text-emerald-600' : 'text-red-500'}`}>
+                {inStock ? 'Còn hàng' : 'Hết hàng'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -270,8 +274,8 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
             <span className="w-8 text-center font-medium">{quantity}</span>
             <button
               className="h-9 w-9 rounded-full border border-slate-200 text-slate-600"
-              onClick={() => setQuantity(q => Math.min(inStock ? stockValue : q, q + 1))}
-              disabled={!inStock || quantity >= stockValue}
+              onClick={() => setQuantity(q => (showStock ? Math.min(stockValue, q + 1) : q + 1))}
+              disabled={showStock && (!inStock || quantity >= stockValue)}
               aria-label="Tăng số lượng"
             >
               +

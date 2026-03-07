@@ -429,7 +429,7 @@ function ProductsContent() {
   };
 
   const handleAddToCart = async (product: ProductCardProps['product']) => {
-    if (product.stock <= 0) {
+    if (showStock && product.stock <= 0) {
       return;
     }
 
@@ -457,7 +457,7 @@ function ProductsContent() {
   };
 
   const handleBuyNow = (product: ProductCardProps['product']) => {
-    if (product.stock <= 0) {
+    if (showStock && product.stock <= 0) {
       return;
     }
 
@@ -479,7 +479,7 @@ function ProductsContent() {
   };
 
   const handlePrimaryAction = (product: ProductCardProps['product']) => {
-    if (product.stock <= 0) {
+    if (showStock && product.stock <= 0) {
       return;
     }
 
@@ -912,12 +912,12 @@ interface ProductCardProps {
   showStock: boolean;
 }
 
-function ProductCardActions({ product, tokens, showAddToCartButton, showBuyNowButton, buyNowLabel, onAddToCart, onBuyNow }: { product: ProductCardProps['product']; tokens: ProductsListColors; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void }) {
+function ProductCardActions({ product, tokens, showStock, showAddToCartButton, showBuyNowButton, buyNowLabel, onAddToCart, onBuyNow }: { product: ProductCardProps['product']; tokens: ProductsListColors; showStock: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void }) {
   if (!showAddToCartButton && !showBuyNowButton) {
     return null;
   }
 
-  const isOutOfStock = product.stock <= 0;
+  const isOutOfStock = showStock && product.stock <= 0;
   const secondaryLabel = isOutOfStock ? 'Hết hàng' : buyNowLabel;
   const actionHeightClass = showAddToCartButton && showBuyNowButton ? 'min-h-[76px]' : 'min-h-[36px]';
 
@@ -1007,6 +1007,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
               <ProductCardActions
                 product={product}
                 tokens={tokens}
+                showStock={showStock}
                 showAddToCartButton={showAddToCartButton}
                 showBuyNowButton={showBuyNowButton}
                 buyNowLabel={buyNowLabel}
@@ -1087,7 +1088,7 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
                   className="p-3 rounded-full border transition-colors disabled:opacity-55 disabled:cursor-not-allowed"
                   style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText, backgroundColor: tokens.cardBackground }}
                   onClick={(e) => { e.preventDefault(); onAddToCart(product); }}
-                  disabled={product.stock <= 0}
+                  disabled={showStock && product.stock <= 0}
                 >
                   <ShoppingCart size={20} />
                 </button>
@@ -1097,9 +1098,9 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
                   className="px-3 py-2 rounded-full border text-xs font-medium transition-colors disabled:opacity-55 disabled:cursor-not-allowed"
                   style={{ borderColor: tokens.secondaryActionBorder, color: tokens.secondaryActionText }}
                   onClick={(e) => { e.preventDefault(); onBuyNow(product); }}
-                  disabled={product.stock <= 0}
+                  disabled={showStock && product.stock <= 0}
                 >
-                  {product.stock <= 0 ? 'Hết hàng' : buyNowLabel}
+                  {showStock && product.stock <= 0 ? 'Hết hàng' : buyNowLabel}
                 </button>
               )}
             </div>
@@ -1306,6 +1307,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                         <ProductCardActions
                           product={product}
                           tokens={tokens}
+                          showStock={showStock}
                           showAddToCartButton={showAddToCartButton}
                           showBuyNowButton={showBuyNowButton}
                           buyNowLabel={buyNowLabel}

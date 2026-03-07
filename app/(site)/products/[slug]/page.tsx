@@ -611,7 +611,8 @@ export default function ProductDetailPage({ params }: PageProps) {
   const canBuyNow = experienceConfig.showBuyNow && checkoutConfig.showBuyNow && (ordersModule?.enabled ?? false);
   const canUseCartActions = saleMode === 'cart';
   const buyNowLabel = saleMode === 'contact' ? 'Liên hệ' : 'Mua ngay';
-  const requireStockForBuyNow = saleMode === 'cart';
+  const showStock = enabledFields.has('stock');
+  const requireStockForBuyNow = saleMode === 'cart' && showStock;
 
   const ratingSummary = useProductRatingSummary(product?._id, canShowRating);
 
