@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { Check, Copy, ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
@@ -74,6 +74,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [selectedOptionIds, setSelectedOptionIds] = useState<Id<'productOptions'>[]>([]);
   const [productType, setProductType] = useState<'physical' | 'digital'>('physical');
   const [digitalDeliveryType, setDigitalDeliveryType] = useState<'account' | 'license' | 'download' | 'custom'>('account');
+  const [isNameCopied, setIsNameCopied] = useState(false);
   const [digitalCredentialsTemplate, setDigitalCredentialsTemplate] = useState<{
     username?: string;
     password?: string;
@@ -287,6 +288,19 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const priceHelper = formatNumberHelper(price);
   const salePriceHelper = formatNumberHelper(salePrice);
 
+  const handleCopyName = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {return;}
+    try {
+      await navigator.clipboard.writeText(trimmedName);
+      setIsNameCopied(true);
+      toast.success('Đã copy tên sản phẩm');
+      setTimeout(() =>{  setIsNameCopied(false); }, 2000);
+    } catch {
+      toast.error('Không thể copy, vui lòng copy thủ công');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -405,16 +419,30 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Tên sản phẩm <span className="text-red-500">*</span></Label>
-                <Input value={name} onChange={(e) => {
-                  const val = e.target.value;
-                  setName(val);
-                  const generatedSlug = val.toLowerCase()
-                    .normalize("NFD").replaceAll(/[\u0300-\u036F]/g, "")
-                    .replaceAll(/[đĐ]/g, "d")
-                    .replaceAll(/[^a-z0-9\s]/g, '')
-                    .replaceAll(/\s+/g, '-');
-                  setSlug(generatedSlug);
-                }} required placeholder="Nhập tên sản phẩm..." autoFocus />
+                <div className="flex gap-2">
+                  <Input value={name} onChange={(e) => {
+                    const val = e.target.value;
+                    setName(val);
+                    const generatedSlug = val.toLowerCase()
+                      .normalize("NFD").replaceAll(/[\u0300-\u036F]/g, "")
+                      .replaceAll(/[đĐ]/g, "d")
+                      .replaceAll(/[^a-z0-9\s]/g, '')
+                      .replaceAll(/\s+/g, '-');
+                    setSlug(generatedSlug);
+                  }} required placeholder="Nhập tên sản phẩm..." autoFocus />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={handleCopyName}
+                    disabled={!name.trim()}
+                    title="Copy tên sản phẩm"
+                    aria-label="Copy tên sản phẩm"
+                  >
+                    {isNameCopied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                  </Button>
+                </div>
               </div>
               <div className={enabledFields.has('sku') ? "grid grid-cols-2 gap-4" : ""}>
                 <div className="space-y-2">
