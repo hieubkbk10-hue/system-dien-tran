@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
@@ -9,6 +12,7 @@ import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY, DEFAULT_CONTACT_TEXTS,
 import { getContactValidationResult } from '../../contact/_lib/colors';
 import { normalizeContactConfig, toContactConfigPayload } from '../../contact/_lib/normalize';
 import type { ContactConfigState, ContactStyle } from '../../contact/_types';
+import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 import { Facebook, Globe, Instagram, Linkedin, MessageCircle, Plus, Twitter, X, Youtube } from 'lucide-react';
 
 const SOCIAL_PLATFORMS = [
@@ -26,6 +30,9 @@ export default function ContactCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Liên hệ', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
+  const isSettingsLoading = contactSettings === undefined;
 
   const [config, setConfig] = useState<ContactConfigState>({
     ...DEFAULT_CONTACT_CONFIG,
@@ -167,13 +174,25 @@ export default function ContactCreatePage() {
           </div>
           {normalizedConfig.showMap && (
             <div className="space-y-2">
-              <Label>Google Maps Embed URL</Label>
-              <Input
-                value={normalizedConfig.mapEmbed}
-                onChange={(event) => { setConfig({ ...normalizedConfig, mapEmbed: event.target.value }); }}
-                placeholder="https://www.google.com/maps/embed?pb=..."
-              />
-              <p className="text-xs text-muted-foreground">Lấy từ Google Maps: Chia sẻ → Nhúng bản đồ → Copy URL trong src của iframe</p>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                {isSettingsLoading ? (
+                  <p>Đang tải cấu hình bản đồ từ Settings...</p>
+                ) : (
+                  <div className="space-y-1">
+                    <p>Provider: <strong className="text-slate-800">{mapData.mapProvider === 'google_embed' ? 'Google Maps nhúng' : 'OpenStreetMap'}</strong></p>
+                    <p>Địa chỉ: <strong className="text-slate-800">{mapData.address || 'Chưa có địa chỉ'}</strong></p>
+                    {mapData.mapProvider === 'google_embed' && (
+                      <p>Iframe: <strong className="text-slate-800">{mapData.googleMapEmbedIframe ? 'Đã có mã nhúng' : 'Chưa có mã nhúng'}</strong></p>
+                    )}
+                    {mapData.mapProvider === 'openstreetmap' && (
+                      <p>Toạ độ: <strong className="text-slate-800">{mapData.lat.toFixed(6)}, {mapData.lng.toFixed(6)}</strong></p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Link href="/admin/settings" className="text-xs font-medium text-blue-600 hover:underline">
+                Cập nhật bản đồ trong Settings →
+              </Link>
             </div>
           )}
         </CardContent>
@@ -321,6 +340,7 @@ export default function ContactCreatePage() {
         selectedStyle={style}
         onStyleChange={(nextStyle) => { setConfig({ ...normalizedConfig, style: nextStyle as ContactStyle }); }}
         title={title}
+        mapData={mapData}
       />
     </ComponentFormWrapper>
   );

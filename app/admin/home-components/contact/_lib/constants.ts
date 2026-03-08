@@ -14,23 +14,24 @@ export const normalizeContactHarmony = (value: unknown): ContactHarmony => {
 
 export const CONTACT_STYLES: Array<{ id: ContactStyle; label: string }> = [
   { id: 'modern', label: 'Modern Split' },
-  { id: 'floating', label: 'Floating Card' },
+  { id: 'floating', label: 'Executive Panel' },
   { id: 'grid', label: 'Grid Cards' },
   { id: 'elegant', label: 'Elegant Clean' },
   { id: 'minimal', label: 'Minimal Form' },
-  { id: 'centered', label: 'Centered' },
+  { id: 'centered', label: 'Balanced Split' },
 ];
 
 export const DEFAULT_CONTACT_CONFIG: ContactConfigState = {
   address: '',
   email: '',
   formDescription: '',
-  formFields: ['name', 'email', 'phone', 'message'],
+  formFields: ['name', 'email', 'phone', 'subject', 'message'],
   formTitle: '',
   mapEmbed: '',
   phone: '',
   responseTimeText: '',
   showMap: true,
+  showForm: true,
   socialLinks: [],
   submitButtonText: '',
   workingHours: '',

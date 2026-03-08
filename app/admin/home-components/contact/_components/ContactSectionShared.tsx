@@ -16,6 +16,9 @@ import {
   Youtube,
 } from 'lucide-react';
 import { cn } from '../../../components/ui';
+import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
+import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
+import { sanitizeGoogleMapIframe, type ContactMapData } from '@/lib/contact/getContactMapData';
 import type { PreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type {
   ContactBrandMode,
@@ -36,6 +39,8 @@ interface ContactSectionSharedProps {
   context: ContactSectionContext;
   device?: PreviewDevice;
   title?: string;
+  mapData?: ContactMapData;
+  sourcePath?: string;
 }
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -74,12 +79,14 @@ const getInfo = (config: ContactConfigState, title?: string) => {
   const description = config.formDescription?.trim() || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn';
   const submitLabel = config.submitButtonText?.trim() || 'Gửi yêu cầu';
   const responseText = config.responseTimeText?.trim() || 'Phản hồi trong 24h';
+  const subjectFallback = heading || title || 'Liên hệ từ website';
 
   return {
     heading,
     description,
     submitLabel,
     responseText,
+    subjectFallback,
     address: config.address?.trim() || '123 Nguyễn Huệ, Q1, TP.HCM',
     phone: config.phone?.trim() || '1900 1234',
     email: config.email?.trim() || 'contact@example.com',
@@ -99,22 +106,53 @@ const getInfo = (config: ContactConfigState, title?: string) => {
 };
 
 const renderMapOrPlaceholder = ({
-  mapEmbed,
+  mapData,
+  fallbackEmbed,
   tokens,
   className = 'w-full h-full',
 }: {
-  mapEmbed: string;
+  mapData?: ContactMapData;
+  fallbackEmbed?: string;
   tokens: ContactColorTokens;
   className?: string;
 }) => {
-  if (mapEmbed) {
-    return <iframe src={mapEmbed} className={`${className} border-0`} loading="lazy" title="Google Map" />;
+  const sanitizedIframe = mapData?.mapProvider === 'google_embed'
+    ? sanitizeGoogleMapIframe(mapData.googleMapEmbedIframe)
+    : '';
+
+  if (mapData?.mapProvider === 'google_embed' && sanitizedIframe) {
+    return (
+      <div
+        className={className}
+        dangerouslySetInnerHTML={{ __html: sanitizedIframe }}
+      />
+    );
+  }
+
+  if (mapData?.mapProvider === 'openstreetmap') {
+    return (
+      <div className={className}>
+        <OpenStreetMapDisplay
+          location={{
+            address: mapData.address || 'Vị trí doanh nghiệp',
+            lat: mapData.lat,
+            lng: mapData.lng,
+          }}
+          height="100%"
+          zoom={15}
+        />
+      </div>
+    );
+  }
+
+  if (fallbackEmbed) {
+    return <iframe src={fallbackEmbed} className={`${className} border-0`} loading="lazy" title="Google Map" />;
   }
 
   return (
     <div className={cn(className, 'flex flex-col items-center justify-center')} style={{ backgroundColor: tokens.mapPlaceholderBg, color: tokens.mapPlaceholderIcon }}>
       <MapPin size={32} />
-      <span className="text-xs mt-2">Chưa có URL bản đồ</span>
+      <span className="text-xs mt-2">Chưa có bản đồ</span>
     </div>
   );
 };
@@ -187,19 +225,25 @@ const renderModern = ({
   tokens,
   currentDevice,
   activeSocials,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
   activeSocials: ContactSocialLink[];
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div
     className="rounded-xl overflow-hidden border shadow-sm"
     style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
   >
     <div className={cn('flex min-h-[380px]', currentDevice === 'mobile' ? 'flex-col' : 'flex-col lg:flex-row')}>
-      <div className={cn('p-6 lg:p-10 flex flex-col justify-center', currentDevice === 'mobile' ? 'w-full' : 'lg:w-1/2')}>
+      <div className={cn('p-6 lg:p-10 flex flex-col justify-center gap-6', currentDevice === 'mobile' ? 'w-full' : 'lg:w-1/2')}>
         <div className="max-w-md mx-auto w-full">
           <div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border mb-4"
@@ -248,6 +292,24 @@ const renderModern = ({
             </div>
           )}
         </div>
+
+        {config.showForm && (
+          <div className="w-full">
+            <ContactInquiryForm
+              brandColor={tokens.primary}
+              secondaryColor={tokens.secondary}
+              title={info.heading}
+              description={info.description}
+              submitLabel={info.submitLabel}
+              responseTimeText={info.responseText}
+              fields={config.formFields}
+              tokens={tokens}
+              sourcePath={sourcePath}
+              subjectFallback={info.subjectFallback}
+              isPreview={isPreview}
+            />
+          </div>
+        )}
       </div>
 
       {config.showMap && (
@@ -255,7 +317,7 @@ const renderModern = ({
           className={cn('relative border-t lg:border-t-0 lg:border-l', currentDevice === 'mobile' ? 'w-full min-h-[220px]' : 'lg:w-1/2 min-h-[300px]')}
           style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.mapPlaceholderBg }}
         >
-          {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
         </div>
       )}
     </div>
@@ -267,66 +329,90 @@ const renderFloating = ({
   config,
   tokens,
   currentDevice,
+  activeSocials,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
+  activeSocials: ContactSocialLink[];
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div
-    className={cn('w-full relative rounded-xl overflow-hidden border shadow-sm group', currentDevice === 'mobile' ? 'h-[500px]' : 'h-[450px]')}
-    style={{ borderColor: tokens.cardBorder }}
+    className={cn('w-full rounded-xl overflow-hidden border shadow-sm', currentDevice === 'mobile' ? 'min-h-[520px]' : 'min-h-[460px]')}
+    style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
   >
-    <div className="absolute inset-0">
-      {config.mapEmbed ? (
-        <iframe src={config.mapEmbed} className="w-full h-full border-0 filter grayscale-[30%] group-hover:grayscale-0 transition-all duration-1000" loading="lazy" title="Google Map" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: tokens.mapPlaceholderBg, color: tokens.mapPlaceholderIcon }}>
-          <MapPin size={64} />
+    <div className={cn('grid gap-6 p-6 lg:p-8', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr,1.1fr]')}>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold" style={{ color: tokens.heading }}>{info.texts.heading}</h2>
+          <p className="text-sm" style={{ color: tokens.helperText }}>{info.texts.description}</p>
         </div>
-      )}
-    </div>
-
-    <div className={cn('absolute inset-0 pointer-events-none flex items-center p-4', currentDevice === 'mobile' ? 'justify-center' : 'justify-start lg:pl-12')}>
-      <div
-        className="pointer-events-auto p-6 rounded-xl shadow-lg max-w-sm w-full border"
-        style={{ backgroundColor: tokens.floatingCardBg, borderColor: tokens.floatingCardBorder }}
-      >
-        <h2 className="text-lg font-bold mb-5" style={{ color: tokens.heading }}>{info.texts.heading}</h2>
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <MapPin size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
+            <IconBadge icon={<MapPin size={16} />} tokens={tokens} className="mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
-              <p className="text-sm font-medium leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
+              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
+              <p className="text-sm" style={{ color: tokens.valueText }}>{info.address}</p>
             </div>
           </div>
-
           <div className="flex items-start gap-3">
-            <Phone size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
+            <IconBadge icon={<Phone size={16} />} tokens={tokens} className="mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p>
-              <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.phone}</p>
+              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p>
+              <p className="text-sm" style={{ color: tokens.valueText }}>{info.phone}</p>
             </div>
           </div>
-
           <div className="flex items-start gap-3">
-            <Mail size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
+            <IconBadge icon={<Mail size={16} />} tokens={tokens} className="mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p>
-              <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.email}</p>
+              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p>
+              <p className="text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
             </div>
           </div>
-
           <div className="flex items-start gap-3">
-            <Clock size={16} className="mt-0.5 shrink-0" style={{ color: tokens.secondary }} />
+            <IconBadge icon={<Clock size={16} />} tokens={tokens} className="mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium uppercase mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
-              <p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.workingHours}</p>
+              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
+              <p className="text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
             </div>
           </div>
         </div>
+
+        {activeSocials.length > 0 && (
+          <div className="pt-4 border-t" style={{ borderColor: tokens.neutralBorder }}>
+            <ContactSocialLinks socials={activeSocials} tokens={tokens} />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        {config.showForm && (
+          <ContactInquiryForm
+            brandColor={tokens.primary}
+            secondaryColor={tokens.secondary}
+            title={info.heading}
+            description={info.description}
+            submitLabel={info.submitLabel}
+            responseTimeText={info.responseText}
+            fields={config.formFields}
+            tokens={tokens}
+            sourcePath={sourcePath}
+            subjectFallback={info.subjectFallback}
+            isPreview={isPreview}
+          />
+        )}
+        {config.showMap && (
+          <div className={cn('rounded-lg overflow-hidden border', currentDevice === 'mobile' ? 'h-52' : 'h-60')} style={{ borderColor: tokens.neutralBorder }}>
+            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'w-full h-full' })}
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -337,11 +423,17 @@ const renderGrid = ({
   config,
   tokens,
   currentDevice,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div className="w-full p-6 rounded-xl border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.neutralBackground }}>
     <div className={cn('grid gap-3 mb-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
@@ -364,8 +456,26 @@ const renderGrid = ({
       </div>
     </div>
 
-    <div className={cn('p-5 rounded-lg border', currentDevice === 'mobile' ? 'flex flex-col gap-4' : 'flex flex-row gap-6')} style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-      <div className={cn('flex flex-col justify-center', currentDevice === 'mobile' ? 'w-full' : 'w-1/3')}>
+    <div className={cn('grid gap-4', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
+      {config.showForm && (
+        <div className="rounded-lg border p-4" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+          <ContactInquiryForm
+            brandColor={tokens.primary}
+            secondaryColor={tokens.secondary}
+            title={info.heading}
+            description={info.description}
+            submitLabel={info.submitLabel}
+            responseTimeText={info.responseText}
+            fields={config.formFields}
+            tokens={tokens}
+            sourcePath={sourcePath}
+            subjectFallback={info.subjectFallback}
+            withContainer={false}
+            isPreview={isPreview}
+          />
+        </div>
+      )}
+      <div className="rounded-lg border p-4" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <div className="flex items-start gap-3">
           <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
           <div>
@@ -373,12 +483,12 @@ const renderGrid = ({
             <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
           </div>
         </div>
+        {config.showMap && (
+          <div className={cn('rounded-md overflow-hidden mt-4', currentDevice === 'mobile' ? 'w-full h-48' : 'w-full h-52')}>
+            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
+          </div>
+        )}
       </div>
-      {config.showMap && (
-        <div className={cn('rounded-md overflow-hidden', currentDevice === 'mobile' ? 'w-full h-48' : 'w-2/3 h-52')}>
-          {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens })}
-        </div>
-      )}
     </div>
   </div>
 );
@@ -388,11 +498,17 @@ const renderElegant = ({
   config,
   tokens,
   currentDevice,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div className="w-full border rounded-xl shadow-sm overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="p-6 border-b text-center" style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.neutralBackground }}>
@@ -438,6 +554,24 @@ const renderElegant = ({
             <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.workingHours}</span>
           </div>
         </div>
+
+        {config.showForm && (
+          <div className="pt-6">
+            <ContactInquiryForm
+              brandColor={tokens.primary}
+              secondaryColor={tokens.secondary}
+              title={info.heading}
+              description={info.description}
+              submitLabel={info.submitLabel}
+              responseTimeText={info.responseText}
+              fields={config.formFields}
+              tokens={tokens}
+              sourcePath={sourcePath}
+              subjectFallback={info.subjectFallback}
+              isPreview={isPreview}
+            />
+          </div>
+        )}
       </div>
 
       {config.showMap && (
@@ -445,7 +579,7 @@ const renderElegant = ({
           className={cn('relative border-t md:border-t-0 md:border-l', currentDevice === 'mobile' ? 'w-full min-h-[250px]' : 'w-7/12 min-h-[320px]')}
           style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.mapPlaceholderBg }}
         >
-          {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
         </div>
       )}
     </div>
@@ -458,12 +592,18 @@ const renderMinimal = ({
   tokens,
   currentDevice,
   activeSocials,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
   activeSocials: ContactSocialLink[];
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div className="w-full border rounded-xl overflow-hidden shadow-sm" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="p-6 lg:p-10">
@@ -493,12 +633,29 @@ const renderMinimal = ({
           <span className="text-sm font-semibold" style={{ color: tokens.valueText }}>{info.workingHours}</span>
         </div>
       </div>
+      {config.showForm && (
+        <div className="mb-8">
+          <ContactInquiryForm
+            brandColor={tokens.primary}
+            secondaryColor={tokens.secondary}
+            title={info.heading}
+            description={info.description}
+            submitLabel={info.submitLabel}
+            responseTimeText={info.responseText}
+            fields={config.formFields}
+            tokens={tokens}
+            sourcePath={sourcePath}
+            subjectFallback={info.subjectFallback}
+            isPreview={isPreview}
+          />
+        </div>
+      )}
       {(activeSocials.length > 0 || config.showMap) && (
         <div className={cn('mt-8 pt-6 border-t', currentDevice === 'mobile' ? 'flex flex-col gap-4' : 'flex items-center justify-between')} style={{ borderColor: tokens.neutralBorder }}>
           <ContactSocialLinks socials={activeSocials} tokens={tokens} />
           {config.showMap && (
             <div className={cn('rounded-lg overflow-hidden', currentDevice === 'mobile' ? 'w-full h-48' : 'w-80 h-32')}>
-              {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens })}
+              {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
             </div>
           )}
         </div>
@@ -513,12 +670,18 @@ const renderCentered = ({
   tokens,
   currentDevice,
   activeSocials,
+  mapData,
+  sourcePath,
+  isPreview,
 }: {
   info: ReturnType<typeof getInfo>;
   config: ContactConfigState;
   tokens: ContactColorTokens;
   currentDevice: PreviewDevice;
   activeSocials: ContactSocialLink[];
+  mapData?: ContactMapData;
+  sourcePath?: string;
+  isPreview: boolean;
 }) => (
   <div className="w-full border rounded-xl overflow-hidden shadow-sm" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="text-center p-6 lg:p-10" style={{ backgroundColor: tokens.centeredHeaderBg }}>
@@ -528,43 +691,56 @@ const renderCentered = ({
       <h2 className={cn('font-bold tracking-tight mb-2', currentDevice === 'mobile' ? 'text-xl' : 'text-2xl')} style={{ color: tokens.heading }}>{info.heading}</h2>
       <p className="text-sm max-w-md mx-auto" style={{ color: tokens.helperText }}>{info.description}</p>
       <p className="text-xs mt-2" style={{ color: tokens.labelText }}>{info.responseText}</p>
-      <a
-        href={`mailto:${info.email}`}
-        className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-semibold"
-        style={{ backgroundColor: tokens.secondary, color: tokens.sectionBadgeText }}
-      >
+      <span className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-semibold" style={{ backgroundColor: tokens.sectionBadgeBg, color: tokens.sectionBadgeText }}>
         {info.submitLabel}
-      </a>
+      </span>
     </div>
-    <div className="p-6 lg:p-8">
-      <div className={cn('grid gap-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
-        <a href={`tel:${info.phone}`} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-          <IconBadge icon={<Phone size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.phone}</p></div>
-        </a>
-        <a href={`mailto:${info.email}`} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-          <IconBadge icon={<Mail size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p><p className="text-sm font-bold truncate" style={{ color: tokens.valueText }}>{info.email}</p></div>
-        </a>
-        <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-          <IconBadge icon={<Clock size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
-        </div>
-      </div>
-      <div className={cn('mt-6 p-5 rounded-xl', currentDevice === 'mobile' ? '' : 'flex items-start gap-6')} style={{ backgroundColor: tokens.centeredSurface }}>
-        <div className="flex items-start gap-3 flex-1">
-          <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
-          <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
-        </div>
-        {config.showMap && (
-          <div className={cn('rounded-lg overflow-hidden shrink-0', currentDevice === 'mobile' ? 'w-full h-40 mt-4' : 'w-64 h-28')}>
-            {renderMapOrPlaceholder({ mapEmbed: config.mapEmbed, tokens })}
+    <div className="p-6 lg:p-8 space-y-6">
+      <div className={cn('grid gap-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
+        <div className="space-y-3">
+          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
+            <IconBadge icon={<Phone size={18} />} tokens={tokens} size={18} />
+            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.phone}</p></div>
           </div>
+          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
+            <IconBadge icon={<Mail size={18} />} tokens={tokens} size={18} />
+            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p><p className="text-sm font-bold truncate" style={{ color: tokens.valueText }}>{info.email}</p></div>
+          </div>
+          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
+            <IconBadge icon={<Clock size={18} />} tokens={tokens} size={18} />
+            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
+          </div>
+          <div className="flex items-start gap-3 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
+            <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
+            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
+          </div>
+          {activeSocials.length > 0 && (
+            <div className="pt-2">
+              <ContactSocialLinks socials={activeSocials} tokens={tokens} size={20} centered />
+            </div>
+          )}
+        </div>
+
+        {config.showForm && (
+          <ContactInquiryForm
+            brandColor={tokens.primary}
+            secondaryColor={tokens.secondary}
+            title={info.heading}
+            description={info.description}
+            submitLabel={info.submitLabel}
+            responseTimeText={info.responseText}
+            fields={config.formFields}
+            tokens={tokens}
+            sourcePath={sourcePath}
+            subjectFallback={info.subjectFallback}
+            isPreview={isPreview}
+          />
         )}
       </div>
-      {activeSocials.length > 0 && (
-        <div className="mt-6 text-center">
-          <ContactSocialLinks socials={activeSocials} tokens={tokens} size={20} centered />
+
+      {config.showMap && (
+        <div className={cn('rounded-lg overflow-hidden', currentDevice === 'mobile' ? 'w-full h-40' : 'w-full h-56')}>
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
         </div>
       )}
     </div>
@@ -579,34 +755,37 @@ export function ContactSectionShared({
   context,
   device,
   title,
+  mapData,
+  sourcePath,
 }: ContactSectionSharedProps) {
   const currentDevice = getDisplayDevice(context, device);
+  const isPreview = context === 'preview';
   const info = getInfo(config, title);
   const activeSocials = (config.socialLinks ?? []).filter((social) => social.url && social.url.trim().length > 0);
   const containerClass = getRootContainerClass(context, currentDevice);
 
   const content = (() => {
     if (style === 'modern') {
-      return renderModern({ info, config, tokens, currentDevice, activeSocials });
+      return renderModern({ info, config, tokens, currentDevice, activeSocials, mapData, sourcePath, isPreview });
     }
 
     if (style === 'floating') {
-      return renderFloating({ info, config, tokens, currentDevice });
+      return renderFloating({ info, config, tokens, currentDevice, activeSocials, mapData, sourcePath, isPreview });
     }
 
     if (style === 'grid') {
-      return renderGrid({ info, config, tokens, currentDevice });
+      return renderGrid({ info, config, tokens, currentDevice, mapData, sourcePath, isPreview });
     }
 
     if (style === 'minimal') {
-      return renderMinimal({ info, config, tokens, currentDevice, activeSocials });
+      return renderMinimal({ info, config, tokens, currentDevice, activeSocials, mapData, sourcePath, isPreview });
     }
 
     if (style === 'centered') {
-      return renderCentered({ info, config, tokens, currentDevice, activeSocials });
+      return renderCentered({ info, config, tokens, currentDevice, activeSocials, mapData, sourcePath, isPreview });
     }
 
-    return renderElegant({ info, config, tokens, currentDevice });
+    return renderElegant({ info, config, tokens, currentDevice, mapData, sourcePath, isPreview });
   })();
 
   return (

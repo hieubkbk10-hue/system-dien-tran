@@ -23,6 +23,7 @@ import {
 } from '../../_lib/normalize';
 import { validateContactConfig } from '../../_lib/validation';
 import type { ContactConfigState } from '../../_types';
+import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 
 const COMPONENT_TYPE = 'Contact';
 
@@ -33,6 +34,8 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
+  const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);
@@ -267,6 +270,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
               title={title}
+              mapData={mapData}
             />
           </div>
         </div>

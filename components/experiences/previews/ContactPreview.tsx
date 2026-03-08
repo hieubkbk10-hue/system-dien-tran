@@ -1,6 +1,9 @@
 import React from 'react';
-import { Facebook, Instagram, Mail, MapPin, MessageSquare, Phone, Send, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Mail, MapPin, Phone, Youtube } from 'lucide-react';
 import { ZaloIcon } from '@/components/site/SocialIcons';
+import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
+import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
+import { sanitizeGoogleMapIframe, type ContactMapData } from '@/lib/contact/getContactMapData';
 
 type ContactLayoutStyle = 'form-only' | 'with-map' | 'with-info';
 
@@ -13,6 +16,7 @@ type ContactPreviewProps = {
   brandColor?: string;
   secondaryColor?: string;
   colorMode?: 'single' | 'dual';
+  mapData?: ContactMapData | null;
 };
 
 const toHex = (value: string) => (value.startsWith('#') ? value.slice(1) : value);
@@ -57,93 +61,6 @@ const resolveSecondary = (primary: string, secondary: string | undefined, mode: 
   return primary;
 };
 
-function CorporateForm({ brandColor = '#6366f1' }: { brandColor?: string }) {
-  return (
-    <div>
-      <h3 className="text-xl font-semibold text-slate-800 mb-5 border-b border-slate-100 pb-3">Gửi tin nhắn</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Họ tên</label>
-          <input
-            type="text"
-            placeholder="Nguyễn Văn A"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            disabled
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Email</label>
-          <input
-            type="email"
-            placeholder="example@company.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            disabled
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Số điện thoại</label>
-          <input
-            type="text"
-            placeholder="09xx xxx xxx"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            disabled
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Chủ đề</label>
-          <input
-            type="text"
-            placeholder="Hợp tác kinh doanh..."
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            disabled
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <label className="text-sm font-medium text-slate-700">Nội dung tin nhắn</label>
-          <textarea
-            placeholder="Nhập nội dung cần hỗ trợ..."
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800 resize-none"
-            rows={4}
-            disabled
-          />
-        </div>
-        <div className="md:col-span-2">
-          <button
-            className="w-full md:w-auto px-8 py-2.5 rounded-lg text-white font-semibold flex items-center justify-center gap-2"
-            style={{ backgroundColor: brandColor }}
-          >
-            <Send size={16} />
-            Gửi tin nhắn
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ContactForm({ brandColor = '#6366f1', secondaryColor }: { brandColor?: string; secondaryColor?: string }) {
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare size={20} style={{ color: secondaryColor || brandColor }} />
-        <h3 className="font-semibold text-slate-900">Gửi tin nhắn cho chúng tôi</h3>
-      </div>
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <input type="text" placeholder="Họ tên" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" disabled />
-          <input type="email" placeholder="Email" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" disabled />
-        </div>
-        <input type="text" placeholder="Số điện thoại" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" disabled />
-        <input type="text" placeholder="Chủ đề" className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm" disabled />
-        <textarea placeholder="Nội dung tin nhắn..." className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm resize-none" rows={4} disabled />
-        <button className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: brandColor }}>
-          <Send size={16} />
-          Gửi tin nhắn
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }: { showSocialLinks: boolean; brandColor?: string; secondaryColor?: string }) {
   const socialLinks = [
@@ -205,12 +122,39 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }
   );
 }
 
-function MapPreview() {
+function MapPreview({ mapData }: { mapData?: ContactMapData | null }) {
+  const sanitized = mapData?.mapProvider === 'google_embed'
+    ? sanitizeGoogleMapIframe(mapData.googleMapEmbedIframe)
+    : '';
+
+  if (mapData?.mapProvider === 'google_embed' && sanitized) {
+    return (
+      <div
+        className="rounded-xl overflow-hidden border border-slate-200"
+        dangerouslySetInnerHTML={{ __html: sanitized }}
+      />
+    );
+  }
+
+  if (mapData?.mapProvider === 'openstreetmap') {
+    return (
+      <OpenStreetMapDisplay
+        location={{
+          address: mapData.address || 'Vị trí doanh nghiệp',
+          lat: mapData.lat,
+          lng: mapData.lng,
+        }}
+        height="220px"
+        zoom={15}
+      />
+    );
+  }
+
   return (
     <div className="bg-slate-100 rounded-xl h-48 flex items-center justify-center text-slate-400 border border-slate-200">
       <div className="text-center">
         <MapPin size={32} className="mx-auto mb-2" />
-        <span className="text-sm">Google Maps</span>
+        <span className="text-sm">Chưa có bản đồ</span>
       </div>
     </div>
   );
@@ -225,6 +169,7 @@ export function ContactPreview({
   brandColor = '#6366f1',
   secondaryColor,
   colorMode = 'single',
+  mapData,
 }: ContactPreviewProps) {
   const isMobile = device === 'mobile';
   const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
@@ -309,17 +254,29 @@ export function ContactPreview({
               </div>
             )}
             <div className={`${showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
-              <CorporateForm brandColor={brandColor} />
-              {showMap && <MapPreview />}
+              <ContactInquiryForm
+                brandColor={brandColor}
+                secondaryColor={resolvedSecondary}
+                sourcePath="/contact"
+                subjectFallback="Liên hệ từ trang /contact"
+                isPreview
+              />
+              {showMap && <MapPreview mapData={mapData} />}
             </div>
           </div>
         )}
 
         {layoutStyle === 'with-map' && (
           <div className="space-y-4">
-            {showMap && <MapPreview />}
+            {showMap && <MapPreview mapData={mapData} />}
             <div className={isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-6'}>
-              <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+              <ContactInquiryForm
+                brandColor={brandColor}
+                secondaryColor={resolvedSecondary}
+                sourcePath="/contact"
+                subjectFallback="Liên hệ từ trang /contact"
+                isPreview
+              />
               {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
             </div>
           </div>
@@ -328,11 +285,17 @@ export function ContactPreview({
         {layoutStyle === 'with-info' && (
           <div className={isMobile ? 'space-y-4' : 'grid grid-cols-5 gap-6'}>
             <div className={isMobile ? '' : 'col-span-3'}>
-              <ContactForm brandColor={brandColor} secondaryColor={resolvedSecondary} />
+              <ContactInquiryForm
+                brandColor={brandColor}
+                secondaryColor={resolvedSecondary}
+                sourcePath="/contact"
+                subjectFallback="Liên hệ từ trang /contact"
+                isPreview
+              />
             </div>
             <div className={`${isMobile ? '' : 'col-span-2'} space-y-4`}>
               {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
-              {showMap && <MapPreview />}
+              {showMap && <MapPreview mapData={mapData} />}
             </div>
           </div>
         )}

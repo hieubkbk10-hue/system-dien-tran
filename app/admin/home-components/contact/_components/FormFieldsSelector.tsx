@@ -11,6 +11,7 @@ const FIELD_OPTIONS = [
   { value: 'name', label: 'Tên' },
   { value: 'email', label: 'Email' },
   { value: 'phone', label: 'Số điện thoại' },
+  { value: 'subject', label: 'Chủ đề' },
   { value: 'message', label: 'Tin nhắn' },
 ];
 

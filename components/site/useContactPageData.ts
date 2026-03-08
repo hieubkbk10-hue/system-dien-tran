@@ -11,6 +11,7 @@ import {
 } from '@/lib/experiences/contact/config';
 import { useBrandColors } from '@/components/site/hooks';
 import { TikTokIcon, ZaloIcon } from './SocialIcons';
+import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 
 type SocialLinkItem = {
   label: string;
@@ -71,23 +72,20 @@ export function useContactPageData(): {
   );
 
   const contactData = useMemo<ContactData>(() => {
+    const mapData = getContactMapDataFromSettings(contactSettings ?? []);
     const settingsMap: Record<string, string | number> = {};
     contactSettings?.forEach(setting => {
       settingsMap[setting.key] = setting.value;
     });
 
-    const mapProvider = settingsMap.contact_map_provider === 'google_embed'
-      ? 'google_embed'
-      : 'openstreetmap';
-
     return {
-      address: (settingsMap.contact_address as string) || '',
+      address: (settingsMap.contact_address as string) || mapData.address || '',
       email: (settingsMap.contact_email as string) || '',
       phone: (settingsMap.contact_phone as string) || '',
-      lat: (settingsMap.contact_lat as number) || 10.762622,
-      lng: (settingsMap.contact_lng as number) || 106.660172,
-      mapProvider,
-      googleMapEmbedIframe: (settingsMap.contact_google_map_embed_iframe as string) || '',
+      lat: mapData.lat,
+      lng: mapData.lng,
+      mapProvider: mapData.mapProvider,
+      googleMapEmbedIframe: mapData.googleMapEmbedIframe,
     };
   }, [contactSettings]);
 

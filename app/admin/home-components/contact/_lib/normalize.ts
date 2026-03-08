@@ -89,7 +89,7 @@ export const normalizeContactConfig = (rawConfig: unknown): ContactConfigState =
     workingHours: coerceText(config.workingHours) || defaultConfig.workingHours,
     style: normalizeStyle(config.style),
     harmony: normalizeContactHarmony(config.harmony),
-    showForm: typeof config.showForm === 'boolean' ? config.showForm : undefined,
+    showForm: typeof config.showForm === 'boolean' ? config.showForm : defaultConfig.showForm,
     texts: normalizeTexts(config.texts),
   };
 };

@@ -27,14 +27,6 @@ const normalizeHex = (value: string, fallback: string) => {
 
 const isValidHexColor = (value: string) => /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
 
-const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) => {
-  const color = safeParseOklch(hex, fallback);
-  const l = clampLightness(color.l ?? 0.62);
-  const c = clampChroma(color.c ?? 0.14);
-  const h = Number.isFinite(color.h) ? color.h : 0;
-  const a = Math.min(Math.max(alpha, 0), 1);
-  return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${a.toFixed(3)})`;
-};
 
 const shiftColor = (hex: string, lightnessDelta: number, chromaScale = 1, fallback = DEFAULT_BRAND_COLOR) => {
   const color = safeParseOklch(hex, fallback);
@@ -205,6 +197,24 @@ export interface ContactColorTokens {
 
   floatingCardBg: string;
   floatingCardBorder: string;
+
+  formBackground: string;
+  formBorder: string;
+  formTitle: string;
+  formDescription: string;
+  formAccent: string;
+  formFieldBackground: string;
+  formFieldBorder: string;
+  formFieldText: string;
+  formFieldPlaceholder: string;
+  formFieldFocus: string;
+  formFieldDisabledBackground: string;
+  formFieldDisabledText: string;
+  formButtonBackground: string;
+  formButtonText: string;
+  formButtonBorder: string;
+  formHelperText: string;
+  formWarningText: string;
 }
 
 export interface ContactHarmonyStatus {
@@ -300,6 +310,11 @@ export const getContactColorTokens = ({
   const socialCandidate = pickReadableTextOnSolid(socialBg);
   const socialIcon = ensureAPCATextColor(socialCandidate, socialBg, 14, 600);
 
+  const formFieldBorder = neutralBorder;
+  const formFieldFocus = secondaryPalette.border;
+  const formButtonBackground = primaryPalette.solid;
+  const formButtonText = primaryPalette.textOnSolid;
+
   return {
     primary: primaryResolved,
     secondary: secondaryResolved,
@@ -311,7 +326,7 @@ export const getContactColorTokens = ({
     mutedText,
 
     heading: primaryPalette.solid,
-    sectionTint: withAlpha(secondaryPalette.solid, 0.08, primaryResolved),
+    sectionTint: shiftColor(secondaryPalette.solid, 0.4, 0.7, primaryResolved),
     sectionBadgeBg,
     sectionBadgeBorder: secondaryPalette.border,
     sectionBadgeText,
@@ -334,11 +349,29 @@ export const getContactColorTokens = ({
     mapPlaceholderBg: neutralBackground,
     mapPlaceholderIcon: primaryPalette.solid,
 
-    centeredHeaderBg: withAlpha(secondaryPalette.solid, 0.08, primaryResolved),
-    centeredSurface: withAlpha(secondaryPalette.solid, 0.06, primaryResolved),
+    centeredHeaderBg: shiftColor(secondaryPalette.solid, 0.38, 0.7, primaryResolved),
+    centeredSurface: shiftColor(secondaryPalette.solid, 0.42, 0.7, primaryResolved),
 
-    floatingCardBg: 'rgba(255,255,255,0.96)',
+    floatingCardBg: neutralSurface,
     floatingCardBorder: neutralBorder,
+
+    formBackground: neutralSurface,
+    formBorder: neutralBorder,
+    formTitle: neutralText,
+    formDescription: mutedText,
+    formAccent: secondaryPalette.solid,
+    formFieldBackground: neutralSurface,
+    formFieldBorder,
+    formFieldText: neutralText,
+    formFieldPlaceholder: mutedText,
+    formFieldFocus,
+    formFieldDisabledBackground: neutralBackground,
+    formFieldDisabledText: mutedText,
+    formButtonBackground,
+    formButtonText,
+    formButtonBorder: formButtonBackground,
+    formHelperText: mutedText,
+    formWarningText: '#b45309',
   };
 };
 

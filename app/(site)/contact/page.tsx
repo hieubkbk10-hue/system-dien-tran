@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import { Mail, MapPin, MessageSquare, Phone, Send } from 'lucide-react';
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import { useContactPageData } from '@/components/site/useContactPageData';
 import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
-import { api } from '@/convex/_generated/api';
+import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
+import { sanitizeGoogleMapIframe } from '@/lib/contact/getContactMapData';
 
 type SocialLinkItem = { label: string; href: string; color: string; icon: React.ElementType };
 
@@ -51,236 +52,6 @@ const resolveSecondary = (primary: string, secondary: string, mode: 'single' | '
   return primary;
 };
 
-const sanitizeIframeHtml = (html: string) => {
-  const trimmed = html.trim();
-  if (!trimmed.includes('<iframe') || !trimmed.includes('</iframe>')) {
-    return '';
-  }
-  return trimmed
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
-};
-
-type ContactFormValues = {
-  name: string;
-  email: string;
-  phone: string;
-  subject: string;
-  message: string;
-};
-
-function ContactForm({
-  brandColor,
-  secondaryColor,
-  formValues,
-  onChange,
-  onSubmit,
-  isSubmitting,
-  isDisabled,
-  requireEmail,
-  requirePhone,
-  submitMessage,
-}: {
-  brandColor: string;
-  secondaryColor: string;
-  formValues: ContactFormValues;
-  onChange: (field: keyof ContactFormValues, value: string) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  isSubmitting: boolean;
-  isDisabled: boolean;
-  requireEmail: boolean;
-  requirePhone: boolean;
-  submitMessage: string | null;
-}) {
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm"
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare size={20} style={{ color: secondaryColor }} />
-        <h3 className="font-semibold text-slate-900">Gửi tin nhắn cho chúng tôi</h3>
-      </div>
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input
-            type="text"
-            placeholder="Họ tên"
-            value={formValues.name}
-            onChange={(event) => onChange('name', event.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
-            required
-            disabled={isDisabled}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={formValues.email}
-            onChange={(event) => onChange('email', event.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
-            required={requireEmail}
-            disabled={isDisabled}
-          />
-        </div>
-        <input
-          type="text"
-          placeholder="Số điện thoại"
-          value={formValues.phone}
-          onChange={(event) => onChange('phone', event.target.value)}
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
-          required={requirePhone}
-          disabled={isDisabled}
-        />
-        <input
-          type="text"
-          placeholder="Chủ đề"
-          value={formValues.subject}
-          onChange={(event) => onChange('subject', event.target.value)}
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm"
-          required
-          disabled={isDisabled}
-        />
-        <textarea
-          placeholder="Nội dung tin nhắn..."
-          value={formValues.message}
-          onChange={(event) => onChange('message', event.target.value)}
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm resize-none"
-          rows={4}
-          required
-          disabled={isDisabled}
-        />
-        {submitMessage && (
-          <div className="text-xs text-slate-500">{submitMessage}</div>
-        )}
-        {isDisabled && (
-          <div className="text-xs text-amber-600">Biểu mẫu tạm tắt. Vui lòng liên hệ qua các kênh khác.</div>
-        )}
-        <button
-          type="submit"
-          className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
-          style={{ backgroundColor: brandColor }}
-          disabled={isDisabled || isSubmitting}
-        >
-          <Send size={16} />
-          {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function CorporateContactForm({
-  brandColor,
-  secondaryColor: _secondaryColor,
-  formValues,
-  onChange,
-  onSubmit,
-  isSubmitting,
-  isDisabled,
-  requireEmail,
-  requirePhone,
-  submitMessage,
-}: {
-  brandColor: string;
-  secondaryColor: string;
-  formValues: ContactFormValues;
-  onChange: (field: keyof ContactFormValues, value: string) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  isSubmitting: boolean;
-  isDisabled: boolean;
-  requireEmail: boolean;
-  requirePhone: boolean;
-  submitMessage: string | null;
-}) {
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4"
-    >
-      <h3 className="text-xl font-semibold text-slate-800 border-b border-slate-100 pb-3">Gửi tin nhắn</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Họ tên</label>
-          <input
-            type="text"
-            placeholder="Nguyễn Văn A"
-            value={formValues.name}
-            onChange={(event) => onChange('name', event.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            required
-            disabled={isDisabled}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Email</label>
-          <input
-            type="email"
-            placeholder="example@company.com"
-            value={formValues.email}
-            onChange={(event) => onChange('email', event.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            required={requireEmail}
-            disabled={isDisabled}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Số điện thoại</label>
-          <input
-            type="text"
-            placeholder="09xx xxx xxx"
-            value={formValues.phone}
-            onChange={(event) => onChange('phone', event.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            required={requirePhone}
-            disabled={isDisabled}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Chủ đề</label>
-          <input
-            type="text"
-            placeholder="Hợp tác kinh doanh..."
-            value={formValues.subject}
-            onChange={(event) => onChange('subject', event.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800"
-            required
-            disabled={isDisabled}
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <label className="text-sm font-medium text-slate-700">Nội dung tin nhắn</label>
-          <textarea
-            placeholder="Nhập nội dung cần hỗ trợ..."
-            value={formValues.message}
-            onChange={(event) => onChange('message', event.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-800 resize-none"
-            rows={4}
-            required
-            disabled={isDisabled}
-          />
-        </div>
-        {(submitMessage || isDisabled) && (
-          <div className="md:col-span-2 text-xs text-slate-500">
-            {submitMessage}
-            {isDisabled && ' Biểu mẫu tạm tắt. Vui lòng liên hệ qua các kênh khác.'}
-          </div>
-        )}
-        <div className="md:col-span-2">
-          <button
-            type="submit"
-            className="w-full md:w-auto px-8 py-2.5 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
-            style={{ backgroundColor: brandColor }}
-            disabled={isDisabled || isSubmitting}
-          >
-            <Send size={16} />
-            {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-}
 
 function ContactInfoCard({
   brandColor,
@@ -430,14 +201,13 @@ function CorporateSidebar({
 }
 
 function GoogleMapEmbed({ iframeHtml }: { iframeHtml: string }) {
-  const sanitized = sanitizeIframeHtml(iframeHtml);
-  if (!sanitized) {
+  if (!iframeHtml) {
     return null;
   }
   return (
     <div
       className="rounded-xl overflow-hidden border"
-      dangerouslySetInnerHTML={{ __html: sanitized }}
+      dangerouslySetInnerHTML={{ __html: iframeHtml }}
     />
   );
 }
@@ -455,7 +225,7 @@ function MapPreview({
   mapProvider: 'openstreetmap' | 'google_embed';
   googleMapEmbedIframe: string;
 }) {
-  const sanitized = sanitizeIframeHtml(googleMapEmbedIframe);
+  const sanitized = sanitizeGoogleMapIframe(googleMapEmbedIframe);
   if (mapProvider === 'google_embed' && sanitized) {
     return <GoogleMapEmbed iframeHtml={sanitized} />;
   }
@@ -470,52 +240,9 @@ function MapPreview({
 
 export default function ContactPage() {
   const { isLoading: isContactLoading, brandColor, secondaryColor, colorMode, config, contactData, socialLinks } = useContactPageData();
-  const submitContactInquiry = useMutation(api.contactInbox.submitContactInquiry);
-  const inboxFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactFormSubmission' });
-  const inboxSettings = useQuery(api.admin.modules.listModuleSettings, { moduleKey: 'contactInbox' });
-  const [formValues, setFormValues] = useState<ContactFormValues>({
-    email: '',
-    message: '',
-    name: '',
-    phone: '',
-    subject: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const pathname = usePathname();
   const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
-  const isModuleLoading = inboxFeature === undefined || inboxSettings === undefined;
-  const isContactLoadingState = isContactLoading || isModuleLoading;
-  const isFormEnabled = (inboxFeature?.enabled ?? false) && !isModuleLoading;
-  const requireEmail = Boolean(inboxSettings?.find(setting => setting.settingKey === 'requireEmail')?.value);
-  const requirePhone = Boolean(inboxSettings?.find(setting => setting.settingKey === 'requirePhone')?.value);
-
-  const handleFormChange = (field: keyof ContactFormValues, value: string) => {
-    setFormValues((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!isFormEnabled || isSubmitting) {
-      return;
-    }
-    setIsSubmitting(true);
-    setSubmitMessage(null);
-    try {
-      await submitContactInquiry({
-        email: formValues.email || undefined,
-        message: formValues.message,
-        name: formValues.name,
-        phone: formValues.phone || undefined,
-        subject: formValues.subject,
-      });
-      setSubmitMessage('Cảm ơn bạn! Chúng tôi đã nhận được tin nhắn.');
-      setFormValues({ email: '', message: '', name: '', phone: '', subject: '' });
-    } catch (error) {
-      setSubmitMessage(error instanceof Error ? error.message : 'Gửi tin nhắn thất bại. Vui lòng thử lại.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const isContactLoadingState = isContactLoading;
 
   if (isContactLoadingState) {
     return (
@@ -549,17 +276,11 @@ export default function ContactPage() {
             />
           )}
           <div className={`${config.showContactInfo ? 'lg:w-7/12' : 'w-full'} bg-white p-6 lg:p-8 space-y-6`}>
-            <CorporateContactForm
+            <ContactInquiryForm
               brandColor={brandColor}
               secondaryColor={resolvedSecondary}
-              formValues={formValues}
-              onChange={handleFormChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              isDisabled={!isFormEnabled}
-              requireEmail={requireEmail}
-              requirePhone={requirePhone}
-              submitMessage={submitMessage}
+              sourcePath={pathname}
+              subjectFallback="Liên hệ từ trang /contact"
             />
             {config.showMap && (
               <MapPreview
@@ -586,17 +307,11 @@ export default function ContactPage() {
             />
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ContactForm
+            <ContactInquiryForm
               brandColor={brandColor}
               secondaryColor={resolvedSecondary}
-              formValues={formValues}
-              onChange={handleFormChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              isDisabled={!isFormEnabled}
-              requireEmail={requireEmail}
-              requirePhone={requirePhone}
-              submitMessage={submitMessage}
+              sourcePath={pathname}
+              subjectFallback="Liên hệ từ trang /contact"
             />
             {config.showContactInfo && (
               <ContactInfoCard
@@ -616,17 +331,11 @@ export default function ContactPage() {
       {config.layoutStyle === 'with-info' && (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3">
-            <ContactForm
+            <ContactInquiryForm
               brandColor={brandColor}
               secondaryColor={resolvedSecondary}
-              formValues={formValues}
-              onChange={handleFormChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              isDisabled={!isFormEnabled}
-              requireEmail={requireEmail}
-              requirePhone={requirePhone}
-              submitMessage={submitMessage}
+              sourcePath={pathname}
+              subjectFallback="Liên hệ từ trang /contact"
             />
           </div>
           <div className="lg:col-span-2 space-y-6">

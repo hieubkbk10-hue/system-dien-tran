@@ -10,6 +10,7 @@ import { CONTACT_STYLES, DEFAULT_CONTACT_HARMONY } from '../_lib/constants';
 import { getContactValidationResult } from '../_lib/colors';
 import { normalizeContactConfig } from '../_lib/normalize';
 import { ContactSectionShared } from './ContactSectionShared';
+import type { ContactMapData } from '@/lib/contact/getContactMapData';
 import type {
   ContactBrandMode,
   ContactConfigState,
@@ -24,6 +25,7 @@ interface ContactPreviewProps {
   selectedStyle?: ContactStyle;
   onStyleChange?: (style: ContactStyle) => void;
   title?: string;
+  mapData?: ContactMapData | null;
 }
 
 export function ContactPreview({
@@ -34,6 +36,7 @@ export function ContactPreview({
   selectedStyle,
   onStyleChange,
   title,
+  mapData,
 }: ContactPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
   const normalizedConfig = React.useMemo(() => normalizeContactConfig(config), [config]);
@@ -63,8 +66,15 @@ export function ContactPreview({
   }, [mode, validation]);
 
   const infoParts: string[] = [];
-  if (normalizedConfig.showMap && normalizedConfig.mapEmbed) {infoParts.push('Có bản đồ');}
-  else if (normalizedConfig.showMap) {infoParts.push('Bản đồ (chưa có URL)');}
+  if (normalizedConfig.showMap) {
+    if (!mapData) {
+      infoParts.push('Bản đồ (đang tải)');
+    } else if (mapData.mapProvider === 'google_embed') {
+      infoParts.push(mapData.googleMapEmbedIframe ? 'Bản đồ Google' : 'Bản đồ (thiếu iframe)');
+    } else {
+      infoParts.push('Bản đồ OSM');
+    }
+  }
 
   const activeSocials = normalizedConfig.socialLinks.filter((social) => social.url.trim().length > 0);
   if (activeSocials.length > 0) {infoParts.push(`${activeSocials.length} MXH`);}
@@ -92,6 +102,7 @@ export function ContactPreview({
             context="preview"
             device={device}
             title={title}
+            mapData={mapData ?? undefined}
           />
         </BrowserFrame>
       </PreviewWrapper>

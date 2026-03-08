@@ -1,7 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 import type { ContactConfigState } from '../_types';
 import { validateContactConfig } from '../_lib/validation';
 import { CONTACT_HARMONY_OPTIONS } from '../_lib/constants';
@@ -23,6 +27,9 @@ interface ValidationErrors {
 
 export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
+  const isSettingsLoading = contactSettings === undefined;
 
   // Validate config và track errors
   useEffect(() => {
@@ -85,32 +92,27 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
             </div>
           </div>
 
-          {/* Conditional mapEmbed textarea */}
           {value.showMap && (
-            <div>
-              <label
-                htmlFor="mapEmbed"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Mã nhúng bản đồ
-              </label>
-              <textarea
-                id="mapEmbed"
-                value={value.mapEmbed}
-                onChange={(e) => updateConfig({ mapEmbed: e.target.value })}
-                placeholder="Nhập iframe embed code từ Google Maps"
-                rows={4}
-                className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  validationErrors.mapEmbed
-                    ? 'border-red-500 dark:border-red-500'
-                    : 'border-slate-300 dark:border-slate-600'
-                }`}
-              />
-              {validationErrors.mapEmbed && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                  {validationErrors.mapEmbed}
-                </p>
-              )}
+            <div className="space-y-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                {isSettingsLoading ? (
+                  <p>Đang tải cấu hình bản đồ từ Settings...</p>
+                ) : (
+                  <div className="space-y-1">
+                    <p>Provider: <strong className="text-slate-800">{mapData.mapProvider === 'google_embed' ? 'Google Maps nhúng' : 'OpenStreetMap'}</strong></p>
+                    <p>Địa chỉ: <strong className="text-slate-800">{mapData.address || 'Chưa có địa chỉ'}</strong></p>
+                    {mapData.mapProvider === 'google_embed' && (
+                      <p>Iframe: <strong className="text-slate-800">{mapData.googleMapEmbedIframe ? 'Đã có mã nhúng' : 'Chưa có mã nhúng'}</strong></p>
+                    )}
+                    {mapData.mapProvider === 'openstreetmap' && (
+                      <p>Toạ độ: <strong className="text-slate-800">{mapData.lat.toFixed(6)}, {mapData.lng.toFixed(6)}</strong></p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Link href="/admin/settings" className="text-xs font-medium text-blue-600 hover:underline">
+                Cập nhật bản đồ trong Settings →
+              </Link>
             </div>
           )}
         </CardContent>

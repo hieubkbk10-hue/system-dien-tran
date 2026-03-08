@@ -36,6 +36,7 @@ import {
   type ContactLayoutStyle,
 } from '@/lib/experiences';
 import { enforceMultipleToggles } from '@/lib/experiences/module-toggle-guards';
+import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 
 const LAYOUT_STYLES: LayoutOption<ContactLayoutStyle>[] = [
   { description: 'Chỉ có form liên hệ', id: 'form-only', label: 'Form Only' },
@@ -88,6 +89,7 @@ export default function ContactExperiencePage() {
   const socialFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableSocial' });
   const mailFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'settings', featureKey: 'enableMail' });
   const contactFormFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactFormSubmission' });
+  const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const brandColors = useBrandColors();
   const [brandColor, setBrandColor] = useState(brandColors.primary);
@@ -105,7 +107,8 @@ export default function ContactExperiencePage() {
     || contactFeature === undefined
     || socialFeature === undefined
     || mailFeature === undefined
-    || contactFormFeature === undefined;
+    || contactFormFeature === undefined
+    || contactSettings === undefined;
 
   const settingsEnabled = settingsModule?.enabled ?? false;
   const contactInboxEnabled = contactInboxModule?.enabled ?? false;
@@ -113,6 +116,7 @@ export default function ContactExperiencePage() {
   const socialEnabled = settingsEnabled && (socialFeature?.enabled ?? false);
   const mailEnabled = settingsEnabled && (mailFeature?.enabled ?? false);
   const formEnabled = contactInboxEnabled && (contactFormFeature?.enabled ?? false);
+  const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
 
   const { config, setConfig, hasChanges } = useExperienceConfig(serverConfig, DEFAULT_CONTACT_CONFIG, isLoading);
   const beforeSaveTransform = (rawConfig: unknown) => {
@@ -305,6 +309,7 @@ export default function ContactExperiencePage() {
                 brandColor={brandColor}
                 secondaryColor={secondaryColor}
                 colorMode={colorMode}
+                mapData={mapData}
               />
             </BrowserFrame>
           </div>
