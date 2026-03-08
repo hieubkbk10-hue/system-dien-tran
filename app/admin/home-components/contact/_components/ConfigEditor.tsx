@@ -4,11 +4,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
 import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
+import { ToggleSwitch } from '@/components/modules/shared';
 import type { ContactConfigState } from '../_types';
 import { validateContactConfig } from '../_lib/validation';
-import { CONTACT_HARMONY_OPTIONS } from '../_lib/constants';
 import { FormFieldsSelector } from './FormFieldsSelector';
 import { SocialLinksManager } from './SocialLinksManager';
 import { DynamicTextFields } from './DynamicTextFields';
@@ -25,8 +26,11 @@ interface ValidationErrors {
   phone?: string;
 }
 
+type SectionKey = 'primary' | 'form' | 'content';
+
 export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [openSection, setOpenSection] = useState<SectionKey>('primary');
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
   const isSettingsLoading = contactSettings === undefined;
@@ -65,309 +69,277 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
         </h2>
       )}
 
-      {/* Card 1: Map Settings */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Cài đặt bản đồ</CardTitle>
+        <CardHeader className="py-3">
+          <button
+            type="button"
+            onClick={() => setOpenSection('primary')}
+            aria-expanded={openSection === 'primary'}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <CardTitle className="text-base">Thông tin chính</CardTitle>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'primary' ? 'rotate-180' : ''}`} />
+          </button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Toggle showMap */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Hiển thị bản đồ
-            </label>
-            <div
-              onClick={() => updateConfig({ showMap: !value.showMap })}
-              className="relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer transition-colors"
-              style={{
-                backgroundColor: value.showMap ? '#3b82f6' : '#cbd5e1',
-              }}
-            >
-              <span
-                className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                style={{
-                  transform: value.showMap ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
-                }}
+        {openSection === 'primary' && (
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Hiển thị bản đồ
+              </label>
+              <ToggleSwitch
+                enabled={!!value.showMap}
+                onChange={() => updateConfig({ showMap: !value.showMap })}
+                color="bg-blue-500"
               />
             </div>
-          </div>
 
-          {value.showMap && (
-            <div className="space-y-2">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                {isSettingsLoading ? (
-                  <p>Đang tải cấu hình bản đồ từ Settings...</p>
-                ) : (
-                  <div className="space-y-1">
-                    <p>Provider: <strong className="text-slate-800">{mapData.mapProvider === 'google_embed' ? 'Google Maps nhúng' : 'OpenStreetMap'}</strong></p>
-                    <p>Địa chỉ: <strong className="text-slate-800">{mapData.address || 'Chưa có địa chỉ'}</strong></p>
-                    {mapData.mapProvider === 'google_embed' && (
-                      <p>Iframe: <strong className="text-slate-800">{mapData.googleMapEmbedIframe ? 'Đã có mã nhúng' : 'Chưa có mã nhúng'}</strong></p>
-                    )}
-                    {mapData.mapProvider === 'openstreetmap' && (
-                      <p>Toạ độ: <strong className="text-slate-800">{mapData.lat.toFixed(6)}, {mapData.lng.toFixed(6)}</strong></p>
-                    )}
-                  </div>
-                )}
+            {value.showMap && (
+              <div className="space-y-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  {isSettingsLoading ? (
+                    <p>Đang tải cấu hình bản đồ...</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      <li>Provider: <strong className="text-slate-800">{mapData.mapProvider === 'google_embed' ? 'Google Maps nhúng' : 'OpenStreetMap'}</strong></li>
+                      <li>Địa chỉ: <strong className="text-slate-800">{mapData.address || 'Chưa có địa chỉ'}</strong></li>
+                      {mapData.mapProvider === 'google_embed' && (
+                        <li>Iframe: <strong className="text-slate-800">{mapData.googleMapEmbedIframe ? 'Đã có' : 'Chưa có'}</strong></li>
+                      )}
+                      {mapData.mapProvider === 'openstreetmap' && (
+                        <li>Toạ độ: <strong className="text-slate-800">{mapData.lat.toFixed(6)}, {mapData.lng.toFixed(6)}</strong></li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+                <Link href="/admin/settings" className="text-xs font-medium text-blue-600 hover:underline">
+                  Mở Settings để cập nhật →
+                </Link>
               </div>
-              <Link href="/admin/settings" className="text-xs font-medium text-blue-600 hover:underline">
-                Cập nhật bản đồ trong Settings →
-              </Link>
+            )}
+
+            <div>
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Địa chỉ
+              </label>
+              <input
+                id="address"
+                type="text"
+                value={value.address}
+                onChange={(e) => updateConfig({ address: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-          )}
-        </CardContent>
+
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Số điện thoại
+              </label>
+              <input
+                id="phone"
+                type="text"
+                value={value.phone}
+                onChange={(e) => updateConfig({ phone: e.target.value })}
+                className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  validationErrors.phone
+                    ? 'border-red-500 dark:border-red-500'
+                    : 'border-slate-300 dark:border-slate-600'
+                }`}
+              />
+              {validationErrors.phone && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  {validationErrors.phone}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="text"
+                value={value.email}
+                onChange={(e) => updateConfig({ email: e.target.value })}
+                className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  validationErrors.email
+                    ? 'border-red-500 dark:border-red-500'
+                    : 'border-slate-300 dark:border-slate-600'
+                }`}
+              />
+              {validationErrors.email && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  {validationErrors.email}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="workingHours"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Giờ làm việc
+              </label>
+              <input
+                id="workingHours"
+                type="text"
+                value={value.workingHours}
+                onChange={(e) => updateConfig({ workingHours: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Card 2: Contact Information */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Thông tin liên hệ</CardTitle>
+        <CardHeader className="py-3">
+          <button
+            type="button"
+            onClick={() => setOpenSection('form')}
+            aria-expanded={openSection === 'form'}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <CardTitle className="text-base">Form liên hệ</CardTitle>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'form' ? 'rotate-180' : ''}`} />
+          </button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label
-              htmlFor="address"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Địa chỉ
-            </label>
-            <input
-              id="address"
-              type="text"
-              value={value.address}
-              onChange={(e) => updateConfig({ address: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+        {openSection === 'form' && (
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Bật form liên hệ
+              </label>
+              <ToggleSwitch
+                enabled={!!value.showForm}
+                onChange={() => updateConfig({ showForm: !value.showForm })}
+                color="bg-blue-500"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Số điện thoại
-            </label>
-            <input
-              id="phone"
-              type="text"
-              value={value.phone}
-              onChange={(e) => updateConfig({ phone: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                validationErrors.phone
-                  ? 'border-red-500 dark:border-red-500'
-                  : 'border-slate-300 dark:border-slate-600'
-              }`}
-            />
-            {validationErrors.phone && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                {validationErrors.phone}
+            {value.showForm ? (
+              <>
+                <FormFieldsSelector
+                  selected={value.formFields}
+                  onChange={updateFormFields}
+                />
+
+                <div>
+                  <label
+                    htmlFor="formTitle"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Tiêu đề form
+                  </label>
+                  <input
+                    id="formTitle"
+                    type="text"
+                    value={value.formTitle || ''}
+                    onChange={(e) => updateConfig({ formTitle: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="formDescription"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Mô tả form
+                  </label>
+                  <textarea
+                    id="formDescription"
+                    value={value.formDescription || ''}
+                    onChange={(e) => updateConfig({ formDescription: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="submitButtonText"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Text nút gửi
+                  </label>
+                  <input
+                    id="submitButtonText"
+                    type="text"
+                    value={value.submitButtonText || ''}
+                    onChange={(e) => updateConfig({ submitButtonText: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="responseTimeText"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Thời gian phản hồi
+                  </label>
+                  <input
+                    id="responseTimeText"
+                    type="text"
+                    value={value.responseTimeText || ''}
+                    onChange={(e) => updateConfig({ responseTimeText: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Bật form để chỉnh tiêu đề, mô tả, nút gửi và trường nhập.
               </p>
             )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="text"
-              value={value.email}
-              onChange={(e) => updateConfig({ email: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                validationErrors.email
-                  ? 'border-red-500 dark:border-red-500'
-                  : 'border-slate-300 dark:border-slate-600'
-              }`}
-            />
-            {validationErrors.email && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                {validationErrors.email}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="workingHours"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Giờ làm việc
-            </label>
-            <input
-              id="workingHours"
-              type="text"
-              value={value.workingHours}
-              onChange={(e) => updateConfig({ workingHours: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Card 3: Form Settings */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Cài đặt form liên hệ</CardTitle>
+        <CardHeader className="py-3">
+          <button
+            type="button"
+            onClick={() => setOpenSection('content')}
+            aria-expanded={openSection === 'content'}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <CardTitle className="text-base">Nội dung mở rộng</CardTitle>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'content' ? 'rotate-180' : ''}`} />
+          </button>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Toggle showForm */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Hiển thị form liên hệ
-            </label>
-            <div
-              onClick={() => updateConfig({ showForm: !value.showForm })}
-              className="relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer transition-colors"
-              style={{
-                backgroundColor: value.showForm ? '#3b82f6' : '#cbd5e1',
-              }}
-            >
-              <span
-                className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                style={{
-                  transform: value.showForm ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
-                }}
+        {openSection === 'content' && (
+          <CardContent className="space-y-6">
+            <div>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mạng xã hội</p>
+              <SocialLinksManager
+                links={value.socialLinks}
+                onChange={updateSocialLinks}
               />
             </div>
-          </div>
 
-          {/* Conditional form fields */}
-          {value.showForm && (
-            <>
-              <FormFieldsSelector
-                selected={value.formFields}
-                onChange={updateFormFields}
+            <div>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tùy chỉnh văn bản</p>
+              <DynamicTextFields
+                style={value.style}
+                texts={value.texts || {}}
+                onChange={updateTexts}
               />
-
-              <div>
-                <label
-                  htmlFor="formTitle"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Tiêu đề form
-                </label>
-                <input
-                  id="formTitle"
-                  type="text"
-                  value={value.formTitle || ''}
-                  onChange={(e) => updateConfig({ formTitle: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="formDescription"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Mô tả form
-                </label>
-                <textarea
-                  id="formDescription"
-                  value={value.formDescription || ''}
-                  onChange={(e) => updateConfig({ formDescription: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="submitButtonText"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Text nút submit
-                </label>
-                <input
-                  id="submitButtonText"
-                  type="text"
-                  value={value.submitButtonText || ''}
-                  onChange={(e) => updateConfig({ submitButtonText: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="responseTimeText"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Text thời gian phản hồi
-                </label>
-                <input
-                  id="responseTimeText"
-                  type="text"
-                  value={value.responseTimeText || ''}
-                  onChange={(e) => updateConfig({ responseTimeText: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Card 4: Social Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Social Links</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SocialLinksManager
-            links={value.socialLinks}
-            onChange={updateSocialLinks}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Card 5: Color Harmony */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Chế độ màu hài hòa</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <label
-            htmlFor="harmony"
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-          >
-            Chế độ màu hài hòa
-          </label>
-          <select
-            id="harmony"
-            value={value.harmony || 'analogous'}
-            onChange={(e) => updateConfig({ harmony: e.target.value as typeof value.harmony })}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {CONTACT_HARMONY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option === 'analogous' && 'Analogous (Màu tương tự)'}
-                {option === 'complementary' && 'Complementary (Màu bổ sung)'}
-                {option === 'triadic' && 'Triadic (Màu tam giác)'}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Chọn cách phối màu phụ từ màu chủ đạo
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Card 6: Text Customization */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Tùy chỉnh văn bản</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DynamicTextFields
-            style={value.style}
-            texts={value.texts || {}}
-            onChange={updateTexts}
-          />
-        </CardContent>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

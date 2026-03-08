@@ -8,7 +8,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Phone, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../../components/ui';
+import { ToggleSwitch } from '@/components/modules/shared';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
@@ -178,65 +179,80 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
         <Link href="/admin/home-components" className="text-sm text-blue-600 hover:underline">Quay lại danh sách</Link>
       </div>
 
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 lg:hidden">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2">
+          <p className="text-[11px] uppercase text-slate-400">Tiêu đề</p>
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+            {title || 'Chưa đặt'}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2">
+          <p className="text-[11px] uppercase text-slate-400">Trạng thái</p>
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+            {active ? 'Bật' : 'Tắt'}
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2">
+          <p className="text-[11px] uppercase text-slate-400">Style</p>
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+            {style}
+          </p>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit}>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Phone size={20} />
-              Contact
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
-              <Input
-                value={title}
-                onChange={(event) => { setTitle(event.target.value); }}
-                required
-                placeholder="Nhập tiêu đề component..."
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Label>Trạng thái:</Label>
-              <div
-                className={cn(
-                  'cursor-pointer inline-flex items-center justify-center rounded-full w-12 h-6 transition-colors',
-                  active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'
-                )}
-                onClick={() => { setActive(!active); }}
-              >
-                <div className={cn(
-                  'w-5 h-5 bg-white rounded-full transition-transform shadow',
-                  active ? 'translate-x-2.5' : '-translate-x-2.5'
-                )}></div>
-              </div>
-              <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {effectiveColors.mode === 'dual' && warningMessages.length > 0 && (
-          <Card className="mb-6 border-amber-200 bg-amber-50/70">
-            <CardContent className="pt-6">
-              <div className="space-y-2 text-xs text-amber-800">
-                {warningMessages.map((warning) => (
-                  <p key={warning}>• {warning}</p>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <ConfigEditor
-          value={normalizedConfig}
-          onChange={(next) => { setConfig(normalizeContactConfig(next)); }}
-          title="Cấu hình Contact"
-        />
-
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,420px] gap-6">
-          <div></div>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Phone size={20} />
+                  Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Tiêu đề hiển thị <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={title}
+                    onChange={(event) => { setTitle(event.target.value); }}
+                    required
+                    placeholder="Nhập tiêu đề component..."
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Label>Trạng thái</Label>
+                  <ToggleSwitch
+                    enabled={active}
+                    onChange={() => { setActive(!active); }}
+                    color="bg-emerald-500"
+                  />
+                  <span className="text-sm text-slate-500">{active ? 'Bật' : 'Tắt'}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <ConfigEditor
+              value={normalizedConfig}
+              onChange={(next) => { setConfig(normalizeContactConfig(next)); }}
+              title="Cấu hình Contact"
+            />
+          </div>
+
           <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {effectiveColors.mode === 'dual' && warningMessages.length > 0 && (
+              <Card className="border-amber-200 bg-amber-50/70">
+                <CardContent className="pt-6">
+                  <div className="space-y-2 text-xs text-amber-800">
+                    {warningMessages.map((warning) => (
+                      <p key={warning}>• {warning}</p>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {showCustomBlock && (
               <TypeColorOverrideCard
                 title="Màu custom cho Liên hệ"
@@ -245,26 +261,27 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
                 primary={customState.primary}
                 secondary={customState.secondary}
                 onEnabledChange={(next) => setCustomState((prev) => ({ ...prev, enabled: next }))}
-              onModeChange={(next) => setCustomState((prev) => {
-                if (next === 'single') {
-                  return { ...prev, mode: next, secondary: prev.primary };
-                }
-                if (prev.mode === 'single') {
-                  return { ...prev, mode: next, secondary: getSuggestedSecondary(prev.primary) };
-                }
-                return { ...prev, mode: next };
-              })}
-              onPrimaryChange={(value) => setCustomState((prev) => ({
-                ...prev,
-                primary: value,
-                secondary: prev.mode === 'single' ? value : prev.secondary,
-              }))}
-              onSecondaryChange={(value) => setCustomState((prev) => ({
-                ...prev,
-                secondary: prev.mode === 'single' ? prev.primary : value,
-              }))}
+                onModeChange={(next) => setCustomState((prev) => {
+                  if (next === 'single') {
+                    return { ...prev, mode: next, secondary: prev.primary };
+                  }
+                  if (prev.mode === 'single') {
+                    return { ...prev, mode: next, secondary: getSuggestedSecondary(prev.primary) };
+                  }
+                  return { ...prev, mode: next };
+                })}
+                onPrimaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  primary: value,
+                  secondary: prev.mode === 'single' ? value : prev.secondary,
+                }))}
+                onSecondaryChange={(value) => setCustomState((prev) => ({
+                  ...prev,
+                  secondary: prev.mode === 'single' ? prev.primary : value,
+                }))}
               />
             )}
+
             <ContactPreview
               config={{ ...normalizedConfig, style }}
               brandColor={effectiveColors.primary}
@@ -275,16 +292,16 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
               title={title}
               mapData={mapData}
             />
-          </div>
-        </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
-            Hủy bỏ
-          </Button>
-          <Button type="submit" variant="accent" disabled={!hasChanges || hasValidationErrors || isSubmitting}>
-            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </Button>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => { router.push('/admin/home-components'); }} disabled={isSubmitting}>
+                Hủy bỏ
+              </Button>
+              <Button type="submit" variant="accent" disabled={!hasChanges || hasValidationErrors || isSubmitting}>
+                {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </Button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
