@@ -33,6 +33,36 @@ function ContactInboxContent() {
   const updateStatus = useMutation(api.contactInbox.updateInquiryStatus);
   const inboxAdminFeature = useQuery(api.admin.modules.getModuleFeature, { moduleKey: 'contactInbox', featureKey: 'enableContactInboxAdmin' });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => { clearTimeout(timer); };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, filterStatus]);
+
+  const offset = (currentPage - 1) * pageSize;
+  const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
+  const shouldLoadInbox = inboxAdminFeature?.enabled === true;
+
+  const inquiries = useQuery(
+    api.contactInbox.listInbox,
+    shouldLoadInbox
+      ? {
+        limit: pageSize,
+        offset,
+        search: resolvedSearch,
+        status: filterStatus || undefined,
+      }
+      : 'skip'
+  );
+
+  const stats = useQuery(api.contactInbox.getInboxStats, shouldLoadInbox ? {} : 'skip');
+  const isLoading = shouldLoadInbox && (inquiries === undefined || stats === undefined);
+
   if (inboxAdminFeature === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -49,36 +79,16 @@ function ContactInboxContent() {
     );
   }
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
-    return () =>{  clearTimeout(timer); };
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearchTerm, filterStatus]);
-
-  const offset = (currentPage - 1) * pageSize;
-  const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
-
-  const inquiries = useQuery(api.contactInbox.listInbox, {
-    limit: pageSize,
-    offset,
-    search: resolvedSearch,
-    status: filterStatus || undefined,
-  });
-
-  const stats = useQuery(api.contactInbox.getInboxStats, {});
-  const isLoading = inquiries === undefined || stats === undefined;
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 size={28} className="animate-spin text-slate-400" />
       </div>
     );
+  }
+
+  if (!stats || !inquiries) {
+    return null;
   }
 
   const totalItems = Math.max(stats.total ?? 0, inquiries.length);
