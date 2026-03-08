@@ -1,16 +1,4 @@
-import type { ContactConfigState, ContactHarmony, ContactStyle } from '../_types';
-
-export const CONTACT_HARMONY_OPTIONS: ReadonlyArray<ContactHarmony> = ['analogous', 'complementary', 'triadic'];
-
-export const DEFAULT_CONTACT_HARMONY: ContactHarmony = 'analogous';
-
-export const normalizeContactHarmony = (value: unknown): ContactHarmony => {
-  if (typeof value === 'string' && CONTACT_HARMONY_OPTIONS.includes(value as ContactHarmony)) {
-    return value as ContactHarmony;
-  }
-
-  return DEFAULT_CONTACT_HARMONY;
-};
+import type { ContactConfigState, ContactStyle } from '../_types';
 
 export const CONTACT_STYLES: Array<{ id: ContactStyle; label: string }> = [
   { id: 'modern', label: 'Modern Split' },
@@ -36,7 +24,6 @@ export const DEFAULT_CONTACT_CONFIG: ContactConfigState = {
   submitButtonText: '',
   workingHours: '',
   style: 'modern',
-  harmony: DEFAULT_CONTACT_HARMONY,
   texts: {},
 };
 
@@ -84,42 +71,42 @@ export const DEFAULT_CONTACT_TEXTS: Record<ContactStyle, Record<string, string>>
 
 export const TEXT_FIELDS: Record<ContactStyle, Array<{ key: string; label: string; placeholder: string }>> = {
   modern: [
-    { key: 'badge', label: 'Text badge', placeholder: 'Thông tin liên hệ' },
-    { key: 'heading', label: 'Tiêu đề chính', placeholder: 'Kết nối với chúng tôi' },
-    { key: 'addressLabel', label: 'Label địa chỉ', placeholder: 'Địa chỉ văn phòng' },
-    { key: 'contactLabel', label: 'Label liên lạc', placeholder: 'Email & Điện thoại' },
-    { key: 'hoursLabel', label: 'Label giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'badge', label: 'Badge hiển thị', placeholder: 'Thông tin liên hệ' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Kết nối với chúng tôi' },
+    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ văn phòng' },
+    { key: 'contactLabel', label: 'Nhãn liên lạc', placeholder: 'Email & Điện thoại' },
+    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
   ],
   floating: [
-    { key: 'heading', label: 'Tiêu đề', placeholder: 'Thông tin liên hệ' },
-    { key: 'addressLabel', label: 'Label địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'phoneLabel', label: 'Label điện thoại', placeholder: 'Hotline' },
-    { key: 'emailLabel', label: 'Label email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Label giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Thông tin liên hệ' },
+    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
+    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Hotline' },
+    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
+    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
   ],
   grid: [
-    { key: 'phoneLabel', label: 'Label điện thoại', placeholder: 'Điện thoại' },
-    { key: 'emailLabel', label: 'Label email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Label giờ làm việc', placeholder: 'Giờ làm việc' },
-    { key: 'addressHeading', label: 'Tiêu đề địa chỉ', placeholder: 'Trụ sở chính' },
+    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Điện thoại' },
+    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
+    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'addressHeading', label: 'Heading địa chỉ', placeholder: 'Trụ sở chính' },
   ],
   elegant: [
-    { key: 'heading', label: 'Tiêu đề', placeholder: 'Văn phòng của chúng tôi' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Văn phòng của chúng tôi' },
     { key: 'description', label: 'Mô tả', placeholder: 'Thông tin liên hệ và vị trí bản đồ chính xác.' },
-    { key: 'addressLabel', label: 'Label địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'contactLabel', label: 'Label liên lạc', placeholder: 'Liên lạc' },
-    { key: 'hoursLabel', label: 'Label thời gian', placeholder: 'Thời gian' },
+    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
+    { key: 'contactLabel', label: 'Nhãn liên lạc', placeholder: 'Liên lạc' },
+    { key: 'hoursLabel', label: 'Nhãn thời gian', placeholder: 'Thời gian' },
   ],
   minimal: [
-    { key: 'phoneLabel', label: 'Label điện thoại', placeholder: 'Điện thoại' },
-    { key: 'emailLabel', label: 'Label email', placeholder: 'Email' },
-    { key: 'addressLabel', label: 'Label địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'hoursLabel', label: 'Label giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Điện thoại' },
+    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
+    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
+    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
   ],
   centered: [
-    { key: 'phoneLabel', label: 'Label điện thoại', placeholder: 'Hotline' },
-    { key: 'emailLabel', label: 'Label email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Label giờ làm việc', placeholder: 'Giờ làm việc' },
-    { key: 'addressLabel', label: 'Label địa chỉ', placeholder: 'Địa chỉ văn phòng' },
+    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Hotline' },
+    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
+    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ văn phòng' },
   ],
 };

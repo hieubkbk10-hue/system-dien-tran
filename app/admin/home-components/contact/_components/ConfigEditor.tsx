@@ -66,8 +66,9 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
       )}
 
       <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-base">Thông tin chính</CardTitle>
+        <CardHeader className="py-3 space-y-1">
+          <CardTitle className="text-base">Dữ liệu liên hệ</CardTitle>
+          <p className="text-xs text-slate-500">Giá trị hiển thị trên preview/site.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -290,25 +291,27 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
 
       <Card>
         <CardHeader className="py-3">
-          <CardTitle className="text-base">Nội dung mở rộng</CardTitle>
+          <CardTitle className="text-base">Mạng xã hội</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mạng xã hội</p>
-            <SocialLinksManager
-              links={value.socialLinks}
-              onChange={updateSocialLinks}
-            />
-          </div>
+        <CardContent>
+          <SocialLinksManager
+            links={value.socialLinks}
+            onChange={updateSocialLinks}
+          />
+        </CardContent>
+      </Card>
 
-          <div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tùy chỉnh văn bản</p>
-            <DynamicTextFields
-              style={value.style}
-              texts={value.texts || {}}
-              onChange={updateTexts}
-            />
-          </div>
+      <Card>
+        <CardHeader className="py-3 space-y-1">
+          <CardTitle className="text-base">Nhãn hiển thị</CardTitle>
+          <p className="text-xs text-slate-500">Chỉ đổi chữ hiển thị, không đổi dữ liệu liên hệ.</p>
+        </CardHeader>
+        <CardContent>
+          <DynamicTextFields
+            style={value.style}
+            texts={value.texts || {}}
+            onChange={updateTexts}
+          />
         </CardContent>
       </Card>
     </div>
