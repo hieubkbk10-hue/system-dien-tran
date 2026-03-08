@@ -7,6 +7,7 @@
 
 # UI/UX Design Guardrails (2026, practical)
 - Clarity > Decoration: ưu tiên dễ hiểu, dễ thao tác; nếu đẹp hơn nhưng khó dùng hơn thì chọn dễ dùng.
+- Text economy (UI text/microcopy only): nếu rút gọn ~50% số chữ mà người dùng vẫn hiểu đúng ý thì rút; nếu vẫn rút tiếp mà không mất nghĩa thì rút tiếp.
 - Responsive-first: thiết kế mobile trước, scale lên desktop; giữ hierarchy và CTA rõ ở breakpoint chính.
 - Accessibility-first (WCAG 2.2 AA practical): focus-visible rõ, keyboard navigation OK, contrast đủ đọc, touch target khuyến nghị 44x44px.
 - Clean & Premium by system: spacing scale nhất quán, typography rõ cấp bậc, tránh lạm dụng màu/gradient/shadow/animation.
