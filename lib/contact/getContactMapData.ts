@@ -47,8 +47,19 @@ export const sanitizeGoogleMapIframe = (html: string) => {
   if (!trimmed.includes('<iframe') || !trimmed.includes('</iframe>')) {
     return '';
   }
-  return trimmed
+  const sanitized = trimmed
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
     .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
     .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
+
+  return sanitized.replace(/<iframe\b[^>]*>/i, (match) => {
+    let tag = match
+      .replace(/\s(width|height)=(["']).*?\2/gi, '')
+      .replace(/\sstyle=(["']).*?\1/gi, '')
+      .replace(/\sloading=(["']).*?\1/gi, '')
+      .replace(/\sreferrerpolicy=(["']).*?\1/gi, '');
+
+    const forcedAttrs = ' style="border:0;width:100%;height:100%;display:block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"';
+    return tag.replace('<iframe', `<iframe${forcedAttrs}`);
+  });
 };

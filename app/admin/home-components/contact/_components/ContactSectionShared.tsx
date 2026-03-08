@@ -71,6 +71,10 @@ const getRootContainerClass = (context: ContactSectionContext, currentDevice: Pr
   return 'max-w-5xl mx-auto';
 };
 
+const MAP_HEIGHT_HERO = 'min-h-[320px] md:min-h-[360px]';
+const MAP_HEIGHT_STANDARD = 'min-h-[240px] md:min-h-[280px]';
+const MAP_HEIGHT_COMPACT = 'min-h-[200px] md:min-h-[220px]';
+
 const getInfo = (config: ContactConfigState, title?: string) => {
   const texts = config.texts ?? {};
   const defaultTexts = DEFAULT_CONTACT_TEXTS[config.style] ?? {};
@@ -109,11 +113,13 @@ const renderMapOrPlaceholder = ({
   mapData,
   fallbackEmbed,
   tokens,
+  isPreview,
   className = 'w-full h-full',
 }: {
   mapData?: ContactMapData;
   fallbackEmbed?: string;
   tokens: ContactColorTokens;
+  isPreview: boolean;
   className?: string;
 }) => {
   const sanitizedIframe = mapData?.mapProvider === 'google_embed'
@@ -150,9 +156,18 @@ const renderMapOrPlaceholder = ({
   }
 
   return (
-    <div className={cn(className, 'flex flex-col items-center justify-center')} style={{ backgroundColor: tokens.mapPlaceholderBg, color: tokens.mapPlaceholderIcon }}>
+    <div className={cn(className, 'flex flex-col items-center justify-center text-center gap-2')} style={{ backgroundColor: tokens.mapPlaceholderBg, color: tokens.mapPlaceholderIcon }}>
       <MapPin size={32} />
-      <span className="text-xs mt-2">Chưa có bản đồ</span>
+      <span className="text-xs">Chưa có bản đồ</span>
+      {isPreview && (
+        <a
+          href="/admin/settings"
+          className="text-xs font-medium underline"
+          style={{ color: tokens.primary }}
+        >
+          Cấu hình trong Settings
+        </a>
+      )}
     </div>
   );
 };
@@ -314,10 +329,13 @@ const renderModern = ({
 
       {config.showMap && (
         <div
-          className={cn('relative border-t lg:border-t-0 lg:border-l', currentDevice === 'mobile' ? 'w-full min-h-[220px]' : 'lg:w-1/2 min-h-[300px]')}
+          className={cn(
+            'relative border-t lg:border-t-0 lg:border-l',
+            currentDevice === 'mobile' ? `w-full ${MAP_HEIGHT_STANDARD}` : `lg:w-1/2 ${MAP_HEIGHT_HERO}`,
+          )}
           style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.mapPlaceholderBg }}
         >
-          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
         </div>
       )}
     </div>
@@ -347,7 +365,7 @@ const renderFloating = ({
     className={cn('w-full rounded-xl overflow-hidden border shadow-sm', currentDevice === 'mobile' ? 'min-h-[520px]' : 'min-h-[460px]')}
     style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
   >
-    <div className={cn('grid gap-6 p-6 lg:p-8', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr,1.1fr]')}>
+    <div className={cn('grid gap-6 p-6 lg:p-8', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr,1fr]')}>
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-xl font-bold" style={{ color: tokens.heading }}>{info.texts.heading}</h2>
@@ -409,8 +427,11 @@ const renderFloating = ({
           />
         )}
         {config.showMap && (
-          <div className={cn('rounded-lg overflow-hidden border', currentDevice === 'mobile' ? 'h-52' : 'h-60')} style={{ borderColor: tokens.neutralBorder }}>
-            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'w-full h-full' })}
+          <div
+            className={cn('relative rounded-lg overflow-hidden border', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_STANDARD)}
+            style={{ borderColor: tokens.neutralBorder }}
+          >
+            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
           </div>
         )}
       </div>
@@ -484,8 +505,10 @@ const renderGrid = ({
           </div>
         </div>
         {config.showMap && (
-          <div className={cn('rounded-md overflow-hidden mt-4', currentDevice === 'mobile' ? 'w-full h-48' : 'w-full h-52')}>
-            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
+          <div
+            className={cn('relative rounded-md overflow-hidden mt-4', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_COMPACT)}
+          >
+            {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
           </div>
         )}
       </div>
@@ -576,10 +599,13 @@ const renderElegant = ({
 
       {config.showMap && (
         <div
-          className={cn('relative border-t md:border-t-0 md:border-l', currentDevice === 'mobile' ? 'w-full min-h-[250px]' : 'w-7/12 min-h-[320px]')}
+          className={cn(
+            'relative border-t md:border-t-0 md:border-l',
+            currentDevice === 'mobile' ? `w-full ${MAP_HEIGHT_STANDARD}` : `w-7/12 ${MAP_HEIGHT_HERO}`,
+          )}
           style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.mapPlaceholderBg }}
         >
-          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0' })}
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
         </div>
       )}
     </div>
@@ -654,8 +680,14 @@ const renderMinimal = ({
         <div className={cn('mt-8 pt-6 border-t', currentDevice === 'mobile' ? 'flex flex-col gap-4' : 'flex items-center justify-between')} style={{ borderColor: tokens.neutralBorder }}>
           <ContactSocialLinks socials={activeSocials} tokens={tokens} />
           {config.showMap && (
-            <div className={cn('rounded-lg overflow-hidden', currentDevice === 'mobile' ? 'w-full h-48' : 'w-80 h-32')}>
-              {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
+            <div
+              className={cn(
+                'relative rounded-lg overflow-hidden',
+                currentDevice === 'mobile' ? 'w-full' : 'w-80',
+                MAP_HEIGHT_COMPACT,
+              )}
+            >
+              {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
             </div>
           )}
         </div>
@@ -739,8 +771,8 @@ const renderCentered = ({
       </div>
 
       {config.showMap && (
-        <div className={cn('rounded-lg overflow-hidden', currentDevice === 'mobile' ? 'w-full h-40' : 'w-full h-56')}>
-          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens })}
+        <div className={cn('relative rounded-lg overflow-hidden w-full', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_STANDARD)}>
+          {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
         </div>
       )}
     </div>
