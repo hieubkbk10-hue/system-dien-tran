@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { Loader2, Mail, Search } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
@@ -62,6 +62,10 @@ function ContactInboxContent() {
 
   const stats = useQuery(api.contactInbox.getInboxStats, shouldLoadInbox ? {} : 'skip');
   const isLoading = shouldLoadInbox && (inquiries === undefined || stats === undefined);
+  const safeInquiries = inquiries ?? [];
+  const safeStats = stats ?? { total: 0, new: 0, in_progress: 0, resolved: 0, spam: 0 };
+  const totalItems = Math.max(safeStats.total, safeInquiries.length);
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   if (inboxAdminFeature === undefined) {
     return (
@@ -87,13 +91,6 @@ function ContactInboxContent() {
     );
   }
 
-  if (!stats || !inquiries) {
-    return null;
-  }
-
-  const totalItems = Math.max(stats.total ?? 0, inquiries.length);
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalItems / pageSize)), [totalItems, pageSize]);
-
   const handleStatusChange = async (id: Id<'contactInquiries'>, status: 'new' | 'in_progress' | 'resolved' | 'spam') => {
     await updateStatus({ id, status });
   };
@@ -107,8 +104,8 @@ function ContactInboxContent() {
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="secondary">Tổng: {totalItems}</Badge>
-          <Badge variant="warning">Mới: {stats?.new ?? 0}</Badge>
-          <Badge variant="info">Đang xử lý: {stats?.in_progress ?? 0}</Badge>
+          <Badge variant="warning">Mới: {safeStats.new}</Badge>
+          <Badge variant="info">Đang xử lý: {safeStats.in_progress}</Badge>
         </div>
       </div>
 
@@ -148,14 +145,14 @@ function ContactInboxContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(inquiries ?? []).length === 0 && (
+            {safeInquiries.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-slate-500">
                   Chưa có tin nhắn phù hợp.
                 </TableCell>
               </TableRow>
             )}
-            {(inquiries ?? []).map((inquiry) => (
+            {safeInquiries.map((inquiry) => (
               <TableRow key={inquiry._id}>
                 <TableCell>
                   <div className="space-y-1">
