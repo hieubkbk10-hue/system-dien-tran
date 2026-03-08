@@ -87,9 +87,117 @@ export function ContactInquiryForm({
     borderColor: formTokens.formButtonBorder,
   } : { backgroundColor: brandColor, color: '#ffffff', borderColor: brandColor };
 
+  if (isPreview) {
+    return (
+      <div
+        role="form"
+        aria-disabled
+        className={withContainer ? 'space-y-4 rounded-xl border p-5' : 'space-y-4'}
+        style={formTokens && withContainer ? { backgroundColor: formTokens.formBackground, borderColor: formTokens.formBorder } : undefined}
+      >
+      <div className="flex items-center gap-2">
+        <MessageSquare size={20} style={{ color: formTokens?.formAccent ?? secondaryColor }} />
+        <div>
+          <h3 className="font-semibold text-base" style={{ color: formTokens?.formTitle ?? '#0f172a' }}>{title}</h3>
+          {description && (
+            <p className="text-xs mt-1" style={{ color: formTokens?.formDescription ?? '#64748b' }}>{description}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3">
+          <input
+            type="text"
+            placeholder="Họ tên"
+            value={values.name}
+            onChange={(event) => updateValue('name', event.target.value)}
+            className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--focus-ring)] placeholder:text-[color:var(--placeholder-color)]"
+            required
+            disabled={isDisabled}
+            style={sharedInputStyle}
+          />
+          {showEmail && (
+            <input
+              type="email"
+              placeholder="Email"
+              value={values.email}
+              onChange={(event) => updateValue('email', event.target.value)}
+              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--focus-ring)] placeholder:text-[color:var(--placeholder-color)]"
+              required={requireEmail}
+              disabled={isDisabled}
+              style={sharedInputStyle}
+            />
+          )}
+          {showPhone && (
+            <input
+              type="text"
+              placeholder="Số điện thoại"
+              value={values.phone}
+              onChange={(event) => updateValue('phone', event.target.value)}
+              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--focus-ring)] placeholder:text-[color:var(--placeholder-color)]"
+              required={requirePhone}
+              disabled={isDisabled}
+              style={sharedInputStyle}
+            />
+          )}
+          {showSubject && (
+            <input
+              type="text"
+              placeholder="Chủ đề"
+              value={values.subject}
+              onChange={(event) => updateValue('subject', event.target.value)}
+              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--focus-ring)] placeholder:text-[color:var(--placeholder-color)]"
+              required
+              disabled={isDisabled}
+              style={sharedInputStyle}
+            />
+          )}
+        </div>
+
+        <textarea
+          placeholder="Nội dung tin nhắn..."
+          value={values.message}
+          onChange={(event) => updateValue('message', event.target.value)}
+          className="w-full px-3 py-2.5 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[color:var(--focus-ring)] placeholder:text-[color:var(--placeholder-color)]"
+          rows={4}
+          required
+          disabled={isDisabled}
+          style={sharedInputStyle}
+        />
+
+        {submitMessage && (
+          <div className="text-xs" style={{ color: formTokens?.formHelperText ?? '#64748b' }}>{submitMessage}</div>
+        )}
+        {isDisabled && !isPreview && (
+          <div className="text-xs" style={{ color: formTokens?.formWarningText ?? '#b45309' }}>
+            Biểu mẫu tạm tắt. Vui lòng liên hệ qua các kênh khác.
+          </div>
+        )}
+        {!showSubject && (
+          <input type="hidden" value={resolvedSubjectFallback} readOnly />
+        )}
+        {responseTimeText && (
+          <div className="text-xs" style={{ color: formTokens?.formHelperText ?? '#64748b' }}>{responseTimeText}</div>
+        )}
+
+        <button
+          type="button"
+          className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-70 border"
+          style={buttonStyle}
+          disabled={isDisabled || isSubmitting}
+        >
+          <Send size={16} />
+          {isSubmitting ? 'Đang gửi...' : submitLabel}
+        </button>
+      </div>
+      </div>
+    );
+  }
+
   return (
     <form
-      onSubmit={isPreview ? (event) => { event.preventDefault(); } : handleSubmit}
+      onSubmit={handleSubmit}
       className={withContainer ? 'space-y-4 rounded-xl border p-5' : 'space-y-4'}
       style={formTokens && withContainer ? { backgroundColor: formTokens.formBackground, borderColor: formTokens.formBorder } : undefined}
     >
