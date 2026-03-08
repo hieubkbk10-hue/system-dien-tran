@@ -1,80 +1,83 @@
-# Custome Rule
-Trả lời bằng Tiếng Việt , dĩ nhiên là tiếng Việt có dấu
-Tuân thủ nghiêm ngặc KISS, YAGNI, DRY
-Tuân thủ Rails Convention Over Configuration
-Khi user đưa URL localhost (ví dụ http://localhost:3000/...), hãy đọc route tương ứng trong Next.js để hiểu, không hỏi lại.
-Mọi thay đổi code khi hoàn thành đều phải commit (nhưng không được push nha). 
-Khi commit, luôn add kèm thư mục .factory/docs (nếu có) vào commit, không được bỏ sót.
-Trước khi commit chỉ chạy bunx tsc --noEmit thôi (không chạy bun run lint hay gì khác tốn thời gian nha) khi có thay đổi code/TS; không chạy khi chỉ sửa docs/cấu hình không liên quan.
+# Core Operating Principles
+- Trả lời bằng Tiếng Việt có dấu.
+- Tuân thủ KISS, YAGNI, DRY.
+- Tuân thủ Rails Convention Over Configuration.
+- Không mở rộng scope ngoài yêu cầu.
+- Ưu tiên thay đổi nhỏ, dễ rollback.
 
-# Audit-First Operating Rule
-* Luôn Audit trước khi fix/debug/đề xuất giải pháp: Audit → Root Cause → Fix/Proposal → Verify.
-* Mọi kết luận phải có evidence (log, code path, repro, metric, history). Thiếu evidence thì nêu rõ gap + cách lấy evidence.
-* Trigger Audit khi gặp các từ khóa: fix, bug, lỗi, root cause, spec, optimize, refactor.
+# UI/UX Design Guardrails (2026, practical)
+- Clarity > Decoration: ưu tiên dễ hiểu, dễ thao tác; nếu đẹp hơn nhưng khó dùng hơn thì chọn dễ dùng.
+- Responsive-first: thiết kế mobile trước, scale lên desktop; giữ hierarchy và CTA rõ ở breakpoint chính.
+- Accessibility-first (WCAG 2.2 AA practical): focus-visible rõ, keyboard navigation OK, contrast đủ đọc, touch target khuyến nghị 44x44px.
+- Clean & Premium by system: spacing scale nhất quán, typography rõ cấp bậc, tránh lạm dụng màu/gradient/shadow/animation.
+- Micro-checklist trước khi chốt UI: hiểu trong 5 giây? dùng 1 tay được? focus/contrast ổn? có trang trí thừa không?
+- Repo note: ưu tiên pattern sẵn có trong Shadcn + Tailwind để giữ đồng bộ.
 
-# Sync Rule
-* Nếu sửa guideline cốt lõi ở AGENTS.md thì phải mirror sang CLAUDE.md trong cùng task để tránh context drift.
+# Evidence over Opinion
+- Tách bạch Observation / Inference / Decision.
+- Mọi kết luận phải có evidence: log, file path, line, command output, repro, history.
+- Thiếu evidence: nêu rõ gap + cách lấy evidence.
+- Khi có nhiều hướng hợp lý: nêu Confidence High/Medium/Low + reason ngắn.
 
-# Prompt Best Practices (để tăng độ chính xác)
-* Nêu rõ yêu cầu + phạm vi; không mở rộng tính năng ngoài yêu cầu.
-* Tách bạch: yêu cầu, ngữ cảnh, đầu vào, định dạng đầu ra.
-* Ép ngắn gọn + cấu trúc rõ (ưu tiên bullet ngắn).
-* Mọi đề xuất phải gắn evidence + confidence (High/Medium/Low).
-* Nếu mơ hồ: ưu tiên dùng SUB AGENT WEBSEARCH để tìm best practice; chỉ hỏi 1 câu làm rõ khi thật cần thiết.
-* Khi cần dữ liệu cụ thể: ưu tiên dùng tool/WebSearch thay vì đoán.
+# Audit & Root Cause Protocol
+- Trigger Audit khi gặp: fix, bug, lỗi, root cause, spec, optimize, refactor.
+- Quy trình bắt buộc: Audit → Root Cause → Fix/Proposal → Verify.
+- Trước khi kết luận Root Cause, trả lời tối thiểu 5/8 câu (bắt buộc #1 #3 #6 #8):
+  1. Triệu chứng quan sát được là gì (expected vs actual)?
+  2. Phạm vi ảnh hưởng (user, module, môi trường)?
+  3. Có tái hiện ổn định không? điều kiện tái hiện tối thiểu?
+  4. Mốc thay đổi gần nhất (commit/config/dependency/data)?
+  5. Dữ liệu nào đang thiếu để kết luận chắc chắn?
+  6. Có giả thuyết thay thế hợp lý nào chưa bị loại trừ?
+  7. Rủi ro nếu fix sai nguyên nhân là gì?
+  8. Tiêu chí pass/fail sau khi sửa?
+- DARE (chỉ dùng khi vấn đề phức tạp): Audit → Decompose → Analyze → Reflect → Execute.
+- Khi cần phân tích sâu, dùng format:
+  ## Problem Graph
+  1. [Main] <- depends on 1.1, 1.2
+     1.1 [Sub] <- depends on 1.1.1
+        1.1.1 [ROOT CAUSE] <- Solve first
+     1.2 [Sub]
 
-# Problem-Solving Framework (DARE)
-Khi gặp vấn đề phức tạp:
-0. Audit - thu thập evidence, xác định gap, chỉ ra giả thuyết thay thế.
-1. Decompose - vẽ problem graph, xác định ROOT CAUSE, cho phép merge/loop giữa thoughts.
-2. Analyze - với mỗi sub-problem: Thought -> Action -> Observation, dùng tool/search khi cần.
-3. Reflect - tự critique sau mỗi bước, nếu lỗi thì backtrack và thử hướng khác.
-4. Execute - giải bottom-up từ ROOT CAUSE, validate mỗi bước, uncertain thì thử 2-3 hướng và vote.
+  ## Execution (with reflection)
+  1. Solving 1.1.1...
+     - Thought: ...
+     - Action: ...
+     - Reflection: ✓ Valid / ✗ Retry
+  2. ...
 
-Format output:
-## Problem Graph
-1. [Main] <- depends on 1.1, 1.2
-   1.1 [Sub] <- depends on 1.1.1
-      1.1.1 [ROOT CAUSE] <- Solve first
-   1.2 [Sub]
-
-## Execution (with reflection)
-1. Solving 1.1.1...
-   - Thought: ...
-   - Action: ...
-   - Reflection: ✓ Valid / ✗ Retry
-2. ...
-
-# Audit Questions (Ask Before Root Cause)
-Trước khi kết luận Root Cause, trả lời tối thiểu 5/8 câu, bắt buộc có #1, #3, #6, #8:
-1. Triệu chứng quan sát được là gì (expected vs actual)?
-2. Phạm vi ảnh hưởng (user, module, môi trường)?
-3. Có tái hiện ổn định không? điều kiện tái hiện tối thiểu?
-4. Mốc thay đổi gần nhất (commit/config/dependency/data)?
-5. Dữ liệu nào đang thiếu để kết luận chắc chắn?
-6. Có giả thuyết thay thế hợp lý nào chưa bị loại trừ?
-7. Rủi ro nếu fix sai nguyên nhân là gì?
-8. Tiêu chí pass/fail sau khi sửa?
+# Decision & AskUser Quality Rules
+- Chỉ dùng AskUser khi decision ảnh hưởng behavior/API/UX/scope/cost/risk.
+- Không đưa option vô nghĩa hoặc dominated (kém hơn + đắt/rủi ro hơn mà không có upside).
+- Nếu chỉ có 1 hướng hợp lý, không hỏi; tự quyết và nêu rõ lý do.
+- Mỗi option phải theo format:
+  - Option X (Recommend) — Confidence 85% (lý do ngắn, gắn evidence/tradeoff).
+  - Option Y — Confidence 60% (phù hợp khi ..., tradeoff ...).
+- Recommend phải giải thích: vì sao tốt nhất trong ngữ cảnh, tradeoff, evidence.
+- Nếu option không recommend vẫn đưa ra, phải nói rõ khi nào phù hợp.
+- Giữ 2–4 option thật sự khác nhau về tradeoff.
 
 # Spec Mode Rules
-Khi ở chế độ Spec (read-only planning):
-* Bắt buộc dùng DARE framework có Audit gate: Pre-Audit → Root Cause → Counter-Hypothesis Check → Proposal → Post-Audit.
-* Pre-Audit: liệt kê evidence đã có/chưa có + kế hoạch lấp gap.
-* Counter-Hypothesis Check: nêu ít nhất 1 giả thuyết đối chứng và vì sao bị loại.
-* Post-Audit: kiểm tra blast radius, regression risk, và chi phí/độ phức tạp theo KISS/YAGNI/DRY.
-* Dùng AskUser để làm rõ mọi điểm mơ hồ TRƯỚC khi chốt spec; không đoán requirement.Đưa ra Option khi ASK USER với các (Recommend) ,... và lý do rõ ràng giúp người dùng dễ chọn và dễ hiểu lý do, feynman nếu thấy phức tạp. 
-* Plan phải chi tiết từng bước (step-by-step actionable), đủ để implement xong trong 1 lần — KHÔNG chia phase/giai đoạn.
-* Mỗi bước ghi rõ: file nào, thay đổi gì, logic cụ thể; ai đọc plan cũng tự implement được.
-* Ưu tiên full implement > incremental; nếu scope quá lớn thì AskUser để user quyết cắt scope, không tự ý chia phase.
-* Cuối spec phải có phần chốt lại thật dễ hiểu cho User, trình bài checklist, Best practice ra
-* Tự WebSearch và đọc kỹ codebase để đưa ra Best Practice với dự  án cho User để tăng sức mạnh và trọng lượng khi ASK USER để khiến người dùng nhẹ nhàng hơn nhưng vẫn phải chuẩn chỉ Best Practice
-* Output spec bắt buộc có 3 block: Audit Summary, Root Cause Confidence (High/Medium/Low + reason), Verification Plan (typecheck/test/repro).
+- Pre-Audit → Root Cause → Counter-Hypothesis → Proposal → Post-Audit.
+- Plan phải actionable, step-by-step, nêu file nào đổi gì, logic cụ thể.
+- Lưu spec ở `.factory/docs`.
+- Output spec bắt buộc có 3 block: Audit Summary, Root Cause Confidence (High/Medium/Low + reason), Verification Plan (typecheck/test/repro).
+- Quy tắc AskUser tham chiếu ở section Decision & AskUser Quality Rules, không lặp.
 
-# 7 Nguyên tắc DB Bandwidth Optimization:
-* Filter ở DB, không ở JS - Không .collect()/.findAll() không filter; không fetch ALL rồi filter JS; không fetch ALL để count
-* Không N+1 - Không gọi DB trong loop; batch load bằng Promise.all(); dùng Map thay .find() (O(1) vs O(n²))
-* Luôn có Index - Mọi filter/sort cần index; compound index: equality trước, range/sort sau; ưu tiên selectivity cao
-* Luôn có Limit + Pagination - Default 20, max 100-500; ưu tiên cursor-based; tránh offset lớn
-* Chỉ lấy data cần thiết - Select fields cụ thể (không select *); dùng projection/covered index
-* Load song song - Promise.all() cho independent queries; batch load relations cùng lúc
-* Monitor trước deploy - Setup budget alerts (50/90/100%); estimate: Records × Size × Requests/day; track slow queries > 1s
+# Execution & Verification Rules
+- Khi user đưa URL localhost, đọc route Next.js tương ứng, không hỏi lại.
+- Mọi thay đổi code khi hoàn thành đều phải commit, không push.
+- Khi commit luôn add kèm `.factory/docs` (nếu có).
+- Trước commit chỉ chạy `bunx tsc --noEmit` khi có thay đổi code/TS; không chạy khi chỉ sửa docs/cấu hình không liên quan.
+
+# Sync Rule
+- Nếu sửa guideline cốt lõi ở AGENTS.md thì mirror sang CLAUDE.md trong cùng task.
+
+# 7 Nguyên tắc DB Bandwidth Optimization
+- Filter ở DB, không ở JS; không fetch ALL rồi filter/count.
+- Không N+1; batch load + Map O(1).
+- Luôn có index phù hợp filter/sort.
+- Luôn có limit + pagination (default 20, max 100–500).
+- Chỉ lấy data cần thiết (projection, no select *).
+- Load song song bằng Promise.all cho query độc lập.
+- Monitor trước deploy: budget alerts + ước lượng Records × Size × Requests/day; track slow queries >1s.
