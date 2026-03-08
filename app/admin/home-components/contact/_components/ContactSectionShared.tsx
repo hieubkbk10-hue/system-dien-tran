@@ -477,9 +477,9 @@ const renderGrid = ({
       </div>
     </div>
 
-    <div className={cn('grid gap-4', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
+    <div className={cn('grid gap-4 items-stretch', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
       {config.showForm && (
-        <div className="rounded-lg border p-4" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+        <div className="rounded-lg border p-4 h-full" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <ContactInquiryForm
             brandColor={tokens.primary}
             secondaryColor={tokens.secondary}
@@ -496,7 +496,7 @@ const renderGrid = ({
           />
         </div>
       )}
-      <div className="rounded-lg border p-4" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+      <div className="rounded-lg border p-4 h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <div className="flex items-start gap-3">
           <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
           <div>
@@ -506,7 +506,10 @@ const renderGrid = ({
         </div>
         {config.showMap && (
           <div
-            className={cn('relative rounded-md overflow-hidden mt-4', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_COMPACT)}
+            className={cn(
+              'relative rounded-md overflow-hidden mt-4 flex-1',
+              currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : 'min-h-[240px]',
+            )}
           >
             {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
           </div>
@@ -677,16 +680,12 @@ const renderMinimal = ({
         </div>
       )}
       {(activeSocials.length > 0 || config.showMap) && (
-        <div className={cn('mt-8 pt-6 border-t', currentDevice === 'mobile' ? 'flex flex-col gap-4' : 'flex items-center justify-between')} style={{ borderColor: tokens.neutralBorder }}>
-          <ContactSocialLinks socials={activeSocials} tokens={tokens} />
+        <div className="mt-8 pt-6 border-t space-y-4" style={{ borderColor: tokens.neutralBorder }}>
+          {activeSocials.length > 0 && (
+            <ContactSocialLinks socials={activeSocials} tokens={tokens} centered={currentDevice !== 'mobile'} />
+          )}
           {config.showMap && (
-            <div
-              className={cn(
-                'relative rounded-lg overflow-hidden',
-                currentDevice === 'mobile' ? 'w-full' : 'w-80',
-                MAP_HEIGHT_COMPACT,
-              )}
-            >
+            <div className={cn('relative rounded-lg overflow-hidden w-full', MAP_HEIGHT_STANDARD)}>
               {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
             </div>
           )}
