@@ -1,7 +1,6 @@
 export type VideoStyle = 'centered' | 'split' | 'fullwidth' | 'cinema' | 'minimal' | 'parallax';
 
 export type VideoBrandMode = 'single' | 'dual';
-export type VideoHarmony = 'analogous' | 'complementary' | 'triadic';
 export type VideoProvider = 'youtube' | 'vimeo' | 'drive' | 'direct';
 
 export interface VideoConfig {
@@ -16,6 +15,5 @@ export interface VideoConfig {
   loop?: boolean;
   muted?: boolean;
   style?: VideoStyle;
-  harmony?: VideoHarmony;
   texts?: Record<string, string>;
 }

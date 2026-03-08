@@ -5,16 +5,13 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { normalizeVoucherLimit, normalizeVoucherStyle } from '@/lib/home-components/voucher-promotions';
 import {
-  normalizeVoucherPromotionsHarmony,
   normalizeVoucherPromotionsTexts,
-  DEFAULT_VOUCHER_PROMOTIONS_HARMONY,
 } from '@/app/admin/home-components/voucher-promotions/_lib/constants';
 import { getVoucherPromotionsColorTokens } from '@/app/admin/home-components/voucher-promotions/_lib/colors';
 import { VoucherPromotionsSectionShared } from '@/app/admin/home-components/voucher-promotions/_components/VoucherPromotionsSectionShared';
 import type {
   VoucherPromotionItem,
   VoucherPromotionsBrandMode,
-  VoucherPromotionsHarmony,
   VoucherPromotionsTexts,
 } from '@/app/admin/home-components/voucher-promotions/_types';
 
@@ -45,7 +42,6 @@ export function VoucherPromotionsSection({
   const ctaUrl = (config.ctaUrl as string) || '/promotions';
   const limit = normalizeVoucherLimit(config.limit as number | undefined);
   const style = normalizeVoucherStyle(config.style as string | undefined);
-  const harmony = normalizeVoucherPromotionsHarmony((config.harmony as string | undefined) ?? DEFAULT_VOUCHER_PROMOTIONS_HARMONY);
 
   const vouchers = useQuery(api.promotions.listPublicVouchers, { limit }) as VoucherPromotionItem[] | undefined;
   const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
@@ -55,8 +51,7 @@ export function VoucherPromotionsSection({
     primary: brandColor,
     secondary,
     mode,
-    harmony: harmony as VoucherPromotionsHarmony,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   if (!vouchers) {
     return null;

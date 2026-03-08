@@ -3,7 +3,6 @@
 import React from 'react';
 import {
   normalizePricingConfig,
-  normalizePricingHarmony,
 } from '@/app/admin/home-components/pricing/_lib/constants';
 import {
   getPricingColorTokens,
@@ -34,13 +33,11 @@ export function PricingSection({
 
   const style = safeConfig.style as PricingStyle;
   const subtitle = String(safeConfig.subtitle ?? 'Chọn gói phù hợp với nhu cầu của bạn');
-  const harmony = normalizePricingHarmony(safeConfig.harmony);
 
   const tokens = getPricingColorTokens({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
   });
 
   const [isYearly, setIsYearly] = React.useState(false);

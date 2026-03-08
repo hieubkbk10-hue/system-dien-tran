@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CaseStudySectionShared } from '@/app/admin/home-components/case-study/_components/CaseStudySectionShared';
-import { getCaseStudyColors, normalizeCaseStudyHarmony } from '@/app/admin/home-components/case-study/_lib/colors';
+import { getCaseStudyColors } from '@/app/admin/home-components/case-study/_lib/colors';
 import type { CaseStudyBrandMode, CaseStudyProject } from '@/app/admin/home-components/case-study/_types';
 
 interface CaseStudySectionProps {
@@ -49,13 +49,11 @@ export function CaseStudySection({ config, brandColor, secondary, mode, title }:
       ? config.style
       : 'grid') as 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
 
-  const harmony = normalizeCaseStudyHarmony(typeof config.harmony === 'string' ? config.harmony : undefined);
-
   const projects = React.useMemo(() => normalizeProjects(config.projects), [config.projects]);
 
   const tokens = React.useMemo(() => (
-    getCaseStudyColors(brandColor, secondary, mode, harmony)
-  ), [brandColor, secondary, mode, harmony]);
+    getCaseStudyColors(brandColor, secondary, mode)
+  ), [brandColor, secondary, mode]);
 
   return (
     <CaseStudySectionShared

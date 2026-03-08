@@ -33,25 +33,19 @@ import { BenefitsSectionShared } from '@/app/admin/home-components/benefits/_com
 import { getBenefitsSectionColors, normalizeBenefitsHarmony } from '@/app/admin/home-components/benefits/_lib/colors';
 import { FaqSectionShared } from '@/app/admin/home-components/faq/_components/FaqSectionShared';
 import { getFaqColors } from '@/app/admin/home-components/faq/_lib/colors';
-import {
-  getTestimonialsSectionColors,
-  normalizeTestimonialsHarmony,
-} from '@/app/admin/home-components/testimonials/_lib/colors';
+import { getTestimonialsSectionColors } from '@/app/admin/home-components/testimonials/_lib/colors';
 import { getGalleryColorTokens, normalizeGalleryHarmony, type GalleryColorTokens } from '@/app/admin/home-components/gallery/_lib/colors';
 import { getFooterLayoutColors, type FooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import type { ProcessBrandMode } from '@/app/admin/home-components/process/_types';
 import { normalizeProcessRenderSteps, normalizeProcessStyle } from '@/app/admin/home-components/process/_lib/normalize';
 import { ProcessSectionShared } from '@/app/admin/home-components/process/_components/ProcessSectionShared';
 import { FeaturesSectionShared } from '@/app/admin/home-components/features/_components/FeaturesSectionShared';
-import { normalizeFeaturesHarmony } from '@/app/admin/home-components/features/_lib/constants';
 import { ClientsSectionShared, normalizeClientItems, normalizeClientsStyleSafe } from '@/app/admin/home-components/clients/_components/ClientsSectionShared';
 import { getClientsColorTokens } from '@/app/admin/home-components/clients/_lib/colors';
-import { normalizeClientsHarmony } from '@/app/admin/home-components/clients/_lib/constants';
-import type { ClientsBrandMode } from '@/app/admin/home-components/clients/_types';
 import { getGalleryMarqueeBaseItems } from '@/app/admin/home-components/gallery/_lib/constants';
 import { ServicesSectionCore } from './ServicesSectionCore';
 import type { ServiceItem, ServicesStyle } from '@/app/admin/home-components/services/_types';
-import { getServicesColors, normalizeServicesHarmony } from '@/app/admin/home-components/services/_lib/colors';
+import { getServicesColors } from '@/app/admin/home-components/services/_lib/colors';
 import type { BenefitsStyle as BenefitsSharedStyle } from '@/app/admin/home-components/benefits/_types';
 import { PartnersMarqueeShared } from '@/app/admin/home-components/partners/_components/PartnersMarqueeShared';
 import { PartnersBadgeShared } from '@/app/admin/home-components/partners/_components/PartnersBadgeShared';
@@ -59,8 +53,8 @@ import { PartnersCarouselShared } from '@/app/admin/home-components/partners/_co
 import { PartnersFeaturedShared } from '@/app/admin/home-components/partners/_components/PartnersFeaturedShared';
 import { PartnersGridShared } from '@/app/admin/home-components/partners/_components/PartnersGridShared';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
-import type { HeroHarmony } from '@/app/admin/home-components/hero/_types';
-import type { CTAHarmony, CTAStyle } from '@/app/admin/home-components/cta/_types';
+import type { ClientsBrandMode } from '@/app/admin/home-components/clients/_types';
+import type { CTAStyle } from '@/app/admin/home-components/cta/_types';
 import type { BenefitItem, BenefitsBrandMode, BenefitsConfig } from '@/app/admin/home-components/benefits/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
 import { BrandBadge } from './shared/BrandColorHelpers';
@@ -75,9 +69,7 @@ import { TeamSection as TeamSectionRuntime } from './TeamSection';
 import { VideoSectionShared } from '@/app/admin/home-components/video/_components/VideoSectionShared';
 import { getVideoColorTokens } from '@/app/admin/home-components/video/_lib/colors';
 import {
-  DEFAULT_VIDEO_HARMONY,
   normalizeVideoConfig,
-  normalizeVideoHarmony,
   normalizeVideoStyle,
 } from '@/app/admin/home-components/video/_lib/constants';
 import type { VideoBrandMode } from '@/app/admin/home-components/video/_types';
@@ -279,14 +271,13 @@ function HeroSection({
   const slides = (config.slides as { image: string; link: string }[]) || [];
   const style = (config.style as HeroStyle) || 'slider';
   const content = (config.content as HeroContent) || {};
-  const harmony = (config.harmony as HeroHarmony) || 'analogous';
   const [currentSlide, setCurrentSlide] = React.useState(0);
-  const sliderColors = getSliderColors(brandColor, secondary, mode, harmony);
-  const fadeColors = getFadeColors(brandColor, secondary, mode, harmony);
-  const bentoColors = getBentoColors(brandColor, secondary, mode, harmony);
-  const fullscreenColors = getFullscreenColors(brandColor, secondary, mode, harmony);
-  const splitColors = getSplitColors(brandColor, secondary, mode, harmony);
-  const parallaxColors = getParallaxColors(brandColor, secondary, mode, harmony);
+  const sliderColors = getSliderColors(brandColor, secondary, mode);
+  const fadeColors = getFadeColors(brandColor, secondary, mode);
+  const bentoColors = getBentoColors(brandColor, secondary, mode);
+  const fullscreenColors = getFullscreenColors(brandColor, secondary, mode);
+  const splitColors = getSplitColors(brandColor, secondary, mode);
+  const parallaxColors = getParallaxColors(brandColor, secondary, mode);
 
   React.useEffect(() => {
     if (slides.length <= 1 || style === 'bento') {return;}
@@ -874,8 +865,7 @@ function ServicesSection({
 }) {
   const items = (config.items as ServiceItem[]) || [];
   const style = (config.style as ServicesStyle) || 'elegantGrid';
-  const harmony = normalizeServicesHarmony(config.harmony as string | undefined);
-  const colors = getServicesColors(brandColor, secondary, mode, harmony);
+  const colors = getServicesColors(brandColor, secondary, mode);
 
   return (
     <ServicesSectionCore
@@ -1050,17 +1040,14 @@ function CTASection({
     secondaryButtonLink?: string;
     badge?: string;
     style?: CTAStyle;
-    harmony?: CTAHarmony;
   };
 
   const style = ctaConfig.style ?? 'banner';
-  const harmony = ctaConfig.harmony ?? 'analogous';
 
   const tokens = getCTAColors({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
     style,
   });
 
@@ -1074,7 +1061,6 @@ function CTASection({
         secondaryButtonText: ctaConfig.secondaryButtonText ?? '',
         secondaryButtonLink: ctaConfig.secondaryButtonLink ?? '',
         badge: ctaConfig.badge ?? '',
-        harmony,
       }}
       style={style}
       tokens={tokens}
@@ -1110,12 +1096,10 @@ function TestimonialsSection({ config, brandColor, secondary, mode, title }: { c
     role: item.role ?? '',
   })), [items]);
   const style = (config.style as TestimonialsStyle) || 'cards';
-  const harmony = normalizeTestimonialsHarmony((config as { harmony?: unknown }).harmony);
   const colors = getTestimonialsSectionColors({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
   });
   const carouselId = useSafeId('testimonials-carousel');
   const [currentSlide, setCurrentSlide] = React.useState(0);
@@ -4230,8 +4214,6 @@ function FeaturesSection({ config, brandColor, secondary, mode, title }: { confi
     return 'iconGrid';
   })();
 
-  const harmony = normalizeFeaturesHarmony(config.harmony);
-
   return (
     <FeaturesSectionShared
       context="site"
@@ -4241,7 +4223,6 @@ function FeaturesSection({ config, brandColor, secondary, mode, title }: { confi
       brandColor={brandColor}
       secondary={secondary}
       mode={mode}
-      harmony={harmony}
     />
   );
 }
@@ -4286,12 +4267,10 @@ function ClientsSection({
   if (items.length === 0) {return null;}
 
   const style = normalizeClientsStyleSafe(config.style);
-  const harmony = normalizeClientsHarmony(config.harmony as string | undefined);
   const tokens = getClientsColorTokens({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
   });
 
   return (
@@ -4314,20 +4293,18 @@ function VideoSection({ config, brandColor, secondary, mode, title }: { config: 
   secondary: string; mode: VideoBrandMode; title: string }) {
   const normalizedConfig = normalizeVideoConfig(config);
   const style = normalizeVideoStyle(normalizedConfig.style);
-  const harmony = normalizeVideoHarmony(normalizedConfig.harmony ?? DEFAULT_VIDEO_HARMONY);
 
   const tokens = React.useMemo(() => getVideoColorTokens({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
     style,
-  }), [brandColor, secondary, mode, harmony, style]);
+  }), [brandColor, secondary, mode, style]);
 
   return (
     <VideoSectionShared
       context="site"
-      config={{ ...normalizedConfig, style, harmony }}
+      config={{ ...normalizedConfig, style }}
       style={style}
       tokens={tokens}
       title={title}

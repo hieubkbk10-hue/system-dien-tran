@@ -18,13 +18,8 @@ import type { BlogStyle } from '../../blog/_types';
 import { ProductListPreview } from '../../product-list/_components/ProductListPreview';
 import type { ProductListPreviewItem, ProductListStyle } from '../../product-list/_types';
 import { ServiceListPreview } from '../../service-list/_components/ServiceListPreview';
-import {
-  DEFAULT_SERVICE_LIST_HARMONY,
-  normalizeServiceListHarmony,
-} from '../../service-list/_lib/constants';
 import { getServiceListValidationResult } from '../../service-list/_lib/colors';
 import type {
-  ServiceListHarmony,
   ServiceListPreviewItem,
   ServiceListStyle,
 } from '../../service-list/_types';
@@ -55,7 +50,6 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const [blogStyle, setBlogStyle] = useState<BlogStyle>('grid');
   const [productStyle, setProductStyle] = useState<ProductListStyle>('commerce');
   const [serviceStyle, setServiceStyle] = useState<ServiceListStyle>('grid');
-  const [serviceHarmony, _setServiceHarmony] = useState<ServiceListHarmony>(DEFAULT_SERVICE_LIST_HARMONY);
 
   const [subTitle, setSubTitle] = useState('Bộ sưu tập');
   const [sectionTitle, setSectionTitle] = useState('Sản phẩm nổi bật');
@@ -215,7 +209,6 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
       primary,
       secondary,
       mode,
-      harmony: serviceHarmony,
     });
 
     const warnings: string[] = [];
@@ -227,7 +220,7 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
     }
 
     return warnings;
-  }, [mode, primary, secondary, serviceHarmony, type]);
+  }, [mode, primary, secondary, type]);
 
   const blogWarnings = useMemo(() => {
     if (type !== 'Blog' || mode === 'single') {return [] as string[];}
@@ -258,10 +251,6 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
       style: type === 'Blog' ? blogStyle : (type === 'ServiceList' ? serviceStyle : productStyle),
       selectionMode,
     };
-
-    if (type === 'ServiceList') {
-      config.harmony = normalizeServiceListHarmony(serviceHarmony);
-    }
 
     if (type === 'ProductList') {
       config.subTitle = subTitle;
@@ -702,7 +691,6 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
             brandColor={primary}
             secondary={secondary}
             mode={mode}
-            harmony={serviceHarmony}
             itemCount={selectionMode === 'manual' ? selectedServiceIds.length : itemCount}
             selectedStyle={serviceStyle}
             onStyleChange={setServiceStyle}

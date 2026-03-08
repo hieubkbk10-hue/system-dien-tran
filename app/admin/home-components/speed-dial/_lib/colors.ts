@@ -5,7 +5,6 @@ import { differenceEuclidean, formatHex, oklch } from 'culori';
 import type {
   SpeedDialAction,
   SpeedDialBrandMode,
-  SpeedDialHarmony,
   SpeedDialStyle,
 } from '../_types';
 
@@ -85,21 +84,8 @@ const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
   return formatHex(oklch({ ...color, l: clampLightness((color.l ?? 0.6) + lightnessIncrease) }));
 };
 
-export const normalizeSpeedDialHarmony = (value?: string): SpeedDialHarmony => {
-  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
-    return value;
-  }
-  return 'analogous';
-};
-
-export const getHarmonyColor = (primary: string, harmony: SpeedDialHarmony) => {
+export const getHarmonyColor = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -107,7 +93,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: SpeedDialBrandMode,
-  harmony: SpeedDialHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -119,7 +104,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getHarmonyColor(normalizedPrimary);
 };
 
 export interface SpeedDialHarmonyStatus {
@@ -287,16 +272,13 @@ export const getSpeedDialColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: SpeedDialBrandMode;
-  harmony?: SpeedDialHarmony;
 }): SpeedDialColorTokens => {
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const normalizedHarmony = normalizeSpeedDialHarmony(harmony);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
@@ -385,16 +367,14 @@ export const getSpeedDialValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
   actions = [],
 }: {
   primary: string;
   secondary: string;
   mode: SpeedDialBrandMode;
-  harmony?: SpeedDialHarmony;
   actions?: SpeedDialAction[];
 }) => {
-  const tokens = getSpeedDialColorTokens({ primary, secondary, mode, harmony });
+  const tokens = getSpeedDialColorTokens({ primary, secondary, mode });
   const harmonyStatus = mode === 'single'
     ? { deltaE: 100, similarity: 0, isTooSimilar: false }
     : getHarmonyStatus(tokens.primary, tokens.secondary);

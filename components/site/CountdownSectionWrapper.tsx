@@ -21,7 +21,6 @@ export function CountdownSectionWrapper({ config, brandColor, secondary, title }
     primary: brandColor,
     secondary,
     mode,
-    harmony: normalizedConfig.harmony,
   });
   const timeLeft = useCountdownTimer(normalizedConfig.endDate);
 

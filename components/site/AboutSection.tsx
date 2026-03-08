@@ -4,14 +4,12 @@ import React from 'react';
 import { AboutSectionShared } from '@/app/admin/home-components/about/_components/AboutSectionShared';
 import { getAboutSectionColors } from '@/app/admin/home-components/about/_lib/colors';
 import {
-  normalizeAboutHarmony,
   normalizeAboutPersistStats,
   normalizeAboutStyle,
 } from '@/app/admin/home-components/about/_lib/constants';
 import type {
   AboutBrandMode,
   AboutConfig,
-  AboutHarmony,
 } from '@/app/admin/home-components/about/_types';
 
 interface AboutSectionProps {
@@ -24,14 +22,12 @@ interface AboutSectionProps {
 
 export function AboutSection({ config, brandColor, secondary, mode, title }: AboutSectionProps) {
   const safeConfig = config as Partial<AboutConfig>;
-  const harmony = normalizeAboutHarmony((safeConfig.harmony as AboutHarmony | undefined) ?? 'analogous');
   const style = normalizeAboutStyle(safeConfig.style);
 
   const tokens = getAboutSectionColors({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
   });
 
   return (

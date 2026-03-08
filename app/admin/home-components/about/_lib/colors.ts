@@ -2,7 +2,7 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { AboutBrandMode, AboutHarmony, AboutStyle } from '../_types';
+import type { AboutBrandMode, AboutStyle } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 const FALLBACK_TEXT = '#0f172a';
@@ -75,17 +75,8 @@ const getSolidTint = (hex: string, lightnessOffset: number, fallback = DEFAULT_B
   return formatHex(oklch({ l: newL, c, h, mode: 'oklch' }));
 };
 
-const getHarmonyColor = (primary: string, harmony: AboutHarmony) => {
+const getHarmonyColor = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -93,7 +84,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: AboutBrandMode,
-  harmony: AboutHarmony = 'analogous',
 ) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -105,7 +95,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, primaryNormalized);
   }
 
-  return getHarmonyColor(primaryNormalized, harmony);
+  return getHarmonyColor(primaryNormalized);
 };
 
 export interface AboutColorTokens {
@@ -204,15 +194,13 @@ export const getAboutColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: AboutBrandMode;
-  harmony?: AboutHarmony;
 }): AboutColorTokens => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryNormalized, secondary, mode, harmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryNormalized, secondary, mode);
 
   const sectionBg = FALLBACK_SURFACE;
   const sectionAltBg = '#f8fafc';
@@ -324,17 +312,15 @@ export const getAboutValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony,
   style,
 }: {
   primary: string;
   secondary: string;
   mode: AboutBrandMode;
-  harmony: AboutHarmony;
   style: AboutStyle;
 }) => {
-  const tokens = getAboutColorTokens({ primary, secondary, mode, harmony });
-  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, mode, harmony);
+  const tokens = getAboutColorTokens({ primary, secondary, mode });
+  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, mode);
 
   const harmonyStatus = mode === 'single'
     ? { deltaE: 100, similarity: 0, isTooSimilar: false }
@@ -395,10 +381,8 @@ export const getAboutSectionColors = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: AboutBrandMode;
-  harmony: AboutHarmony;
-}) => getAboutColorTokens({ primary, secondary, mode, harmony });
+}) => getAboutColorTokens({ primary, secondary, mode });
