@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
 import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 import { ToggleSwitch } from '@/components/modules/shared';
@@ -26,11 +25,8 @@ interface ValidationErrors {
   phone?: string;
 }
 
-type SectionKey = 'primary' | 'form' | 'content';
-
 export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [openSection, setOpenSection] = useState<SectionKey>('primary');
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
   const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
   const isSettingsLoading = contactSettings === undefined;
@@ -71,28 +67,19 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
 
       <Card>
         <CardHeader className="py-3">
-          <button
-            type="button"
-            onClick={() => setOpenSection('primary')}
-            aria-expanded={openSection === 'primary'}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <CardTitle className="text-base">Thông tin chính</CardTitle>
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'primary' ? 'rotate-180' : ''}`} />
-          </button>
+          <CardTitle className="text-base">Thông tin chính</CardTitle>
         </CardHeader>
-        {openSection === 'primary' && (
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Hiển thị bản đồ
-              </label>
-              <ToggleSwitch
-                enabled={!!value.showMap}
-                onChange={() => updateConfig({ showMap: !value.showMap })}
-                color="bg-blue-500"
-              />
-            </div>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Hiển thị bản đồ
+            </label>
+            <ToggleSwitch
+              enabled={!!value.showMap}
+              onChange={() => updateConfig({ showMap: !value.showMap })}
+              color="bg-blue-500"
+            />
+          </div>
 
             {value.showMap && (
               <div className="space-y-2">
@@ -118,22 +105,23 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
               </div>
             )}
 
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Địa chỉ
-              </label>
-              <input
-                id="address"
-                type="text"
-                value={value.address}
-                onChange={(e) => updateConfig({ address: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <div>
+            <label
+              htmlFor="address"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+            >
+              Địa chỉ
+            </label>
+            <input
+              id="address"
+              type="text"
+              value={value.address}
+              onChange={(e) => updateConfig({ address: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label
                 htmlFor="phone"
@@ -183,6 +171,7 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
                 </p>
               )}
             </div>
+          </div>
 
             <div>
               <label
@@ -199,34 +188,24 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-          </CardContent>
-        )}
+        </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="py-3">
-          <button
-            type="button"
-            onClick={() => setOpenSection('form')}
-            aria-expanded={openSection === 'form'}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <CardTitle className="text-base">Form liên hệ</CardTitle>
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'form' ? 'rotate-180' : ''}`} />
-          </button>
+          <CardTitle className="text-base">Form liên hệ</CardTitle>
         </CardHeader>
-        {openSection === 'form' && (
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Bật form liên hệ
-              </label>
-              <ToggleSwitch
-                enabled={!!value.showForm}
-                onChange={() => updateConfig({ showForm: !value.showForm })}
-                color="bg-blue-500"
-              />
-            </div>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Bật form liên hệ
+            </label>
+            <ToggleSwitch
+              enabled={!!value.showForm}
+              onChange={() => updateConfig({ showForm: !value.showForm })}
+              color="bg-blue-500"
+            />
+          </div>
 
             {value.showForm ? (
               <>
@@ -235,36 +214,38 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
                   onChange={updateFormFields}
                 />
 
-                <div>
-                  <label
-                    htmlFor="formTitle"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Tiêu đề form
-                  </label>
-                  <input
-                    id="formTitle"
-                    type="text"
-                    value={value.formTitle || ''}
-                    onChange={(e) => updateConfig({ formTitle: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="formTitle"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                    >
+                      Tiêu đề form
+                    </label>
+                    <input
+                      id="formTitle"
+                      type="text"
+                      value={value.formTitle || ''}
+                      onChange={(e) => updateConfig({ formTitle: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="formDescription"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Mô tả form
-                  </label>
-                  <textarea
-                    id="formDescription"
-                    value={value.formDescription || ''}
-                    onChange={(e) => updateConfig({ formDescription: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div>
+                    <label
+                      htmlFor="submitButtonText"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                    >
+                      Text nút gửi
+                    </label>
+                    <input
+                      id="submitButtonText"
+                      type="text"
+                      value={value.submitButtonText || ''}
+                      onChange={(e) => updateConfig({ submitButtonText: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -304,42 +285,31 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
                 Bật form để chỉnh tiêu đề, mô tả, nút gửi và trường nhập.
               </p>
             )}
-          </CardContent>
-        )}
+        </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="py-3">
-          <button
-            type="button"
-            onClick={() => setOpenSection('content')}
-            aria-expanded={openSection === 'content'}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <CardTitle className="text-base">Nội dung mở rộng</CardTitle>
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${openSection === 'content' ? 'rotate-180' : ''}`} />
-          </button>
+          <CardTitle className="text-base">Nội dung mở rộng</CardTitle>
         </CardHeader>
-        {openSection === 'content' && (
-          <CardContent className="space-y-6">
-            <div>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mạng xã hội</p>
-              <SocialLinksManager
-                links={value.socialLinks}
-                onChange={updateSocialLinks}
-              />
-            </div>
+        <CardContent className="space-y-6">
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mạng xã hội</p>
+            <SocialLinksManager
+              links={value.socialLinks}
+              onChange={updateSocialLinks}
+            />
+          </div>
 
-            <div>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tùy chỉnh văn bản</p>
-              <DynamicTextFields
-                style={value.style}
-                texts={value.texts || {}}
-                onChange={updateTexts}
-              />
-            </div>
-          </CardContent>
-        )}
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tùy chỉnh văn bản</p>
+            <DynamicTextFields
+              style={value.style}
+              texts={value.texts || {}}
+              onChange={updateTexts}
+            />
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
