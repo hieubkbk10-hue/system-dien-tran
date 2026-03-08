@@ -252,13 +252,22 @@ const renderModern = ({
   mapData?: ContactMapData;
   sourcePath?: string;
   isPreview: boolean;
-}) => (
-  <div
-    className="rounded-xl overflow-hidden border shadow-sm"
-    style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
-  >
-    <div className={cn('flex min-h-[380px]', currentDevice === 'mobile' ? 'flex-col' : 'flex-col lg:flex-row')}>
-      <div className={cn('p-6 lg:p-10 flex flex-col justify-center gap-6', currentDevice === 'mobile' ? 'w-full' : 'lg:w-1/2')}>
+}) => {
+  const hasForm = Boolean(config.showForm);
+  const hasMap = Boolean(config.showMap);
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden border shadow-sm"
+      style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
+    >
+      <div className={cn('flex min-h-[380px]', currentDevice === 'mobile' ? 'flex-col' : 'flex-col lg:flex-row')}>
+        <div
+          className={cn(
+            'p-6 lg:p-10 flex flex-col justify-center gap-6',
+            currentDevice === 'mobile' ? 'w-full' : hasMap ? 'lg:w-1/2' : 'lg:w-full',
+          )}
+        >
         <div className="max-w-md mx-auto w-full">
           <div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border mb-4"
@@ -308,7 +317,7 @@ const renderModern = ({
           )}
         </div>
 
-        {config.showForm && (
+        {hasForm && (
           <div className="w-full">
             <ContactInquiryForm
               brandColor={tokens.primary}
@@ -327,7 +336,7 @@ const renderModern = ({
         )}
       </div>
 
-      {config.showMap && (
+      {hasMap && (
         <div
           className={cn(
             'relative border-t lg:border-t-0 lg:border-l',
@@ -340,7 +349,8 @@ const renderModern = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 const renderFloating = ({
   info,
@@ -360,12 +370,22 @@ const renderFloating = ({
   mapData?: ContactMapData;
   sourcePath?: string;
   isPreview: boolean;
-}) => (
-  <div
-    className={cn('w-full rounded-xl overflow-hidden border shadow-sm', currentDevice === 'mobile' ? 'min-h-[520px]' : 'min-h-[460px]')}
-    style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
-  >
-    <div className={cn('grid gap-6 p-6 lg:p-8', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-[1fr,1fr]')}>
+}) => {
+  const hasForm = Boolean(config.showForm);
+  const hasMap = Boolean(config.showMap);
+  const hasAux = hasForm || hasMap;
+  const gridClass = currentDevice === 'mobile'
+    ? 'grid-cols-1'
+    : hasAux
+      ? 'grid-cols-[1fr,1fr]'
+      : 'grid-cols-1';
+
+  return (
+    <div
+      className={cn('w-full rounded-xl overflow-hidden border shadow-sm', currentDevice === 'mobile' ? 'min-h-[520px]' : 'min-h-[460px]')}
+      style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}
+    >
+      <div className={cn('grid gap-6 p-6 lg:p-8', gridClass)}>
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-xl font-bold" style={{ color: tokens.heading }}>{info.texts.heading}</h2>
@@ -410,8 +430,9 @@ const renderFloating = ({
         )}
       </div>
 
-      <div className="space-y-4">
-        {config.showForm && (
+      {hasAux && (
+        <div className="space-y-4">
+        {hasForm && (
           <ContactInquiryForm
             brandColor={tokens.primary}
             secondaryColor={tokens.secondary}
@@ -426,7 +447,7 @@ const renderFloating = ({
             isPreview={isPreview}
           />
         )}
-        {config.showMap && (
+        {hasMap && (
           <div
             className={cn('relative rounded-lg overflow-hidden border', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_STANDARD)}
             style={{ borderColor: tokens.neutralBorder }}
@@ -435,9 +456,11 @@ const renderFloating = ({
           </div>
         )}
       </div>
+      )}
     </div>
   </div>
-);
+  );
+};
 
 const renderGrid = ({
   info,
@@ -455,8 +478,17 @@ const renderGrid = ({
   mapData?: ContactMapData;
   sourcePath?: string;
   isPreview: boolean;
-}) => (
-  <div className="w-full p-6 rounded-xl border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.neutralBackground }}>
+}) => {
+  const hasForm = Boolean(config.showForm);
+  const hasMap = Boolean(config.showMap);
+  const gridColumns = currentDevice === 'mobile'
+    ? 'grid-cols-1'
+    : hasForm && hasMap
+      ? 'grid-cols-2'
+      : 'grid-cols-1';
+
+  return (
+    <div className="w-full p-6 rounded-xl border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.neutralBackground }}>
     <div className={cn('grid gap-3 mb-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
       <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <IconBadge icon={<Phone size={18} />} tokens={tokens} className="mb-3" />
@@ -477,8 +509,8 @@ const renderGrid = ({
       </div>
     </div>
 
-    <div className={cn('grid gap-4 items-stretch', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
-      {config.showForm && (
+    <div className={cn('grid gap-4 items-stretch', gridColumns)}>
+      {hasForm && (
         <div className="rounded-lg border p-4 h-full" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
           <ContactInquiryForm
             brandColor={tokens.primary}
@@ -496,7 +528,8 @@ const renderGrid = ({
           />
         </div>
       )}
-      <div className="rounded-lg border p-4 h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+      {hasMap && (
+        <div className="rounded-lg border p-4 h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
         <div className="flex items-start gap-3">
           <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
           <div>
@@ -504,7 +537,7 @@ const renderGrid = ({
             <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
           </div>
         </div>
-        {config.showMap && (
+        {hasMap && (
           <div
             className={cn(
               'relative rounded-md overflow-hidden mt-4 flex-1',
@@ -515,9 +548,11 @@ const renderGrid = ({
           </div>
         )}
       </div>
+      )}
     </div>
   </div>
-);
+  );
+};
 
 const renderElegant = ({
   info,
@@ -535,8 +570,12 @@ const renderElegant = ({
   mapData?: ContactMapData;
   sourcePath?: string;
   isPreview: boolean;
-}) => (
-  <div className="w-full border rounded-xl shadow-sm overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+}) => {
+  const hasForm = Boolean(config.showForm);
+  const hasMap = Boolean(config.showMap);
+
+  return (
+    <div className="w-full border rounded-xl shadow-sm overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="p-6 border-b text-center" style={{ borderColor: tokens.neutralBorder, backgroundColor: tokens.neutralBackground }}>
       <div className="flex justify-center mb-3">
         <IconBadge icon={<Building2 size={22} />} tokens={tokens} size={24} />
@@ -550,7 +589,10 @@ const renderElegant = ({
     </div>
 
     <div className={cn('flex', currentDevice === 'mobile' ? 'flex-col' : 'flex-row')}>
-      <div className={cn('p-6 space-y-0 divide-y', currentDevice === 'mobile' ? 'w-full' : 'w-5/12')} style={{ borderColor: tokens.neutralBorder }}>
+      <div
+        className={cn('p-6 space-y-0 divide-y', currentDevice === 'mobile' ? 'w-full' : hasMap ? 'w-5/12' : 'w-full')}
+        style={{ borderColor: tokens.neutralBorder }}
+      >
         <div className="py-4 first:pt-0">
           <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
           <div className="flex items-start gap-2.5">
@@ -581,7 +623,7 @@ const renderElegant = ({
           </div>
         </div>
 
-        {config.showForm && (
+        {hasForm && (
           <div className="pt-6">
             <ContactInquiryForm
               brandColor={tokens.primary}
@@ -600,7 +642,7 @@ const renderElegant = ({
         )}
       </div>
 
-      {config.showMap && (
+      {hasMap && (
         <div
           className={cn(
             'relative border-t md:border-t-0 md:border-l',
@@ -613,7 +655,8 @@ const renderElegant = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 const renderMinimal = ({
   info,
@@ -713,8 +756,17 @@ const renderCentered = ({
   mapData?: ContactMapData;
   sourcePath?: string;
   isPreview: boolean;
-}) => (
-  <div className="w-full border rounded-xl overflow-hidden shadow-sm" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+}) => {
+  const hasForm = Boolean(config.showForm);
+  const hasMap = Boolean(config.showMap);
+  const gridColumns = currentDevice === 'mobile'
+    ? 'grid-cols-1'
+    : hasForm
+      ? 'grid-cols-2'
+      : 'grid-cols-1';
+
+  return (
+    <div className="w-full border rounded-xl overflow-hidden shadow-sm" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="text-center p-6 lg:p-10" style={{ backgroundColor: tokens.centeredHeaderBg }}>
       <div className="flex justify-center mb-5">
         <IconBadge icon={<Phone size={28} />} tokens={tokens} size={24} />
@@ -727,7 +779,7 @@ const renderCentered = ({
       </span>
     </div>
     <div className="p-6 lg:p-8 space-y-6">
-      <div className={cn('grid gap-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2')}>
+      <div className={cn('grid gap-6', gridColumns)}>
         <div className="space-y-3">
           <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
             <IconBadge icon={<Phone size={18} />} tokens={tokens} size={18} />
@@ -752,7 +804,7 @@ const renderCentered = ({
           )}
         </div>
 
-        {config.showForm && (
+        {hasForm && (
           <ContactInquiryForm
             brandColor={tokens.primary}
             secondaryColor={tokens.secondary}
@@ -769,14 +821,15 @@ const renderCentered = ({
         )}
       </div>
 
-      {config.showMap && (
+      {hasMap && (
         <div className={cn('relative rounded-lg overflow-hidden w-full', currentDevice === 'mobile' ? MAP_HEIGHT_STANDARD : MAP_HEIGHT_STANDARD)}>
           {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
         </div>
       )}
     </div>
   </div>
-);
+  );
+};
 
 export function ContactSectionShared({
   config,
