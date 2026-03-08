@@ -14,7 +14,7 @@ import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOv
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ConfigEditor } from '../../_components/ConfigEditor';
 import { ContactPreview } from '../../_components/ContactPreview';
-import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../_lib/constants';
+import { DEFAULT_CONTACT_CONFIG } from '../../_lib/constants';
 import { getContactValidationResult } from '../../_lib/colors';
 import {
   normalizeContactConfig,
@@ -22,7 +22,7 @@ import {
   toContactSnapshot,
 } from '../../_lib/normalize';
 import { validateContactConfig } from '../../_lib/validation';
-import type { ContactConfigState } from '../../_types';
+import type { ContactConfigState, ContactStyle } from '../../_types';
 import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 
 const COMPONENT_TYPE = 'Contact';
@@ -71,6 +71,8 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
     config: normalizedConfig,
   }), [title, active, normalizedConfig]);
 
+  const style = normalizedConfig.style;
+
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
     ? customState.enabled !== initialCustom.enabled
@@ -86,8 +88,7 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
-  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, normalizedConfig.harmony]);
+  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode]);
 
   const warningMessages = useMemo(() => {
     if (effectiveColors.mode === 'single') {return [];}
@@ -265,10 +266,12 @@ export default function ContactEditPage({ params }: { params: Promise<{ id: stri
               />
             )}
             <ContactPreview
-              config={normalizedConfig}
+              config={{ ...normalizedConfig, style }}
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
+              selectedStyle={style}
+              onStyleChange={(nextStyle) => { setConfig({ ...normalizedConfig, style: nextStyle as ContactStyle }); }}
               title={title}
               mapData={mapData}
             />
