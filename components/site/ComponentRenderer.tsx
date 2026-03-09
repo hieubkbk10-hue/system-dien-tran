@@ -2703,7 +2703,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         mode={mode}
         title={title}
         variant="marquee"
-        speed={0.8}
+        speed={1.15}
         renderImage={(item, className) => (
           <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
         )}
@@ -2721,7 +2721,7 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
         mode={mode}
         title={title}
         variant="mono"
-        speed={0.5}
+        speed={0.9}
         renderImage={(item, className) => (
           <SiteImage src={item.url} alt={item.name ?? ''} className={className} />
         )}

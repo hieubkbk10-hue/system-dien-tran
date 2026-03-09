@@ -67,39 +67,13 @@ export const PartnersMarqueeShared = ({
   const normalizedItems = React.useMemo(() => normalizeItems(items), [items]);
   const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
   const itemCount = normalizedItems.length;
-  const shouldAnimate = itemCount > 1;
+  const shouldAnimate = itemCount > 1 && !prefersReducedMotion;
   const loopCount = shouldAnimate ? 2 : 1;
-  const speedMultiplier = itemCount >= 14 ? 1.35 : itemCount >= 10 ? 1.2 : itemCount >= 6 ? 1.1 : 1;
-  const adaptiveSpeed = speed * speedMultiplier;
-  const effectiveSpeed = prefersReducedMotion ? Math.min(adaptiveSpeed, 0.15) : adaptiveSpeed;
+  const speedMultiplier = itemCount >= 18 ? 1.2 : itemCount >= 12 ? 1.1 : 1;
+  const effectiveSpeed = Math.max(0.6, speed * speedMultiplier);
+  const baseDuration = 36;
+  const duration = Math.max(18, baseDuration / effectiveSpeed);
   const [isPaused, setIsPaused] = React.useState(false);
-  const scrollRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!shouldAnimate) {return;}
-    const scroller = scrollRef.current;
-    if (!scroller) {return;}
-
-    let animationId: number;
-    let position = scroller.scrollLeft;
-
-    const step = () => {
-      if (!isPaused && scroller) {
-        position += effectiveSpeed;
-        const maxScroll = scroller.scrollWidth / loopCount;
-        if (position >= maxScroll) {
-          position = 0;
-        }
-        scroller.scrollLeft = position;
-      } else if (scroller) {
-        position = scroller.scrollLeft;
-      }
-      animationId = requestAnimationFrame(step);
-    };
-
-    animationId = requestAnimationFrame(step);
-    return () =>{  cancelAnimationFrame(animationId); };
-  }, [effectiveSpeed, isPaused, loopCount, shouldAnimate]);
 
   if (normalizedItems.length === 0) {return null;}
 
@@ -118,7 +92,7 @@ export const PartnersMarqueeShared = ({
   const linkProps = openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
   return (
-    <section className={cn('w-full py-10 bg-white border-b border-slate-200', className)} style={{ borderColor: colors.neutralBorder }}>
+    <section className={cn('w-full py-8 bg-white border-b border-slate-200', className)} style={{ borderColor: colors.neutralBorder }}>
       <div className="w-full max-w-7xl mx-auto px-4 md:px-6 space-y-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <h2 className="text-2xl font-bold tracking-tight relative pl-4" style={{ color: colors.headingText }}>
@@ -126,10 +100,12 @@ export const PartnersMarqueeShared = ({
             {title ?? 'Đối tác'}
           </h2>
         </div>
-        <div className="w-full relative py-8">
+        <div className="w-full relative py-6">
           <div
-            ref={scrollRef}
-            className="flex overflow-x-auto touch-pan-x no-scrollbar"
+            className={cn(
+              'w-full no-scrollbar',
+              shouldAnimate ? 'overflow-hidden' : 'overflow-x-auto touch-pan-x'
+            )}
             style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
             onMouseEnter={() =>{  setIsPaused(true); }}
             onMouseLeave={() =>{  setIsPaused(false); }}
@@ -138,30 +114,35 @@ export const PartnersMarqueeShared = ({
             onFocusCapture={() =>{  setIsPaused(true); }}
             onBlurCapture={() =>{  setIsPaused(false); }}
           >
-            <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
-            {Array.from({ length: loopCount }).map((_, loopIndex) => (
-              <div key={`loop-${loopIndex}`} className="flex shrink-0 gap-16 items-center px-4">
-                {normalizedItems.map((item, index) => {
-                  const keyBase = item.id ?? item.url ?? item.name ?? index;
-                  return (
-                    <a
-                      key={`${loopIndex}-${keyBase}`}
-                      href={item.link ?? '#'}
-                      className="shrink-0 group"
-                      {...linkProps}
-                    >
-                      {item.url
-                        ? renderImage(item, logoClassName)
-                        : (
-                          <div className={placeholderClassName} style={{ backgroundColor: colors.itemBgMuted, border: `1px solid ${colors.neutralBorder}` }}>
-                            <ImageIcon size={24} className="text-slate-400" />
-                          </div>
-                        )}
-                    </a>
-                  );
-                })}
-              </div>
-            ))}
+            <style>{`@keyframes partners-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } } .no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+            <div
+              className="flex w-max items-center gap-8 md:gap-10 px-4"
+              style={shouldAnimate ? { animation: `partners-marquee ${duration}s linear infinite`, animationPlayState: isPaused ? 'paused' : 'running' } : undefined}
+            >
+              {Array.from({ length: loopCount }).map((_, loopIndex) => (
+                <div key={`loop-${loopIndex}`} className="flex shrink-0 items-center gap-8 md:gap-10">
+                  {normalizedItems.map((item, index) => {
+                    const keyBase = item.id ?? item.url ?? item.name ?? index;
+                    return (
+                      <a
+                        key={`${loopIndex}-${keyBase}`}
+                        href={item.link ?? '#'}
+                        className="shrink-0 group"
+                        {...linkProps}
+                      >
+                        {item.url
+                          ? renderImage(item, logoClassName)
+                          : (
+                            <div className={placeholderClassName} style={{ backgroundColor: colors.itemBgMuted, border: `1px solid ${colors.neutralBorder}` }}>
+                              <ImageIcon size={24} className="text-slate-400" />
+                            </div>
+                          )}
+                      </a>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

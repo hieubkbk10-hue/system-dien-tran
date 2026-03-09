@@ -4,6 +4,7 @@ import React from 'react';
 import { Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { getPartnersColors, type PartnersBrandMode } from '../_lib/colors';
+import { PartnersLogoCloudModal } from './PartnersLogoCloudModal';
 
 export type PartnerBadgeItem = {
   id?: string | number;
@@ -72,6 +73,7 @@ export const PartnersBadgeShared = ({
   if (items.length === 0) {return null;}
 
   const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   const layout = layoutByVariant[variant];
   const visibleItems = items.slice(0, maxVisible);
@@ -106,16 +108,31 @@ export const PartnersBadgeShared = ({
             </a>
           ))}
           {remainingCount > 0 && (
-            <div
-              className={layout.remaining}
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className={cn(layout.remaining, 'transition-colors')}
               style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
+              aria-label={`Xem tất cả ${remainingCount} đối tác`}
             >
               <Plus size={14} style={{ color: colors.remainingText }} />
               <span className="text-xs font-bold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
-            </div>
+              <span className="text-[10px] font-semibold" style={{ color: colors.remainingText }}>Xem tất cả</span>
+            </button>
           )}
         </div>
       </div>
+      <PartnersLogoCloudModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        items={items}
+        title={title ?? 'Đối tác'}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
+        openInNewTab={openInNewTab}
+        renderImage={renderImage}
+      />
     </section>
   );
 };

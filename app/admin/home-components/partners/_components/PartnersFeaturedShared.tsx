@@ -2,6 +2,7 @@ import React from 'react';
 import { Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { getPartnersColors, type PartnersBrandMode } from '../_lib/colors';
+import { PartnersLogoCloudModal } from './PartnersLogoCloudModal';
 
 type FeaturedItem = {
   id?: string | number;
@@ -39,6 +40,7 @@ export const PartnersFeaturedShared = ({
   const smallSlots = Array.from({ length: 5 }, (_, index) => smallVisible[index]);
   const linkProps = openInNewTab ? { target: '_blank', rel: 'noopener noreferrer' } : {};
   const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   if (items.length <= 2) {
     return (
@@ -106,19 +108,34 @@ export const PartnersFeaturedShared = ({
               </div>
             ))}
             {remainingCount > 0 ? (
-              <div
-                className="flex flex-col items-center justify-center rounded-xl border aspect-[3/2]"
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="flex flex-col items-center justify-center rounded-xl border aspect-[3/2] transition-colors"
                 style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
+                aria-label={`Xem tất cả ${remainingCount} đối tác`}
               >
                 <Plus size={20} style={{ color: colors.remainingText }} />
                 <span className="text-sm font-semibold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
-              </div>
+                <span className="text-xs mt-1" style={{ color: colors.remainingText }}>Xem tất cả</span>
+              </button>
             ) : (
               <div className="rounded-xl border border-transparent aspect-[3/2]" />
             )}
           </div>
         </div>
       </div>
+      <PartnersLogoCloudModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        items={items}
+        title={title ?? 'Đối tác'}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
+        openInNewTab={openInNewTab}
+        renderImage={renderImage}
+      />
     </section>
   );
 };

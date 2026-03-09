@@ -4,6 +4,7 @@ import React from 'react';
 import { Image as ImageIcon, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { getPartnersColors, type PartnersBrandMode } from '../_lib/colors';
+import { PartnersLogoCloudModal } from './PartnersLogoCloudModal';
 
 export type PartnerGridItem = {
   id?: string | number;
@@ -38,6 +39,7 @@ export const PartnersGridShared = ({
   if (items.length === 0) {return null;}
 
   const colors = React.useMemo(() => getPartnersColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const hasRemaining = items.length > maxVisible;
   const visibleCount = hasRemaining ? maxVisible - 1 : maxVisible;
   const visibleItems = items.slice(0, visibleCount);
@@ -71,16 +73,31 @@ export const PartnersGridShared = ({
             </a>
           ))}
           {remainingCount > 0 && (
-            <div
-              className="w-full flex flex-col items-center justify-center p-4 rounded-xl border"
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="w-full flex flex-col items-center justify-center p-4 rounded-xl border transition-colors"
               style={{ backgroundColor: colors.remainingBg, borderColor: colors.remainingBorder }}
+              aria-label={`Xem tất cả ${remainingCount} đối tác`}
             >
               <Plus size={20} style={{ color: colors.remainingText }} />
               <span className="text-sm font-semibold" style={{ color: colors.remainingText }}>+{remainingCount}</span>
-            </div>
+              <span className="text-xs mt-1" style={{ color: colors.remainingText }}>Xem tất cả</span>
+            </button>
           )}
         </div>
       </div>
+      <PartnersLogoCloudModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        items={items}
+        title={title ?? 'Đối tác'}
+        brandColor={brandColor}
+        secondary={secondary}
+        mode={mode}
+        openInNewTab={openInNewTab}
+        renderImage={renderImage}
+      />
     </section>
   );
 };

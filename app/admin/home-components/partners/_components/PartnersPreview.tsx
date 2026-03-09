@@ -85,7 +85,7 @@ export const PartnersPreview = ({
         mode={mode}
         title={title ?? 'Đối tác'}
         variant="marquee"
-        speed={0.8}
+        speed={1.15}
         openInNewTab
         renderImage={(item, className) => (
           <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
@@ -106,7 +106,7 @@ export const PartnersPreview = ({
         mode={mode}
         title={title ?? 'Đối tác'}
         variant="mono"
-        speed={0.5}
+        speed={0.9}
         openInNewTab
         renderImage={(item, className) => (
           <PreviewImage src={item.url} alt={item.name ?? ''} className={className} />
