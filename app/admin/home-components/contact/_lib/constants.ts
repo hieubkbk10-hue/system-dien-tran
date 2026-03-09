@@ -1,4 +1,9 @@
-import type { ContactConfigState, ContactStyle } from '../_types';
+import type {
+  ContactConfigState,
+  ContactInfoItem,
+  ContactSocialLink,
+  ContactStyle,
+} from '../_types';
 
 export const CONTACT_STYLES: Array<{ id: ContactStyle; label: string }> = [
   { id: 'modern', label: 'Modern Split' },
@@ -10,6 +15,7 @@ export const CONTACT_STYLES: Array<{ id: ContactStyle; label: string }> = [
 ];
 
 export const DEFAULT_CONTACT_CONFIG: ContactConfigState = {
+  contactItems: [],
   address: '',
   email: '',
   formDescription: '',
@@ -21,6 +27,7 @@ export const DEFAULT_CONTACT_CONFIG: ContactConfigState = {
   showMap: true,
   showForm: true,
   socialLinks: [],
+  useOriginalSocialIconColors: true,
   submitButtonText: '',
   workingHours: '',
   style: 'modern',
@@ -31,41 +38,27 @@ export const DEFAULT_CONTACT_TEXTS: Record<ContactStyle, Record<string, string>>
   modern: {
     badge: 'Thông tin liên hệ',
     heading: 'Kết nối với chúng tôi',
-    addressLabel: 'Địa chỉ văn phòng',
-    contactLabel: 'Email & Điện thoại',
-    hoursLabel: 'Giờ làm việc',
+    description: 'Chúng tôi luôn sẵn sàng hỗ trợ bạn',
   },
   floating: {
     heading: 'Thông tin liên hệ',
-    addressLabel: 'Địa chỉ',
-    phoneLabel: 'Hotline',
-    emailLabel: 'Email',
-    hoursLabel: 'Giờ làm việc',
+    description: 'Thông tin liên hệ và vị trí bản đồ chính xác.',
   },
   grid: {
-    phoneLabel: 'Điện thoại',
-    emailLabel: 'Email',
-    hoursLabel: 'Giờ làm việc',
-    addressHeading: 'Trụ sở chính',
+    heading: 'Thông tin liên hệ',
+    description: 'Gửi yêu cầu và xem thông tin liên hệ của bạn.',
   },
   elegant: {
     heading: 'Văn phòng của chúng tôi',
     description: 'Thông tin liên hệ và vị trí bản đồ chính xác.',
-    addressLabel: 'Địa chỉ',
-    contactLabel: 'Liên lạc',
-    hoursLabel: 'Thời gian',
   },
   minimal: {
-    phoneLabel: 'Điện thoại',
-    emailLabel: 'Email',
-    addressLabel: 'Địa chỉ',
-    hoursLabel: 'Giờ làm việc',
+    heading: 'Liên hệ nhanh',
+    description: 'Chọn kênh phù hợp để kết nối với chúng tôi.',
   },
   centered: {
-    phoneLabel: 'Hotline',
-    emailLabel: 'Email',
-    hoursLabel: 'Giờ làm việc',
-    addressLabel: 'Địa chỉ văn phòng',
+    heading: 'Liên hệ & hỗ trợ',
+    description: 'Phản hồi nhanh trong giờ làm việc.',
   },
 };
 
@@ -73,40 +66,108 @@ export const TEXT_FIELDS: Record<ContactStyle, Array<{ key: string; label: strin
   modern: [
     { key: 'badge', label: 'Badge hiển thị', placeholder: 'Thông tin liên hệ' },
     { key: 'heading', label: 'Heading hiển thị', placeholder: 'Kết nối với chúng tôi' },
-    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ văn phòng' },
-    { key: 'contactLabel', label: 'Nhãn liên lạc', placeholder: 'Email & Điện thoại' },
-    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'description', label: 'Mô tả', placeholder: 'Chúng tôi luôn sẵn sàng hỗ trợ bạn' },
   ],
   floating: [
     { key: 'heading', label: 'Heading hiển thị', placeholder: 'Thông tin liên hệ' },
-    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Hotline' },
-    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'description', label: 'Mô tả', placeholder: 'Thông tin liên hệ và vị trí bản đồ chính xác.' },
   ],
   grid: [
-    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Điện thoại' },
-    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
-    { key: 'addressHeading', label: 'Heading địa chỉ', placeholder: 'Trụ sở chính' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Thông tin liên hệ' },
+    { key: 'description', label: 'Mô tả', placeholder: 'Gửi yêu cầu và xem thông tin liên hệ của bạn.' },
   ],
   elegant: [
     { key: 'heading', label: 'Heading hiển thị', placeholder: 'Văn phòng của chúng tôi' },
     { key: 'description', label: 'Mô tả', placeholder: 'Thông tin liên hệ và vị trí bản đồ chính xác.' },
-    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'contactLabel', label: 'Nhãn liên lạc', placeholder: 'Liên lạc' },
-    { key: 'hoursLabel', label: 'Nhãn thời gian', placeholder: 'Thời gian' },
   ],
   minimal: [
-    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Điện thoại' },
-    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
-    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ' },
-    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Liên hệ nhanh' },
+    { key: 'description', label: 'Mô tả', placeholder: 'Chọn kênh phù hợp để kết nối với chúng tôi.' },
   ],
   centered: [
-    { key: 'phoneLabel', label: 'Nhãn điện thoại', placeholder: 'Hotline' },
-    { key: 'emailLabel', label: 'Nhãn email', placeholder: 'Email' },
-    { key: 'hoursLabel', label: 'Nhãn giờ làm việc', placeholder: 'Giờ làm việc' },
-    { key: 'addressLabel', label: 'Nhãn địa chỉ', placeholder: 'Địa chỉ văn phòng' },
+    { key: 'heading', label: 'Heading hiển thị', placeholder: 'Liên hệ & hỗ trợ' },
+    { key: 'description', label: 'Mô tả', placeholder: 'Phản hồi nhanh trong giờ làm việc.' },
   ],
+};
+
+const CONTACT_ITEM_TEMPLATES: Array<Pick<ContactInfoItem, 'icon' | 'label' | 'fieldKey'>> = [
+  { icon: 'map-pin', label: 'Địa chỉ', fieldKey: 'contact_address' },
+  { icon: 'phone', label: 'Số điện thoại', fieldKey: 'contact_phone' },
+  { icon: 'mail', label: 'Email', fieldKey: 'contact_email' },
+  { icon: 'clock', label: 'Giờ làm việc', fieldKey: 'working_hours' },
+];
+
+const SOCIAL_PLATFORMS: Array<{ platform: string; label: string; key: string }> = [
+  { platform: 'facebook', label: 'Facebook', key: 'social_facebook' },
+  { platform: 'instagram', label: 'Instagram', key: 'social_instagram' },
+  { platform: 'youtube', label: 'Youtube', key: 'social_youtube' },
+  { platform: 'tiktok', label: 'TikTok', key: 'social_tiktok' },
+  { platform: 'zalo', label: 'Zalo', key: 'contact_zalo' },
+  { platform: 'x', label: 'X (Twitter)', key: 'social_twitter' },
+  { platform: 'pinterest', label: 'Pinterest', key: 'social_pinterest' },
+];
+
+type SettingItem = { key: string; value: string | number | boolean };
+
+const buildSettingsMap = (settings?: SettingItem[]) => {
+  const map: Record<string, string> = {};
+  settings?.forEach((item) => {
+    map[item.key] = typeof item.value === 'string' ? item.value : String(item.value ?? '');
+  });
+  return map;
+};
+
+export const getContactSocialPlatforms = () => SOCIAL_PLATFORMS;
+
+export const buildDefaultContactItems = (): ContactInfoItem[] => CONTACT_ITEM_TEMPLATES.map((template, index) => ({
+  id: index + 1,
+  icon: template.icon,
+  label: template.label,
+  value: '',
+  href: '',
+  fieldKey: template.fieldKey,
+}));
+
+export const buildDefaultContactItemsFromSettings = (settings?: SettingItem[]): ContactInfoItem[] => {
+  const map = buildSettingsMap(settings);
+  return buildDefaultContactItems().map((item) => {
+    let value = '';
+    if (item.fieldKey === 'contact_phone') {
+      value = map.contact_phone || map.contact_hotline || '';
+    } else if (item.fieldKey) {
+      value = map[item.fieldKey] || '';
+    }
+
+    let href = item.href || '';
+    if (item.fieldKey === 'contact_phone' && value) {
+      href = `tel:${value}`;
+    }
+    if (item.fieldKey === 'contact_email' && value) {
+      href = `mailto:${value}`;
+    }
+
+    return {
+      ...item,
+      value,
+      href,
+    };
+  });
+};
+
+export const buildDefaultContactSocialsFromSettings = (contactSettings?: SettingItem[], socialSettings?: SettingItem[]): ContactSocialLink[] => {
+  const contactMap = buildSettingsMap(contactSettings);
+  const socialMap = buildSettingsMap(socialSettings);
+
+  return SOCIAL_PLATFORMS.map((platform, index) => {
+    const url = platform.key.startsWith('contact_')
+      ? contactMap[platform.key] || ''
+      : socialMap[platform.key] || '';
+
+    return {
+      id: index + 1,
+      icon: platform.platform,
+      platform: platform.platform,
+      url,
+    };
+  });
 };

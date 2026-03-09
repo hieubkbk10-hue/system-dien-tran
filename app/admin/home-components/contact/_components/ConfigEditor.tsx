@@ -4,12 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/admin/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Label } from '@/app/admin/components/ui';
 import { getContactMapDataFromSettings } from '@/lib/contact/getContactMapData';
 import { ToggleSwitch } from '@/components/modules/shared';
 import type { ContactConfigState } from '../_types';
 import { validateContactConfig } from '../_lib/validation';
 import { FormFieldsSelector } from './FormFieldsSelector';
+import { ContactInfoItemsManager } from './ContactInfoItemsManager';
 import { SocialLinksManager } from './SocialLinksManager';
 import { DynamicTextFields } from './DynamicTextFields';
 
@@ -21,15 +22,17 @@ interface ConfigEditorProps {
 
 interface ValidationErrors {
   mapEmbed?: string;
-  email?: string;
-  phone?: string;
+  contactItems?: Record<number, { href?: string }>;
+  socialLinks?: Record<number, { url?: string }>;
 }
 
 export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const socialSettings = useQuery(api.settings.listByGroup, { group: 'social' });
   const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
   const isSettingsLoading = contactSettings === undefined;
+  const isSocialSettingsLoading = socialSettings === undefined;
 
   // Validate config và track errors
   useEffect(() => {
@@ -45,6 +48,10 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
   // Helper để update nested texts
   const updateTexts = (texts: Record<string, string>) => {
     onChange({ ...value, texts });
+  };
+
+  const updateContactItems = (contactItems: typeof value.contactItems) => {
+    onChange({ ...value, contactItems });
   };
 
   // Helper để update socialLinks
@@ -106,89 +113,13 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
               </div>
             )}
 
-          <div>
-            <label
-              htmlFor="address"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-            >
-              Địa chỉ
-            </label>
-            <input
-              id="address"
-              type="text"
-              value={value.address}
-              onChange={(e) => updateConfig({ address: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Số điện thoại
-              </label>
-              <input
-                id="phone"
-                type="text"
-                value={value.phone}
-                onChange={(e) => updateConfig({ phone: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  validationErrors.phone
-                    ? 'border-red-500 dark:border-red-500'
-                    : 'border-slate-300 dark:border-slate-600'
-                }`}
-              />
-              {validationErrors.phone && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                  {validationErrors.phone}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="text"
-                value={value.email}
-                onChange={(e) => updateConfig({ email: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  validationErrors.email
-                    ? 'border-red-500 dark:border-red-500'
-                    : 'border-slate-300 dark:border-slate-600'
-                }`}
-              />
-              {validationErrors.email && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                  {validationErrors.email}
-                </p>
-              )}
-            </div>
-          </div>
-
-            <div>
-              <label
-                htmlFor="workingHours"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
-              >
-                Giờ làm việc
-              </label>
-              <input
-                id="workingHours"
-                type="text"
-                value={value.workingHours}
-                onChange={(e) => updateConfig({ workingHours: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <ContactInfoItemsManager
+            items={value.contactItems}
+            onChange={updateContactItems}
+            settings={contactSettings ?? []}
+            isLoadingSettings={isSettingsLoading}
+            validationErrors={validationErrors.contactItems}
+          />
         </CardContent>
       </Card>
 
@@ -293,10 +224,23 @@ export function ConfigEditor({ value, onChange, title }: ConfigEditorProps) {
         <CardHeader className="py-3">
           <CardTitle className="text-base">Mạng xã hội</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={value.useOriginalSocialIconColors !== false}
+              onChange={(event) => { updateConfig({ useOriginalSocialIconColors: event.target.checked }); }}
+              className="w-4 h-4 rounded"
+            />
+            <Label>Dùng màu icon gốc</Label>
+          </div>
           <SocialLinksManager
             links={value.socialLinks}
             onChange={updateSocialLinks}
+            contactSettings={contactSettings ?? []}
+            socialSettings={socialSettings ?? []}
+            isLoadingSettings={isSettingsLoading || isSocialSettingsLoading}
+            validationErrors={validationErrors.socialLinks}
           />
         </CardContent>
       </Card>

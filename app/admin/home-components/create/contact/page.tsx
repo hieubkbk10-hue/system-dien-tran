@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Card, CardContent } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ContactPreview } from '../../contact/_components/ContactPreview';
-import { DEFAULT_CONTACT_CONFIG, DEFAULT_CONTACT_HARMONY } from '../../contact/_lib/constants';
+import {
+  buildDefaultContactItemsFromSettings,
+  buildDefaultContactSocialsFromSettings,
+  DEFAULT_CONTACT_CONFIG,
+} from '../../contact/_lib/constants';
 import { getContactValidationResult } from '../../contact/_lib/colors';
 import { normalizeContactConfig, toContactConfigPayload } from '../../contact/_lib/normalize';
 import type { ContactConfigState, ContactStyle } from '../../contact/_types';
@@ -20,19 +24,26 @@ export default function ContactCreatePage() {
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
+  const socialSettings = useQuery(api.settings.listByGroup, { group: 'social' });
   const mapData = useMemo(() => getContactMapDataFromSettings(contactSettings ?? []), [contactSettings]);
-  const [config, setConfig] = useState<ContactConfigState>({
+  const seededRef = useRef(false);
+  const seedConfig = useMemo(() => normalizeContactConfig({
     ...DEFAULT_CONTACT_CONFIG,
-    address: '123 Nguyễn Huệ, Quận 1, TP.HCM',
-    email: 'contact@example.com',
-    phone: '1900 1234',
-    responseTimeText: 'Phản hồi trong 24h',
-    workingHours: 'Thứ 2 - Thứ 6: 8:00 - 17:00',
-    socialLinks: [
-      { id: 1, platform: 'facebook', url: '' },
-      { id: 2, platform: 'zalo', url: '' },
-    ],
-  });
+    contactItems: buildDefaultContactItemsFromSettings(contactSettings ?? []),
+    socialLinks: buildDefaultContactSocialsFromSettings(contactSettings ?? [], socialSettings ?? []),
+  }), [contactSettings, socialSettings]);
+  const [config, setConfig] = useState<ContactConfigState>(() => normalizeContactConfig({
+    ...DEFAULT_CONTACT_CONFIG,
+    contactItems: buildDefaultContactItemsFromSettings([]),
+    socialLinks: buildDefaultContactSocialsFromSettings([], []),
+  }));
+
+  useEffect(() => {
+    if (seededRef.current) {return;}
+    if (contactSettings === undefined || socialSettings === undefined) {return;}
+    setConfig(seedConfig);
+    seededRef.current = true;
+  }, [contactSettings, seedConfig, socialSettings]);
 
   const normalizedConfig = useMemo(() => normalizeContactConfig(config), [config]);
   const style = normalizedConfig.style;
@@ -41,8 +52,7 @@ export default function ContactCreatePage() {
     primary,
     secondary,
     mode,
-    harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
-  }), [primary, secondary, mode, normalizedConfig.harmony]);
+  }), [primary, secondary, mode]);
 
   const warningMessages = useMemo(() => {
     if (mode === 'single') {return [];}

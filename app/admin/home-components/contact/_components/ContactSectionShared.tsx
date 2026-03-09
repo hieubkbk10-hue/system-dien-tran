@@ -3,22 +3,21 @@
 import React from 'react';
 import {
   Building2,
-  Clock,
   Facebook,
   Globe,
   Instagram,
   Linkedin,
-  Mail,
   MapPin,
   MessageCircle,
-  Phone,
   Twitter,
+  X,
   Youtube,
 } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
 import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
 import { sanitizeGoogleMapIframe, type ContactMapData } from '@/lib/contact/getContactMapData';
+import { renderContactIcon } from '../_lib/iconOptions';
 import type { PreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import type {
   ContactBrandMode,
@@ -43,16 +42,36 @@ interface ContactSectionSharedProps {
   sourcePath?: string;
 }
 
+const PinterestIcon = ({ size = 18 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden="true">
+    <path d="M12.1 2.1c-5.4 0-8.1 3.9-8.1 7.1 0 2 1.2 3.8 3.1 4.5.3.1.5 0 .6-.3.1-.2.2-.8.2-1 0-.3-.1-.4-.3-.7-.6-.8-1-1.9-1-3.1 0-4 3-6.9 7.8-6.9 4.3 0 6.6 2.6 6.6 6.1 0 4.6-2 8.5-5.1 8.5-1.7 0-3-1.4-2.6-3.1.4-2 1.2-4.1 1.2-5.6 0-1.3-.7-2.4-2.2-2.4-1.7 0-3.1 1.8-3.1 4.2 0 1.5.5 2.6.5 2.6s-1.8 7.5-2.1 8.8c-.6 2.4-.1 5.3 0 5.6 0 .2.2.2.3.1.1-.1 1.9-2.3 2.5-4.5.2-.6 1.1-4.4 1.1-4.4.6 1.1 2.2 2 3.9 2 5.1 0 8.6-4.6 8.6-10.8 0-4.6-3.9-9-9.6-9z" />
+  </svg>
+);
+
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   facebook: Facebook,
   instagram: Instagram,
   linkedin: Linkedin,
   twitter: Twitter,
+  x: X,
   youtube: Youtube,
   zalo: MessageCircle,
+  pinterest: PinterestIcon,
 };
 
 const getSocialIconComponent = (platform: string) => iconMap[platform.toLowerCase()] ?? Globe;
+
+const SOCIAL_ORIGINAL_COLORS: Record<string, { bg: string; icon: string }> = {
+  facebook: { bg: '#1877f2', icon: '#ffffff' },
+  instagram: { bg: '#e1306c', icon: '#ffffff' },
+  youtube: { bg: '#ff0000', icon: '#ffffff' },
+  tiktok: { bg: '#000000', icon: '#ffffff' },
+  zalo: { bg: '#0084ff', icon: '#ffffff' },
+  twitter: { bg: '#1da1f2', icon: '#ffffff' },
+  x: { bg: '#000000', icon: '#ffffff' },
+  pinterest: { bg: '#E60023', icon: '#ffffff' },
+  linkedin: { bg: '#0a66c2', icon: '#ffffff' },
+};
 
 const getDisplayDevice = (context: ContactSectionContext, device?: PreviewDevice): PreviewDevice => {
   if (context === 'site') {return 'desktop';}
@@ -80,7 +99,7 @@ const getInfo = (config: ContactConfigState, title?: string) => {
   const defaultTexts = DEFAULT_CONTACT_TEXTS[config.style] ?? {};
   
   const heading = (config.formTitle ?? title)?.trim() || 'Liên hệ với chúng tôi';
-  const description = config.formDescription?.trim() || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn';
+  const description = config.formDescription?.trim() || defaultTexts.description || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn';
   const submitLabel = config.submitButtonText?.trim() || 'Gửi yêu cầu';
   const responseText = config.responseTimeText?.trim() || 'Phản hồi trong 24h';
   const subjectFallback = heading || title || 'Liên hệ từ website';
@@ -91,20 +110,10 @@ const getInfo = (config: ContactConfigState, title?: string) => {
     submitLabel,
     responseText,
     subjectFallback,
-    address: config.address?.trim() || '123 Nguyễn Huệ, Q1, TP.HCM',
-    phone: config.phone?.trim() || '1900 1234',
-    email: config.email?.trim() || 'contact@example.com',
-    workingHours: config.workingHours?.trim() || 'Thứ 2 - Thứ 6: 8:00 - 17:00',
     texts: {
       badge: texts.badge || defaultTexts.badge || 'Thông tin liên hệ',
       heading: texts.heading || defaultTexts.heading || 'Kết nối với chúng tôi',
-      addressLabel: texts.addressLabel || defaultTexts.addressLabel || 'Địa chỉ văn phòng',
-      contactLabel: texts.contactLabel || defaultTexts.contactLabel || 'Email & Điện thoại',
-      hoursLabel: texts.hoursLabel || defaultTexts.hoursLabel || 'Giờ làm việc',
-      phoneLabel: texts.phoneLabel || defaultTexts.phoneLabel || 'Điện thoại',
-      emailLabel: texts.emailLabel || defaultTexts.emailLabel || 'Email',
-      addressHeading: texts.addressHeading || defaultTexts.addressHeading || 'Trụ sở chính',
-      description: texts.description || defaultTexts.description || 'Thông tin liên hệ và vị trí bản đồ chính xác.',
+      description: texts.description || defaultTexts.description || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn',
     },
   };
 };
@@ -195,23 +204,124 @@ const IconBadge = ({
   </div>
 );
 
+const getDisplayItems = (config: ContactConfigState, isPreview: boolean) => {
+  const items = config.contactItems ?? [];
+  return items.filter((item) => {
+    const hasLabel = item.label?.trim().length > 0;
+    const hasValue = (item.value ?? '').trim().length > 0 || (item.href ?? '').trim().length > 0;
+    return hasLabel && (isPreview || hasValue);
+  });
+};
+
+const renderItemValue = (item: ContactConfigState['contactItems'][number], tokens: ContactColorTokens, isPreview: boolean, className = 'text-sm') => {
+  const displayValue = item.value?.trim() || item.href?.trim() || (isPreview ? 'Chưa có nội dung' : '');
+  if (!displayValue) {return null;}
+  const content = <span className={className} style={{ color: tokens.valueText }}>{displayValue}</span>;
+
+  if (!item.href) {return content;}
+  const isExternal = item.href.startsWith('http');
+  return (
+    <a
+      href={item.href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      className={className}
+      style={{ color: tokens.valueText }}
+    >
+      {displayValue}
+    </a>
+  );
+};
+
+const ContactItemRow = ({
+  item,
+  tokens,
+  iconSize = 16,
+  isPreview,
+  valueClassName,
+}: {
+  item: ContactConfigState['contactItems'][number];
+  tokens: ContactColorTokens;
+  iconSize?: number;
+  isPreview: boolean;
+  valueClassName?: string;
+}) => {
+  return (
+    <div className="flex items-start gap-3">
+      <IconBadge icon={renderContactIcon(item.icon, iconSize)} tokens={tokens} className="mt-0.5" />
+      <div>
+        <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{item.label}</h4>
+        {renderItemValue(item, tokens, isPreview, valueClassName ?? 'text-sm')}
+      </div>
+    </div>
+  );
+};
+
+const ContactItemCard = ({
+  item,
+  tokens,
+  iconSize = 18,
+  isPreview,
+}: {
+  item: ContactConfigState['contactItems'][number];
+  tokens: ContactColorTokens;
+  iconSize?: number;
+  isPreview: boolean;
+}) => {
+  return (
+    <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
+      <IconBadge icon={renderContactIcon(item.icon, iconSize)} tokens={tokens} className="mb-3" />
+      <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{item.label}</h3>
+      {renderItemValue(item, tokens, isPreview, 'text-sm font-semibold')}
+    </div>
+  );
+};
+
 const ContactSocialLinks = ({
   socials,
   tokens,
   size = 18,
   centered = false,
+  useOriginalColors = true,
 }: {
   socials: ContactSocialLink[];
   tokens: ContactColorTokens;
   size?: number;
   centered?: boolean;
+  useOriginalColors?: boolean;
 }) => {
   if (socials.length === 0) {return null;}
+
+  const resolveSocialStyles = (platform: string) => {
+    if (!useOriginalColors) {
+      return {
+        bg: tokens.socialBackground,
+        border: tokens.socialBorder,
+        color: tokens.socialIcon,
+      };
+    }
+
+    const original = SOCIAL_ORIGINAL_COLORS[platform];
+    if (!original) {
+      return {
+        bg: tokens.socialBackground,
+        border: tokens.socialBorder,
+        color: tokens.socialIcon,
+      };
+    }
+
+    return {
+      bg: original.bg,
+      border: original.bg,
+      color: original.icon,
+    };
+  };
 
   return (
     <div className={cn('flex items-center gap-2', centered && 'justify-center')}>
       {socials.map((social, idx) => {
         const Icon = getSocialIconComponent(social.platform);
+        const styles = resolveSocialStyles(social.platform);
         return (
           <a
             key={`${social.id}-${social.platform}-${idx}`}
@@ -220,9 +330,9 @@ const ContactSocialLinks = ({
             rel="noopener noreferrer"
             className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors"
             style={{
-              backgroundColor: tokens.socialBackground,
-              borderColor: tokens.socialBorder,
-              color: tokens.socialIcon,
+              backgroundColor: styles.bg,
+              borderColor: styles.border,
+              color: styles.color,
             }}
             aria-label={social.platform || 'social'}
           >
@@ -255,6 +365,8 @@ const renderModern = ({
 }) => {
   const hasForm = Boolean(config.showForm);
   const hasMap = Boolean(config.showMap);
+  const contactItems = getDisplayItems(config, isPreview);
+  const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
 
   return (
     <div
@@ -284,35 +396,14 @@ const renderModern = ({
           </h2>
 
           <div className="space-y-5">
-            <div className="flex items-start gap-3">
-              <IconBadge icon={<MapPin size={16} />} tokens={tokens} className="mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</h4>
-                <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <IconBadge icon={<Mail size={16} />} tokens={tokens} className="mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.contactLabel}</h4>
-                <p className="text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
-                <p className="text-sm mt-0.5" style={{ color: tokens.valueText }}>{info.phone}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <IconBadge icon={<Clock size={16} />} tokens={tokens} className="mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-sm mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</h4>
-                <p className="text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
-              </div>
-            </div>
+            {contactItems.map((item) => (
+              <ContactItemRow key={item.id} item={item} tokens={tokens} isPreview={isPreview} />
+            ))}
           </div>
 
           {activeSocials.length > 0 && (
             <div className="mt-5 pt-4 border-t" style={{ borderColor: tokens.neutralBorder }}>
-              <ContactSocialLinks socials={activeSocials} tokens={tokens} />
+              <ContactSocialLinks socials={activeSocials} tokens={tokens} useOriginalColors={useOriginalSocialIconColors} />
             </div>
           )}
         </div>
@@ -373,7 +464,9 @@ const renderFloating = ({
 }) => {
   const hasForm = Boolean(config.showForm);
   const hasMap = Boolean(config.showMap);
+  const contactItems = getDisplayItems(config, isPreview);
   const hasAux = hasForm || hasMap;
+  const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
   const gridClass = currentDevice === 'mobile'
     ? 'grid-cols-1'
     : hasAux
@@ -393,39 +486,14 @@ const renderFloating = ({
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <IconBadge icon={<MapPin size={16} />} tokens={tokens} className="mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
-              <p className="text-sm" style={{ color: tokens.valueText }}>{info.address}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <IconBadge icon={<Phone size={16} />} tokens={tokens} className="mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p>
-              <p className="text-sm" style={{ color: tokens.valueText }}>{info.phone}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <IconBadge icon={<Mail size={16} />} tokens={tokens} className="mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p>
-              <p className="text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <IconBadge icon={<Clock size={16} />} tokens={tokens} className="mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold uppercase" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
-              <p className="text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
-            </div>
-          </div>
+          {contactItems.map((item) => (
+            <ContactItemRow key={item.id} item={item} tokens={tokens} isPreview={isPreview} />
+          ))}
         </div>
 
         {activeSocials.length > 0 && (
           <div className="pt-4 border-t" style={{ borderColor: tokens.neutralBorder }}>
-            <ContactSocialLinks socials={activeSocials} tokens={tokens} />
+            <ContactSocialLinks socials={activeSocials} tokens={tokens} useOriginalColors={useOriginalSocialIconColors} />
           </div>
         )}
       </div>
@@ -481,6 +549,7 @@ const renderGrid = ({
 }) => {
   const hasForm = Boolean(config.showForm);
   const hasMap = Boolean(config.showMap);
+  const contactItems = getDisplayItems(config, isPreview);
   const gridColumns = currentDevice === 'mobile'
     ? 'grid-cols-1'
     : hasForm && hasMap
@@ -490,23 +559,9 @@ const renderGrid = ({
   return (
     <div className="w-full p-6 rounded-xl border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.neutralBackground }}>
     <div className={cn('grid gap-3 mb-6', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-3')}>
-      <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-        <IconBadge icon={<Phone size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</h3>
-        <p className="font-semibold" style={{ color: tokens.valueText }}>{info.phone}</p>
-      </div>
-
-      <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-        <IconBadge icon={<Mail size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</h3>
-        <p className="font-semibold text-sm" style={{ color: tokens.valueText }}>{info.email}</p>
-      </div>
-
-      <div className="p-5 rounded-lg border flex flex-col items-center text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-        <IconBadge icon={<Clock size={18} />} tokens={tokens} className="mb-3" />
-        <h3 className="font-medium text-sm mb-1" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</h3>
-        <p className="font-semibold text-sm" style={{ color: tokens.valueText }}>{info.workingHours}</p>
-      </div>
+      {contactItems.map((item) => (
+        <ContactItemCard key={item.id} item={item} tokens={tokens} isPreview={isPreview} />
+      ))}
     </div>
 
     <div className={cn('grid gap-4 items-stretch', gridColumns)}>
@@ -530,14 +585,13 @@ const renderGrid = ({
       )}
       {hasMap && (
         <div className="rounded-lg border p-4 h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-        <div className="flex items-start gap-3">
-          <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
-          <div>
-            <h3 className="font-bold text-base mb-1.5" style={{ color: tokens.heading }}>{info.texts.addressHeading}</h3>
-            <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{info.address}</p>
+          <div className="flex items-start gap-3">
+            <MapPin size={20} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
+            <div>
+              <h3 className="font-bold text-base mb-1.5" style={{ color: tokens.heading }}>Vị trí bản đồ</h3>
+              <p className="text-sm leading-relaxed" style={{ color: tokens.valueText }}>{mapData?.address || 'Địa chỉ đang cập nhật'}</p>
+            </div>
           </div>
-        </div>
-        {hasMap && (
           <div
             className={cn(
               'relative rounded-md overflow-hidden mt-4 flex-1',
@@ -546,8 +600,7 @@ const renderGrid = ({
           >
             {renderMapOrPlaceholder({ mapData, fallbackEmbed: config.mapEmbed, tokens, className: 'absolute inset-0', isPreview })}
           </div>
-        )}
-      </div>
+        </div>
       )}
     </div>
   </div>
@@ -573,6 +626,7 @@ const renderElegant = ({
 }) => {
   const hasForm = Boolean(config.showForm);
   const hasMap = Boolean(config.showMap);
+  const contactItems = getDisplayItems(config, isPreview);
 
   return (
     <div className="w-full border rounded-xl shadow-sm overflow-hidden" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
@@ -593,35 +647,17 @@ const renderElegant = ({
         className={cn('p-6 space-y-0 divide-y', currentDevice === 'mobile' ? 'w-full' : hasMap ? 'w-5/12' : 'w-full')}
         style={{ borderColor: tokens.neutralBorder }}
       >
-        <div className="py-4 first:pt-0">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p>
-          <div className="flex items-start gap-2.5">
-            <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: tokens.secondary }} />
-            <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</span>
-          </div>
-        </div>
-
-        <div className="py-4">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.contactLabel}</p>
-          <div className="space-y-2">
+        {contactItems.map((item) => (
+          <div key={item.id} className="py-4 first:pt-0">
+            <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{item.label}</p>
             <div className="flex items-center gap-2.5">
-              <Phone size={16} className="shrink-0" style={{ color: tokens.secondary }} />
-              <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.phone}</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Mail size={16} className="shrink-0" style={{ color: tokens.secondary }} />
-              <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.email}</span>
+              <span className="shrink-0" style={{ color: tokens.secondary }}>
+                {renderContactIcon(item.icon, 16)}
+              </span>
+              {renderItemValue(item, tokens, isPreview, 'text-sm font-medium')}
             </div>
           </div>
-        </div>
-
-        <div className="py-4 last:pb-0">
-          <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p>
-          <div className="flex items-center gap-2.5">
-            <Clock size={16} className="shrink-0" style={{ color: tokens.secondary }} />
-            <span className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.workingHours}</span>
-          </div>
-        </div>
+        ))}
 
         {hasForm && (
           <div className="pt-6">
@@ -684,26 +720,9 @@ const renderMinimal = ({
         <p className="text-sm mt-2" style={{ color: tokens.helperText }}>{info.description}</p>
       </div>
       <div className={cn('grid gap-4', currentDevice === 'mobile' ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4')}>
-        <a href={`tel:${info.phone}`} className="flex flex-col items-center p-5 rounded-xl border transition-colors text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-          <IconBadge icon={<Phone size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</span>
-          <span className="text-sm font-semibold" style={{ color: tokens.valueText }}>{info.phone}</span>
-        </a>
-        <a href={`mailto:${info.email}`} className="flex flex-col items-center p-5 rounded-xl border transition-colors text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-          <IconBadge icon={<Mail size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</span>
-          <span className="text-sm font-semibold truncate max-w-full" style={{ color: tokens.valueText }}>{info.email}</span>
-        </a>
-        <div className="flex flex-col items-center p-5 rounded-xl border text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-          <IconBadge icon={<MapPin size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</span>
-          <span className="text-sm font-semibold line-clamp-2" style={{ color: tokens.valueText }}>{info.address}</span>
-        </div>
-        <div className="flex flex-col items-center p-5 rounded-xl border text-center" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
-          <IconBadge icon={<Clock size={20} />} tokens={tokens} size={20} className="mb-3" />
-          <span className="text-xs mb-1" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</span>
-          <span className="text-sm font-semibold" style={{ color: tokens.valueText }}>{info.workingHours}</span>
-        </div>
+        {getDisplayItems(config, isPreview).map((item) => (
+          <ContactItemCard key={item.id} item={item} tokens={tokens} isPreview={isPreview} iconSize={20} />
+        ))}
       </div>
       {config.showForm && (
         <div className="mb-8">
@@ -725,7 +744,12 @@ const renderMinimal = ({
       {(activeSocials.length > 0 || config.showMap) && (
         <div className="mt-8 pt-6 border-t space-y-4" style={{ borderColor: tokens.neutralBorder }}>
           {activeSocials.length > 0 && (
-            <ContactSocialLinks socials={activeSocials} tokens={tokens} centered={currentDevice !== 'mobile'} />
+            <ContactSocialLinks
+              socials={activeSocials}
+              tokens={tokens}
+              centered={currentDevice !== 'mobile'}
+              useOriginalColors={config.useOriginalSocialIconColors !== false}
+            />
           )}
           {config.showMap && (
             <div className={cn('relative rounded-lg overflow-hidden w-full', MAP_HEIGHT_STANDARD)}>
@@ -759,6 +783,7 @@ const renderCentered = ({
 }) => {
   const hasForm = Boolean(config.showForm);
   const hasMap = Boolean(config.showMap);
+  const contactItems = getDisplayItems(config, isPreview);
   const gridColumns = currentDevice === 'mobile'
     ? 'grid-cols-1'
     : hasForm
@@ -769,7 +794,7 @@ const renderCentered = ({
     <div className="w-full border rounded-xl overflow-hidden shadow-sm" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBackground }}>
     <div className="text-center p-6 lg:p-10" style={{ backgroundColor: tokens.centeredHeaderBg }}>
       <div className="flex justify-center mb-5">
-        <IconBadge icon={<Phone size={28} />} tokens={tokens} size={24} />
+        <IconBadge icon={renderContactIcon('phone', 28)} tokens={tokens} size={24} />
       </div>
       <h2 className={cn('font-bold tracking-tight mb-2', currentDevice === 'mobile' ? 'text-xl' : 'text-2xl')} style={{ color: tokens.heading }}>{info.heading}</h2>
       <p className="text-sm max-w-md mx-auto" style={{ color: tokens.helperText }}>{info.description}</p>
@@ -781,25 +806,24 @@ const renderCentered = ({
     <div className="p-6 lg:p-8 space-y-6">
       <div className={cn('grid gap-6', gridColumns)}>
         <div className="space-y-3">
-          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-            <IconBadge icon={<Phone size={18} />} tokens={tokens} size={18} />
-            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.phoneLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.phone}</p></div>
-          </div>
-          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-            <IconBadge icon={<Mail size={18} />} tokens={tokens} size={18} />
-            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.emailLabel}</p><p className="text-sm font-bold truncate" style={{ color: tokens.valueText }}>{info.email}</p></div>
-          </div>
-          <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-            <IconBadge icon={<Clock size={18} />} tokens={tokens} size={18} />
-            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.hoursLabel}</p><p className="text-sm font-bold" style={{ color: tokens.valueText }}>{info.workingHours}</p></div>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
-            <IconBadge icon={<MapPin size={18} />} tokens={tokens} size={18} />
-            <div><p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{info.texts.addressLabel}</p><p className="text-sm font-medium" style={{ color: tokens.valueText }}>{info.address}</p></div>
-          </div>
+          {contactItems.map((item) => (
+            <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: tokens.centeredSurface }}>
+              <IconBadge icon={renderContactIcon(item.icon, 18)} tokens={tokens} size={18} />
+              <div>
+                <p className="text-xs mb-0.5" style={{ color: tokens.labelText }}>{item.label}</p>
+                {renderItemValue(item, tokens, isPreview, 'text-sm font-bold')}
+              </div>
+            </div>
+          ))}
           {activeSocials.length > 0 && (
             <div className="pt-2">
-              <ContactSocialLinks socials={activeSocials} tokens={tokens} size={20} centered />
+              <ContactSocialLinks
+                socials={activeSocials}
+                tokens={tokens}
+                size={20}
+                centered
+                useOriginalColors={config.useOriginalSocialIconColors !== false}
+              />
             </div>
           )}
         </div>

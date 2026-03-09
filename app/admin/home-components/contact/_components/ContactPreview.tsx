@@ -6,7 +6,7 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { CONTACT_STYLES, DEFAULT_CONTACT_HARMONY } from '../_lib/constants';
+import { CONTACT_STYLES } from '../_lib/constants';
 import { getContactValidationResult } from '../_lib/colors';
 import { normalizeContactConfig } from '../_lib/normalize';
 import { ContactSectionShared } from './ContactSectionShared';
@@ -46,8 +46,7 @@ export function ContactPreview({
     primary: brandColor,
     secondary,
     mode,
-    harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
-  }), [brandColor, secondary, mode, normalizedConfig.harmony]);
+  }), [brandColor, secondary, mode]);
 
   const warningMessages = React.useMemo(() => {
     if (mode === 'single') {return [];}
@@ -77,6 +76,8 @@ export function ContactPreview({
   }
 
   const activeSocials = normalizedConfig.socialLinks.filter((social) => social.url.trim().length > 0);
+  const activeItems = normalizedConfig.contactItems.filter((item) => item.value.trim().length > 0 || (item.href ?? '').trim().length > 0);
+  if (activeItems.length > 0) {infoParts.push(`${activeItems.length} dòng`);}
   if (activeSocials.length > 0) {infoParts.push(`${activeSocials.length} MXH`);}
 
   infoParts.push(mode === 'single' ? '1 màu' : '2 màu');

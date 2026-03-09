@@ -1,6 +1,6 @@
 import { describe, expect } from 'vitest';
 import { fc, test } from '@fast-check/vitest';
-import { isValidUrl, isValidEmail, isValidPhone } from '../validation';
+import { isValidHref, isValidUrl } from '../validation';
 
 describe('Validation Properties', () => {
   // Property 10: URL Validation Round Trip
@@ -27,49 +27,29 @@ describe('Validation Properties', () => {
     expect(isValidUrl(emptyUrl)).toBe(true);
   });
 
-  // Property 11: Email Validation Pattern Matching
-  // **Validates: Requirements 7.2**
-  test.prop([fc.emailAddress()], { numRuns: 100 })('valid emails return true', (email: string) => {
-    expect(isValidEmail(email)).toBe(true);
+  // Property 11: Href Validation Pattern Matching
+  test.prop([
+    fc.constantFrom('mailto:contact@example.com', 'tel:+84901234567', '/lien-he', '#section'),
+  ], { numRuns: 20 })('valid hrefs return true', (href: string) => {
+    expect(isValidHref(href)).toBe(true);
   });
 
   test.prop([
     fc.string().filter((s) => {
-      if (!s.trim()) return false; // Empty strings are valid
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return !emailRegex.test(s); // Only invalid emails
+      if (!s.trim()) return false;
+      if (s.startsWith('/') || s.startsWith('#')) return false;
+      try {
+        const parsed = new URL(s);
+        return !['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol);
+      } catch {
+        return true;
+      }
     }),
-  ], { numRuns: 100 })('invalid emails return false', (invalidEmail: string) => {
-    expect(isValidEmail(invalidEmail)).toBe(false);
+  ], { numRuns: 100 })('invalid hrefs return false', (invalidHref: string) => {
+    expect(isValidHref(invalidHref)).toBe(false);
   });
 
-  test.prop([fc.constant('')], { numRuns: 100 })('empty email is valid', (emptyEmail: string) => {
-    expect(isValidEmail(emptyEmail)).toBe(true);
-  });
-
-  // Property 12: Phone Validation Character Whitelist
-  // **Validates: Requirements 7.3**
-  test.prop([
-    fc.array(
-      fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '+', '-', '(', ')')
-    ).map(arr => arr.join(''))
-  ], { numRuns: 100 })('valid phones return true', (phone: string) => {
-    expect(isValidPhone(phone)).toBe(true);
-  });
-
-  test.prop([
-    fc
-      .string()
-      .filter((s) => {
-        if (!s.trim()) return false; // Empty strings are valid
-        const phoneRegex = /^[\d\s+\-()]+$/;
-        return !phoneRegex.test(s); // Only invalid phones
-      }),
-  ], { numRuns: 100 })('invalid phones return false', (invalidPhone: string) => {
-    expect(isValidPhone(invalidPhone)).toBe(false);
-  });
-
-  test.prop([fc.constant('')], { numRuns: 100 })('empty phone is valid', (emptyPhone: string) => {
-    expect(isValidPhone(emptyPhone)).toBe(true);
+  test.prop([fc.constant('')], { numRuns: 100 })('empty href is valid', (emptyHref: string) => {
+    expect(isValidHref(emptyHref)).toBe(true);
   });
 });

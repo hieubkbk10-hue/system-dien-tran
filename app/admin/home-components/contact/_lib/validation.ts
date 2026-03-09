@@ -4,8 +4,7 @@ export interface ValidationResult {
   isValid: boolean;
   errors: {
     mapEmbed?: string;
-    email?: string;
-    phone?: string;
+    contactItems?: Record<number, { href?: string }>;
     socialLinks?: Record<number, { url?: string }>;
   };
 }
@@ -20,17 +19,16 @@ export const isValidUrl = (url: string): boolean => {
   }
 };
 
-export const isValidEmail = (email: string): boolean => {
-  if (!email.trim()) return true; // Empty is valid (optional field)
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-export const isValidPhone = (phone: string): boolean => {
-  if (!phone.trim()) return true; // Empty is valid (optional field)
-  // Allow: digits, spaces, +, -, (, )
-  const phoneRegex = /^[\d\s+\-()]+$/;
-  return phoneRegex.test(phone);
+export const isValidHref = (href: string): boolean => {
+  const trimmed = href.trim();
+  if (!trimmed) return true;
+  if (trimmed.startsWith('/') || trimmed.startsWith('#')) {return true;}
+  try {
+    const parsed = new URL(trimmed);
+    return ['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
 };
 
 export const validateContactConfig = (config: ContactConfigState): ValidationResult => {
@@ -40,13 +38,12 @@ export const validateContactConfig = (config: ContactConfigState): ValidationRes
     errors.mapEmbed = 'URL không hợp lệ';
   }
 
-  if (config.email && !isValidEmail(config.email)) {
-    errors.email = 'Email không đúng định dạng';
-  }
-
-  if (config.phone && !isValidPhone(config.phone)) {
-    errors.phone = 'Số điện thoại chứa ký tự không hợp lệ';
-  }
+  const itemErrors: Record<number, { href?: string }> = {};
+  config.contactItems.forEach((item) => {
+    if (item.href && !isValidHref(item.href)) {
+      itemErrors[item.id] = { href: 'Link không hợp lệ' };
+    }
+  });
 
   const socialErrors: Record<number, { url?: string }> = {};
   config.socialLinks.forEach((link) => {
@@ -57,6 +54,10 @@ export const validateContactConfig = (config: ContactConfigState): ValidationRes
 
   if (Object.keys(socialErrors).length > 0) {
     errors.socialLinks = socialErrors;
+  }
+
+  if (Object.keys(itemErrors).length > 0) {
+    errors.contactItems = itemErrors;
   }
 
   return {

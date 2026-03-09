@@ -1,6 +1,16 @@
+export interface ContactInfoItem {
+  id: number;
+  icon: string;
+  label: string;
+  value: string;
+  href?: string;
+  fieldKey?: string;
+}
+
 export interface ContactSocialLink {
   id: number;
   platform: string;
+  icon: string;
   url: string;
 }
 
@@ -8,23 +18,22 @@ export type ContactStyle = 'modern' | 'floating' | 'grid' | 'elegant' | 'minimal
 
 export type ContactBrandMode = 'single' | 'dual';
 
-export type ContactHarmony = 'analogous' | 'complementary' | 'triadic';
-
 export interface ContactConfig {
   showMap: boolean;
   mapEmbed: string;
-  address: string;
-  phone: string;
-  email: string;
-  workingHours: string;
+  contactItems: ContactInfoItem[];
+  address?: string;
+  phone?: string;
+  email?: string;
+  workingHours?: string;
   formFields: string[];
   socialLinks: ContactSocialLink[];
+  useOriginalSocialIconColors?: boolean;
   showForm?: boolean;
   formTitle?: string;
   formDescription?: string;
   submitButtonText?: string;
   responseTimeText?: string;
-  harmony?: ContactHarmony;
   texts?: Record<string, string>;
 }
 
