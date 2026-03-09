@@ -22,6 +22,8 @@ export default function CategoriesListPage() {
 
 function CategoriesContent() {
   const productsData = useQuery(api.products.listAll, { limit: 1000 });
+  const categoriesAllData = useQuery(api.productCategories.listAll, { limit: 1000 });
+  const featuresData = useQuery(api.admin.modules.listModuleFeatures, { moduleKey: 'products' });
   const deleteCategory = useMutation(api.productCategories.remove);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +92,11 @@ function CategoriesContent() {
       : 'skip'
   );
 
-  const isLoading = categoriesData === undefined || totalCountData === undefined || productsData === undefined;
+  const isLoading = categoriesData === undefined
+    || totalCountData === undefined
+    || productsData === undefined
+    || categoriesAllData === undefined
+    || featuresData === undefined;
 
   useEffect(() => {
     if (selectAllData?.hasMore) {
@@ -115,6 +121,18 @@ function CategoriesContent() {
     });
     return map;
   }, [productsData]);
+
+  const parentNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    categoriesAllData?.forEach(category => {
+      map[category._id] = category.name;
+    });
+    return map;
+  }, [categoriesAllData]);
+
+  const hierarchyEnabled = featuresData
+    ?.find(feature => feature.featureKey === 'enableCategoryHierarchy')
+    ?.enabled ?? false;
 
   const categories = useMemo(() => categoriesData?.map(cat => ({
       ...cat,
@@ -273,9 +291,19 @@ function CategoriesContent() {
                 {resolvedVisibleColumns.includes('select') && <TableCell><SelectCheckbox checked={selectedIds.includes(cat.id)} onChange={() =>{  toggleSelectItem(cat.id); }} /></TableCell>}
                 {resolvedVisibleColumns.includes('name') && (
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <FolderTree size={16} className="text-orange-500" />
-                      {cat.name}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <FolderTree size={16} className={cat.parentId ? 'text-slate-400' : 'text-orange-500'} />
+                        <span>{cat.name}</span>
+                        {hierarchyEnabled && cat.parentId && (
+                          <Badge variant="outline" className="text-xs py-0 px-1.5 font-normal">Con</Badge>
+                        )}
+                      </div>
+                      {hierarchyEnabled && cat.parentId && (
+                        <span className="text-xs text-slate-400 pl-6">
+                          ↳ {parentNameMap[cat.parentId] ?? 'Không rõ cha'}
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                 )}
