@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
+import { settingsRuntimeDefinition } from '../../lib/modules/runtime-config';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -166,12 +167,14 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       .withIndex('by_module', q => q.eq('moduleKey', 'settings'))
       .first();
     if (!existingFeatures) {
-      const features = [
-        { description: 'Quản lý email, phone, địa chỉ', enabled: true, featureKey: 'enableContact', moduleKey: 'settings', name: 'Thông tin liên hệ' },
-        { description: 'Meta title, description, keywords', enabled: true, featureKey: 'enableSEO', moduleKey: 'settings', name: 'SEO cơ bản' },
-        { description: 'Links Facebook, Instagram, Youtube...', enabled: true, featureKey: 'enableSocial', moduleKey: 'settings', name: 'Mạng xã hội' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
+      const features = settingsRuntimeDefinition.features ?? [];
+      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', {
+        description: feature.description,
+        enabled: feature.enabled ?? true,
+        featureKey: feature.featureKey,
+        moduleKey: 'settings',
+        name: feature.name,
+      })));
     }
 
     const existingFields = await this.ctx.db
@@ -179,32 +182,19 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       .withIndex('by_module', q => q.eq('moduleKey', 'settings'))
       .first();
     if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'site_name', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Tên website', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'site_tagline', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Slogan', order: 1, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'site_url', group: 'site', isSystem: true, moduleKey: 'settings', name: 'URL Website', order: 2, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'site_logo', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Logo', order: 3, required: false, type: 'image' as const },
-        { enabled: true, fieldKey: 'site_favicon', group: 'site', isSystem: true, moduleKey: 'settings', name: 'Favicon', order: 4, required: false, type: 'image' as const },
-        { enabled: true, fieldKey: 'site_timezone', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Múi giờ', order: 5, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'site_language', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Ngôn ngữ', order: 6, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'site_brand_primary', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Màu thương hiệu (chính)', order: 7, required: false, type: 'color' as const },
-        { enabled: true, fieldKey: 'site_brand_secondary', group: 'site', isSystem: false, moduleKey: 'settings', name: 'Màu thương hiệu (phụ)', order: 8, required: false, type: 'color' as const },
-        { enabled: true, fieldKey: 'contact_email', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Email', order: 6, required: false, type: 'email' as const },
-        { enabled: true, fieldKey: 'contact_phone', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Số điện thoại', order: 7, required: false, type: 'phone' as const },
-        { enabled: true, fieldKey: 'contact_address', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Địa chỉ', order: 8, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'contact_tax_id', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Mã số thuế', order: 9, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'contact_zalo', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Zalo', order: 10, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'contact_messenger', group: 'contact', isSystem: false, linkedFeature: 'enableContact', moduleKey: 'settings', name: 'Facebook Messenger', order: 11, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'seo_title', group: 'seo', isSystem: false, linkedFeature: 'enableSEO', moduleKey: 'settings', name: 'Meta Title', order: 10, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'seo_description', group: 'seo', isSystem: false, linkedFeature: 'enableSEO', moduleKey: 'settings', name: 'Meta Description', order: 11, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'seo_keywords', group: 'seo', isSystem: false, linkedFeature: 'enableSEO', moduleKey: 'settings', name: 'Keywords', order: 12, required: false, type: 'tags' as const },
-        { enabled: true, fieldKey: 'seo_og_image', group: 'seo', isSystem: false, linkedFeature: 'enableSEO', moduleKey: 'settings', name: 'OG Image', order: 13, required: false, type: 'image' as const },
-        { enabled: true, fieldKey: 'social_facebook', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'Facebook', order: 14, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'social_instagram', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'Instagram', order: 15, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'social_youtube', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'Youtube', order: 16, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'social_tiktok', group: 'social', isSystem: false, linkedFeature: 'enableSocial', moduleKey: 'settings', name: 'TikTok', order: 17, required: false, type: 'text' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
+      const fields = settingsRuntimeDefinition.fields ?? [];
+      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', {
+        enabled: field.enabled ?? true,
+        fieldKey: field.fieldKey,
+        group: field.group,
+        isSystem: field.isSystem ?? false,
+        linkedFeature: field.linkedFeature,
+        moduleKey: 'settings',
+        name: field.name,
+        order: field.order,
+        required: field.required ?? false,
+        type: field.type,
+      })));
     }
   }
 }

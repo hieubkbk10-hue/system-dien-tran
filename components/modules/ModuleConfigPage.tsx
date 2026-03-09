@@ -1,10 +1,14 @@
  'use client';
  
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Settings, Palette, Loader2, FolderTree } from 'lucide-react';
 import type { ModuleDefinition } from '@/lib/modules/define-module';
 import type { FieldConfig } from '@/types/module-config';
  import { useModuleConfig } from '@/lib/modules/hooks/useModuleConfig';
+import { hasModuleRuntimeDefinition } from '@/lib/modules/runtime-config';
  import { 
    ModuleHeader, 
    ModuleStatus, 
@@ -71,6 +75,8 @@ export function ModuleConfigPage({
 }: ModuleConfigPageProps) {
    const [activeTab, setActiveTab] = useState<TabType>('config');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const syncModuleConfig = useMutation(api.admin.modules.syncModuleConfigFromDefinition);
    
    const {
      moduleData,
@@ -92,6 +98,8 @@ export function ModuleConfigPage({
    const tabs = config.tabs ?? ['config'];
    const isReadOnly = moduleData?.enabled === false;
   
+  const canSyncDefinition = hasModuleRuntimeDefinition(config.key);
+
   const renderProps: ModuleConfigPageRenderProps = {
     config,
     colorClasses,
@@ -125,6 +133,25 @@ export function ModuleConfigPage({
   };
   const canSaveConfig = !isReadOnly;
   const hasConfigChanges = activeTab === 'config' ? hasChanges : (activeTab === 'appearance' ? appearanceHasChanges : false);
+
+  const handleSyncDefinition = async () => {
+    if (isReadOnly || !canSyncDefinition) {return;}
+    setIsSyncing(true);
+    try {
+      const result = await syncModuleConfig({ moduleKey: config.key });
+      const added = result.addedFields.length + result.addedFeatures.length + result.addedSettings.length;
+      const updated = result.updatedFields.length + result.updatedFeatures.length + result.updatedSettings.length;
+      if (added === 0 && updated === 0) {
+        toast.message('Không có thay đổi để đồng bộ.');
+        return;
+      }
+      toast.success(`Đã đồng bộ: thêm ${added}, cập nhật ${updated}.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Đồng bộ thất bại');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
    
    if (isLoading) {
      return (
@@ -146,6 +173,12 @@ export function ModuleConfigPage({
         onSave={canSaveConfig ? (activeTab === 'config' ? handleSave : (activeTab === 'appearance' && onAppearanceSave ? handleAppearanceSave : undefined)) : undefined}
         hasChanges={canSaveConfig ? hasConfigChanges : false}
         isSaving={isConfigSaving || isSaving}
+        secondaryAction={activeTab === 'config' && canSyncDefinition ? {
+          label: 'Đồng bộ từ định nghĩa',
+          onClick: handleSyncDefinition,
+          disabled: isReadOnly,
+          isLoading: isSyncing,
+        } : undefined}
        />
 
       {isReadOnly && (

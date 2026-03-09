@@ -14,6 +14,12 @@ interface ModuleHeaderProps {
   onSave?: () => void;
   hasChanges?: boolean;
   isSaving?: boolean;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+    isLoading?: boolean;
+  };
 }
 
 export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
@@ -26,6 +32,7 @@ export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
   onSave,
   hasChanges = false,
   isSaving = false,
+  secondaryAction,
 }) => {
   const router = useRouter();
   let buttonStateClass = 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed';
@@ -41,8 +48,10 @@ export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
     buttonLabel = 'Đang lưu...';
   }
   
+  const secondaryLabel = secondaryAction?.isLoading ? 'Đang đồng bộ...' : secondaryAction?.label;
+
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <button 
           onClick={() =>{  router.push('/system/modules'); }}
@@ -61,14 +70,26 @@ export const ModuleHeader: React.FC<ModuleHeaderProps> = ({
         </div>
       </div>
       
-      <button 
-        onClick={onSave}
-        disabled={!hasChanges || isSaving}
-        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${buttonStateClass}`}
-      >
-        {buttonIcon}
-        {buttonLabel}
-      </button>
+      <div className="flex items-center gap-2">
+        {secondaryAction && (
+          <button
+            onClick={secondaryAction.onClick}
+            disabled={secondaryAction.disabled || secondaryAction.isLoading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:text-slate-800 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {secondaryAction.isLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+            {secondaryLabel}
+          </button>
+        )}
+        <button 
+          onClick={onSave}
+          disabled={!hasChanges || isSaving}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${buttonStateClass}`}
+        >
+          {buttonIcon}
+          {buttonLabel}
+        </button>
+      </div>
     </div>
   );
 };
