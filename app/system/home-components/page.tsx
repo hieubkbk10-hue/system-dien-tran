@@ -22,6 +22,7 @@ type ColorOverride = {
 export default function SystemHomeComponentsPage() {
   const systemColors = useBrandColors();
   const config = useQuery(api.homeComponentSystemConfig.getConfig);
+  const stats = useQuery(api.homeComponents.getStats);
   const setCreateVisibility = useMutation(api.homeComponentSystemConfig.setCreateVisibility);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const bulkSetTypeColorOverride = useMutation(api.homeComponentSystemConfig.bulkSetTypeColorOverride);
@@ -42,6 +43,16 @@ export default function SystemHomeComponentsPage() {
 
   const hiddenTypeSet = useMemo(() => new Set(hiddenTypes), [hiddenTypes]);
   const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
+  const typeCountMap = useMemo(() => {
+    if (!stats) {return {};}
+    return Object.fromEntries(stats.typeBreakdown.map((item) => [item.type, item.count]));
+  }, [stats]);
+  const unusedTypes = useMemo(() => {
+    if (!stats) {return [];}
+    return componentTypes
+      .filter((type) => (typeCountMap[type.value] ?? 0) === 0)
+      .map((type) => type.value);
+  }, [componentTypes, stats, typeCountMap]);
 
   const toggleSelectAll = () => {
     if (selectedTypes.length === componentTypes.length) {
@@ -123,6 +134,18 @@ export default function SystemHomeComponentsPage() {
     }
   };
 
+  const handleHideUnusedTypes = async () => {
+    if (unusedTypes.length === 0) {return;}
+    const nextHidden = Array.from(new Set([...hiddenTypes, ...unusedTypes]));
+    setHiddenTypes(nextHidden);
+    try {
+      await setCreateVisibility({ hiddenTypes: nextHidden });
+      toast.success('Đã ẩn các type chưa dùng khỏi trang tạo.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể ẩn các type chưa dùng.');
+    }
+  };
+
   const handleBulkCustom = async () => {
     if (selectedTypes.length === 0) {return;}
     try {
@@ -156,14 +179,20 @@ export default function SystemHomeComponentsPage() {
             <Button variant="outline" size="sm" onClick={handleHideSelected} disabled={selectedTypes.length === 0}>
               Ẩn đã chọn
             </Button>
+            <Button variant="outline" size="sm" onClick={handleHideUnusedTypes} disabled={unusedTypes.length === 0}>
+              Ẩn type chưa dùng
+            </Button>
             <Button variant="outline" size="sm" onClick={handleBulkCustom} disabled={selectedTypes.length === 0}>
               Bật custom đã chọn
             </Button>
             <span className="text-xs text-slate-500">Đã chọn {selectedTypes.length} mục</span>
+            <span className="text-xs text-slate-500">
+              {stats ? `Chưa dùng ${unusedTypes.length} type` : 'Đang tính số type chưa dùng...'}
+            </span>
           </div>
 
           <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-[44px_60px_1fr_220px] gap-3 px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900">
+            <div className="grid grid-cols-[44px_60px_1fr_140px_220px] gap-3 px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900">
               <div>
                 <input
                   type="checkbox"
@@ -174,6 +203,7 @@ export default function SystemHomeComponentsPage() {
               </div>
               <div>STT</div>
               <div>Tên home-component</div>
+              <div>Trạng thái</div>
               <div>Action</div>
             </div>
             {componentTypes.map((type, index) => {
@@ -181,10 +211,12 @@ export default function SystemHomeComponentsPage() {
               const isSelected = selectedSet.has(type.value);
               const customSupported = CUSTOM_SUPPORTED_TYPES.has(type.value);
               const override = getDefaultOverride(type.value);
+              const count = stats ? (typeCountMap[type.value] ?? 0) : null;
+              const isUnused = count === 0;
               return (
                 <div
                   key={type.value}
-                  className="grid grid-cols-[44px_60px_1fr_220px] gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 items-center"
+                  className="grid grid-cols-[44px_60px_1fr_140px_220px] gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 items-center"
                 >
                   <input
                     type="checkbox"
@@ -201,6 +233,22 @@ export default function SystemHomeComponentsPage() {
                       <div className="text-sm font-medium text-slate-800 dark:text-slate-100">{type.label}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{type.description}</div>
                     </div>
+                  </div>
+                  <div className="text-xs">
+                    {count === null ? (
+                      <span className="text-slate-400">Đang tải...</span>
+                    ) : (
+                      <span
+                        className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-full",
+                          isUnused
+                            ? "bg-slate-100 text-slate-500"
+                            : "bg-emerald-50 text-emerald-600"
+                        )}
+                      >
+                        {isUnused ? 'Chưa dùng' : `Đang dùng (${count})`}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
