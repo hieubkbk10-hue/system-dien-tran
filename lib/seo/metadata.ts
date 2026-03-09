@@ -103,7 +103,7 @@ export const buildMetadata = (params: {
       title: openGraphTitle,
       type: params.openGraphType ?? 'website',
       url: params.canonical,
-      ...(params.openGraph ?? {}),
+      ...params.openGraph,
     },
     robots: {
       follow: params.indexable,

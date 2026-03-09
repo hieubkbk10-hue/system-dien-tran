@@ -49,7 +49,7 @@ export default function LandingPagesPage() {
     try {
       await deleteMutation({ id });
       toast.success('Đã xóa landing page');
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi xóa');
     }
   };
@@ -60,7 +60,7 @@ export default function LandingPagesPage() {
       toast.success(`Đã xóa ${selectedIds.size} landing pages`);
       setSelectedIds(new Set());
       setShowBulkDelete(false);
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi xóa hàng loạt');
     }
   };
@@ -198,11 +198,11 @@ export default function LandingPagesPage() {
       </Card>
 
       <BulkDeleteConfirmDialog
-        isOpen={showBulkDelete}
-        onClose={() => setShowBulkDelete(false)}
+        open={showBulkDelete}
+        onOpenChange={setShowBulkDelete}
         onConfirm={handleBulkDelete}
-        count={selectedIds.size}
-        itemName="landing pages"
+        title="Xóa landing pages"
+        description={`Bạn có chắc muốn xóa ${selectedIds.size} landing pages?`}
       />
     </div>
   );

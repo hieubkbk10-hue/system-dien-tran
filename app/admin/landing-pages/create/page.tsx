@@ -6,10 +6,9 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from '../../components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUploader } from '../../components/ImageUploader';
-import { stripHtml, truncateText } from '@/lib/seo';
 
 const LANDING_TYPES = [
   { value: 'feature', label: 'Tính năng' },
@@ -131,28 +130,30 @@ export default function LandingPageCreatePage() {
 
             <div>
               <Label htmlFor="landingType">Landing Type *</Label>
-              <Select value={landingType} onValueChange={setLandingType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANDING_TYPES.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="landingType"
+                value={landingType}
+                onChange={(e) => setLandingType(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              >
+                {LANDING_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <Label htmlFor="summary">Summary *</Label>
-              <Textarea
+              <textarea
                 id="summary"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="Mô tả ngắn gọn..."
                 rows={3}
+                className="w-full px-3 py-2 border rounded-md"
                 required
               />
             </div>
@@ -169,15 +170,15 @@ export default function LandingPageCreatePage() {
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
             </div>
           </CardContent>
         </Card>
@@ -189,8 +190,7 @@ export default function LandingPageCreatePage() {
           <CardContent>
             <ImageUploader
               value={heroImage}
-              onChange={setHeroImage}
-              label="Upload hero image"
+              onChange={(url) => setHeroImage(url)}
             />
           </CardContent>
         </Card>
@@ -201,9 +201,8 @@ export default function LandingPageCreatePage() {
           </CardHeader>
           <CardContent>
             <LexicalEditor
-              value={content}
+              initialContent={content}
               onChange={setContent}
-              placeholder="Nhập nội dung chi tiết..."
             />
           </CardContent>
         </Card>
@@ -220,11 +219,12 @@ export default function LandingPageCreatePage() {
                   value={item.question}
                   onChange={(e) => updateFaqItem(index, 'question', e.target.value)}
                 />
-                <Textarea
+                <textarea
                   placeholder="Câu trả lời"
                   value={item.answer}
                   onChange={(e) => updateFaqItem(index, 'answer', e.target.value)}
                   rows={2}
+                  className="w-full px-3 py-2 border rounded-md"
                 />
                 <Button
                   type="button"
