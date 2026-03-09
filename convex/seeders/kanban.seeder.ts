@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel, Id } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -142,39 +143,6 @@ export class KanbanSeeder extends BaseSeeder<TaskData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'kanban'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Giới hạn số task trong mỗi cột', enabled: true, featureKey: 'enableWipLimit', moduleKey: 'kanban', name: 'Giới hạn WIP' },
-        { description: 'Phân công người phụ trách task', enabled: true, featureKey: 'enableAssignee', linkedFieldKey: 'assigneeId', moduleKey: 'kanban', name: 'Phân công' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'kanban'))
-      .collect();
-    if (existingFields.length === 0) {
-      const fields = [
-        { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'kanban', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'description', isSystem: false, moduleKey: 'kanban', name: 'Mô tả', order: 1, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'priority', isSystem: true, moduleKey: 'kanban', name: 'Ưu tiên', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'kanban', name: 'Hạn xử lý', order: 3, required: false, type: 'date' as const },
-        { enabled: true, fieldKey: 'assigneeId', isSystem: false, linkedFeature: 'enableAssignee', moduleKey: 'kanban', name: 'Người phụ trách', order: 4, required: false, type: 'select' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'kanban'))
-      .first();
-    if (!existingSettings) {
-      await this.ctx.db.insert('moduleSettings', { moduleKey: 'kanban', settingKey: 'defaultPriority', value: 'MEDIUM' });
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'kanban');
   }
 }

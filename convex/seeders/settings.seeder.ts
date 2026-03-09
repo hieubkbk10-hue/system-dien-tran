@@ -3,7 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
-import { settingsRuntimeDefinition } from '../../lib/modules/runtime-config';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -162,39 +162,6 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'settings'))
-      .first();
-    if (!existingFeatures) {
-      const features = settingsRuntimeDefinition.features ?? [];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', {
-        description: feature.description,
-        enabled: feature.enabled ?? true,
-        featureKey: feature.featureKey,
-        moduleKey: 'settings',
-        name: feature.name,
-      })));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'settings'))
-      .first();
-    if (!existingFields) {
-      const fields = settingsRuntimeDefinition.fields ?? [];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', {
-        enabled: field.enabled ?? true,
-        fieldKey: field.fieldKey,
-        group: field.group,
-        isSystem: field.isSystem ?? false,
-        linkedFeature: field.linkedFeature,
-        moduleKey: 'settings',
-        name: field.name,
-        order: field.order,
-        required: field.required ?? false,
-        type: field.type,
-      })));
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'settings');
   }
 }

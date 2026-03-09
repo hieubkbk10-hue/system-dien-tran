@@ -1,8 +1,8 @@
 import { ShoppingBag, CreditCard, Truck, MapPin } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
 import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '@/lib/orders/statuses';
  
- export const ordersModule = defineModule({
+export const ordersModule = defineModuleWithRuntime({
    key: 'orders',
    name: 'Đơn hàng',
    description: 'Quản lý đơn hàng khách hàng',
@@ -136,6 +136,10 @@ import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '@/lib/orders/
   ],
    
    conventionNote: 'orderNumber tự động generate. status theo cấu hình module. totalAmount tính tự động.',
+
+  runtimeConfig: {
+    fields: [],
+  },
    
   tabs: ['config'],
  });

@@ -1,7 +1,7 @@
 import { Clock, ShoppingCart, StickyNote } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
 
-export const cartModule = defineModule({
+export const cartModule = defineModuleWithRuntime({
   key: 'cart',
   name: 'Giỏ hàng',
   description: 'Cấu hình chức năng giỏ hàng cho khách đã đăng nhập',
@@ -20,6 +20,10 @@ export const cartModule = defineModule({
   ],
 
   conventionNote: 'Giỏ hàng phụ thuộc module Sản phẩm. Chỉ hỗ trợ khách đã đăng nhập. Giá lưu tại thời điểm thêm vào giỏ. Trạng thái: Active, Converted, Abandoned.',
+
+  runtimeConfig: {
+    fields: [],
+  },
 
   tabs: ['config'],
 });

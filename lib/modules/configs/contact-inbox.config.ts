@@ -1,7 +1,7 @@
 import { Inbox, Send, LayoutDashboard } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
 
-export const contactInboxModule = defineModule({
+export const contactInboxModule = defineModuleWithRuntime({
   key: 'contactInbox',
   name: 'Contact Inbox',
   description: 'Lưu trữ và quản lý tin nhắn liên hệ từ website',
@@ -21,6 +21,10 @@ export const contactInboxModule = defineModule({
   ],
 
   conventionNote: 'Inbox lưu dữ liệu inbound, không gửi email. Bật/tắt form và widget qua feature flags.',
+
+  runtimeConfig: {
+    fields: [],
+  },
 
   tabs: ['config'],
 });

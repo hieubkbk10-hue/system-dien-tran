@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -93,58 +94,6 @@ export class CommentsSeeder extends BaseSeeder<CommentData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'comments'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Cho phép like/dislike bình luận', enabled: false, featureKey: 'enableLikes', linkedFieldKey: 'likesCount', moduleKey: 'comments', name: 'Lượt thích' },
-        { description: 'Cho phép reply bình luận', enabled: true, featureKey: 'enableReplies', linkedFieldKey: 'parentId', moduleKey: 'comments', name: 'Trả lời' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'comments'))
-      .collect();
-    if (existingFields.length === 0) {
-      const fields = [
-        { enabled: true, fieldKey: 'content', isSystem: true, moduleKey: 'comments', name: 'Nội dung', order: 0, required: true, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'authorName', isSystem: true, moduleKey: 'comments', name: 'Tên người bình luận', order: 1, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'authorEmail', isSystem: false, moduleKey: 'comments', name: 'Email', order: 2, required: false, type: 'email' as const },
-        { enabled: true, fieldKey: 'targetType', isSystem: true, moduleKey: 'comments', name: 'Loại đối tượng', order: 3, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'targetId', isSystem: true, moduleKey: 'comments', name: 'ID đối tượng', order: 4, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'comments', name: 'Trạng thái', order: 5, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'rating', isSystem: false, moduleKey: 'comments', name: 'Đánh giá', order: 6, required: false, type: 'number' as const },
-        { enabled: true, fieldKey: 'parentId', isSystem: false, linkedFeature: 'enableReplies', moduleKey: 'comments', name: 'Bình luận cha', order: 7, required: false, type: 'select' as const },
-        { enabled: false, fieldKey: 'authorIp', isSystem: false, moduleKey: 'comments', name: 'IP', order: 8, required: false, type: 'text' as const },
-        { enabled: false, fieldKey: 'likesCount', isSystem: false, linkedFeature: 'enableLikes', moduleKey: 'comments', name: 'Số lượt thích', order: 9, required: false, type: 'number' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    } else if (!existingFields.some(field => field.fieldKey === 'rating')) {
-      await this.ctx.db.insert('moduleFields', {
-        enabled: true,
-        fieldKey: 'rating',
-        isSystem: false,
-        moduleKey: 'comments',
-        name: 'Đánh giá',
-        order: 6,
-        required: false,
-        type: 'number' as const,
-      });
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'comments'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'comments', settingKey: 'commentsPerPage', value: 20 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'comments', settingKey: 'defaultStatus', value: 'Pending' }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'comments');
   }
 }

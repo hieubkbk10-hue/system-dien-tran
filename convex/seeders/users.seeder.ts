@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -111,46 +112,6 @@ export class UsersSeeder extends BaseSeeder<UserData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'users'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Cho phép user có ảnh đại diện', enabled: true, featureKey: 'enableAvatar', linkedFieldKey: 'avatar', moduleKey: 'users', name: 'Ảnh đại diện' },
-        { description: 'Lưu số điện thoại của user', enabled: true, featureKey: 'enablePhone', linkedFieldKey: 'phone', moduleKey: 'users', name: 'Số điện thoại' },
-        { description: 'Theo dõi lần đăng nhập cuối', enabled: true, featureKey: 'enableLastLogin', linkedFieldKey: 'lastLogin', moduleKey: 'users', name: 'Đăng nhập cuối' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'users'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'name', isSystem: true, moduleKey: 'users', name: 'Họ và tên', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'email', isSystem: true, moduleKey: 'users', name: 'Email', order: 1, required: true, type: 'email' as const },
-        { enabled: true, fieldKey: 'roleId', isSystem: true, moduleKey: 'users', name: 'Vai trò', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'users', name: 'Trạng thái', order: 3, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'phone', isSystem: false, linkedFeature: 'enablePhone', moduleKey: 'users', name: 'Số điện thoại', order: 4, required: false, type: 'phone' as const },
-        { enabled: true, fieldKey: 'avatar', isSystem: false, linkedFeature: 'enableAvatar', moduleKey: 'users', name: 'Ảnh đại diện', order: 5, required: false, type: 'image' as const },
-        { enabled: true, fieldKey: 'lastLogin', isSystem: false, linkedFeature: 'enableLastLogin', moduleKey: 'users', name: 'Đăng nhập cuối', order: 6, required: false, type: 'date' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'users'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'users', settingKey: 'usersPerPage', value: 20 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'users', settingKey: 'sessionTimeout', value: 30 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'users', settingKey: 'maxLoginAttempts', value: 5 }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'users');
   }
 }

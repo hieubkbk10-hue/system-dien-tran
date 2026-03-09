@@ -1,7 +1,7 @@
 import { CalendarDays } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
 
-export const subscriptionsModule = defineModule({
+export const subscriptionsModule = defineModuleWithRuntime({
   key: 'subscriptions',
   name: 'Subscriptions',
   description: 'Quản lý gia hạn subscription khách hàng',
@@ -35,5 +35,16 @@ export const subscriptionsModule = defineModule({
   ],
 
   conventionNote: 'Tối ưu quy trình nhắc gia hạn khách hàng.',
+
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'title', isSystem: true, name: 'Tiêu đề', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'status', isSystem: true, name: 'Trạng thái', order: 1, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'dueDate', isSystem: false, name: 'Ngày nhắc', order: 2, required: true, type: 'date' },
+      { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', name: 'Khách hàng', order: 3, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', name: 'Sản phẩm', order: 4, required: true, type: 'select' },
+    ],
+  },
+
   tabs: ['config'],
 });

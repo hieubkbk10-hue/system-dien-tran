@@ -98,7 +98,8 @@ export function ModuleConfigPage({
    const tabs = config.tabs ?? ['config'];
    const isReadOnly = moduleData?.enabled === false;
   
-  const canSyncDefinition = hasModuleRuntimeDefinition(config.key);
+  const canSyncDefinition = hasModuleRuntimeDefinition(config.key)
+    || (config.categoryModuleKey ? hasModuleRuntimeDefinition(config.categoryModuleKey) : false);
 
   const renderProps: ModuleConfigPageRenderProps = {
     config,
@@ -138,9 +139,16 @@ export function ModuleConfigPage({
     if (isReadOnly || !canSyncDefinition) {return;}
     setIsSyncing(true);
     try {
-      const result = await syncModuleConfig({ moduleKey: config.key });
-      const added = result.addedFields.length + result.addedFeatures.length + result.addedSettings.length;
-      const updated = result.updatedFields.length + result.updatedFeatures.length + result.updatedSettings.length;
+      const moduleKeys = [config.key, config.categoryModuleKey].filter((key): key is string => Boolean(key));
+      const results = await Promise.all(moduleKeys.map((moduleKey) => syncModuleConfig({ moduleKey })));
+      const added = results.reduce((total, result) => total
+        + result.addedFields.length
+        + result.addedFeatures.length
+        + result.addedSettings.length, 0);
+      const updated = results.reduce((total, result) => total
+        + result.updatedFields.length
+        + result.updatedFeatures.length
+        + result.updatedSettings.length, 0);
       if (added === 0 && updated === 0) {
         toast.message('Không có thay đổi để đồng bộ.');
         return;

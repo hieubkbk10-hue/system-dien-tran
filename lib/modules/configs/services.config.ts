@@ -1,7 +1,7 @@
 import { DollarSign, Clock, Star, Briefcase } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
  
-export const servicesModule = defineModule({
+export const servicesModule = defineModuleWithRuntime({
    key: 'services',
   name: 'Dịch vụ',
    description: 'Cấu hình dịch vụ và danh mục',
@@ -30,6 +30,10 @@ export const servicesModule = defineModule({
    ],
 
    conventionNote: 'Slug tự động từ tiêu đề. Trường order và active bắt buộc theo Rails convention.',
+
+  runtimeConfig: {
+    fields: [],
+  },
 
   tabs: ['config'],
 });

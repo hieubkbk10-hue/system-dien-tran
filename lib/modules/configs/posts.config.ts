@@ -1,7 +1,7 @@
- import { FileText, Tag, Star, Clock } from 'lucide-react';
- import { defineModule } from '../define-module';
+import { FileText, Tag, Star, Clock } from 'lucide-react';
+import { defineModuleWithRuntime } from '../define-module';
  
- export const postsModule = defineModule({
+export const postsModule = defineModuleWithRuntime({
    key: 'posts',
   name: 'Bài viết',
    description: 'Cấu hình bài viết blog',
@@ -30,6 +30,24 @@
    ],
    
    conventionNote: 'Slug tự động từ tiêu đề. Trường order và active bắt buộc.',
+
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'title', isSystem: true, name: 'Tiêu đề', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'content', isSystem: true, name: 'Nội dung', order: 1, required: true, type: 'richtext' },
+      { enabled: true, fieldKey: 'order', isSystem: true, name: 'Thứ tự', order: 2, required: true, type: 'number' },
+      { enabled: true, fieldKey: 'active', isSystem: true, name: 'Trạng thái', order: 3, required: true, type: 'boolean' },
+      { enabled: true, fieldKey: 'excerpt', isSystem: false, name: 'Mô tả ngắn', order: 4, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'thumbnail', isSystem: false, name: 'Ảnh đại diện', order: 5, required: false, type: 'image' },
+      { enabled: true, fieldKey: 'category_id', isSystem: false, name: 'Danh mục', order: 6, required: false, type: 'select' },
+      { enabled: true, fieldKey: 'author_name', isSystem: false, name: 'Tác giả', order: 7, required: false, type: 'text' },
+      { enabled: true, fieldKey: 'tags', isSystem: false, linkedFeature: 'enableTags', name: 'Tags', order: 8, required: false, type: 'tags' },
+      { enabled: true, fieldKey: 'featured', isSystem: false, linkedFeature: 'enableFeatured', name: 'Nổi bật', order: 9, required: false, type: 'boolean' },
+      { enabled: true, fieldKey: 'publish_date', isSystem: false, linkedFeature: 'enableScheduling', name: 'Ngày xuất bản', order: 10, required: false, type: 'date' },
+      { enabled: true, fieldKey: 'metaTitle', group: 'seo', isSystem: false, name: 'Meta Title', order: 11, required: false, type: 'text' },
+      { enabled: true, fieldKey: 'metaDescription', group: 'seo', isSystem: false, name: 'Meta Description', order: 12, required: false, type: 'textarea' },
+    ],
+  },
    
   tabs: ['config'],
  });

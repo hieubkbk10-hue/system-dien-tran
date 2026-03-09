@@ -1,7 +1,7 @@
 import { LayoutGrid, ListTodo, Users } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
 
-export const kanbanModule = defineModule({
+export const kanbanModule = defineModuleWithRuntime({
   key: 'kanban',
   name: 'Kanban Board',
   description: 'Quản lý công việc nội bộ theo dạng Kanban',
@@ -28,5 +28,16 @@ export const kanbanModule = defineModule({
   ],
 
   conventionNote: 'Kéo thả để sắp xếp task giữa các cột, hỗ trợ WIP limit và phân công.',
+
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'title', isSystem: true, name: 'Tiêu đề', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'description', isSystem: false, name: 'Mô tả', order: 1, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'priority', isSystem: true, name: 'Ưu tiên', order: 2, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'dueDate', isSystem: false, name: 'Hạn xử lý', order: 3, required: false, type: 'date' },
+      { enabled: true, fieldKey: 'assigneeId', isSystem: false, linkedFeature: 'enableAssignee', name: 'Người phụ trách', order: 4, required: false, type: 'select' },
+    ],
+  },
+
   tabs: ['config'],
 });

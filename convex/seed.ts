@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { seedPresetProductOptions } from "./seeders/productOptions.seeder";
 import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from "../lib/orders/statuses";
 import { hashPassword } from "./lib/password";
+import { syncModuleRuntimeConfig } from "./lib/module-config-sync";
 
 const DEFAULT_USER_PASSWORD = process.env.SEED_USER_PASSWORD ?? "Admin@123";
 
@@ -113,47 +114,7 @@ export const seedAnalyticsModule = mutation({
   args: { configOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     void args;
-    // 1. Seed features
-    const existingFeatures = await ctx.db.query("moduleFeatures").withIndex("by_module", q => q.eq("moduleKey", "analytics")).first();
-    if (!existingFeatures) {
-      const features = [
-        { description: "Thống kê đơn hàng, doanh thu theo thời gian", enabled: true, featureKey: "enableSales", moduleKey: "analytics", name: "Báo cáo doanh thu" },
-        { description: "Khách mới, khách quay lại, phân khúc", enabled: true, featureKey: "enableCustomers", moduleKey: "analytics", name: "Báo cáo khách hàng" },
-        { description: "Sản phẩm bán chạy, tồn kho, xu hướng", enabled: true, featureKey: "enableProducts", moduleKey: "analytics", name: "Báo cáo sản phẩm" },
-        { description: "Pageviews, sessions, nguồn traffic", enabled: false, featureKey: "enableTraffic", moduleKey: "analytics", name: "Báo cáo lượt truy cập" },
-        { description: "Export CSV, Excel, PDF", enabled: true, featureKey: "enableExport", linkedFieldKey: "exportFormat", moduleKey: "analytics", name: "Xuất báo cáo" },
-      ];
-      for (const feature of features) {
-        await ctx.db.insert("moduleFeatures", feature);
-      }
-    }
-    // 2. Seed fields
-    const existingFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "analytics")).first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: "dateRange", isSystem: true, moduleKey: "analytics", name: "Khoảng thời gian", order: 0, required: true, type: "daterange" as const },
-        { enabled: true, fieldKey: "revenue", isSystem: true, linkedFeature: "enableSales", moduleKey: "analytics", name: "Doanh thu", order: 1, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "orders", isSystem: true, linkedFeature: "enableSales", moduleKey: "analytics", name: "Số đơn hàng", order: 2, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "avgOrderValue", isSystem: false, linkedFeature: "enableSales", moduleKey: "analytics", name: "Giá trị đơn TB", order: 3, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "newCustomers", isSystem: true, linkedFeature: "enableCustomers", moduleKey: "analytics", name: "Khách mới", order: 4, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "returningCustomers", isSystem: false, linkedFeature: "enableCustomers", moduleKey: "analytics", name: "Khách quay lại", order: 5, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "topProducts", isSystem: true, linkedFeature: "enableProducts", moduleKey: "analytics", name: "SP bán chạy", order: 6, required: false, type: "json" as const },
-        { enabled: true, fieldKey: "lowStock", isSystem: false, linkedFeature: "enableProducts", moduleKey: "analytics", name: "SP sắp hết", order: 7, required: false, type: "json" as const },
-        { enabled: false, fieldKey: "pageviews", isSystem: false, linkedFeature: "enableTraffic", moduleKey: "analytics", name: "Lượt xem trang", order: 8, required: false, type: "number" as const },
-        { enabled: false, fieldKey: "sessions", isSystem: false, linkedFeature: "enableTraffic", moduleKey: "analytics", name: "Phiên truy cập", order: 9, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "exportFormat", isSystem: false, linkedFeature: "enableExport", moduleKey: "analytics", name: "Định dạng xuất", order: 10, required: false, type: "select" as const },
-      ];
-      for (const field of fields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-    }
-    // 3. Seed settings
-    const existingSettings = await ctx.db.query("moduleSettings").withIndex("by_module", q => q.eq("moduleKey", "analytics")).first();
-    if (!existingSettings) {
-      await ctx.db.insert("moduleSettings", { moduleKey: "analytics", settingKey: "defaultPeriod", value: "30d" });
-      await ctx.db.insert("moduleSettings", { moduleKey: "analytics", settingKey: "autoRefresh", value: true });
-      await ctx.db.insert("moduleSettings", { moduleKey: "analytics", settingKey: "refreshInterval", value: 300 });
-    }
+    await syncModuleRuntimeConfig(ctx, "analytics");
     return null;
   },
   returns: v.null(),
@@ -252,85 +213,8 @@ export const seedPostsModule = mutation({
       }
     }
 
-    // 5. Seed posts module features
-    const existingFeatures = await ctx.db.query("moduleFeatures").withIndex("by_module", q => q.eq("moduleKey", "posts")).first();
-    if (!existingFeatures) {
-      const features = [
-        { description: "Gắn thẻ cho bài viết", enabled: true, featureKey: "enableTags", linkedFieldKey: "tags", moduleKey: "posts", name: "Tags" },
-        { description: "Đánh dấu bài viết nổi bật", enabled: true, featureKey: "enableFeatured", linkedFieldKey: "featured", moduleKey: "posts", name: "Nổi bật" },
-        { description: "Hẹn giờ xuất bản bài viết", enabled: true, featureKey: "enableScheduling", linkedFieldKey: "publish_date", moduleKey: "posts", name: "Hẹn giờ" },
-      ];
-      for (const feature of features) {
-        await ctx.db.insert("moduleFeatures", feature);
-      }
-    }
-
-    // 6. Seed posts module fields
-    const existingFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "posts")).collect();
-    if (existingFields.length === 0) {
-      const fields = [
-        { enabled: true, fieldKey: "title", isSystem: true, moduleKey: "posts", name: "Tiêu đề", order: 0, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "content", isSystem: true, moduleKey: "posts", name: "Nội dung", order: 1, required: true, type: "richtext" as const },
-        { enabled: true, fieldKey: "order", isSystem: true, moduleKey: "posts", name: "Thứ tự", order: 2, required: true, type: "number" as const },
-        { enabled: true, fieldKey: "active", isSystem: true, moduleKey: "posts", name: "Trạng thái", order: 3, required: true, type: "boolean" as const },
-        { enabled: true, fieldKey: "excerpt", isSystem: false, moduleKey: "posts", name: "Mô tả ngắn", order: 4, required: false, type: "textarea" as const },
-        { enabled: true, fieldKey: "thumbnail", isSystem: false, moduleKey: "posts", name: "Ảnh đại diện", order: 5, required: false, type: "image" as const },
-        { enabled: true, fieldKey: "category_id", isSystem: false, moduleKey: "posts", name: "Danh mục", order: 6, required: false, type: "select" as const },
-        { enabled: true, fieldKey: "author_name", isSystem: false, moduleKey: "posts", name: "Tác giả", order: 7, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "tags", isSystem: false, linkedFeature: "enableTags", moduleKey: "posts", name: "Tags", order: 8, required: false, type: "tags" as const },
-        { enabled: true, fieldKey: "featured", isSystem: false, linkedFeature: "enableFeatured", moduleKey: "posts", name: "Nổi bật", order: 9, required: false, type: "boolean" as const },
-        { enabled: true, fieldKey: "publish_date", isSystem: false, linkedFeature: "enableScheduling", moduleKey: "posts", name: "Ngày xuất bản", order: 10, required: false, type: "date" as const },
-        { enabled: true, fieldKey: "metaTitle", group: "seo", isSystem: false, moduleKey: "posts", name: "Meta Title", order: 11, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "metaDescription", group: "seo", isSystem: false, moduleKey: "posts", name: "Meta Description", order: 12, required: false, type: "textarea" as const },
-      ];
-      for (const field of fields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-
-      // Category fields
-      const categoryFields = [
-        { enabled: true, fieldKey: "name", isSystem: true, moduleKey: "postCategories", name: "Tên", order: 0, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "order", isSystem: true, moduleKey: "postCategories", name: "Thứ tự", order: 1, required: true, type: "number" as const },
-        { enabled: true, fieldKey: "active", isSystem: true, moduleKey: "postCategories", name: "Trạng thái", order: 2, required: true, type: "boolean" as const },
-        { enabled: true, fieldKey: "description", isSystem: false, moduleKey: "postCategories", name: "Mô tả", order: 3, required: false, type: "textarea" as const },
-        { enabled: false, fieldKey: "thumbnail", isSystem: false, moduleKey: "postCategories", name: "Ảnh đại diện", order: 4, required: false, type: "image" as const },
-      ];
-      for (const field of categoryFields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-    }
-
-    if (existingFields.length > 0) {
-      const fieldsToEnsure = [
-        { fieldKey: "author_name", name: "Tác giả", type: "text" as const },
-        { fieldKey: "metaTitle", name: "Meta Title", type: "text" as const, group: "seo" },
-        { fieldKey: "metaDescription", name: "Meta Description", type: "textarea" as const, group: "seo" },
-      ];
-      const existingKeys = new Set(existingFields.map((field) => field.fieldKey));
-      let nextOrder = Math.max(...existingFields.map((field) => field.order)) + 1;
-      for (const field of fieldsToEnsure) {
-        if (existingKeys.has(field.fieldKey)) {continue;}
-        await ctx.db.insert("moduleFields", {
-          enabled: true,
-          fieldKey: field.fieldKey,
-          group: field.group,
-          isSystem: false,
-          moduleKey: "posts",
-          name: field.name,
-          order: nextOrder,
-          required: false,
-          type: field.type,
-        });
-        nextOrder += 1;
-      }
-    }
-
-    // 7. Seed posts module settings
-    const existingSettings = await ctx.db.query("moduleSettings").withIndex("by_module", q => q.eq("moduleKey", "posts")).first();
-    if (!existingSettings) {
-      await ctx.db.insert("moduleSettings", { moduleKey: "posts", settingKey: "postsPerPage", value: 10 });
-      await ctx.db.insert("moduleSettings", { moduleKey: "posts", settingKey: "defaultStatus", value: "draft" });
-    }
+    await syncModuleRuntimeConfig(ctx, "posts");
+    await syncModuleRuntimeConfig(ctx, "postCategories");
 
     return null;
   },
@@ -609,109 +493,8 @@ export const seedProductsModule = mutation({
       }
     }
 
-    // 3. Seed module features
-    const existingFeatures = await ctx.db.query("moduleFeatures").withIndex("by_module", q => q.eq("moduleKey", "products")).first();
-    if (!existingFeatures) {
-      const features = [
-        { description: "Hiển thị giá khuyến mãi cho sản phẩm", enabled: true, featureKey: "enableSalePrice", linkedFieldKey: "salePrice", moduleKey: "products", name: "Giá khuyến mãi" },
-        { description: "Cho phép nhiều ảnh sản phẩm", enabled: true, featureKey: "enableGallery", linkedFieldKey: "images", moduleKey: "products", name: "Thư viện ảnh" },
-        { description: "Quản lý mã SKU sản phẩm", enabled: true, featureKey: "enableSKU", linkedFieldKey: "sku", moduleKey: "products", name: "Mã SKU" },
-        { description: "Quản lý mã vạch cho phiên bản", enabled: false, featureKey: "enableBarcode", linkedFieldKey: "barcode", moduleKey: "products", name: "Mã vạch phiên bản" },
-        { description: "Theo dõi số lượng tồn kho", enabled: true, featureKey: "enableStock", linkedFieldKey: "stock", moduleKey: "products", name: "Quản lý kho" },
-        { description: "Cho phép danh mục cha - con", enabled: false, featureKey: "enableCategoryHierarchy", linkedFieldKey: "parentId", moduleKey: "products", name: "Danh mục cha - con" },
-      ];
-      for (const feature of features) {
-        await ctx.db.insert("moduleFeatures", feature);
-      }
-    } else {
-      const features = await ctx.db
-        .query("moduleFeatures")
-        .withIndex("by_module", q => q.eq("moduleKey", "products"))
-        .collect();
-      const existingKeys = new Set(features.map((feature) => feature.featureKey));
-      if (!existingKeys.has("enableBarcode")) {
-        await ctx.db.insert("moduleFeatures", {
-          description: "Quản lý mã vạch cho phiên bản",
-          enabled: false,
-          featureKey: "enableBarcode",
-          linkedFieldKey: "barcode",
-          moduleKey: "products",
-          name: "Mã vạch phiên bản",
-        });
-      }
-    }
-
-    // 4. Seed module fields for products
-    const existingFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "products")).first();
-    if (!existingFields) {
-      const productFields = [
-        { enabled: true, fieldKey: "name", isSystem: true, moduleKey: "products", name: "Tên sản phẩm", order: 0, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "slug", isSystem: true, moduleKey: "products", name: "Slug", order: 1, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "sku", isSystem: false, linkedFeature: "enableSKU", moduleKey: "products", name: "Mã SKU", order: 2, required: true, type: "text" as const },
-        { enabled: false, fieldKey: "barcode", isSystem: false, linkedFeature: "enableBarcode", moduleKey: "products", name: "Mã vạch phiên bản", order: 3, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "price", isSystem: true, moduleKey: "products", name: "Giá bán", order: 4, required: true, type: "price" as const },
-        { enabled: true, fieldKey: "salePrice", isSystem: false, linkedFeature: "enableSalePrice", moduleKey: "products", name: "Giá khuyến mãi", order: 5, required: false, type: "price" as const },
-        { enabled: true, fieldKey: "stock", isSystem: false, linkedFeature: "enableStock", moduleKey: "products", name: "Tồn kho", order: 6, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "products", name: "Trạng thái", order: 7, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "categoryId", isSystem: true, moduleKey: "products", name: "Danh mục", order: 8, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "description", isSystem: false, moduleKey: "products", name: "Mô tả", order: 9, required: false, type: "richtext" as const },
-        { enabled: true, fieldKey: "image", isSystem: false, moduleKey: "products", name: "Ảnh đại diện", order: 10, required: false, type: "image" as const },
-        { enabled: true, fieldKey: "images", isSystem: false, linkedFeature: "enableGallery", moduleKey: "products", name: "Thư viện ảnh", order: 11, required: false, type: "gallery" as const },
-        { enabled: true, fieldKey: "metaTitle", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Title", order: 12, required: false, type: "text" as const },
-        { enabled: true, fieldKey: "metaDescription", group: "seo", isSystem: false, moduleKey: "products", name: "Meta Description", order: 13, required: false, type: "textarea" as const },
-      ];
-      for (const field of productFields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-
-      // Category fields
-      const categoryFields = [
-        { enabled: true, fieldKey: "name", isSystem: true, moduleKey: "productCategories", name: "Tên danh mục", order: 0, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "slug", isSystem: true, moduleKey: "productCategories", name: "Slug", order: 1, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "order", isSystem: true, moduleKey: "productCategories", name: "Thứ tự", order: 2, required: true, type: "number" as const },
-        { enabled: true, fieldKey: "active", isSystem: true, moduleKey: "productCategories", name: "Trạng thái", order: 3, required: true, type: "boolean" as const },
-        { enabled: true, fieldKey: "description", isSystem: false, moduleKey: "productCategories", name: "Mô tả", order: 4, required: false, type: "textarea" as const },
-        { enabled: false, fieldKey: "image", isSystem: false, moduleKey: "productCategories", name: "Hình ảnh", order: 5, required: false, type: "image" as const },
-      ];
-      for (const field of categoryFields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-    }
-
-    if (existingFields) {
-      const allFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "products")).collect();
-      const existingKeys = new Set(allFields.map((field) => field.fieldKey));
-      let nextOrder = Math.max(...allFields.map((field) => field.order)) + 1;
-      const extraFields = [
-        { enabled: false, fieldKey: "barcode", name: "Mã vạch phiên bản", type: "text" as const, linkedFeature: "enableBarcode" },
-        { enabled: true, fieldKey: "metaTitle", name: "Meta Title", type: "text" as const, group: "seo" },
-        { enabled: true, fieldKey: "metaDescription", name: "Meta Description", type: "textarea" as const, group: "seo" },
-      ];
-      for (const field of extraFields) {
-        if (existingKeys.has(field.fieldKey)) {continue;}
-        await ctx.db.insert("moduleFields", {
-          enabled: field.enabled,
-          fieldKey: field.fieldKey,
-          group: field.group,
-          isSystem: false,
-          linkedFeature: field.linkedFeature,
-          moduleKey: "products",
-          name: field.name,
-          order: nextOrder,
-          required: false,
-          type: field.type,
-        });
-        nextOrder += 1;
-      }
-    }
-
-    // 5. Seed module settings
-    const existingSettings = await ctx.db.query("moduleSettings").withIndex("by_module", q => q.eq("moduleKey", "products")).first();
-    if (!existingSettings) {
-      await ctx.db.insert("moduleSettings", { moduleKey: "products", settingKey: "productsPerPage", value: 12 });
-      await ctx.db.insert("moduleSettings", { moduleKey: "products", settingKey: "defaultStatus", value: "Draft" });
-      await ctx.db.insert("moduleSettings", { moduleKey: "products", settingKey: "lowStockThreshold", value: 10 });
-    }
+    await syncModuleRuntimeConfig(ctx, "products");
+    await syncModuleRuntimeConfig(ctx, "productCategories");
 
     // 6. Seed preset options (variants)
     await seedPresetProductOptions(ctx);
@@ -859,58 +642,7 @@ export const seedCommentsModule = mutation({
   args: { configOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     void args;
-    // 1. Seed module features
-    const existingFeatures = await ctx.db.query("moduleFeatures").withIndex("by_module", q => q.eq("moduleKey", "comments")).first();
-    if (!existingFeatures) {
-      const features = [
-        { description: "Cho phép like/dislike bình luận", enabled: false, featureKey: "enableLikes", linkedFieldKey: "likesCount", moduleKey: "comments", name: "Lượt thích" },
-        { description: "Cho phép reply bình luận", enabled: true, featureKey: "enableReplies", linkedFieldKey: "parentId", moduleKey: "comments", name: "Trả lời" },
-      ];
-      for (const feature of features) {
-        await ctx.db.insert("moduleFeatures", feature);
-      }
-    }
-
-    // 2. Seed module fields
-    const existingFields = await ctx.db.query("moduleFields").withIndex("by_module", q => q.eq("moduleKey", "comments")).collect();
-    if (existingFields.length === 0) {
-      const fields = [
-        { enabled: true, fieldKey: "content", isSystem: true, moduleKey: "comments", name: "Nội dung", order: 0, required: true, type: "textarea" as const },
-        { enabled: true, fieldKey: "authorName", isSystem: true, moduleKey: "comments", name: "Tên người bình luận", order: 1, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "authorEmail", isSystem: false, moduleKey: "comments", name: "Email", order: 2, required: false, type: "email" as const },
-        { enabled: true, fieldKey: "targetType", isSystem: true, moduleKey: "comments", name: "Loại đối tượng", order: 3, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "targetId", isSystem: true, moduleKey: "comments", name: "ID đối tượng", order: 4, required: true, type: "text" as const },
-        { enabled: true, fieldKey: "status", isSystem: true, moduleKey: "comments", name: "Trạng thái", order: 5, required: true, type: "select" as const },
-        { enabled: true, fieldKey: "rating", isSystem: false, moduleKey: "comments", name: "Đánh giá", order: 6, required: false, type: "number" as const },
-        { enabled: true, fieldKey: "parentId", isSystem: false, linkedFeature: "enableReplies", moduleKey: "comments", name: "Bình luận cha", order: 7, required: false, type: "select" as const },
-        { enabled: false, fieldKey: "authorIp", isSystem: false, moduleKey: "comments", name: "IP", order: 8, required: false, type: "text" as const },
-        { enabled: false, fieldKey: "likesCount", isSystem: false, linkedFeature: "enableLikes", moduleKey: "comments", name: "Số lượt thích", order: 9, required: false, type: "number" as const },
-      ];
-      for (const field of fields) {
-        await ctx.db.insert("moduleFields", field);
-      }
-    } else {
-      const hasRating = existingFields.some(f => f.fieldKey === "rating");
-      if (!hasRating) {
-        await ctx.db.insert("moduleFields", {
-          enabled: true,
-          fieldKey: "rating",
-          isSystem: false,
-          moduleKey: "comments",
-          name: "Đánh giá",
-          order: 6,
-          required: false,
-          type: "number" as const,
-        });
-      }
-    }
-
-    // 3. Seed module settings
-    const existingSettings = await ctx.db.query("moduleSettings").withIndex("by_module", q => q.eq("moduleKey", "comments")).first();
-    if (!existingSettings) {
-      await ctx.db.insert("moduleSettings", { moduleKey: "comments", settingKey: "commentsPerPage", value: 20 });
-      await ctx.db.insert("moduleSettings", { moduleKey: "comments", settingKey: "defaultStatus", value: "Pending" });
-    }
+    await syncModuleRuntimeConfig(ctx, "comments");
 
     return null;
   },

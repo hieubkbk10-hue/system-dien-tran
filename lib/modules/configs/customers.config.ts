@@ -1,7 +1,7 @@
- import { Users, KeyRound, MapPin, ImageIcon, StickyNote } from 'lucide-react';
- import { defineModule } from '../define-module';
+import { Users, KeyRound, MapPin, ImageIcon, StickyNote } from 'lucide-react';
+import { defineModuleWithRuntime } from '../define-module';
  
- export const customersModule = defineModule({
+export const customersModule = defineModuleWithRuntime({
    key: 'customers',
    name: 'Khách hàng',
    description: 'Quản lý thông tin khách hàng',
@@ -20,6 +20,10 @@
    ],
    
    conventionNote: 'Email unique và lowercase. Mật khẩu hash bằng bcrypt. ordersCount và totalSpent tự động cập nhật.',
+
+  runtimeConfig: {
+    fields: [],
+  },
    
   tabs: ['config'],
  });

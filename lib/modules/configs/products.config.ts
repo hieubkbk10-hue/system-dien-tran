@@ -1,7 +1,7 @@
 import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree } from 'lucide-react';
-import { defineModule } from '../define-module';
+import { defineModuleWithRuntime } from '../define-module';
  
-export const productsModule = defineModule({
+export const productsModule = defineModuleWithRuntime({
    key: 'products',
   name: 'Sản phẩm',
    description: 'Cấu hình sản phẩm và danh mục',
@@ -13,7 +13,7 @@ export const productsModule = defineModule({
      { key: 'enableSalePrice', label: 'Giá khuyến mãi', icon: DollarSign, linkedField: 'salePrice' },
      { key: 'enableGallery', label: 'Thư viện ảnh', icon: Image, linkedField: 'images' },
      { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku' },
-     { key: 'enableBarcode', label: 'Mã vạch phiên bản', icon: Tag, linkedField: 'barcode' },
+    { key: 'enableBarcode', label: 'Mã vạch phiên bản', icon: Tag, linkedField: 'barcode', enabled: false },
      { key: 'enableStock', label: 'Quản lý kho', icon: Box, linkedField: 'stock' },
      {
        key: 'enableCategoryHierarchy',
@@ -21,6 +21,7 @@ export const productsModule = defineModule({
        description: 'Cho phép phân cấp danh mục nhiều tầng',
        icon: FolderTree,
        linkedField: 'parentId',
+      enabled: false,
      },
    ],
 
@@ -158,6 +159,25 @@ export const productsModule = defineModule({
    ],
 
    conventionNote: 'Slug tự động từ tên. SKU phải unique. Trường price và status bắt buộc.',
+
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'name', isSystem: true, name: 'Tên sản phẩm', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'slug', isSystem: true, name: 'Slug', order: 1, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'sku', isSystem: false, linkedFeature: 'enableSKU', name: 'Mã SKU', order: 2, required: true, type: 'text' },
+      { enabled: false, fieldKey: 'barcode', isSystem: false, linkedFeature: 'enableBarcode', name: 'Mã vạch phiên bản', order: 3, required: false, type: 'text' },
+      { enabled: true, fieldKey: 'price', isSystem: true, name: 'Giá bán', order: 4, required: true, type: 'price' },
+      { enabled: true, fieldKey: 'salePrice', isSystem: false, linkedFeature: 'enableSalePrice', name: 'Giá khuyến mãi', order: 5, required: false, type: 'price' },
+      { enabled: true, fieldKey: 'stock', isSystem: false, linkedFeature: 'enableStock', name: 'Tồn kho', order: 6, required: false, type: 'number' },
+      { enabled: true, fieldKey: 'status', isSystem: true, name: 'Trạng thái', order: 7, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'categoryId', isSystem: true, name: 'Danh mục', order: 8, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'description', isSystem: false, name: 'Mô tả', order: 9, required: false, type: 'richtext' },
+      { enabled: true, fieldKey: 'image', isSystem: false, name: 'Ảnh đại diện', order: 10, required: false, type: 'image' },
+      { enabled: true, fieldKey: 'images', isSystem: false, linkedFeature: 'enableGallery', name: 'Thư viện ảnh', order: 11, required: false, type: 'gallery' },
+      { enabled: true, fieldKey: 'metaTitle', group: 'seo', isSystem: false, name: 'Meta Title', order: 12, required: false, type: 'text' },
+      { enabled: true, fieldKey: 'metaDescription', group: 'seo', isSystem: false, name: 'Meta Description', order: 13, required: false, type: 'textarea' },
+    ],
+  },
 
   tabs: ['config'],
 });

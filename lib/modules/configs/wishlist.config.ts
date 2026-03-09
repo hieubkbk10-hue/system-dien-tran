@@ -1,7 +1,7 @@
- import { Heart, Bell } from 'lucide-react';
- import { defineModule } from '../define-module';
+import { Heart, Bell } from 'lucide-react';
+import { defineModuleWithRuntime } from '../define-module';
  
- export const wishlistModule = defineModule({
+export const wishlistModule = defineModuleWithRuntime({
    key: 'wishlist',
    name: 'Sản phẩm yêu thích',
    description: 'Cấu hình danh sách SP yêu thích của khách hàng',
@@ -19,6 +19,10 @@
    ],
    
    conventionNote: 'Wishlist phụ thuộc module Sản phẩm. Mỗi cặp customerId + productId là unique.',
+
+  runtimeConfig: {
+    fields: [],
+  },
    
   tabs: ['config'],
  });

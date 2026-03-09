@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 import { getGalleryImages, getIndustryTemplate } from '../../lib/seed-templates';
@@ -246,48 +247,7 @@ export class HomepageSeeder extends BaseSeeder<HomeComponentData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'homepage'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Banner chính đầu trang', enabled: true, featureKey: 'enableHero', moduleKey: 'homepage', name: 'Hero Banner' },
-        { description: 'Section giới thiệu công ty', enabled: true, featureKey: 'enableAbout', moduleKey: 'homepage', name: 'Giới thiệu' },
-        { description: 'Hiển thị sản phẩm featured', enabled: true, featureKey: 'enableProducts', moduleKey: 'homepage', name: 'Sản phẩm nổi bật' },
-        { description: 'Hiển thị bài viết gần đây', enabled: true, featureKey: 'enablePosts', moduleKey: 'homepage', name: 'Bài viết mới' },
-        { description: 'Logo đối tác/khách hàng', enabled: false, featureKey: 'enablePartners', moduleKey: 'homepage', name: 'Đối tác' },
-        { description: 'Form liên hệ nhanh', enabled: true, featureKey: 'enableContact', moduleKey: 'homepage', name: 'Liên hệ' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'homepage'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'homepage', name: 'Tên section', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'type', isSystem: true, moduleKey: 'homepage', name: 'Loại section', order: 1, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'order', isSystem: true, moduleKey: 'homepage', name: 'Thứ tự', order: 2, required: true, type: 'number' as const },
-        { enabled: true, fieldKey: 'active', isSystem: true, moduleKey: 'homepage', name: 'Trạng thái', order: 3, required: true, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'config', isSystem: false, moduleKey: 'homepage', name: 'Cấu hình JSON', order: 4, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'background', isSystem: false, moduleKey: 'homepage', name: 'Ảnh nền', order: 5, required: false, type: 'image' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'homepage'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'homepage', settingKey: 'maxSections', value: 10 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'homepage', settingKey: 'defaultSectionType', value: 'hero' }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'homepage');
   }
 
   private async seedStats(): Promise<void> {

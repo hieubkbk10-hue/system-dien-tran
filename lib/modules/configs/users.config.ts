@@ -1,7 +1,7 @@
- import { UserCog, ImageIcon, Phone, Clock } from 'lucide-react';
- import { defineModule } from '../define-module';
+import { UserCog, ImageIcon, Phone, Clock } from 'lucide-react';
+import { defineModuleWithRuntime } from '../define-module';
  
- export const usersModule = defineModule({
+export const usersModule = defineModuleWithRuntime({
    key: 'users',
    name: 'Người dùng',
    description: 'Quản lý người dùng hệ thống',
@@ -21,6 +21,18 @@
    ],
    
    conventionNote: 'Email unique. Mỗi user gán 1 role. Password hash bcrypt. lastLogin tự động update.',
-   
+
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'name', isSystem: true, name: 'Họ và tên', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'email', isSystem: true, name: 'Email', order: 1, required: true, type: 'email' },
+      { enabled: true, fieldKey: 'roleId', isSystem: true, name: 'Vai trò', order: 2, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'status', isSystem: true, name: 'Trạng thái', order: 3, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'phone', isSystem: false, linkedFeature: 'enablePhone', name: 'Số điện thoại', order: 4, required: false, type: 'phone' },
+      { enabled: true, fieldKey: 'avatar', isSystem: false, linkedFeature: 'enableAvatar', name: 'Ảnh đại diện', order: 5, required: false, type: 'image' },
+      { enabled: true, fieldKey: 'lastLogin', isSystem: false, linkedFeature: 'enableLastLogin', name: 'Đăng nhập cuối', order: 6, required: false, type: 'date' },
+    ],
+  },
+
   tabs: ['config'],
  });

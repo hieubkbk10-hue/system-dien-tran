@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -60,32 +61,6 @@ export class SubscriptionsSeeder extends BaseSeeder<CalendarTaskData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'subscriptions'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'subscriptions', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'subscriptions', name: 'Trạng thái', order: 1, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'dueDate', isSystem: false, moduleKey: 'subscriptions', name: 'Ngày nhắc', order: 2, required: true, type: 'date' as const },
-        { enabled: true, fieldKey: 'customerId', isSystem: false, linkedFeature: 'enableCustomerLink', moduleKey: 'subscriptions', name: 'Khách hàng', order: 3, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'productId', isSystem: false, linkedFeature: 'enableProductLink', moduleKey: 'subscriptions', name: 'Sản phẩm', order: 4, required: true, type: 'select' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'subscriptions'))
-      .first();
-    if (!existingSettings) {
-      const settings = [
-        { moduleKey: 'subscriptions', settingKey: 'subscriptionsPerPage', value: 20 },
-        { moduleKey: 'subscriptions', settingKey: 'defaultStatus', value: 'Todo' },
-        { moduleKey: 'subscriptions', settingKey: 'warningDays', value: 7 },
-      ];
-      await Promise.all(settings.map(setting => this.ctx.db.insert('moduleSettings', setting)));
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'subscriptions');
   }
 }

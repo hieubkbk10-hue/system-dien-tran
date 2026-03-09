@@ -1,7 +1,7 @@
- import { Menu, FolderTree, ExternalLink } from 'lucide-react';
- import { defineModule } from '../define-module';
+import { Menu, FolderTree, ExternalLink } from 'lucide-react';
+import { defineModuleWithRuntime } from '../define-module';
  
- export const menusModule = defineModule({
+export const menusModule = defineModuleWithRuntime({
    key: 'menus',
    name: 'Menu',
    description: 'Quản lý menu điều hướng',
@@ -32,5 +32,18 @@
    
    conventionNote: 'location: header, footer, sidebar. order tự động increment. parentId null = root item.',
    
+  runtimeConfig: {
+    fields: [
+      { enabled: true, fieldKey: 'label', isSystem: true, name: 'Tiêu đề', order: 0, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'url', isSystem: true, name: 'URL', order: 1, required: true, type: 'text' },
+      { enabled: true, fieldKey: 'location', isSystem: true, name: 'Vị trí menu', order: 2, required: true, type: 'select' },
+      { enabled: true, fieldKey: 'order', isSystem: true, name: 'Thứ tự', order: 3, required: true, type: 'number' },
+      { enabled: true, fieldKey: 'active', isSystem: true, name: 'Trạng thái', order: 4, required: true, type: 'boolean' },
+      { enabled: true, fieldKey: 'parentId', isSystem: false, linkedFeature: 'enableNested', name: 'Menu cha', order: 5, required: false, type: 'select' },
+      { enabled: true, fieldKey: 'openInNewTab', isSystem: false, linkedFeature: 'enableNewTab', name: 'Mở tab mới', order: 6, required: false, type: 'boolean' },
+      { enabled: true, fieldKey: 'icon', isSystem: false, linkedFeature: 'enableIcon', name: 'Icon', order: 7, required: false, type: 'text' },
+    ],
+  },
+
   tabs: ['config'],
  });

@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -171,45 +172,6 @@ export class RolesSeeder extends BaseSeeder<RoleData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'roles'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Thêm mô tả chi tiết cho vai trò', enabled: true, featureKey: 'enableDescription', linkedFieldKey: 'description', moduleKey: 'roles', name: 'Mô tả vai trò' },
-        { description: 'Gán màu để phân biệt vai trò', enabled: true, featureKey: 'enableColor', linkedFieldKey: 'color', moduleKey: 'roles', name: 'Màu sắc' },
-        { description: 'Cho phép vai trò có cấp bậc', enabled: false, featureKey: 'enableHierarchy', moduleKey: 'roles', name: 'Phân cấp' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'roles'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'name', isSystem: true, moduleKey: 'roles', name: 'Tên vai trò', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'permissions', isSystem: true, moduleKey: 'roles', name: 'Quyền hạn', order: 1, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'isSystem', isSystem: true, moduleKey: 'roles', name: 'Vai trò hệ thống', order: 2, required: true, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'description', isSystem: false, linkedFeature: 'enableDescription', moduleKey: 'roles', name: 'Mô tả', order: 3, required: false, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'color', isSystem: false, linkedFeature: 'enableColor', moduleKey: 'roles', name: 'Màu sắc', order: 4, required: false, type: 'text' as const },
-        { enabled: true, fieldKey: 'isSuperAdmin', isSystem: false, moduleKey: 'roles', name: 'Super Admin', order: 5, required: false, type: 'boolean' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'roles'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'roles', settingKey: 'maxRolesPerUser', value: 1 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'roles', settingKey: 'defaultRole', value: 'Viewer' }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'roles', settingKey: 'rolesPerPage', value: 10 }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'roles');
   }
 }

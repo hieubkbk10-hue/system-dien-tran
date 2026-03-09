@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -85,47 +86,7 @@ export class NotificationsSeeder extends BaseSeeder<NotificationData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'notifications'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Gửi thông báo qua email', enabled: true, featureKey: 'enableEmail', linkedFieldKey: 'sendEmail', moduleKey: 'notifications', name: 'Gửi Email' },
-        { description: 'Lên lịch gửi thông báo', enabled: true, featureKey: 'enableScheduling', linkedFieldKey: 'scheduledAt', moduleKey: 'notifications', name: 'Hẹn giờ gửi' },
-        { description: 'Gửi thông báo cho nhóm cụ thể', enabled: true, featureKey: 'enableTargeting', linkedFieldKey: 'targetType', moduleKey: 'notifications', name: 'Nhắm đối tượng' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'notifications'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'title', isSystem: true, moduleKey: 'notifications', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'content', isSystem: true, moduleKey: 'notifications', name: 'Nội dung', order: 1, required: true, type: 'textarea' as const },
-        { enabled: true, fieldKey: 'type', isSystem: true, moduleKey: 'notifications', name: 'Loại', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'status', isSystem: true, moduleKey: 'notifications', name: 'Trạng thái', order: 3, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'targetType', isSystem: false, linkedFeature: 'enableTargeting', moduleKey: 'notifications', name: 'Đối tượng', order: 4, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'sendEmail', isSystem: false, linkedFeature: 'enableEmail', moduleKey: 'notifications', name: 'Gửi Email', order: 5, required: false, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'scheduledAt', isSystem: false, linkedFeature: 'enableScheduling', moduleKey: 'notifications', name: 'Thời gian hẹn', order: 6, required: false, type: 'date' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'notifications'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'notifications', settingKey: 'itemsPerPage', value: 20 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'notifications', settingKey: 'defaultType', value: 'info' }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'notifications', settingKey: 'autoSendEmail', value: false }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'notifications');
   }
 
   private async seedStats(): Promise<void> {

@@ -1,4 +1,5 @@
- import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { ModuleRuntimeConfig } from './runtime-config/types';
  
  export interface ModuleFeature {
    key: string;
@@ -6,6 +7,7 @@
    icon?: LucideIcon;
    linkedField?: string;
    description?: string;
+  enabled?: boolean;
  }
  
  export interface ModuleSetting {
@@ -36,7 +38,12 @@ export interface ModuleSettingGroup {
   settingGroups?: ModuleSettingGroup[];
    conventionNote?: string;
   tabs?: ('config' | 'appearance')[];
+  runtimeConfig?: ModuleRuntimeConfig;
  }
+
+export type ModuleDefinitionWithRuntime = ModuleDefinition & {
+  runtimeConfig: ModuleRuntimeConfig;
+};
  
  const COUNT_FEATURES = ['likes', 'views', 'shares', 'comments'];
  
@@ -63,3 +70,7 @@ export interface ModuleSettingGroup {
     tabs: config.tabs ?? ['config'],
    };
  }
+
+export function defineModuleWithRuntime(config: ModuleDefinitionWithRuntime): ModuleDefinitionWithRuntime {
+  return defineModule(config) as ModuleDefinitionWithRuntime;
+}

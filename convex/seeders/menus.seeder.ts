@@ -3,6 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { DataModel, Doc } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -118,47 +119,6 @@ export class MenusSeeder extends BaseSeeder<MenuData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', q => q.eq('moduleKey', 'menus'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Cho phép tạo menu con nhiều cấp', enabled: true, featureKey: 'enableNested', linkedFieldKey: 'parentId', moduleKey: 'menus', name: 'Menu lồng nhau' },
-        { description: 'Cho phép mở link trong tab mới', enabled: true, featureKey: 'enableNewTab', linkedFieldKey: 'openInNewTab', moduleKey: 'menus', name: 'Mở tab mới' },
-        { description: 'Cho phép gán icon cho menu item', enabled: true, featureKey: 'enableIcon', linkedFieldKey: 'icon', moduleKey: 'menus', name: 'Icon menu' },
-      ];
-      await Promise.all(features.map(feature => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingFields = await this.ctx.db
-      .query('moduleFields')
-      .withIndex('by_module', q => q.eq('moduleKey', 'menus'))
-      .first();
-    if (!existingFields) {
-      const fields = [
-        { enabled: true, fieldKey: 'label', isSystem: true, moduleKey: 'menus', name: 'Tiêu đề', order: 0, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'url', isSystem: true, moduleKey: 'menus', name: 'URL', order: 1, required: true, type: 'text' as const },
-        { enabled: true, fieldKey: 'location', isSystem: true, moduleKey: 'menus', name: 'Vị trí menu', order: 2, required: true, type: 'select' as const },
-        { enabled: true, fieldKey: 'order', isSystem: true, moduleKey: 'menus', name: 'Thứ tự', order: 3, required: true, type: 'number' as const },
-        { enabled: true, fieldKey: 'active', isSystem: true, moduleKey: 'menus', name: 'Trạng thái', order: 4, required: true, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'parentId', isSystem: false, linkedFeature: 'enableNested', moduleKey: 'menus', name: 'Menu cha', order: 5, required: false, type: 'select' as const },
-        { enabled: true, fieldKey: 'openInNewTab', isSystem: false, linkedFeature: 'enableNewTab', moduleKey: 'menus', name: 'Mở tab mới', order: 6, required: false, type: 'boolean' as const },
-        { enabled: true, fieldKey: 'icon', isSystem: false, linkedFeature: 'enableIcon', moduleKey: 'menus', name: 'Icon', order: 7, required: false, type: 'text' as const },
-      ];
-      await Promise.all(fields.map(field => this.ctx.db.insert('moduleFields', field)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', q => q.eq('moduleKey', 'menus'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'menus', settingKey: 'maxDepth', value: 3 }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'menus', settingKey: 'defaultLocation', value: 'header' }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'menus', settingKey: 'menusPerPage', value: 10 }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'menus');
   }
 }

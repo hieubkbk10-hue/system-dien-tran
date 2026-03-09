@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, Receipt } from 'lucide-react';
 import { useContactPageData } from '@/components/site/useContactPageData';
 import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
 import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
@@ -76,7 +76,7 @@ function ContactInfoCard({
     { label: 'Điện thoại', value: phone, icon: Phone },
     { label: 'Email', value: email, icon: Mail },
     { label: 'Địa chỉ', value: address, icon: MapPin },
-    { label: 'Mã số thuế', value: taxId, icon: MapPin },
+    { label: 'Mã số thuế', value: taxId, icon: Receipt },
   ].filter((item) => item.value);
 
   return (
@@ -148,7 +148,7 @@ function CorporateSidebar({
     { label: 'Điện thoại', value: phone, note: 'Thứ 2 - Thứ 7, 8:00 - 17:00', icon: Phone },
     { label: 'Email', value: email, note: 'Phản hồi trong vòng 24 giờ', icon: Mail },
     { label: 'Văn phòng', value: address, note: '', icon: MapPin },
-    { label: 'Mã số thuế', value: taxId, note: '', icon: MapPin },
+    { label: 'Mã số thuế', value: taxId, note: '', icon: Receipt },
   ].filter((item) => item.value);
 
   return (

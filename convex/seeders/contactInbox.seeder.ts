@@ -1,4 +1,5 @@
 import { BaseSeeder, type SeedConfig, type SeedDependency, type SeedResult } from './base';
+import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 
@@ -63,29 +64,6 @@ export class ContactInboxSeeder extends BaseSeeder<ContactInquiryData> {
   }
 
   private async seedModuleConfig(): Promise<void> {
-    const existingFeatures = await this.ctx.db
-      .query('moduleFeatures')
-      .withIndex('by_module', (q) => q.eq('moduleKey', 'contactInbox'))
-      .first();
-    if (!existingFeatures) {
-      const features = [
-        { description: 'Cho phép gửi form liên hệ', enabled: true, featureKey: 'enableContactFormSubmission', moduleKey: 'contactInbox', name: 'Cho phép gửi form' },
-        { description: 'Hiển thị trang quản trị inbox', enabled: true, featureKey: 'enableContactInboxAdmin', moduleKey: 'contactInbox', name: 'Quản trị inbox' },
-        { description: 'Hiển thị widget dashboard inbox', enabled: true, featureKey: 'enableContactDashboardWidget', moduleKey: 'contactInbox', name: 'Widget dashboard' },
-      ];
-      await Promise.all(features.map((feature) => this.ctx.db.insert('moduleFeatures', feature)));
-    }
-
-    const existingSettings = await this.ctx.db
-      .query('moduleSettings')
-      .withIndex('by_module', (q) => q.eq('moduleKey', 'contactInbox'))
-      .first();
-    if (!existingSettings) {
-      await Promise.all([
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'contactInbox', settingKey: 'requireEmail', value: false }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'contactInbox', settingKey: 'requirePhone', value: false }),
-        this.ctx.db.insert('moduleSettings', { moduleKey: 'contactInbox', settingKey: 'inboxRetentionDays', value: 0 }),
-      ]);
-    }
+    await syncModuleRuntimeConfig(this.ctx, 'contactInbox');
   }
 }

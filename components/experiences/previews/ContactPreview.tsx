@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Instagram, Mail, MapPin, Phone, Youtube } from 'lucide-react';
+import { Facebook, Instagram, Mail, MapPin, Phone, Receipt, Youtube } from 'lucide-react';
 import { ZaloIcon } from '@/components/site/SocialIcons';
 import OpenStreetMapDisplay from '@/components/maps/OpenStreetMapDisplay';
 import { ContactInquiryForm } from '@/components/contact/ContactInquiryForm';
@@ -114,7 +114,7 @@ function ContactInfo({
         {taxId && (
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
-              <MapPin size={18} style={{ color: secondaryColor || brandColor }} />
+              <Receipt size={18} style={{ color: secondaryColor || brandColor }} />
             </div>
             <div>
               <div className="font-medium text-slate-900">Mã số thuế</div>
@@ -253,7 +253,7 @@ export function ContactPreview({
                     {taxId && (
                       <div className="flex items-start gap-4">
                         <div className="bg-white/10 p-3 rounded-lg">
-                          <MapPin size={20} style={{ color: resolvedSecondary }} />
+                          <Receipt size={20} style={{ color: resolvedSecondary }} />
                         </div>
                         <div>
                           <h3 className="text-sm font-semibold text-white">Mã số thuế</h3>
