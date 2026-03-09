@@ -1,6 +1,8 @@
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
+import { RelatedPagesBlock } from '@/components/seo/RelatedPagesBlock';
+import { getRelatedLandingPages } from '@/lib/seo/internal-links';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -14,6 +16,13 @@ export default async function FeaturePage({ params }: Props) {
   if (!page || page.landingType !== 'feature') {
     notFound();
   }
+
+  const relatedPages = await getRelatedLandingPages({
+    currentSlug: slug,
+    landingType: page.landingType,
+    relatedSlugs: page.relatedSlugs,
+    limit: 6,
+  });
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -57,6 +66,8 @@ export default async function FeaturePage({ params }: Props) {
           </div>
         </div>
       )}
+
+      <RelatedPagesBlock items={relatedPages} title="Tính năng liên quan" />
     </div>
   );
 }

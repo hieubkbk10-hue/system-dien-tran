@@ -4,6 +4,7 @@ import { Globe, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { SeoHealthPanel } from '@/components/seo/SeoHealthPanel';
 
 export default function SEOConfigPage(): React.ReactElement {
   const siteUrlSetting = useQuery(api.settings.getByKey, { key: 'site_url' });
@@ -18,6 +19,8 @@ export default function SEOConfigPage(): React.ReactElement {
          </h2>
          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sitemap và robots.txt được sinh tự động.</p>
       </div>
+
+      <SeoHealthPanel />
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-6">
         <div>

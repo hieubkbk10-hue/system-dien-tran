@@ -4,6 +4,8 @@ import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings, getContactSettings } from '@/lib/get-settings';
 import { buildSeoMetadata } from '@/lib/seo/metadata';
 
+export const revalidate = 1800;
+
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo, contact] = await Promise.all([getSiteSettings(), getSEOSettings(), getContactSettings()]);
   return buildSeoMetadata({ contact, descriptionOverride: 'Khám phá các trường hợp sử dụng thực tế', pathname: '/use-cases', routeType: 'list', seo, site, titleOverride: 'Trường hợp sử dụng' });

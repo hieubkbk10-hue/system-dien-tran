@@ -7,6 +7,8 @@ import { buildSeoMetadata } from '@/lib/seo/metadata';
 import { buildArticleSchema, buildBreadcrumbSchema, buildFaqSchema } from '@/lib/seo/schema-policy';
 import { JsonLd } from '@/components/seo/JsonLd';
 
+export const revalidate = 3600;
+
 interface Props { params: Promise<{ slug: string }>; children: React.ReactNode }
 const LANDING_TYPE = 'compare' as const;
 const ROUTE_PATH = '/compare';

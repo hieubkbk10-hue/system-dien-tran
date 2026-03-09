@@ -26,6 +26,7 @@ import { SettingsSeeder } from './settings.seeder';
 import { SystemPresetsSeeder } from './systemPresets.seeder';
 import { UsersSeeder } from './users.seeder';
 import { WishlistSeeder } from './wishlist.seeder';
+import { LandingPagesSeeder } from './landingPages.seeder';
 
 export type SeederConstructor = new (ctx: GenericMutationCtx<DataModel>) => BaseSeeder;
 
@@ -39,6 +40,7 @@ export const SEEDER_REGISTRY: Record<string, SeederConstructor> = {
   customers: CustomerSeeder,
   homepage: HomepageSeeder,
   kanban: KanbanSeeder,
+  landingPages: LandingPagesSeeder,
   media: MediaSeeder,
   menus: MenusSeeder,
   notifications: NotificationsSeeder,
