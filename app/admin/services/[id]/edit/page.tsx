@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -39,6 +39,20 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const initialSnapshotRef = useRef<{
+    categoryId: string;
+    content: string;
+    duration: string;
+    excerpt: string;
+    featured: boolean;
+    metaDescription: string;
+    metaTitle: string;
+    price: number | null;
+    slug: string;
+    status: 'Draft' | 'Published' | 'Archived';
+    thumbnail: string;
+    title: string;
+  } | null>(null);
 
   const handleSaveShortcut = useCallback(() => {
     const form = document.querySelector('form');
@@ -62,6 +76,26 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     return fields;
   }, [fieldsData]);
 
+  const currentSnapshot = useMemo(() => ({
+    categoryId,
+    content,
+    duration: duration.trim(),
+    excerpt: excerpt.trim(),
+    featured,
+    metaDescription: metaDescription.trim(),
+    metaTitle: metaTitle.trim(),
+    price: price ?? null,
+    slug: slug.trim(),
+    status,
+    thumbnail: thumbnail ?? '',
+    title: title.trim(),
+  }), [categoryId, content, duration, excerpt, featured, metaDescription, metaTitle, price, slug, status, thumbnail, title]);
+
+  const hasChanges = useMemo(() => {
+    if (!initialSnapshotRef.current) {return false;}
+    return JSON.stringify(initialSnapshotRef.current) !== JSON.stringify(currentSnapshot);
+  }, [currentSnapshot]);
+
   useEffect(() => {
     if (serviceData) {
       setTitle(serviceData.title);
@@ -76,6 +110,20 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       setDuration(serviceData.duration ?? '');
       setFeatured(serviceData.featured ?? false);
       setStatus(serviceData.status);
+      initialSnapshotRef.current = {
+        categoryId: serviceData.categoryId,
+        content: serviceData.content,
+        duration: (serviceData.duration ?? '').trim(),
+        excerpt: (serviceData.excerpt ?? '').trim(),
+        featured: serviceData.featured ?? false,
+        metaDescription: (serviceData.metaDescription ?? '').trim(),
+        metaTitle: (serviceData.metaTitle ?? '').trim(),
+        price: serviceData.price ?? null,
+        slug: serviceData.slug.trim(),
+        status: serviceData.status,
+        thumbnail: serviceData.thumbnail ?? '',
+        title: serviceData.title.trim(),
+      };
     }
   }, [serviceData]);
 
@@ -109,6 +157,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
         thumbnail,
         title: title.trim(),
       });
+      initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật dịch vụ thành công");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể cập nhật dịch vụ");
@@ -338,9 +387,15 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
         <div className="flex gap-2">
           <span className="text-xs text-slate-400 self-center hidden sm:block">Ctrl+S để lưu</span>
            <Button type="button" variant="secondary" onClick={() =>{  setStatus('Draft'); }}>Lưu nháp</Button>
-           <Button type="submit" variant="accent" disabled={isSubmitting} title="Lưu (Ctrl+S)" className="bg-teal-600 hover:bg-teal-500">
+           <Button
+             type="submit"
+             variant="accent"
+             disabled={isSubmitting || !hasChanges}
+             title="Lưu (Ctrl+S)"
+             className={!hasChanges && !isSubmitting ? 'bg-teal-600 hover:bg-teal-600 opacity-60' : 'bg-teal-600 hover:bg-teal-500'}
+           >
              {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-             Cập nhật
+             {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Cập nhật' : 'Đã lưu')}
            </Button>
         </div>
       </div>

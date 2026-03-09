@@ -156,7 +156,7 @@ export default function PostCreatePage() {
                     <Input
                       value={metaTitle}
                       onChange={(e) =>{  setMetaTitle(e.target.value); }}
-                      placeholder="Tiêu đề hiển thị trên Google"
+                      placeholder="Lấy theo tiêu đề bài viết nếu để trống"
                     />
                   </div>
                 )}
@@ -172,7 +172,7 @@ export default function PostCreatePage() {
                       value={metaDescription}
                       onChange={(e) =>{  setMetaDescription(e.target.value); }}
                       className="w-full min-h-[90px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                      placeholder="Mô tả ngắn cho kết quả tìm kiếm"
+                      placeholder="Lấy theo mô tả ngắn/nội dung nếu để trống"
                     />
                   </div>
                 )}
