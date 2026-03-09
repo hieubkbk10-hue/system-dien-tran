@@ -255,6 +255,7 @@ interface HeroContent {
   primaryButtonText?: string;
   secondaryButtonText?: string;
   countdownText?: string;
+  showFullscreenContent?: boolean;
 }
 
 function HeroSection({
@@ -449,6 +450,7 @@ function HeroSection({
 
   // Style 4: Fullscreen - Hero toàn màn hình với CTA overlay
   if (style === 'fullscreen') {
+    const showFullscreenContent = content.showFullscreenContent !== false;
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden">
         <div className="relative w-full h-[400px] md:h-[550px] lg:h-[650px]">
@@ -457,42 +459,46 @@ function HeroSection({
               {slide.image ? (
                 <div className="w-full h-full relative">
                   <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                  {showFullscreenContent && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                  )}
                 </div>
               ) : renderPlaceholder(fullscreenColors.placeholderBg, fullscreenColors.placeholderIcon)}
             </div>
           ))}
           {/* CTA Overlay Content */}
-          <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 md:px-8 lg:px-16">
-            <div className="max-w-xl space-y-4 md:space-y-6">
-              {content.badge && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
-                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: fullscreenColors.badgeDotPulse }} />
-                  {content.badge}
+          {showFullscreenContent && (
+            <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 md:px-8 lg:px-16">
+              <div className="max-w-xl space-y-4 md:space-y-6">
+                {content.badge && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
+                    <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: fullscreenColors.badgeDotPulse }} />
+                    {content.badge}
+                  </div>
+                )}
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                  {content.heading ?? 'Tiêu đề chính'}
+                </h1>
+                {content.description && (
+                  <p className="text-white/80 text-sm md:text-lg">
+                    {content.description}
+                  </p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {content.primaryButtonText && (
+                    <a href={slides[currentSlide]?.link || '#'} className="px-6 py-3 font-medium rounded-lg text-center" style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
+                      {content.primaryButtonText}
+                    </a>
+                  )}
+                  {content.secondaryButtonText && (
+                    <a href="#" className="px-6 py-3 font-medium rounded-lg border border-white/30 text-white hover:bg-white/10 transition-colors text-center">
+                      {content.secondaryButtonText}
+                    </a>
+                  )}
                 </div>
-              )}
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                {content.heading ?? 'Tiêu đề chính'}
-              </h1>
-              {content.description && (
-                <p className="text-white/80 text-sm md:text-lg">
-                  {content.description}
-                </p>
-              )}
-              <div className="flex flex-col sm:flex-row gap-3">
-                {content.primaryButtonText && (
-                  <a href={slides[currentSlide]?.link || '#'} className="px-6 py-3 font-medium rounded-lg text-center" style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
-                    {content.primaryButtonText}
-                  </a>
-                )}
-                {content.secondaryButtonText && (
-                  <a href="#" className="px-6 py-3 font-medium rounded-lg border border-white/30 text-white hover:bg-white/10 transition-colors text-center">
-                    {content.secondaryButtonText}
-                  </a>
-                )}
               </div>
             </div>
-          </div>
+          )}
           {/* Navigation dots */}
           {slides.length > 1 && (
             <div className="absolute bottom-6 right-6 flex gap-2 z-20">

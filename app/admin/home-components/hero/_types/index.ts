@@ -12,6 +12,7 @@ export interface HeroContent {
   primaryButtonText?: string;
   secondaryButtonText?: string;
   countdownText?: string;
+  showFullscreenContent?: boolean;
 }
 
 export interface HeroSlide extends ImageItem {

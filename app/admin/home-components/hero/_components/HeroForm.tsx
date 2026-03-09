@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ToggleSwitch } from '@/components/modules/shared';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { MultiImageUploader } from '../../../components/MultiImageUploader';
 import type { HeroContent, HeroSlide, HeroStyle } from '../_types';
@@ -47,6 +48,23 @@ export const HeroForm = ({
           <CardTitle className="text-base">Nội dung Hero ({heroStyle})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {heroStyle === 'fullscreen' && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Hiển thị nội dung Hero</Label>
+                <p className="text-xs text-slate-500">Tắt để ẩn chữ và lớp mờ trên ảnh</p>
+              </div>
+              <ToggleSwitch
+                enabled={heroContent.showFullscreenContent !== false}
+                onChange={() =>
+                  setHeroContent({
+                    ...heroContent,
+                    showFullscreenContent: !(heroContent.showFullscreenContent !== false),
+                  })
+                }
+              />
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Badge / Nhãn</Label>

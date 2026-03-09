@@ -304,6 +304,7 @@ export const HeroPreview = ({
   const renderFullscreenStyle = () => {
     const mainSlide = slides[currentSlide] || slides[0];
     const c = content ?? {};
+    const showFullscreenContent = c.showFullscreenContent !== false;
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden">
         <div className={cn(
@@ -317,44 +318,48 @@ export const HeroPreview = ({
                   {slide.image ? (
                     <div className="w-full h-full relative">
                       <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                      {showFullscreenContent && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                      )}
                     </div>
                   ) : renderPlaceholder(idx, { backgroundColor: fullscreenColors.placeholderBg, iconColor: fullscreenColors.placeholderIcon })}
                 </div>
               ))}
-              <div className={cn(
-                "absolute inset-0 z-10 flex flex-col justify-center",
-                device === 'mobile' ? 'px-4' : 'px-8 md:px-16'
-              )}>
-                <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
-                  {c.badge && (
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
-                      <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: fullscreenColors.badgeDotPulse }} />
-                      {c.badge}
+              {showFullscreenContent && (
+                <div className={cn(
+                  "absolute inset-0 z-10 flex flex-col justify-center",
+                  device === 'mobile' ? 'px-4' : 'px-8 md:px-16'
+                )}>
+                  <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
+                    {c.badge && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
+                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: fullscreenColors.badgeDotPulse }} />
+                        {c.badge}
+                      </div>
+                    )}
+                    <h1 className={cn("font-bold text-white leading-tight", device === 'mobile' ? 'text-xl' : (device === 'tablet' ? 'text-2xl' : 'text-3xl md:text-4xl'))}>
+                      {c.heading ?? 'Tiêu đề chính'}
+                    </h1>
+                    {c.description && (
+                      <p className={cn("text-white/80", device === 'mobile' ? 'text-sm line-clamp-2' : 'text-base')}>
+                        {c.description}
+                      </p>
+                    )}
+                    <div className={cn("flex gap-3", device === 'mobile' ? 'flex-col' : 'flex-row')}>
+                      {c.primaryButtonText && (
+                        <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
+                          {c.primaryButtonText}
+                        </button>
+                      )}
+                      {c.secondaryButtonText && (
+                        <button className={cn("font-medium rounded-lg border border-white/30 text-white hover:bg-white/10", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')}>
+                          {c.secondaryButtonText}
+                        </button>
+                      )}
                     </div>
-                  )}
-                  <h1 className={cn("font-bold text-white leading-tight", device === 'mobile' ? 'text-xl' : (device === 'tablet' ? 'text-2xl' : 'text-3xl md:text-4xl'))}>
-                    {c.heading ?? 'Tiêu đề chính'}
-                  </h1>
-                  {c.description && (
-                    <p className={cn("text-white/80", device === 'mobile' ? 'text-sm line-clamp-2' : 'text-base')}>
-                      {c.description}
-                    </p>
-                  )}
-                  <div className={cn("flex gap-3", device === 'mobile' ? 'flex-col' : 'flex-row')}>
-                    {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
-                        {c.primaryButtonText}
-                      </button>
-                    )}
-                    {c.secondaryButtonText && (
-                      <button className={cn("font-medium rounded-lg border border-white/30 text-white hover:bg-white/10", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')}>
-                        {c.secondaryButtonText}
-                      </button>
-                    )}
                   </div>
                 </div>
-              </div>
+              )}
               {slides.length > 1 && (
                 <div className="absolute bottom-4 right-4 flex gap-2 z-20">
                   {slides.map((_, idx) => (

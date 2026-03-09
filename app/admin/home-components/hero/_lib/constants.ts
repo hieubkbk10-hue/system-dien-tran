@@ -18,4 +18,5 @@ export const DEFAULT_HERO_CONTENT: HeroContent = {
   heading: 'Khám phá bộ sưu tập mới nhất',
   primaryButtonText: 'Khám phá ngay',
   secondaryButtonText: 'Tìm hiểu thêm',
+  showFullscreenContent: true,
 };
