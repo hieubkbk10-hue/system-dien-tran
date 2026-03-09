@@ -391,3 +391,92 @@ export const getFullMenu = query({
     v.null()
   ),
 });
+
+// ============ MENU PICKER ============
+
+export const listPostsForPicker = query({
+  args: {
+    search: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 20, 50);
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
+      .order("desc")
+      .take(limit);
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase();
+      return posts
+        .filter((post) => post.title.toLowerCase().includes(searchLower))
+        .map((post) => ({ _id: post._id, title: post.title, slug: post.slug }));
+    }
+
+    return posts.map((post) => ({ _id: post._id, title: post.title, slug: post.slug }));
+  },
+  returns: v.array(v.object({
+    _id: v.id("posts"),
+    title: v.string(),
+    slug: v.string(),
+  })),
+});
+
+export const listProductsForPicker = query({
+  args: {
+    search: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 20, 50);
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_status_order", (q) => q.eq("status", "Active"))
+      .order("desc")
+      .take(limit);
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase();
+      return products
+        .filter((product) => product.name.toLowerCase().includes(searchLower))
+        .map((product) => ({ _id: product._id, name: product.name, slug: product.slug }));
+    }
+
+    return products.map((product) => ({ _id: product._id, name: product.name, slug: product.slug }));
+  },
+  returns: v.array(v.object({
+    _id: v.id("products"),
+    name: v.string(),
+    slug: v.string(),
+  })),
+});
+
+export const listServicesForPicker = query({
+  args: {
+    search: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 20, 50);
+    const services = await ctx.db
+      .query("services")
+      .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
+      .order("desc")
+      .take(limit);
+
+    if (args.search?.trim()) {
+      const searchLower = args.search.toLowerCase();
+      return services
+        .filter((service) => service.title.toLowerCase().includes(searchLower))
+        .map((service) => ({ _id: service._id, title: service.title, slug: service.slug }));
+    }
+
+    return services.map((service) => ({ _id: service._id, title: service.title, slug: service.slug }));
+  },
+  returns: v.array(v.object({
+    _id: v.id("services"),
+    title: v.string(),
+    slug: v.string(),
+  })),
+});

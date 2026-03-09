@@ -17,10 +17,10 @@ import { SimpleMenuPreview } from './SimpleMenuPreview';
 
 const MODULE_KEY = 'menus';
 
-const QUICK_ROUTE_GROUPS = ['Trang cơ bản', 'Module', 'Danh mục'] as const;
+type QuickRouteGroup = 'Trang cơ bản' | 'Module' | 'Danh mục';
 
 type QuickRouteOption = {
-  group: (typeof QUICK_ROUTE_GROUPS)[number];
+  group: QuickRouteGroup;
   label: string;
   source: string;
   url: string;
@@ -157,6 +157,28 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
   const [isQuickPickerOpen, setIsQuickPickerOpen] = useState(false);
   const [quickPickerTargetId, setQuickPickerTargetId] = useState<string | null>(null);
   const [quickRouteSearch, setQuickRouteSearch] = useState('');
+  const [pickerStep, setPickerStep] = useState<1 | 2 | 3>(1);
+  const [selectedType, setSelectedType] = useState<'core' | 'module' | 'category' | 'detail' | null>(null);
+  const [selectedModule, setSelectedModule] = useState<'posts' | 'products' | 'services' | null>(null);
+
+  const detailPosts = useQuery(
+    api.menus.listPostsForPicker,
+    selectedModule === 'posts' && pickerStep === 3
+      ? { search: quickRouteSearch, limit: 20 }
+      : 'skip'
+  );
+  const detailProducts = useQuery(
+    api.menus.listProductsForPicker,
+    selectedModule === 'products' && pickerStep === 3
+      ? { search: quickRouteSearch, limit: 20 }
+      : 'skip'
+  );
+  const detailServices = useQuery(
+    api.menus.listServicesForPicker,
+    selectedModule === 'services' && pickerStep === 3
+      ? { search: quickRouteSearch, limit: 20 }
+      : 'skip'
+  );
 
   // Settings from System Config
   const menusPerPage = useMemo(() => {
@@ -242,24 +264,6 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
       || option.source.toLowerCase().includes(keyword)
     );
   }, [quickRouteOptions, quickRouteSearch]);
-
-  const groupedQuickRoutes = useMemo(() => {
-    const groups = new Map<QuickRouteOption['group'], QuickRouteOption[]>();
-    filteredQuickRoutes.forEach(option => {
-      const list = groups.get(option.group) ?? [];
-      list.push(option);
-      groups.set(option.group, list);
-    });
-
-    return QUICK_ROUTE_GROUPS.flatMap(group => {
-      const options = groups.get(group);
-      if (!options || options.length === 0) {return [];}
-      return [{
-        group,
-        options: options.slice().sort((a, b) => a.label.localeCompare(b.label)),
-      }];
-    });
-  }, [filteredQuickRoutes]);
 
   const buildDraftItems = (items: MenuItem[]) => items
     .slice()
@@ -459,6 +463,9 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
     setIsQuickPickerOpen(false);
     setQuickPickerTargetId(null);
     setQuickRouteSearch('');
+    setPickerStep(1);
+    setSelectedType(null);
+    setSelectedModule(null);
   };
 
   const handleSelectQuickRoute = (option: QuickRouteOption) => {
@@ -504,6 +511,60 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
 
   // Get actual index in full items array for move operations
   const getActualIndex = (item: DraftMenuItem) => draftItems.findIndex(i => i.localId === item.localId);
+
+  const quickRouteKeyword = quickRouteSearch.trim().toLowerCase();
+
+  const pickerTypeOptions = [
+    { type: 'core' as const, label: 'Trang cơ bản', description: 'Trang chủ, Liên hệ...' },
+    { type: 'module' as const, label: 'Module', description: 'Posts, Products, Services...' },
+    { type: 'category' as const, label: 'Danh mục', description: 'Category filters' },
+    { type: 'detail' as const, label: 'Chi tiết', description: 'Bài viết, Sản phẩm, Dịch vụ' },
+  ];
+
+  const detailModuleOptions = [
+    {
+      key: 'posts' as const,
+      label: 'Bài viết chi tiết',
+      description: 'Chọn 1 bài viết cụ thể',
+      enabled: enabledModules?.some(moduleItem => moduleItem.key === 'posts'),
+    },
+    {
+      key: 'products' as const,
+      label: 'Sản phẩm chi tiết',
+      description: 'Chọn 1 sản phẩm cụ thể',
+      enabled: enabledModules?.some(moduleItem => moduleItem.key === 'products'),
+    },
+    {
+      key: 'services' as const,
+      label: 'Dịch vụ chi tiết',
+      description: 'Chọn 1 dịch vụ cụ thể',
+      enabled: enabledModules?.some(moduleItem => moduleItem.key === 'services'),
+    },
+  ];
+
+  const availableDetailModules = detailModuleOptions.filter(option => option.enabled);
+  const filteredDetailModules = quickRouteKeyword
+    ? availableDetailModules.filter(option =>
+      option.label.toLowerCase().includes(quickRouteKeyword)
+      || option.description.toLowerCase().includes(quickRouteKeyword)
+    )
+    : availableDetailModules;
+  const resolvedDetailModules = filteredDetailModules.length > 0
+    ? filteredDetailModules
+    : availableDetailModules;
+
+  const filteredPickerRoutes = filteredQuickRoutes.filter(option => {
+    if (selectedType === 'core') {return option.group === 'Trang cơ bản';}
+    if (selectedType === 'module') {return option.group === 'Module';}
+    if (selectedType === 'category') {return option.group === 'Danh mục';}
+    return false;
+  });
+
+  const isDetailLoading = pickerStep === 3 && (
+    (selectedModule === 'posts' && detailPosts === undefined)
+    || (selectedModule === 'products' && detailProducts === undefined)
+    || (selectedModule === 'services' && detailServices === undefined)
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -707,49 +768,239 @@ function MenuItemsEditor({ menuId }: { menuId: Id<"menus"> }) {
         />
       </div>
 
-      <Dialog open={isQuickPickerOpen} onOpenChange={(open) =>{ if (open) { setIsQuickPickerOpen(true); } else { handleCloseQuickPicker(); } }}>
-        <DialogContent className="max-w-4xl w-[80vw]">
+      <Dialog
+        open={isQuickPickerOpen}
+        onOpenChange={(open) =>{ if (open) { setIsQuickPickerOpen(true); } else { handleCloseQuickPicker(); } }}
+      >
+        <DialogContent className="max-w-2xl w-[80vw]">
           <DialogHeader>
-            <DialogTitle>Chọn nhanh URL</DialogTitle>
+            <DialogTitle>Chọn URL - Bước {pickerStep}/3</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
               value={quickRouteSearch}
               onChange={(e) => setQuickRouteSearch(e.target.value)}
-              placeholder="Tìm nhanh theo tên hoặc URL"
+              placeholder={
+                pickerStep === 1
+                  ? 'Tìm theo loại...'
+                  : pickerStep === 2
+                    ? (selectedType === 'detail' ? 'Tìm module...' : 'Tìm theo tên hoặc URL...')
+                    : 'Tìm theo tên...'
+              }
               className="h-9 text-sm"
             />
-            <div className="max-h-[60vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
-              {groupedQuickRoutes.length === 0 && (
-                <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
-              )}
-              {groupedQuickRoutes.map(group => (
-                <div key={group.group} className="border-t border-slate-100 first:border-t-0 dark:border-slate-800">
-                  <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                    {group.group}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    {group.options.map(option => (
-                      <button
-                        key={`${option.url}-${option.source}`}
-                        type="button"
-                        onClick={() => handleSelectQuickRoute(option)}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
-                            {option.label}
-                          </div>
-                          <div className="text-[11px] text-slate-500 font-mono truncate">{option.url}</div>
-                        </div>
-                        <span className="text-[10px] uppercase tracking-wide text-slate-400">
-                          {option.source}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+
+            <div className="space-y-3">
+              {pickerStep === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {pickerTypeOptions.map(option => (
+                    <Button
+                      key={option.type}
+                      type="button"
+                      variant="outline"
+                      className="h-20 flex-col items-start gap-1.5 text-left"
+                      onClick={() => {
+                        setSelectedType(option.type);
+                        setPickerStep(2);
+                      }}
+                    >
+                      <span className="font-semibold">{option.label}</span>
+                      <span className="text-xs text-slate-500">{option.description}</span>
+                    </Button>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {pickerStep === 2 && selectedType === 'detail' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPickerStep(1);
+                      setSelectedType(null);
+                    }}
+                  >
+                    ← Quay lại
+                  </Button>
+
+                  {resolvedDetailModules.length === 0 ? (
+                    <div className="rounded-md border border-slate-200 px-4 py-6 text-sm text-slate-500">
+                      Không có module phù hợp.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2">
+                      {resolvedDetailModules.map(option => (
+                        <Button
+                          key={option.key}
+                          type="button"
+                          variant="outline"
+                          className="justify-start h-16"
+                          onClick={() => {
+                            setSelectedModule(option.key);
+                            setPickerStep(3);
+                          }}
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">{option.label}</div>
+                            <div className="text-xs text-slate-500">{option.description}</div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {pickerStep === 2 && selectedType && selectedType !== 'detail' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPickerStep(1);
+                      setSelectedType(null);
+                    }}
+                  >
+                    ← Quay lại
+                  </Button>
+
+                  <div className="max-h-[50vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
+                    {filteredPickerRoutes.length === 0 ? (
+                      <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
+                    ) : (
+                      <div className="space-y-1 p-2">
+                        {filteredPickerRoutes.map(option => (
+                          <button
+                            key={`${option.url}-${option.source}`}
+                            type="button"
+                            onClick={() => handleSelectQuickRoute(option)}
+                            className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-700 dark:text-slate-200 truncate">
+                                {option.label}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono truncate">{option.url}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {pickerStep === 3 && selectedModule && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setPickerStep(2);
+                      setSelectedModule(null);
+                    }}
+                  >
+                    ← Quay lại
+                  </Button>
+
+                  <div className="max-h-[50vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
+                    {isDetailLoading && (
+                      <div className="px-4 py-6 text-sm text-slate-500">Đang tải dữ liệu...</div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'posts' && (detailPosts?.length ?? 0) === 0 && (
+                      <div className="px-4 py-6 text-sm text-slate-500">Không tìm thấy bài viết.</div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'products' && (detailProducts?.length ?? 0) === 0 && (
+                      <div className="px-4 py-6 text-sm text-slate-500">Không tìm thấy sản phẩm.</div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'services' && (detailServices?.length ?? 0) === 0 && (
+                      <div className="px-4 py-6 text-sm text-slate-500">Không tìm thấy dịch vụ.</div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'posts' && (detailPosts?.length ?? 0) > 0 && (
+                      <div className="space-y-1 p-2">
+                        {detailPosts?.map(post => (
+                          <button
+                            key={post._id}
+                            type="button"
+                            onClick={() => {
+                              handleSelectQuickRoute({
+                                label: post.title,
+                                url: `/posts/${post.slug}`,
+                                source: 'posts',
+                                group: 'Module',
+                              });
+                            }}
+                            className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-slate-700 truncate">{post.title}</div>
+                              <div className="text-xs text-slate-500 font-mono truncate">/posts/{post.slug}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'products' && (detailProducts?.length ?? 0) > 0 && (
+                      <div className="space-y-1 p-2">
+                        {detailProducts?.map(product => (
+                          <button
+                            key={product._id}
+                            type="button"
+                            onClick={() => {
+                              handleSelectQuickRoute({
+                                label: product.name,
+                                url: `/products/${product.slug}`,
+                                source: 'products',
+                                group: 'Module',
+                              });
+                            }}
+                            className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-slate-700 truncate">{product.name}</div>
+                              <div className="text-xs text-slate-500 font-mono truncate">/products/{product.slug}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {!isDetailLoading && selectedModule === 'services' && (detailServices?.length ?? 0) > 0 && (
+                      <div className="space-y-1 p-2">
+                        {detailServices?.map(service => (
+                          <button
+                            key={service._id}
+                            type="button"
+                            onClick={() => {
+                              handleSelectQuickRoute({
+                                label: service.title,
+                                url: `/services/${service.slug}`,
+                                source: 'services',
+                                group: 'Module',
+                              });
+                            }}
+                            className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-semibold text-slate-700 truncate">{service.title}</div>
+                              <div className="text-xs text-slate-500 font-mono truncate">/services/{service.slug}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </DialogContent>
