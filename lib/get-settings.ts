@@ -15,17 +15,10 @@ export interface SiteSettings {
 }
 
 export interface SEOSettings {
-  seo_business_type: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
   seo_og_image: string;
-  seo_opening_hours: string;
-  seo_price_range: string;
-  seo_geo_lat: string;
-  seo_geo_lng: string;
-  seo_hreflang: string;
-  seo_robots: string;
 }
 
 export interface ContactSettings {
@@ -57,13 +50,6 @@ const SETTINGS_KEYS = {
     "seo_description",
     "seo_keywords",
     "seo_og_image",
-    "seo_robots",
-    "seo_business_type",
-    "seo_opening_hours",
-    "seo_price_range",
-    "seo_geo_lat",
-    "seo_geo_lng",
-    "seo_hreflang",
   ],
   site: [
     "site_name",
@@ -90,7 +76,7 @@ export const getSiteSettings =  async (): Promise<SiteSettings> => {
     site_favicon: (settings.site_favicon as string) || "",
     site_language: (settings.site_language as string) || "vi",
     site_logo: (settings.site_logo as string) || "",
-    site_name: (settings.site_name as string) || "VietAdmin",
+    site_name: (settings.site_name as string) || "Website",
     site_tagline: (settings.site_tagline as string) || "",
     site_timezone: (settings.site_timezone as string) || "Asia/Ho_Chi_Minh",
     site_url: (settings.site_url as string) || "",
@@ -102,16 +88,9 @@ export const getSEOSettings =  async (): Promise<SEOSettings> => {
   return client.query(api.settings.getMultiple, {
     keys: SETTINGS_KEYS.seo,
   }).then((settings) => ({
-    seo_business_type: (settings.seo_business_type as string) || "LocalBusiness",
     seo_description: (settings.seo_description as string) || "",
-    seo_geo_lat: (settings.seo_geo_lat as string) || "",
-    seo_geo_lng: (settings.seo_geo_lng as string) || "",
-    seo_hreflang: (settings.seo_hreflang as string) || "",
     seo_keywords: (settings.seo_keywords as string) || "",
     seo_og_image: (settings.seo_og_image as string) || "",
-    seo_opening_hours: (settings.seo_opening_hours as string) || "",
-    seo_price_range: (settings.seo_price_range as string) || "",
-    seo_robots: (settings.seo_robots as string) || "",
     seo_title: (settings.seo_title as string) || "",
   }));
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { JsonLd, generateBreadcrumbSchema } from '@/components/seo/JsonLd';
 import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { parseHreflang } from '@/lib/seo';
+import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo] = await Promise.all([
@@ -9,35 +9,17 @@ export async function generateMetadata(): Promise<Metadata> {
     getSEOSettings(),
   ]);
 
-  const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
+  const context = buildSeoContext(site, seo);
   const title = 'Liên hệ';
-  const description = `Liên hệ với ${site.site_name} - Chúng tôi luôn sẵn sàng hỗ trợ bạn`;
-  const image = seo.seo_og_image;
-  const languages = parseHreflang(seo.seo_hreflang);
+  const description = `Liên hệ với ${site.site_name || context.siteName} - Chúng tôi luôn sẵn sàng hỗ trợ bạn`;
 
-  return {
-    alternates: {
-      canonical: `${baseUrl}/contact`,
-      ...(Object.keys(languages).length > 0 && { languages }),
-    },
+  return buildMetadata({
+    canonical: buildCanonicalUrl(context.baseUrl, '/contact'),
+    context,
     description,
-    openGraph: {
-      title: `${title} | ${site.site_name}`,
-      description,
-      type: 'website',
-      url: `${baseUrl}/contact`,
-      images: image ? [{ url: image }] : undefined,
-      siteName: site.site_name,
-      locale: site.site_language === 'vi' ? 'vi_VN' : 'en_US',
-    },
+    indexable: true,
     title,
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} | ${site.site_name}`,
-      description,
-      images: image ? [image] : undefined,
-    },
-  };
+  });
 }
 
 export default async function ContactLayout({ children }: { children: React.ReactNode }) {

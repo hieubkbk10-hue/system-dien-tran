@@ -2,16 +2,22 @@
 
 import { ComponentRenderer } from '@/components/site/ComponentRenderer';
 import { api } from '@/convex/_generated/api';
+import type { Doc } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { Loader2 } from 'lucide-react';
 import React from 'react';
 
 const EMPTY_COMPONENTS_COUNT = 0;
 
-export default function HomePageClient(): React.ReactElement {
+export default function HomePageClient({
+  initialComponents,
+}: {
+  initialComponents?: Doc<'homeComponents'>[];
+}): React.ReactElement {
   const components = useQuery(api.homeComponents.listActive);
+  const resolvedComponents = components ?? initialComponents;
 
-  if (typeof components === 'undefined') {
+  if (typeof resolvedComponents === 'undefined') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
@@ -19,7 +25,7 @@ export default function HomePageClient(): React.ReactElement {
     );
   }
 
-  if (components.length === EMPTY_COMPONENTS_COUNT) {
+  if (resolvedComponents.length === EMPTY_COMPONENTS_COUNT) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -35,7 +41,7 @@ export default function HomePageClient(): React.ReactElement {
     );
   }
 
-  const sortedComponents = [...components]
+  const sortedComponents = [...resolvedComponents]
     .filter((componentItem) => componentItem.type !== 'Footer')
     .sort((firstComponent, secondComponent) => firstComponent.order - secondComponent.order);
 

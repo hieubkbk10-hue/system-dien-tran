@@ -97,18 +97,6 @@ const REMOVED_CONTACT_KEYS = new Set([
   'social_zalo',
 ]);
 
-const BUSINESS_TYPE_OPTIONS = [
-  'LocalBusiness',
-  'Store',
-  'Restaurant',
-  'CafeOrCoffeeShop',
-  'Hotel',
-  'MedicalClinic',
-  'RealEstateAgent',
-  'ProfessionalService',
-];
-
-
 export default function SettingsPage() {
   return (
     <ModuleGuard moduleKey={MODULE_KEY}>
@@ -626,16 +614,9 @@ function SettingsContent() {
             <textarea
               value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
-              className={`w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm ${key === 'seo_robots' || key === 'seo_hreflang' ? 'font-mono text-xs' : ''}`}
-              placeholder={
-                key === 'seo_hreflang'
-                  ? 'vi:https://example.com\nen:https://example.com/en'
-                  : `Nhập ${field.name.toLowerCase()}...`
-              }
+              className="w-full min-h-[80px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              placeholder={`Nhập ${field.name.toLowerCase()}...`}
             />
-            {key === 'seo_hreflang' && (
-              <p className="text-xs text-slate-500">Mỗi dòng một ngôn ngữ theo định dạng locale:url.</p>
-            )}
           </div>
         );
       }
@@ -671,23 +652,6 @@ function SettingsContent() {
                 <option value="vi">Tiếng Việt</option>
                 <option value="en">English</option>
               </select>
-            </div>
-          );
-        }
-        if (key === 'seo_business_type') {
-          return (
-            <div className="space-y-2" key={key}>
-              <Label>{field.name}</Label>
-              <select
-                value={stringValue}
-                onChange={(e) =>{  updateField(key, e.target.value); }}
-                className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-              >
-                {BUSINESS_TYPE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-500">Chọn loại hình phù hợp để Schema LocalBusiness chính xác hơn.</p>
             </div>
           );
         }
@@ -819,17 +783,8 @@ function SettingsContent() {
             <Input
               value={stringValue}
               onChange={(e) =>{  updateField(key, e.target.value); }}
-              placeholder={
-                key === 'seo_opening_hours'
-                  ? 'Mo-Su 08:00-22:00'
-                  : key === 'seo_price_range'
-                    ? '$$'
-                    : `Nhập ${field.name.toLowerCase()}...`
-              }
+              placeholder={`Nhập ${field.name.toLowerCase()}...`}
             />
-            {key === 'seo_opening_hours' && (
-              <p className="text-xs text-slate-500">Theo chuẩn Schema.org OpeningHours (VD: Mo-Fr 09:00-18:00).</p>
-            )}
           </div>
         );
       }

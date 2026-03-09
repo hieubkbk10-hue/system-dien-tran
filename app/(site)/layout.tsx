@@ -9,50 +9,8 @@ import { SiteShell } from '@/components/site/SiteShell';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
 import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { parseHreflang } from '@/lib/seo';
+import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
 import type { Metadata } from 'next';
-
-const buildKeywords = (seoKeywords: string): string[] => {
-  if (!seoKeywords) {
-    return [];
-  }
-  return seoKeywords.split(',').map((keyword) => keyword.trim());
-};
-
-const buildLocale = (language: string): string => {
-  if (language === 'vi') {
-    return 'vi_VN';
-  }
-  return 'en_US';
-};
-
-const buildImageEntries = (imageUrl: string): { url: string }[] => {
-  if (!imageUrl) {
-    return [];
-  }
-  return [{ url: imageUrl }];
-};
-
-const buildTwitterImages = (imageUrl: string): string[] => {
-  if (!imageUrl) {
-    return [];
-  }
-  return [imageUrl];
-};
-
-const buildMetadataBase = (baseUrl: string): URL | undefined => {
-  if (!baseUrl) {
-    return undefined;
-  }
-  return new URL(baseUrl);
-};
-
-const resolveCanonical = (baseUrl: string): string | undefined => {
-  if (!baseUrl) {
-    return undefined;
-  }
-  return baseUrl;
-};
 
 const resolveUrl = (url: string, baseUrl: string): string => {
   if (!url) {
@@ -69,42 +27,18 @@ export const generateMetadata = (): Promise<Metadata> => {
     getSiteSettings(),
     getSEOSettings(),
   ]).then(([site, seo]) => {
-    const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
-    const title = seo.seo_title || site.site_name || 'VietAdmin';
-    const description = seo.seo_description || site.site_tagline || '';
-    const languages = parseHreflang(seo.seo_hreflang);
+    const context = buildSeoContext(site, seo);
 
     return {
-      alternates: {
-        canonical: resolveCanonical(baseUrl),
-        ...(Object.keys(languages).length > 0 && { languages }),
-      },
-      description,
+      ...buildMetadata({
+        canonical: buildCanonicalUrl(context.baseUrl),
+        context,
+        description: context.description,
+        indexable: true,
+        title: context.title,
+        useTitleTemplate: true,
+      }),
       icons: { icon: `/api/favicon?v=${encodeURIComponent(site.site_favicon || '')}` },
-      keywords: buildKeywords(seo.seo_keywords || ''),
-      metadataBase: buildMetadataBase(baseUrl),
-      openGraph: {
-        description,
-        images: buildImageEntries(seo.seo_og_image || ''),
-        locale: buildLocale(site.site_language || 'vi'),
-        siteName: site.site_name || 'VietAdmin',
-        title,
-        type: 'website',
-      },
-      robots: {
-        follow: true,
-        index: true,
-      },
-      title: {
-        default: title,
-        template: `%s | ${site.site_name || 'VietAdmin'}`,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        description,
-        images: buildTwitterImages(seo.seo_og_image || ''),
-        title,
-      },
     };
   });
 };
@@ -140,16 +74,10 @@ const SiteLayout = ({
       address: contact.contact_address,
       description: seo.seo_description,
       email: contact.contact_email,
-      geo: {
-        lat: seo.seo_geo_lat,
-        lng: seo.seo_geo_lng,
-      },
       logo: site.site_logo,
       name: site.site_name,
-      openingHours: seo.seo_opening_hours,
       phone: contact.contact_phone,
-      priceRange: seo.seo_price_range,
-      type: seo.seo_business_type,
+      type: 'LocalBusiness',
       url: baseUrl,
     });
 

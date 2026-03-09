@@ -1,7 +1,8 @@
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { parseHreflang } from '@/lib/seo';
+import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { stripHtml, truncateText } from '@/lib/seo';
 import { JsonLd, generateBreadcrumbSchema, generateProductSchema } from '@/components/seo/JsonLd';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -18,11 +19,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const productsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'products' });
     if (productsModule?.enabled === false) {
-      return {
+      const [site, seo] = await Promise.all([
+        getSiteSettings(),
+        getSEOSettings(),
+      ]);
+      const context = buildSeoContext(site, seo);
+      return buildMetadata({
+        context,
         description: 'Trang sản phẩm hiện không khả dụng.',
-        robots: { follow: false, index: false },
+        indexable: false,
         title: 'Không tìm thấy sản phẩm',
-      };
+      });
     }
 
     const [product, site, seo, saleModeSetting] = await Promise.all([
@@ -33,18 +40,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ]);
 
     if (!product) {
-      return {
+      const context = buildSeoContext(site, seo);
+      return buildMetadata({
+        context,
         description: 'Sản phẩm này không tồn tại hoặc đã bị xóa.',
+        indexable: false,
         title: 'Không tìm thấy sản phẩm',
-      };
+      });
     }
 
-    const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
+    const context = buildSeoContext(site, seo);
     const title = product.metaTitle ?? product.name;
-    const description = product.metaDescription ?? (product.description ? product.description.replaceAll(/<[^>]*>/g, '').slice(0, 160) : seo.seo_description);
-    const image = (product.image ?? (product.images && product.images[0])) ?? seo.seo_og_image;
-    const keywords = seo.seo_keywords ? seo.seo_keywords.split(',').map(k => k.trim()) : [];
-    const languages = parseHreflang(seo.seo_hreflang);
+    const description = product.metaDescription
+      ?? (product.description ? truncateText(stripHtml(product.description), 160) : '')
+      ?? seo.seo_description;
+    const image = (product.image ?? (product.images && product.images[0])) ?? context.image;
     
     const saleModeValue = saleModeSetting?.value;
     const saleMode = saleModeValue === 'contact' || saleModeValue === 'affiliate' ? saleModeValue : 'cart';
@@ -54,35 +64,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       salePrice: product.salePrice,
     }).label;
 
-    return {
-      alternates: {
-        canonical: `${baseUrl}/products/${product.slug}`,
-        ...(Object.keys(languages).length > 0 && { languages }),
-      },
-      description,
-      keywords,
-      openGraph: {
-        title,
-        description,
-        type: 'website',
-        url: `${baseUrl}/products/${product.slug}`,
-        images: image ? [{ url: image, alt: title }] : undefined,
-        siteName: site.site_name,
-        locale: site.site_language === 'vi' ? 'vi_VN' : 'en_US',
-      },
-      title,
-      twitter: {
-        card: 'summary_large_image',
-        title: `${title} - ${formattedPrice}`,
-        description,
-        images: image ? [image] : undefined,
-      },
-    };
+    return buildMetadata({
+      canonical: buildCanonicalUrl(context.baseUrl, `/products/${product.slug}`),
+      context,
+      description: description || context.description,
+      image,
+      indexable: true,
+      title: `${title} - ${formattedPrice}`,
+    });
   } catch {
-    return {
+    const [site, seo] = await Promise.all([
+      getSiteSettings(),
+      getSEOSettings(),
+    ]);
+    const context = buildSeoContext(site, seo);
+    return buildMetadata({
+      context,
       description: 'Thông tin sản phẩm đang được cập nhật.',
+      indexable: false,
       title: 'Sản phẩm',
-    };
+    });
   }
 }
 

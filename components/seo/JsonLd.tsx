@@ -132,7 +132,7 @@ export const generateProductSchema = (params: {
       availability: params.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
-      price: params.price,
+      price: params.salePrice ?? params.price,
       priceCurrency: params.currency ?? 'VND',
       url: params.url,
     },
@@ -204,14 +204,6 @@ export const generateWebsiteSchema = (params: {
     name: params.name,
     url: params.url,
     ...(params.description && { description: params.description }),
-    potentialAction: {
-      '@type': 'SearchAction',
-      'query-input': 'required name=search_term_string',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${params.url}/search?q={search_term_string}`,
-      },
-    },
 })
 
 export const generateNavigationSchema = (params: {

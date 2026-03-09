@@ -4,7 +4,7 @@ import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { JsonLd, generateArticleSchema, generateBreadcrumbSchema } from '@/components/seo/JsonLd';
-import { parseHreflang } from '@/lib/seo';
+import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,11 +17,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const postsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'posts' });
   if (postsModule?.enabled === false) {
-    return {
+    const [site, seo] = await Promise.all([
+      getSiteSettings(),
+      getSEOSettings(),
+    ]);
+    const context = buildSeoContext(site, seo);
+    return buildMetadata({
+      context,
       description: 'Trang bài viết hiện không khả dụng.',
-      robots: { follow: false, index: false },
+      indexable: false,
       title: 'Không tìm thấy bài viết',
-    };
+    });
   }
   
   const [post, site, seo] = await Promise.all([
@@ -31,44 +37,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   ]);
 
   if (!post) {
-    return {
+    const context = buildSeoContext(site, seo);
+    return buildMetadata({
+      context,
       description: 'Bài viết này không tồn tại hoặc đã bị xóa.',
+      indexable: false,
       title: 'Không tìm thấy bài viết',
-    };
+    });
   }
 
-  const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
+  const context = buildSeoContext(site, seo);
   const title = post.metaTitle ?? post.title;
   const description = (post.metaDescription ?? post.excerpt) ?? seo.seo_description;
-  const image = post.thumbnail ?? seo.seo_og_image;
-  const keywords = seo.seo_keywords ? seo.seo_keywords.split(',').map(k => k.trim()) : [];
-  const languages = parseHreflang(seo.seo_hreflang);
+  const image = post.thumbnail ?? context.image;
 
-  return {
-    alternates: {
-      canonical: `${baseUrl}/posts/${post.slug}`,
-      ...(Object.keys(languages).length > 0 && { languages }),
-    },
-    description,
-    keywords,
+  return buildMetadata({
+    canonical: buildCanonicalUrl(context.baseUrl, `/posts/${post.slug}`),
+    context,
+    description: description || context.description,
+    image,
+    indexable: true,
     openGraph: {
-      title,
-      description,
-      type: 'article',
-      url: `${baseUrl}/posts/${post.slug}`,
-      images: image ? [{ url: image, alt: title }] : undefined,
-      siteName: site.site_name,
-      locale: site.site_language === 'vi' ? 'vi_VN' : 'en_US',
       publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
     },
+    openGraphType: 'article',
     title,
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
-  };
+  });
 }
 
 export default async function PostLayout({ params, children }: Props) {
@@ -98,6 +92,7 @@ export default async function PostLayout({ params, children }: Props) {
     publishedAt: post.publishedAt,
     siteName: site.site_name,
     title: post.metaTitle ?? post.title,
+    authorName: post.authorName,
     url: postUrl,
   });
 

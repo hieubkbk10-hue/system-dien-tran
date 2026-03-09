@@ -74,7 +74,7 @@ export function useSiteSettings() {
     logo: (settingsMap.site_logo as string) || '',
     settings: settingsMap,
     siteDescription: (settingsMap.site_description as string) || '',
-    siteName: (settingsMap.site_name as string) || 'VietAdmin',
+    siteName: (settingsMap.site_name as string) || 'Website',
   };
 }
 

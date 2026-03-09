@@ -73,7 +73,7 @@ const DEFAULT_BUSINESS_INFO: BusinessInfo = {
   ogImageUrl: '',
   openingHours: 'Mo-Su 08:00-22:00',
   phone: '',
-  siteName: 'VietAdmin',
+  siteName: 'Website',
   socialFacebook: '',
   tagline: '',
   useLogoAsOgImage: true,
@@ -485,7 +485,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
 
     items.push(
-      { label: 'Tên website', value: state.businessInfo.siteName || 'VietAdmin' },
+      { label: 'Tên website', value: state.businessInfo.siteName || 'Website' },
       { label: 'Quy mô dữ liệu', value: dataScaleLabel }
     );
 
@@ -825,15 +825,14 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         .filter(Boolean)
         .map((item) => (item || '').trim())
         .filter(Boolean);
-      const seoKeywords = Array.from(new Set(seoKeywordPool)).join(', ')
-        || 'admin, quản trị, website, cms';
+      const seoKeywords = Array.from(new Set(seoKeywordPool)).join(', ');
       const resolvedOgImage = state.businessInfo.useLogoAsOgImage
         ? (state.selectedLogo || state.businessInfo.ogImageUrl || '')
         : (state.businessInfo.ogImageUrl || '');
 
       await setSettings({
         settings: [
-          { group: 'site', key: 'site_name', value: state.businessInfo.siteName || 'VietAdmin' },
+          { group: 'site', key: 'site_name', value: state.businessInfo.siteName || 'Website' },
           { group: 'site', key: 'site_tagline', value: state.businessInfo.tagline || '' },
           { group: 'site', key: 'site_favicon', value: resolvedFavicon },
           { group: 'site', key: 'site_brand_mode', value: state.businessInfo.brandMode },
@@ -856,8 +855,6 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           { group: 'seo', key: 'seo_description', value: state.businessInfo.tagline || '' },
           { group: 'seo', key: 'seo_keywords', value: seoKeywords },
           { group: 'seo', key: 'seo_og_image', value: resolvedOgImage },
-          { group: 'seo', key: 'seo_business_type', value: state.businessInfo.businessType || 'LocalBusiness' },
-          { group: 'seo', key: 'seo_opening_hours', value: state.businessInfo.openingHours || '' },
           { group: 'admin', key: 'admin_permission_mode', value: state.adminPermissionMode },
         ],
       });

@@ -39,7 +39,7 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
   }
 
   generateFake(): SettingData {
-    return { group: 'site', key: 'site_name', value: 'VietAdmin' };
+    return { group: 'site', key: 'site_name', value: 'Website' };
   }
 
   validateRecord(record: SettingData): boolean {
@@ -58,8 +58,8 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
     }
 
     const settingsData: SettingData[] = [
-      { group: 'site', key: 'site_name', value: 'VietAdmin' },
-      { group: 'site', key: 'site_tagline', value: 'Hệ thống quản trị website' },
+      { group: 'site', key: 'site_name', value: 'Website' },
+      { group: 'site', key: 'site_tagline', value: '' },
       { group: 'site', key: 'site_url', value: '' },
       { group: 'site', key: 'site_logo', value: '' },
       { group: 'site', key: 'site_favicon', value: '' },
@@ -69,24 +69,24 @@ export class SettingsSeeder extends BaseSeeder<SettingData> {
       { group: 'site', key: 'site_brand_primary', value: '#3b82f6' },
       { group: 'site', key: 'site_brand_secondary', value: '' },
       { group: 'site', key: 'site_brand_color', value: '#3b82f6' },
-      { group: 'contact', key: 'contact_email', value: 'contact@vietadmin.com' },
-      { group: 'contact', key: 'contact_phone', value: '0901234567' },
-      { group: 'contact', key: 'contact_address', value: '123 Nguyễn Huệ, Quận 1, TP.HCM' },
+      { group: 'contact', key: 'contact_email', value: '' },
+      { group: 'contact', key: 'contact_phone', value: '' },
+      { group: 'contact', key: 'contact_address', value: '' },
       { group: 'contact', key: 'contact_tax_id', value: '' },
-      { group: 'contact', key: 'contact_zalo', value: '0901234567' },
+      { group: 'contact', key: 'contact_zalo', value: '' },
       { group: 'contact', key: 'contact_messenger', value: '' },
       { group: 'contact', key: 'contact_map_provider', value: 'openstreetmap' },
       { group: 'contact', key: 'contact_google_map_embed_iframe', value: '' },
-      { group: 'seo', key: 'seo_title', value: 'VietAdmin - Hệ thống quản trị website' },
-      { group: 'seo', key: 'seo_description', value: 'VietAdmin là hệ thống quản trị website hiện đại, dễ sử dụng' },
-      { group: 'seo', key: 'seo_keywords', value: 'admin, quản trị, website, cms' },
+      { group: 'seo', key: 'seo_title', value: '' },
+      { group: 'seo', key: 'seo_description', value: '' },
+      { group: 'seo', key: 'seo_keywords', value: '' },
       { group: 'seo', key: 'seo_og_image', value: '' },
       { group: 'social', key: 'social_facebook', value: '' },
       { group: 'social', key: 'social_instagram', value: '' },
       { group: 'social', key: 'social_youtube', value: '' },
       { group: 'social', key: 'social_tiktok', value: '' },
-      { group: 'mail', key: 'mail_from_name', value: 'VietAdmin' },
-      { group: 'mail', key: 'mail_from_email', value: 'noreply@vietadmin.com' },
+      { group: 'mail', key: 'mail_from_name', value: 'Website' },
+      { group: 'mail', key: 'mail_from_email', value: '' },
       { group: 'mail', key: 'mail_driver', value: 'smtp' },
       { group: 'mail', key: 'mail_host', value: '' },
       { group: 'mail', key: 'mail_username', value: '' },
