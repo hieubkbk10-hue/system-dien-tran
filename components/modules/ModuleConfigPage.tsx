@@ -98,8 +98,11 @@ export function ModuleConfigPage({
    const tabs = config.tabs ?? ['config'];
    const isReadOnly = moduleData?.enabled === false;
   
-  const canSyncDefinition = hasModuleRuntimeDefinition(config.key)
-    || (config.categoryModuleKey ? hasModuleRuntimeDefinition(config.categoryModuleKey) : false);
+  const canSyncMainModule = hasModuleRuntimeDefinition(config.key);
+  const canSyncCategoryModule = config.categoryModuleKey
+    ? hasModuleRuntimeDefinition(config.categoryModuleKey)
+    : false;
+  const canSyncDefinition = canSyncMainModule;
 
   const renderProps: ModuleConfigPageRenderProps = {
     config,
@@ -139,7 +142,8 @@ export function ModuleConfigPage({
     if (isReadOnly || !canSyncDefinition) {return;}
     setIsSyncing(true);
     try {
-      const moduleKeys = [config.key, config.categoryModuleKey].filter((key): key is string => Boolean(key));
+      const moduleKeys = [config.key, canSyncCategoryModule ? config.categoryModuleKey : undefined]
+        .filter((key): key is string => Boolean(key));
       const results = await Promise.all(moduleKeys.map((moduleKey) => syncModuleConfig({ moduleKey })));
       const added = results.reduce((total, result) => total
         + result.addedFields.length

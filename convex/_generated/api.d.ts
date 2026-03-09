@@ -23,6 +23,7 @@ import type * as homeComponentSystemConfig from "../homeComponentSystemConfig.js
 import type * as homeComponents from "../homeComponents.js";
 import type * as kanban from "../kanban.js";
 import type * as lib_helpers from "../lib/helpers.js";
+import type * as lib_moduleConfigSync from "../lib/moduleConfigSync.js";
 import type * as lib_password from "../lib/password.js";
 import type * as lib_permissions from "../lib/permissions.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   homeComponents: typeof homeComponents;
   kanban: typeof kanban;
   "lib/helpers": typeof lib_helpers;
+  "lib/moduleConfigSync": typeof lib_moduleConfigSync;
   "lib/password": typeof lib_password;
   "lib/permissions": typeof lib_permissions;
   "lib/rateLimit": typeof lib_rateLimit;

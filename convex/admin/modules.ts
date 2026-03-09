@@ -3,7 +3,7 @@ import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { v } from "convex/values";
 import { dependencyType, fieldType, moduleCategory } from "../lib/validators";
-import { syncModuleRuntimeConfig } from "../lib/module-config-sync";
+import { syncModuleRuntimeConfig } from "../lib/moduleConfigSync";
 
 // ============ ADMIN MODULES ============
 

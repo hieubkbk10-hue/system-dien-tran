@@ -3,7 +3,7 @@
  */
 
 import { BaseSeeder, type SeedConfig, type SeedDependency } from './base';
-import { syncModuleRuntimeConfig } from '../lib/module-config-sync';
+import { syncModuleRuntimeConfig } from '../lib/moduleConfigSync';
 import type { Doc, DataModel } from '../_generated/dataModel';
 import type { GenericMutationCtx } from 'convex/server';
 

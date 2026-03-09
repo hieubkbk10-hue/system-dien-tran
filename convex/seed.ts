@@ -5,7 +5,7 @@ import { v } from "convex/values";
 import { seedPresetProductOptions } from "./seeders/productOptions.seeder";
 import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from "../lib/orders/statuses";
 import { hashPassword } from "./lib/password";
-import { syncModuleRuntimeConfig } from "./lib/module-config-sync";
+import { syncModuleRuntimeConfig } from "./lib/moduleConfigSync";
 
 const DEFAULT_USER_PASSWORD = process.env.SEED_USER_PASSWORD ?? "Admin@123";
 
