@@ -6,6 +6,7 @@ import type { ContactInfoItem } from '../_types';
 import { Button, Input, cn } from '../../../components/ui';
 import { buildDefaultContactItemsFromSettings } from '../_lib/constants';
 import { CONTACT_ICON_OPTIONS, resolveContactIcon } from '../_lib/iconOptions';
+import { IconPickerDialog } from './IconPickerDialog';
 
 interface ContactInfoItemsManagerProps {
   items: ContactInfoItem[];
@@ -37,6 +38,15 @@ export function ContactInfoItemsManager({
 
   const [draggedId, setDraggedId] = useState<number | string | null>(null);
   const [dragOverId, setDragOverId] = useState<number | string | null>(null);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const [activeIconItemId, setActiveIconItemId] = useState<number | string | null>(null);
+
+  const iconLabelMap = useMemo(() => (
+    CONTACT_ICON_OPTIONS.reduce<Record<string, string>>((acc, option) => {
+      acc[option.value] = option.label;
+      return acc;
+    }, {})
+  ), []);
 
   const addItem = () => {
     const newId = getNextId(itemsWithId);
@@ -114,6 +124,7 @@ export function ContactInfoItemsManager({
           {itemsWithId.map((item) => {
             const Icon = resolveContactIcon(item.icon);
             const hasError = validationErrors?.[item.id]?.href;
+            const iconLabel = iconLabelMap[item.icon] ?? item.icon;
 
             return (
               <div
@@ -136,17 +147,19 @@ export function ContactInfoItemsManager({
                     <div className="h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center bg-white dark:bg-slate-900">
                       <Icon size={18} className="text-slate-600 dark:text-slate-300" />
                     </div>
-                    <select
-                      value={item.icon}
-                      onChange={(e) => { updateItem(item.id, { icon: e.target.value }); }}
-                      className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 min-w-[160px] justify-start gap-2"
+                      onClick={() => {
+                        setActiveIconItemId(item.id);
+                        setIconPickerOpen(true);
+                      }}
                     >
-                      {CONTACT_ICON_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      <Icon size={16} className="text-slate-600 dark:text-slate-300" />
+                      <span className="truncate">{iconLabel}</span>
+                    </Button>
                   </div>
                   <div className="flex-1">
                     <Input
@@ -191,6 +204,17 @@ export function ContactInfoItemsManager({
           })}
         </div>
       )}
+
+      <IconPickerDialog
+        open={iconPickerOpen}
+        onOpenChange={setIconPickerOpen}
+        value={itemsWithId.find((item) => item.id === activeIconItemId)?.icon}
+        options={CONTACT_ICON_OPTIONS}
+        onSelect={(nextValue) => {
+          if (activeIconItemId === null) {return;}
+          updateItem(activeIconItemId, { icon: nextValue });
+        }}
+      />
     </div>
   );
 }
