@@ -1,6 +1,6 @@
 import { ShoppingBag, CreditCard, Truck, MapPin } from 'lucide-react';
 import { defineModuleWithRuntime } from '../define-module';
-import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '@/lib/orders/statuses';
+import { DEFAULT_ORDER_STATUS_PRESET, ORDER_STATUS_PRESETS } from '../../orders/statuses';
  
 export const ordersModule = defineModuleWithRuntime({
    key: 'orders',
