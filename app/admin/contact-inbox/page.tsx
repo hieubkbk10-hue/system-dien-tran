@@ -181,7 +181,7 @@ function ContactInboxContent() {
                   <select
                     className="h-9 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                     value={inquiry.status}
-                    onChange={(event) =>{  handleStatusChange(inquiry._id, event.target.value as 'new' | 'in_progress' | 'resolved' | 'spam'); }}
+                    onChange={(event) =>{ void handleStatusChange(inquiry._id, event.target.value as 'new' | 'in_progress' | 'resolved' | 'spam'); }}
                   >
                     <option value="new">Mới</option>
                     <option value="in_progress">Đang xử lý</option>

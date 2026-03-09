@@ -198,19 +198,6 @@ const getAnalogous = (hex: string): [string, string] => {
   ];
 };
 
-const getComplementary = (hex: string) => {
-  const color = getOKLCH(hex);
-  return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
-};
-
-const getTriadic = (hex: string): [string, string] => {
-  const color = getOKLCH(hex);
-  return [
-    formatHex(oklch({ ...color, h: (color.h + 120) % 360 })),
-    formatHex(oklch({ ...color, h: (color.h - 120 + 360) % 360 })),
-  ];
-};
-
 const getAutoSecondary = (primary: string) => getAnalogous(primary)[0];
 
 export const resolveFaqSecondary = (

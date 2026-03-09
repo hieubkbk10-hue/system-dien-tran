@@ -15,7 +15,9 @@ const coerceNumber = (value: unknown, fallback: number) => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
-  const parsed = Number.parseFloat(String(value ?? ''));
+  const parsed = Number.parseFloat(
+    typeof value === 'string' || typeof value === 'number' ? String(value) : ''
+  );
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 

@@ -92,7 +92,6 @@ const getRootContainerClass = (context: ContactSectionContext, currentDevice: Pr
 
 const MAP_HEIGHT_HERO = 'min-h-[320px] md:min-h-[360px]';
 const MAP_HEIGHT_STANDARD = 'min-h-[240px] md:min-h-[280px]';
-const MAP_HEIGHT_COMPACT = 'min-h-[200px] md:min-h-[220px]';
 
 const getInfo = (config: ContactConfigState, title?: string) => {
   const texts = config.texts ?? {};
