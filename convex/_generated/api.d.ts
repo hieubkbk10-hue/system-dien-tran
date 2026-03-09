@@ -22,6 +22,7 @@ import type * as dataManager from "../dataManager.js";
 import type * as homeComponentSystemConfig from "../homeComponentSystemConfig.js";
 import type * as homeComponents from "../homeComponents.js";
 import type * as kanban from "../kanban.js";
+import type * as landingPages from "../landingPages.js";
 import type * as lib_helpers from "../lib/helpers.js";
 import type * as lib_moduleConfigSync from "../lib/moduleConfigSync.js";
 import type * as lib_password from "../lib/password.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   homeComponentSystemConfig: typeof homeComponentSystemConfig;
   homeComponents: typeof homeComponents;
   kanban: typeof kanban;
+  landingPages: typeof landingPages;
   "lib/helpers": typeof lib_helpers;
   "lib/moduleConfigSync": typeof lib_moduleConfigSync;
   "lib/password": typeof lib_password;

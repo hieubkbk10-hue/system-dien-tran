@@ -1,15 +1,10 @@
-import {
-  JsonLd,
-  generateLocalBusinessSchema,
-  generateNavigationSchema,
-  generateOrganizationSchema,
-  generateWebsiteSchema,
-} from '@/components/seo/JsonLd';
+import { JsonLd, generateNavigationSchema } from '@/components/seo/JsonLd';
 import { SiteShell } from '@/components/site/SiteShell';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
 import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { buildSiteSchemas } from '@/lib/seo/schema-policy';
 import type { Metadata } from 'next';
 
 const resolveUrl = (url: string, baseUrl: string): string => {
@@ -60,26 +55,8 @@ const SiteLayout = ({
       ? await client.query(api.menus.listActiveMenuItems, { menuId: headerMenu._id })
       : [];
 
-    const organizationSchema = generateOrganizationSchema({
-      address: contact.contact_address,
-      description: seo.seo_description,
-      email: contact.contact_email,
-      logo: site.site_logo,
-      name: site.site_name,
-      phone: contact.contact_phone,
-      url: baseUrl,
-    });
-
-    const localBusinessSchema = generateLocalBusinessSchema({
-      address: contact.contact_address,
-      description: seo.seo_description,
-      email: contact.contact_email,
-      logo: site.site_logo,
-      name: site.site_name,
-      phone: contact.contact_phone,
-      type: 'LocalBusiness',
-      url: baseUrl,
-    });
+    // Zero-config: schema engine tự quyết định Organization vs LocalBusiness
+    const siteSchemas = buildSiteSchemas({ contact, seo, site });
 
     const navigationSchema = generateNavigationSchema({
       items: headerItems.map((item) => ({
@@ -90,17 +67,11 @@ const SiteLayout = ({
       url: baseUrl,
     });
 
-    const websiteSchema = generateWebsiteSchema({
-      description: seo.seo_description,
-      name: site.site_name,
-      url: baseUrl,
-    });
-
     return (
       <SiteShell>
-        <JsonLd data={organizationSchema} />
-        <JsonLd data={localBusinessSchema} />
-        <JsonLd data={websiteSchema} />
+        {siteSchemas.map((schema, index) => (
+          <JsonLd key={index} data={schema} />
+        ))}
         {headerItems.length > 0 && <JsonLd data={navigationSchema} />}
         {children}
       </SiteShell>

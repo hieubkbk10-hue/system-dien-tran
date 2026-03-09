@@ -942,4 +942,42 @@ export default defineSchema({
     results: v.array(v.any()),
     errors: v.array(v.string()),
   }).index("by_session", ["sessionId"]),
+
+  // ============================================================
+  // SAAS LANDING CONTENT (programmatic SEO surface)
+  // ============================================================
+
+  // landingPages - Trang landing cho SaaS (features/use-cases/solutions/compare/integrations/templates/guides)
+  landingPages: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    summary: v.string(),
+    content: v.optional(v.string()),
+    heroImage: v.optional(v.string()),
+    status: v.union(v.literal("draft"), v.literal("published")),
+    landingType: v.union(
+      v.literal("feature"),
+      v.literal("use-case"),
+      v.literal("solution"),
+      v.literal("compare"),
+      v.literal("integration"),
+      v.literal("template"),
+      v.literal("guide")
+    ),
+    primaryIntent: v.optional(v.string()), // mô tả search intent chính
+    faqItems: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+    }))),
+    relatedSlugs: v.optional(v.array(v.string())), // slugs của related landing pages
+    relatedProductSlugs: v.optional(v.array(v.string())),
+    relatedServiceSlugs: v.optional(v.array(v.string())),
+    updatedAt: v.number(),
+    publishedAt: v.optional(v.number()),
+    order: v.optional(v.number()),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_type", ["landingType"])
+    .index("by_type_status", ["landingType", "status"])
+    .index("by_status_updatedAt", ["status", "updatedAt"]),
 });

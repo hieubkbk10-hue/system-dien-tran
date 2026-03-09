@@ -46,9 +46,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
       url: `${baseUrl}/stores`,
     },
+    // SaaS landing hubs
+    {
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      url: `${baseUrl}/features`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      url: `${baseUrl}/use-cases`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      url: `${baseUrl}/solutions`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      url: `${baseUrl}/compare`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      url: `${baseUrl}/integrations`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      url: `${baseUrl}/templates`,
+    },
+    {
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      url: `${baseUrl}/guides`,
+    },
   ];
 
-  const [posts, products, services] = await Promise.all([
+  const [posts, products, services, landingPages] = await Promise.all([
     collectPaginated((cursor) => client.query(api.posts.listPublished, {
       paginationOpts: { cursor, numItems: 500 },
     })),
@@ -59,6 +95,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     collectPaginated((cursor) => client.query(api.services.listPublishedPaginated, {
       paginationOpts: { cursor, numItems: 500 },
       sortBy: 'newest',
+    })),
+    collectPaginated((cursor) => client.query(api.landingPages.listAllPublished, {
+      paginationOpts: { cursor, numItems: 500 },
     })),
   ]);
 
@@ -86,5 +125,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}/services/${service.slug}`,
   }));
 
-  return [...staticPages, ...postUrls, ...productUrls, ...serviceUrls];
+  // Generate landing page URLs (features/use-cases/solutions/compare/integrations/templates/guides)
+  const landingUrls: MetadataRoute.Sitemap = landingPages.map((page) => {
+    const routeMap: Record<string, string> = {
+      feature: '/features',
+      'use-case': '/use-cases',
+      solution: '/solutions',
+      compare: '/compare',
+      integration: '/integrations',
+      template: '/templates',
+      guide: '/guides',
+    };
+    const basePath = routeMap[page.landingType] || '/features';
+    
+    return {
+      changeFrequency: 'weekly' as const,
+      lastModified: new Date(page.updatedAt),
+      priority: 0.7,
+      url: `${baseUrl}${basePath}/${page.slug}`,
+    };
+  });
+
+  return [...staticPages, ...postUrls, ...productUrls, ...serviceUrls, ...landingUrls];
 }
