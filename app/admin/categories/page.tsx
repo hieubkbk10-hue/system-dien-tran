@@ -140,13 +140,48 @@ function CategoriesContent() {
       count: productCountMap[cat._id] || 0,
     })) ?? [], [categoriesData, productCountMap]);
 
+  const treeSortedCategories = useMemo(() => {
+    if (!hierarchyEnabled || sortConfig.key !== null) {
+      return categories;
+    }
+
+    const idSet = new Set(categories.map(category => category.id));
+    const roots = categories.filter(category => !category.parentId || !idSet.has(category.parentId));
+    const childrenMap = new Map<string, typeof categories>();
+
+    categories.forEach(category => {
+      if (!category.parentId || !idSet.has(category.parentId)) {
+        return;
+      }
+      const list = childrenMap.get(category.parentId) ?? [];
+      list.push(category);
+      childrenMap.set(category.parentId, list);
+    });
+
+    const compareByOrder = (a: typeof categories[number], b: typeof categories[number]) =>
+      (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name);
+
+    const result: typeof categories = [];
+    const dfs = (node: typeof categories[number]) => {
+      result.push(node);
+      const children = childrenMap.get(node.id) ?? [];
+      children.sort(compareByOrder);
+      children.forEach(dfs);
+    };
+
+    roots.sort(compareByOrder);
+    roots.forEach(dfs);
+
+    return result;
+  }, [categories, hierarchyEnabled, sortConfig.key]);
+
   const handleSort = (key: string) => {
     setSortConfig(prev => ({ direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc', key }));
     setCurrentPage(1);
     applyManualSelection([]);
   };
 
-  const sortedData = useSortableData(categories, sortConfig);
+  const sortedData = useSortableData(treeSortedCategories, sortConfig);
 
   const totalCount = totalCountData?.count ?? 0;
   const totalPages = totalCount ? Math.ceil(totalCount / resolvedPageSize) : 1;
@@ -165,6 +200,7 @@ function CategoriesContent() {
     setDebouncedSearchTerm('');
     setCurrentPage(1);
     setPageSizeOverride(null);
+    setSortConfig({ direction: 'asc', key: null });
     applyManualSelection([]);
   };
 
