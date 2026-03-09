@@ -7,7 +7,7 @@
 
 # Clean-by-construction
 - Ưu tiên đọc code kỹ, bám pattern sẵn có để giảm lỗi ngay từ lúc viết.
-- Không tự chạy lint/typecheck/unit test trừ khi user yêu cầu rõ ràng.
+- Cấm tuyệt đối tự chạy lint/unit test.
 - Verification runtime/integration do tester phụ trách.
 - Tự review tĩnh trước khi bàn giao: typing, null-safety, edge cases, tương thích dữ liệu cũ.
 
@@ -28,7 +28,7 @@
 
 # Audit & Root Cause Protocol
 - Trigger Audit khi gặp: fix, bug, lỗi, root cause, spec, optimize, refactor.
-- Quy trình bắt buộc: Audit → Root Cause → Fix/Proposal → Verify.
+- Quy trình bắt buộc: Audit → Root Cause → Fix/Proposal → Verify ( tuyệt đối cấm tự chạy npm run lint hoặc npm run build).
 - Trước khi kết luận Root Cause, trả lời tối thiểu 5/8 câu (bắt buộc #1 #3 #6 #8):
   1. Triệu chứng quan sát được là gì (expected vs actual)?
   2. Phạm vi ảnh hưởng (user, module, môi trường)?
