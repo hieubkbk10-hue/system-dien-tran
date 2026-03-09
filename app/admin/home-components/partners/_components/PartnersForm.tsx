@@ -27,7 +27,7 @@ export const PartnersForm = ({
         columns={4}
         showReorder={true}
         addButtonText="Thêm logo"
-        layout="horizontal"
+        layout="vertical"
       />
     </CardContent>
   </Card>

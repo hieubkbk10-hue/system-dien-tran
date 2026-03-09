@@ -64,7 +64,7 @@ export default function PartnersCreatePage() {
             minItems={1}
             maxItems={20}
             aspectRatio="video"
-            columns={2}
+            columns={4}
             showReorder={true}
             addButtonText="Thêm logo"
             emptyText="Chưa có logo nào"
