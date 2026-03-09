@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Button, Card, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui';
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'wishlist';
 
@@ -55,7 +56,6 @@ function WishlistContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"wishlist">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
 
   const isSelectAllActive = selectionMode === 'all';
 
@@ -77,7 +77,7 @@ function WishlistContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedItemsPerPage = pageSizeOverride ?? itemsPerPage;
+  const [resolvedItemsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_wishlist_page_size', itemsPerPage);
   const offset = (currentPage - 1) * resolvedItemsPerPage;
 
   const wishlistData = useQuery(api.wishlist.listAdminWithOffset, {

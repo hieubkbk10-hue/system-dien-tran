@@ -12,6 +12,7 @@ import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, S
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
 import { useOrderStatuses } from '@/lib/experiences';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'orders';
 
@@ -71,7 +72,6 @@ function OrdersContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"orders">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"orders"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -144,7 +144,8 @@ function OrdersContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedOrdersPerPage = pageSizeOverride ?? ordersPerPage;
+  const [resolvedOrdersPerPage, setPageSizeOverride] = usePersistedPageSize('admin_orders_page_size', ordersPerPage);
+
   const offset = (currentPage - 1) * resolvedOrdersPerPage;
 
   const ordersData = useQuery(api.orders.listAdminWithOffset, {

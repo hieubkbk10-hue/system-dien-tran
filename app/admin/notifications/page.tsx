@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui';
 import { BulkActionBar, ColumnToggle, SelectCheckbox, SortableHeader, generatePaginationItems, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'notifications';
 
@@ -50,7 +51,6 @@ function NotificationsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"notifications">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ direction: 'asc', key: null });
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window === 'undefined') {
@@ -92,7 +92,7 @@ function NotificationsContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedItemsPerPage = pageSizeOverride ?? itemsPerPage;
+  const [resolvedItemsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_notifications_page_size', itemsPerPage);
   const offset = (currentPage - 1) * resolvedItemsPerPage;
   const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
 

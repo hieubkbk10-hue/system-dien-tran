@@ -12,6 +12,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 import {
   buildHeaderMap,
   getProductExcelColumns,
@@ -75,7 +76,6 @@ function ProductsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"products">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"products"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -133,6 +133,8 @@ function ProductsContent() {
     return PAGE_SIZE_OPTIONS.includes(value) ? value : 12;
   }, [settingsData]);
 
+  const [resolvedProductsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_products_page_size', productsPerPage);
+
   const variantEnabled = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'variantEnabled');
     return Boolean(setting?.value);
@@ -160,7 +162,6 @@ function ProductsContent() {
     return setting?.value === undefined ? true : Boolean(setting?.value);
   }, [settingsData]);
 
-  const resolvedProductsPerPage = pageSizeOverride ?? productsPerPage;
   const offset = (currentPage - 1) * resolvedProductsPerPage;
   const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
   const hasFilters = Boolean(resolvedSearch || filterCategory || filterStatus);

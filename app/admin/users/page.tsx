@@ -13,6 +13,7 @@ import { BulkActionBar, ColumnToggle, SelectCheckbox, SortableHeader, generatePa
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
 import { useAdminAuth } from '../auth/context';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'users';
 
@@ -83,7 +84,6 @@ function UsersTable({
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"users">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"users"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -136,7 +136,7 @@ function UsersTable({
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedUsersPerPage = pageSizeOverride ?? usersPerPage;
+  const [resolvedUsersPerPage, setPageSizeOverride] = usePersistedPageSize('admin_users_page_size', usersPerPage);
   const offset = (currentPage - 1) * resolvedUsersPerPage;
   const resolvedSearch = debouncedSearchTerm.trim() ? debouncedSearchTerm.trim() : undefined;
 

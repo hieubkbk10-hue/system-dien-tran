@@ -10,6 +10,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'comments';
 
@@ -29,7 +30,6 @@ function ReviewsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"comments">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"comments"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -73,7 +73,7 @@ function ReviewsContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedReviewsPerPage = pageSizeOverride ?? reviewsPerPage;
+  const [resolvedReviewsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_reviews_page_size', reviewsPerPage);
   const offset = (currentPage - 1) * resolvedReviewsPerPage;
 
   const reviewsData = useQuery(api.comments.listAdminWithOffset, {

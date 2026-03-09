@@ -12,6 +12,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 function generatePaginationItems(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
   if (totalPages <= 7) {
@@ -49,7 +50,6 @@ function ServicesContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"services">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"services"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -88,7 +88,7 @@ function ServicesContent() {
     return (setting?.value as number) || 10;
   }, [settingsData]);
 
-  const resolvedServicesPerPage = pageSizeOverride ?? servicesPerPage;
+  const [resolvedServicesPerPage, setPageSizeOverride] = usePersistedPageSize('admin_services_page_size', servicesPerPage);
   const offset = (currentPage - 1) * resolvedServicesPerPage;
 
   const servicesData = useQuery(api.services.listAdminWithOffset, {

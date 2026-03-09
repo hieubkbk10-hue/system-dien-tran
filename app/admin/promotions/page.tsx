@@ -11,6 +11,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'promotions';
 
@@ -51,7 +52,6 @@ function PromotionsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"promotions">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"promotions"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -77,7 +77,7 @@ function PromotionsContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedPromotionsPerPage = pageSizeOverride ?? promotionsPerPage;
+  const [resolvedPromotionsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_promotions_page_size', promotionsPerPage);
   const offset = (currentPage - 1) * resolvedPromotionsPerPage;
 
   const promotionsData = useQuery(api.promotions.listAdminWithOffset, {

@@ -11,6 +11,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 export default function CategoriesListPage() {
   return (
@@ -47,7 +48,7 @@ function CategoriesContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"productCategories">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
+  const [resolvedPageSize, setPageSizeOverride] = usePersistedPageSize('admin_categories_page_size', 20);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"productCategories"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -67,7 +68,6 @@ function CategoriesContent() {
     }
   }, [visibleColumns]);
 
-  const resolvedPageSize = pageSizeOverride ?? 20;
   const offset = (currentPage - 1) * resolvedPageSize;
 
   const categoriesData = useQuery(api.productCategories.listAdminWithOffset, {

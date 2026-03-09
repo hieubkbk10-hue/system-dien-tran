@@ -12,6 +12,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, generatePaginationItems, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 const MODULE_KEY = 'customers';
 
@@ -54,7 +55,6 @@ function CustomersContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"customers">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"customers"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -79,7 +79,8 @@ function CustomersContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedCustomersPerPage = pageSizeOverride ?? customersPerPage;
+  const [resolvedCustomersPerPage, setPageSizeOverride] = usePersistedPageSize('admin_customers_page_size', customersPerPage);
+
   const offset = (currentPage - 1) * resolvedCustomersPerPage;
 
   const customersData = useQuery(api.customers.listAdminWithOffset, {

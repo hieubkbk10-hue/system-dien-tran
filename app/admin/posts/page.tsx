@@ -12,6 +12,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, SelectCheckbox, SortableHeader, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 function generatePaginationItems(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
   if (totalPages <= 7) {
@@ -44,7 +45,6 @@ function PostsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"posts">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"posts"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -89,7 +89,7 @@ function PostsContent() {
     return (setting?.value as number) || 10;
   }, [settingsData]);
 
-  const resolvedPostsPerPage = pageSizeOverride ?? postsPerPage;
+  const [resolvedPostsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_posts_page_size', postsPerPage);
 
   const offset = (currentPage - 1) * resolvedPostsPerPage;
 

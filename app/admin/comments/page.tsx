@@ -11,6 +11,7 @@ import { Badge, Button, Card, Input, Table, TableBody, TableCell, TableHead, Tab
 import { BulkActionBar, ColumnToggle, SelectCheckbox, SortableHeader, generatePaginationItems, useSortableData } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { usePersistedPageSize } from '../components/usePersistedPageSize';
 
 export default function CommentsListPage() {
   return (
@@ -28,7 +29,6 @@ function CommentsContent() {
   const [manualSelectedIds, setManualSelectedIds] = useState<Id<"comments">[]>([]);
   const [selectionMode, setSelectionMode] = useState<'manual' | 'all'>('manual');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<Id<"comments"> | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
@@ -75,7 +75,7 @@ function CommentsContent() {
     return (setting?.value as number) || 20;
   }, [settingsData]);
 
-  const resolvedCommentsPerPage = pageSizeOverride ?? commentsPerPage;
+  const [resolvedCommentsPerPage, setPageSizeOverride] = usePersistedPageSize('admin_comments_page_size', commentsPerPage);
   const offset = (currentPage - 1) * resolvedCommentsPerPage;
 
   const commentsData = useQuery(api.comments.listAdminWithOffset, {
