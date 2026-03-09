@@ -59,6 +59,7 @@ function ContactInfoCard({
   address,
   email,
   phone,
+  taxId,
   showSocialLinks,
   socialLinks,
 }: {
@@ -67,6 +68,7 @@ function ContactInfoCard({
   address: string;
   email: string;
   phone: string;
+  taxId: string;
   showSocialLinks: boolean;
   socialLinks: SocialLinkItem[];
 }) {
@@ -74,6 +76,7 @@ function ContactInfoCard({
     { label: 'Điện thoại', value: phone, icon: Phone },
     { label: 'Email', value: email, icon: Mail },
     { label: 'Địa chỉ', value: address, icon: MapPin },
+    { label: 'Mã số thuế', value: taxId, icon: MapPin },
   ].filter((item) => item.value);
 
   return (
@@ -124,6 +127,7 @@ function CorporateSidebar({
   address,
   email,
   phone,
+  taxId,
   showSocialLinks,
   socialLinks,
   brandColor,
@@ -132,6 +136,7 @@ function CorporateSidebar({
   address: string;
   email: string;
   phone: string;
+  taxId: string;
   showSocialLinks: boolean;
   socialLinks: SocialLinkItem[];
   brandColor: string;
@@ -143,6 +148,7 @@ function CorporateSidebar({
     { label: 'Điện thoại', value: phone, note: 'Thứ 2 - Thứ 7, 8:00 - 17:00', icon: Phone },
     { label: 'Email', value: email, note: 'Phản hồi trong vòng 24 giờ', icon: Mail },
     { label: 'Văn phòng', value: address, note: '', icon: MapPin },
+    { label: 'Mã số thuế', value: taxId, note: '', icon: MapPin },
   ].filter((item) => item.value);
 
   return (
@@ -269,6 +275,7 @@ export default function ContactPage() {
               address={contactData.address}
               email={contactData.email}
               phone={contactData.phone}
+              taxId={contactData.taxId}
               showSocialLinks={config.showSocialLinks}
               socialLinks={socialLinks}
               brandColor={brandColor}
@@ -320,6 +327,7 @@ export default function ContactPage() {
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
+                taxId={contactData.taxId}
                 showSocialLinks={config.showSocialLinks}
                 socialLinks={socialLinks}
               />
@@ -346,6 +354,7 @@ export default function ContactPage() {
                 address={contactData.address}
                 email={contactData.email}
                 phone={contactData.phone}
+                taxId={contactData.taxId}
                 showSocialLinks={config.showSocialLinks}
                 socialLinks={socialLinks}
               />

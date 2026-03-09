@@ -62,7 +62,17 @@ const resolveSecondary = (primary: string, secondary: string | undefined, mode: 
 };
 
 
-function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }: { showSocialLinks: boolean; brandColor?: string; secondaryColor?: string }) {
+function ContactInfo({
+  showSocialLinks,
+  brandColor = '#6366f1',
+  secondaryColor,
+  taxId,
+}: {
+  showSocialLinks: boolean;
+  brandColor?: string;
+  secondaryColor?: string;
+  taxId?: string;
+}) {
   const socialLinks = [
     { label: 'Facebook', color: '#1877f2', icon: Facebook },
     { label: 'Instagram', color: '#e1306c', icon: Instagram },
@@ -101,6 +111,17 @@ function ContactInfo({ showSocialLinks, brandColor = '#6366f1', secondaryColor }
             <div className="text-sm text-slate-500">123 Nguyễn Huệ, Q.1, TP.HCM</div>
           </div>
         </div>
+        {taxId && (
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-200">
+              <MapPin size={18} style={{ color: secondaryColor || brandColor }} />
+            </div>
+            <div>
+              <div className="font-medium text-slate-900">Mã số thuế</div>
+              <div className="text-sm text-slate-500">{taxId}</div>
+            </div>
+          </div>
+        )}
       </div>
       {showSocialLinks && (
         <div className="pt-4 mt-4 border-t border-slate-200">
@@ -173,6 +194,7 @@ export function ContactPreview({
 }: ContactPreviewProps) {
   const isMobile = device === 'mobile';
   const resolvedSecondary = resolveSecondary(brandColor, secondaryColor, colorMode);
+  const taxId = mapData?.taxId;
 
   return (
     <div className="py-6 px-4 min-h-[300px]">
@@ -228,6 +250,17 @@ export function ContactPreview({
                         <p className="text-base font-semibold mt-1 text-white">Hà Nội, Việt Nam</p>
                       </div>
                     </div>
+                    {taxId && (
+                      <div className="flex items-start gap-4">
+                        <div className="bg-white/10 p-3 rounded-lg">
+                          <MapPin size={20} style={{ color: resolvedSecondary }} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-white">Mã số thuế</h3>
+                          <p className="text-base font-semibold mt-1 text-white">{taxId}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {showSocialLinks && (
@@ -277,7 +310,14 @@ export function ContactPreview({
                 subjectFallback="Liên hệ từ trang /contact"
                 isPreview
               />
-              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
+              {showContactInfo && (
+                <ContactInfo
+                  showSocialLinks={showSocialLinks}
+                  brandColor={brandColor}
+                  secondaryColor={resolvedSecondary}
+                  taxId={taxId}
+                />
+              )}
             </div>
           </div>
         )}
@@ -294,7 +334,14 @@ export function ContactPreview({
               />
             </div>
             <div className={`${isMobile ? '' : 'col-span-2'} space-y-4`}>
-              {showContactInfo && <ContactInfo showSocialLinks={showSocialLinks} brandColor={brandColor} secondaryColor={resolvedSecondary} />}
+              {showContactInfo && (
+                <ContactInfo
+                  showSocialLinks={showSocialLinks}
+                  brandColor={brandColor}
+                  secondaryColor={resolvedSecondary}
+                  taxId={taxId}
+                />
+              )}
               {showMap && <MapPreview mapData={mapData} />}
             </div>
           </div>

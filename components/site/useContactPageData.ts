@@ -24,6 +24,7 @@ type ContactData = {
   address: string;
   email: string;
   phone: string;
+  taxId: string;
   lat: number;
   lng: number;
   mapProvider: 'openstreetmap' | 'google_embed';
@@ -82,6 +83,7 @@ export function useContactPageData(): {
       address: (settingsMap.contact_address as string) || mapData.address || '',
       email: (settingsMap.contact_email as string) || '',
       phone: (settingsMap.contact_phone as string) || '',
+      taxId: (settingsMap.contact_tax_id as string) || mapData.taxId || '',
       lat: mapData.lat,
       lng: mapData.lng,
       mapProvider: mapData.mapProvider,

@@ -2,6 +2,7 @@ export type ContactMapProvider = 'openstreetmap' | 'google_embed';
 
 export type ContactMapData = {
   address: string;
+  taxId?: string;
   lat: number;
   lng: number;
   mapProvider: ContactMapProvider;
@@ -37,6 +38,7 @@ export const getContactMapDataFromSettings = (
 
   return {
     address: coerceString(map.contact_address),
+    taxId: coerceString(map.contact_tax_id),
     lat: coerceNumber(map.contact_lat, DEFAULT_LAT),
     lng: coerceNumber(map.contact_lng, DEFAULT_LNG),
     mapProvider,
