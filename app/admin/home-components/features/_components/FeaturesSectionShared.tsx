@@ -3,7 +3,7 @@
 import React from 'react';
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Cpu, Globe, Layers, Plus, Rocket, Settings, Shield, Star, Target, Zap } from 'lucide-react';
 import { cn } from '@/app/admin/components/ui';
-import type { FeatureItem, FeaturesBrandMode, FeaturesHarmony, FeaturesStyle } from '../_types';
+import type { FeatureItem, FeaturesBrandMode, FeaturesStyle } from '../_types';
 import { getFeaturesColorTokens } from '../_lib/colors';
 
 const featureIcons: Record<string, React.ElementType> = {
@@ -51,7 +51,6 @@ interface FeaturesSectionSharedProps {
   brandColor: string;
   secondary: string;
   mode: FeaturesBrandMode;
-  harmony: FeaturesHarmony;
   context: 'preview' | 'site';
   device?: 'mobile' | 'tablet' | 'desktop';
   className?: string;
@@ -64,7 +63,6 @@ export function FeaturesSectionShared({
   brandColor,
   secondary,
   mode,
-  harmony,
   context,
   device,
   className,
@@ -76,8 +74,7 @@ export function FeaturesSectionShared({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   const sectionTitle = title?.trim() || 'Tính năng nổi bật';
 

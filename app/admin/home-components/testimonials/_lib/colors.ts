@@ -3,7 +3,7 @@
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 import { getAccessibilityThreshold, getAccessibilityScore as getSharedAccessibilityScore, getHarmonyStatus as getSharedHarmonyStatus } from '@/lib/home-components/color-system';
-import type { TestimonialsBrandMode, TestimonialsHarmony, TestimonialsStyle } from '../_types';
+import type { TestimonialsBrandMode, TestimonialsStyle } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 const FALLBACK_PRIMARY = '#1d4ed8';
@@ -31,37 +31,15 @@ const getAnalogous = (hex: string): [string, string] => {
   return [first, second];
 };
 
-const getComplementary = (hex: string) => {
-  const color = safeParseOklch(hex, DEFAULT_BRAND_COLOR);
-  return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-};
-
-const getTriadic = (hex: string): [string, string] => {
-  const color = safeParseOklch(hex, DEFAULT_BRAND_COLOR);
-  const first = formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  const second = formatHex(oklch({ ...color, h: ((color.h ?? 0) - 120 + 360) % 360 }));
-  return [first, second];
-};
-
-const getHarmonyColor = (hex: string, harmony: TestimonialsHarmony) => {
+const getAutoSecondary = (hex: string) => {
   const base = normalizeHex(hex, DEFAULT_BRAND_COLOR);
-  if (harmony === 'complementary') {return getComplementary(base);}
-  if (harmony === 'triadic') {return getTriadic(base)[0];}
   return getAnalogous(base)[0];
-};
-
-export const normalizeTestimonialsHarmony = (value: unknown): TestimonialsHarmony => {
-  if (value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-  return 'analogous';
 };
 
 export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: TestimonialsBrandMode,
-  harmony: TestimonialsHarmony,
 ) => {
   const primaryResolved = normalizeHex(primary, FALLBACK_PRIMARY);
 
@@ -73,7 +51,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, primaryResolved);
   }
 
-  return normalizeHex(getHarmonyColor(primaryResolved, harmony), FALLBACK_SECONDARY);
+  return normalizeHex(getAutoSecondary(primaryResolved), FALLBACK_SECONDARY);
 };
 
 export const getHarmonyStatus = (primary: string, secondary: string) => {
@@ -153,15 +131,13 @@ export const getTestimonialsColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: TestimonialsBrandMode;
-  harmony: TestimonialsHarmony;
 }): TestimonialsColorTokens => {
   const primaryResolved = normalizeHex(primary, FALLBACK_PRIMARY);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, harmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
@@ -269,16 +245,14 @@ export const getTestimonialsValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony,
   style,
 }: {
   primary: string;
   secondary: string;
   mode: TestimonialsBrandMode;
-  harmony: TestimonialsHarmony;
   style: TestimonialsStyle;
 }) => {
-  const tokens = getTestimonialsColorTokens({ primary, secondary, mode, harmony });
+  const tokens = getTestimonialsColorTokens({ primary, secondary, mode });
   const harmonyStatus = mode === 'single'
     ? { deltaE: 100, isTooSimilar: false }
     : getHarmonyStatus(tokens.primary, tokens.secondary);
@@ -332,10 +306,8 @@ export const getTestimonialsSectionColors = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: TestimonialsBrandMode;
-  harmony: TestimonialsHarmony;
-}) => getTestimonialsColorTokens({ primary, secondary, mode, harmony });
+}) => getTestimonialsColorTokens({ primary, secondary, mode });

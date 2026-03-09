@@ -8,13 +8,11 @@ import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverr
 import { CareerPreview } from '../../career/_components/CareerPreview';
 import {
   createCareerJob,
-  DEFAULT_CAREER_HARMONY,
   DEFAULT_CAREER_TEXTS,
 } from '../../career/_lib/constants';
 import { getCareerValidationResult } from '../../career/_lib/colors';
 import { normalizeCareerJobs, toCareerJobsForConfig } from '../../career/_lib/normalize';
 import type {
-  CareerHarmony,
   CareerStyle,
   CareerTexts,
   JobPosition,
@@ -49,7 +47,6 @@ export default function CareerCreatePage() {
 
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
   const [jobPositions, setJobPositions] = useState<JobPosition[]>(DEFAULT_CREATE_JOBS);
-  const [harmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
   const [texts, setTexts] = useState<CareerTexts>(DEFAULT_CAREER_TEXTS);
 
   const normalizedJobs = useMemo(() => normalizeCareerJobs(jobPositions), [jobPositions]);
@@ -58,8 +55,7 @@ export default function CareerCreatePage() {
     primary,
     secondary,
     mode,
-    harmony,
-  }), [primary, secondary, mode, harmony]);
+  }), [primary, secondary, mode]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -104,7 +100,6 @@ export default function CareerCreatePage() {
     void handleSubmit(event, {
       jobs: toCareerJobsForConfig(normalizedJobs),
       style: careerStyle,
-      harmony,
       texts,
     });
   };
@@ -260,7 +255,6 @@ export default function CareerCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={harmony}
         selectedStyle={careerStyle}
         onStyleChange={setCareerStyle}
         title={title}

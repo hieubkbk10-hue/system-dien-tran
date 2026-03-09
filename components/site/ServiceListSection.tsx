@@ -6,17 +6,12 @@ import { Loader2 } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import {
-  DEFAULT_SERVICE_LIST_HARMONY,
-  normalizeServiceListHarmony,
-} from '@/app/admin/home-components/service-list/_lib/constants';
-import {
   getServiceListColorTokens,
 } from '@/app/admin/home-components/service-list/_lib/colors';
 import { ServiceListSectionShared } from '@/app/admin/home-components/service-list/_components/ServiceListSectionShared';
 import type {
   ServiceListBrandMode,
   ServiceListConfig,
-  ServiceListHarmony,
   ServiceListPreviewItem,
   ServiceListStyle,
 } from '@/app/admin/home-components/service-list/_types';
@@ -70,7 +65,6 @@ export function ServiceListSection({
       ? safeConfig.selectedServiceIds
       : []
   ), [safeConfig.selectedServiceIds]);
-  const harmony = normalizeServiceListHarmony((safeConfig.harmony as ServiceListHarmony | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY);
 
   const servicesData = useQuery(
     api.services.listAll,
@@ -120,7 +114,6 @@ export function ServiceListSection({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
   });
 
   const items = services.map((service, index) => mapServiceToPreview(service, index));

@@ -6,7 +6,7 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { ABOUT_STYLES, normalizeAboutHarmony } from '../_lib/constants';
+import { ABOUT_STYLES } from '../_lib/constants';
 import {
   buildAboutWarningMessages,
   getAboutSectionColors,
@@ -39,17 +39,14 @@ export const AboutPreview = ({
     onStyleChange?.(nextStyle as AboutStyle);
   };
 
-  const harmony = normalizeAboutHarmony(config.harmony);
-
   const validation = React.useMemo(
     () => getAboutValidationResult({
       primary: brandColor,
       secondary,
       mode,
-      harmony,
       style: previewStyle,
     }),
-    [brandColor, secondary, mode, harmony, previewStyle],
+    [brandColor, secondary, mode, previewStyle],
   );
 
   const tokens = React.useMemo(
@@ -57,9 +54,8 @@ export const AboutPreview = ({
       primary: brandColor,
       secondary,
       mode,
-      harmony,
     }),
-    [brandColor, secondary, mode, harmony],
+    [brandColor, secondary, mode],
   );
 
   const warningMessages = React.useMemo(

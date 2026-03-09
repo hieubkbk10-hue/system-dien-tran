@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { ContactSectionShared } from '@/app/admin/home-components/contact/_components/ContactSectionShared';
-import { DEFAULT_CONTACT_HARMONY } from '@/app/admin/home-components/contact/_lib/constants';
 import { getContactValidationResult } from '@/app/admin/home-components/contact/_lib/colors';
 import { normalizeContactConfig } from '@/app/admin/home-components/contact/_lib/normalize';
 import type { ContactBrandMode } from '@/app/admin/home-components/contact/_types';
@@ -29,8 +28,7 @@ export function ContactSection({ config, brandColor, secondary, mode, title }: C
     primary: brandColor,
     secondary,
     mode,
-    harmony: normalizedConfig.harmony ?? DEFAULT_CONTACT_HARMONY,
-  }), [brandColor, secondary, mode, normalizedConfig.harmony]);
+  }), [brandColor, secondary, mode]);
 
   return (
     <ContactSectionShared

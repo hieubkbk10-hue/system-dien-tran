@@ -2,7 +2,7 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { CaseStudyBrandMode, CaseStudyHarmony, CaseStudyStyle } from '../_types';
+import type { CaseStudyBrandMode, CaseStudyStyle } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 
@@ -96,24 +96,8 @@ const getPalette = (hex: string, fallback = DEFAULT_BRAND_COLOR) => {
   };
 };
 
-export const normalizeCaseStudyHarmony = (value?: string): CaseStudyHarmony => {
-  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-  return 'analogous';
-};
-
-const getHarmonyColor = (primary: string, harmony: CaseStudyHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -121,7 +105,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: CaseStudyBrandMode,
-  harmony: CaseStudyHarmony,
 ) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -133,7 +116,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, primaryNormalized);
   }
 
-  return getHarmonyColor(primaryNormalized, harmony);
+  return getAutoSecondary(primaryNormalized);
 };
 
 export interface CaseStudyColorTokens {
@@ -220,11 +203,9 @@ export const getCaseStudyColors = (
   primary: string,
   secondary: string,
   mode: CaseStudyBrandMode,
-  harmony: CaseStudyHarmony = 'analogous',
 ): CaseStudyColorTokens => {
-  const normalizedHarmony = normalizeCaseStudyHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const primaryPalette = getPalette(primaryResolved, DEFAULT_BRAND_COLOR);
   const secondaryPalette = getPalette(secondaryResolved, primaryPalette.solid);
@@ -266,16 +247,14 @@ export const getCaseStudyValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
   style,
 }: {
   primary: string;
   secondary: string;
   mode: CaseStudyBrandMode;
-  harmony?: CaseStudyHarmony;
   style?: CaseStudyStyle;
 }) => {
-  const colors = getCaseStudyColors(primary, secondary, mode, harmony);
+  const colors = getCaseStudyColors(primary, secondary, mode);
   const harmonyStatus = mode === 'dual'
     ? getHarmonyStatus(colors.primary, colors.secondary)
     : { deltaE: 100, similarity: 0, isTooSimilar: false };

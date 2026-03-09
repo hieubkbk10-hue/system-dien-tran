@@ -7,7 +7,6 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
-  DEFAULT_SERVICE_LIST_HARMONY,
   SERVICE_LIST_STYLES,
 } from '../_lib/constants';
 import {
@@ -16,7 +15,6 @@ import {
 import { ServiceListSectionShared } from './ServiceListSectionShared';
 import type {
   ServiceListBrandMode,
-  ServiceListHarmony,
   ServiceListPreviewItem,
   ServiceListStyle,
 } from '../_types';
@@ -25,7 +23,6 @@ interface ServiceListPreviewProps {
   brandColor: string;
   secondary: string;
   mode?: ServiceListBrandMode;
-  harmony?: ServiceListHarmony;
   itemCount: number;
   selectedStyle?: ServiceListStyle;
   onStyleChange?: (style: ServiceListStyle) => void;
@@ -80,7 +77,6 @@ export const ServiceListPreview = ({
   brandColor,
   secondary,
   mode = 'dual',
-  harmony = DEFAULT_SERVICE_LIST_HARMONY,
   itemCount,
   selectedStyle = 'grid',
   onStyleChange,
@@ -99,11 +95,10 @@ export const ServiceListPreview = ({
     : MOCK_SERVICES.slice(0, targetCount);
 
   const validation = React.useMemo(() => getServiceListValidationResult({
-    harmony,
     mode,
     primary: brandColor,
     secondary,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   const warningMessages = React.useMemo(() => {
     const messages: string[] = [];

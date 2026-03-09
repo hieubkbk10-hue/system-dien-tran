@@ -19,7 +19,7 @@ import {
   getSplitColors,
 } from '../_lib/colors';
 import { HERO_STYLES } from '../_lib/constants';
-import type { HeroContent, HeroHarmony, HeroStyle } from '../_types';
+import type { HeroContent, HeroStyle } from '../_types';
 
 export const HeroPreview = ({ 
   slides, 
@@ -29,7 +29,6 @@ export const HeroPreview = ({
   selectedStyle = 'slider',
   onStyleChange,
   content,
-  harmony = 'analogous',
 }: { 
   slides: { id: number; image: string; link: string }[]; 
   brandColor: string;
@@ -38,7 +37,6 @@ export const HeroPreview = ({
   selectedStyle?: HeroStyle;
   onStyleChange?: (style: HeroStyle) => void;
   content?: HeroContent;
-  harmony?: HeroHarmony;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -55,12 +53,12 @@ export const HeroPreview = ({
   });
   const placeholderColors = brandColors.getPlaceholder();
   const colors = getHeroColors(brandColors.primary, brandColors.secondary, brandColors.useDualBrand);
-  const sliderColors = getSliderColors(brandColors.primary, brandColors.secondary, mode, harmony);
-  const fadeColors = getFadeColors(brandColors.primary, brandColors.secondary, mode, harmony);
-  const bentoColors = getBentoColors(brandColors.primary, brandColors.secondary, mode, harmony);
-  const fullscreenColors = getFullscreenColors(brandColors.primary, brandColors.secondary, mode, harmony);
-  const splitColors = getSplitColors(brandColors.primary, brandColors.secondary, mode, harmony);
-  const parallaxColors = getParallaxColors(brandColors.primary, brandColors.secondary, mode, harmony);
+  const sliderColors = getSliderColors(brandColors.primary, brandColors.secondary, mode);
+  const fadeColors = getFadeColors(brandColors.primary, brandColors.secondary, mode);
+  const bentoColors = getBentoColors(brandColors.primary, brandColors.secondary, mode);
+  const fullscreenColors = getFullscreenColors(brandColors.primary, brandColors.secondary, mode);
+  const splitColors = getSplitColors(brandColors.primary, brandColors.secondary, mode);
+  const parallaxColors = getParallaxColors(brandColors.primary, brandColors.secondary, mode);
 
   const nextSlide = () =>{  setCurrentSlide((prev) => (prev + 1) % slides.length); };
   const prevSlide = () =>{  setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length); };

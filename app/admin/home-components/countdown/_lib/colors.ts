@@ -3,10 +3,8 @@
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 import { getHarmonyStatus } from '@/lib/home-components/color-system';
-import { normalizeCountdownHarmony } from './normalize';
 import type {
   CountdownBrandMode,
-  CountdownHarmony,
 } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
@@ -94,17 +92,8 @@ export const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-const getHarmonyColor = (primary: string, harmony: CountdownHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -112,7 +101,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: CountdownBrandMode,
-  harmony: CountdownHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -124,7 +112,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getAutoSecondary(normalizedPrimary);
 };
 
 export interface CountdownColorTokens {
@@ -215,16 +203,13 @@ export const getCountdownColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: CountdownBrandMode;
-  harmony?: CountdownHarmony;
 }) => {
-  const normalizedHarmony = normalizeCountdownHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
   return buildTokens(primaryResolved, secondaryResolved);
 };
 
@@ -232,14 +217,12 @@ export const getCountdownValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: CountdownBrandMode;
-  harmony?: CountdownHarmony;
 }) => {
-  const tokens = getCountdownColorTokens({ primary, secondary, mode, harmony });
+  const tokens = getCountdownColorTokens({ primary, secondary, mode });
 
   const harmonyStatus = mode === 'single'
     ? { deltaE: 100, isTooSimilar: false }

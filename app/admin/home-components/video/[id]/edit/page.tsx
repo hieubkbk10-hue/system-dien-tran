@@ -15,7 +15,6 @@ import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/
 import { VideoPreview } from '../../_components/VideoPreview';
 import { VideoForm } from '../../_components/VideoForm';
 import {
-  DEFAULT_VIDEO_HARMONY,
   normalizeVideoConfig,
   normalizeVideoStyle,
 } from '../../_lib/constants';
@@ -41,7 +40,6 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
     buttonText: '',
     description: '',
     heading: '',
-    harmony: DEFAULT_VIDEO_HARMONY,
     loop: false,
     muted: true,
     style: 'centered',
@@ -238,7 +236,6 @@ export default function VideoEditPage({ params }: { params: Promise<{ id: string
             selectedStyle={selectedStyle}
             onStyleChange={(style) => setConfig((prev) => ({ ...prev, style }))}
             mode={effectiveColors.mode}
-            harmony={config.harmony}
           />
         </div>
 

@@ -15,7 +15,7 @@ import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/
 import { ServicesForm } from '../../_components/ServicesForm';
 import { ServicesPreview } from '../../_components/ServicesPreview';
 import { DEFAULT_SERVICES_CONFIG } from '../../_lib/constants';
-import { getServicesValidationResult, normalizeServicesHarmony } from '../../_lib/colors';
+import { getServicesValidationResult } from '../../_lib/colors';
 import { normalizeServicesItemsForEditor, toServicesPersistItems } from '../../_lib/items';
 import type { ServiceEditorItem, ServicesStyle } from '../../_types';
 
@@ -95,13 +95,11 @@ export default function ServicesEditPage({ params }: { params: Promise<{ id: str
     setHasChanges(snapshot !== initialSnapshot || customChanged);
   }, [title, active, servicesItems, style, component, initialSnapshot, customChanged]);
 
-  const harmony = normalizeServicesHarmony((component?.config as { harmony?: string } | undefined)?.harmony);
   const validation = useMemo(() => getServicesValidationResult({
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony,
-  }), [effectiveColors, harmony]);
+  }), [effectiveColors]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];

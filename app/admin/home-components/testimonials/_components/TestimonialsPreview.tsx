@@ -12,7 +12,6 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
   getTestimonialsSectionColors,
-  normalizeTestimonialsHarmony,
 } from '../_lib/colors';
 import type {
   TestimonialsBrandMode,
@@ -73,9 +72,7 @@ export const TestimonialsPreview = ({
 
   const normalizedItems = React.useMemo(() => normalizeItems(items), [items]);
 
-  const harmony = normalizeTestimonialsHarmony(undefined);
   const colors = getTestimonialsSectionColors({
-    harmony,
     mode,
     primary: brandColor,
     secondary,

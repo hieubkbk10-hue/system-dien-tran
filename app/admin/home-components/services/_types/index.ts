@@ -15,6 +15,7 @@ export type ServicesHarmony = 'analogous' | 'complementary' | 'triadic';
 export interface ServicesConfig {
   items: ServiceItem[];
   style: ServicesStyle;
+  harmony?: ServicesHarmony;
 }
 
 export interface ServicesColorTokens {

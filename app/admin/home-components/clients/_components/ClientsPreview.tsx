@@ -11,9 +11,8 @@ import {
   type ClientsAccessibilityScore,
   type ClientsHarmonyStatus,
 } from '../_lib/colors';
-import { DEFAULT_CLIENTS_HARMONY, normalizeClientsHarmony } from '../_lib/constants';
 import { ClientsSectionShared } from './ClientsSectionShared';
-import type { ClientItem, ClientsBrandMode, ClientsHarmony, ClientsStyle } from '../_types';
+import type { ClientItem, ClientsBrandMode, ClientsStyle } from '../_types';
 
 interface ClientsPreviewProps {
   items: ClientItem[];
@@ -21,7 +20,6 @@ interface ClientsPreviewProps {
   brandColor: string;
   secondary: string;
   mode?: ClientsBrandMode;
-  harmony?: ClientsHarmony;
   selectedStyle?: ClientsStyle;
   onStyleChange?: (style: ClientsStyle) => void;
   warningMessages?: string[];
@@ -74,7 +72,6 @@ export const ClientsPreview = ({
   brandColor,
   secondary,
   mode = 'dual',
-  harmony = DEFAULT_CLIENTS_HARMONY,
   selectedStyle = 'simpleGrid',
   onStyleChange,
   warningMessages,
@@ -82,15 +79,13 @@ export const ClientsPreview = ({
   texts = {},
 }: ClientsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
-  const normalizedHarmony = normalizeClientsHarmony(harmony);
 
   const validation = React.useMemo(() => getClientsValidationResult({
     primary: brandColor,
     secondary,
     mode,
-    harmony: normalizedHarmony,
     style: selectedStyle,
-  }), [brandColor, secondary, mode, normalizedHarmony, selectedStyle]);
+  }), [brandColor, secondary, mode, selectedStyle]);
 
   const info = getImageInfoText(selectedStyle, items.length);
   const generatedWarnings = getSummaryWarnings(mode, validation.harmonyStatus, validation.accessibility);

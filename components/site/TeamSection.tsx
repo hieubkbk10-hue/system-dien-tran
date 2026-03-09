@@ -2,16 +2,13 @@
 
 import React from 'react';
 import {
-  DEFAULT_TEAM_HARMONY,
   normalizeTeamConfig,
-  normalizeTeamHarmony,
   normalizeTeamStyle,
 } from '@/app/admin/home-components/team/_lib/constants';
 import { getTeamColorTokens } from '@/app/admin/home-components/team/_lib/colors';
 import { TeamSectionShared } from '@/app/admin/home-components/team/_components/TeamSectionShared';
 import type {
   TeamBrandMode,
-  TeamHarmony,
   TeamStyle,
 } from '@/app/admin/home-components/team/_types';
 
@@ -32,14 +29,12 @@ export function TeamSection({
 }: TeamSectionProps) {
   const normalizedConfig = normalizeTeamConfig(config);
   const style = normalizeTeamStyle((normalizedConfig.style as TeamStyle | undefined) ?? 'grid');
-  const harmony = normalizeTeamHarmony((normalizedConfig.harmony as TeamHarmony | undefined) ?? DEFAULT_TEAM_HARMONY);
 
   const tokens = React.useMemo(() => getTeamColorTokens({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   const sectionTitle = (title || '').trim().length > 0
     ? title

@@ -6,7 +6,7 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { ServicesSectionCore } from '@/components/site/ServicesSectionCore';
-import { getServicesColors, normalizeServicesHarmony } from '../_lib/colors';
+import { getServicesColors } from '../_lib/colors';
 import type { ServiceItem, ServicesBrandMode, ServicesStyle } from '../_types';
 
 const SERVICES_STYLES: Array<{ id: ServicesStyle; label: string }> = [
@@ -34,7 +34,6 @@ export const ServicesPreview = ({
   selectedStyle = 'elegantGrid',
   onStyleChange,
   mode = 'dual',
-  harmony = 'analogous',
 }: {
   items: ServiceItem[];
   brandColor: string;
@@ -43,15 +42,13 @@ export const ServicesPreview = ({
   selectedStyle?: ServicesStyle;
   onStyleChange?: (style: ServicesStyle) => void;
   mode?: ServicesBrandMode;
-  harmony?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
 
   const previewStyle = selectedStyle;
-  const resolvedHarmony = normalizeServicesHarmony(harmony);
   const colors = React.useMemo(
-    () => getServicesColors(brandColor, secondary, mode, resolvedHarmony),
-    [brandColor, secondary, mode, resolvedHarmony],
+    () => getServicesColors(brandColor, secondary, mode),
+    [brandColor, secondary, mode],
   );
 
   const displayItems = React.useMemo(() => normalizeItems(items), [items]);

@@ -1,4 +1,4 @@
-import type { VideoBrandMode, VideoConfig, VideoHarmony, VideoStyle } from '../_types';
+import type { VideoBrandMode, VideoConfig, VideoStyle } from '../_types';
 
 export const VIDEO_STYLES: Array<{ id: VideoStyle; label: string }> = [
   { id: 'centered', label: 'Centered' },
@@ -93,29 +93,18 @@ export const DEFAULT_VIDEO_CONFIG: VideoConfig = {
   loop: false,
   muted: true,
   style: 'centered',
-  harmony: 'analogous',
   texts: {},
 };
 
 export const VIDEO_STYLES_WITH_CTA: VideoStyle[] = ['split', 'fullwidth', 'cinema', 'minimal', 'parallax'];
 
 export const DEFAULT_VIDEO_STYLE: VideoStyle = 'centered';
-export const DEFAULT_VIDEO_HARMONY: VideoHarmony = 'analogous';
-
 export const normalizeVideoStyle = (value?: string): VideoStyle => {
   if (VIDEO_STYLES.some((style) => style.id === value)) {
     return value as VideoStyle;
   }
 
   return DEFAULT_VIDEO_STYLE;
-};
-
-export const normalizeVideoHarmony = (value?: string): VideoHarmony => {
-  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-
-  return DEFAULT_VIDEO_HARMONY;
 };
 
 const toText = (value: unknown, fallback = '') => (typeof value === 'string' ? value : fallback);
@@ -139,7 +128,6 @@ export const normalizeVideoConfig = (raw: unknown): VideoConfig => {
     loop: toBoolean(source.loop, false),
     muted: toBoolean(source.muted, true),
     style: normalizeVideoStyle(source.style),
-    harmony: normalizeVideoHarmony(source.harmony),
     texts: source.texts && typeof source.texts === 'object' ? source.texts : {},
   };
 };
@@ -150,6 +138,5 @@ export const getVideoConfigWithMode = (
 ): VideoConfig => {
   return {
     ...config,
-    harmony: normalizeVideoHarmony(config.harmony),
   };
 };

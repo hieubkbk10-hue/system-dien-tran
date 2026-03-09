@@ -6,9 +6,9 @@ import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverr
 import { toast } from 'sonner';
 import { CTAForm } from '../../cta/_components/CTAForm';
 import { CTAPreview } from '../../cta/_components/CTAPreview';
-import { DEFAULT_CTA_CONFIG, DEFAULT_CTA_HARMONY } from '../../cta/_lib/constants';
+import { DEFAULT_CTA_CONFIG } from '../../cta/_lib/constants';
 import { getCTAValidationResult } from '../../cta/_lib/colors';
-import type { CTAConfig, CTAHarmony, CTAStyle } from '../../cta/_types';
+import type { CTAConfig, CTAStyle } from '../../cta/_types';
 
 const INITIAL_CTA_CONFIG: CTAConfig = {
   ...DEFAULT_CTA_CONFIG,
@@ -28,7 +28,6 @@ export default function CTACreatePage() {
 
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(INITIAL_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
-  const [ctaHarmony, _setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
 
   const onSubmit = (e: React.FormEvent) => {
     const { harmonyStatus } = getCTAValidationResult({
@@ -36,7 +35,6 @@ export default function CTACreatePage() {
       primary,
       secondary,
       mode,
-      harmony: ctaHarmony,
       style: ctaStyle,
     });
 
@@ -46,7 +44,7 @@ export default function CTACreatePage() {
       return;
     }
 
-    void handleSubmit(e, { ...ctaConfig, style: ctaStyle, harmony: ctaHarmony });
+    void handleSubmit(e, { ...ctaConfig, style: ctaStyle });
   };
 
   return (
@@ -73,7 +71,6 @@ export default function CTACreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={ctaHarmony}
         selectedStyle={ctaStyle}
         onStyleChange={setCtaStyle}
       />

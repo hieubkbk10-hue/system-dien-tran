@@ -2,12 +2,10 @@ import { DEFAULT_COUNTDOWN_CONFIG } from './constants';
 import type {
   CountdownConfig,
   CountdownConfigState,
-  CountdownHarmony,
   CountdownStyle,
 } from '../_types';
 
 const COUNTDOWN_STYLE_SET = new Set<CountdownStyle>(['banner', 'floating', 'minimal', 'split', 'sticky', 'popup']);
-const COUNTDOWN_HARMONY_SET = new Set<CountdownHarmony>(['analogous', 'complementary', 'triadic']);
 
 const normalizeText = (value: unknown, fallback: string) => {
   if (typeof value !== 'string') {return fallback;}
@@ -24,13 +22,6 @@ export const normalizeCountdownStyle = (value: unknown): CountdownStyle => {
     return value as CountdownStyle;
   }
   return DEFAULT_COUNTDOWN_CONFIG.style;
-};
-
-export const normalizeCountdownHarmony = (value: unknown): CountdownHarmony => {
-  if (typeof value === 'string' && COUNTDOWN_HARMONY_SET.has(value as CountdownHarmony)) {
-    return value as CountdownHarmony;
-  }
-  return DEFAULT_COUNTDOWN_CONFIG.harmony;
 };
 
 export const normalizeCountdownEndDate = (value: unknown) => {
@@ -64,7 +55,6 @@ export const normalizeCountdownConfig = (raw: unknown): CountdownConfigState => 
     showMinutes: normalizeBoolean(source.showMinutes, DEFAULT_COUNTDOWN_CONFIG.showMinutes),
     showSeconds: normalizeBoolean(source.showSeconds, DEFAULT_COUNTDOWN_CONFIG.showSeconds),
     style: normalizeCountdownStyle(source.style),
-    harmony: normalizeCountdownHarmony(source.harmony),
   };
 };
 
@@ -82,5 +72,4 @@ export const toCountdownPersistConfig = (config: CountdownConfigState): Countdow
   showMinutes: config.showMinutes,
   showSeconds: config.showSeconds,
   style: config.style,
-  harmony: config.harmony,
 });

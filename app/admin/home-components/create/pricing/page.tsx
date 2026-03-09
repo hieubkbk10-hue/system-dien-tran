@@ -6,15 +6,10 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } fr
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { PricingPreview } from '../../pricing/_components/PricingPreview';
-import {
-  DEFAULT_PRICING_HARMONY,
-  normalizePricingHarmony,
-} from '../../pricing/_lib/constants';
 import { getPricingValidationResult } from '../../pricing/_lib/colors';
 import type {
   PricingConfig,
   PricingEditorPlan,
-  PricingHarmony,
   PricingStyle,
 } from '../../pricing/_types';
 
@@ -87,14 +82,11 @@ export default function PricingCreatePage() {
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
 
-  const harmony: PricingHarmony = normalizePricingHarmony(DEFAULT_PRICING_HARMONY);
-
   const validation = useMemo(() => getPricingValidationResult({
     primary,
     secondary,
     mode,
-    harmony,
-  }), [primary, secondary, mode, harmony]);
+  }), [primary, secondary, mode]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];
@@ -184,7 +176,6 @@ export default function PricingCreatePage() {
         buttonLink: plan.buttonLink,
       })),
       style: pricingStyle,
-      harmony,
       ...pricingConfig,
     };
 
@@ -384,7 +375,6 @@ export default function PricingCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={harmony}
         selectedStyle={pricingStyle}
         onStyleChange={setPricingStyle}
         config={pricingConfig}

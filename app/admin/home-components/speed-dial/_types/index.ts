@@ -12,11 +12,8 @@ export type SpeedDialPosition = 'bottom-right' | 'bottom-left';
 
 export type SpeedDialBrandMode = 'single' | 'dual';
 
-export type SpeedDialHarmony = 'analogous' | 'complementary' | 'triadic';
-
 export interface SpeedDialConfig {
   actions: SpeedDialAction[];
   style: SpeedDialStyle;
   position: SpeedDialPosition;
-  harmony?: SpeedDialHarmony;
 }

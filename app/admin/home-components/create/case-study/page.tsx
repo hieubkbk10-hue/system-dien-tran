@@ -7,11 +7,9 @@ import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import {
   getCaseStudyValidationResult,
-  normalizeCaseStudyHarmony,
 } from '../../case-study/_lib/colors';
 import type {
   CaseStudyBrandMode,
-  CaseStudyHarmony,
   CaseStudyStyle,
 } from '../../case-study/_types';
 import { CaseStudyPreview } from '../../case-study/_components/CaseStudyPreview';
@@ -32,7 +30,6 @@ export default function CaseStudyCreatePage() {
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
-  const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
   const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
   
@@ -74,7 +71,6 @@ export default function CaseStudyCreatePage() {
       primary,
       secondary,
       mode: brandMode,
-      harmony,
       style: caseStudyStyle,
     });
 
@@ -93,7 +89,6 @@ export default function CaseStudyCreatePage() {
     void handleSubmit(e, {
       projects: projects.map(p => ({ category: p.category, description: p.description, image: p.image, link: p.link, title: p.title })),
       style: caseStudyStyle,
-      harmony,
     });
   };
 

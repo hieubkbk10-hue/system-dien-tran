@@ -17,11 +17,9 @@ import { CTAPreview } from '../../_components/CTAPreview';
 import { getCTAValidationResult } from '../../_lib/colors';
 import {
   DEFAULT_CTA_CONFIG,
-  DEFAULT_CTA_HARMONY,
-  normalizeCTAHarmony,
   normalizeCTAStyle,
 } from '../../_lib/constants';
-import type { CTAConfig, CTAHarmony, CTAStyle } from '../../_types';
+import type { CTAConfig, CTAStyle } from '../../_types';
 
 const COMPONENT_TYPE = 'CTA';
 
@@ -37,7 +35,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
   const [active, setActive] = useState(true);
   const [ctaConfig, setCtaConfig] = useState<CTAConfig>(DEFAULT_CTA_CONFIG);
   const [ctaStyle, setCtaStyle] = useState<CTAStyle>('banner');
-  const [ctaHarmony, setCtaHarmony] = useState<CTAHarmony>(DEFAULT_CTA_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [initialData, setInitialData] = useState<{
@@ -45,7 +42,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
     active: boolean;
     config: CTAConfig;
     style: CTAStyle;
-    harmony: CTAHarmony;
   } | null>(null);
 
   useEffect(() => {
@@ -69,17 +65,14 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         title: (config.title as string | undefined) ?? '',
       };
       const nextStyle = normalizeCTAStyle(config.style);
-      const nextHarmony = normalizeCTAHarmony(config.harmony);
 
       setCtaConfig(nextConfig);
       setCtaStyle(nextStyle);
-      setCtaHarmony(nextHarmony);
       setInitialData({
         title: component.title,
         active: component.active,
         config: nextConfig,
         style: nextStyle,
-        harmony: nextHarmony,
       });
       setHasChanges(false);
     }
@@ -99,11 +92,10 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
     const changed = title !== initialData.title
       || active !== initialData.active
       || JSON.stringify(ctaConfig) !== JSON.stringify(initialData.config)
-      || ctaStyle !== initialData.style
-      || ctaHarmony !== initialData.harmony;
+      || ctaStyle !== initialData.style;
 
     setHasChanges(changed || customChanged);
-  }, [title, active, ctaConfig, ctaStyle, ctaHarmony, initialData, customChanged]);
+  }, [title, active, ctaConfig, ctaStyle, initialData, customChanged]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +106,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
       primary: effectiveColors.primary,
       secondary: effectiveColors.secondary,
       mode: effectiveColors.mode,
-      harmony: ctaHarmony,
       style: ctaStyle,
     });
 
@@ -127,7 +118,7 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
     try {
       await updateMutation({
         active,
-        config: { ...ctaConfig, style: ctaStyle, harmony: ctaHarmony },
+        config: { ...ctaConfig, style: ctaStyle },
         id: id as Id<'homeComponents'>,
         title,
       });
@@ -146,7 +137,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
         active,
         config: ctaConfig,
         style: ctaStyle,
-        harmony: ctaHarmony,
       });
       if (showCustomBlock) {
         setInitialCustom({
@@ -264,7 +254,6 @@ export default function CtaEditPage({ params }: { params: Promise<{ id: string }
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={ctaHarmony}
               selectedStyle={ctaStyle}
               onStyleChange={setCtaStyle}
             />

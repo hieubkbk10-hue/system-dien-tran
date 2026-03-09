@@ -5,7 +5,7 @@ import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { ServicesForm } from '../../services/_components/ServicesForm';
 import { ServicesPreview } from '../../services/_components/ServicesPreview';
-import { getServicesValidationResult, normalizeServicesHarmony } from '../../services/_lib/colors';
+import { getServicesValidationResult } from '../../services/_lib/colors';
 import { toServicesPersistItems } from '../../services/_lib/items';
 import type { ServiceEditorItem, ServicesStyle } from '../../services/_types';
 import { AlertTriangle, Eye } from 'lucide-react';
@@ -25,8 +25,7 @@ export default function ServicesCreatePage() {
   const [servicesItems, setServicesItems] = useState<ServiceEditorItem[]>(DEFAULT_EDITOR_ITEMS);
   const [style, setStyle] = useState<ServicesStyle>('elegantGrid');
 
-  const harmony = normalizeServicesHarmony(undefined);
-  const validation = useMemo(() => getServicesValidationResult({ primary, secondary, mode, harmony }), [primary, secondary, mode, harmony]);
+  const validation = useMemo(() => getServicesValidationResult({ primary, secondary, mode }), [primary, secondary, mode]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];

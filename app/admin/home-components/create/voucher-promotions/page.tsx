@@ -8,7 +8,6 @@ import { VoucherPromotionsPreview } from '../../voucher-promotions/_components/V
 import { normalizeVoucherLimit } from '@/lib/home-components/voucher-promotions';
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
-  normalizeVoucherPromotionsHarmony,
   normalizeVoucherPromotionsTexts,
 } from '../../voucher-promotions/_lib/constants';
 import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentBalance } from '../../voucher-promotions/_lib/colors';
@@ -25,8 +24,7 @@ export default function VoucherPromotionsCreatePage() {
     primary,
     secondary,
     mode,
-    harmony: voucherConfig.harmony,
-  }), [primary, secondary, mode, voucherConfig.harmony]);
+  }), [primary, secondary, mode]);
 
   const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(mode, voucherConfig.style), [mode, voucherConfig.style]);
 
@@ -48,7 +46,6 @@ export default function VoucherPromotionsCreatePage() {
     void handleSubmit(e, {
       ...voucherConfig,
       limit: normalizeVoucherLimit(voucherConfig.limit),
-      harmony: normalizeVoucherPromotionsHarmony(voucherConfig.harmony),
       texts: normalizeVoucherPromotionsTexts(voucherConfig.texts),
     });
   };
@@ -158,7 +155,6 @@ export default function VoucherPromotionsCreatePage() {
         brandColor={primary}
         secondary={secondary}
         selectedStyle={voucherConfig.style}
-        harmony={voucherConfig.harmony}
         onStyleChange={(nextStyle) => setVoucherConfig({ ...voucherConfig, style: nextStyle })}
       />
     </ComponentFormWrapper>

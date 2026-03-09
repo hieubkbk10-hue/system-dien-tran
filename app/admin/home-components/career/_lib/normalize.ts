@@ -5,7 +5,6 @@ import {
 } from './constants';
 import type {
   CareerConfig,
-  CareerHarmony,
   CareerStyle,
   JobPosition,
 } from '../_types';
@@ -142,10 +141,11 @@ export const normalizeCareerConfig = (rawConfig: unknown): CareerConfig => {
     : {};
 
   const jobs = normalizeCareerJobs(config.jobs);
+  const harmony = normalizeCareerHarmony(config.harmony as string | undefined);
 
   return {
     jobs: jobs.length > 0 ? toCareerJobsForConfig(jobs) : DEFAULT_CAREER_CONFIG.jobs,
     style: normalizeCareerStyle(config.style),
-    harmony: normalizeCareerHarmony(config.harmony) as CareerHarmony,
+    harmony,
   };
 };

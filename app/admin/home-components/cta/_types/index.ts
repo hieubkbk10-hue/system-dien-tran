@@ -10,5 +10,5 @@ export interface CTAConfig {
   harmony?: CTAHarmony;
 }
 
-export type CTAHarmony = 'analogous' | 'complementary' | 'triadic';
 export type CTAStyle = 'banner' | 'centered' | 'split' | 'floating' | 'gradient' | 'minimal';
+export type CTAHarmony = 'analogous' | 'complementary' | 'triadic';

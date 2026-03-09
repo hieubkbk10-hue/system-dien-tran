@@ -2,9 +2,7 @@
 
 import React from 'react';
 import {
-  DEFAULT_VIDEO_HARMONY,
   normalizeVideoConfig,
-  normalizeVideoHarmony,
   normalizeVideoStyle,
 } from '@/app/admin/home-components/video/_lib/constants';
 import { getVideoColorTokens } from '@/app/admin/home-components/video/_lib/colors';
@@ -28,20 +26,18 @@ export function VideoSection({
 }: VideoSectionProps) {
   const normalizedConfig = normalizeVideoConfig(config);
   const style = normalizeVideoStyle(normalizedConfig.style);
-  const harmony = normalizeVideoHarmony(normalizedConfig.harmony ?? DEFAULT_VIDEO_HARMONY);
 
   const tokens = React.useMemo(() => getVideoColorTokens({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
     style,
-  }), [brandColor, secondary, mode, harmony, style]);
+  }), [brandColor, secondary, mode, style]);
 
   return (
     <VideoSectionShared
       context="site"
-      config={{ ...normalizedConfig, style, harmony }}
+      config={{ ...normalizedConfig, style }}
       style={style}
       tokens={tokens}
       title={title}

@@ -5,8 +5,6 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
-  DEFAULT_VOUCHER_PROMOTIONS_HARMONY,
-  normalizeVoucherPromotionsHarmony,
   VOUCHER_PROMOTIONS_STYLES,
 } from '../_lib/constants';
 import { getVoucherPromotionsValidationResult } from '../_lib/colors';
@@ -15,7 +13,6 @@ import type {
   VoucherPromotionItem,
   VoucherPromotionsBrandMode,
   VoucherPromotionsConfig,
-  VoucherPromotionsHarmony,
 } from '../_types';
 import {
   DEFAULT_VOUCHER_STYLE,
@@ -31,7 +28,6 @@ interface VoucherPromotionsPreviewProps {
   mode?: VoucherPromotionsBrandMode;
   selectedStyle?: VoucherPromotionsStyle;
   limit?: number;
-  harmony?: VoucherPromotionsHarmony;
   onStyleChange?: (style: VoucherPromotionsStyle) => void;
 }
 
@@ -98,7 +94,6 @@ export const VoucherPromotionsPreview = ({
   mode = 'dual',
   selectedStyle,
   limit,
-  harmony = DEFAULT_VOUCHER_PROMOTIONS_HARMONY,
   onStyleChange,
 }: VoucherPromotionsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
@@ -107,7 +102,6 @@ export const VoucherPromotionsPreview = ({
 
   const previewStyle = normalizeVoucherStyle(selectedStyle ?? DEFAULT_VOUCHER_STYLE);
   const previewLimit = normalizeVoucherLimit(limit);
-  const resolvedHarmony = normalizeVoucherPromotionsHarmony(harmony);
 
   const heading = config.texts?.heading || 'Voucher khuyến mãi';
   const description = config.texts?.description || 'Áp dụng mã để nhận ưu đãi tốt nhất hôm nay.';
@@ -120,8 +114,7 @@ export const VoucherPromotionsPreview = ({
     primary: brandColor,
     secondary,
     mode,
-    harmony: resolvedHarmony,
-  }), [brandColor, secondary, mode, resolvedHarmony]);
+  }), [brandColor, secondary, mode]);
 
   const handleCopy = React.useCallback((code: string) => {
     setCopiedCode(code);

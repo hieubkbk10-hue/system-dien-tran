@@ -16,13 +16,6 @@ export const DEFAULT_CAREER_TEXTS: CareerTexts = {
   remainingLabel: 'vị trí khác',
 };
 
-export const normalizeCareerHarmony = (value: unknown): CareerHarmony => {
-  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-  return DEFAULT_CAREER_HARMONY;
-};
-
 export const CAREER_STYLES: Array<{ id: CareerStyle; label: string }> = [
   { id: 'cards', label: 'Cards' },
   { id: 'list', label: 'List' },
@@ -31,6 +24,13 @@ export const CAREER_STYLES: Array<{ id: CareerStyle; label: string }> = [
   { id: 'featured', label: 'Featured' },
   { id: 'timeline', label: 'Timeline' },
 ];
+
+export const normalizeCareerHarmony = (value?: string): CareerHarmony => {
+  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
+    return value;
+  }
+  return 'analogous';
+};
 
 export const createCareerJob = (overrides?: Partial<JobPosition>): JobPosition => ({
   title: '',
@@ -45,6 +45,6 @@ export const createCareerJob = (overrides?: Partial<JobPosition>): JobPosition =
 export const DEFAULT_CAREER_CONFIG: CareerConfig = {
   jobs: [createCareerJob()],
   style: 'cards',
-  harmony: DEFAULT_CAREER_HARMONY,
   texts: DEFAULT_CAREER_TEXTS,
+  harmony: DEFAULT_CAREER_HARMONY,
 };

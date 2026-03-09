@@ -9,11 +9,10 @@ import {
   getVideoColorTokens,
   type VideoColorTokens,
 } from '../_lib/colors';
-import { DEFAULT_VIDEO_HARMONY, VIDEO_STYLES, normalizeVideoHarmony } from '../_lib/constants';
+import { VIDEO_STYLES } from '../_lib/constants';
 import type {
   VideoBrandMode,
   VideoConfig,
-  VideoHarmony,
   VideoStyle,
 } from '../_types';
 import { VideoSectionShared } from './VideoSectionShared';
@@ -25,7 +24,6 @@ interface VideoPreviewProps {
   selectedStyle?: VideoStyle;
   onStyleChange?: (style: VideoStyle) => void;
   mode?: VideoBrandMode;
-  harmony?: VideoHarmony;
 }
 
 const getPreviewInfo = (style: VideoStyle, videoUrl: string) => {
@@ -53,22 +51,19 @@ export const VideoPreview = ({
   selectedStyle,
   onStyleChange,
   mode = 'dual',
-  harmony = DEFAULT_VIDEO_HARMONY,
 }: VideoPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
   const previewStyle = selectedStyle ?? config.style ?? 'centered';
-  const resolvedHarmony = normalizeVideoHarmony(harmony);
 
   const tokens: VideoColorTokens = React.useMemo(
     () => getVideoColorTokens({
       primary: brandColor,
       secondary,
       mode,
-      harmony: resolvedHarmony,
       style: previewStyle,
     }),
-    [brandColor, secondary, mode, resolvedHarmony, previewStyle],
+    [brandColor, secondary, mode, previewStyle],
   );
 
   return (

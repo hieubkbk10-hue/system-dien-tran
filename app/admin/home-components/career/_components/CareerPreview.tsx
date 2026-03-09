@@ -8,7 +8,6 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
   CAREER_STYLES,
-  DEFAULT_CAREER_HARMONY,
   DEFAULT_CAREER_TEXTS,
 } from '../_lib/constants';
 import { getCareerValidationResult } from '../_lib/colors';
@@ -16,7 +15,6 @@ import { normalizeCareerJobs } from '../_lib/normalize';
 import { CareerSectionShared } from './CareerSectionShared';
 import type {
   CareerBrandMode,
-  CareerHarmony,
   CareerStyle,
   CareerTexts,
   JobPosition,
@@ -27,7 +25,6 @@ interface CareerPreviewProps {
   brandColor: string;
   secondary: string;
   mode?: CareerBrandMode;
-  harmony?: CareerHarmony;
   selectedStyle?: CareerStyle;
   onStyleChange?: (style: CareerStyle) => void;
   title?: string;
@@ -39,7 +36,6 @@ export function CareerPreview({
   brandColor,
   secondary,
   mode = 'dual',
-  harmony = DEFAULT_CAREER_HARMONY,
   selectedStyle = 'cards',
   onStyleChange,
   title = 'Tuyển dụng',
@@ -59,8 +55,7 @@ export function CareerPreview({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   const warningMessages = React.useMemo(() => {
     const warnings: string[] = [];

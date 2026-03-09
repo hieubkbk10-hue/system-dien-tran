@@ -14,7 +14,7 @@ import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOv
 import { HeroForm } from '../../_components/HeroForm';
 import { HeroPreview } from '../../_components/HeroPreview';
 import { DEFAULT_HERO_CONTENT } from '../../_lib/constants';
-import type { HeroContent, HeroHarmony, HeroSlide, HeroStyle } from '../../_types';
+import type { HeroContent, HeroSlide, HeroStyle } from '../../_types';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 
 const COMPONENT_TYPE = 'Hero';
@@ -32,7 +32,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [heroStyle, setHeroStyle] = useState<HeroStyle>('slider');
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
-  const [heroHarmony, setHeroHarmony] = useState<HeroHarmony>('analogous');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [initialData, setInitialData] = useState<{
@@ -41,7 +40,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
     slides: HeroSlide[];
     style: HeroStyle;
     content: HeroContent;
-    harmony: HeroHarmony;
   } | null>(null);
 
   useEffect(() => {
@@ -57,12 +55,10 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       const config = component.config ?? {};
       const slides = config.slides?.map((s: { image: string; link: string }, i: number) => ({ id: `slide-${i}`, link: s.link || '', url: s.image })) ?? [{ id: 'slide-1', link: '', url: '' }];
       const style = (config.style as HeroStyle) || 'slider';
-      const harmony = (config.harmony as HeroHarmony) || 'analogous';
       const content = (config.content as HeroContent) ?? DEFAULT_HERO_CONTENT;
 
       setHeroSlides(slides);
       setHeroStyle(style);
-      setHeroHarmony(harmony);
       setHeroContent(content);
       setInitialData({
         title: component.title,
@@ -70,7 +66,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         slides,
         style,
         content,
-        harmony,
       });
       setHasChanges(false);
     }
@@ -106,11 +101,10 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
       || currentSlides !== initialSlides
       || heroStyle !== initialData.style
       || currentContent !== initialContent
-      || heroHarmony !== initialData.harmony
       || customChanged;
 
     setHasChanges(changed);
-  }, [title, active, heroSlides, heroStyle, heroContent, heroHarmony, initialData, showCustomBlock, customState, initialCustom]);
+  }, [title, active, heroSlides, heroStyle, heroContent, initialData, showCustomBlock, customState, initialCustom]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +117,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         active,
         config: {
           content: needsContent ? heroContent : undefined,
-          harmony: heroHarmony,
           slides: heroSlides.map(s => ({ image: s.url, link: s.link })),
           style: heroStyle,
         },
@@ -151,7 +144,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
         slides: heroSlides,
         style: heroStyle,
         content: heroContent,
-        harmony: heroHarmony,
       });
       if (showCustomBlock) {
         const resolvedCustomSecondary = resolveSecondaryByMode(
@@ -284,7 +276,6 @@ export default function HeroEditPage({ params }: { params: Promise<{ id: string 
               selectedStyle={heroStyle}
               onStyleChange={setHeroStyle}
               content={heroContent}
-              harmony={heroHarmony}
             />
           </div>
         </div>

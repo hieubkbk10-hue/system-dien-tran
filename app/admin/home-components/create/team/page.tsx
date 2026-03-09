@@ -8,8 +8,6 @@ import { TeamForm } from '../../team/_components/TeamForm';
 import { TeamPreview } from '../../team/_components/TeamPreview';
 import {
   DEFAULT_TEAM_CONFIG,
-  DEFAULT_TEAM_HARMONY,
-  normalizeTeamHarmony,
   normalizeTeamStyle,
   toTeamEditorMembers,
   toTeamPersistMembers,
@@ -74,7 +72,6 @@ export default function TeamCreatePage() {
 
   const [members, setMembers] = React.useState<TeamEditorMember[]>(createDefaultMembers);
   const [style, setStyle] = React.useState<TeamStyle>(normalizeTeamStyle(DEFAULT_TEAM_CONFIG.style));
-  const [harmony] = React.useState(() => normalizeTeamHarmony(DEFAULT_TEAM_HARMONY));
 
   const brandMode: TeamBrandMode = mode === 'single' ? 'single' : 'dual';
 
@@ -82,8 +79,7 @@ export default function TeamCreatePage() {
     primary,
     secondary,
     mode: brandMode,
-    harmony,
-  }), [primary, secondary, brandMode, harmony]);
+  }), [primary, secondary, brandMode]);
 
   const warningMessages = React.useMemo(() => {
     if (brandMode !== 'dual') {
@@ -107,7 +103,6 @@ export default function TeamCreatePage() {
     const payload: TeamConfig = {
       members: toTeamPersistMembers(members),
       style,
-      harmony,
     };
 
     void handleSubmit(event, payload as unknown as Record<string, unknown>);
@@ -151,7 +146,6 @@ export default function TeamCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={brandMode}
-        harmony={harmony}
         title={title}
         selectedStyle={style}
         onStyleChange={setStyle}

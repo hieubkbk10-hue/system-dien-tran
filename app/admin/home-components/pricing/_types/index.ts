@@ -1,8 +1,8 @@
 export type PricingStyle = 'cards' | 'horizontal' | 'minimal' | 'comparison' | 'featured' | 'compact';
 
 export type PricingBrandMode = 'single' | 'dual';
-
 export type PricingHarmony = 'analogous' | 'complementary' | 'triadic';
+
 
 export interface PricingPlan {
   id?: string | number;
@@ -28,6 +28,6 @@ export interface PricingConfig {
   yearlySavingText?: string;
   showBillingToggle?: boolean;
   subtitle?: string;
-  harmony?: PricingHarmony;
   texts?: Record<string, string>;
+  harmony?: PricingHarmony;
 }

@@ -16,6 +16,6 @@ export type ClientsHarmony = 'analogous' | 'complementary' | 'triadic';
 export interface ClientsConfig {
   items: ClientItem[];
   style: ClientsStyle;
-  harmony?: ClientsHarmony;
   texts?: Record<ClientsStyle, Record<string, string>>;
+  harmony?: ClientsHarmony;
 }

@@ -1,12 +1,7 @@
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import {
-  DEFAULT_PRICING_HARMONY,
-  normalizePricingHarmony,
-} from './constants';
 import type {
   PricingBrandMode,
-  PricingHarmony,
 } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
@@ -98,17 +93,8 @@ export const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-const getHarmonyColor = (primary: string, harmony: PricingHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -116,7 +102,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: PricingBrandMode,
-  harmony: PricingHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -128,7 +113,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getAutoSecondary(normalizedPrimary);
 };
 
 interface PricingPalette {
@@ -276,16 +261,13 @@ export const getPricingColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_PRICING_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: PricingBrandMode;
-  harmony?: PricingHarmony;
 }): PricingColorTokens => {
-  const normalizedHarmony = normalizePricingHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const primaryPalette = buildPalette(primaryResolved, DEFAULT_BRAND_COLOR);
   const secondaryPalette = buildPalette(secondaryResolved, primaryResolved);
@@ -367,19 +349,15 @@ export const getPricingValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_PRICING_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: PricingBrandMode;
-  harmony?: PricingHarmony;
 }) => {
-  const normalizedHarmony = normalizePricingHarmony(harmony);
   const tokens = getPricingColorTokens({
     primary,
     secondary,
     mode,
-    harmony: normalizedHarmony,
   });
 
   const harmonyStatus = mode === 'single'

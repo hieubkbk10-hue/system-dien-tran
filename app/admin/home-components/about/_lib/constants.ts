@@ -46,11 +46,11 @@ export const normalizeAboutStyle = (value: unknown): AboutStyle => {
   return 'bento';
 };
 
-export const normalizeAboutHarmony = (value: unknown): AboutHarmony => {
-  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
+export const normalizeAboutHarmony = (value?: string): AboutHarmony => {
+  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
     return value;
   }
-  return DEFAULT_ABOUT_HARMONY;
+  return 'analogous';
 };
 
 export const normalizeAboutPersistStats = (input: unknown): AboutPersistStat[] => {
@@ -103,10 +103,10 @@ export const DEFAULT_ABOUT_CONFIG: AboutConfig = {
   heading: '',
   image: '',
   imageCaption: '',
+  harmony: DEFAULT_ABOUT_HARMONY,
   stats: [],
   style: 'bento',
   subHeading: '',
-  harmony: DEFAULT_ABOUT_HARMONY,
 };
 
 export const DEFAULT_ABOUT_EDITOR_STATE: AboutEditorState = {
@@ -122,5 +122,4 @@ export const DEFAULT_ABOUT_EDITOR_STATE: AboutEditorState = {
   ],
   buttonText: 'Xem chi tiết',
   buttonLink: '/about',
-  harmony: DEFAULT_ABOUT_HARMONY,
 };

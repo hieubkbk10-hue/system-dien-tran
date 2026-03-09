@@ -16,13 +16,11 @@ import { SpeedDialForm } from '../../_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../_components/SpeedDialPreview';
 import {
   DEFAULT_SPEED_DIAL_CONFIG,
-  DEFAULT_SPEED_DIAL_HARMONY,
   normalizeSpeedDialStyle,
 } from '../../_lib/constants';
 import type {
   SpeedDialAction,
   SpeedDialConfig,
-  SpeedDialHarmony,
   SpeedDialPosition,
   SpeedDialStyle,
 } from '../../_types';
@@ -61,7 +59,6 @@ const toSnapshot = (payload: {
   active: boolean;
   style: SpeedDialStyle;
   position: SpeedDialPosition;
-  harmony: SpeedDialHarmony;
   actions: SpeedDialAction[];
 }) => JSON.stringify({
   ...payload,
@@ -87,7 +84,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
   const [actions, setActions] = useState<SpeedDialAction[]>([]);
   const [style, setStyle] = useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));
   const [position, setPosition] = useState<SpeedDialPosition>(DEFAULT_SPEED_DIAL_CONFIG.position);
-  const [harmony] = useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
@@ -115,7 +111,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
       active: component.active,
       style: normalizedStyle,
       position: normalizedPosition,
-      harmony: DEFAULT_SPEED_DIAL_HARMONY,
       actions: normalizedActions,
     }));
   }, [component, id, router]);
@@ -125,7 +120,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
     active,
     style,
     position,
-    harmony,
     actions,
   });
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
@@ -153,7 +147,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
         })),
         style,
         position,
-        harmony,
       };
 
       await updateMutation({
@@ -178,7 +171,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
         active,
         style,
         position,
-        harmony,
         actions,
       }));
       if (showCustomBlock) {
@@ -304,7 +296,6 @@ export default function SpeedDialEditPage({ params }: { params: Promise<{ id: st
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={harmony}
               title={title}
               selectedStyle={style}
               onStyleChange={setStyle}

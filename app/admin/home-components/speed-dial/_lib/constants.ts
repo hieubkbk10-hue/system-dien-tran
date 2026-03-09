@@ -1,7 +1,4 @@
-import { normalizeSpeedDialHarmony } from './colors';
-import type { SpeedDialConfig, SpeedDialHarmony, SpeedDialStyle } from '../_types';
-
-export const DEFAULT_SPEED_DIAL_HARMONY: SpeedDialHarmony = normalizeSpeedDialHarmony('analogous');
+import type { SpeedDialConfig, SpeedDialStyle } from '../_types';
 
 export const SPEED_DIAL_STYLES: Array<{ id: SpeedDialStyle; label: string }> = [
   { id: 'fab', label: 'FAB' },
@@ -29,7 +26,6 @@ export const DEFAULT_SPEED_DIAL_CONFIG: SpeedDialConfig = {
       url: '',
     },
   ],
-  harmony: DEFAULT_SPEED_DIAL_HARMONY,
   position: 'bottom-right',
   style: 'fab',
 };

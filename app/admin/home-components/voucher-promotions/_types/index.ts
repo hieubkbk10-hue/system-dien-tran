@@ -3,8 +3,8 @@ import type { VoucherPromotionsStyle } from '@/lib/home-components/voucher-promo
 export type { VoucherPromotionsStyle };
 
 export type VoucherPromotionsBrandMode = 'single' | 'dual';
-
 export type VoucherPromotionsHarmony = 'analogous' | 'complementary' | 'triadic';
+
 
 export interface VoucherPromotionsTexts {
   heading: string;
@@ -42,6 +42,5 @@ export interface VoucherPromotionsConfig {
 export interface VoucherPromotionsConfigState extends VoucherPromotionsConfig {
   style: VoucherPromotionsStyle;
   limit: number;
-  harmony: VoucherPromotionsHarmony;
   texts: VoucherPromotionsTexts;
 }

@@ -25,5 +25,4 @@ export const DEFAULT_COUNTDOWN_CONFIG: CountdownConfigState = {
   showMinutes: true,
   showSeconds: true,
   style: 'banner',
-  harmony: 'analogous',
 };

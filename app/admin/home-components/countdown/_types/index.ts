@@ -1,8 +1,8 @@
 export type CountdownStyle = 'banner' | 'floating' | 'minimal' | 'split' | 'sticky' | 'popup';
 
 export type CountdownBrandMode = 'single' | 'dual';
-
 export type CountdownHarmony = 'analogous' | 'complementary' | 'triadic';
+
 
 export interface CountdownConfig {
   heading: string;
@@ -23,5 +23,4 @@ export interface CountdownConfig {
 
 export interface CountdownConfigState extends CountdownConfig {
   style: CountdownStyle;
-  harmony: CountdownHarmony;
 }

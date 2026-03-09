@@ -2,7 +2,6 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { HeroHarmony } from '../_types';
 
 export interface HeroColorScheme {
   primarySolid: string;
@@ -152,32 +151,12 @@ export const getAnalogous = (hex: string): [string, string] => {
   ];
 };
 
-export const getComplementary = (hex: string) => {
-  const color = oklch(hex);
-  return formatHex(oklch({ ...color, h: (color.h + 180) % 360 }));
-};
-
-export const getTriadic = (hex: string): [string, string] => {
-  const color = oklch(hex);
-  return [
-    formatHex(oklch({ ...color, h: (color.h + 120) % 360 })),
-    formatHex(oklch({ ...color, h: (color.h - 120 + 360) % 360 })),
-  ];
-};
-
 const resolveSecondaryColor = (
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony,
 ) => {
   if (mode === 'single') {
-    if (harmony === 'complementary') {
-      return getComplementary(primary);
-    }
-    if (harmony === 'triadic') {
-      return getTriadic(primary)[0];
-    }
     return getAnalogous(primary)[0];
   }
 
@@ -211,9 +190,8 @@ export function getSliderColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): SliderColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
 
   const primaryPalette = generatePalette(primary);
   const secondaryPalette = generatePalette(secondaryColor);
@@ -244,9 +222,8 @@ export function getFadeColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): FadeColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
   const primaryPalette = generatePalette(primary);
 
   return {
@@ -262,9 +239,8 @@ export function getBentoColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): BentoColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
   const primaryColor = oklch(primary);
   const secondaryColorValue = oklch(secondaryColor);
   const getPrimaryTint = (lightness: number) => formatHex(oklch({ ...primaryColor, l: Math.min(primaryColor.l + lightness, 0.98) }));
@@ -285,9 +261,8 @@ export function getFullscreenColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): FullscreenColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
   const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);
   const getSecondaryTint = (lightness: number) => formatHex(oklch({ ...secondaryColorValue, l: Math.min(secondaryColorValue.l + lightness, 0.98) }));
@@ -311,9 +286,8 @@ export function getSplitColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): SplitColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
   const primaryPalette = generatePalette(primary);
   const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);
@@ -340,9 +314,8 @@ export function getParallaxColors(
   primary: string,
   secondary: string,
   mode: 'single' | 'dual',
-  harmony: HeroHarmony = 'analogous',
 ): ParallaxColorScheme {
-  const secondaryColor = resolveSecondaryColor(primary, secondary, mode, harmony);
+  const secondaryColor = resolveSecondaryColor(primary, secondary, mode);
   const primaryPalette = generatePalette(primary);
   const secondaryPalette = generatePalette(secondaryColor);
   const secondaryColorValue = oklch(secondaryColor);

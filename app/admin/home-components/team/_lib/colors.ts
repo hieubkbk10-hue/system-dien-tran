@@ -6,13 +6,8 @@ import {
   getAccessibilityThreshold,
   getHarmonyStatus,
 } from '@/lib/home-components/color-system';
-import {
-  DEFAULT_TEAM_HARMONY,
-  normalizeTeamHarmony,
-} from './constants';
 import type {
   TeamBrandMode,
-  TeamHarmony,
   TeamStyle,
 } from '../_types';
 
@@ -128,17 +123,8 @@ const resolveBrandTextOnBackground = (
   return pickReadableTextOnSolid(background) === '#ffffff' ? '#ffffff' : fallback;
 };
 
-const getHarmonyColor = (primary: string, harmony: TeamHarmony) => {
+const getHarmonyColor = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -146,7 +132,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: TeamBrandMode,
-  harmony: TeamHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -158,7 +143,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getHarmonyColor(normalizedPrimary);
 };
 
 interface TeamPalette {
@@ -241,16 +226,13 @@ export const getTeamColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_TEAM_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: TeamBrandMode;
-  harmony?: TeamHarmony;
 }): TeamColorTokens => {
-  const normalizedHarmony = normalizeTeamHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const primaryPalette = buildPalette(primaryResolved, DEFAULT_BRAND_COLOR);
   const secondaryPalette = buildPalette(secondaryResolved, primaryResolved);
@@ -352,19 +334,15 @@ export const getTeamValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_TEAM_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: TeamBrandMode;
-  harmony?: TeamHarmony;
 }): TeamValidationResult => {
-  const normalizedHarmony = normalizeTeamHarmony(harmony);
   const tokens = getTeamColorTokens({
     primary,
     secondary,
     mode,
-    harmony: normalizedHarmony,
   });
 
   const harmonyStatus = mode === 'single'

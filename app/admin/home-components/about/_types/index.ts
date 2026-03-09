@@ -35,7 +35,6 @@ export interface AboutEditorState {
   buttonLink: string;
   stats: AboutEditorStat[];
   style: AboutStyle;
-  harmony: AboutHarmony;
 }
 
 export interface AboutStyleOption {

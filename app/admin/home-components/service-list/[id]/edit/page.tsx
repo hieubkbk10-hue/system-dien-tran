@@ -16,13 +16,10 @@ import { ServiceListForm } from '../../_components/ServiceListForm';
 import { ServiceListPreview } from '../../_components/ServiceListPreview';
 import {
   DEFAULT_SERVICE_LIST_CONFIG,
-  DEFAULT_SERVICE_LIST_HARMONY,
-  normalizeServiceListHarmony,
 } from '../../_lib/constants';
 import { getServiceListValidationResult } from '../../_lib/colors';
 import type {
   ServiceListConfig,
-  ServiceListHarmony,
   ServiceListStyle,
   ServiceSelectionMode,
 } from '../../_types';
@@ -45,7 +42,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
   const [serviceSelectionMode, setServiceSelectionMode] = useState<ServiceSelectionMode>('auto');
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
-  const [harmony, setHarmony] = useState<ServiceListHarmony>(DEFAULT_SERVICE_LIST_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
@@ -66,14 +62,12 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
         selectionMode: (config.selectionMode as ServiceSelectionMode) ?? DEFAULT_SERVICE_LIST_CONFIG.selectionMode,
         selectedServiceIds: ((config.selectedServiceIds as string[]) ?? []),
         style: ((config.style as ServiceListStyle) ?? 'grid'),
-        harmony: normalizeServiceListHarmony((config.harmony as string | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY),
       };
 
       setServiceListConfig(nextConfig);
       setServiceListStyle(nextConfig.style ?? 'grid');
       setServiceSelectionMode(nextConfig.selectionMode);
       setSelectedServiceIds(nextConfig.selectedServiceIds ?? []);
-      setHarmony(nextConfig.harmony ?? DEFAULT_SERVICE_LIST_HARMONY);
     }
   }, [component, id, router]);
 
@@ -85,7 +79,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
     style: ServiceListStyle;
     selectionMode: ServiceSelectionMode;
     selectedServiceIds: string[];
-    harmony: ServiceListHarmony;
   }) => JSON.stringify({
     ...payload,
     selectedServiceIds: payload.selectedServiceIds,
@@ -103,7 +96,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
       style: ((config.style as ServiceListStyle) ?? 'grid'),
       selectionMode: ((config.selectionMode as ServiceSelectionMode) ?? DEFAULT_SERVICE_LIST_CONFIG.selectionMode),
       selectedServiceIds: ((config.selectedServiceIds as string[]) ?? []),
-      harmony: normalizeServiceListHarmony((config.harmony as string | undefined) ?? DEFAULT_SERVICE_LIST_HARMONY),
     }));
   }, [component]);
 
@@ -115,7 +107,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
     style: serviceListStyle,
     selectionMode: serviceSelectionMode,
     selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
-    harmony,
   });
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
@@ -131,8 +122,7 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony,
-  }), [effectiveColors, harmony]);
+  }), [effectiveColors]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -185,7 +175,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
         selectedServiceIds: serviceSelectionMode === 'manual' ? selectedServiceIds : [],
         sortBy: serviceListConfig.sortBy,
         style: serviceListStyle,
-        harmony,
       };
 
       await updateMutation({
@@ -213,7 +202,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
         style: nextConfig.style ?? 'grid',
         selectionMode: nextConfig.selectionMode,
         selectedServiceIds: nextConfig.selectedServiceIds ?? [],
-        harmony: nextConfig.harmony ?? DEFAULT_SERVICE_LIST_HARMONY,
       }));
 
       if (showCustomBlock) {
@@ -341,7 +329,6 @@ export default function ServiceListEditPage({ params }: { params: Promise<{ id: 
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={harmony}
               itemCount={serviceSelectionMode === 'manual' ? selectedServiceIds.length : serviceListConfig.itemCount}
               selectedStyle={serviceListStyle}
               onStyleChange={setServiceListStyle}

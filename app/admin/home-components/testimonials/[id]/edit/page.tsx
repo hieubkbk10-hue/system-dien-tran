@@ -19,7 +19,6 @@ import { DEFAULT_TESTIMONIALS_CONFIG } from '../../_lib/constants';
 import {
   buildTestimonialsWarningMessages,
   getTestimonialsValidationResult,
-  normalizeTestimonialsHarmony,
   resolveSecondaryForMode,
 } from '../../_lib/colors';
 import type {
@@ -82,8 +81,7 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
   const [hasChanges, setHasChanges] = useState(false);
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
-  const harmony = normalizeTestimonialsHarmony((component?.config as { harmony?: unknown } | undefined)?.harmony);
-  const resolvedSecondary = resolveSecondaryForMode(effectiveColors.primary, effectiveColors.secondary, brandMode, harmony);
+  const resolvedSecondary = resolveSecondaryForMode(effectiveColors.primary, effectiveColors.secondary, brandMode);
 
   useEffect(() => {
     if (!component) {return;}
@@ -96,7 +94,7 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
     setTitle(component.title);
     setActive(component.active);
 
-    const rawConfig = (component.config ?? {}) as Partial<TestimonialsConfig> & { harmony?: unknown };
+    const rawConfig = (component.config ?? {}) as Partial<TestimonialsConfig>;
     const loadedItems = Array.isArray(rawConfig.items)
       ? rawConfig.items.map((item, idx) => toUiItem(item, idx))
       : DEFAULT_TESTIMONIALS_CONFIG.items.map((item, idx) => toUiItem(item, idx));
@@ -142,7 +140,6 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
     if (!component || component.type !== 'Testimonials') {return;}
 
     const validation = getTestimonialsValidationResult({
-      harmony,
       mode: brandMode,
       primary: effectiveColors.primary,
       secondary: resolvedSecondary,
@@ -150,14 +147,13 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
     });
 
     setWarningMessages(buildTestimonialsWarningMessages({ mode: brandMode, validation }));
-  }, [component, effectiveColors.primary, resolvedSecondary, brandMode, harmony, style]);
+  }, [component, effectiveColors.primary, resolvedSecondary, brandMode, style]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isSubmitting || !hasChanges) {return;}
 
     const validation = getTestimonialsValidationResult({
-      harmony,
       mode: brandMode,
       primary: effectiveColors.primary,
       secondary: resolvedSecondary,

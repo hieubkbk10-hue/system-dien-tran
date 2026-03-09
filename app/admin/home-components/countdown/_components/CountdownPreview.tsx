@@ -9,7 +9,6 @@ import { CountdownSectionShared } from './CountdownSectionShared';
 import type {
   CountdownBrandMode,
   CountdownConfig,
-  CountdownHarmony,
   CountdownStyle,
 } from '../_types';
 
@@ -40,15 +39,13 @@ export const CountdownPreview = ({
     return normalized;
   }, [config, selectedStyle]);
 
-  const harmony = normalizedConfig.harmony as CountdownHarmony | undefined;
   const tokens = React.useMemo(
     () => getCountdownColorTokens({
       primary: brandColor,
       secondary,
       mode,
-      harmony,
     }),
-    [brandColor, secondary, mode, harmony],
+    [brandColor, secondary, mode],
   );
 
   const timeLeft = useCountdownTimer(normalizedConfig.endDate);

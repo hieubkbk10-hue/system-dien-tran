@@ -2,13 +2,8 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import {
-  DEFAULT_CLIENTS_HARMONY,
-  normalizeClientsHarmony,
-} from './constants';
 import type {
   ClientsBrandMode,
-  ClientsHarmony,
   ClientsStyle,
 } from '../_types';
 
@@ -116,17 +111,8 @@ const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-export const getHarmonyColor = (primary: string, harmony: ClientsHarmony) => {
+export const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -134,7 +120,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: ClientsBrandMode,
-  harmony: ClientsHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -146,7 +131,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getAutoSecondary(normalizedPrimary);
 };
 
 export interface ClientsColorTokens {
@@ -283,16 +268,13 @@ export const getClientsColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_CLIENTS_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: ClientsBrandMode;
-  harmony?: ClientsHarmony;
 }): ClientsColorTokens => {
-  const normalizedHarmony = normalizeClientsHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
@@ -356,21 +338,17 @@ export const getClientsValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_CLIENTS_HARMONY,
   style,
 }: {
   primary: string;
   secondary: string;
   mode: ClientsBrandMode;
-  harmony?: ClientsHarmony;
   style: ClientsStyle;
 }) => {
-  const normalizedHarmony = normalizeClientsHarmony(harmony);
   const tokens = getClientsColorTokens({
     primary,
     secondary,
     mode,
-    harmony: normalizedHarmony,
   });
 
   const harmonyStatus = mode === 'single'
@@ -390,7 +368,6 @@ export const getClientsValidationResult = ({
   return {
     tokens,
     resolvedSecondary: tokens.secondary,
-    harmony: normalizedHarmony,
     harmonyStatus,
     accessibility,
     accentBalance,

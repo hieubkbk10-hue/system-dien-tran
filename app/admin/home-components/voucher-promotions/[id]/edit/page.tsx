@@ -15,7 +15,6 @@ import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/
 import { VoucherPromotionsPreview } from '../../_components/VoucherPromotionsPreview';
 import {
   DEFAULT_VOUCHER_PROMOTIONS_CONFIG,
-  normalizeVoucherPromotionsHarmony,
   normalizeVoucherPromotionsTexts,
 } from '../../_lib/constants';
 import { getVoucherPromotionsValidationResult, calculateVoucherPromotionsAccentBalance } from '../../_lib/colors';
@@ -50,7 +49,6 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
         ctaUrl: (rawConfig.ctaUrl as string | undefined) ?? '/promotions',
         limit: normalizeVoucherLimit(rawConfig.limit as number | undefined),
         style: normalizeVoucherStyle(rawConfig.style as string | undefined),
-        harmony: normalizeVoucherPromotionsHarmony(rawConfig.harmony as string | undefined),
         texts: normalizeVoucherPromotionsTexts({
           heading: (rawConfig.heading as string | undefined) ?? (rawConfig.texts as { heading?: string } | undefined)?.heading,
           description: (rawConfig.description as string | undefined) ?? (rawConfig.texts as { description?: string } | undefined)?.description,
@@ -83,8 +81,7 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony: config.harmony,
-  }), [effectiveColors, config.harmony]);
+  }), [effectiveColors]);
 
   const accentBalance = useMemo(() => calculateVoucherPromotionsAccentBalance(effectiveColors.mode, config.style), [effectiveColors.mode, config.style]);
 
@@ -111,7 +108,6 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
       const payloadConfig: VoucherPromotionsConfigState = {
         ...config,
         limit: normalizeVoucherLimit(config.limit),
-        harmony: normalizeVoucherPromotionsHarmony(config.harmony),
         texts: normalizeVoucherPromotionsTexts(config.texts),
       };
 
@@ -328,7 +324,6 @@ export default function VoucherPromotionsEditPage({ params }: { params: Promise<
               mode={effectiveColors.mode}
               selectedStyle={config.style}
               limit={config.limit}
-              harmony={config.harmony}
               onStyleChange={(style) => {
                 setConfig({ ...config, style });
               }}

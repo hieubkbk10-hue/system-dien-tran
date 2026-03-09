@@ -5,7 +5,6 @@ export type ServiceSelectionMode = 'auto' | 'manual';
 export type ServiceListSortBy = 'newest' | 'popular' | 'random';
 
 export type ServiceListBrandMode = 'single' | 'dual';
-
 export type ServiceListHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface ServiceListPreviewItem {

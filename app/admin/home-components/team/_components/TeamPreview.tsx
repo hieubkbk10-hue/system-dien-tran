@@ -7,9 +7,7 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
-  DEFAULT_TEAM_HARMONY,
   TEAM_STYLES,
-  normalizeTeamHarmony,
   normalizeTeamStyle,
 } from '../_lib/constants';
 import { getTeamValidationResult } from '../_lib/colors';
@@ -17,7 +15,6 @@ import { TeamSectionShared } from './TeamSectionShared';
 import type {
   TeamBrandMode,
   TeamEditorMember,
-  TeamHarmony,
   TeamStyle,
 } from '../_types';
 
@@ -27,7 +24,6 @@ interface TeamPreviewProps {
   secondary: string;
   title?: string;
   mode?: TeamBrandMode;
-  harmony?: TeamHarmony;
   selectedStyle?: TeamStyle;
   onStyleChange?: (style: TeamStyle) => void;
   texts?: Record<string, string>;
@@ -39,21 +35,18 @@ export const TeamPreview = ({
   secondary,
   title = 'Đội ngũ',
   mode = 'dual',
-  harmony = DEFAULT_TEAM_HARMONY,
   selectedStyle = 'grid',
   onStyleChange,
   texts = {},
 }: TeamPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const style = normalizeTeamStyle(selectedStyle);
-  const normalizedHarmony = normalizeTeamHarmony(harmony);
 
   const validation = React.useMemo(() => getTeamValidationResult({
     primary: brandColor,
     secondary,
     mode,
-    harmony: normalizedHarmony,
-  }), [brandColor, secondary, mode, normalizedHarmony]);
+  }), [brandColor, secondary, mode]);
 
   const warningMessages = React.useMemo(() => {
     if (mode !== 'dual') {

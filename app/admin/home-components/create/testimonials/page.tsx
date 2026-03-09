@@ -10,7 +10,6 @@ import { TestimonialsForm } from '../../testimonials/_components/TestimonialsFor
 import {
   buildTestimonialsWarningMessages,
   getTestimonialsValidationResult,
-  normalizeTestimonialsHarmony,
   resolveSecondaryForMode,
 } from '../../testimonials/_lib/colors';
 import type { TestimonialsBrandMode, TestimonialsItem, TestimonialsStyle } from '../../testimonials/_types';
@@ -43,15 +42,13 @@ export default function TestimonialsCreatePage() {
 
   const [style, setStyle] = useState<TestimonialsStyle>('cards');
 
-  const harmony = useMemo(() => normalizeTestimonialsHarmony(undefined), []);
   const resolvedSecondary = useMemo(
-    () => resolveSecondaryForMode(primary, secondary, brandMode, harmony),
-    [primary, secondary, brandMode, harmony],
+    () => resolveSecondaryForMode(primary, secondary, brandMode),
+    [primary, secondary, brandMode],
   );
 
   const warningMessages = useMemo(() => {
     const validation = getTestimonialsValidationResult({
-      harmony,
       mode: brandMode,
       primary,
       secondary: resolvedSecondary,
@@ -59,7 +56,7 @@ export default function TestimonialsCreatePage() {
     });
 
     return buildTestimonialsWarningMessages({ mode: brandMode, validation });
-  }, [primary, resolvedSecondary, brandMode, harmony, style]);
+  }, [primary, resolvedSecondary, brandMode, style]);
 
   const onSubmit = (event: React.FormEvent) => {
     void handleSubmit(event, {

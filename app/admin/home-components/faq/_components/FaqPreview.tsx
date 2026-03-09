@@ -5,7 +5,7 @@ import { AlertTriangle, Eye } from 'lucide-react';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
-import { DEFAULT_FAQ_HARMONY, FAQ_STYLES } from '../_lib/constants';
+import { FAQ_STYLES } from '../_lib/constants';
 import {
   calculateFaqAccentBalance,
   getFaqAccessibilityScore,
@@ -48,7 +48,6 @@ export const FaqPreview = ({
   const style = selectedStyle;
   const maxVisible = device === 'mobile' ? 4 : 6;
 
-  const harmony = config?.harmony ?? DEFAULT_FAQ_HARMONY;
   const normalizedPrimary = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(brandColor.trim())
     ? brandColor.trim()
     : '#3b82f6';
@@ -58,10 +57,9 @@ export const FaqPreview = ({
     secondary,
     mode,
     style,
-    harmony,
   });
 
-  const resolvedSecondary = resolveFaqSecondary(normalizedPrimary, secondary, mode, harmony);
+  const resolvedSecondary = resolveFaqSecondary(normalizedPrimary, secondary, mode);
   const harmonyStatus = mode === 'dual'
     ? getFaqHarmonyStatus(normalizedPrimary, resolvedSecondary)
     : null;

@@ -4,7 +4,6 @@ import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { formatHex, oklch } from 'culori';
 import type {
   VideoBrandMode,
-  VideoHarmony,
   VideoProvider,
   VideoStyle,
 } from '../_types';
@@ -100,25 +99,8 @@ const withAlpha = (hex: string, alpha: number, fallback = DEFAULT_BRAND_COLOR) =
   return `oklch(${(l * 100).toFixed(2)}% ${c.toFixed(3)} ${h.toFixed(2)} / ${a.toFixed(3)})`;
 };
 
-export const normalizeVideoHarmony = (value?: string): VideoHarmony => {
-  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
-    return value;
-  }
-
-  return 'analogous';
-};
-
-export const getHarmonyColor = (primary: string, harmony: VideoHarmony) => {
+export const getHarmonyColor = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -126,7 +108,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: VideoBrandMode,
-  harmony: VideoHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -138,7 +119,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getHarmonyColor(normalizedPrimary);
 };
 
 export interface VideoColorTokens {
@@ -178,18 +159,15 @@ export const getVideoColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
   style: _style,
 }: {
   primary: string;
   secondary: string;
   mode: VideoBrandMode;
-  harmony?: VideoHarmony;
   style: VideoStyle;
 }): VideoColorTokens => {
-  const normalizedHarmony = normalizeVideoHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';

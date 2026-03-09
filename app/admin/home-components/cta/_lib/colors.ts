@@ -2,8 +2,8 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { CTAConfig, CTAHarmony, CTAStyle } from '../_types';
-import { normalizeCTAHarmony, normalizeCTAStyle } from './constants';
+import type { CTAConfig, CTAStyle } from '../_types';
+import { normalizeCTAStyle } from './constants';
 
 type BrandMode = 'single' | 'dual';
 
@@ -201,10 +201,8 @@ export const resolveSecondaryColor = (
   primary: string,
   secondary: string,
   mode: BrandMode,
-  harmony: CTAHarmony,
 ) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const _harmonyNormalized = normalizeCTAHarmony(harmony);
 
   if (mode === 'single') {
     return primaryNormalized;
@@ -254,29 +252,25 @@ export const getCTAValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony,
   style,
 }: {
   config: CTAConfig;
   primary: string;
   secondary: string;
   mode: BrandMode;
-  harmony: CTAHarmony;
   style: CTAStyle;
 }) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
   const styleNormalized = normalizeCTAStyle(style);
-  const harmonyNormalized = normalizeCTAHarmony(harmony);
 
   const tokens = getCTAColors({
     primary: primaryNormalized,
     secondary,
     mode,
-    harmony: harmonyNormalized,
     style: styleNormalized,
   });
 
-  const resolvedSecondary = resolveSecondaryColor(primaryNormalized, secondary, mode, harmonyNormalized);
+  const resolvedSecondary = resolveSecondaryColor(primaryNormalized, secondary, mode);
   const harmonyStatus = getHarmonyStatus(primaryNormalized, resolvedSecondary);
   const sectionBgForCheck = tokens.sectionBg.startsWith('linear-gradient')
     ? getGradientTints(primaryNormalized, resolvedSecondary).fromTint
@@ -360,19 +354,16 @@ export const getCTAColors = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
   style,
 }: {
   primary: string;
   secondary: string;
   mode: BrandMode;
-  harmony?: CTAHarmony;
   style: CTAStyle;
 }): CTAStyleTokens => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
   const styleNormalized = normalizeCTAStyle(style);
-  const harmonyNormalized = normalizeCTAHarmony(harmony);
-  const secondaryColor = resolveSecondaryColor(primaryNormalized, secondary, mode, harmonyNormalized);
+  const secondaryColor = resolveSecondaryColor(primaryNormalized, secondary, mode);
   const primaryPalette = generatePalette(primaryNormalized);
   const secondaryPalette = generatePalette(secondaryColor, primaryPalette.solid);
 

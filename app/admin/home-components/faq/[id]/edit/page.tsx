@@ -14,8 +14,8 @@ import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOv
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FaqForm } from '../../_components/FaqForm';
 import { FaqPreview } from '../../_components/FaqPreview';
-import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_HARMONY, DEFAULT_FAQ_ITEMS, FAQ_STYLES } from '../../_lib/constants';
-import type { FaqConfig, FaqHarmony, FaqItem, FaqStyle } from '../../_types';
+import { DEFAULT_FAQ_CONFIG, DEFAULT_FAQ_ITEMS, FAQ_STYLES } from '../../_lib/constants';
+import type { FaqConfig, FaqItem, FaqStyle } from '../../_types';
 
 const COMPONENT_TYPE = 'FAQ';
 
@@ -54,17 +54,12 @@ const toFaqItems = (value: unknown): FaqItem[] => {
   return mapped.length > 0 ? mapped : FALLBACK_FAQ_ITEMS;
 };
 
-const isFaqHarmony = (value: unknown): value is FaqHarmony => (
-  value === 'analogous' || value === 'complementary' || value === 'triadic'
-);
-
 const toFaqConfig = (value: Record<string, unknown> | null | undefined): FaqConfig => {
   const config = value ?? {};
   return {
     description: typeof config.description === 'string' ? config.description : DEFAULT_FAQ_CONFIG.description,
     buttonText: typeof config.buttonText === 'string' ? config.buttonText : DEFAULT_FAQ_CONFIG.buttonText,
     buttonLink: typeof config.buttonLink === 'string' ? config.buttonLink : DEFAULT_FAQ_CONFIG.buttonLink,
-    harmony: isFaqHarmony(config.harmony) ? config.harmony : DEFAULT_FAQ_HARMONY,
   };
 };
 
@@ -153,7 +148,6 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
         buttonLink: faqConfig.buttonLink,
         buttonText: faqConfig.buttonText,
         description: faqConfig.description,
-        harmony: faqConfig.harmony ?? DEFAULT_FAQ_HARMONY,
       };
 
       await updateMutation({
@@ -162,7 +156,6 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
           buttonLink: nextConfig.buttonLink,
           buttonText: nextConfig.buttonText,
           description: nextConfig.description,
-          harmony: nextConfig.harmony,
           items: faqItems.map((item) => ({ answer: item.answer, question: item.question })),
           style: faqStyle,
         },

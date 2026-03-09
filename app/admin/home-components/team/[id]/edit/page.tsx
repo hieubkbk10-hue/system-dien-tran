@@ -16,7 +16,6 @@ import { TeamForm } from '../../_components/TeamForm';
 import { TeamPreview } from '../../_components/TeamPreview';
 import {
   normalizeTeamConfig,
-  normalizeTeamHarmony,
   toTeamEditorMembers,
   toTeamPersistMembers,
   normalizeTeamStyle,
@@ -26,7 +25,6 @@ import type {
   TeamBrandMode,
   TeamConfig,
   TeamEditorMember,
-  TeamHarmony,
   TeamStyle,
 } from '../../_types';
 
@@ -36,21 +34,18 @@ const serializeEditState = ({
   title,
   active,
   style,
-  harmony,
   members,
   texts,
 }: {
   title: string;
   active: boolean;
   style: TeamStyle;
-  harmony: TeamHarmony;
   members: TeamEditorMember[];
   texts: Record<string, string>;
 }) => JSON.stringify({
   title,
   active,
   style,
-  harmony,
   members: toTeamPersistMembers(members),
   texts,
 });
@@ -67,7 +62,6 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
   const [title, setTitle] = React.useState('');
   const [active, setActive] = React.useState(true);
   const [style, setStyle] = React.useState<TeamStyle>('grid');
-  const [harmony, setHarmony] = React.useState<TeamHarmony>('analogous');
   const [members, setMembers] = React.useState<TeamEditorMember[]>([]);
   const [texts, setTexts] = React.useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -87,13 +81,11 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
 
     const editorMembers = toTeamEditorMembers(normalizedConfig.members);
     const nextStyle = normalizeTeamStyle(normalizedConfig.style);
-    const nextHarmony = normalizeTeamHarmony(normalizedConfig.harmony);
     const nextTexts = normalizedConfig.texts || {};
 
     setTitle(component.title);
     setActive(component.active);
     setStyle(nextStyle);
-    setHarmony(nextHarmony);
     setMembers(editorMembers);
     setTexts(nextTexts);
 
@@ -101,7 +93,6 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
       title: component.title,
       active: component.active,
       style: nextStyle,
-      harmony: nextHarmony,
       members: editorMembers,
       texts: nextTexts,
     }));
@@ -111,8 +102,7 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: brandMode,
-    harmony,
-  }), [effectiveColors.primary, effectiveColors.secondary, brandMode, harmony]);
+  }), [effectiveColors.primary, effectiveColors.secondary, brandMode]);
 
   const warningMessages = React.useMemo(() => {
     if (brandMode !== 'dual') {
@@ -132,10 +122,9 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
     title,
     active,
     style,
-    harmony,
     members,
     texts,
-  }), [title, active, style, harmony, members, texts]);
+  }), [title, active, style, members, texts]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
@@ -149,9 +138,8 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
   const saveConfig: TeamConfig = React.useMemo(() => ({
     members: toTeamPersistMembers(members),
     style,
-    harmony,
     texts,
-  }), [members, style, harmony, texts]);
+  }), [members, style, texts]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -182,7 +170,6 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
         title,
         active,
         style,
-        harmony,
         members,
         texts,
       });
@@ -340,7 +327,6 @@ export default function TeamEditPage({ params }: { params: Promise<{ id: string 
             brandColor={effectiveColors.primary}
             secondary={effectiveColors.secondary}
             mode={brandMode}
-            harmony={harmony}
             title={title}
             selectedStyle={style}
             onStyleChange={setStyle}

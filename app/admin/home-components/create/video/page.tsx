@@ -7,7 +7,6 @@ import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { VideoPreview } from '../../video/_components/VideoPreview';
 import {
-  DEFAULT_VIDEO_HARMONY,
   DEFAULT_VIDEO_STYLE,
   normalizeVideoConfig,
   normalizeVideoStyle,
@@ -28,7 +27,6 @@ export default function VideoCreatePage() {
     buttonText: '',
     description: 'Xem video để hiểu rõ hơn về những gì chúng tôi mang lại',
     heading: 'Khám phá sản phẩm của chúng tôi',
-    harmony: DEFAULT_VIDEO_HARMONY,
     loop: false,
     muted: true,
     style: DEFAULT_VIDEO_STYLE,
@@ -84,7 +82,6 @@ export default function VideoCreatePage() {
         selectedStyle={selectedStyle}
         onStyleChange={(style) => setConfig((prev) => ({ ...prev, style }))}
         mode={mode}
-        harmony={config.harmony}
       />
     </ComponentFormWrapper>
   );

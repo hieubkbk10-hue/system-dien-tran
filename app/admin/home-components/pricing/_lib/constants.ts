@@ -1,6 +1,5 @@
 import type {
   PricingConfig,
-  PricingHarmony,
   PricingPlan,
   PricingStyle,
 } from '../_types';
@@ -13,8 +12,6 @@ export const PRICING_STYLES: Array<{ id: PricingStyle; label: string }> = [
   { id: 'featured', label: 'Nổi bật' },
   { id: 'compact', label: 'Gọn' },
 ];
-
-export const DEFAULT_PRICING_HARMONY: PricingHarmony = 'analogous';
 
 const DEFAULT_PRICING_STYLE: PricingStyle = 'cards';
 
@@ -52,15 +49,7 @@ export const DEFAULT_PRICING_CONFIG: PricingConfig = {
   subtitle: 'Chọn gói phù hợp với nhu cầu của bạn',
   yearlyLabel: 'Hàng năm',
   yearlySavingText: 'Tiết kiệm 17%',
-  harmony: DEFAULT_PRICING_HARMONY,
   texts: DEFAULT_PRICING_TEXTS,
-};
-
-export const normalizePricingHarmony = (value: unknown): PricingHarmony => {
-  if (value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-  return DEFAULT_PRICING_HARMONY;
 };
 
 const isPricingStyle = (value: unknown): value is PricingStyle => (
@@ -116,7 +105,6 @@ export const normalizePricingConfig = (value: unknown): PricingConfig => {
     monthlyLabel: String(raw.monthlyLabel ?? DEFAULT_PRICING_CONFIG.monthlyLabel),
     yearlyLabel: String(raw.yearlyLabel ?? DEFAULT_PRICING_CONFIG.yearlyLabel),
     yearlySavingText: String(raw.yearlySavingText ?? DEFAULT_PRICING_CONFIG.yearlySavingText),
-    harmony: normalizePricingHarmony(raw.harmony),
     texts,
     plans: Array.isArray(raw.plans)
       ? raw.plans.map((plan, index) => normalizePricingPlan(plan, index))

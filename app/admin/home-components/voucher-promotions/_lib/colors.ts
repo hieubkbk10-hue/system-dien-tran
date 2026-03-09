@@ -4,7 +4,6 @@ import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
 import type {
   VoucherPromotionsBrandMode,
-  VoucherPromotionsHarmony,
   VoucherPromotionsStyle,
 } from '../_types';
 
@@ -67,17 +66,8 @@ const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-const getHarmonyColor = (primary: string, harmony: VoucherPromotionsHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -85,7 +75,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: VoucherPromotionsBrandMode,
-  harmony: VoucherPromotionsHarmony = 'analogous',
 ) => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -97,7 +86,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, primaryNormalized);
   }
 
-  return getHarmonyColor(primaryNormalized, harmony);
+  return getAutoSecondary(primaryNormalized);
 };
 
 const getSolidTint = (hex: string, lightness: number, fallback = DEFAULT_BRAND_COLOR) => {
@@ -237,15 +226,13 @@ export const getVoucherPromotionsColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: VoucherPromotionsBrandMode;
-  harmony?: VoucherPromotionsHarmony;
 }): VoucherPromotionsColorTokens => {
   const primaryNormalized = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryNormalized, secondary, mode, harmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryNormalized, secondary, mode);
 
   const sectionBg = FALLBACK_SURFACE;
   const cardBg = FALLBACK_SURFACE;
@@ -324,15 +311,13 @@ export const getVoucherPromotionsValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: VoucherPromotionsBrandMode;
-  harmony?: VoucherPromotionsHarmony;
 }) => {
-  const tokens = getVoucherPromotionsColorTokens({ primary, secondary, mode, harmony });
-  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, mode, harmony);
+  const tokens = getVoucherPromotionsColorTokens({ primary, secondary, mode });
+  const resolvedSecondary = resolveSecondaryForMode(primary, secondary, mode);
 
   const harmonyStatus = mode === 'single'
     ? { deltaE: 100, similarity: 0, isTooSimilar: false }

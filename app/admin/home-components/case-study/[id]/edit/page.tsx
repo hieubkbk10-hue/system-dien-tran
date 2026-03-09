@@ -14,13 +14,11 @@ import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOv
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import {
   getCaseStudyValidationResult,
-  normalizeCaseStudyHarmony,
 } from '../../_lib/colors';
 import { CaseStudyForm } from '../../_components/CaseStudyForm';
 import { CaseStudyPreview } from '../../_components/CaseStudyPreview';
 import type {
   CaseStudyBrandMode,
-  CaseStudyHarmony,
   CaseStudyProject,
   CaseStudyStyle,
 } from '../../_types';
@@ -33,7 +31,6 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const brandMode: CaseStudyBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
-  const harmony: CaseStudyHarmony = normalizeCaseStudyHarmony('analogous');
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -78,7 +75,6 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
           title: project.title,
         })) ?? [],
         style: nextStyle,
-        harmony,
         title: component.title,
       });
       setInitialState(snapshot);
@@ -96,9 +92,8 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
       title: project.title,
     })),
     style: caseStudyStyle,
-    harmony,
     title,
-  }), [active, caseStudyStyle, projects, harmony, title]);
+  }), [active, caseStudyStyle, projects, title]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
@@ -121,7 +116,6 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
       primary: effectiveColors.primary,
       secondary: effectiveColors.secondary,
       mode: brandMode,
-      harmony,
       style: caseStudyStyle,
     });
 
@@ -150,7 +144,6 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
             title: project.title,
           })),
           style: caseStudyStyle,
-          harmony,
         },
         id: id as Id<'homeComponents'>,
         title,

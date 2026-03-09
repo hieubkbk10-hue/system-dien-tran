@@ -30,7 +30,6 @@ import { SPEED_DIAL_STYLES } from '../_lib/constants';
 import type {
   SpeedDialAction,
   SpeedDialBrandMode,
-  SpeedDialHarmony,
   SpeedDialPosition,
   SpeedDialStyle,
 } from '../_types';
@@ -44,7 +43,6 @@ interface SpeedDialSectionSharedProps {
   brandColor: string;
   secondary: string;
   mode: SpeedDialBrandMode;
-  harmony?: SpeedDialHarmony;
   sectionTitle: string;
   context: SpeedDialSectionContext;
   previewDevice?: PreviewDevice;
@@ -508,7 +506,6 @@ export function SpeedDialSectionShared({
   brandColor,
   secondary,
   mode,
-  harmony = 'analogous',
   sectionTitle,
   context,
   previewDevice = 'desktop',
@@ -524,9 +521,7 @@ export function SpeedDialSectionShared({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
-  }), [brandColor, secondary, mode, harmony]);
-
+  }), [brandColor, secondary, mode]);
   if (!includePreviewWrapper || context === 'site') {
     return (
       <SpeedDialSectionContent

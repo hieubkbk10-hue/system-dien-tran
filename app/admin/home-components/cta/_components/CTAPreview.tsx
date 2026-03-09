@@ -10,7 +10,7 @@ import {
   getCTAValidationResult,
 } from '../_lib/colors';
 import { CTASectionShared } from './CTASectionShared';
-import type { CTAConfig, CTAHarmony, CTAStyle } from '../_types';
+import type { CTAConfig, CTAStyle } from '../_types';
 
 const CTA_STYLES: { id: CTAStyle; label: string }[] = [
   { id: 'banner', label: 'Banner' },
@@ -26,7 +26,6 @@ export const CTAPreview = ({
   brandColor,
   secondary,
   mode = 'dual',
-  harmony = 'analogous',
   selectedStyle = 'banner',
   onStyleChange,
 }: {
@@ -34,7 +33,6 @@ export const CTAPreview = ({
   brandColor: string;
   secondary: string;
   mode?: 'single' | 'dual';
-  harmony?: CTAHarmony;
   selectedStyle?: CTAStyle;
   onStyleChange?: (style: CTAStyle) => void;
 }) => {
@@ -51,7 +49,6 @@ export const CTAPreview = ({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
     style,
   });
 

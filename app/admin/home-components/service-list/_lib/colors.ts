@@ -2,13 +2,8 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import {
-  DEFAULT_SERVICE_LIST_HARMONY,
-  normalizeServiceListHarmony,
-} from './constants';
 import type {
   ServiceListBrandMode,
-  ServiceListHarmony,
 } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
@@ -110,17 +105,8 @@ const resolveBrandTextOnBackground = (
   return auto === '#ffffff' ? fallback : auto;
 };
 
-export const getHarmonyColor = (primary: string, harmony: ServiceListHarmony) => {
+export const getHarmonyColor = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -128,7 +114,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: ServiceListBrandMode,
-  harmony: ServiceListHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -140,7 +125,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getHarmonyColor(normalizedPrimary);
 };
 
 interface ServiceListPalette {
@@ -287,16 +272,13 @@ export const getServiceListColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_SERVICE_LIST_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: ServiceListBrandMode;
-  harmony?: ServiceListHarmony;
 }): ServiceListColorTokens => {
-  const normalizedHarmony = normalizeServiceListHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const primaryPalette = buildPalette(primaryResolved, DEFAULT_BRAND_COLOR);
   const secondaryPalette = buildPalette(secondaryResolved, primaryResolved);
@@ -372,19 +354,15 @@ export const getServiceListValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = DEFAULT_SERVICE_LIST_HARMONY,
 }: {
   primary: string;
   secondary: string;
   mode: ServiceListBrandMode;
-  harmony?: ServiceListHarmony;
 }) => {
-  const normalizedHarmony = normalizeServiceListHarmony(harmony);
   const tokens = getServiceListColorTokens({
     primary,
     secondary,
     mode,
-    harmony: normalizedHarmony,
   });
 
   const harmonyStatus = mode === 'single'

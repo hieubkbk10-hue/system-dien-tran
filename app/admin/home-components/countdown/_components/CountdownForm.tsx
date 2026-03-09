@@ -35,9 +35,8 @@ export const CountdownForm = ({
       primary: brandColor,
       secondary,
       mode,
-      harmony: value.harmony,
     }),
-    [brandColor, secondary, mode, value.harmony],
+    [brandColor, secondary, mode],
   );
 
   const warnings = React.useMemo(() => {

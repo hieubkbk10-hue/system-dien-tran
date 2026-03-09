@@ -2,7 +2,7 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { ServicesBrandMode, ServicesColorTokens, ServicesHarmony, ServicesHarmonyStatus, ServicesAccessibilityPair, ServicesAccessibilityScore } from '../_types';
+import type { ServicesBrandMode, ServicesColorTokens, ServicesHarmonyStatus, ServicesAccessibilityPair, ServicesAccessibilityScore } from '../_types';
 
 const DEFAULT_BRAND_COLOR = '#3b82f6';
 
@@ -64,24 +64,8 @@ const getSolidTint = (hex: string, lightnessIncrease = 0.42) => {
   return formatHex(oklch({ ...color, l: clampLightness((color.l ?? 0.6) + lightnessIncrease) }));
 };
 
-export const normalizeServicesHarmony = (value?: string): ServicesHarmony => {
-  if (value === 'complementary' || value === 'triadic' || value === 'analogous') {
-    return value;
-  }
-  return 'analogous';
-};
-
-export const getHarmonyColor = (primary: string, harmony: ServicesHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const color = safeParseOklch(primary, DEFAULT_BRAND_COLOR);
-
-  if (harmony === 'complementary') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 180) % 360 }));
-  }
-
-  if (harmony === 'triadic') {
-    return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 120) % 360 }));
-  }
-
   return formatHex(oklch({ ...color, h: ((color.h ?? 0) + 30) % 360 }));
 };
 
@@ -89,7 +73,6 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: ServicesBrandMode,
-  harmony: ServicesHarmony,
 ) => {
   const normalizedPrimary = normalizeHex(primary, DEFAULT_BRAND_COLOR);
 
@@ -101,7 +84,7 @@ export const resolveSecondaryForMode = (
     return normalizeHex(secondary, normalizedPrimary);
   }
 
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getAutoSecondary(normalizedPrimary);
 };
 
 export const getHarmonyStatus = (primary: string, secondary: string): ServicesHarmonyStatus => {
@@ -145,12 +128,10 @@ export const getServicesAccessibilityScore = (
 export const getServicesColors = (
   primary: string,
   secondary: string,
-  mode: ServicesBrandMode,
-  harmony: ServicesHarmony = 'analogous'
+  mode: ServicesBrandMode
 ): ServicesColorTokens => {
-  const normalizedHarmony = normalizeServicesHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
-  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
+  const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode);
 
   const neutralBackground = '#f8fafc';
   const neutralSurface = '#ffffff';
@@ -193,14 +174,12 @@ export const getServicesValidationResult = ({
   primary,
   secondary,
   mode,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: ServicesBrandMode;
-  harmony?: ServicesHarmony;
 }) => {
-  const colors = getServicesColors(primary, secondary, mode, harmony);
+  const colors = getServicesColors(primary, secondary, mode);
   const harmonyStatus = getHarmonyStatus(colors.primary, colors.secondary);
 
   const accessibilityPairs: ServicesAccessibilityPair[] = [

@@ -1,5 +1,5 @@
 import { formatHex, oklch } from 'culori';
-import type { FeaturesBrandMode, FeaturesHarmony } from '../_types';
+import type { FeaturesBrandMode } from '../_types';
 
 const DEFAULT_PRIMARY = '#3b82f6';
 
@@ -30,16 +30,12 @@ const withAlpha = (hex: string, alpha: number) => {
   return `${normalized}${channel}`;
 };
 
-const getHarmonyColor = (primary: string, harmony: FeaturesHarmony) => {
+const getAutoSecondary = (primary: string) => {
   const parsed = safeParseOklch(primary);
   if (!parsed) {return DEFAULT_PRIMARY;}
 
   const hue = parsed.h ?? 0;
-  const shiftedHue = harmony === 'complementary'
-    ? (hue + 180) % 360
-    : harmony === 'triadic'
-      ? (hue + 120) % 360
-      : (hue + 30) % 360;
+  const shiftedHue = (hue + 30) % 360;
 
   return formatHex(oklch({
     ...parsed,
@@ -51,16 +47,15 @@ export const resolveSecondaryForMode = (
   primary: string,
   secondary: string,
   mode: FeaturesBrandMode,
-  harmony: FeaturesHarmony,
 ): string => {
   const normalizedPrimary = normalizeHexColor(primary, DEFAULT_PRIMARY);
   if (mode === 'single') {
-    return getHarmonyColor(normalizedPrimary, harmony);
+    return getAutoSecondary(normalizedPrimary);
   }
 
   const normalizedSecondary = normalizeHexColor(secondary, '');
   if (normalizedSecondary) {return normalizedSecondary;}
-  return getHarmonyColor(normalizedPrimary, harmony);
+  return getAutoSecondary(normalizedPrimary);
 };
 
 export interface FeaturesColorTokens {
@@ -88,15 +83,13 @@ export const getFeaturesColorTokens = ({
   primary,
   secondary,
   mode,
-  harmony,
 }: {
   primary: string;
   secondary: string;
   mode: FeaturesBrandMode;
-  harmony: FeaturesHarmony;
 }): FeaturesColorTokens => {
   const normalizedPrimary = normalizeHexColor(primary, DEFAULT_PRIMARY);
-  const secondaryResolved = resolveSecondaryForMode(normalizedPrimary, secondary, mode, harmony);
+  const secondaryResolved = resolveSecondaryForMode(normalizedPrimary, secondary, mode);
 
   return {
     primary: normalizedPrimary,

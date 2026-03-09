@@ -14,6 +14,7 @@ export interface CategoryProductsConfig {
   showViewAll: boolean;
   columnsDesktop: number;
   columnsMobile: number;
+  harmony?: CategoryProductsHarmony;
 }
 
 export interface CategoryProductsProduct {

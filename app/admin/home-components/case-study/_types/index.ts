@@ -2,7 +2,6 @@
 
 export type CaseStudyStyle = 'grid' | 'featured' | 'list' | 'masonry' | 'carousel' | 'timeline';
 export type CaseStudyBrandMode = 'single' | 'dual';
-export type CaseStudyHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface CaseStudyProject {
   id: number | string;

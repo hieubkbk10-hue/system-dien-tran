@@ -3,6 +3,7 @@
 import type { ImageItem } from '../../../components/MultiImageUploader';
 
 export type HeroStyle = 'slider' | 'fade' | 'bento' | 'fullscreen' | 'split' | 'parallax';
+export type HeroHarmony = 'analogous' | 'complementary' | 'triadic';
 
 export interface HeroContent {
   badge?: string;
@@ -19,4 +20,3 @@ export interface HeroSlide extends ImageItem {
   link: string;
 }
 
-export type HeroHarmony = 'analogous' | 'complementary' | 'triadic';

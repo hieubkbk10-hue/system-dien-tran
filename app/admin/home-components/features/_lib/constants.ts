@@ -1,6 +1,4 @@
-import type { FeatureItem, FeaturesConfig, FeaturesHarmony } from '../_types';
-
-export const DEFAULT_FEATURES_HARMONY: FeaturesHarmony = 'analogous';
+import type { FeatureItem, FeaturesConfig } from '../_types';
 
 export const FEATURE_ICON_OPTIONS = [
   'Zap',
@@ -14,13 +12,6 @@ export const FEATURE_ICON_OPTIONS = [
   'Check',
   'Star',
 ] as const;
-
-export const normalizeFeaturesHarmony = (value: unknown): FeaturesHarmony => {
-  if (value === 'analogous' || value === 'complementary' || value === 'triadic') {
-    return value;
-  }
-  return DEFAULT_FEATURES_HARMONY;
-};
 
 export const createFeatureItem = (overrides?: Partial<FeatureItem>): FeatureItem => ({
   id: Date.now() + Math.floor(Math.random() * 10000),
@@ -55,5 +46,4 @@ export const normalizeFeatureItems = (items: unknown): FeatureItem[] => {
 export const DEFAULT_FEATURES_CONFIG: FeaturesConfig = {
   items: [createFeatureItem()],
   style: 'iconGrid',
-  harmony: DEFAULT_FEATURES_HARMONY,
 };

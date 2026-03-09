@@ -5,12 +5,10 @@ import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
 import { SpeedDialForm } from '../../speed-dial/_components/SpeedDialForm';
 import { SpeedDialPreview } from '../../speed-dial/_components/SpeedDialPreview';
-import { normalizeSpeedDialHarmony } from '../../speed-dial/_lib/colors';
-import { DEFAULT_SPEED_DIAL_CONFIG, DEFAULT_SPEED_DIAL_HARMONY, normalizeSpeedDialStyle } from '../../speed-dial/_lib/constants';
+import { DEFAULT_SPEED_DIAL_CONFIG, normalizeSpeedDialStyle } from '../../speed-dial/_lib/constants';
 import type {
   SpeedDialAction,
   SpeedDialConfig,
-  SpeedDialHarmony,
   SpeedDialPosition,
   SpeedDialStyle,
 } from '../../speed-dial/_types';
@@ -34,7 +32,6 @@ export default function SpeedDialCreatePage() {
   const [actions, setActions] = React.useState<SpeedDialAction[]>(createDefaultActions(secondary));
   const [style, setStyle] = React.useState<SpeedDialStyle>(normalizeSpeedDialStyle(DEFAULT_SPEED_DIAL_CONFIG.style));
   const [position, setPosition] = React.useState<SpeedDialPosition>(DEFAULT_SPEED_DIAL_CONFIG.position);
-  const [harmony] = React.useState<SpeedDialHarmony>(DEFAULT_SPEED_DIAL_HARMONY);
 
   const onSubmit = (event: React.FormEvent) => {
     const payload: SpeedDialConfig = {
@@ -47,7 +44,6 @@ export default function SpeedDialCreatePage() {
       })),
       style,
       position,
-      harmony: normalizeSpeedDialHarmony(harmony),
     };
 
     void handleSubmit(event, payload as unknown as Record<string, unknown>);
@@ -82,7 +78,6 @@ export default function SpeedDialCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={harmony}
         title={title}
         selectedStyle={style}
         onStyleChange={setStyle}

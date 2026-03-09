@@ -18,7 +18,6 @@ import {
   createAboutEditorStat,
   DEFAULT_ABOUT_EDITOR_STATE,
   normalizeAboutEditorStats,
-  normalizeAboutHarmony,
   normalizeAboutStyle,
   toAboutPersistStats,
 } from '../../_lib/constants';
@@ -26,7 +25,7 @@ import {
   buildAboutWarningMessages,
   getAboutValidationResult,
 } from '../../_lib/colors';
-import type { AboutEditorState, AboutHarmony, AboutStyle } from '../../_types';
+import type { AboutEditorState, AboutStyle } from '../../_types';
 
 const COMPONENT_TYPE = 'About';
 
@@ -45,7 +44,6 @@ const buildAboutSnapshot = (payload: {
   buttonText: payload.state.buttonText,
   buttonLink: payload.state.buttonLink,
   style: payload.state.style,
-  harmony: payload.state.harmony,
   stats: toAboutPersistStats(payload.state.stats),
 });
 
@@ -61,7 +59,6 @@ const normalizeEditorState = (rawConfig: Record<string, unknown>): AboutEditorSt
     buttonText: typeof rawConfig.buttonText === 'string' ? rawConfig.buttonText : DEFAULT_ABOUT_EDITOR_STATE.buttonText,
     buttonLink: typeof rawConfig.buttonLink === 'string' ? rawConfig.buttonLink : DEFAULT_ABOUT_EDITOR_STATE.buttonLink,
     style: normalizeAboutStyle(rawConfig.style),
-    harmony: normalizeAboutHarmony(rawConfig.harmony),
     stats: normalizedStats.length > 0
       ? normalizedStats
       : [
@@ -116,17 +113,14 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
     : false;
   const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
 
-  const harmony = normalizeAboutHarmony(state.harmony);
-
   const validation = useMemo(
     () => getAboutValidationResult({
       primary: effectiveColors.primary,
       secondary: effectiveColors.secondary,
       mode: effectiveColors.mode,
-      harmony,
       style: state.style,
     }),
-    [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, harmony, state.style],
+    [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, state.style],
   );
 
   const warningMessages = useMemo(
@@ -141,7 +135,6 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
     setIsSubmitting(true);
     try {
       const normalizedStyle = normalizeAboutStyle(state.style) as AboutStyle;
-      const normalizedHarmony = normalizeAboutHarmony(state.harmony) as AboutHarmony;
 
       await updateMutation({
         id: id as Id<'homeComponents'>,
@@ -157,7 +150,6 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
           buttonLink: state.buttonLink,
           stats: toAboutPersistStats(state.stats),
           style: normalizedStyle,
-          harmony: normalizedHarmony,
         },
       });
       if (showCustomBlock) {
@@ -171,7 +163,7 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
         });
       }
 
-      setInitialSnapshot(buildAboutSnapshot({ title, active, state: { ...state, style: normalizedStyle, harmony: normalizedHarmony } }));
+      setInitialSnapshot(buildAboutSnapshot({ title, active, state: { ...state, style: normalizedStyle } }));
       if (showCustomBlock) {
         setInitialCustom({
           enabled: customState.enabled,
@@ -301,7 +293,6 @@ export default function AboutEditPage({ params }: { params: Promise<{ id: string
               buttonLink: state.buttonLink,
               stats: toAboutPersistStats(state.stats),
               style: state.style,
-              harmony,
             }}
             brandColor={validation.tokens.primary}
             secondary={validation.tokens.secondary}

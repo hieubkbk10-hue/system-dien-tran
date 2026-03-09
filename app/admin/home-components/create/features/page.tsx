@@ -8,11 +8,9 @@ import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverr
 import { FeaturesPreview } from '../../features/_components/FeaturesPreview';
 import {
   createFeatureItem,
-  DEFAULT_FEATURES_HARMONY,
   FEATURE_ICON_OPTIONS,
-  normalizeFeaturesHarmony,
 } from '../../features/_lib/constants';
-import type { FeatureItem, FeaturesHarmony, FeaturesStyle } from '../../features/_types';
+import type { FeatureItem, FeaturesStyle } from '../../features/_types';
 
 const defaultItems: FeatureItem[] = [
   createFeatureItem({ description: 'Hiệu suất tối ưu với thời gian phản hồi dưới 100ms.', icon: 'Zap', id: 1, title: 'Tốc độ nhanh' }),
@@ -31,7 +29,6 @@ export default function FeaturesCreatePage() {
 
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>(defaultItems);
   const [style, setStyle] = useState<FeaturesStyle>('iconGrid');
-  const [harmony, _setHarmony] = useState<FeaturesHarmony>(DEFAULT_FEATURES_HARMONY);
 
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
@@ -72,7 +69,6 @@ export default function FeaturesCreatePage() {
     void handleSubmit(e, {
       items: featuresItems,
       style,
-      harmony: normalizeFeaturesHarmony(harmony),
     });
   };
 
@@ -180,7 +176,6 @@ export default function FeaturesCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={harmony}
         selectedStyle={style}
         onStyleChange={setStyle}
       />

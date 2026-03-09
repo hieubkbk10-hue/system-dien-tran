@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { SpeedDialSectionShared } from '@/app/admin/home-components/speed-dial/_components/SpeedDialSectionShared';
-import { normalizeSpeedDialActions, normalizeSpeedDialHarmony } from '@/app/admin/home-components/speed-dial/_lib/colors';
+import { normalizeSpeedDialActions } from '@/app/admin/home-components/speed-dial/_lib/colors';
 import {
-  DEFAULT_SPEED_DIAL_HARMONY,
   normalizeSpeedDialStyle,
 } from '@/app/admin/home-components/speed-dial/_lib/constants';
 import type {
@@ -41,7 +40,6 @@ export function SpeedDialSection({ config, brandColor, secondary, mode, title }:
 
   const style = normalizeSpeedDialStyle(typeof config.style === 'string' ? config.style : undefined);
   const position = normalizePosition(config.position);
-  const harmony = normalizeSpeedDialHarmony(typeof config.harmony === 'string' ? config.harmony : DEFAULT_SPEED_DIAL_HARMONY);
 
   return (
     <SpeedDialSectionShared
@@ -51,7 +49,6 @@ export function SpeedDialSection({ config, brandColor, secondary, mode, title }:
       brandColor={brandColor}
       secondary={secondary}
       mode={mode}
-      harmony={harmony}
       sectionTitle={title}
       context="site"
     />

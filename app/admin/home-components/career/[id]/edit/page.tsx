@@ -15,9 +15,7 @@ import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/
 import { CareerPreview } from '../../_components/CareerPreview';
 import {
   createCareerJob,
-  DEFAULT_CAREER_HARMONY,
   DEFAULT_CAREER_TEXTS,
-  normalizeCareerHarmony,
 } from '../../_lib/constants';
 import { getCareerValidationResult } from '../../_lib/colors';
 import {
@@ -27,7 +25,6 @@ import {
 } from '../../_lib/normalize';
 import type {
   CareerConfig,
-  CareerHarmony,
   CareerStyle,
   CareerTexts,
   JobPosition,
@@ -40,7 +37,6 @@ interface CareerSnapshotPayload {
   active: boolean;
   jobs: JobPosition[];
   style: CareerStyle;
-  harmony: CareerHarmony;
   texts: CareerTexts;
 }
 
@@ -58,7 +54,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
   const [active, setActive] = useState(true);
   const [jobs, setJobs] = useState<JobPosition[]>([createCareerJob({ type: 'Full-time' })]);
   const [careerStyle, setCareerStyle] = useState<CareerStyle>('cards');
-  const [harmony, setHarmony] = useState<CareerHarmony>(DEFAULT_CAREER_HARMONY);
   const [texts, setTexts] = useState<CareerTexts>(DEFAULT_CAREER_TEXTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
@@ -76,14 +71,12 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
       ? normalized.jobs
       : [createCareerJob({ type: 'Full-time' })];
 
-    const normalizedHarmony = normalizeCareerHarmony(normalized.harmony);
     const normalizedTexts = { ...DEFAULT_CAREER_TEXTS, ...normalized.texts };
 
     setTitle(component.title);
     setActive(component.active);
     setJobs(normalizedJobs);
     setCareerStyle(normalized.style);
-    setHarmony(normalizedHarmony);
     setTexts(normalizedTexts);
 
     setInitialSnapshot(toSnapshot({
@@ -91,7 +84,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
       active: component.active,
       jobs: normalizedJobs,
       style: normalized.style,
-      harmony: normalizedHarmony,
       texts: normalizedTexts,
     }));
   }, [component, id, router]);
@@ -103,9 +95,8 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     active,
     jobs: toCareerJobsForConfig(normalizedJobs),
     style: careerStyle,
-    harmony,
     texts,
-  }), [title, active, normalizedJobs, careerStyle, harmony, texts]);
+  }), [title, active, normalizedJobs, careerStyle, texts]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
@@ -120,8 +111,7 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony,
-  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode, harmony]);
+  }), [effectiveColors.primary, effectiveColors.secondary, effectiveColors.mode]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -171,7 +161,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
       const nextConfig: CareerConfig = {
         jobs: toCareerJobsForConfig(normalizedJobs),
         style: careerStyle,
-        harmony,
         texts,
       };
 
@@ -197,7 +186,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
         active,
         jobs: nextConfig.jobs,
         style: nextConfig.style,
-        harmony: nextConfig.harmony ?? DEFAULT_CAREER_HARMONY,
         texts: nextConfig.texts ?? DEFAULT_CAREER_TEXTS,
       }));
       if (showCustomBlock) {
@@ -443,7 +431,6 @@ export default function CareerEditPage({ params }: { params: Promise<{ id: strin
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={harmony}
               selectedStyle={careerStyle}
               onStyleChange={setCareerStyle}
               title={title}

@@ -15,19 +15,16 @@ import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/
 import { FeaturesPreview } from '../../_components/FeaturesPreview';
 import {
   createFeatureItem,
-  DEFAULT_FEATURES_HARMONY,
   FEATURE_ICON_OPTIONS,
   normalizeFeatureItems,
-  normalizeFeaturesHarmony,
 } from '../../_lib/constants';
-import type { FeatureItem, FeaturesConfig, FeaturesHarmony, FeaturesStyle } from '../../_types';
+import type { FeatureItem, FeaturesConfig, FeaturesStyle } from '../../_types';
 
 const serializeState = (payload: {
   title: string;
   active: boolean;
   items: FeatureItem[];
   style: FeaturesStyle;
-  harmony: FeaturesHarmony;
 }) => JSON.stringify(payload);
 
 const COMPONENT_TYPE = 'Features';
@@ -45,7 +42,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
   const [active, setActive] = useState(true);
   const [featuresItems, setFeaturesItems] = useState<FeatureItem[]>([createFeatureItem()]);
   const [style, setStyle] = useState<FeaturesStyle>('iconGrid');
-  const [harmony, setHarmony] = useState<FeaturesHarmony>(DEFAULT_FEATURES_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialState, setInitialState] = useState('');
 
@@ -63,20 +59,17 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
     const rawConfig = (component.config ?? {}) as Partial<FeaturesConfig>;
     const nextItems = normalizeFeatureItems(rawConfig.items);
     const nextStyle = rawConfig.style ?? 'iconGrid';
-    const nextHarmony = normalizeFeaturesHarmony(rawConfig.harmony);
 
     setTitle(component.title);
     setActive(component.active);
     setFeaturesItems(nextItems);
     setStyle(nextStyle);
-    setHarmony(nextHarmony);
 
     setInitialState(serializeState({
       title: component.title,
       active: component.active,
       items: nextItems,
       style: nextStyle,
-      harmony: nextHarmony,
     }));
   }, [component, id, router]);
 
@@ -85,8 +78,7 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
     active,
     items: featuresItems,
     style,
-    harmony,
-  }), [title, active, featuresItems, style, harmony]);
+  }), [title, active, featuresItems, style]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
@@ -144,7 +136,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
         config: {
           items: featuresItems,
           style,
-          harmony: normalizeFeaturesHarmony(harmony),
         },
       });
       if (showCustomBlock) {
@@ -162,7 +153,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
         active,
         items: featuresItems,
         style,
-        harmony,
       });
       setInitialState(nextInitialState);
       if (showCustomBlock) {
@@ -360,7 +350,6 @@ export default function FeaturesEditPage({ params }: { params: Promise<{ id: str
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={harmony}
               selectedStyle={style}
               onStyleChange={setStyle}
             />

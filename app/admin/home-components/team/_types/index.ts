@@ -17,11 +17,8 @@ export type TeamStyle = 'grid' | 'cards' | 'carousel' | 'bento' | 'timeline' | '
 
 export type TeamBrandMode = 'single' | 'dual';
 
-export type TeamHarmony = 'analogous' | 'complementary' | 'triadic';
-
 export interface TeamConfig {
   members: TeamMember[];
   style: TeamStyle;
-  harmony?: TeamHarmony;
   texts?: Record<string, string>;
 }

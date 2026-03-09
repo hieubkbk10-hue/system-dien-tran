@@ -16,7 +16,6 @@ import { PricingPreview } from '../../_components/PricingPreview';
 import { TextsForm } from '../../_components/TextsForm';
 import {
   DEFAULT_PRICING_CONFIG,
-  DEFAULT_PRICING_HARMONY,
   DEFAULT_PRICING_TEXTS,
   normalizePricingConfig,
 } from '../../_lib/constants';
@@ -24,7 +23,6 @@ import { getPricingValidationResult } from '../../_lib/colors';
 import type {
   PricingConfig,
   PricingEditorPlan,
-  PricingHarmony,
   PricingStyle,
 } from '../../_types';
 
@@ -69,7 +67,6 @@ const toSnapshot = (payload: {
   monthlyLabel: string;
   yearlyLabel: string;
   yearlySavingText: string;
-  harmony: PricingHarmony;
   texts: Record<string, string>;
   plans: Array<{
     name: string;
@@ -105,7 +102,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     yearlySavingText: DEFAULT_PRICING_CONFIG.yearlySavingText,
   });
   const [texts, setTexts] = useState<Record<string, string>>(DEFAULT_PRICING_TEXTS);
-  const [harmony] = useState<PricingHarmony>(DEFAULT_PRICING_HARMONY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
@@ -143,7 +139,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
       monthlyLabel: String(normalizedConfig.monthlyLabel ?? DEFAULT_PRICING_CONFIG.monthlyLabel),
       yearlyLabel: String(normalizedConfig.yearlyLabel ?? DEFAULT_PRICING_CONFIG.yearlyLabel),
       yearlySavingText: String(normalizedConfig.yearlySavingText ?? DEFAULT_PRICING_CONFIG.yearlySavingText),
-      harmony: DEFAULT_PRICING_HARMONY,
       texts: normalizedConfig.texts ?? DEFAULT_PRICING_TEXTS,
       plans: normalizedConfig.plans.map((plan) => ({
         name: plan.name,
@@ -169,7 +164,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     monthlyLabel: String(pricingConfig.monthlyLabel ?? ''),
     yearlyLabel: String(pricingConfig.yearlyLabel ?? ''),
     yearlySavingText: String(pricingConfig.yearlySavingText ?? ''),
-    harmony,
     texts,
     plans: pricingPlans.map((plan) => ({
       name: plan.name,
@@ -196,8 +190,7 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony,
-  }), [effectiveColors, harmony]);
+  }), [effectiveColors]);
 
   const warningMessages = useMemo(() => {
     const messages: string[] = [];
@@ -288,7 +281,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
           buttonLink: plan.buttonLink,
         })),
         style: pricingStyle,
-        harmony,
         texts,
         ...pricingConfig,
       };
@@ -319,7 +311,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
         monthlyLabel: String(payload.monthlyLabel ?? ''),
         yearlyLabel: String(payload.yearlyLabel ?? ''),
         yearlySavingText: String(payload.yearlySavingText ?? ''),
-        harmony,
         texts: payload.texts ?? DEFAULT_PRICING_TEXTS,
         plans: payload.plans.map((plan) => ({
           name: plan.name,
@@ -626,7 +617,6 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={harmony}
               selectedStyle={pricingStyle}
               onStyleChange={setPricingStyle}
               config={{ ...pricingConfig, texts }}

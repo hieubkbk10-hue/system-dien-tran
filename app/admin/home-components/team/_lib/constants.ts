@@ -1,7 +1,6 @@
 import type {
   TeamConfig,
   TeamEditorMember,
-  TeamHarmony,
   TeamMember,
   TeamStyle,
 } from '../_types';
@@ -15,24 +14,12 @@ export const TEAM_STYLES: Array<{ id: TeamStyle; label: string }> = [
   { id: 'spotlight', label: 'Spotlight' },
 ];
 
-export const DEFAULT_TEAM_HARMONY: TeamHarmony = 'analogous';
-
 const TEAM_STYLE_SET = new Set<TeamStyle>(TEAM_STYLES.map((item) => item.id));
-
-const TEAM_HARMONY_SET = new Set<TeamHarmony>(['analogous', 'complementary', 'triadic']);
 
 const toText = (value: unknown) => {
   if (typeof value === 'string') {return value;}
   if (typeof value === 'number') {return String(value);}
   return '';
-};
-
-export const normalizeTeamHarmony = (value?: unknown): TeamHarmony => {
-  if (typeof value === 'string' && TEAM_HARMONY_SET.has(value as TeamHarmony)) {
-    return value as TeamHarmony;
-  }
-
-  return DEFAULT_TEAM_HARMONY;
 };
 
 export const normalizeTeamStyle = (value?: unknown): TeamStyle => {
@@ -145,7 +132,6 @@ export const normalizeTeamConfig = (rawConfig: unknown): TeamConfig => {
   return {
     members: members.length > 0 ? members : DEFAULT_TEAM_CONFIG.members,
     style: normalizeTeamStyle(config.style),
-    harmony: normalizeTeamHarmony(config.harmony),
     texts: normalizeTexts(config.texts),
   };
 };
@@ -169,6 +155,5 @@ export const DEFAULT_TEAM_CONFIG: TeamConfig = {
     },
   ],
   style: 'grid',
-  harmony: DEFAULT_TEAM_HARMONY,
   texts: DEFAULT_TEAM_TEXTS,
 };

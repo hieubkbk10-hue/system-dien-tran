@@ -6,11 +6,9 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { FeaturesSectionShared } from './FeaturesSectionShared';
-import { normalizeFeaturesHarmony } from '../_lib/constants';
 import type {
   FeatureItem,
   FeaturesBrandMode,
-  FeaturesHarmony,
   FeaturesStyle,
 } from '../_types';
 
@@ -28,7 +26,6 @@ interface FeaturesPreviewProps {
   brandColor: string;
   secondary: string;
   mode: FeaturesBrandMode;
-  harmony?: FeaturesHarmony;
   sectionTitle?: string;
   selectedStyle?: FeaturesStyle;
   onStyleChange?: (style: FeaturesStyle) => void;
@@ -39,7 +36,6 @@ export function FeaturesPreview({
   brandColor,
   secondary,
   mode,
-  harmony,
   sectionTitle,
   selectedStyle,
   onStyleChange,
@@ -47,8 +43,6 @@ export function FeaturesPreview({
   const { device, setDevice } = usePreviewDevice();
 
   const previewStyle = selectedStyle ?? 'iconGrid';
-  const resolvedHarmony = normalizeFeaturesHarmony(harmony);
-
   const info = (() => {
     const modeLabel = mode === 'dual' ? '2 màu' : '1 màu';
     if (items.length === 0) {return `Chưa có tính năng • ${modeLabel}`;}
@@ -82,7 +76,6 @@ export function FeaturesPreview({
             brandColor={brandColor}
             secondary={secondary}
             mode={mode}
-            harmony={resolvedHarmony}
           />
         </BrowserFrame>
       </PreviewWrapper>

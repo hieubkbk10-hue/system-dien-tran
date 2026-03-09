@@ -2,7 +2,7 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import type { FaqBrandMode, FaqHarmony, FaqStyle } from '../_types';
+import type { FaqBrandMode, FaqStyle } from '../_types';
 
 interface FaqPalette {
   solid: string;
@@ -168,13 +168,6 @@ const ensureAPCATextColor = (
   return getAPCATextColor(background, fontSize, fontWeight);
 };
 
-const isFaqHarmony = (value: unknown): value is FaqHarmony => (
-  value === 'analogous' || value === 'complementary' || value === 'triadic'
-);
-
-const normalizeHarmony = (value: unknown): FaqHarmony => (
-  isFaqHarmony(value) ? value : 'analogous'
-);
 
 export const getAPCATextColor = (bg: string, fontSize = 16, fontWeight = 500) => {
   const whiteLc = getAPCALc('#ffffff', bg);
@@ -218,17 +211,12 @@ const getTriadic = (hex: string): [string, string] => {
   ];
 };
 
-const getFaqHarmonyFallback = (primary: string, harmony: FaqHarmony) => {
-  if (harmony === 'complementary') {return getComplementary(primary);}
-  if (harmony === 'triadic') {return getTriadic(primary)[0];}
-  return getAnalogous(primary)[0];
-};
+const getAutoSecondary = (primary: string) => getAnalogous(primary)[0];
 
 export const resolveFaqSecondary = (
   primary: string,
   secondary: string,
   mode: FaqBrandMode,
-  harmony: FaqHarmony = 'analogous',
 ) => {
   if (mode === 'single') {
     return primary;
@@ -236,7 +224,7 @@ export const resolveFaqSecondary = (
 
   const trimmedSecondary = secondary.trim();
   if (trimmedSecondary && isValidHexColor(trimmedSecondary)) {return trimmedSecondary;}
-  return getFaqHarmonyFallback(primary, normalizeHarmony(harmony));
+  return getAutoSecondary(primary);
 };
 
 export const getFaqHarmonyStatus = (primary: string, secondary: string): FaqHarmonyStatus => {
@@ -301,17 +289,14 @@ export const getFaqColors = ({
   secondary,
   mode,
   style,
-  harmony = 'analogous',
 }: {
   primary: string;
   secondary: string;
   mode: FaqBrandMode;
   style: FaqStyle;
-  harmony?: FaqHarmony;
 }): FaqStyleTokens => {
-  const normalizedHarmony = normalizeHarmony(harmony);
   const safePrimary = isValidHexColor(primary) ? primary.trim() : '#3b82f6';
-  const resolvedSecondary = resolveFaqSecondary(safePrimary, secondary, mode, normalizedHarmony);
+  const resolvedSecondary = resolveFaqSecondary(safePrimary, secondary, mode);
   const primaryPalette = generatePalette(safePrimary);
   const secondaryPalette = generatePalette(resolvedSecondary);
 

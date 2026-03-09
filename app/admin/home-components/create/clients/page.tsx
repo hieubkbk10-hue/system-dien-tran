@@ -11,8 +11,6 @@ import { ClientsForm } from '../../clients/_components/ClientsForm';
 import { ClientsPreview } from '../../clients/_components/ClientsPreview';
 import {
   DEFAULT_CLIENTS_CONFIG,
-  DEFAULT_CLIENTS_HARMONY,
-  normalizeClientsHarmony,
 } from '../../clients/_lib/constants';
 import { getClientsValidationResult } from '../../clients/_lib/colors';
 import type {
@@ -49,7 +47,6 @@ export default function ClientsCreatePage() {
 
   const [clientItems, setClientItems] = useState<ClientEditorItem[]>(toEditorItems(DEFAULT_CLIENTS_CONFIG.items));
   const [style, setStyle] = useState<ClientsStyle>(DEFAULT_CLIENTS_CONFIG.style);
-  const [harmony] = useState(DEFAULT_CLIENTS_HARMONY);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const handleImageUpload = useCallback(async (itemId: string, file: File) => {
@@ -124,9 +121,8 @@ export default function ClientsCreatePage() {
     primary,
     secondary,
     mode,
-    harmony,
     style,
-  }), [primary, secondary, mode, harmony, style]);
+  }), [primary, secondary, mode, style]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -150,7 +146,6 @@ export default function ClientsCreatePage() {
     void handleSubmit(e, {
       items: toPersistItems(clientItems),
       style,
-      harmony: normalizeClientsHarmony(harmony),
     });
   };
 
@@ -188,7 +183,6 @@ export default function ClientsCreatePage() {
         brandColor={primary}
         secondary={secondary}
         mode={mode}
-        harmony={normalizeClientsHarmony(harmony)}
         selectedStyle={style}
         onStyleChange={setStyle}
         warningMessages={warningMessages}

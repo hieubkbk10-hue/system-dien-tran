@@ -8,7 +8,6 @@ import { AboutForm } from '../../about/_components/AboutForm';
 import { AboutPreview } from '../../about/_components/AboutPreview';
 import {
   DEFAULT_ABOUT_EDITOR_STATE,
-  normalizeAboutHarmony,
   toAboutPersistStats,
 } from '../../about/_lib/constants';
 import {
@@ -24,17 +23,14 @@ export default function AboutCreatePage() {
 
   const [state, setState] = React.useState(DEFAULT_ABOUT_EDITOR_STATE);
 
-  const harmony = normalizeAboutHarmony(state.harmony);
-
   const validation = React.useMemo(
     () => getAboutValidationResult({
       primary,
       secondary,
       mode,
-      harmony,
       style: state.style,
     }),
-    [primary, secondary, mode, harmony, state.style],
+    [primary, secondary, mode, state.style],
   );
 
   const warningMessages = React.useMemo(
@@ -53,7 +49,6 @@ export default function AboutCreatePage() {
       buttonLink: state.buttonLink,
       stats: toAboutPersistStats(state.stats),
       style: state.style,
-      harmony,
     });
   };
 
@@ -97,7 +92,6 @@ export default function AboutCreatePage() {
           buttonLink: state.buttonLink,
           stats: toAboutPersistStats(state.stats),
           style: state.style,
-          harmony,
         }}
         brandColor={validation.tokens.primary}
         secondary={validation.tokens.secondary}

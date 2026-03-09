@@ -7,7 +7,6 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import {
-  DEFAULT_PRICING_HARMONY,
   PRICING_STYLES,
 } from '../_lib/constants';
 import {
@@ -17,7 +16,6 @@ import { PricingSectionShared } from './PricingSectionShared';
 import type {
   PricingBrandMode,
   PricingConfig,
-  PricingHarmony,
   PricingPlan,
   PricingStyle,
 } from '../_types';
@@ -29,7 +27,6 @@ interface PricingPreviewProps {
   brandColor: string;
   secondary: string;
   mode?: PricingBrandMode;
-  harmony?: PricingHarmony;
   selectedStyle?: PricingStyle;
   onStyleChange?: (style: PricingStyle) => void;
 }
@@ -41,7 +38,6 @@ export function PricingPreview({
   brandColor,
   secondary,
   mode = 'dual',
-  harmony = DEFAULT_PRICING_HARMONY,
   selectedStyle = 'cards',
   onStyleChange,
 }: PricingPreviewProps) {
@@ -65,8 +61,7 @@ export function PricingPreview({
     primary: brandColor,
     secondary,
     mode,
-    harmony,
-  }), [brandColor, secondary, mode, harmony]);
+  }), [brandColor, secondary, mode]);
 
   const warningMessages = React.useMemo(() => {
     const messages: string[] = [];

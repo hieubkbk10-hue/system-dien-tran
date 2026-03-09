@@ -1,23 +1,21 @@
 import { useMemo } from 'react';
 import { getSpeedDialValidationResult } from '../_lib/colors';
-import type { SpeedDialAction, SpeedDialBrandMode, SpeedDialHarmony } from '../_types';
+import type { SpeedDialAction, SpeedDialBrandMode } from '../_types';
 
 export function useSpeedDialValidation({
   primary,
   secondary,
   mode,
-  harmony,
   actions,
 }: {
   primary: string;
   secondary: string;
   mode: SpeedDialBrandMode;
-  harmony: SpeedDialHarmony;
   actions: SpeedDialAction[];
 }) {
   const validation = useMemo(
-    () => getSpeedDialValidationResult({ primary, secondary, mode, harmony, actions }),
-    [primary, secondary, mode, harmony, actions],
+    () => getSpeedDialValidationResult({ primary, secondary, mode, actions }),
+    [primary, secondary, mode, actions],
   );
 
   const warningMessages = useMemo(() => {

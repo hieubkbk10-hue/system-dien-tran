@@ -2,10 +2,7 @@
 
 import { APCAcontrast, sRGBtoY } from 'apca-w3';
 import { differenceEuclidean, formatHex, oklch } from 'culori';
-import {
-  DEFAULT_CAREER_HARMONY,
-  normalizeCareerHarmony,
-} from './constants';
+import { DEFAULT_CAREER_HARMONY, normalizeCareerHarmony } from './constants';
 import type {
   CareerBrandMode,
   CareerHarmony,
@@ -269,8 +266,8 @@ export const getCareerColorTokens = ({
   mode: CareerBrandMode;
   harmony?: CareerHarmony;
 }): CareerColorTokens => {
-  const normalizedHarmony = normalizeCareerHarmony(harmony);
   const primaryResolved = normalizeHex(primary, DEFAULT_BRAND_COLOR);
+  const normalizedHarmony = normalizeCareerHarmony(harmony);
   const secondaryResolved = resolveSecondaryForMode(primaryResolved, secondary, mode, normalizedHarmony);
 
   const primaryPalette = buildPalette(primaryResolved, DEFAULT_BRAND_COLOR);
@@ -340,12 +337,11 @@ export const getCareerValidationResult = ({
   mode: CareerBrandMode;
   harmony?: CareerHarmony;
 }) => {
-  const normalizedHarmony = normalizeCareerHarmony(harmony);
   const tokens = getCareerColorTokens({
     primary,
     secondary,
     mode,
-    harmony: normalizedHarmony,
+    harmony,
   });
 
   const harmonyStatus = mode === 'single'

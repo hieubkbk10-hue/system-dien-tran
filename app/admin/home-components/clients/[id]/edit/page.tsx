@@ -17,15 +17,12 @@ import { ClientsPreview } from '../../_components/ClientsPreview';
 import { ClientsTextsForm } from '../../_components/ClientsTextsForm';
 import {
   DEFAULT_CLIENTS_CONFIG,
-  DEFAULT_CLIENTS_HARMONY,
-  normalizeClientsHarmony,
 } from '../../_lib/constants';
 import { getClientsValidationResult } from '../../_lib/colors';
 import { normalizeClientItems, normalizeClientsStyleSafe } from '../../_components/ClientsSectionShared';
 import type {
   ClientEditorItem,
   ClientsConfig,
-  ClientsHarmony,
   ClientsStyle,
 } from '../../_types';
 
@@ -62,7 +59,6 @@ const toSnapshot = (payload: {
   title: string;
   active: boolean;
   style: ClientsStyle;
-  harmony: ClientsHarmony;
   items: ClientsConfig['items'];
   texts?: Record<string, string>;
 }) => JSON.stringify({
@@ -86,7 +82,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
   const [active, setActive] = useState(true);
   const [items, setItems] = useState<ClientEditorItem[]>(toEditorItems(DEFAULT_CLIENTS_CONFIG.items));
   const [style, setStyle] = useState<ClientsStyle>(DEFAULT_CLIENTS_CONFIG.style);
-  const [harmony, setHarmony] = useState<ClientsHarmony>(DEFAULT_CLIENTS_HARMONY);
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,21 +98,18 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     const rawConfig = component.config ?? {};
     const rawItems = Array.isArray(rawConfig.items) ? rawConfig.items : DEFAULT_CLIENTS_CONFIG.items;
     const nextStyle = normalizeClientsStyleSafe(rawConfig.style);
-    const nextHarmony = normalizeClientsHarmony(rawConfig.harmony as string | undefined);
     const nextTexts = (rawConfig.texts?.[nextStyle] as Record<string, string>) || {};
 
     setTitle(component.title);
     setActive(component.active);
     setItems(toEditorItems(rawItems));
     setStyle(nextStyle);
-    setHarmony(nextHarmony);
     setTexts(nextTexts);
 
     setInitialSnapshot(toSnapshot({
       title: component.title,
       active: component.active,
       style: nextStyle,
-      harmony: nextHarmony,
       items: rawItems,
       texts: nextTexts,
     }));
@@ -129,10 +121,9 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     title,
     active,
     style,
-    harmony,
     items: currentItems,
     texts,
-  }), [title, active, style, harmony, currentItems, texts]);
+  }), [title, active, style, currentItems, texts]);
 
   const resolvedCustomSecondary = resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary);
   const customChanged = showCustomBlock
@@ -147,9 +138,8 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
     primary: effectiveColors.primary,
     secondary: effectiveColors.secondary,
     mode: effectiveColors.mode,
-    harmony,
     style,
-  }), [effectiveColors, harmony, style]);
+  }), [effectiveColors, style]);
 
   const warningMessages = useMemo(() => {
     const warnings: string[] = [];
@@ -256,7 +246,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
       const nextConfig: ClientsConfig = {
         items: currentItems,
         style,
-        harmony: normalizeClientsHarmony(harmony),
         texts: allTexts,
       };
 
@@ -281,7 +270,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
         title,
         active,
         style,
-        harmony: nextConfig.harmony ?? DEFAULT_CLIENTS_HARMONY,
         items: nextConfig.items,
         texts,
       }));
@@ -294,7 +282,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
         });
       }
-      setHarmony(nextConfig.harmony ?? DEFAULT_CLIENTS_HARMONY);
       toast.success('Đã cập nhật Clients');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -422,7 +409,6 @@ export default function ClientsEditPage({ params }: { params: Promise<{ id: stri
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
               mode={effectiveColors.mode}
-              harmony={normalizeClientsHarmony(harmony)}
               selectedStyle={style}
               onStyleChange={setStyle}
               warningMessages={warningMessages}
