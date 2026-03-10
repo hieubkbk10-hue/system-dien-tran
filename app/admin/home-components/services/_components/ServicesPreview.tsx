@@ -34,6 +34,8 @@ export const ServicesPreview = ({
   selectedStyle = 'elegantGrid',
   onStyleChange,
   mode = 'dual',
+  fontStyle,
+  fontClassName,
 }: {
   items: ServiceItem[];
   brandColor: string;
@@ -42,6 +44,8 @@ export const ServicesPreview = ({
   selectedStyle?: ServicesStyle;
   onStyleChange?: (style: ServicesStyle) => void;
   mode?: ServicesBrandMode;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -63,6 +67,8 @@ export const ServicesPreview = ({
         setPreviewStyle={(next) => onStyleChange?.(next as ServicesStyle)}
         styles={SERVICES_STYLES}
         info={`${items.length} mục`}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame>
