@@ -25,6 +25,8 @@ interface ClientsPreviewProps {
   warningMessages?: string[];
   showValidationSummary?: boolean;
   texts?: Record<string, string>;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const STYLES: Array<{ id: ClientsStyle; label: string }> = [
@@ -77,6 +79,8 @@ export const ClientsPreview = ({
   warningMessages,
   showValidationSummary = false,
   texts = {},
+  fontStyle,
+  fontClassName,
 }: ClientsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -102,6 +106,8 @@ export const ClientsPreview = ({
         styles={STYLES}
         info={info}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {items.length === 0 ? (
