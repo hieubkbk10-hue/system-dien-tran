@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { BenefitsForm } from '../../benefits/_components/BenefitsForm';
 import { BenefitsPreview } from '../../benefits/_components/BenefitsPreview';
 import { DEFAULT_BENEFITS_EDITOR_STATE, DEFAULT_BENEFITS_HARMONY } from '../../benefits/_lib/constants';
@@ -76,7 +77,9 @@ export default function BenefitsCreatePage() {
   const COMPONENT_TYPE = 'Benefits';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Lợi ích', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
   const brandMode: BenefitsBrandMode = mode === 'single' ? 'single' : 'dual';
 
   const [editorState, setEditorState] = useState<BenefitsEditorState>(normalizeCreateState);
@@ -113,6 +116,9 @@ export default function BenefitsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <BenefitsForm
         state={editorState}
@@ -152,6 +158,8 @@ export default function BenefitsCreatePage() {
           heading: editorState.heading,
           subHeading: editorState.subHeading,
         }}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

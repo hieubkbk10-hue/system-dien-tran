@@ -24,6 +24,8 @@ interface BenefitsPreviewProps {
   selectedStyle?: BenefitsStyle;
   onStyleChange?: (style: BenefitsStyle) => void;
   config?: Partial<BenefitsConfig>;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const BenefitsPreview = ({
@@ -34,6 +36,8 @@ export const BenefitsPreview = ({
   selectedStyle,
   onStyleChange,
   config,
+  fontStyle,
+  fontClassName,
 }: BenefitsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -91,6 +95,8 @@ export const BenefitsPreview = ({
         styles={BENEFITS_STYLES}
         info={`${items.length} lợi ích • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/benefits">
           <BenefitsSectionShared
