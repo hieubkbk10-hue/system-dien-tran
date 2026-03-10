@@ -5,6 +5,7 @@ import { Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { TrustBadgesPreview } from '../../gallery/_components/TrustBadgesPreview';
 import type { TrustBadgesStyle } from '../../gallery/_types';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -21,7 +22,9 @@ export default function TrustBadgesCreatePage() {
   const COMPONENT_TYPE = 'TrustBadges';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Chứng nhận', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [trustBadgeItems, setTrustBadgeItems] = useState<TrustBadgeItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -49,6 +52,9 @@ export default function TrustBadgesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -136,6 +142,8 @@ export default function TrustBadgesCreatePage() {
         mode={mode}
         selectedStyle={trustBadgesStyle}
         onStyleChange={setTrustBadgesStyle}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

@@ -121,7 +121,9 @@ export const TrustBadgesPreview = ({
   mode,
   selectedStyle, 
   onStyleChange,
-  config
+  config,
+  fontStyle,
+  fontClassName,
 }: { 
   items: TrustBadgeItem[]; 
   brandColor: string;
@@ -130,6 +132,8 @@ export const TrustBadgesPreview = ({
   selectedStyle?: TrustBadgesStyle; 
   onStyleChange?: (style: TrustBadgesStyle) => void;
   config?: TrustBadgesConfig;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -577,6 +581,8 @@ export const TrustBadgesPreview = ({
         styles={styles} 
         info={`${items.length} chứng nhận • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {previewStyle === 'grid' && renderGridStyle()}
