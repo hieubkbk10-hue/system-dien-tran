@@ -763,21 +763,21 @@ export function Header() {
                   {config.cta.text ?? 'Liên hệ'}
                 </Link>
               )}
-              <div className="ml-auto flex items-center gap-2 lg:hidden">
-                {showSearch && (
-                  <button
-                    onClick={() => { setSearchOpen((prev) => !prev); }}
-                    className="p-2"
-                    style={{ color: tokens.iconButtonText }}
-                  >
-                    <Search size={20} />
-                  </button>
-                )}
-                {showCart && (
-                  <CartIcon variant="mobile" tokens={tokens} />
-                )}
-                {renderMobileMenuButton(false)}
-              </div>
+            </div>
+            <div className="ml-auto flex items-center gap-2 lg:hidden">
+              {showSearch && (
+                <button
+                  onClick={() => { setSearchOpen((prev) => !prev); }}
+                  className="p-2"
+                  style={{ color: tokens.iconButtonText }}
+                >
+                  <Search size={20} />
+                </button>
+              )}
+              {showCart && (
+                <CartIcon variant="mobile" tokens={tokens} />
+              )}
+              {renderMobileMenuButton(false)}
             </div>
           </div>
         </div>
