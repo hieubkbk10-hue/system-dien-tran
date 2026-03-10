@@ -9,6 +9,7 @@ import { useBrandColors, useSiteSettings, useSocialLinks } from './hooks';
 import { getFooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
+import { resolveTypeOverrideFont } from '@/app/admin/home-components/_shared/lib/typeFontOverride';
 import { Facebook, Github, Globe, Instagram, Linkedin, Twitter, X, Youtube } from 'lucide-react';
 
 interface SocialLinkItem { id: number; platform: string; url: string; icon: string }
@@ -96,6 +97,15 @@ export function DynamicFooter() {
     systemColors,
     overrides: systemConfig?.typeColorOverrides ?? null,
   });
+  const resolvedFont = resolveTypeOverrideFont({
+    type: 'Footer',
+    overrides: systemConfig?.typeFontOverrides ?? null,
+    globalOverride: systemConfig?.globalFontOverride ?? null,
+  });
+  const fontStyle = { '--font-active': `var(${resolvedFont.fontVariable})` } as React.CSSProperties;
+  const wrapWithFont = (node: React.ReactNode) => (
+    <div className="font-active" style={fontStyle}>{node}</div>
+  );
   const { primary: brandColor, secondary, mode } = resolvedColors;
   const { siteName, logo: siteLogo } = useSiteSettings();
   const socialLinks = useSocialLinks();
@@ -141,7 +151,7 @@ export function DynamicFooter() {
   // Fallback footer nếu không có Footer component
   const fallbackBgDark = getFooterLayoutColors('classic', brandColor, secondary, mode as FooterBrandMode).bg;
   if (!footerComponent) {
-    return (
+    return wrapWithFont(
       <footer className="text-white" style={{ backgroundColor: fallbackBgDark }}>
         <div className="py-6 px-4">
           <p className="text-center text-sm text-slate-500">
@@ -198,7 +208,7 @@ export function DynamicFooter() {
 
   // Style 1: Classic Dark - Standard layout với brand column và menu columns
   if (style === 'classic') {
-    return (
+    return wrapWithFont(
       <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-6">
@@ -282,7 +292,7 @@ export function DynamicFooter() {
 
   // Style 2: Modern Centered - Elegant centered layout
   if (style === 'modern') {
-    return (
+    return wrapWithFont(
       <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
         <div className="container max-w-5xl mx-auto px-4 md:px-6 flex flex-col items-center text-center space-y-5 md:space-y-6">
           
@@ -358,7 +368,7 @@ export function DynamicFooter() {
 
   // Style 3: Corporate Grid - Structured professional layout
   if (style === 'corporate') {
-    return (
+    return wrapWithFont(
       <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           
@@ -442,7 +452,7 @@ export function DynamicFooter() {
 
   // Style 4: Minimal - Compact single row
   if (style === 'minimal') {
-    return (
+    return wrapWithFont(
       <footer className="w-full py-4 md:py-5" style={{ backgroundColor: colors.bg, borderTop: `1px solid ${colors.border}` }}>
         <div className="container max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
@@ -493,7 +503,7 @@ export function DynamicFooter() {
 
   // Style 5: Centered - Logo + social giữa, columns dàn 2 rows
   if (style === 'centered') {
-    return (
+    return wrapWithFont(
       <footer className="w-full py-8 md:py-10" style={{ backgroundColor: colors.bg }}>
         <div className="container max-w-6xl mx-auto px-4 md:px-6 text-center">
           
@@ -584,7 +594,7 @@ export function DynamicFooter() {
   }
 
   // Style 6: Stacked - Tất cả elements xếp chồng vertical, mobile-first compact (default)
-  return (
+  return wrapWithFont(
     <footer className="w-full py-6" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
       <div className="container max-w-4xl mx-auto px-4 md:px-6">
         

@@ -17,6 +17,9 @@ import { HOME_COMPONENT_BASE_TYPES, HOME_COMPONENT_TYPE_VALUES as BASE_COMPONENT
 import { TypeColorOverrideCard } from '../_shared/components/TypeColorOverrideCard';
 import { useTypeColorOverrideState } from '../_shared/hooks/useTypeColorOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode, type ColorOverrideState } from '../_shared/lib/typeColorOverride';
+import { TypeFontOverrideCard } from '../_shared/components/TypeFontOverrideCard';
+import { useTypeFontOverrideState } from '../_shared/hooks/useTypeFontOverride';
+import type { FontOverrideState } from '../_shared/lib/typeFontOverride';
 
 const ICON_MAP: Record<string, typeof LayoutTemplate> = {
   About: UserIcon,
@@ -129,6 +132,9 @@ export function ComponentFormWrapper({
   showCustomBlock: showCustomBlockProp,
   setCustomState: setCustomStateProp,
   systemColors: systemColorsProp,
+  customFontState: customFontStateProp,
+  showFontCustomBlock: showFontCustomBlockProp,
+  setCustomFontState: setCustomFontStateProp,
 }: { 
   type: string;
   title: string;
@@ -142,6 +148,9 @@ export function ComponentFormWrapper({
   showCustomBlock?: boolean;
   setCustomState?: React.Dispatch<React.SetStateAction<ColorOverrideState>>;
   systemColors?: { primary: string; secondary: string; mode: 'single' | 'dual' };
+  customFontState?: FontOverrideState;
+  showFontCustomBlock?: boolean;
+  setCustomFontState?: React.Dispatch<React.SetStateAction<FontOverrideState>>;
 }) {
   const router = useRouter();
   const typeInfo = getComponentType(type);
@@ -151,7 +160,12 @@ export function ComponentFormWrapper({
   const showCustomBlock = showCustomBlockProp ?? fallbackState.showCustomBlock;
   const setCustomState = setCustomStateProp ?? fallbackState.setCustomState;
   const systemColors = systemColorsProp ?? fallbackState.systemColors;
+  const fallbackFontState = useTypeFontOverrideState(type, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const customFontState = customFontStateProp ?? fallbackFontState.customState;
+  const showFontCustomBlock = showFontCustomBlockProp ?? fallbackFontState.showCustomBlock;
+  const setCustomFontState = setCustomFontStateProp ?? fallbackFontState.setCustomState;
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
 
   const handleFormSubmit = (event: React.FormEvent) => {
     void (async () => {
@@ -175,6 +189,19 @@ export function ComponentFormWrapper({
           });
         } catch (error) {
           toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu.');
+          return;
+        }
+      }
+
+      if (showFontCustomBlock) {
+        try {
+          await setTypeFontOverride({
+            type,
+            enabled: customFontState.enabled,
+            fontKey: customFontState.fontKey,
+          });
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom font.');
           return;
         }
       }
@@ -265,6 +292,21 @@ export function ComponentFormWrapper({
                 }));
               }}
               onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
+            />
+          </div>
+        )}
+
+        {showFontCustomBlock && (
+          <div className="mb-6">
+            <TypeFontOverrideCard
+              title={`Font custom ${typeInfo?.label ?? type}`}
+              enabled={customFontState.enabled}
+              fontKey={customFontState.fontKey}
+              compact
+              toggleLabel="Custom"
+              fontLabel="Font"
+              onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+              onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
             />
           </div>
         )}

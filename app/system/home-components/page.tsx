@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
-import { Eye, EyeOff, LayoutTemplate } from 'lucide-react';
+import { Eye, EyeOff, LayoutTemplate, Type } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { COMPONENT_TYPES, HOME_COMPONENT_TYPE_VALUES } from '@/app/admin/home-components/create/shared';
 import { useBrandColors } from '@/components/site/hooks';
 import { Button, Card, CardContent, CardHeader, CardTitle, cn } from '@/app/admin/components/ui';
+import { DEFAULT_FONT_KEY, FONT_REGISTRY } from '@/lib/fonts/registry';
 
 const CUSTOM_SUPPORTED_TYPES = new Set(HOME_COMPONENT_TYPE_VALUES);
 
@@ -19,6 +20,12 @@ type ColorOverride = {
   secondary: string;
 };
 
+type FontOverride = {
+  enabled: boolean;
+  systemEnabled: boolean;
+  fontKey: string;
+};
+
 export default function SystemHomeComponentsPage() {
   const systemColors = useBrandColors();
   const config = useQuery(api.homeComponentSystemConfig.getConfig);
@@ -26,15 +33,21 @@ export default function SystemHomeComponentsPage() {
   const setCreateVisibility = useMutation(api.homeComponentSystemConfig.setCreateVisibility);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
   const bulkSetTypeColorOverride = useMutation(api.homeComponentSystemConfig.bulkSetTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
+  const setGlobalFontOverride = useMutation(api.homeComponentSystemConfig.setGlobalFontOverride);
 
   const [hiddenTypes, setHiddenTypes] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [typeOverrides, setTypeOverrides] = useState<Record<string, ColorOverride>>({});
+  const [typeFontOverrides, setTypeFontOverrides] = useState<Record<string, FontOverride>>({});
+  const [globalFontOverride, setGlobalFontOverrideState] = useState({ enabled: false, fontKey: DEFAULT_FONT_KEY });
 
   useEffect(() => {
     if (!config) {return;}
     setHiddenTypes(config.hiddenTypes);
     setTypeOverrides(config.typeColorOverrides);
+    setTypeFontOverrides(config.typeFontOverrides);
+    setGlobalFontOverrideState(config.globalFontOverride ?? { enabled: false, fontKey: DEFAULT_FONT_KEY });
   }, [config]);
 
   const componentTypes = useMemo(() => (
@@ -108,6 +121,18 @@ export default function SystemHomeComponentsPage() {
     };
   };
 
+  const getDefaultFontOverride = (type: string): FontOverride => {
+    const current = typeFontOverrides[type];
+    if (current) {
+      return current;
+    }
+    return {
+      enabled: false,
+      systemEnabled: false,
+      fontKey: globalFontOverride.fontKey ?? DEFAULT_FONT_KEY,
+    };
+  };
+
   const toggleCustomType = async (type: string) => {
     if (!CUSTOM_SUPPORTED_TYPES.has(type)) {return;}
     const current = getDefaultOverride(type);
@@ -127,6 +152,41 @@ export default function SystemHomeComponentsPage() {
       toast.success(nextEnabled ? 'Đã bật custom màu cho component.' : 'Đã chuyển về màu hệ thống.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom màu.');
+    }
+  };
+
+  const toggleCustomFontType = async (type: string) => {
+    if (!CUSTOM_SUPPORTED_TYPES.has(type)) {return;}
+    const current = getDefaultFontOverride(type);
+    const nextEnabled = !current.systemEnabled;
+    const nextOverride = {
+      ...current,
+      systemEnabled: nextEnabled,
+      fontKey: current.fontKey || DEFAULT_FONT_KEY,
+    };
+    setTypeFontOverrides((prev) => ({ ...prev, [type]: nextOverride }));
+    try {
+      await setTypeFontOverride({
+        systemEnabled: nextOverride.systemEnabled,
+        type,
+      });
+      toast.success(nextEnabled ? 'Đã bật custom font cho component.' : 'Đã chuyển về font hệ thống.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật custom font.');
+    }
+  };
+
+  const handleGlobalFontChange = async (next: { enabled?: boolean; fontKey?: string }) => {
+    const nextState = {
+      enabled: typeof next.enabled === 'boolean' ? next.enabled : globalFontOverride.enabled,
+      fontKey: next.fontKey ?? globalFontOverride.fontKey,
+    };
+    setGlobalFontOverrideState(nextState);
+    try {
+      await setGlobalFontOverride(nextState);
+      toast.success('Đã cập nhật font mặc định.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật font mặc định.');
     }
   };
 
@@ -195,6 +255,33 @@ export default function SystemHomeComponentsPage() {
           <CardTitle className="text-base">Danh sách Home Components</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Font mặc định</div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Áp dụng cho toàn bộ component khi chưa bật custom font.</p>
+              </div>
+              <div
+                className={cn(
+                  'cursor-pointer inline-flex items-center justify-center rounded-full w-10 h-5 transition-colors',
+                  globalFontOverride.enabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+                )}
+                onClick={() => handleGlobalFontChange({ enabled: !globalFontOverride.enabled })}
+              >
+                <div className={cn('w-4 h-4 bg-white rounded-full transition-transform', globalFontOverride.enabled ? 'translate-x-2' : '-translate-x-2')} />
+              </div>
+            </div>
+            <select
+              value={globalFontOverride.fontKey}
+              onChange={(event) => handleGlobalFontChange({ fontKey: event.target.value })}
+              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            >
+              {FONT_REGISTRY.map((font) => (
+                <option key={font.key} value={font.key}>{font.label}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <Button
               variant="outline"
@@ -225,7 +312,7 @@ export default function SystemHomeComponentsPage() {
           </div>
 
           <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-[44px_60px_1fr_140px_220px] gap-3 px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900">
+            <div className="grid grid-cols-[44px_60px_1fr_140px_320px] gap-3 px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-900">
               <div>
                 <input
                   type="checkbox"
@@ -246,10 +333,11 @@ export default function SystemHomeComponentsPage() {
               const override = getDefaultOverride(type.value);
               const count = stats ? (typeCountMap[type.value] ?? 0) : null;
               const isUnused = count === 0;
+              const fontOverride = getDefaultFontOverride(type.value);
               return (
                 <div
                   key={type.value}
-                  className="grid grid-cols-[44px_60px_1fr_140px_220px] gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 items-center"
+                  className="grid grid-cols-[44px_60px_1fr_140px_320px] gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 items-center"
                 >
                   <input
                     type="checkbox"
@@ -310,6 +398,21 @@ export default function SystemHomeComponentsPage() {
                       )}
                     >
                       {override.systemEnabled ? 'Custom' : 'System'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleCustomFontType(type.value)}
+                      disabled={!customSupported}
+                      className={cn(
+                        "inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs border",
+                        fontOverride.systemEnabled
+                          ? "border-indigo-200 text-indigo-600 bg-indigo-50"
+                          : "border-slate-200 text-slate-500 bg-white",
+                        !customSupported && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Type size={12} />
+                      {fontOverride.systemEnabled ? 'Font' : 'System Font'}
                     </button>
                   </div>
                 </div>

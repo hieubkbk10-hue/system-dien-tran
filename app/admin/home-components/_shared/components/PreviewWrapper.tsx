@@ -21,6 +21,8 @@ export const PreviewWrapper = ({
   styles,
   info,
   deviceWidthClass,
+  fontStyle,
+  fontClassName,
 }: { 
   title: string;
   children: React.ReactNode;
@@ -31,6 +33,8 @@ export const PreviewWrapper = ({
   styles: { id: string; label: string }[];
   info?: string;
   deviceWidthClass: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => (
   <Card className="mt-6">
     <CardHeader className="pb-3">
@@ -61,7 +65,10 @@ export const PreviewWrapper = ({
       </div>
     </CardHeader>
     <CardContent>
-      <div className={cn("mx-auto transition-all duration-300", deviceWidthClass)}>
+      <div
+        className={cn("mx-auto transition-all duration-300", deviceWidthClass, fontClassName)}
+        style={fontStyle}
+      >
         {children}
       </div>
       {info && (

@@ -2,7 +2,20 @@ import "./globals.css";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { BrandColorProvider } from "@/components/providers/BrandColorProvider";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
-import { Be_Vietnam_Pro, Geist, Geist_Mono } from "next/font/google";
+import {
+  Be_Vietnam_Pro,
+  Geist,
+  Geist_Mono,
+  Roboto,
+  Noto_Sans,
+  Nunito,
+  Source_Sans_3,
+  Merriweather,
+  Lora,
+  Montserrat,
+  Roboto_Slab,
+  Noto_Serif,
+} from "next/font/google";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -11,7 +24,61 @@ const geistSans = Geist({
 
 const vietnameseSans = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-vietnamese-sans",
+  variable: "--font-be-vietnam-pro",
+  weight: ["400", "500", "600", "700"],
+});
+
+const robotoSans = Roboto({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-roboto",
+  weight: ["400", "500", "700"],
+});
+
+const notoSans = Noto_Sans({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-noto-sans",
+  weight: ["400", "500", "600", "700"],
+});
+
+const nunitoSans = Nunito({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-nunito",
+  weight: ["400", "500", "600", "700"],
+});
+
+const sourceSans = Source_Sans_3({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-source-sans-3",
+  weight: ["400", "500", "600", "700"],
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-merriweather",
+  weight: ["400", "700"],
+});
+
+const lora = Lora({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-lora",
+  weight: ["400", "500", "600", "700"],
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-montserrat",
+  weight: ["400", "500", "600", "700"],
+});
+
+const robotoSlab = Roboto_Slab({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-roboto-slab",
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoSerif = Noto_Serif({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-noto-serif",
   weight: ["400", "500", "600", "700"],
 });
 
@@ -28,7 +95,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body
-        className={`${vietnameseSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${vietnameseSans.variable} ${geistSans.variable} ${geistMono.variable} ${robotoSans.variable} ${notoSans.variable} ${nunitoSans.variable} ${sourceSans.variable} ${merriweather.variable} ${lora.variable} ${montserrat.variable} ${robotoSlab.variable} ${notoSerif.variable} antialiased`}
       >
         <ConvexClientProvider>
           <BrandColorProvider />
