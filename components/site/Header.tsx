@@ -763,7 +763,7 @@ export function Header() {
                   {config.cta.text ?? 'Liên hệ'}
                 </Link>
               )}
-              <div className="flex items-center gap-1 lg:hidden">
+              <div className="ml-auto flex items-center gap-2 lg:hidden">
                 {showSearch && (
                   <button
                     onClick={() => { setSearchOpen((prev) => !prev); }}
@@ -944,7 +944,7 @@ export function Header() {
             {/* Actions */}
             <div className="flex items-center gap-2">
               {/* Mobile: Search + Cart */}
-              <div className="flex lg:hidden items-center gap-1">
+              <div className="flex lg:hidden items-center gap-2">
                 {showSearch && (
                   <button
                     onClick={() => { setSearchOpen((prev) => !prev); }}
