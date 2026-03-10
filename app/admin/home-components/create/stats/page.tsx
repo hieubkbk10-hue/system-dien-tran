@@ -5,6 +5,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { StatsPreview } from '../../stats/_components/StatsPreview';
 import type { StatsBrandMode, StatsStyle } from '../../stats/_types';
 
@@ -12,8 +13,10 @@ export default function StatsCreatePage() {
   const COMPONENT_TYPE = 'Stats';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thống kê', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: StatsBrandMode = mode === 'single' ? 'single' : 'dual';
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [statsItems, setStatsItems] = useState([
     { id: 1, label: 'Khách hàng', value: '1000+' },
@@ -52,6 +55,9 @@ export default function StatsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
@@ -98,7 +104,16 @@ export default function StatsCreatePage() {
         </CardContent>
       </Card>
 
-      <StatsPreview items={statsItems} brandColor={primary} secondary={secondary} mode={brandMode} selectedStyle={style} onStyleChange={setStyle} />
+      <StatsPreview
+        items={statsItems}
+        brandColor={primary}
+        secondary={secondary}
+        mode={brandMode}
+        selectedStyle={style}
+        onStyleChange={setStyle}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
+      />
     </ComponentFormWrapper>
   );
 }

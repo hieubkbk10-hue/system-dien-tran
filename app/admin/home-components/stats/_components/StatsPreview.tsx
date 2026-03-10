@@ -24,6 +24,8 @@ export const StatsPreview = ({
   mode,
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: {
   items: StatsItem[];
   brandColor: string;
@@ -31,6 +33,8 @@ export const StatsPreview = ({
   mode: StatsBrandMode;
   selectedStyle?: StatsStyle;
   onStyleChange?: (style: StatsStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'horizontal';
@@ -296,6 +300,8 @@ export const StatsPreview = ({
         styles={STATS_STYLES}
         info={info}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {previewStyle === 'horizontal' && renderHorizontalStyle()}
