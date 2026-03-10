@@ -139,7 +139,7 @@ const GalleryLightbox = ({
   );
 };
 
-export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, selectedStyle, onStyleChange, title }: {
+export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, selectedStyle, onStyleChange, title, fontStyle, fontClassName }: {
   items: GalleryItem[];
   brandColor: string;
   secondary: string;
@@ -148,6 +148,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
   selectedStyle?: GalleryStyle;
   onStyleChange?: (style: GalleryStyle) => void;
   title?: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }): React.ReactElement => {
   const { device, setDevice } = usePreviewDevice();
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
@@ -846,6 +848,8 @@ export const GalleryPreview = ({ items, brandColor, secondary, mode, harmony, se
         styles={styles} 
         info={`${getGalleryImageSizeInfo()} • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {renderGalleryContent()}

@@ -5,6 +5,7 @@ import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { GalleryPreview } from '../../gallery/_components/GalleryPreview';
 import type { GalleryStyle } from '../../gallery/_types';
 import { normalizeGalleryHarmony } from '../../gallery/_lib/colors';
@@ -21,7 +22,9 @@ export default function GalleryCreatePage() {
   const COMPONENT_TYPE = 'Gallery';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Thư viện ảnh', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([
     { id: 'item-1', link: '', url: '' },
@@ -53,6 +56,9 @@ export default function GalleryCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -86,6 +92,8 @@ export default function GalleryCreatePage() {
         selectedStyle={galleryStyle}
         onStyleChange={setGalleryStyle}
         title={title}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
 
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
