@@ -9,6 +9,7 @@ import { Briefcase, Check, FileText, GripVertical, Package, Search, X } from 'lu
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
 import { BlogPreview } from '../../blog/_components/BlogPreview';
 import type { BlogPostItem } from '../../blog/_components/BlogForm';
@@ -43,7 +44,10 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm(titleLabel ?? DEFAULT_TITLES[type], type);
   const colorOverrideType = type === 'ProductList' ? 'ProductList' : type;
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const enableFont = type === 'ProductList';
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState(type === 'ProductList' ? 'newest' : 'popular');
@@ -283,6 +287,9 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={enableFont ? customFontState : undefined}
+      showFontCustomBlock={enableFont ? showFontCustomBlock : false}
+      setCustomFontState={enableFont ? setCustomFontState : undefined}
     >
       {type === 'ProductList' && (
         <Card className="mb-6">
@@ -718,6 +725,8 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
           items={selectionMode === 'manual' && productPreviewItems.length > 0 ? productPreviewItems : (autoProductPreviewItems.length > 0 ? autoProductPreviewItems : undefined)}
           subTitle={subTitle}
           sectionTitle={sectionTitle}
+          fontStyle={fontStyle}
+          fontClassName="font-active"
         />
       ))}
     </ComponentFormWrapper>

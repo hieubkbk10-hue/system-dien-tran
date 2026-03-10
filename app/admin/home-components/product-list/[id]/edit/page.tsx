@@ -10,7 +10,9 @@ import { Package, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { getHomeComponentPriceLabel, resolveSaleMode } from '../../../_shared/lib/productPrice';
 import { ProductListForm } from '../../_components/ProductListForm';
@@ -24,7 +26,9 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -134,7 +138,11 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
-  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged || customFontChanged);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +174,13 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(toSnapshot({
         title,
@@ -184,6 +199,12 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolvedCustomSecondary,
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
 
@@ -207,6 +228,8 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -303,6 +326,18 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Sản phẩm"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <ProductListPreview
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
@@ -311,41 +346,43 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
               selectedStyle={productListStyle}
               onStyleChange={setProductListStyle}
               items={productSelectionMode === 'manual' && selectedProducts.length > 0
-              ? selectedProducts.map((product) => ({
-              description: product.description,
-              id: product._id,
-              image: product.image,
-              name: product.name,
-              ...(() => {
-                const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
-                const hasBasePrice = product.price != null || product.salePrice != null;
-                return {
-                  price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
-                  originalPrice: priceDisplay.comparePrice
-                    ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
-                    : undefined,
-                };
-              })(),
-              }))
-              : filteredProducts.slice(0, productListConfig.itemCount).map((product) => ({
-              description: product.description,
-              id: product._id,
-              image: product.image,
-              name: product.name,
-              ...(() => {
-                const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
-                const hasBasePrice = product.price != null || product.salePrice != null;
-                return {
-                  price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
-                  originalPrice: priceDisplay.comparePrice
-                    ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
-                    : undefined,
-                };
-              })(),
-              }))
+                ? selectedProducts.map((product) => ({
+                  description: product.description,
+                  id: product._id,
+                  image: product.image,
+                  name: product.name,
+                  ...(() => {
+                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                    const hasBasePrice = product.price != null || product.salePrice != null;
+                    return {
+                      price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+                      originalPrice: priceDisplay.comparePrice
+                        ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+                        : undefined,
+                    };
+                  })(),
+                }))
+                : filteredProducts.slice(0, productListConfig.itemCount).map((product) => ({
+                  description: product.description,
+                  id: product._id,
+                  image: product.image,
+                  name: product.name,
+                  ...(() => {
+                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                    const hasBasePrice = product.price != null || product.salePrice != null;
+                    return {
+                      price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
+                      originalPrice: priceDisplay.comparePrice
+                        ? getHomeComponentPriceLabel({ saleMode: 'cart', price: priceDisplay.comparePrice }).label
+                        : undefined,
+                    };
+                  })(),
+                }))
               }
               subTitle={productSubTitle}
               sectionTitle={productSectionTitle}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

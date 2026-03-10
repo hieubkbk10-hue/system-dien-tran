@@ -22,6 +22,8 @@ export const ProductListPreview = ({
   items,
   subTitle = 'Bộ sưu tập',
   sectionTitle,
+  fontStyle,
+  fontClassName,
 }: {
   brandColor: string;
   secondary: string;
@@ -32,6 +34,8 @@ export const ProductListPreview = ({
   items?: ProductListPreviewItem[];
   subTitle?: string;
   sectionTitle?: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const displayTitle = sectionTitle ?? (componentType === 'ServiceList' ? 'Dịch vụ nổi bật' : 'Sản phẩm nổi bật');
   const buttonText = 'Xem tất cả';
@@ -620,6 +624,8 @@ export const ProductListPreview = ({
         setPreviewStyle={setPreviewStyle}
         styles={PRODUCT_LIST_STYLES}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url={`yoursite.com/${isProduct ? 'products' : 'services'}`}>
           {previewStyle === 'minimal' && renderMinimalStyle()}
