@@ -28,6 +28,8 @@ export const CTAPreview = ({
   mode = 'dual',
   selectedStyle = 'banner',
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: {
   config: CTAConfig;
   brandColor: string;
@@ -35,6 +37,8 @@ export const CTAPreview = ({
   mode?: 'single' | 'dual';
   selectedStyle?: CTAStyle;
   onStyleChange?: (style: CTAStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const style = selectedStyle;
@@ -65,6 +69,8 @@ export const CTAPreview = ({
         styles={CTA_STYLES}
         info={mode === 'single' ? '1 màu' : '2 màu'}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com">
           <CTASectionShared config={config} style={style} tokens={tokens} context="preview" />
