@@ -29,6 +29,8 @@ interface ServiceListPreviewProps {
   items?: ServiceListPreviewItem[];
   title?: string;
   showViewAll?: boolean;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const MOCK_SERVICES: ServiceListPreviewItem[] = [
@@ -83,6 +85,8 @@ export const ServiceListPreview = ({
   items,
   title = 'Dịch vụ',
   showViewAll = true,
+  fontStyle,
+  fontClassName,
 }: ServiceListPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -127,6 +131,8 @@ export const ServiceListPreview = ({
         styles={SERVICE_LIST_STYLES}
         info={`${displayItems.length} dịch vụ • ${modeLabel}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/services">
           <ServiceListSectionShared

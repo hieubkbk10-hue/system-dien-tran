@@ -46,7 +46,7 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
-  const enableFont = type === 'ProductList';
+  const enableFont = type === 'ProductList' || type === 'ServiceList';
   const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [itemCount, setItemCount] = useState(8);
