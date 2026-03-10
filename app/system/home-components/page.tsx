@@ -43,6 +43,14 @@ export default function SystemHomeComponentsPage() {
 
   const hiddenTypeSet = useMemo(() => new Set(hiddenTypes), [hiddenTypes]);
   const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
+  const selectedHiddenTypes = useMemo(
+    () => selectedTypes.filter((type) => hiddenTypeSet.has(type)),
+    [hiddenTypeSet, selectedTypes]
+  );
+  const selectedVisibleTypes = useMemo(
+    () => selectedTypes.filter((type) => !hiddenTypeSet.has(type)),
+    [hiddenTypeSet, selectedTypes]
+  );
   const typeCountMap = useMemo(() => {
     if (!stats) {return {};}
     return Object.fromEntries(stats.typeBreakdown.map((item) => [item.type, item.count]));
@@ -123,14 +131,26 @@ export default function SystemHomeComponentsPage() {
   };
 
   const handleHideSelected = async () => {
-    if (selectedTypes.length === 0) {return;}
-    const nextHidden = Array.from(new Set([...hiddenTypes, ...selectedTypes]));
+    if (selectedVisibleTypes.length === 0) {return;}
+    const nextHidden = Array.from(new Set([...hiddenTypes, ...selectedVisibleTypes]));
     setHiddenTypes(nextHidden);
     try {
       await setCreateVisibility({ hiddenTypes: nextHidden });
       toast.success('Đã ẩn các component đã chọn khỏi trang tạo.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể ẩn các component đã chọn.');
+    }
+  };
+
+  const handleShowSelected = async () => {
+    if (selectedHiddenTypes.length === 0) {return;}
+    const nextHidden = hiddenTypes.filter((type) => !selectedSet.has(type));
+    setHiddenTypes(nextHidden);
+    try {
+      await setCreateVisibility({ hiddenTypes: nextHidden });
+      toast.success('Đã hiển thị lại các component đã chọn trên trang tạo.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể hiển thị lại các component đã chọn.');
     }
   };
 
@@ -176,8 +196,21 @@ export default function SystemHomeComponentsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleHideSelected} disabled={selectedTypes.length === 0}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleHideSelected}
+              disabled={selectedVisibleTypes.length === 0}
+            >
               Ẩn đã chọn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShowSelected}
+              disabled={selectedHiddenTypes.length === 0}
+            >
+              Hiện đã chọn
             </Button>
             <Button variant="outline" size="sm" onClick={handleHideUnusedTypes} disabled={unusedTypes.length === 0}>
               Ẩn type chưa dùng
