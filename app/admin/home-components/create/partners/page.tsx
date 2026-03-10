@@ -5,6 +5,7 @@ import { Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { PartnersPreview } from '../../partners/_components/PartnersPreview';
 import type { PartnersStyle } from '../../partners/_types';
 import type { ImageItem } from '../../../components/MultiImageUploader';
@@ -21,7 +22,9 @@ export default function PartnersCreatePage() {
   const COMPONENT_TYPE = 'Partners';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đối tác / Logos', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [partnersItems, setPartnersItems] = useState<PartnerItem[]>([
     { id: 'item-1', link: '', name: '', url: '' },
@@ -49,6 +52,9 @@ export default function PartnersCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -137,6 +143,8 @@ export default function PartnersCreatePage() {
         selectedStyle={partnersStyle}
         onStyleChange={setPartnersStyle}
         title={title}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

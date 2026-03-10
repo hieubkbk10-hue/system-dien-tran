@@ -22,6 +22,8 @@ export const PartnersPreview = ({
   selectedStyle = 'grid',
   onStyleChange,
   title,
+  fontStyle,
+  fontClassName,
 }: {
   items: PartnerItem[];
   brandColor: string;
@@ -30,6 +32,8 @@ export const PartnersPreview = ({
   selectedStyle?: PartnersStyle;
   onStyleChange?: (style: PartnersStyle) => void;
   title?: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'grid';
@@ -185,6 +189,8 @@ export const PartnersPreview = ({
         styles={PARTNERS_STYLES}
         deviceWidthClass={deviceWidths[device]}
         info={`${items.length} logo • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {previewStyle === 'grid' && renderGridStyle()}
