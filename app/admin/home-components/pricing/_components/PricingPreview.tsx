@@ -29,6 +29,8 @@ interface PricingPreviewProps {
   mode?: PricingBrandMode;
   selectedStyle?: PricingStyle;
   onStyleChange?: (style: PricingStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export function PricingPreview({
@@ -40,6 +42,8 @@ export function PricingPreview({
   mode = 'dual',
   selectedStyle = 'cards',
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: PricingPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
   const [isYearly, setIsYearly] = React.useState(false);
@@ -86,6 +90,8 @@ export function PricingPreview({
         styles={PRICING_STYLES}
         info={`${plans.length} gói • ${modeLabel}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/pricing">
           <PricingSectionShared

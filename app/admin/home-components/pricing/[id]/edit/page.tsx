@@ -10,7 +10,9 @@ import { AlertTriangle, Eye, GripVertical, Loader2, Package, Plus, Tag, Trash2 }
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { PricingPreview } from '../../_components/PricingPreview';
 import { TextsForm } from '../../_components/TextsForm';
@@ -86,7 +88,9 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -184,7 +188,11 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
-  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged || customFontChanged);
 
   const validation = useMemo(() => getPricingValidationResult({
     primary: effectiveColors.primary,
@@ -301,6 +309,13 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(toSnapshot({
         title,
@@ -332,6 +347,12 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
         });
       }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+        });
+      }
       toast.success('Đã cập nhật Pricing');
     } catch (error) {
       toast.error('Lỗi khi cập nhật');
@@ -352,6 +373,8 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
   if (component === null) {
     return <div className="py-8 text-center text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-20">
@@ -611,6 +634,18 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
               }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Pricing"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <PricingPreview
               title={title}
               plans={pricingPlans}
@@ -620,6 +655,8 @@ export default function PricingEditPage({ params }: { params: Promise<{ id: stri
               selectedStyle={pricingStyle}
               onStyleChange={setPricingStyle}
               config={{ ...pricingConfig, texts }}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>
