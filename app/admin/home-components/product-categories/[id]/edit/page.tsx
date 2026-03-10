@@ -10,7 +10,9 @@ import { Package, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ProductCategoriesForm } from '../../_components/ProductCategoriesForm';
 import { ProductCategoriesPreview } from '../../_components/ProductCategoriesPreview';
@@ -26,8 +28,10 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const brandMode: ProductCategoriesBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<"homeComponents"> });
   const updateMutation = useMutation(api.homeComponents.update);
   const productCategoriesData = useQuery(api.productCategories.listActive);
@@ -104,6 +108,10 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
         || customState.primary !== initialCustom.primary
         || resolvedCustomSecondary !== initialCustom.secondary
       : false;
+    const customFontChanged = showFontCustomBlock
+      ? customFontState.enabled !== initialFontCustom.enabled
+        || customFontState.fontKey !== initialFontCustom.fontKey
+      : false;
     const changed = title !== initialData.title
       || active !== initialData.active
       || currentCategories !== initialCategories
@@ -111,7 +119,8 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
       || productCategoriesShowCount !== initialData.showProductCount
       || productCategoriesColsDesktop !== initialData.columnsDesktop
       || productCategoriesColsMobile !== initialData.columnsMobile
-      || customChanged;
+      || customChanged
+      || customFontChanged;
 
     setHasChanges(changed);
   }, [
@@ -126,6 +135,9 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
     customState,
     initialCustom,
     showCustomBlock,
+    customFontState,
+    initialFontCustom,
+    showFontCustomBlock,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,6 +172,13 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật danh mục sản phẩm');
       setInitialData({
         title,
@@ -176,6 +195,12 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       setHasChanges(false);
@@ -198,6 +223,8 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -285,6 +312,18 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Danh mục"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <ProductCategoriesPreview
               config={{
               categories: productCategoriesItems,
@@ -299,6 +338,8 @@ export default function ProductCategoriesEditPage({ params }: { params: Promise<
               selectedStyle={productCategoriesStyle}
               onStyleChange={setProductCategoriesStyle}
               categoriesData={productCategoriesData ?? []}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

@@ -10,6 +10,7 @@ import { ProductCategoriesPreview } from '../../product-categories/_components/P
 import type { ProductCategoriesBrandMode, ProductCategoriesStyle } from '../../product-categories/_types';
 import { CategoryImageSelector } from '../../../components/CategoryImageSelector';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 
 interface CategoryItem {
   id: number;
@@ -22,8 +23,10 @@ export default function ProductCategoriesCreatePage() {
   const COMPONENT_TYPE = 'ProductCategories';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Danh mục sản phẩm', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode: ProductCategoriesBrandMode = mode === 'single' ? 'single' : 'dual';
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const categoriesData = useQuery(api.productCategories.listActive);
   
@@ -119,6 +122,9 @@ export default function ProductCategoriesCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -271,6 +277,8 @@ export default function ProductCategoriesCreatePage() {
         selectedStyle={style}
         onStyleChange={setStyle}
         categoriesData={availableCategories}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

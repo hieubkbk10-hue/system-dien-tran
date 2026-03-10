@@ -27,7 +27,9 @@ export const ProductCategoriesPreview = ({
   mode,
   selectedStyle, 
   onStyleChange,
-  categoriesData
+  categoriesData,
+  fontStyle,
+  fontClassName,
 }: { 
   config: ProductCategoriesConfig;
   brandColor: string;
@@ -36,6 +38,8 @@ export const ProductCategoriesPreview = ({
   selectedStyle?: ProductCategoriesStyle;
   onStyleChange?: (style: ProductCategoriesStyle) => void;
   categoriesData: CategoryData[];
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const isMobile = device === 'mobile';
@@ -726,6 +730,8 @@ export const ProductCategoriesPreview = ({
         styles={PRODUCT_CATEGORIES_STYLES} 
         info={getPreviewInfo()}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {previewStyle === 'grid' && renderGridStyle()}
