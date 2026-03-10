@@ -46,7 +46,7 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(colorOverrideType, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
-  const enableFont = type === 'ProductList' || type === 'ServiceList';
+  const enableFont = type === 'ProductList' || type === 'ServiceList' || type === 'Blog';
   const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [itemCount, setItemCount] = useState(8);
@@ -681,6 +681,8 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
             title={title}
             previewItems={typedBlogPreviewPosts}
             categoryMap={blogCategoryMap}
+            fontStyle={fontStyle}
+            fontClassName="font-active"
           />
           {blogWarnings.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">

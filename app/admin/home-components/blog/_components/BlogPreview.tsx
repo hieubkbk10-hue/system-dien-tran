@@ -23,6 +23,8 @@ interface BlogPreviewProps {
   title?: string;
   previewItems?: BlogPostItem[];
   categoryMap?: Record<string, string>;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const styles = [
@@ -143,6 +145,8 @@ export const BlogPreview = ({
   title = 'Bài viết',
   previewItems,
   categoryMap,
+  fontStyle,
+  fontClassName,
 }: BlogPreviewProps) => {
   const [device, setDevice] = React.useState<PreviewDevice>('desktop');
 
@@ -499,7 +503,7 @@ export const BlogPreview = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className={cn('space-y-3', fontClassName)} style={fontStyle}>
       <Card className="mt-6">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-3">

@@ -10,7 +10,9 @@ import { FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { BlogForm, type BlogPostItem } from '../../_components/BlogForm';
 import { BlogPreview } from '../../_components/BlogPreview';
@@ -24,7 +26,9 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
   const postsData = useQuery(api.posts.listAll, { limit: 100 });
@@ -145,7 +149,11 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
-  const hasChanges = initialState.length > 0 && (currentState !== initialState || customChanged);
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
+  const hasChanges = initialState.length > 0 && (currentState !== initialState || customChanged || customFontChanged);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +201,13 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật Blog');
       setInitialState(currentState);
       if (showCustomBlock) {
@@ -201,6 +216,12 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
     } catch (error) {
@@ -224,6 +245,8 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -323,6 +346,18 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Blog"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <BlogPreview
               brandColor={effectiveColors.primary}
               secondary={effectiveColors.secondary}
@@ -333,6 +368,8 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
               title={title}
               previewItems={typedPreviewPosts}
               categoryMap={typedCategoryMap}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>
