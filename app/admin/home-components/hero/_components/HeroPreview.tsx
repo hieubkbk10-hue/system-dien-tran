@@ -29,6 +29,8 @@ export const HeroPreview = ({
   selectedStyle = 'slider',
   onStyleChange,
   content,
+  fontStyle,
+  fontClassName,
 }: { 
   slides: { id: number; image: string; link: string }[]; 
   brandColor: string;
@@ -37,6 +39,8 @@ export const HeroPreview = ({
   selectedStyle?: HeroStyle;
   onStyleChange?: (style: HeroStyle) => void;
   content?: HeroContent;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -550,6 +554,8 @@ export const HeroPreview = ({
         styles={HERO_STYLES}
         info={info}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com">
           <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">

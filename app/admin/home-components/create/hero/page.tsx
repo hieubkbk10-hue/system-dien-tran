@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { HeroForm } from '../../hero/_components/HeroForm';
 import type { HeroContent, HeroSlide, HeroStyle } from '../../hero/_types';
 import { DEFAULT_HERO_CONTENT } from '../../hero/_lib/constants';
@@ -13,6 +14,7 @@ const needsContentForm = (style: HeroStyle) => ['fullscreen', 'split', 'parallax
 export default function HeroCreatePage() {
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Hero Banner', 'Hero');
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState('Hero', { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState('Hero', { seedCustomFromSettingsWhenTypeEmpty: true });
 
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([
     { id: 'slide-1', link: '', url: '' }
@@ -25,6 +27,7 @@ export default function HeroCreatePage() {
     image: s.url,
     link: s.link 
   }));
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, {
@@ -47,6 +50,9 @@ export default function HeroCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <HeroForm
         heroSlides={heroSlides}
@@ -64,6 +70,8 @@ export default function HeroCreatePage() {
         selectedStyle={heroStyle}
         onStyleChange={setHeroStyle}
         content={heroContent}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );
