@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { CategoryProductsPreview } from '../../category-products/_components/CategoryProductsPreview';
 import type { CategoryProductsBrandMode, CategoryProductsStyle } from '../../category-products/_types';
 
@@ -20,7 +21,9 @@ export default function CategoryProductsCreatePage() {
   const COMPONENT_TYPE = 'CategoryProducts';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm theo danh mục', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
   const brandMode: CategoryProductsBrandMode = mode === 'single' ? 'single' : 'dual';
   
   const categoriesData = useQuery(api.productCategories.listActive);
@@ -111,6 +114,9 @@ export default function CategoryProductsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -261,6 +267,8 @@ export default function CategoryProductsCreatePage() {
         onStyleChange={setStyle}
         categoriesData={availableCategories}
         productsData={productsData ?? []}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

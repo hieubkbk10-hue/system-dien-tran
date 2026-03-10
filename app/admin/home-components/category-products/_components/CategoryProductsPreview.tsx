@@ -28,6 +28,8 @@ interface CategoryProductsPreviewProps {
   onStyleChange: (style: CategoryProductsStyle) => void;
   categoriesData: { _id: string; name: string; slug?: string; image?: string }[];
   productsData: CategoryProductsProduct[];
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const CategoryProductsPreview = ({ 
@@ -39,6 +41,8 @@ export const CategoryProductsPreview = ({
   onStyleChange, 
   categoriesData,
   productsData,
+  fontStyle,
+  fontClassName,
 }: CategoryProductsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle || 'grid';
@@ -835,6 +839,8 @@ export const CategoryProductsPreview = ({
         styles={CATEGORY_PRODUCTS_STYLES} 
         info={getPreviewInfo()}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           {previewStyle === 'grid' && renderGridStyle()}

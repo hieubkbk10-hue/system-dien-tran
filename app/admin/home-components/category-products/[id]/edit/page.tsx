@@ -10,7 +10,9 @@ import { Package, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CategoryProductsForm } from '../../_components/CategoryProductsForm';
 import { CategoryProductsPreview } from '../../_components/CategoryProductsPreview';
@@ -31,8 +33,10 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const brandMode: CategoryProductsBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
   const categoriesData = useQuery(api.productCategories.listActive);
@@ -111,7 +115,11 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
         || customState.primary !== initialCustom.primary
         || resolvedCustomSecondary !== initialCustom.secondary
       : false;
-    setHasChanges(snapshot !== initialSnapshot || customChanged);
+    const customFontChanged = showFontCustomBlock
+      ? customFontState.enabled !== initialFontCustom.enabled
+        || customFontState.fontKey !== initialFontCustom.fontKey
+      : false;
+    setHasChanges(snapshot !== initialSnapshot || customChanged || customFontChanged);
   }, [
     title,
     active,
@@ -125,6 +133,9 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
     customState,
     initialCustom,
     showCustomBlock,
+    customFontState,
+    initialFontCustom,
+    showFontCustomBlock,
   ]);
 
   const buildWarningMessages = (validation: ReturnType<typeof getCategoryProductsValidationResult>) => {
@@ -196,6 +207,17 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
           secondary: resolvedCustomSecondary,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+        });
+      }
       toast.success('Đã cập nhật Sản phẩm theo danh mục');
       setInitialSnapshot(JSON.stringify({
         title,
@@ -227,6 +249,8 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -332,6 +356,18 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Sản phẩm theo danh mục"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <CategoryProductsPreview
               config={{
               columnsDesktop,
@@ -347,6 +383,8 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
               onStyleChange={setStyle}
               categoriesData={categoriesData ?? []}
               productsData={productsData ?? []}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>
