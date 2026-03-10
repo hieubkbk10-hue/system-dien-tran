@@ -18,6 +18,8 @@ interface CaseStudyPreviewProps {
   mode?: CaseStudyBrandMode;
   selectedStyle?: CaseStudyStyle;
   onStyleChange?: (style: CaseStudyStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const getImageSizeInfo = (count: number, style: CaseStudyStyle) => {
@@ -54,6 +56,8 @@ export const CaseStudyPreview = ({
   mode = 'dual',
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: CaseStudyPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'grid';
@@ -75,6 +79,8 @@ export const CaseStudyPreview = ({
         styles={CASE_STUDY_STYLES}
         deviceWidthClass={deviceWidths[device]}
         info={getImageSizeInfo(projects.length, previewStyle)}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/projects">
           <CaseStudySectionShared

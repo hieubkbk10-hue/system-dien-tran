@@ -10,7 +10,9 @@ import { AlertTriangle, Eye, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import {
   getCaseStudyValidationResult,
@@ -29,7 +31,9 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const brandMode: CaseStudyBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -102,11 +106,15 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
 
   useEffect(() => {
     if (!initialState) {return;}
-    setHasChanges(currentState !== initialState || customChanged);
-  }, [currentState, initialState, customChanged]);
+    setHasChanges(currentState !== initialState || customChanged || customFontChanged);
+  }, [currentState, initialState, customChanged, customFontChanged]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +166,13 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật Dự án thực tế');
       setInitialState(currentState);
       if (showCustomBlock) {
@@ -166,6 +181,12 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       setHasChanges(false);
@@ -188,6 +209,8 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -267,6 +290,18 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
               }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Case Study"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <CaseStudyPreview
               projects={projects}
               brandColor={effectiveColors.primary}
@@ -274,6 +309,8 @@ export default function CaseStudyEditPage({ params }: { params: Promise<{ id: st
               mode={brandMode}
               selectedStyle={caseStudyStyle}
               onStyleChange={setCaseStudyStyle}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

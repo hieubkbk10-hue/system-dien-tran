@@ -5,6 +5,7 @@ import { AlertTriangle, Eye, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import {
   getCaseStudyValidationResult,
 } from '../../case-study/_lib/colors';
@@ -28,7 +29,9 @@ export default function CaseStudyCreatePage() {
   const COMPONENT_TYPE = 'CaseStudy';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Dự án thực tế', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
   const brandMode: CaseStudyBrandMode = mode === 'single' ? 'single' : 'dual';
   const [warningMessages, setWarningMessages] = useState<string[]>([]);
   const [caseStudyStyle, setCaseStudyStyle] = useState<CaseStudyStyle>('grid');
@@ -105,6 +108,9 @@ export default function CaseStudyCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
@@ -205,6 +211,8 @@ export default function CaseStudyCreatePage() {
         mode={brandMode}
         selectedStyle={caseStudyStyle}
         onStyleChange={setCaseStudyStyle}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
 
       {brandMode === 'dual' && warningMessages.length > 0 && (
