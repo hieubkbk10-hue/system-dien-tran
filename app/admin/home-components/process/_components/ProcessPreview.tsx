@@ -13,6 +13,8 @@ interface ProcessPreviewProps {
   mode: ProcessBrandMode;
   selectedStyle?: ProcessStyle;
   onStyleChange?: (style: ProcessStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const ProcessPreview = ({
@@ -22,6 +24,8 @@ export const ProcessPreview = ({
   mode,
   selectedStyle = 'horizontal',
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: ProcessPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const normalizedSteps = React.useMemo(() => normalizeProcessRenderSteps(steps), [steps]);
@@ -40,6 +44,8 @@ export const ProcessPreview = ({
       includePreviewWrapper
       previewStyle={selectedStyle}
       onPreviewStyleChange={onStyleChange}
+      fontStyle={fontStyle}
+      fontClassName={fontClassName}
     />
   );
 };

@@ -10,7 +10,9 @@ import { ListChecks, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ProcessForm } from '../../_components/ProcessForm';
 import { ProcessPreview } from '../../_components/ProcessPreview';
@@ -29,7 +31,9 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
 
@@ -78,6 +82,10 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
 
   useEffect(() => {
     if (!initialData) {return;}
@@ -90,8 +98,8 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
       || processStyle !== initialData.style
       || currentSteps !== initialSteps;
 
-    setHasChanges(changed || customChanged);
-  }, [title, active, steps, processStyle, initialData, customChanged]);
+    setHasChanges(changed || customChanged || customFontChanged);
+  }, [title, active, steps, processStyle, initialData, customChanged, customFontChanged]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -120,6 +128,13 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       toast.success('Đã cập nhật Process');
       setInitialData({
@@ -134,6 +149,12 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       setHasChanges(false);
@@ -156,6 +177,8 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const normalizedPreviewSteps = normalizeProcessRenderSteps(serializeProcessFormSteps(steps));
 
@@ -239,6 +262,18 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
               }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Process"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <ProcessPreview
               steps={normalizedPreviewSteps}
               brandColor={effectiveColors.primary}
@@ -246,6 +281,8 @@ export default function ProcessEditPage({ params }: { params: Promise<{ id: stri
               mode={effectiveColors.mode as ProcessBrandMode}
               selectedStyle={processStyle}
               onStyleChange={setProcessStyle}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

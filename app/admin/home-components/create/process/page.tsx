@@ -3,6 +3,7 @@
 import React from 'react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { ProcessForm } from '../../process/_components/ProcessForm';
 import { ProcessPreview } from '../../process/_components/ProcessPreview';
 import {
@@ -40,7 +41,9 @@ export default function ProcessCreatePage() {
   const COMPONENT_TYPE = 'Process';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Quy trình làm việc', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [steps, setSteps] = React.useState<ProcessFormStep[]>(DEFAULT_CREATE_STEPS);
   const [style, setStyle] = React.useState<ProcessStyle>('horizontal');
@@ -70,6 +73,9 @@ export default function ProcessCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <ProcessForm steps={steps} onChange={setSteps} secondary={secondary} />
 
@@ -80,6 +86,8 @@ export default function ProcessCreatePage() {
         mode={mode as ProcessBrandMode}
         selectedStyle={style}
         onStyleChange={setStyle}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

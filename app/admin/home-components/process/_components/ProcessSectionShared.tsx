@@ -32,6 +32,8 @@ interface ProcessSectionSharedProps {
   includePreviewWrapper?: boolean;
   previewStyle?: ProcessStyle;
   onPreviewStyleChange?: (style: ProcessStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const PROCESS_STYLES: Array<{ id: ProcessStyle; label: string }> = [
@@ -607,6 +609,8 @@ export function ProcessSectionShared({
   includePreviewWrapper = false,
   previewStyle,
   onPreviewStyleChange,
+  fontStyle,
+  fontClassName,
 }: ProcessSectionSharedProps) {
   const tokens = React.useMemo(() => getProcessColors(brandColor, secondary, mode), [brandColor, secondary, mode]);
   const selectedStyle = previewStyle ?? style;
@@ -637,6 +641,8 @@ export function ProcessSectionShared({
         styles={PROCESS_STYLES}
         info={info}
         deviceWidthClass={deviceWidths[previewDevice]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           <ProcessSectionContent
