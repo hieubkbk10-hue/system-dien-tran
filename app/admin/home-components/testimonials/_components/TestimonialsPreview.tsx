@@ -46,6 +46,8 @@ export const TestimonialsPreview = ({
   mode = 'dual',
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: {
   items: TestimonialsItem[];
   brandColor: string;
@@ -53,6 +55,8 @@ export const TestimonialsPreview = ({
   mode?: TestimonialsBrandMode;
   selectedStyle?: TestimonialsStyle;
   onStyleChange?: (style: TestimonialsStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'cards';
@@ -472,6 +476,8 @@ export const TestimonialsPreview = ({
       styles={TESTIMONIAL_STYLES}
       deviceWidthClass={deviceWidths[device]}
       info={`${normalizedItems.length} đánh giá`}
+      fontStyle={fontStyle}
+      fontClassName={fontClassName}
     >
       <BrowserFrame>
         <div className="@container/preview">

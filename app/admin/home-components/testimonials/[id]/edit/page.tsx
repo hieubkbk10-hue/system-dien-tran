@@ -10,7 +10,9 @@ import { Loader2, Star, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { ColorInfoPanel } from '../../../_shared/components/ColorInfoPanel';
 import { TestimonialsPreview } from '../../_components/TestimonialsPreview';
@@ -66,7 +68,9 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const brandMode: TestimonialsBrandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
 
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
@@ -132,9 +136,13 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
         || customState.primary !== initialCustom.primary
         || resolvedCustomSecondary !== initialCustom.secondary
       : false;
+    const customFontChanged = showFontCustomBlock
+      ? customFontState.enabled !== initialFontCustom.enabled
+        || customFontState.fontKey !== initialFontCustom.fontKey
+      : false;
 
-    setHasChanges(snapshot !== initialSnapshot || customChanged);
-  }, [title, active, items, style, component, initialSnapshot, customState, initialCustom, showCustomBlock]);
+    setHasChanges(snapshot !== initialSnapshot || customChanged || customFontChanged);
+  }, [title, active, items, style, component, initialSnapshot, customState, initialCustom, showCustomBlock, customFontState, initialFontCustom, showFontCustomBlock]);
 
   useEffect(() => {
     if (!component || component.type !== 'Testimonials') {return;}
@@ -182,6 +190,13 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       toast.success('Đã cập nhật Testimonials');
 
@@ -200,6 +215,12 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       setHasChanges(false);
@@ -222,6 +243,8 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -314,6 +337,18 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
               }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Testimonials"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <TestimonialsPreview
               items={items}
               brandColor={effectiveColors.primary}
@@ -321,6 +356,8 @@ export default function TestimonialsEditPage({ params }: { params: Promise<{ id:
               mode={brandMode}
               selectedStyle={style}
               onStyleChange={setStyle}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
             {brandMode === 'dual' && (
               <ColorInfoPanel brandColor={effectiveColors.primary} secondary={resolvedSecondary} />
