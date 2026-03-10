@@ -29,6 +29,8 @@ interface FeaturesPreviewProps {
   sectionTitle?: string;
   selectedStyle?: FeaturesStyle;
   onStyleChange?: (style: FeaturesStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export function FeaturesPreview({
@@ -39,6 +41,8 @@ export function FeaturesPreview({
   sectionTitle,
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: FeaturesPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
 
@@ -64,6 +68,8 @@ export function FeaturesPreview({
         setPreviewStyle={(next) => onStyleChange?.(next as FeaturesStyle)}
         styles={styles}
         info={info}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
         deviceWidthClass={deviceWidths[device]}
       >
         <BrowserFrame>
