@@ -14,6 +14,8 @@ export const ProductGridPreview = ({
   items,
   subTitle,
   sectionTitle,
+  fontStyle,
+  fontClassName,
 }: {
   brandColor: string;
   secondary: string;
@@ -23,6 +25,8 @@ export const ProductGridPreview = ({
   items?: ProductListPreviewItem[];
   subTitle?: string;
   sectionTitle?: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   return (
     <ProductListPreview
@@ -35,6 +39,8 @@ export const ProductGridPreview = ({
       items={items}
       subTitle={subTitle}
       sectionTitle={sectionTitle}
+      fontStyle={fontStyle}
+      fontClassName={fontClassName}
     />
   );
 };

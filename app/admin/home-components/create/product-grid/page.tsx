@@ -6,6 +6,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { api } from '@/convex/_generated/api';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
 import type { ProductListPreviewItem } from '../../product-list/_types';
 import type { ProductGridProductItem } from '../../product-grid/_components/ProductGridForm';
@@ -17,7 +18,9 @@ function ProductGridCreateContent() {
   const COMPONENT_TYPE = 'ProductGrid';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Sản phẩm', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [itemCount, setItemCount] = useState(8);
   const [sortBy, setSortBy] = useState<'newest' | 'bestseller' | 'random'>('newest');
@@ -120,6 +123,9 @@ function ProductGridCreateContent() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <ProductGridForm
         itemCount={itemCount}
@@ -156,6 +162,8 @@ function ProductGridCreateContent() {
             }
             subTitle={subTitle}
             sectionTitle={sectionTitle}
+            fontStyle={fontStyle}
+            fontClassName="font-active"
           />
         </div>
       </div>
