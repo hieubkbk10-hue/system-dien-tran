@@ -7,8 +7,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2, Plus, Search, Trash2, Edit, Eye } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Button, Card, Input } from '../components/ui';
-import { BulkDeleteConfirmDialog } from '../components/BulkDeleteConfirmDialog';
+import { Button, Card, Input } from '@/app/admin/components/ui';
+import { BulkDeleteConfirmDialog } from '@/app/admin/components/BulkDeleteConfirmDialog';
 
 const LANDING_TYPE_LABELS: Record<string, string> = {
   'feature': 'Tính năng',
@@ -30,7 +30,7 @@ const LANDING_TYPE_ROUTES: Record<string, string> = {
   'guide': '/guides',
 };
 
-export default function LandingPagesPage() {
+export const LandingPagesPanel = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<Id<'landingPages'>>>(new Set());
@@ -170,7 +170,7 @@ export default function LandingPagesPage() {
             {isGenerating ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
             Tạo tự động
           </Button>
-          <Button onClick={() => router.push('/admin/landing-pages/create')}>
+          <Button onClick={() => router.push('/system/seo/create')}>
             <Plus size={16} className="mr-2" /> Tạo mới
           </Button>
         </div>
@@ -189,10 +189,7 @@ export default function LandingPagesPage() {
           </div>
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleOpenSelected}
-              >
+              <Button variant="outline" onClick={handleOpenSelected}>
                 Mở {selectedIds.size}
               </Button>
               <Button
@@ -271,7 +268,7 @@ export default function LandingPagesPage() {
                       </button>
                     )}
                     <button
-                      onClick={() => router.push(`/admin/landing-pages/${page._id}/edit`)}
+                      onClick={() => router.push(`/system/seo/${page._id}/edit`)}
                       className="text-slate-600 hover:text-slate-800"
                     >
                       <Edit size={16} />
@@ -305,4 +302,4 @@ export default function LandingPagesPage() {
       />
     </div>
   );
-}
+};

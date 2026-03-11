@@ -1,15 +1,14 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
-import { ExternalLink, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
-import { LexicalEditor } from '../../../components/LexicalEditor';
-import { ImageUploader } from '../../../components/ImageUploader';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/app/admin/components/ui';
+import { LexicalEditor } from '@/app/admin/components/LexicalEditor';
+import { ImageUploader } from '@/app/admin/components/ImageUploader';
 
 const LANDING_TYPES = [
   { value: 'feature', label: 'Tính năng' },
@@ -21,22 +20,9 @@ const LANDING_TYPES = [
   { value: 'guide', label: 'Hướng dẫn' },
 ] as const;
 
-const LANDING_TYPE_ROUTES: Record<string, string> = {
-  'feature': '/features',
-  'use-case': '/use-cases',
-  'solution': '/solutions',
-  'compare': '/compare',
-  'integration': '/integrations',
-  'template': '/templates',
-  'guide': '/guides',
-};
-
-export default function LandingPageEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function LandingPageCreatePage() {
   const router = useRouter();
-
-  const pageData = useQuery(api.landingPages.getById, { id: id as Id<'landingPages'> });
-  const updateMutation = useMutation(api.landingPages.update);
+  const createMutation = useMutation(api.landingPages.create);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -49,50 +35,16 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
   const [faqItems, setFaqItems] = useState<Array<{ question: string; answer: string }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const initialSnapshotRef = useRef<any>(null);
-
-  const currentSnapshot = useMemo(() => ({
-    title: title.trim(),
-    slug: slug.trim(),
-    summary: summary.trim(),
-    content: content.trim(),
-    heroImage: heroImage ?? '',
-    landingType,
-    primaryIntent: primaryIntent.trim(),
-    status,
-    faqItems,
-  }), [title, slug, summary, content, heroImage, landingType, primaryIntent, status, faqItems]);
-
-  const hasChanges = useMemo(() => {
-    if (!initialSnapshotRef.current) return false;
-    return JSON.stringify(initialSnapshotRef.current) !== JSON.stringify(currentSnapshot);
-  }, [currentSnapshot]);
-
-  useEffect(() => {
-    if (pageData) {
-      setTitle(pageData.title);
-      setSlug(pageData.slug);
-      setSummary(pageData.summary);
-      setContent(pageData.content || '');
-      setHeroImage(pageData.heroImage);
-      setLandingType(pageData.landingType);
-      setPrimaryIntent(pageData.primaryIntent || '');
-      setStatus(pageData.status);
-      setFaqItems(pageData.faqItems || []);
-
-      initialSnapshotRef.current = {
-        title: pageData.title,
-        slug: pageData.slug,
-        summary: pageData.summary,
-        content: pageData.content || '',
-        heroImage: pageData.heroImage ?? '',
-        landingType: pageData.landingType,
-        primaryIntent: pageData.primaryIntent || '',
-        status: pageData.status,
-        faqItems: pageData.faqItems || [],
-      };
-    }
-  }, [pageData]);
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val);
+    const generatedSlug = val.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036F]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-');
+    setSlug(generatedSlug);
+  };
 
   const addFaqItem = () => {
     setFaqItems([...faqItems, { question: '', answer: '' }]);
@@ -118,9 +70,8 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
     setIsSubmitting(true);
     try {
       const validFaqItems = faqItems.filter(item => item.question.trim() && item.answer.trim());
-      
-      await updateMutation({
-        id: id as Id<'landingPages'>,
+
+      await createMutation({
         title: title.trim(),
         slug: slug.trim(),
         summary: summary.trim(),
@@ -132,38 +83,21 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
         faqItems: validFaqItems.length > 0 ? validFaqItems : undefined,
       });
 
-      toast.success('Đã cập nhật landing page');
-      router.push('/admin/landing-pages');
+      toast.success('Đã tạo landing page');
+      router.push('/system/seo');
     } catch (error) {
-      toast.error('Lỗi khi cập nhật landing page');
+      toast.error('Lỗi khi tạo landing page');
       console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!pageData) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin" /></div>;
-  }
-
-  const previewUrl = status === 'published' ? `${LANDING_TYPE_ROUTES[landingType]}/${slug}` : null;
-
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Sửa Landing Page</h1>
-          <p className="text-sm text-slate-500">Cập nhật landing page</p>
-        </div>
-        {previewUrl && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.open(previewUrl, '_blank')}
-          >
-            <ExternalLink size={16} className="mr-2" /> Xem trang
-          </Button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold">Tạo Landing Page</h1>
+        <p className="text-sm text-slate-500">Tạo landing page mới cho SEO growth</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -177,7 +111,7 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
               <Input
                 id="title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleTitleChange}
                 placeholder="Nhập tiêu đề..."
                 required
               />
@@ -239,7 +173,7 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
               <select
                 id="status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as 'draft' | 'published')}
+                onChange={(e) => setStatus(e.target.value as any)}
                 className="w-full px-3 py-2 border rounded-md"
               >
                 <option value="draft">Draft</option>
@@ -309,14 +243,14 @@ export default function LandingPageEditPage({ params }: { params: Promise<{ id: 
         </Card>
 
         <div className="flex gap-4">
-          <Button type="submit" disabled={isSubmitting || !hasChanges}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 animate-spin" size={16} />}
-            Lưu thay đổi
+            Tạo Landing Page
           </Button>
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/landing-pages')}
+            onClick={() => router.push('/system/seo')}
           >
             Hủy
           </Button>
