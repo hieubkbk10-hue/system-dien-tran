@@ -9,19 +9,21 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
 
   // Policy cứng: disallow theo route-policy contract
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: [
-        '/admin/',
-        '/system/',
-        '/api/',
-        '/account/',
-        '/cart/',
-        '/checkout/',
-        '/wishlist/',
-      ],
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: [
+          '/admin/',
+          '/system/',
+          '/api/',
+          '/account/',
+          '/cart/',
+          '/checkout/',
+          '/wishlist/',
+        ],
+      },
+    ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

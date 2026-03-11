@@ -2,13 +2,22 @@ import type { Metadata } from 'next';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings, getContactSettings } from '@/lib/get-settings';
-import { buildSeoMetadata } from '@/lib/seo/metadata';
+import { buildHubMetadata } from '@/lib/seo/metadata';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { getHubInternalLinks } from '@/lib/seo/internal-links';
 
 export const revalidate = 1800;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo, contact] = await Promise.all([getSiteSettings(), getSEOSettings(), getContactSettings()]);
-  return buildSeoMetadata({ contact, descriptionOverride: 'Khám phá các trường hợp sử dụng thực tế', pathname: '/use-cases', routeType: 'list', seo, site, titleOverride: 'Trường hợp sử dụng' });
+  return buildHubMetadata({
+    contact,
+    description: 'Khám phá các trường hợp sử dụng thực tế',
+    pathname: '/use-cases',
+    seo,
+    site,
+    title: 'Trường hợp sử dụng',
+  });
 }
 
 export default async function UseCasesPage() {
@@ -35,6 +44,7 @@ export default async function UseCasesPage() {
           ))}
         </div>
       )}
+      <InternalLinkCluster links={getHubInternalLinks('use-cases')} />
     </div>
   );
 }

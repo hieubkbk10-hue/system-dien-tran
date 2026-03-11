@@ -3,7 +3,7 @@
  * Zero-config: tự động quyết định schema nào phát dựa trên dữ liệu thật
  */
 
-import type { ContactSettings, SEOSettings, SiteSettings } from '@/lib/get-settings';
+import type { ContactSettings, SEOSettings, SiteSettings, SocialSettings } from '@/lib/get-settings';
 import { shouldIncludeLocalBusiness } from './resolver';
 
 type SchemaRecord = Record<string, unknown>;
@@ -30,6 +30,7 @@ export const buildOrganizationSchema = (params: {
   email?: string;
   phone?: string;
   address?: string;
+  sameAs?: string[];
 }): SchemaRecord => ({
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -42,6 +43,7 @@ export const buildOrganizationSchema = (params: {
   ...(params.address && {
     address: { '@type': 'PostalAddress', streetAddress: params.address },
   }),
+  ...(params.sameAs && params.sameAs.length > 0 && { sameAs: params.sameAs }),
 });
 
 export const buildLocalBusinessSchema = (params: {
@@ -52,6 +54,7 @@ export const buildLocalBusinessSchema = (params: {
   email?: string;
   phone?: string;
   address?: string;
+  sameAs?: string[];
 }): SchemaRecord => ({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
@@ -64,6 +67,7 @@ export const buildLocalBusinessSchema = (params: {
   ...(params.address && {
     address: { '@type': 'PostalAddress', streetAddress: params.address },
   }),
+  ...(params.sameAs && params.sameAs.length > 0 && { sameAs: params.sameAs }),
 });
 
 // =================== Entity-Level Schemas ===================
@@ -217,8 +221,21 @@ export const buildSiteSchemas = (params: {
   site: SiteSettings;
   seo: SEOSettings;
   contact: ContactSettings;
+  social?: SocialSettings;
 }): SchemaRecord[] => {
   const schemas: SchemaRecord[] = [];
+  const sameAs = [
+    params.social?.social_facebook,
+    params.social?.social_instagram,
+    params.social?.social_youtube,
+    params.social?.social_tiktok,
+    params.social?.social_twitter,
+    params.social?.social_linkedin,
+    params.social?.social_pinterest,
+    params.contact.contact_zalo,
+  ].map((value) => (value || '').trim())
+    .filter((value) => value && value !== '#')
+    .filter((value) => value.startsWith('http'));
 
   schemas.push(
     buildWebSiteSchema({
@@ -240,6 +257,7 @@ export const buildSiteSchemas = (params: {
         logo: params.site.site_logo,
         name: params.site.site_name,
         phone: params.contact.contact_phone,
+        sameAs,
         url: params.site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '',
       })
     );
@@ -252,6 +270,7 @@ export const buildSiteSchemas = (params: {
         logo: params.site.site_logo,
         name: params.site.site_name,
         phone: params.contact.contact_phone,
+        sameAs,
         url: params.site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '',
       })
     );

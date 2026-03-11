@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings, getContactSettings } from '@/lib/get-settings';
-import { buildSeoMetadata } from '@/lib/seo/metadata';
+import { buildHubMetadata } from '@/lib/seo/metadata';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { getHubInternalLinks } from '@/lib/seo/internal-links';
 
 export const revalidate = 1800; // 30 minutes
 
@@ -13,14 +15,13 @@ export async function generateMetadata(): Promise<Metadata> {
     getContactSettings(),
   ]);
 
-  return buildSeoMetadata({
+  return buildHubMetadata({
     contact,
-    descriptionOverride: 'Khám phá toàn bộ tính năng của hệ thống',
+    description: 'Khám phá toàn bộ tính năng của hệ thống',
     pathname: '/features',
-    routeType: 'list',
     seo,
     site,
-    titleOverride: 'Tính năng',
+    title: 'Tính năng',
   });
 }
 
@@ -67,6 +68,8 @@ export default async function FeaturesPage() {
           ))}
         </div>
       )}
+
+      <InternalLinkCluster links={getHubInternalLinks('features')} />
     </div>
   );
 }

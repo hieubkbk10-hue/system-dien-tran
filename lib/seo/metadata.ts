@@ -213,3 +213,21 @@ export const buildSeoMetadata = (params: {
     },
   };
 };
+
+export const buildHubMetadata = (params: {
+  contact: ContactSettings;
+  description: string;
+  pathname: string;
+  seo: SEOSettings;
+  site: SiteSettings;
+  title: string;
+  routeType?: RouteType;
+}): Metadata => buildSeoMetadata({
+  contact: params.contact,
+  descriptionOverride: params.description,
+  pathname: params.pathname,
+  routeType: params.routeType ?? 'list',
+  seo: params.seo,
+  site: params.site,
+  titleOverride: params.title,
+});

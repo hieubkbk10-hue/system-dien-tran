@@ -1,23 +1,23 @@
 import type { Metadata } from 'next';
 import HomePageClient from './_components/HomePageClient';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [site, seo] = await Promise.all([
+  const [site, seo, contact] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
+    getContactSettings(),
   ]);
-  const context = buildSeoContext(site, seo);
 
-  return buildMetadata({
-    canonical: buildCanonicalUrl(context.baseUrl),
-    context,
-    description: context.description,
-    indexable: true,
-    title: context.title,
+  return buildSeoMetadata({
+    contact,
+    pathname: '/',
+    routeType: 'home',
+    seo,
+    site,
   });
 }
 

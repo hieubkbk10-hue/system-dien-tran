@@ -108,3 +108,65 @@ export const getRelatedPosts = async (params: {
     type: 'post' as const,
   }));
 };
+
+export type HubKey =
+  | 'features'
+  | 'use-cases'
+  | 'solutions'
+  | 'compare'
+  | 'integrations'
+  | 'templates'
+  | 'guides';
+
+export type InternalLinkItem = {
+  description?: string;
+  href: string;
+  title: string;
+};
+
+const HUB_LINKS: Record<HubKey, InternalLinkItem[]> = {
+  compare: [
+    { href: '/features', title: 'Tính năng', description: 'Xem toàn bộ năng lực hệ thống.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp theo nhu cầu.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Kịch bản ứng dụng phổ biến.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Kết nối hệ sinh thái.' },
+  ],
+  features: [
+    { href: '/use-cases', title: 'Use cases', description: 'Cách dùng theo từng nhóm khách hàng.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp theo mục tiêu.' },
+    { href: '/compare', title: 'So sánh', description: 'Đối chiếu lựa chọn phù hợp.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Kết nối hệ thống hiện tại.' },
+  ],
+  guides: [
+    { href: '/features', title: 'Tính năng', description: 'Xem tính năng liên quan.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Ứng dụng thực tế theo ngành.' },
+    { href: '/templates', title: 'Templates', description: 'Mẫu triển khai nhanh.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Lộ trình triển khai theo mục tiêu.' },
+  ],
+  integrations: [
+    { href: '/features', title: 'Tính năng', description: 'Xem các tính năng hỗ trợ tích hợp.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp đi kèm hệ sinh thái.' },
+    { href: '/compare', title: 'So sánh', description: 'So sánh với lựa chọn khác.' },
+    { href: '/templates', title: 'Templates', description: 'Mẫu tích hợp nhanh.' },
+  ],
+  solutions: [
+    { href: '/features', title: 'Tính năng', description: 'Năng lực cốt lõi đi kèm.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Bài toán thực tế theo ngành.' },
+    { href: '/compare', title: 'So sánh', description: 'Đối chiếu giải pháp phù hợp.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Kết nối với hạ tầng hiện tại.' },
+  ],
+  templates: [
+    { href: '/guides', title: 'Guides', description: 'Hướng dẫn triển khai chi tiết.' },
+    { href: '/features', title: 'Tính năng', description: 'Xem tính năng hỗ trợ.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Kịch bản áp dụng tương ứng.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Kết nối công cụ liên quan.' },
+  ],
+  'use-cases': [
+    { href: '/features', title: 'Tính năng', description: 'Tính năng cho từng use case.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp triển khai nhanh.' },
+    { href: '/templates', title: 'Templates', description: 'Mẫu cấu hình tối ưu.' },
+    { href: '/guides', title: 'Guides', description: 'Tài liệu hướng dẫn chi tiết.' },
+  ],
+};
+
+export const getHubInternalLinks = (hub: HubKey): InternalLinkItem[] => HUB_LINKS[hub];

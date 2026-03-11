@@ -2,13 +2,22 @@ import type { Metadata } from 'next';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings, getContactSettings } from '@/lib/get-settings';
-import { buildSeoMetadata } from '@/lib/seo/metadata';
+import { buildHubMetadata } from '@/lib/seo/metadata';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { getHubInternalLinks } from '@/lib/seo/internal-links';
 
 export const revalidate = 1800;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo, contact] = await Promise.all([getSiteSettings(), getSEOSettings(), getContactSettings()]);
-  return buildSeoMetadata({ contact, descriptionOverride: 'So sánh chi tiết với các giải pháp khác', pathname: '/compare', routeType: 'list', seo, site, titleOverride: 'So sánh' });
+  return buildHubMetadata({
+    contact,
+    description: 'So sánh chi tiết với các giải pháp khác',
+    pathname: '/compare',
+    seo,
+    site,
+    title: 'So sánh',
+  });
 }
 
 export default async function ComparePage() {
@@ -29,6 +38,7 @@ export default async function ComparePage() {
           ))}
         </div>
       )}
+      <InternalLinkCluster links={getHubInternalLinks('compare')} />
     </div>
   );
 }

@@ -2,13 +2,22 @@ import type { Metadata } from 'next';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { getSEOSettings, getSiteSettings, getContactSettings } from '@/lib/get-settings';
-import { buildSeoMetadata } from '@/lib/seo/metadata';
+import { buildHubMetadata } from '@/lib/seo/metadata';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { getHubInternalLinks } from '@/lib/seo/internal-links';
 
 export const revalidate = 1800;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo, contact] = await Promise.all([getSiteSettings(), getSEOSettings(), getContactSettings()]);
-  return buildSeoMetadata({ contact, descriptionOverride: 'Template mẫu cho mọi trường hợp sử dụng', pathname: '/templates', routeType: 'list', seo, site, titleOverride: 'Templates' });
+  return buildHubMetadata({
+    contact,
+    description: 'Template mẫu cho mọi trường hợp sử dụng',
+    pathname: '/templates',
+    seo,
+    site,
+    title: 'Templates',
+  });
 }
 
 export default async function TemplatesPage() {
@@ -30,6 +39,7 @@ export default async function TemplatesPage() {
           ))}
         </div>
       )}
+      <InternalLinkCluster links={getHubInternalLinks('templates')} />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { JsonLd, generateNavigationSchema } from '@/components/seo/JsonLd';
 import { SiteShell } from '@/components/site/SiteShell';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
-import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getContactSettings, getSEOSettings, getSiteSettings, getSocialSettings } from '@/lib/get-settings';
 import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
 import { buildSiteSchemas } from '@/lib/seo/schema-policy';
 import type { Metadata } from 'next';
@@ -47,7 +47,8 @@ const SiteLayout = ({
     getSiteSettings(),
     getSEOSettings(),
     getContactSettings(),
-  ]).then(async ([site, seo, contact]) => {
+    getSocialSettings(),
+  ]).then(async ([site, seo, contact, social]) => {
     const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
     const client = getConvexClient();
     const headerMenu = await client.query(api.menus.getMenuByLocation, { location: 'header' });
@@ -56,7 +57,7 @@ const SiteLayout = ({
       : [];
 
     // Zero-config: schema engine tự quyết định Organization vs LocalBusiness
-    const siteSchemas = buildSiteSchemas({ contact, seo, site });
+    const siteSchemas = buildSiteSchemas({ contact, seo, site, social });
 
     const navigationSchema = generateNavigationSchema({
       items: headerItems.map((item) => ({

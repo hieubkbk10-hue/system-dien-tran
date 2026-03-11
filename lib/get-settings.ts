@@ -30,8 +30,19 @@ export interface ContactSettings {
   contact_google_map_embed_iframe: string;
 }
 
+export interface SocialSettings {
+  social_facebook: string;
+  social_instagram: string;
+  social_youtube: string;
+  social_tiktok: string;
+  social_twitter: string;
+  social_linkedin: string;
+  social_pinterest: string;
+}
+
 export interface PublicSettings {
   contact: ContactSettings;
+  social: SocialSettings;
   seo: SEOSettings;
   site: SiteSettings;
 }
@@ -50,6 +61,15 @@ const SETTINGS_KEYS = {
     "seo_description",
     "seo_keywords",
     "seo_og_image",
+  ],
+  social: [
+    "social_facebook",
+    "social_instagram",
+    "social_youtube",
+    "social_tiktok",
+    "social_twitter",
+    "social_linkedin",
+    "social_pinterest",
   ],
   site: [
     "site_name",
@@ -109,8 +129,24 @@ export const getContactSettings =  async (): Promise<ContactSettings> => {
   }));
 };
 
+export const getSocialSettings = async (): Promise<SocialSettings> => {
+  const client = getConvexClient();
+  return client.query(api.settings.getMultiple, {
+    keys: SETTINGS_KEYS.social,
+  }).then((settings) => ({
+    social_facebook: (settings.social_facebook as string) || "",
+    social_instagram: (settings.social_instagram as string) || "",
+    social_linkedin: (settings.social_linkedin as string) || "",
+    social_pinterest: (settings.social_pinterest as string) || "",
+    social_tiktok: (settings.social_tiktok as string) || "",
+    social_twitter: (settings.social_twitter as string) || "",
+    social_youtube: (settings.social_youtube as string) || "",
+  }));
+};
+
 export const getAllPublicSettings =  async (): Promise<PublicSettings> => Promise.all([
-    getSiteSettings(),
-    getSEOSettings(),
-    getContactSettings(),
-  ]).then(([site, seo, contact]) => ({ contact, seo, site }));
+  getSiteSettings(),
+  getSEOSettings(),
+  getContactSettings(),
+  getSocialSettings(),
+]).then(([site, seo, contact, social]) => ({ contact, seo, site, social }));
