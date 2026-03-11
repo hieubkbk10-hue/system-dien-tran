@@ -29,6 +29,8 @@ interface VoucherPromotionsPreviewProps {
   selectedStyle?: VoucherPromotionsStyle;
   limit?: number;
   onStyleChange?: (style: VoucherPromotionsStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const voucherSamples: VoucherPromotionItem[] = [
@@ -95,6 +97,8 @@ export const VoucherPromotionsPreview = ({
   selectedStyle,
   limit,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: VoucherPromotionsPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const [copiedCode, setCopiedCode] = React.useState<string | null>(null);
@@ -134,6 +138,8 @@ export const VoucherPromotionsPreview = ({
         styles={VOUCHER_PROMOTIONS_STYLES}
         info={`${vouchers.length} voucher mẫu`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <VoucherPromotionsSectionShared
           context="preview"

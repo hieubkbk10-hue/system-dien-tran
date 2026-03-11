@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { VoucherPromotionsPreview } from '../../voucher-promotions/_components/VoucherPromotionsPreview';
 import { normalizeVoucherLimit } from '@/lib/home-components/voucher-promotions';
 import {
@@ -17,7 +18,9 @@ export default function VoucherPromotionsCreatePage() {
   const COMPONENT_TYPE = 'VoucherPromotions';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Voucher khuyến mãi', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
   const [voucherConfig, setVoucherConfig] = useState<VoucherPromotionsConfigState>(DEFAULT_VOUCHER_PROMOTIONS_CONFIG);
 
   const validation = useMemo(() => getVoucherPromotionsValidationResult({
@@ -63,6 +66,9 @@ export default function VoucherPromotionsCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -156,6 +162,8 @@ export default function VoucherPromotionsCreatePage() {
         secondary={secondary}
         selectedStyle={voucherConfig.style}
         onStyleChange={(nextStyle) => setVoucherConfig({ ...voucherConfig, style: nextStyle })}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );
