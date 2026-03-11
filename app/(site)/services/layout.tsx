@@ -14,8 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
     getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'services' }),
   ]);
+  const moduleEnabled = Boolean(servicesModule?.enabled);
 
-  if (servicesModule?.enabled === false) {
+  if (!moduleEnabled) {
     return buildSeoMetadata({
       contact,
       descriptionOverride: 'Trang dịch vụ hiện không khả dụng.',
@@ -32,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildSeoMetadata({
     contact,
     descriptionOverride: seo.seo_description || `Danh sách dịch vụ từ ${site.site_name}`,
-    moduleEnabled: servicesModule?.enabled !== false,
+    moduleEnabled,
     pathname: '/services',
     routeType: 'list',
     seo,
@@ -46,7 +47,7 @@ export default async function ServicesListLayout({ children }: { children: React
   const client = getConvexClient();
   const servicesModule = await client.query(api.admin.modules.getModuleByKey, { key: 'services' });
 
-  if (servicesModule?.enabled === false) {
+  if (!servicesModule?.enabled) {
     notFound();
   }
   const site = await getSiteSettings();

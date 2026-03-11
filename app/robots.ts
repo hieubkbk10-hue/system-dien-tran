@@ -8,6 +8,17 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   const baseUrl = ((siteUrlSetting?.value as string) || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
 
   // Policy cứng: disallow theo route-policy contract
+  const sitemapUrls = baseUrl
+    ? [
+        `${baseUrl}/sitemap.xml`,
+        `${baseUrl}/sitemap/static.xml`,
+        `${baseUrl}/sitemap/posts.xml`,
+        `${baseUrl}/sitemap/products.xml`,
+        `${baseUrl}/sitemap/services.xml`,
+        `${baseUrl}/sitemap/landings.xml`,
+      ]
+    : undefined;
+
   return {
     rules: [
       {
@@ -24,6 +35,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         ],
       },
     ],
-    ...(baseUrl ? { sitemap: `${baseUrl}/sitemap.xml` } : {}),
+    ...(sitemapUrls ? { sitemap: sitemapUrls } : {}),
   };
 }

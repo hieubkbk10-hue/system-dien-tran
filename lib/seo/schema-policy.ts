@@ -130,6 +130,7 @@ export const buildProductSchema = (params: {
   name: params.name,
   url: params.url,
   sku: params.sku,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': params.url },
   ...(params.description && { description: params.description }),
   ...(params.image && { image: params.image }),
   ...(params.brand && { brand: { '@type': 'Brand', name: params.brand } }),
@@ -166,6 +167,7 @@ export const buildServiceSchema = (params: {
   '@type': 'Service',
   name: params.name,
   url: params.url,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': params.url },
   ...(params.description && { description: params.description }),
   ...(params.image && { image: params.image }),
   provider: {
@@ -205,11 +207,14 @@ export const buildItemListSchema = (params: {
   name: string;
   url: string;
   items: { name: string; url: string }[];
+  itemListOrder?: string;
 }): SchemaRecord => ({
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: params.name,
   url: params.url,
+  numberOfItems: params.items.length,
+  ...(params.itemListOrder && { itemListOrder: params.itemListOrder }),
   itemListElement: params.items.map((item, index) => ({
     '@type': 'ListItem',
     name: item.name,

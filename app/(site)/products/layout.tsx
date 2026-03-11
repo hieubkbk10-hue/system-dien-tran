@@ -14,8 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
     getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'products' }),
   ]);
+  const moduleEnabled = Boolean(productsModule?.enabled);
 
-  if (productsModule?.enabled === false) {
+  if (!moduleEnabled) {
     return buildSeoMetadata({
       contact,
       descriptionOverride: 'Trang sản phẩm hiện không khả dụng.',
@@ -32,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildSeoMetadata({
     contact,
     descriptionOverride: seo.seo_description || `Danh sách sản phẩm từ ${site.site_name}`,
-    moduleEnabled: productsModule?.enabled !== false,
+    moduleEnabled,
     pathname: '/products',
     routeType: 'list',
     seo,
@@ -46,7 +47,7 @@ export default async function ProductsListLayout({ children }: { children: React
   const client = getConvexClient();
   const productsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'products' });
 
-  if (productsModule?.enabled === false) {
+  if (!productsModule?.enabled) {
     notFound();
   }
   const site = await getSiteSettings();

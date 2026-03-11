@@ -14,8 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
     getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'posts' }),
   ]);
+  const moduleEnabled = Boolean(postsModule?.enabled);
 
-  if (postsModule?.enabled === false) {
+  if (!moduleEnabled) {
     return buildSeoMetadata({
       contact,
       descriptionOverride: 'Trang bài viết hiện không khả dụng.',
@@ -32,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildSeoMetadata({
     contact,
     descriptionOverride: seo.seo_description || `Danh sách bài viết từ ${site.site_name}`,
-    moduleEnabled: postsModule?.enabled !== false,
+    moduleEnabled,
     pathname: '/posts',
     routeType: 'list',
     seo,
@@ -46,7 +47,7 @@ export default async function PostsListLayout({ children }: { children: React.Re
   const client = getConvexClient();
   const postsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'posts' });
 
-  if (postsModule?.enabled === false) {
+  if (!postsModule?.enabled) {
     notFound();
   }
   const site = await getSiteSettings();

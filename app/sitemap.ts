@@ -14,79 +14,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [];
   }
 
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      changeFrequency: 'daily',
-      priority: 1,
-      url: baseUrl,
-    },
-    {
-      changeFrequency: 'daily',
-      priority: 0.8,
-      url: `${baseUrl}/posts`,
-    },
-    {
-      changeFrequency: 'daily',
-      priority: 0.8,
-      url: `${baseUrl}/products`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      url: `${baseUrl}/services`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.7,
-      url: `${baseUrl}/contact`,
-    },
-    {
-      changeFrequency: 'daily',
-      priority: 0.7,
-      url: `${baseUrl}/promotions`,
-    },
-    {
-      changeFrequency: 'monthly',
-      priority: 0.6,
-      url: `${baseUrl}/stores`,
-    },
-    // SaaS landing hubs
-    {
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      url: `${baseUrl}/features`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      url: `${baseUrl}/use-cases`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      url: `${baseUrl}/solutions`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.7,
-      url: `${baseUrl}/compare`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.7,
-      url: `${baseUrl}/integrations`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.7,
-      url: `${baseUrl}/templates`,
-    },
-    {
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      url: `${baseUrl}/guides`,
-    },
-  ];
+  const resolveLatestTimestamp = (values: Array<number | undefined>): Date | undefined => {
+    const normalized = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+    if (normalized.length === 0) {
+      return undefined;
+    }
+    return new Date(Math.max(...normalized));
+  };
 
   const [posts, products, services, landingPages] = await Promise.all([
     collectPaginated((cursor) => client.query(api.posts.listPublished, {
@@ -104,6 +38,105 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       paginationOpts: { cursor, numItems: 500 },
     })),
   ]);
+
+  const latestPostTimestamp = resolveLatestTimestamp(posts.map((post) => post.publishedAt ?? post._creationTime));
+  const latestProductTimestamp = resolveLatestTimestamp(products.map((product) => product._creationTime));
+  const latestServiceTimestamp = resolveLatestTimestamp(services.map((service) => service.publishedAt ?? service._creationTime));
+  const latestLandingTimestamp = resolveLatestTimestamp(landingPages.map((page) => page.updatedAt));
+  const fallbackTimestamp = resolveLatestTimestamp([
+    latestPostTimestamp?.getTime(),
+    latestProductTimestamp?.getTime(),
+    latestServiceTimestamp?.getTime(),
+    latestLandingTimestamp?.getTime(),
+  ]);
+
+  const staticWithFreshness: MetadataRoute.Sitemap = [
+    {
+      changeFrequency: 'daily',
+      lastModified: fallbackTimestamp,
+      priority: 1,
+      url: baseUrl,
+    },
+    {
+      changeFrequency: 'daily',
+      lastModified: latestPostTimestamp ?? latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/posts`,
+    },
+    {
+      changeFrequency: 'daily',
+      lastModified: latestProductTimestamp ?? latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/products`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestServiceTimestamp ?? latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/services`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.7,
+      url: `${baseUrl}/contact`,
+    },
+    {
+      changeFrequency: 'daily',
+      lastModified: latestProductTimestamp ?? fallbackTimestamp,
+      priority: 0.7,
+      url: `${baseUrl}/promotions`,
+    },
+    {
+      changeFrequency: 'monthly',
+      lastModified: fallbackTimestamp,
+      priority: 0.6,
+      url: `${baseUrl}/stores`,
+    },
+    // SaaS landing hubs
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/features`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/use-cases`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/solutions`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.7,
+      url: `${baseUrl}/compare`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.7,
+      url: `${baseUrl}/integrations`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.7,
+      url: `${baseUrl}/templates`,
+    },
+    {
+      changeFrequency: 'weekly',
+      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+      priority: 0.8,
+      url: `${baseUrl}/guides`,
+    },
+  ];
 
   // Generate post URLs
   const postUrls: MetadataRoute.Sitemap = posts.map((post) => ({
@@ -150,5 +183,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticPages, ...postUrls, ...productUrls, ...serviceUrls, ...landingUrls];
+  return [...staticWithFreshness, ...postUrls, ...productUrls, ...serviceUrls, ...landingUrls];
 }
