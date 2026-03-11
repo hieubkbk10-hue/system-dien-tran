@@ -9,10 +9,8 @@ import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { usePostsDetailConfig } from '@/lib/experiences/useSiteConfig';
 import { Button, Card, CardContent } from '@/app/admin/components/ui';
-import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
 import { ArrowLeft, Calendar, Check, ChevronRight, Clock, Eye, FileText, Home, Link as LinkIcon, MessageSquare, Reply, Send, Share2, ThumbsUp, User } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
-import { getFunnelInternalLinks, type InternalLinkItem } from '@/lib/seo/internal-links';
 
 const notoSans = Noto_Sans({
   display: 'swap',
@@ -129,7 +127,6 @@ export default function PostDetailPage({ params }: PageProps) {
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
   const incrementLike = useMutation(api.comments.incrementLike);
   const decrementLike = useMutation(api.comments.decrementLike);
-  const funnelLinks = useMemo(() => getFunnelInternalLinks('posts'), []);
   
   // Related posts - lấy cùng category
   const relatedPosts = useQuery(
@@ -296,7 +293,6 @@ export default function PostDetailPage({ params }: PageProps) {
           secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
-          funnelLinks={funnelLinks}
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
@@ -311,7 +307,6 @@ export default function PostDetailPage({ params }: PageProps) {
           secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
-          funnelLinks={funnelLinks}
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
@@ -326,7 +321,6 @@ export default function PostDetailPage({ params }: PageProps) {
           secondaryColor={secondaryColor}
           relatedPosts={filteredRelated}
           enabledFields={enabledFields}
-          funnelLinks={funnelLinks}
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
@@ -377,7 +371,6 @@ interface StyleProps {
   secondaryColor: string;
   relatedPosts: RelatedPost[];
   enabledFields: Set<string>;
-  funnelLinks: InternalLinkItem[];
   showAuthor: boolean;
   authorName: string;
   showTags: boolean;
@@ -386,7 +379,7 @@ interface StyleProps {
 }
 
 // Style 1: Classic - Truyền thống với sidebar
-function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, funnelLinks, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
@@ -551,9 +544,6 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, funnelLi
             </div>
 
             {commentsSection}
-            {funnelLinks.length > 0 && (
-              <InternalLinkCluster links={funnelLinks} title="Bước tiếp theo" />
-            )}
           </article>
 
           <aside className="lg:col-span-3 space-y-6">
@@ -607,7 +597,7 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, funnelLi
 }
 
 // Style 2: Modern - Medium/Substack inspired - Focus on typography and reading experience
-function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, funnelLinks, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
   const showExcerpt = enabledFields.has('excerpt');
   const [isCopied, setIsCopied] = useState(false);
@@ -745,9 +735,6 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
           </div>
 
           {commentsSection}
-          {funnelLinks.length > 0 && (
-            <InternalLinkCluster links={funnelLinks} title="Bước tiếp theo" />
-          )}
 
         </article>
 
@@ -815,7 +802,7 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
 }
 
 // Style 3: Minimal - Tối giản, tập trung nội dung
-function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, funnelLinks, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const [isCopied, setIsCopied] = useState(false);
   const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
   const { isBroken, markBroken } = useImageFallback();
@@ -937,9 +924,6 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, funnelLi
           </div>
 
           {commentsSection}
-          {funnelLinks.length > 0 && (
-            <InternalLinkCluster links={funnelLinks} title="Bước tiếp theo" />
-          )}
         </section>
 
         {relatedPosts.length > 0 && (
