@@ -35,9 +35,13 @@ export default function LandingPagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<Id<'landingPages'>>>(new Set());
   const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   const result = useQuery(api.landingPages.listAll, { paginationOpts: { cursor: null, numItems: 100 } });
   const deleteMutation = useMutation(api.landingPages.remove);
+  const previewMutation = useMutation(api.landingPages.previewProgrammaticPlan);
+  const generateMutation = useMutation(api.landingPages.upsertProgrammaticFromModules);
 
   const pages = result?.page ?? [];
   const filteredPages = pages.filter(page =>
@@ -83,6 +87,35 @@ export default function LandingPagesPage() {
     }
   };
 
+  const handlePreview = async () => {
+    setIsPreviewing(true);
+    try {
+      const plan = await previewMutation({});
+      const byType = Object.entries(plan.byType)
+        .map(([type, count]) => `${type}: ${count}`)
+        .join(', ');
+      toast.success(`Dự kiến tạo ${plan.createCount}, cập nhật ${plan.updateCount} (tổng ${plan.total})`, {
+        description: byType || undefined,
+      });
+    } catch {
+      toast.error('Không thể xem trước kế hoạch auto-generate');
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const resultData = await generateMutation({});
+      toast.success(`Đã tạo ${resultData.created}, cập nhật ${resultData.updated} (tổng ${resultData.total})`);
+    } catch {
+      toast.error('Không thể tạo landing pages tự động');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (!result) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin" /></div>;
   }
@@ -94,9 +127,19 @@ export default function LandingPagesPage() {
           <h1 className="text-2xl font-bold">Landing Pages</h1>
           <p className="text-sm text-slate-500">Quản lý landing pages cho SEO growth</p>
         </div>
-        <Button onClick={() => router.push('/admin/landing-pages/create')}>
-          <Plus size={16} className="mr-2" /> Tạo mới
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handlePreview} disabled={isPreviewing}>
+            {isPreviewing ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+            Xem trước auto
+          </Button>
+          <Button variant="secondary" onClick={handleGenerate} disabled={isGenerating}>
+            {isGenerating ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+            Tạo tự động
+          </Button>
+          <Button onClick={() => router.push('/admin/landing-pages/create')}>
+            <Plus size={16} className="mr-2" /> Tạo mới
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4">
