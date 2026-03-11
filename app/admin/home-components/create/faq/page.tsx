@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { FaqForm } from '../../faq/_components/FaqForm';
 import { FaqPreview } from '../../faq/_components/FaqPreview';
 import { DEFAULT_FAQ_CONFIG } from '../../faq/_lib/constants';
@@ -17,8 +18,10 @@ export default function FaqCreatePage() {
   const COMPONENT_TYPE = 'FAQ';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Câu hỏi thường gặp', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
   const brandMode = mode === 'single' ? 'single' : 'dual';
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [faqItems, setFaqItems] = useState<FaqItem[]>(INITIAL_FAQ_ITEMS);
   const [style, setStyle] = useState<FaqStyle>('accordion');
@@ -45,6 +48,9 @@ export default function FaqCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <FaqForm
         faqItems={faqItems}
@@ -64,6 +70,8 @@ export default function FaqCreatePage() {
         onStyleChange={setStyle}
         config={faqConfig}
         title={title}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

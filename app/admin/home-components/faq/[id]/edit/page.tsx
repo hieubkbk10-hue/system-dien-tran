@@ -10,7 +10,9 @@ import { HelpCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { FaqForm } from '../../_components/FaqForm';
 import { FaqPreview } from '../../_components/FaqPreview';
@@ -67,8 +69,10 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const router = useRouter();
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
   const brandMode = effectiveColors.mode === 'single' ? 'single' : 'dual';
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
 
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
@@ -128,12 +132,17 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
         || customState.primary !== initialCustom.primary
         || resolvedCustomSecondary !== resolvedInitialSecondary
       : false;
+    const customFontChanged = showFontCustomBlock
+      ? customFontState.enabled !== initialFontCustom.enabled
+        || customFontState.fontKey !== initialFontCustom.fontKey
+      : false;
     const changed = title !== initialData.title
       || active !== initialData.active
       || faqStyle !== initialData.faqStyle
       || JSON.stringify(faqItems) !== JSON.stringify(initialData.faqItems)
       || JSON.stringify(faqConfig) !== JSON.stringify(initialData.faqConfig)
-      || customChanged;
+      || customChanged
+      || customFontChanged;
 
     setHasChanges(changed);
   }, [title, active, faqItems, faqStyle, faqConfig, initialData, customState, initialCustom, showCustomBlock]);
@@ -172,6 +181,13 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
       toast.success('Đã cập nhật FAQ');
       setFaqConfig(nextConfig);
       setInitialData({
@@ -188,6 +204,12 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolvedCustomSecondary,
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       setHasChanges(false);
@@ -210,6 +232,8 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
   if (component === null) {
     return <div className="text-center py-8 text-slate-500">Không tìm thấy component</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -297,6 +321,18 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
                 onSecondaryChange={(value) => setCustomState((prev) => ({ ...prev, secondary: value }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho FAQ"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <FaqPreview
               items={faqItems}
               brandColor={effectiveColors.primary}
@@ -306,6 +342,8 @@ export default function FaqEditPage({ params }: { params: Promise<{ id: string }
               onStyleChange={setFaqStyle}
               config={faqConfig}
               title={title}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

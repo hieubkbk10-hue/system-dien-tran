@@ -34,6 +34,8 @@ export const FaqPreview = ({
   onStyleChange,
   config,
   title,
+  fontStyle,
+  fontClassName,
 }: {
   items: FaqItem[];
   brandColor: string;
@@ -43,6 +45,8 @@ export const FaqPreview = ({
   onStyleChange?: (style: FaqStyle) => void;
   config?: FaqConfig;
   title?: string;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const style = selectedStyle;
@@ -100,6 +104,8 @@ export const FaqPreview = ({
         styles={FAQ_STYLES}
         info={`${items.length} câu hỏi • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/faq">
           <FaqSectionShared
