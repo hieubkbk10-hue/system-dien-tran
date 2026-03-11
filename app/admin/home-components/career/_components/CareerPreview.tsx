@@ -29,6 +29,8 @@ interface CareerPreviewProps {
   onStyleChange?: (style: CareerStyle) => void;
   title?: string;
   texts?: CareerTexts;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export function CareerPreview({
@@ -40,6 +42,8 @@ export function CareerPreview({
   onStyleChange,
   title = 'Tuyển dụng',
   texts = DEFAULT_CAREER_TEXTS,
+  fontStyle,
+  fontClassName,
 }: CareerPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
 
@@ -84,6 +88,8 @@ export function CareerPreview({
         styles={CAREER_STYLES}
         info={`${normalizedJobs.length} vị trí • ${modeLabel}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/careers">
           <CareerSectionShared
