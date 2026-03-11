@@ -5,6 +5,7 @@ import { Video as VideoIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { VideoPreview } from '../../video/_components/VideoPreview';
 import {
   DEFAULT_VIDEO_STYLE,
@@ -18,7 +19,9 @@ export default function VideoCreatePage() {
   const COMPONENT_TYPE = 'Video';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Video Giới thiệu', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [config, setConfig] = React.useState<VideoConfig>(() => normalizeVideoConfig({
     autoplay: false,
@@ -54,6 +57,9 @@ export default function VideoCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <Card className="mb-6">
         <CardHeader>
@@ -82,6 +88,8 @@ export default function VideoCreatePage() {
         selectedStyle={selectedStyle}
         onStyleChange={(style) => setConfig((prev) => ({ ...prev, style }))}
         mode={mode}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

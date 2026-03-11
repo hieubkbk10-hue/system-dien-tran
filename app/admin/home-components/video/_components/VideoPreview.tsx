@@ -24,6 +24,8 @@ interface VideoPreviewProps {
   selectedStyle?: VideoStyle;
   onStyleChange?: (style: VideoStyle) => void;
   mode?: VideoBrandMode;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const getPreviewInfo = (style: VideoStyle, videoUrl: string) => {
@@ -51,6 +53,8 @@ export const VideoPreview = ({
   selectedStyle,
   onStyleChange,
   mode = 'dual',
+  fontStyle,
+  fontClassName,
 }: VideoPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -77,6 +81,8 @@ export const VideoPreview = ({
         styles={VIDEO_STYLES}
         info={getPreviewInfo(previewStyle, config.videoUrl)}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame>
           <VideoSectionShared
