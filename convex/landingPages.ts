@@ -60,6 +60,61 @@ const resolveProgrammaticStatus = (params: {
   return "draft";
 };
 
+const PROGRAMMATIC_LIMIT = 6;
+
+const getProgrammaticSeedData = async (ctx: { db: any }) => {
+  const [siteName, modules, products, services, posts, homeComponents] = await Promise.all([
+    getSettingValue(ctx, "site_name"),
+    ctx.db.query("adminModules").withIndex("by_enabled_order", (q: any) => q.eq("enabled", true)).collect(),
+    ctx.db
+      .query("products")
+      .withIndex("by_status_order", (q: any) => q.eq("status", "Active"))
+      .order("desc")
+      .collect(),
+    ctx.db
+      .query("services")
+      .withIndex("by_status_publishedAt", (q: any) => q.eq("status", "Published"))
+      .order("desc")
+      .collect(),
+    ctx.db
+      .query("posts")
+      .withIndex("by_status_publishedAt", (q: any) => q.eq("status", "Published"))
+      .order("desc")
+      .collect(),
+    ctx.db
+      .query("homeComponents")
+      .withIndex("by_active_order", (q: any) => q.eq("active", true))
+      .order("desc")
+      .collect(),
+  ]);
+
+  return {
+    homeComponents: homeComponents.slice(0, PROGRAMMATIC_LIMIT).map((item: any) => ({
+      title: item.title,
+      type: item.type,
+    })),
+    modules: modules.map((moduleItem: any) => ({
+      category: moduleItem.category,
+      description: moduleItem.description,
+      key: moduleItem.key,
+      name: moduleItem.name,
+    })),
+    posts: posts.slice(0, PROGRAMMATIC_LIMIT).map((post: any) => ({
+      slug: post.slug,
+      title: post.title,
+    })),
+    products: products.slice(0, PROGRAMMATIC_LIMIT).map((product: any) => ({
+      name: product.name,
+      slug: product.slug,
+    })),
+    services: services.slice(0, PROGRAMMATIC_LIMIT).map((service: any) => ({
+      slug: service.slug,
+      title: service.title,
+    })),
+    siteName: siteName ?? "Website",
+  };
+};
+
 // Public: list published by type
 export const listPublishedByType = query({
   args: {
@@ -234,47 +289,8 @@ export const remove = mutation({
 export const previewProgrammaticPlan = mutation({
   args: {},
   handler: async (ctx) => {
-    const [siteName, modules, productsResult, servicesResult, postsResult, homeComponentsResult] = await Promise.all([
-      getSettingValue(ctx, "site_name"),
-      ctx.db.query("adminModules").withIndex("by_enabled_order", (q) => q.eq("enabled", true)).collect(),
-      ctx.db
-        .query("products")
-        .withIndex("by_status_order", (q) => q.eq("status", "Active"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("services")
-        .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("posts")
-        .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("homeComponents")
-        .withIndex("by_active_order", (q) => q.eq("active", true))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-    ]);
-
-    const plan = buildProgrammaticLandingPlan({
-      homeComponents: homeComponentsResult.page.map((item) => ({
-        title: item.title,
-        type: item.type,
-      })),
-      modules: modules.map((moduleItem) => ({
-        category: moduleItem.category,
-        description: moduleItem.description,
-        key: moduleItem.key,
-        name: moduleItem.name,
-      })),
-      posts: postsResult.page.map((post) => ({ slug: post.slug, title: post.title })),
-      products: productsResult.page.map((product) => ({ name: product.name, slug: product.slug })),
-      services: servicesResult.page.map((service) => ({ slug: service.slug, title: service.title })),
-      siteName: siteName ?? "Website",
-    });
+    const seed = await getProgrammaticSeedData(ctx);
+    const plan = buildProgrammaticLandingPlan(seed);
 
     const existing = await ctx.db.query("landingPages").collect();
     const existingBySlug = new Map(existing.map((page) => [page.slug, page]));
@@ -326,47 +342,8 @@ export const previewProgrammaticPlan = mutation({
 export const upsertProgrammaticFromModules = mutation({
   args: {},
   handler: async (ctx) => {
-    const [siteName, modules, productsResult, servicesResult, postsResult, homeComponentsResult] = await Promise.all([
-      getSettingValue(ctx, "site_name"),
-      ctx.db.query("adminModules").withIndex("by_enabled_order", (q) => q.eq("enabled", true)).collect(),
-      ctx.db
-        .query("products")
-        .withIndex("by_status_order", (q) => q.eq("status", "Active"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("services")
-        .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("posts")
-        .withIndex("by_status_publishedAt", (q) => q.eq("status", "Published"))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-      ctx.db
-        .query("homeComponents")
-        .withIndex("by_active_order", (q) => q.eq("active", true))
-        .order("desc")
-        .paginate({ cursor: null, numItems: 6 }),
-    ]);
-
-    const plan = buildProgrammaticLandingPlan({
-      homeComponents: homeComponentsResult.page.map((item) => ({
-        title: item.title,
-        type: item.type,
-      })),
-      modules: modules.map((moduleItem) => ({
-        category: moduleItem.category,
-        description: moduleItem.description,
-        key: moduleItem.key,
-        name: moduleItem.name,
-      })),
-      posts: postsResult.page.map((post) => ({ slug: post.slug, title: post.title })),
-      products: productsResult.page.map((product) => ({ name: product.name, slug: product.slug })),
-      services: servicesResult.page.map((service) => ({ slug: service.slug, title: service.title })),
-      siteName: siteName ?? "Website",
-    });
+    const seed = await getProgrammaticSeedData(ctx);
+    const plan = buildProgrammaticLandingPlan(seed);
 
     const existing = await ctx.db.query("landingPages").collect();
     const existingBySlug = new Map(existing.map((page) => [page.slug, page]));
