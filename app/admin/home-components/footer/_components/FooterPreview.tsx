@@ -72,6 +72,8 @@ export const FooterPreview = ({
   mode = 'dual',
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: {
   config: FooterConfig;
   brandColor: string;
@@ -79,6 +81,8 @@ export const FooterPreview = ({
   mode?: FooterBrandMode;
   selectedStyle?: FooterStyle;
   onStyleChange?: (style: FooterStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }) => {
   const { device, setDevice } = usePreviewDevice();
   const previewStyle = selectedStyle ?? 'classic';
@@ -483,6 +487,8 @@ export const FooterPreview = ({
         styles={styles}
         deviceWidthClass={deviceWidths[device]}
         info={mode === 'dual' ? '2 màu' : '1 màu'}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         {preview()}
       </PreviewWrapper>
