@@ -94,15 +94,18 @@ export const buildArticleSchema = (params: {
   publishedAt?: number;
   updatedAt?: number;
   authorName?: string;
+  language?: string;
 }): SchemaRecord => ({
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: params.title,
   url: params.url,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': params.url },
   ...(params.description && { description: params.description }),
   ...(params.image && { image: params.image }),
   ...(params.publishedAt && { datePublished: new Date(params.publishedAt).toISOString() }),
   ...(params.updatedAt && { dateModified: new Date(params.updatedAt).toISOString() }),
+  ...(params.language && { inLanguage: params.language }),
   ...(params.authorName && {
     author: { '@type': 'Person', name: params.authorName },
   }),

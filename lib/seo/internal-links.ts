@@ -118,6 +118,8 @@ export type HubKey =
   | 'templates'
   | 'guides';
 
+export type FunnelKey = HubKey | 'posts';
+
 export type InternalLinkItem = {
   description?: string;
   href: string;
@@ -170,3 +172,48 @@ const HUB_LINKS: Record<HubKey, InternalLinkItem[]> = {
 };
 
 export const getHubInternalLinks = (hub: HubKey): InternalLinkItem[] => HUB_LINKS[hub];
+
+const FUNNEL_LINKS: Record<FunnelKey, InternalLinkItem[]> = {
+  compare: [
+    { href: '/contact', title: 'Tư vấn so sánh', description: 'Nhận tư vấn chọn phương án phù hợp.' },
+    { href: '/features', title: 'Tính năng nổi bật', description: 'Xem rõ năng lực cốt lõi.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Xem hệ sinh thái kết nối.' },
+  ],
+  features: [
+    { href: '/solutions', title: 'Giải pháp', description: 'Lộ trình triển khai theo mục tiêu.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Ứng dụng thực tế theo ngành.' },
+    { href: '/contact', title: 'Đặt lịch demo', description: 'Trao đổi nhu cầu cụ thể.' },
+  ],
+  guides: [
+    { href: '/templates', title: 'Templates', description: 'Mẫu triển khai nhanh.' },
+    { href: '/features', title: 'Tính năng', description: 'Tính năng liên quan.' },
+    { href: '/contact', title: 'Tư vấn triển khai', description: 'Nhận đề xuất theo nhu cầu.' },
+  ],
+  integrations: [
+    { href: '/templates', title: 'Templates', description: 'Mẫu cấu hình tích hợp.' },
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp theo hệ sinh thái.' },
+    { href: '/contact', title: 'Liên hệ kỹ thuật', description: 'Trao đổi yêu cầu tích hợp.' },
+  ],
+  posts: [
+    { href: '/templates', title: 'Templates', description: 'Mẫu triển khai nhanh theo bài viết.' },
+    { href: '/features', title: 'Tính năng', description: 'Xem tính năng liên quan.' },
+    { href: '/contact', title: 'Tư vấn', description: 'Trao đổi nhu cầu cụ thể.' },
+  ],
+  solutions: [
+    { href: '/compare', title: 'So sánh', description: 'Đối chiếu lựa chọn phù hợp.' },
+    { href: '/integrations', title: 'Tích hợp', description: 'Hệ sinh thái đi kèm.' },
+    { href: '/contact', title: 'Đặt lịch demo', description: 'Nhận tư vấn triển khai.' },
+  ],
+  templates: [
+    { href: '/guides', title: 'Guides', description: 'Hướng dẫn triển khai chi tiết.' },
+    { href: '/use-cases', title: 'Use cases', description: 'Bài toán tương ứng.' },
+    { href: '/contact', title: 'Tư vấn cấu hình', description: 'Nhận cấu hình phù hợp.' },
+  ],
+  'use-cases': [
+    { href: '/solutions', title: 'Giải pháp', description: 'Giải pháp triển khai nhanh.' },
+    { href: '/templates', title: 'Templates', description: 'Mẫu tối ưu theo use case.' },
+    { href: '/contact', title: 'Tư vấn', description: 'Trao đổi nhu cầu thực tế.' },
+  ],
+};
+
+export const getFunnelInternalLinks = (key: FunnelKey): InternalLinkItem[] => FUNNEL_LINKS[key];

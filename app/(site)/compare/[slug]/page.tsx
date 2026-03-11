@@ -1,6 +1,9 @@
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { RelatedPagesBlock } from '@/components/seo/RelatedPagesBlock';
+import { getFunnelInternalLinks, getRelatedLandingPages } from '@/lib/seo/internal-links';
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -8,6 +11,13 @@ export default async function ComparePage({ params }: Props) {
   const { slug } = await params;
   const page = await getConvexClient().query(api.landingPages.getBySlug, { slug });
   if (!page || page.landingType !== 'compare') notFound();
+  const relatedPages = await getRelatedLandingPages({
+    currentSlug: slug,
+    landingType: page.landingType,
+    relatedSlugs: page.relatedSlugs,
+    limit: 6,
+  });
+  const funnelLinks = getFunnelInternalLinks('compare');
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       {page.heroImage && <img src={page.heroImage} alt={page.title} className="w-full h-64 object-cover rounded-lg mb-8" />}
@@ -23,6 +33,8 @@ export default async function ComparePage({ params }: Props) {
             </details>))}</div>
         </div>
       )}
+      <RelatedPagesBlock items={relatedPages} title="So sánh liên quan" />
+      <InternalLinkCluster links={funnelLinks} title="Bước tiếp theo" />
     </div>
   );
 }

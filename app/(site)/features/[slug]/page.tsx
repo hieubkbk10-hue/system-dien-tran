@@ -2,7 +2,8 @@ import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
 import { notFound } from 'next/navigation';
 import { RelatedPagesBlock } from '@/components/seo/RelatedPagesBlock';
-import { getRelatedLandingPages } from '@/lib/seo/internal-links';
+import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
+import { getFunnelInternalLinks, getRelatedLandingPages } from '@/lib/seo/internal-links';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -23,6 +24,7 @@ export default async function FeaturePage({ params }: Props) {
     relatedSlugs: page.relatedSlugs,
     limit: 6,
   });
+  const funnelLinks = getFunnelInternalLinks('features');
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -68,6 +70,7 @@ export default async function FeaturePage({ params }: Props) {
       )}
 
       <RelatedPagesBlock items={relatedPages} title="Tính năng liên quan" />
+      <InternalLinkCluster links={funnelLinks} title="Bước tiếp theo" />
     </div>
   );
 }
