@@ -4,6 +4,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { TeamForm } from '../../team/_components/TeamForm';
 import { TeamPreview } from '../../team/_components/TeamPreview';
 import {
@@ -68,7 +69,9 @@ export default function TeamCreatePage() {
   const COMPONENT_TYPE = 'Team';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Đội ngũ của chúng tôi', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [members, setMembers] = React.useState<TeamEditorMember[]>(createDefaultMembers);
   const [style, setStyle] = React.useState<TeamStyle>(normalizeTeamStyle(DEFAULT_TEAM_CONFIG.style));
@@ -121,6 +124,9 @@ export default function TeamCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <TeamForm
         members={members}
@@ -149,6 +155,8 @@ export default function TeamCreatePage() {
         title={title}
         selectedStyle={style}
         onStyleChange={setStyle}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );

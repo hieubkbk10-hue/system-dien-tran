@@ -27,6 +27,8 @@ interface TeamPreviewProps {
   selectedStyle?: TeamStyle;
   onStyleChange?: (style: TeamStyle) => void;
   texts?: Record<string, string>;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const TeamPreview = ({
@@ -38,6 +40,8 @@ export const TeamPreview = ({
   selectedStyle = 'grid',
   onStyleChange,
   texts = {},
+  fontStyle,
+  fontClassName,
 }: TeamPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
   const style = normalizeTeamStyle(selectedStyle);
@@ -75,6 +79,8 @@ export const TeamPreview = ({
         styles={TEAM_STYLES}
         info={`${members.length} thành viên • ${modeLabel}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/team">
           <TeamSectionShared
