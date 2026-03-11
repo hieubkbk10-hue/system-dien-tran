@@ -214,6 +214,9 @@ async function searchAdminProducts(ctx: QueryCtx, args: AdminSearchArgs, limit?:
 }
 
 function resolveVariantPrice(variant: Doc<"productVariants">): number | null {
+  if (typeof variant.salePrice === "number" && variant.salePrice > 0) {
+    return variant.salePrice;
+  }
   if (typeof variant.price === "number" && variant.price > 0) {
     return variant.price;
   }
