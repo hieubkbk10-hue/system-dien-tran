@@ -37,11 +37,13 @@ export default function LandingPagesPage() {
   const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const result = useQuery(api.landingPages.listAll, { paginationOpts: { cursor: null, numItems: 100 } });
   const deleteMutation = useMutation(api.landingPages.remove);
   const previewMutation = useMutation(api.landingPages.previewProgrammaticPlan);
   const generateMutation = useMutation(api.landingPages.upsertProgrammaticFromModules);
+  const bulkStatusMutation = useMutation(api.landingPages.bulkUpdateStatus);
 
   const pages = result?.page ?? [];
   const filteredPages = pages.filter(page =>
@@ -85,6 +87,38 @@ export default function LandingPagesPage() {
     } else {
       setSelectedIds(new Set(filteredPages.map(p => p._id)));
     }
+  };
+
+  const handleBulkStatus = async (status: 'draft' | 'published') => {
+    if (selectedIds.size === 0) {
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      const resultData = await bulkStatusMutation({
+        ids: Array.from(selectedIds),
+        status,
+      });
+      toast.success(`Đã cập nhật ${resultData.updated} landing pages`);
+      setSelectedIds(new Set());
+    } catch {
+      toast.error('Không thể cập nhật trạng thái hàng loạt');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleOpenSelected = () => {
+    const selectedPublished = filteredPages.filter(page =>
+      selectedIds.has(page._id) && page.status === 'published'
+    );
+    if (selectedPublished.length === 0) {
+      toast.error('Chỉ mở được các trang đã Publish');
+      return;
+    }
+    selectedPublished.forEach((page) => {
+      window.open(`${LANDING_TYPE_ROUTES[page.landingType]}/${page.slug}`, '_blank');
+    });
   };
 
   const handlePreview = async () => {
@@ -154,9 +188,31 @@ export default function LandingPagesPage() {
             />
           </div>
           {selectedIds.size > 0 && (
-            <Button variant="destructive" onClick={() => setShowBulkDelete(true)}>
-              <Trash2 size={16} className="mr-2" /> Xóa {selectedIds.size}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handleOpenSelected}
+              >
+                Mở {selectedIds.size}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => handleBulkStatus('published')}
+                disabled={isBulkUpdating}
+              >
+                Publish {selectedIds.size}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => handleBulkStatus('draft')}
+                disabled={isBulkUpdating}
+              >
+                Draft {selectedIds.size}
+              </Button>
+              <Button variant="destructive" onClick={() => setShowBulkDelete(true)}>
+                <Trash2 size={16} className="mr-2" /> Xóa {selectedIds.size}
+              </Button>
+            </div>
           )}
         </div>
 

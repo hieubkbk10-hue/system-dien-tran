@@ -286,6 +286,36 @@ export const remove = mutation({
   returns: v.null(),
 });
 
+export const bulkUpdateStatus = mutation({
+  args: {
+    ids: v.array(v.id("landingPages")),
+    status: v.union(v.literal("draft"), v.literal("published")),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const results = await Promise.all(args.ids.map(async (id) => {
+      const existing = await ctx.db.get(id);
+      if (!existing) {
+        return false;
+      }
+      const publishedAt = args.status === "published"
+        ? (existing.status !== "published" ? now : existing.publishedAt)
+        : existing.publishedAt;
+      await ctx.db.patch(id, {
+        status: args.status,
+        updatedAt: now,
+        publishedAt,
+      });
+      return true;
+    }));
+
+    return { updated: results.filter(Boolean).length };
+  },
+  returns: v.object({
+    updated: v.number(),
+  }),
+});
+
 export const previewProgrammaticPlan = mutation({
   args: {},
   handler: async (ctx) => {
