@@ -19,6 +19,8 @@ interface CountdownPreviewProps {
   mode?: CountdownBrandMode;
   selectedStyle?: CountdownStyle;
   onStyleChange?: (style: CountdownStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const CountdownPreview = ({
@@ -28,6 +30,8 @@ export const CountdownPreview = ({
   mode = 'dual',
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: CountdownPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -64,6 +68,8 @@ export const CountdownPreview = ({
       previewStyle={normalizedConfig.style}
       onPreviewStyleChange={onStyleChange}
       showColorInfo={mode === 'dual'}
+      fontStyle={fontStyle}
+      fontClassName={fontClassName}
     />
   );
 };

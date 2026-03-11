@@ -8,7 +8,9 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../../components/ui';
 import { TypeColorOverrideCard } from '../../../_shared/components/TypeColorOverrideCard';
+import { TypeFontOverrideCard } from '../../../_shared/components/TypeFontOverrideCard';
 import { useTypeColorOverrideState } from '../../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../../_shared/hooks/useTypeFontOverride';
 import { getSuggestedSecondary, resolveSecondaryByMode } from '../../../_shared/lib/typeColorOverride';
 import { CountdownForm } from '../../_components/CountdownForm';
 import { CountdownPreview } from '../../_components/CountdownPreview';
@@ -30,9 +32,11 @@ export default function EditCountdownPage() {
   const router = useRouter();
   const updateMutation = useMutation(api.homeComponents.update);
   const setTypeColorOverride = useMutation(api.homeComponentSystemConfig.setTypeColorOverride);
+  const setTypeFontOverride = useMutation(api.homeComponentSystemConfig.setTypeFontOverride);
 
   const component = useQuery(api.homeComponents.getById, id ? { id: id as any } : 'skip');
   const { customState, effectiveColors, initialCustom, setCustomState, setInitialCustom, showCustomBlock } = useTypeColorOverrideState(COMPONENT_TYPE);
+  const { customState: customFontState, effectiveFont, initialCustom: initialFontCustom, setCustomState: setCustomFontState, setInitialCustom: setInitialFontCustom, showCustomBlock: showFontCustomBlock } = useTypeFontOverrideState(COMPONENT_TYPE);
 
   const [title, setTitle] = React.useState('Khuyến mãi đặc biệt');
   const [active, setActive] = React.useState(true);
@@ -64,7 +68,11 @@ export default function EditCountdownPage() {
       || customState.primary !== initialCustom.primary
       || resolvedCustomSecondary !== initialCustom.secondary
     : false;
-  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged);
+  const customFontChanged = showFontCustomBlock
+    ? customFontState.enabled !== initialFontCustom.enabled
+      || customFontState.fontKey !== initialFontCustom.fontKey
+    : false;
+  const hasChanges = initialSnapshot !== null && (currentSnapshot !== initialSnapshot || customChanged || customFontChanged);
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -90,6 +98,13 @@ export default function EditCountdownPage() {
           type: COMPONENT_TYPE,
         });
       }
+      if (showFontCustomBlock) {
+        await setTypeFontOverride({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
+          type: COMPONENT_TYPE,
+        });
+      }
 
       setInitialSnapshot(currentSnapshot);
       if (showCustomBlock) {
@@ -98,6 +113,12 @@ export default function EditCountdownPage() {
           mode: customState.mode,
           primary: customState.primary,
           secondary: resolveSecondaryByMode(customState.mode, customState.primary, customState.secondary),
+        });
+      }
+      if (showFontCustomBlock) {
+        setInitialFontCustom({
+          enabled: customFontState.enabled,
+          fontKey: customFontState.fontKey,
         });
       }
       toast.success('Đã lưu Countdown');
@@ -116,6 +137,8 @@ export default function EditCountdownPage() {
   if (!component) {
     return <div className="p-6 text-sm text-slate-500">Không tìm thấy component.</div>;
   }
+
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -195,6 +218,18 @@ export default function EditCountdownPage() {
               }))}
               />
             )}
+            {showFontCustomBlock && (
+              <TypeFontOverrideCard
+                title="Font custom cho Countdown"
+                enabled={customFontState.enabled}
+                fontKey={customFontState.fontKey}
+                compact
+                toggleLabel="Custom"
+                fontLabel="Font"
+                onEnabledChange={(next) => setCustomFontState((prev) => ({ ...prev, enabled: next }))}
+                onFontChange={(next) => setCustomFontState((prev) => ({ ...prev, fontKey: next }))}
+              />
+            )}
             <CountdownPreview
               config={config}
               brandColor={effectiveColors.primary}
@@ -207,6 +242,8 @@ export default function EditCountdownPage() {
                   style,
                 }));
               }}
+              fontStyle={fontStyle}
+              fontClassName="font-active"
             />
           </div>
         </div>

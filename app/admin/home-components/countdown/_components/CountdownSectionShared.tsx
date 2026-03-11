@@ -40,6 +40,8 @@ interface CountdownSectionSharedProps {
   previewStyle?: CountdownStyle;
   onPreviewStyleChange?: (style: CountdownStyle) => void;
   showColorInfo?: boolean;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 const safeHref = (value: string) => {
@@ -564,6 +566,8 @@ export function CountdownSectionShared({
   previewStyle,
   onPreviewStyleChange,
   showColorInfo = false,
+  fontStyle,
+  fontClassName,
 }: CountdownSectionSharedProps) {
   const countdownContent = (
     <CountdownContent
@@ -594,6 +598,8 @@ export function CountdownSectionShared({
         styles={COUNTDOWN_STYLES}
         info={`Brand mode: ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[previewDevice]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="/countdown">
           {countdownContent}

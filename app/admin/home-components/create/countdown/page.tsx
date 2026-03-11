@@ -3,6 +3,7 @@
 import React from 'react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { CountdownForm } from '../../countdown/_components/CountdownForm';
 import { CountdownPreview } from '../../countdown/_components/CountdownPreview';
 import { DEFAULT_COUNTDOWN_CONFIG } from '../../countdown/_lib/constants';
@@ -13,7 +14,9 @@ export default function CountdownCreatePage() {
   const COMPONENT_TYPE = 'Countdown';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Khuyến mãi đặc biệt', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [config, setConfig] = React.useState<CountdownConfigState>(() => normalizeCountdownConfig(DEFAULT_COUNTDOWN_CONFIG));
 
@@ -34,6 +37,9 @@ export default function CountdownCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <CountdownForm
         value={config}
@@ -55,6 +61,8 @@ export default function CountdownCreatePage() {
             style,
           }));
         }}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );
