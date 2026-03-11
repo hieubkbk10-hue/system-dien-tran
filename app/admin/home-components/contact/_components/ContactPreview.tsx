@@ -26,6 +26,8 @@ interface ContactPreviewProps {
   onStyleChange?: (style: ContactStyle) => void;
   title?: string;
   mapData?: ContactMapData | null;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export function ContactPreview({
@@ -37,6 +39,8 @@ export function ContactPreview({
   onStyleChange,
   title,
   mapData,
+  fontStyle,
+  fontClassName,
 }: ContactPreviewProps) {
   const { device, setDevice } = usePreviewDevice();
   const normalizedConfig = React.useMemo(() => normalizeContactConfig(config), [config]);
@@ -93,6 +97,8 @@ export function ContactPreview({
         styles={CONTACT_STYLES}
         info={infoParts.join(' • ')}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/contact">
           <ContactSectionShared
