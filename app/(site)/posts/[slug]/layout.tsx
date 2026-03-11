@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { JsonLd, generateArticleSchema, generateBreadcrumbSchema } from '@/components/seo/JsonLd';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,51 +17,59 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const postsModule = await client.query(api.admin.modules.getModuleByKey, { key: 'posts' });
   if (postsModule?.enabled === false) {
-    const [site, seo] = await Promise.all([
+    const [site, seo, contact] = await Promise.all([
       getSiteSettings(),
       getSEOSettings(),
+      getContactSettings(),
     ]);
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Trang bài viết hiện không khả dụng.',
-      indexable: false,
-      title: 'Không tìm thấy bài viết',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Trang bài viết hiện không khả dụng.',
+      moduleEnabled: false,
+      pathname: `/posts/${slug}`,
+      routeType: 'detail',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy bài viết',
     });
   }
   
-  const [post, site, seo] = await Promise.all([
+  const [post, site, seo, contact] = await Promise.all([
     client.query(api.posts.getBySlug, { slug }),
     getSiteSettings(),
     getSEOSettings(),
+    getContactSettings(),
   ]);
 
   if (!post) {
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Bài viết này không tồn tại hoặc đã bị xóa.',
-      indexable: false,
-      title: 'Không tìm thấy bài viết',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Bài viết này không tồn tại hoặc đã bị xóa.',
+      entityExists: false,
+      pathname: `/posts/${slug}`,
+      routeType: 'detail',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy bài viết',
     });
   }
 
-  const context = buildSeoContext(site, seo);
-  const title = post.metaTitle ?? post.title;
-  const description = (post.metaDescription ?? post.excerpt) ?? seo.seo_description;
-  const image = post.thumbnail ?? context.image;
-
-  return buildMetadata({
-    canonical: buildCanonicalUrl(context.baseUrl, `/posts/${post.slug}`),
-    context,
-    description: description || context.description,
-    image,
-    indexable: true,
-    openGraph: {
-      publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+  return buildSeoMetadata({
+    contact,
+    entity: {
+      content: post.content,
+      excerpt: post.excerpt,
+      metaDescription: post.metaDescription,
+      metaTitle: post.metaTitle,
+      thumbnail: post.thumbnail,
+      title: post.title,
     },
+    entityExists: true,
     openGraphType: 'article',
-    title,
+    pathname: `/posts/${post.slug}`,
+    routeType: 'detail',
+    seo,
+    site,
   });
 }
 

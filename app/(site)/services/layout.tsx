@@ -3,37 +3,42 @@ import { notFound } from 'next/navigation';
 import { JsonLd, generateItemListSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const client = getConvexClient();
-  const [site, seo, servicesModule] = await Promise.all([
+  const [site, seo, contact, servicesModule] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
+    getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'services' }),
   ]);
 
   if (servicesModule?.enabled === false) {
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Trang dịch vụ hiện không khả dụng.',
-      indexable: false,
-      title: 'Không tìm thấy dịch vụ',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Trang dịch vụ hiện không khả dụng.',
+      moduleEnabled: false,
+      pathname: '/services',
+      routeType: 'list',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy dịch vụ',
+      useTitleTemplate: true,
     });
   }
 
-  const context = buildSeoContext(site, seo);
-  const title = 'Dịch vụ';
-  const description = seo.seo_description || `Danh sách dịch vụ từ ${site.site_name}`;
-
-  return buildMetadata({
-    canonical: buildCanonicalUrl(context.baseUrl, '/services'),
-    context,
-    description,
-    indexable: true,
-    title,
+  return buildSeoMetadata({
+    contact,
+    descriptionOverride: seo.seo_description || `Danh sách dịch vụ từ ${site.site_name}`,
+    moduleEnabled: servicesModule?.enabled !== false,
+    pathname: '/services',
+    routeType: 'list',
+    seo,
+    site,
+    titleOverride: 'Dịch vụ',
+    useTitleTemplate: true,
   });
 }
 

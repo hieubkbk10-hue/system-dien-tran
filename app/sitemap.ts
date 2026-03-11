@@ -8,7 +8,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   // Get site URL from settings
   const siteUrlSetting = await client.query(api.settings.getByKey, { key: 'site_url' });
-  const baseUrl = ((siteUrlSetting?.value as string) || process.env.NEXT_PUBLIC_SITE_URL) ?? 'https://example.com';
+  const baseUrl = ((siteUrlSetting?.value as string) || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+
+  if (!baseUrl || baseUrl === 'https://example.com') {
+    return [];
+  }
 
   const staticPages: MetadataRoute.Sitemap = [
     {

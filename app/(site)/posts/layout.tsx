@@ -3,37 +3,42 @@ import { notFound } from 'next/navigation';
 import { JsonLd, generateItemListSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const client = getConvexClient();
-  const [site, seo, postsModule] = await Promise.all([
+  const [site, seo, contact, postsModule] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
+    getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'posts' }),
   ]);
 
   if (postsModule?.enabled === false) {
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Trang bài viết hiện không khả dụng.',
-      indexable: false,
-      title: 'Không tìm thấy bài viết',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Trang bài viết hiện không khả dụng.',
+      moduleEnabled: false,
+      pathname: '/posts',
+      routeType: 'list',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy bài viết',
+      useTitleTemplate: true,
     });
   }
 
-  const context = buildSeoContext(site, seo);
-  const title = 'Bài viết';
-  const description = seo.seo_description || `Danh sách bài viết từ ${site.site_name}`;
-
-  return buildMetadata({
-    canonical: buildCanonicalUrl(context.baseUrl, '/posts'),
-    context,
-    description,
-    indexable: true,
-    title,
+  return buildSeoMetadata({
+    contact,
+    descriptionOverride: seo.seo_description || `Danh sách bài viết từ ${site.site_name}`,
+    moduleEnabled: postsModule?.enabled !== false,
+    pathname: '/posts',
+    routeType: 'list',
+    seo,
+    site,
+    titleOverride: 'Bài viết',
+    useTitleTemplate: true,
   });
 }
 

@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
 import { JsonLd, generateBreadcrumbSchema, generateServiceSchema } from '@/components/seo/JsonLd';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,47 +17,57 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const servicesModule = await client.query(api.admin.modules.getModuleByKey, { key: 'services' });
 
   if (servicesModule?.enabled === false) {
-    const [site, seo] = await Promise.all([
+    const [site, seo, contact] = await Promise.all([
       getSiteSettings(),
       getSEOSettings(),
+      getContactSettings(),
     ]);
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Trang dịch vụ hiện không khả dụng.',
-      indexable: false,
-      title: 'Không tìm thấy dịch vụ',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Trang dịch vụ hiện không khả dụng.',
+      moduleEnabled: false,
+      pathname: `/services/${slug}`,
+      routeType: 'detail',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy dịch vụ',
     });
   }
   
-  const [service, site, seo] = await Promise.all([
+  const [service, site, seo, contact] = await Promise.all([
     client.query(api.services.getBySlug, { slug }),
     getSiteSettings(),
     getSEOSettings(),
+    getContactSettings(),
   ]);
 
   if (!service) {
-    const context = buildSeoContext(site, seo);
-    return buildMetadata({
-      context,
-      description: 'Dịch vụ này không tồn tại hoặc đã bị xóa.',
-      indexable: false,
-      title: 'Không tìm thấy dịch vụ',
+    return buildSeoMetadata({
+      contact,
+      descriptionOverride: 'Dịch vụ này không tồn tại hoặc đã bị xóa.',
+      entityExists: false,
+      pathname: `/services/${slug}`,
+      routeType: 'detail',
+      seo,
+      site,
+      titleOverride: 'Không tìm thấy dịch vụ',
     });
   }
 
-  const context = buildSeoContext(site, seo);
-  const title = service.metaTitle ?? service.title;
-  const description = (service.metaDescription ?? service.excerpt) ?? seo.seo_description;
-  const image = service.thumbnail ?? context.image;
-
-  return buildMetadata({
-    canonical: buildCanonicalUrl(context.baseUrl, `/services/${service.slug}`),
-    context,
-    description: description || context.description,
-    image,
-    indexable: true,
-    title,
+  return buildSeoMetadata({
+    contact,
+    entity: {
+      excerpt: service.excerpt,
+      metaDescription: service.metaDescription,
+      metaTitle: service.metaTitle,
+      thumbnail: service.thumbnail,
+      title: service.title,
+    },
+    entityExists: true,
+    pathname: `/services/${service.slug}`,
+    routeType: 'detail',
+    seo,
+    site,
   });
 }
 

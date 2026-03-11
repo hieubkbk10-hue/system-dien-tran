@@ -5,7 +5,7 @@ import { api } from '@/convex/_generated/api';
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const client = getConvexClient();
   const siteUrlSetting = await client.query(api.settings.getByKey, { key: 'site_url' });
-  const baseUrl = ((siteUrlSetting?.value as string) || process.env.NEXT_PUBLIC_SITE_URL) ?? 'https://example.com';
+  const baseUrl = ((siteUrlSetting?.value as string) || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
 
   // Policy cứng: disallow theo route-policy contract
   return {
@@ -24,6 +24,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    ...(baseUrl ? { sitemap: `${baseUrl}/sitemap.xml` } : {}),
   };
 }

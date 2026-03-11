@@ -3,7 +3,7 @@ import { SiteShell } from '@/components/site/SiteShell';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
 import { getContactSettings, getSEOSettings, getSiteSettings, getSocialSettings } from '@/lib/get-settings';
-import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
+import { buildSeoMetadata } from '@/lib/seo/metadata';
 import { buildSiteSchemas } from '@/lib/seo/schema-policy';
 import type { Metadata } from 'next';
 
@@ -21,16 +21,16 @@ export const generateMetadata = (): Promise<Metadata> => {
   return Promise.all([
     getSiteSettings(),
     getSEOSettings(),
-  ]).then(([site, seo]) => {
-    const context = buildSeoContext(site, seo);
-
+    getContactSettings(),
+  ]).then(([site, seo, contact]) => {
     return {
-      ...buildMetadata({
-        canonical: buildCanonicalUrl(context.baseUrl),
-        context,
-        description: context.description,
-        indexable: true,
-        title: context.title,
+      ...buildSeoMetadata({
+        contact,
+        pathname: '/',
+        routeType: 'home',
+        seo,
+        site,
+        titleOverride: seo.seo_title || site.site_name,
         useTitleTemplate: true,
       }),
       icons: { icon: `/api/favicon?v=${encodeURIComponent(site.site_favicon || '')}` },
