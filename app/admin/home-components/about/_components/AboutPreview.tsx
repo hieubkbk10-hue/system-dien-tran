@@ -22,6 +22,8 @@ interface AboutPreviewProps {
   mode?: AboutBrandMode;
   selectedStyle?: AboutStyle;
   onStyleChange?: (style: AboutStyle) => void;
+  fontStyle?: React.CSSProperties;
+  fontClassName?: string;
 }
 
 export const AboutPreview = ({
@@ -31,6 +33,8 @@ export const AboutPreview = ({
   mode = 'dual',
   selectedStyle,
   onStyleChange,
+  fontStyle,
+  fontClassName,
 }: AboutPreviewProps) => {
   const { device, setDevice } = usePreviewDevice();
 
@@ -74,6 +78,8 @@ export const AboutPreview = ({
         styles={ABOUT_STYLES}
         info={`${config.stats.length} số liệu • ${mode === 'dual' ? '2 màu' : '1 màu'}`}
         deviceWidthClass={deviceWidths[device]}
+        fontStyle={fontStyle}
+        fontClassName={fontClassName}
       >
         <BrowserFrame url="yoursite.com/about">
           <AboutSectionShared

@@ -4,6 +4,7 @@ import React from 'react';
 import { Eye } from 'lucide-react';
 import { ComponentFormWrapper, useComponentForm } from '../shared';
 import { useTypeColorOverrideState } from '../../_shared/hooks/useTypeColorOverride';
+import { useTypeFontOverrideState } from '../../_shared/hooks/useTypeFontOverride';
 import { AboutForm } from '../../about/_components/AboutForm';
 import { AboutPreview } from '../../about/_components/AboutPreview';
 import {
@@ -19,7 +20,9 @@ export default function AboutCreatePage() {
   const COMPONENT_TYPE = 'About';
   const { title, setTitle, active, setActive, handleSubmit, isSubmitting } = useComponentForm('Về chúng tôi', COMPONENT_TYPE);
   const { customState, effectiveColors, showCustomBlock, setCustomState, systemColors } = useTypeColorOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
+  const { customState: customFontState, effectiveFont, showCustomBlock: showFontCustomBlock, setCustomState: setCustomFontState } = useTypeFontOverrideState(COMPONENT_TYPE, { seedCustomFromSettingsWhenTypeEmpty: true });
   const { primary, secondary, mode } = effectiveColors;
+  const fontStyle = { '--font-active': `var(${effectiveFont.fontVariable})` } as React.CSSProperties;
 
   const [state, setState] = React.useState(DEFAULT_ABOUT_EDITOR_STATE);
 
@@ -65,6 +68,9 @@ export default function AboutCreatePage() {
       showCustomBlock={showCustomBlock}
       setCustomState={setCustomState}
       systemColors={systemColors}
+      customFontState={customFontState}
+      showFontCustomBlock={showFontCustomBlock}
+      setCustomFontState={setCustomFontState}
     >
       <AboutForm state={state} onChange={setState} />
 
@@ -100,6 +106,8 @@ export default function AboutCreatePage() {
         onStyleChange={(style) => {
           setState((prev) => ({ ...prev, style }));
         }}
+        fontStyle={fontStyle}
+        fontClassName="font-active"
       />
     </ComponentFormWrapper>
   );
