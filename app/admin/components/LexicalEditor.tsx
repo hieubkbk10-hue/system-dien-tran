@@ -576,6 +576,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({ onChange, initialC
     () => ({
       namespace: 'MyEditor',
       nodes: [
+        ExtendedTextNode,
         {
           replace: TextNode,
           with: (node: TextNode) => $createExtendedTextNodeFromTextNode(node),
