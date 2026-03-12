@@ -121,17 +121,6 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   }, [hasChanges, saveStatus]);
 
   useEffect(() => {
-    if (saveStatus === 'saving') {return;}
-    if (hasChanges && saveStatus === 'saved') {
-      setSaveStatus('idle');
-      return;
-    }
-    if (!hasChanges && saveStatus === 'idle') {
-      setSaveStatus('saved');
-    }
-  }, [hasChanges, saveStatus]);
-
-  useEffect(() => {
     if (serviceData) {
       setTitle(serviceData.title);
       setSlug(serviceData.slug);

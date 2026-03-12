@@ -219,17 +219,6 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   }, [hasChanges, saveStatus]);
 
   useEffect(() => {
-    if (saveStatus === 'saving') {return;}
-    if (hasChanges && saveStatus === 'saved') {
-      setSaveStatus('idle');
-      return;
-    }
-    if (!hasChanges && saveStatus === 'idle') {
-      setSaveStatus('saved');
-    }
-  }, [hasChanges, saveStatus]);
-
-  useEffect(() => {
     if (productData && !isDataLoaded) {
       setName(productData.name);
       setSlug(productData.slug);
