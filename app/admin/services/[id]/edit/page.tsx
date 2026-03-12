@@ -75,7 +75,6 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
 
   const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTitle(val);
