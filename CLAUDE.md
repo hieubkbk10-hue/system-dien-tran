@@ -77,7 +77,7 @@
 - Khi commit luôn add kèm `.factory/docs` (nếu có).
 - Trước commit chỉ chạy `bunx tsc --noEmit` khi có thay đổi code/TS; không chạy khi chỉ sửa docs/cấu hình không liên quan.
 - WebSearch là mặc định cho nhu cầu tra cứu; WebFetch chỉ dùng để đọc URL đã biết, không thay thế chức năng search.
-- Nếu WebSearch lỗi (vd 503), auto mention fallback: Execute (claude --dangerously-skip-permissions "websearch <query>", impact: medium).
+- Nếu WebSearch lỗi tạm thời (vd 503, timeout, network), tự động dùng Execute chạy fallback: claude --dangerously-skip-permissions "websearch <query>"; không hỏi lại user để xin phép. Nếu fallback thành công thì trả kết quả trực tiếp; nếu fallback cũng lỗi thì mới báo ngắn gọn kèm nguyên nhân.
 
 # Sync Rule
 - Nếu sửa guideline cốt lõi ở AGENTS.md thì mirror sang CLAUDE.md trong cùng task.
