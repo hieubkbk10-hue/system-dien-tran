@@ -44,7 +44,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editorResetKey] = useState(0);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     categoryId: string;
@@ -233,6 +233,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       }
       initialSnapshotRef.current = persistedSnapshot;
       setSnapshotVersion((prev) => prev + 1);
+      setEditorResetKey((prev) => prev + 1);
       setSaveStatus('saved');
       toast.success("Cập nhật dịch vụ thành công");
     } catch (error) {

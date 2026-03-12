@@ -40,7 +40,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editorResetKey] = useState(0);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     title: string;
@@ -212,6 +212,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       }
       initialSnapshotRef.current = persistedSnapshot;
       setSnapshotVersion((prev) => prev + 1);
+      setEditorResetKey((prev) => prev + 1);
       setSaveStatus('saved');
       toast.success("Cập nhật bài viết thành công");
     } catch (error) {

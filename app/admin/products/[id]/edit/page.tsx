@@ -61,7 +61,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
-  const [editorResetKey] = useState(0);
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -445,6 +445,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       }
       initialSnapshotRef.current = persistedSnapshot;
       setSnapshotVersion((prev) => prev + 1);
+      setEditorResetKey((prev) => prev + 1);
       setSaveStatus('saved');
       toast.success("Cập nhật sản phẩm thành công");
     } catch (error) {
