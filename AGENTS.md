@@ -79,6 +79,17 @@
 - WebSearch là mặc định cho nhu cầu tra cứu; WebFetch chỉ dùng để đọc URL đã biết, không thay thế chức năng search.
 - Nếu WebSearch lỗi tạm thời (vd 503, timeout, network), tự động dùng Execute chạy fallback: claude --dangerously-skip-permissions "websearch <query>"; không hỏi lại user để xin phép. Nếu fallback thành công thì trả kết quả trực tiếp; nếu fallback cũng lỗi thì mới báo ngắn gọn kèm nguyên nhân.
 
+# Parallel Execution Playbook (Task-first)
+- Mặc định Task-first cho bài toán lớn; chỉ chạy tuần tự khi có dependency dữ liệu hoặc cùng file.
+- Dùng `Task` để tách nhánh độc lập; dùng `multi_tool_use.parallel` cho các tool call read-only độc lập (Read/Grep/Glob/LS/Execute read-only).
+- SOP 5 bước: Decompose → Spawn Tasks song song → Parallel đọc trong từng nhánh → Barrier hợp nhất → Apply tuần tự tối thiểu.
+- Template prompt chuẩn team (copy-paste):
+  - Task A: Goal, Context, Constraints, Questions, Expected output (file paths + insight + rủi ro).
+  - Task B: Goal, Context, Constraints, Questions, Expected output (đề xuất patch nhỏ nhất).
+  - Task C: Goal, Context, Constraints, Questions, Expected output (side effects + edge cases).
+- Anti-pattern: song song khi có dependency, 2 nhánh sửa cùng file, WebSearch nối tiếp không gom batch, dùng Task cho việc quá nhỏ.
+- Rule tốc độ an toàn: ưu tiên đúng/scope; không hy sinh kiểm soát để lấy tốc độ.
+
 # Sync Rule
 - Nếu sửa guideline cốt lõi ở AGENTS.md thì mirror sang CLAUDE.md trong cùng task.
 
