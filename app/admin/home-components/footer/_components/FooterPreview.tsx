@@ -119,9 +119,16 @@ export const FooterPreview = ({
   const bctLogoSrc = bctLogoType === 'dang-ky'
     ? '/images/bct/logo-da-dang-ky-bct.png'
     : '/images/bct/logo-da-thong-bao-bct.png';
-  const renderBctLogo = (className = 'h-8') => {
+  const renderBctLogo = (baseHeight = 32) => {
     if (!showBctLogo) {return null;}
-    const image = <img src={bctLogoSrc} alt="Bộ Công Thương" className={`${className} w-auto object-contain`} />;
+    const image = (
+      <img
+        src={bctLogoSrc}
+        alt="Bộ Công Thương"
+        className="w-auto object-contain"
+        style={{ height: baseHeight * 1.2 }}
+      />
+    );
     if (!bctLogoLink) {return image;}
     return (
       <a href={bctLogoLink} target="_blank" rel="noopener noreferrer">
@@ -166,10 +173,10 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-6 w-6 flex items-center justify-center rounded-full"
+                          className="h-7 w-7 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={14} />
+                          <SocialIcon platform={s.platform} size={17} />
                         </span>
                       );
                     })}
@@ -202,7 +209,7 @@ export const FooterPreview = ({
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
                 </p>
               )}
-              {renderBctLogo('h-8')}
+              {renderBctLogo(32)}
             </div>
           </div>
         </footer>
@@ -245,16 +252,16 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-6 w-6 flex items-center justify-center rounded-full"
+                          className="h-7 w-7 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={14} />
+                          <SocialIcon platform={s.platform} size={17} />
                         </span>
                       );
                     })}
                 </div>
               )}
-              {renderBctLogo('h-8')}
+              {renderBctLogo(32)}
             </div>
 
             {config.showCopyright !== false && (
@@ -293,10 +300,10 @@ export const FooterPreview = ({
                     return (
                       <span
                         key={`${s.id ?? 'social'}-${index}`}
-                        className="h-5 w-5 flex items-center justify-center rounded-full"
+                        className="h-6 w-6 flex items-center justify-center rounded-full"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={12} />
+                        <SocialIcon platform={s.platform} size={14} />
                       </span>
                     );
                   })}
@@ -329,7 +336,7 @@ export const FooterPreview = ({
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
                 </span>
               )}
-              {renderBctLogo('h-7')}
+              {renderBctLogo(28)}
             </div>
           </div>
         </footer>
@@ -366,16 +373,16 @@ export const FooterPreview = ({
                     return (
                       <span
                         key={`${s.id ?? 'social'}-${index}`}
-                        className="h-5 w-5 flex items-center justify-center rounded-full"
+                        className="h-6 w-6 flex items-center justify-center rounded-full"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={12} />
+                        <SocialIcon platform={s.platform} size={14} />
                       </span>
                     );
                   })}
                 </div>
               )}
-              {renderBctLogo('h-7')}
+              {renderBctLogo(28)}
             </div>
           </div>
         </footer>
@@ -436,16 +443,16 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-7 w-7 flex items-center justify-center rounded-full"
+                          className="h-8 w-8 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={14} />
+                          <SocialIcon platform={s.platform} size={17} />
                         </span>
                       );
                     })}
                   </div>
                 )}
-                {renderBctLogo('h-7')}
+                {renderBctLogo(28)}
               </div>
             </div>
           </div>
@@ -490,17 +497,17 @@ export const FooterPreview = ({
                   return (
                     <span
                       key={`${s.id ?? 'social'}-${index}`}
-                      className="h-6 w-6 flex items-center justify-center rounded-lg"
+                      className="h-7 w-7 flex items-center justify-center rounded-lg"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      <SocialIcon platform={s.platform} size={12} />
+                      <SocialIcon platform={s.platform} size={14} />
                     </span>
                   );
                 })}
               </div>
             )}
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {renderBctLogo('h-7')}
+              {renderBctLogo(28)}
               {config.showCopyright !== false && (
                 <p className="text-[10px]" style={{ color: colors.textSubtle }}>
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
