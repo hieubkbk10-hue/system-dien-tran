@@ -29,6 +29,9 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [renderType, setRenderType] = useState<'content' | 'markdown' | 'html'>('content');
+  const [markdownRender, setMarkdownRender] = useState('');
+  const [htmlRender, setHtmlRender] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -41,11 +44,14 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [editorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     categoryId: string;
     content: string;
+    renderType: 'content' | 'markdown' | 'html';
+    markdownRender: string;
+    htmlRender: string;
     duration: string;
     excerpt: string;
     featured: boolean;
@@ -64,6 +70,10 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     return fields;
   }, [fieldsData]);
 
+  const hasMarkdownRender = enabledFields.has('markdownRender');
+  const hasHtmlRender = enabledFields.has('htmlRender');
+  const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
+
   const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +90,9 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const currentSnapshot = useMemo(() => ({
     categoryId,
     content: normalizedContent,
+    renderType,
+    markdownRender: markdownRender.trim(),
+    htmlRender: htmlRender.trim(),
     duration: duration.trim(),
     excerpt: excerpt.trim(),
     featured,
@@ -90,7 +103,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     status,
     thumbnail: thumbnail ?? '',
     title: title.trim(),
-  }), [categoryId, normalizedContent, duration, excerpt, featured, metaDescription, metaTitle, price, slug, status, thumbnail, title]);
+  }), [categoryId, normalizedContent, renderType, markdownRender, htmlRender, duration, excerpt, featured, metaDescription, metaTitle, price, slug, status, thumbnail, title]);
 
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
@@ -113,6 +126,13 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       setTitle(serviceData.title);
       setSlug(serviceData.slug);
       setContent(serviceData.content);
+      const nextRenderType = serviceData.renderType ?? 'content';
+      const allowedRenderTypes = new Set<'content' | 'markdown' | 'html'>(['content']);
+      if (hasMarkdownRender) {allowedRenderTypes.add('markdown');}
+      if (hasHtmlRender) {allowedRenderTypes.add('html');}
+      setRenderType(allowedRenderTypes.has(nextRenderType) ? nextRenderType : 'content');
+      setMarkdownRender(serviceData.markdownRender ?? '');
+      setHtmlRender(serviceData.htmlRender ?? '');
       setExcerpt(serviceData.excerpt ?? '');
       setMetaTitle(serviceData.metaTitle ?? '');
       setMetaDescription(serviceData.metaDescription ?? '');
@@ -125,6 +145,9 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       initialSnapshotRef.current = {
         categoryId: serviceData.categoryId,
         content: normalizeRichText(serviceData.content),
+        renderType: serviceData.renderType ?? 'content',
+        markdownRender: (serviceData.markdownRender ?? '').trim(),
+        htmlRender: (serviceData.htmlRender ?? '').trim(),
         duration: (serviceData.duration ?? '').trim(),
         excerpt: (serviceData.excerpt ?? '').trim(),
         featured: serviceData.featured ?? false,
@@ -138,7 +161,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       };
       setSnapshotVersion((prev) => prev + 1);
     }
-  }, [serviceData]);
+  }, [serviceData, hasMarkdownRender, hasHtmlRender]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +184,9 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       await updateService({
         categoryId: categoryId as Id<"serviceCategories">,
         content,
+        renderType,
+        markdownRender: markdownRender.trim() || undefined,
+        htmlRender: htmlRender.trim() || undefined,
         duration: duration.trim() || undefined,
         excerpt: excerpt.trim() || undefined,
         featured,
@@ -180,6 +206,9 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       const persistedSnapshot = {
         ...currentSnapshot,
         content: normalizeRichText(content),
+        renderType,
+        markdownRender: markdownRender.trim(),
+        htmlRender: htmlRender.trim(),
         duration: duration.trim(),
         excerpt: excerpt.trim(),
         metaDescription: resolvedMetaDescriptionValue,
@@ -271,6 +300,48 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
               </div>
             </CardContent>
           </Card>
+
+          {showAdvancedRenderCard && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Render nâng cao</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kiểu render</Label>
+                  <select
+                    value={renderType}
+                    onChange={(e) =>{  setRenderType(e.target.value as 'content' | 'markdown' | 'html'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="content">Content (mặc định)</option>
+                    {hasMarkdownRender && <option value="markdown">Markdown</option>}
+                    {hasHtmlRender && <option value="html">HTML</option>}
+                  </select>
+                </div>
+                {hasMarkdownRender && (
+                  <div className="space-y-2">
+                    <Label>Markdown render</Label>
+                    <textarea
+                      value={markdownRender}
+                      onChange={(e) =>{  setMarkdownRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán markdown để render..."
+                    />
+                  </div>
+                )}
+                {hasHtmlRender && (
+                  <div className="space-y-2">
+                    <Label>HTML render</Label>
+                    <textarea
+                      value={htmlRender}
+                      onChange={(e) =>{  setHtmlRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán HTML inline để render..."
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {(enabledFields.has('metaTitle') || enabledFields.has('metaDescription')) && (
             <Card>

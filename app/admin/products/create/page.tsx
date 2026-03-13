@@ -47,6 +47,9 @@ function ProductCreateContent() {
   const [affiliateLink, setAffiliateLink] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
+  const [renderType, setRenderType] = useState<'content' | 'markdown' | 'html'>('content');
+  const [markdownRender, setMarkdownRender] = useState('');
+  const [htmlRender, setHtmlRender] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState<string | undefined>();
@@ -72,6 +75,10 @@ function ProductCreateContent() {
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
+
+  const hasMarkdownRender = enabledFields.has('markdownRender');
+  const hasHtmlRender = enabledFields.has('htmlRender');
+  const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
 
   // Apply defaultStatus from settings
   const defaultStatus = useMemo(() => {
@@ -227,6 +234,9 @@ function ProductCreateContent() {
         ...(isAffiliateMode ? { affiliateLink: affiliateLink.trim() || undefined } : {}),
         categoryId: categoryId as Id<"productCategories">,
         description: description.trim() || undefined,
+        renderType,
+        markdownRender: markdownRender.trim() || undefined,
+        htmlRender: htmlRender.trim() || undefined,
         hasVariants: variantEnabled ? hasVariants : false,
         image,
         images: enabledFields.has('images') ? resolvedImages : undefined,
@@ -303,6 +313,48 @@ function ProductCreateContent() {
               )}
             </CardContent>
           </Card>
+
+          {showAdvancedRenderCard && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Render nâng cao</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kiểu render</Label>
+                  <select
+                    value={renderType}
+                    onChange={(e) =>{  setRenderType(e.target.value as 'content' | 'markdown' | 'html'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="content">Content (mặc định)</option>
+                    {hasMarkdownRender && <option value="markdown">Markdown</option>}
+                    {hasHtmlRender && <option value="html">HTML</option>}
+                  </select>
+                </div>
+                {hasMarkdownRender && (
+                  <div className="space-y-2">
+                    <Label>Markdown render</Label>
+                    <textarea
+                      value={markdownRender}
+                      onChange={(e) =>{  setMarkdownRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán markdown để render..."
+                    />
+                  </div>
+                )}
+                {hasHtmlRender && (
+                  <div className="space-y-2">
+                    <Label>HTML render</Label>
+                    <textarea
+                      value={htmlRender}
+                      onChange={(e) =>{  setHtmlRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán HTML inline để render..."
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle className="text-base">Giá & Kho hàng</CardTitle></CardHeader>

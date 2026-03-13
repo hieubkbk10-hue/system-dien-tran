@@ -26,6 +26,9 @@ export default function ServiceCreatePage() {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [renderType, setRenderType] = useState<'content' | 'markdown' | 'html'>('content');
+  const [markdownRender, setMarkdownRender] = useState('');
+  const [htmlRender, setHtmlRender] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -53,6 +56,10 @@ export default function ServiceCreatePage() {
     return fields;
   }, [fieldsData]);
 
+  const hasMarkdownRender = enabledFields.has('markdownRender');
+  const hasHtmlRender = enabledFields.has('htmlRender');
+  const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTitle(val);
@@ -75,6 +82,9 @@ export default function ServiceCreatePage() {
       await createService({
         categoryId: categoryId as Id<"serviceCategories">,
         content,
+        renderType,
+        markdownRender: markdownRender.trim() || undefined,
+        htmlRender: htmlRender.trim() || undefined,
         duration: duration.trim() || undefined,
         excerpt: excerpt.trim() || undefined,
         featured,
@@ -143,6 +153,48 @@ export default function ServiceCreatePage() {
               </div>
             </CardContent>
           </Card>
+
+          {showAdvancedRenderCard && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Render nâng cao</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kiểu render</Label>
+                  <select
+                    value={renderType}
+                    onChange={(e) =>{  setRenderType(e.target.value as 'content' | 'markdown' | 'html'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="content">Content (mặc định)</option>
+                    {hasMarkdownRender && <option value="markdown">Markdown</option>}
+                    {hasHtmlRender && <option value="html">HTML</option>}
+                  </select>
+                </div>
+                {hasMarkdownRender && (
+                  <div className="space-y-2">
+                    <Label>Markdown render</Label>
+                    <textarea
+                      value={markdownRender}
+                      onChange={(e) =>{  setMarkdownRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán markdown để render..."
+                    />
+                  </div>
+                )}
+                {hasHtmlRender && (
+                  <div className="space-y-2">
+                    <Label>HTML render</Label>
+                    <textarea
+                      value={htmlRender}
+                      onChange={(e) =>{  setHtmlRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán HTML inline để render..."
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {(enabledFields.has('metaTitle') || enabledFields.has('metaDescription')) && (
             <Card>

@@ -1,4 +1,4 @@
-import { FileText, Tag, Star, Clock } from 'lucide-react';
+import { FileText, Tag, Star, Clock, Code } from 'lucide-react';
 import { defineModuleWithRuntime } from '../define-module';
  
 export const postsModule = defineModuleWithRuntime({
@@ -13,6 +13,8 @@ export const postsModule = defineModuleWithRuntime({
      { key: 'enableTags', label: 'Tags', icon: Tag, linkedField: 'tags' },
      { key: 'enableFeatured', label: 'Nổi bật', icon: Star, linkedField: 'featured' },
      { key: 'enableScheduling', label: 'Hẹn giờ', icon: Clock, linkedField: 'publish_date' },
+     { key: 'enableMarkdownRender', label: 'Markdown render', icon: FileText, linkedField: 'markdownRender' },
+     { key: 'enableHtmlRender', label: 'HTML render', icon: Code, linkedField: 'htmlRender' },
    ],
    
    settings: [
@@ -46,6 +48,9 @@ export const postsModule = defineModuleWithRuntime({
       { enabled: true, fieldKey: 'publish_date', isSystem: false, linkedFeature: 'enableScheduling', name: 'Ngày xuất bản', order: 10, required: false, type: 'date' },
       { enabled: true, fieldKey: 'metaTitle', group: 'seo', isSystem: false, name: 'Meta Title', order: 11, required: false, type: 'text' },
       { enabled: true, fieldKey: 'metaDescription', group: 'seo', isSystem: false, name: 'Meta Description', order: 12, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'renderType', isSystem: false, name: 'Kiểu render', order: 13, required: false, type: 'select' },
+      { enabled: true, fieldKey: 'markdownRender', isSystem: false, linkedFeature: 'enableMarkdownRender', name: 'Markdown render', order: 14, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'htmlRender', isSystem: false, linkedFeature: 'enableHtmlRender', name: 'HTML render', order: 15, required: false, type: 'textarea' },
     ],
   },
    

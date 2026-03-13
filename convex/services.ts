@@ -11,6 +11,13 @@ const serviceDoc = v.object({
   _id: v.id("services"),
   categoryId: v.id("serviceCategories"),
   content: v.string(),
+  renderType: v.optional(v.union(
+    v.literal("content"),
+    v.literal("markdown"),
+    v.literal("html")
+  )),
+  markdownRender: v.optional(v.string()),
+  htmlRender: v.optional(v.string()),
   duration: v.optional(v.string()),
   excerpt: v.optional(v.string()),
   featured: v.optional(v.boolean()),
@@ -522,6 +529,13 @@ export const create = mutation({
   args: {
     categoryId: v.id("serviceCategories"),
     content: v.string(),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     duration: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     featured: v.optional(v.boolean()),
@@ -542,6 +556,13 @@ export const update = mutation({
   args: {
     categoryId: v.optional(v.id("serviceCategories")),
     content: v.optional(v.string()),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     duration: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     featured: v.optional(v.boolean()),

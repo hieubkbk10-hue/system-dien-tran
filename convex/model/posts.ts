@@ -150,6 +150,9 @@ export async function create(
     title: string;
     slug: string;
     content: string;
+    renderType?: "content" | "markdown" | "html";
+    markdownRender?: string;
+    htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
     categoryId: Id<"postCategories">;
@@ -174,6 +177,9 @@ export async function create(
     authorName: args.authorName,
     categoryId: args.categoryId,
     content: args.content,
+    renderType: args.renderType ?? "content",
+    markdownRender: args.markdownRender,
+    htmlRender: args.htmlRender,
     excerpt: args.excerpt,
     metaDescription: args.metaDescription,
     metaTitle: args.metaTitle,
@@ -198,6 +204,9 @@ export async function update(
     title?: string;
     slug?: string;
     content?: string;
+    renderType?: "content" | "markdown" | "html";
+    markdownRender?: string;
+    htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
     categoryId?: Id<"postCategories">;

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { getProductDetailColors, type ProductDetailColors } from '@/components/site/products/detail/_lib/colors';
+import { RichContent, withFormatMarker } from '@/components/common/RichContent';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import { notifyAddToCart, useCart } from '@/lib/cart';
 import { useCartConfig, useCheckoutConfig } from '@/lib/experiences';
@@ -806,6 +807,9 @@ interface ProductData {
   image?: string;
   images?: string[];
   description?: string;
+  renderType?: 'content' | 'markdown' | 'html';
+  markdownRender?: string;
+  htmlRender?: string;
   hasVariants?: boolean;
   categoryId: Id<"productCategories">;
   categoryName: string;
@@ -911,7 +915,7 @@ function HighlightsGrid({ highlights, tokens }: { highlights: ClassicHighlightIt
   );
 }
 
-function ExpandableDescription({ html, className, style, buttonStyle }: { html: string; className?: string; style?: React.CSSProperties; buttonStyle?: React.CSSProperties }) {
+function ExpandableDescription({ content, className, style, buttonStyle }: { content: string; className?: string; style?: React.CSSProperties; buttonStyle?: React.CSSProperties }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
@@ -934,16 +938,17 @@ function ExpandableDescription({ html, className, style, buttonStyle }: { html: 
     const observer = new ResizeObserver(checkOverflow);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [expanded, html]);
+  }, [expanded, content]);
 
   return (
     <div>
       <div
         ref={contentRef}
-        className={`${className ?? ''} ${expanded ? '' : 'line-clamp-4 md:line-clamp-5'}`.trim()}
+        className={`${expanded ? '' : 'line-clamp-4 md:line-clamp-5'}`.trim()}
         style={style}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      >
+        <RichContent content={content} className={className} />
+      </div>
       {canExpand && (
         <button
           type="button"
@@ -956,6 +961,21 @@ function ExpandableDescription({ html, className, style, buttonStyle }: { html: 
       )}
     </div>
   );
+}
+
+function resolveProductContent(product: {
+  renderType?: 'content' | 'markdown' | 'html';
+  description?: string;
+  markdownRender?: string;
+  htmlRender?: string;
+}): string {
+  if (product.renderType === 'markdown') {
+    return product.markdownRender ? withFormatMarker('markdown', product.markdownRender) : '';
+  }
+  if (product.renderType === 'html') {
+    return product.htmlRender ? withFormatMarker('html', product.htmlRender) : '';
+  }
+  return product.description ? withFormatMarker('richtext', product.description) : '';
 }
 
 type VariantSelectionMap = Record<string, Id<'productOptionValues'>>;
@@ -1013,6 +1033,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
   const hasVariants = Boolean(product.hasVariants && variants.length > 0 && variantOptions.length > 0);
+  const resolvedDescription = useMemo(() => resolveProductContent(product), [product]);
 
   useEffect(() => {
     if (!hasVariants) {
@@ -1252,11 +1273,11 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               </div>
             )}
 
-            {showDescription && product.description && (
+            {showDescription && resolvedDescription && (
               <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
                 <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
                 <ExpandableDescription
-                  html={product.description}
+                  content={resolvedDescription}
                   className="prose prose-sm max-w-none"
                   style={{ color: tokens.bodyText }}
                   buttonStyle={{ color: tokens.primary }}
@@ -1297,6 +1318,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
   const hasVariants = Boolean(product.hasVariants && variants.length > 0 && variantOptions.length > 0);
+  const resolvedDescription = useMemo(() => resolveProductContent(product), [product]);
 
   useEffect(() => {
     if (!hasVariants) {
@@ -1606,9 +1628,9 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
 
         <div className="mt-12 lg:mt-16">
           <div className="mt-6 border rounded-2xl p-6" style={{ borderColor: tokens.border }}>
-            {showDescription && product.description ? (
+            {showDescription && resolvedDescription ? (
               <ExpandableDescription
-                html={product.description}
+                content={resolvedDescription}
                 className="prose prose-sm max-w-none"
                 style={{ color: tokens.bodyText }}
                 buttonStyle={{ color: tokens.primary }}
@@ -1645,6 +1667,7 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
   const hasVariants = Boolean(product.hasVariants && variants.length > 0 && variantOptions.length > 0);
+  const resolvedDescription = useMemo(() => resolveProductContent(product), [product]);
 
   useEffect(() => {
     if (!hasVariants) {
@@ -1836,11 +1859,11 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
         </div>
 
         {commentsSection}
-        {showDescription && product.description && (
+        {showDescription && resolvedDescription && (
           <section className="mt-10 rounded-2xl border px-6 py-8" style={{ borderColor: tokens.border }}>
             <h2 className="text-lg font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h2>
             <ExpandableDescription
-              html={product.description}
+              content={resolvedDescription}
               className="leading-relaxed font-light text-justify"
               style={{ color: tokens.bodyText }}
               buttonStyle={{ color: tokens.primary }}

@@ -8,6 +8,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { usePostsDetailConfig } from '@/lib/experiences/useSiteConfig';
+import { RichContent, withFormatMarker } from '@/components/common/RichContent';
 import { Button, Card, CardContent } from '@/app/admin/components/ui';
 import { ArrowLeft, Calendar, Check, ChevronRight, Clock, Eye, FileText, Home, Link as LinkIcon, MessageSquare, Reply, Send, Share2, ThumbsUp, User } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -49,6 +50,36 @@ function useImageFallback() {
   const isBroken = React.useCallback((src?: string | null) => Boolean(src && brokenImages[src]), [brokenImages]);
 
   return { isBroken, markBroken };
+}
+
+function resolvePostContent(post: {
+  renderType?: 'content' | 'markdown' | 'html';
+  content?: string;
+  markdownRender?: string;
+  htmlRender?: string;
+}): string {
+  if (post.renderType === 'markdown') {
+    return post.markdownRender ? withFormatMarker('markdown', post.markdownRender) : '';
+  }
+  if (post.renderType === 'html') {
+    return post.htmlRender ? withFormatMarker('html', post.htmlRender) : '';
+  }
+  return post.content ? withFormatMarker('richtext', post.content) : '';
+}
+
+function resolvePostContentLength(post: {
+  renderType?: 'content' | 'markdown' | 'html';
+  content?: string;
+  markdownRender?: string;
+  htmlRender?: string;
+}): number {
+  if (post.renderType === 'markdown') {
+    return post.markdownRender?.length ?? 0;
+  }
+  if (post.renderType === 'html') {
+    return post.htmlRender?.length ?? 0;
+  }
+  return post.content?.length ?? 0;
 }
 
 interface PageProps {
@@ -383,7 +414,9 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
-  const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
+  const resolvedContent = useMemo(() => resolvePostContent(post), [post]);
+  const resolvedContentLength = useMemo(() => resolvePostContentLength(post), [post]);
+  const readingTime = Math.max(1, Math.ceil(resolvedContentLength / 1000));
   const visibleTags = showTags ? tags : [];
   const accentColor = secondaryColor || brandColor;
 
@@ -515,9 +548,12 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
               )}
             </div>
 
-            <div className="prose prose-zinc prose-lg max-w-none lg:max-w-[640px] dark:prose-invert">
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
-            </div>
+            {resolvedContent && (
+              <RichContent
+                content={resolvedContent}
+                className="prose-zinc prose-lg max-w-none lg:max-w-[640px]"
+              />
+            )}
 
             <div className="border-t pt-8 mt-12 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex gap-2 w-full sm:w-auto">
@@ -598,7 +634,9 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
 
 // Style 2: Modern - Medium/Substack inspired - Focus on typography and reading experience
 function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
-  const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
+  const resolvedContent = useMemo(() => resolvePostContent(post), [post]);
+  const resolvedContentLength = useMemo(() => resolvePostContentLength(post), [post]);
+  const readingTime = Math.max(1, Math.ceil(resolvedContentLength / 1000));
   const showExcerpt = enabledFields.has('excerpt');
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
@@ -730,9 +768,12 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
             </p>
           )}
 
-          <div className="prose prose-lg prose-zinc dark:prose-invert max-w-none text-muted-foreground leading-loose">
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
-          </div>
+          {resolvedContent && (
+            <RichContent
+              content={resolvedContent}
+              className="prose-lg prose-zinc max-w-none text-muted-foreground leading-loose"
+            />
+          )}
 
           {commentsSection}
 
@@ -804,7 +845,9 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
 // Style 3: Minimal - Tối giản, tập trung nội dung
 function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const readingTime = Math.max(1, Math.ceil(post.content.length / 1000));
+  const resolvedContent = useMemo(() => resolvePostContent(post), [post]);
+  const resolvedContentLength = useMemo(() => resolvePostContentLength(post), [post]);
+  const readingTime = Math.max(1, Math.ceil(resolvedContentLength / 1000));
   const { isBroken, markBroken } = useImageFallback();
   const visibleTags = showTags ? tags : [];
   const accentColor = secondaryColor || brandColor;
@@ -919,9 +962,12 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
               {post.excerpt}
             </p>
           )}
-          <div className="prose prose-slate prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-img:rounded-lg">
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
-          </div>
+          {resolvedContent && (
+            <RichContent
+              content={resolvedContent}
+              className="prose-slate prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-img:rounded-lg"
+            />
+          )}
 
           {commentsSection}
         </section>

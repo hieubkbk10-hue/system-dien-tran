@@ -12,6 +12,13 @@ const productDoc = v.object({
   affiliateLink: v.optional(v.string()),
   categoryId: v.id("productCategories"),
   description: v.optional(v.string()),
+  renderType: v.optional(v.union(
+    v.literal("content"),
+    v.literal("markdown"),
+    v.literal("html")
+  )),
+  markdownRender: v.optional(v.string()),
+  htmlRender: v.optional(v.string()),
   hasVariants: v.optional(v.boolean()),
   image: v.optional(v.string()),
   images: v.optional(v.array(v.string())),
@@ -52,6 +59,13 @@ const productAdminDoc = v.object({
   affiliateLink: v.optional(v.string()),
   categoryId: v.id("productCategories"),
   description: v.optional(v.string()),
+  renderType: v.optional(v.union(
+    v.literal("content"),
+    v.literal("markdown"),
+    v.literal("html")
+  )),
+  markdownRender: v.optional(v.string()),
+  htmlRender: v.optional(v.string()),
   hasVariants: v.optional(v.boolean()),
   image: v.optional(v.string()),
   images: v.optional(v.array(v.string())),
@@ -1209,6 +1223,13 @@ export const create = mutation({
     affiliateLink: v.optional(v.string()),
     categoryId: v.id("productCategories"),
     description: v.optional(v.string()),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     hasVariants: v.optional(v.boolean()),
     image: v.optional(v.string()),
     images: v.optional(v.array(v.string())),
@@ -1308,7 +1329,7 @@ export const create = mutation({
       : productTypeMode === "digital"
         ? "digital"
         : (args.productType ?? "physical");
-    const { salePrice, ...restArgs } = args;
+    const { salePrice, renderType, markdownRender, htmlRender, ...restArgs } = args;
     const resolvedSalePrice = typeof salePrice === "number" && salePrice > 0 ? salePrice : undefined;
     if (resolvedSalePrice !== undefined) {
       if (!Number.isFinite(args.price) || args.price <= 0) {
@@ -1320,6 +1341,9 @@ export const create = mutation({
     }
     const productId = await ctx.db.insert("products", {
       ...restArgs,
+      renderType: renderType ?? "content",
+      markdownRender,
+      htmlRender,
       productType,
       digitalDeliveryType: productType === "digital" ? args.digitalDeliveryType : undefined,
       digitalCredentialsTemplate: productType === "digital" ? args.digitalCredentialsTemplate : undefined,
@@ -1345,6 +1369,13 @@ export const update = mutation({
     affiliateLink: v.optional(v.string()),
     categoryId: v.optional(v.id("productCategories")),
     description: v.optional(v.string()),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     id: v.id("products"),
     hasVariants: v.optional(v.boolean()),
     image: v.optional(v.string()),

@@ -111,6 +111,9 @@ export async function create(
     title: string;
     slug: string;
     content: string;
+    renderType?: "content" | "markdown" | "html";
+    markdownRender?: string;
+    htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
     categoryId: Id<"serviceCategories">;
@@ -136,6 +139,9 @@ export async function create(
   return  ctx.db.insert("services", {
     categoryId: args.categoryId,
     content: args.content,
+    renderType: args.renderType ?? "content",
+    markdownRender: args.markdownRender,
+    htmlRender: args.htmlRender,
     duration: args.duration,
     excerpt: args.excerpt,
     featured: args.featured,
@@ -159,6 +165,9 @@ export async function update(
     title?: string;
     slug?: string;
     content?: string;
+    renderType?: "content" | "markdown" | "html";
+    markdownRender?: string;
+    htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
     categoryId?: Id<"serviceCategories">;

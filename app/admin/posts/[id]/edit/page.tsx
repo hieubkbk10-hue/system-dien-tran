@@ -27,6 +27,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [renderType, setRenderType] = useState<'content' | 'markdown' | 'html'>('content');
+  const [markdownRender, setMarkdownRender] = useState('');
+  const [htmlRender, setHtmlRender] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -37,12 +40,15 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [editorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     title: string;
     slug: string;
     content: string;
+    renderType: 'content' | 'markdown' | 'html';
+    markdownRender: string;
+    htmlRender: string;
     excerpt: string;
     metaTitle: string;
     metaDescription: string;
@@ -59,12 +65,19 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     return fields;
   }, [fieldsData]);
 
+  const hasMarkdownRender = enabledFields.has('markdownRender');
+  const hasHtmlRender = enabledFields.has('htmlRender');
+  const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
+
   const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
 
   const currentSnapshot = useMemo(() => ({
     authorName: authorName.trim(),
     categoryId,
     content: normalizedContent,
+    renderType,
+    markdownRender: markdownRender.trim(),
+    htmlRender: htmlRender.trim(),
     excerpt: excerpt.trim(),
     metaDescription: metaDescription.trim(),
     metaTitle: metaTitle.trim(),
@@ -72,7 +85,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     status,
     thumbnail: thumbnail ?? '',
     title: title.trim(),
-  }), [authorName, categoryId, normalizedContent, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
+  }), [authorName, categoryId, normalizedContent, renderType, markdownRender, htmlRender, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
 
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
@@ -97,6 +110,13 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       setTitle(postData.title);
       setSlug(postData.slug);
       setContent(postData.content);
+      const nextRenderType = postData.renderType ?? 'content';
+      const allowedRenderTypes = new Set<'content' | 'markdown' | 'html'>(['content']);
+      if (hasMarkdownRender) {allowedRenderTypes.add('markdown');}
+      if (hasHtmlRender) {allowedRenderTypes.add('html');}
+      setRenderType(allowedRenderTypes.has(nextRenderType) ? nextRenderType : 'content');
+      setMarkdownRender(postData.markdownRender ?? '');
+      setHtmlRender(postData.htmlRender ?? '');
       setExcerpt(postData.excerpt ?? '');
       setMetaTitle(postData.metaTitle ?? '');
       setMetaDescription(postData.metaDescription ?? '');
@@ -108,6 +128,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         authorName: (postData.authorName ?? '').trim(),
         categoryId: postData.categoryId,
         content: normalizeRichText(postData.content),
+        renderType: postData.renderType ?? 'content',
+        markdownRender: (postData.markdownRender ?? '').trim(),
+        htmlRender: (postData.htmlRender ?? '').trim(),
         excerpt: (postData.excerpt ?? '').trim(),
         metaDescription: (postData.metaDescription ?? '').trim(),
         metaTitle: (postData.metaTitle ?? '').trim(),
@@ -118,7 +141,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       };
       setSnapshotVersion((prev) => prev + 1);
     }
-  }, [postData]);
+  }, [postData, hasMarkdownRender, hasHtmlRender]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +165,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         authorName: enabledFields.has('author_name') ? authorName.trim() || undefined : undefined,
         categoryId: categoryId as Id<"postCategories">,
         content,
+        renderType,
+        markdownRender: markdownRender.trim() || undefined,
+        htmlRender: htmlRender.trim() || undefined,
         excerpt: excerpt.trim() || undefined,
         id: id as Id<"posts">,
         metaDescription: enabledFields.has('metaDescription')
@@ -159,6 +185,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         ...currentSnapshot,
         authorName: authorName.trim(),
         content: normalizeRichText(content),
+        renderType,
+        markdownRender: markdownRender.trim(),
+        htmlRender: htmlRender.trim(),
         excerpt: excerpt.trim(),
         metaDescription: resolvedMetaDescriptionValue,
         metaTitle: resolvedMetaTitleValue,
@@ -248,6 +277,48 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
               </div>
             </CardContent>
           </Card>
+
+          {showAdvancedRenderCard && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Render nâng cao</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kiểu render</Label>
+                  <select
+                    value={renderType}
+                    onChange={(e) =>{  setRenderType(e.target.value as 'content' | 'markdown' | 'html'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="content">Content (mặc định)</option>
+                    {hasMarkdownRender && <option value="markdown">Markdown</option>}
+                    {hasHtmlRender && <option value="html">HTML</option>}
+                  </select>
+                </div>
+                {hasMarkdownRender && (
+                  <div className="space-y-2">
+                    <Label>Markdown render</Label>
+                    <textarea
+                      value={markdownRender}
+                      onChange={(e) =>{  setMarkdownRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán markdown để render..."
+                    />
+                  </div>
+                )}
+                {hasHtmlRender && (
+                  <div className="space-y-2">
+                    <Label>HTML render</Label>
+                    <textarea
+                      value={htmlRender}
+                      onChange={(e) =>{  setHtmlRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán HTML inline để render..."
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {(enabledFields.has('metaTitle') || enabledFields.has('metaDescription')) && (
             <Card>

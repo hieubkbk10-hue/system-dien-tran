@@ -7,12 +7,16 @@ import { QuickContactButtons } from '@/components/site/QuickContact';
 import { ArrowLeft, ArrowRight, Calendar, ChevronRight, Clock, Copy, Eye, Image as ImageIcon, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceDetailColors } from './_lib/colors';
+import { RichContent, withFormatMarker } from '@/components/common/RichContent';
 
 export interface ServiceDetailData {
   _id: Id<"services">;
   title: string;
   slug: string;
   content: string;
+  renderType?: 'content' | 'markdown' | 'html';
+  markdownRender?: string;
+  htmlRender?: string;
   excerpt?: string;
   thumbnail?: string;
   categoryId: Id<"serviceCategories">;
@@ -59,6 +63,24 @@ type MinimalConfig = {
   ctaButtonText: string;
   ctaButtonLink: string;
 };
+
+function resolveServiceContent(service: ServiceDetailData): string {
+  const renderType = service.renderType ?? 'content';
+
+  if (renderType === 'markdown') {
+    return service.markdownRender?.trim()
+      ? withFormatMarker('markdown', service.markdownRender)
+      : '';
+  }
+
+  if (renderType === 'html') {
+    return service.htmlRender?.trim()
+      ? withFormatMarker('html', service.htmlRender)
+      : '';
+  }
+
+  return service.content ? withFormatMarker('richtext', service.content) : '';
+}
 
 export interface StyleProps {
   service: ServiceDetailData;
@@ -118,6 +140,7 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
+  const resolvedContent = resolveServiceContent(service);
   const quickContactConfig: QuickContactConfig = {
     enabled: true,
     title: 'Liên hệ nhanh',
@@ -230,12 +253,13 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
               </div>
             )}
 
-            <article
-              className="prose prose-lg max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl"
-              style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
-            >
-              <div dangerouslySetInnerHTML={{ __html: service.content }} />
-            </article>
+            {resolvedContent && (
+              <RichContent
+                content={resolvedContent}
+                className="prose prose-lg max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl"
+                style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
+              />
+            )}
 
             <div className="mt-12 pt-8 border-t" style={{ borderColor: tokens.border }}>
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -325,6 +349,7 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
   const showPrice = enabledFields.has('price');
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
+  const resolvedContent = resolveServiceContent(service);
   
   const config: ModernConfig = {
     contactEnabled: true,
@@ -448,12 +473,13 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
 
       {/* Content Section */}
       <section className="max-w-4xl mx-auto px-4 py-12 md:py-16">
-        <article
-          className="prose max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg"
-          style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
-        >
-          <div dangerouslySetInnerHTML={{ __html: service.content }} />
-        </article>
+        {resolvedContent && (
+          <RichContent
+            content={resolvedContent}
+            className="prose max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg"
+            style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText } as React.CSSProperties}
+          />
+        )}
       </section>
 
       {/* Related Services - Clean cards */}
@@ -518,6 +544,7 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
 export function MinimalStyle({ service, brandColor: _brandColor, tokens, relatedServices, enabledFields, minimalConfig }: StyleProps) {
   const showDuration = enabledFields.has('duration');
   const showFeatured = enabledFields.has('featured');
+  const resolvedContent = resolveServiceContent(service);
 
   const config: MinimalConfig = {
     ctaEnabled: true,
@@ -617,12 +644,13 @@ export function MinimalStyle({ service, brandColor: _brandColor, tokens, related
           </figure>
         )}
 
-        <div 
-          className="prose max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-blockquote:border-l-2 prose-blockquote:not-italic"
-          style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText, '--tw-prose-quote-borders': tokens.linkColor } as React.CSSProperties}
-        >
-          <div dangerouslySetInnerHTML={{ __html: service.content }} />
-        </div>
+        {resolvedContent && (
+          <RichContent
+            content={resolvedContent}
+            className="prose max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-blockquote:border-l-2 prose-blockquote:not-italic"
+            style={{ '--tw-prose-body': tokens.bodyText, '--tw-prose-headings': tokens.headingColor, '--tw-prose-links': tokens.linkColor, '--tw-prose-bold': tokens.bodyText, '--tw-prose-quote-borders': tokens.linkColor } as React.CSSProperties}
+          />
+        )}
 
         {config.ctaEnabled && (
           <div className="mt-14 rounded-2xl border p-6 text-center" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>

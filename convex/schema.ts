@@ -265,6 +265,13 @@ export default defineSchema({
     images: v.optional(v.array(v.string())),
     sales: v.number(),
     description: v.optional(v.string()),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     affiliateLink: v.optional(v.string()),
     order: v.number(),
     hasVariants: v.optional(v.boolean()),
@@ -399,6 +406,13 @@ export default defineSchema({
     title: v.string(),
     slug: v.string(),
     content: v.string(),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     thumbnail: v.optional(v.string()),
     categoryId: v.id("postCategories"),
@@ -804,6 +818,13 @@ export default defineSchema({
     title: v.string(),
     slug: v.string(),
     content: v.string(),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     thumbnail: v.optional(v.string()),
     categoryId: v.id("serviceCategories"),

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
 import { RelatedPagesBlock } from '@/components/seo/RelatedPagesBlock';
 import { getFunnelInternalLinks, getRelatedLandingPages } from '@/lib/seo/internal-links';
+import { RichContent } from '@/components/common/RichContent';
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -27,7 +28,7 @@ export default async function UseCasePage({ params }: Props) {
       {page.heroImage && <img src={page.heroImage} alt={page.title} className="w-full h-64 object-cover rounded-lg mb-8" />}
       <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
       <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">{page.summary}</p>
-      {page.content && <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: page.content }} />}
+      {page.content && <RichContent content={page.content} className="prose dark:prose-invert max-w-none" />}
       {page.faqItems && page.faqItems.length > 0 && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Câu hỏi thường gặp</h2>

@@ -51,6 +51,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [affiliateLink, setAffiliateLink] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
+  const [renderType, setRenderType] = useState<'content' | 'markdown' | 'html'>('content');
+  const [markdownRender, setMarkdownRender] = useState('');
+  const [htmlRender, setHtmlRender] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState<string | undefined>();
@@ -58,7 +61,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
-  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [editorResetKey] = useState(0);
   const [snapshotVersion, setSnapshotVersion] = useState(0);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -79,6 +82,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     affiliateLink: string;
     categoryId: string;
     description: string;
+    renderType: 'content' | 'markdown' | 'html';
+    markdownRender: string;
+    htmlRender: string;
     digitalCredentialsTemplate: {
       username?: string;
       password?: string;
@@ -109,6 +115,10 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
+
+  const hasMarkdownRender = enabledFields.has('markdownRender');
+  const hasHtmlRender = enabledFields.has('htmlRender');
+  const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
 
   const variantEnabled = useMemo(() => {
     const setting = settingsData?.find(s => s.settingKey === 'variantEnabled');
@@ -148,6 +158,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     affiliateLink: affiliateLink.trim(),
     categoryId,
     description: normalizedDescription,
+    renderType,
+    markdownRender: markdownRender.trim(),
+    htmlRender: htmlRender.trim(),
     digitalCredentialsTemplate: digitalCredentialsTemplate ?? {},
     digitalDeliveryType,
     galleryImages: galleryItems.map(item => item.url).filter(Boolean),
@@ -168,6 +181,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     affiliateLink,
     categoryId,
     normalizedDescription,
+    renderType,
+    markdownRender,
+    htmlRender,
     digitalCredentialsTemplate,
     digitalDeliveryType,
     galleryItems,
@@ -213,6 +229,13 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       setAffiliateLink(((productData as { affiliateLink?: string }).affiliateLink ?? '').toString());
       setCategoryId(productData.categoryId);
       setDescription(productData.description ?? '');
+      const nextRenderType = productData.renderType ?? 'content';
+      const allowedRenderTypes = new Set<'content' | 'markdown' | 'html'>(['content']);
+      if (hasMarkdownRender) {allowedRenderTypes.add('markdown');}
+      if (hasHtmlRender) {allowedRenderTypes.add('html');}
+      setRenderType(allowedRenderTypes.has(nextRenderType) ? nextRenderType : 'content');
+      setMarkdownRender(productData.markdownRender ?? '');
+      setHtmlRender(productData.htmlRender ?? '');
       setMetaTitle(productData.metaTitle ?? '');
       setMetaDescription(productData.metaDescription ?? '');
       setImage(productData.image);
@@ -227,6 +250,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         affiliateLink: ((productData as { affiliateLink?: string }).affiliateLink ?? '').trim(),
         categoryId: productData.categoryId,
         description: normalizeRichText(productData.description ?? ''),
+        renderType: productData.renderType ?? 'content',
+        markdownRender: (productData.markdownRender ?? '').trim(),
+        htmlRender: (productData.htmlRender ?? '').trim(),
         digitalCredentialsTemplate: productData.digitalCredentialsTemplate ?? {},
         digitalDeliveryType: productData.digitalDeliveryType ?? 'account',
         galleryImages: (productData.images ?? []).filter(Boolean),
@@ -247,7 +273,16 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       setSnapshotVersion((prev) => prev + 1);
       setIsDataLoaded(true);
     }
-  }, [productData, isDataLoaded]);
+  }, [productData, isDataLoaded, hasMarkdownRender, hasHtmlRender]);
+
+  useEffect(() => {
+    const allowedRenderTypes = new Set<'content' | 'markdown' | 'html'>(['content']);
+    if (hasMarkdownRender) {allowedRenderTypes.add('markdown');}
+    if (hasHtmlRender) {allowedRenderTypes.add('html');}
+    if (!allowedRenderTypes.has(renderType)) {
+      setRenderType('content');
+    }
+  }, [renderType, hasMarkdownRender, hasHtmlRender]);
 
   useEffect(() => {
     if (!hasVariants) {
@@ -355,6 +390,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         ...(isAffiliateMode ? { affiliateLink: affiliateLink.trim() || undefined } : {}),
         categoryId: categoryId as Id<"productCategories">,
         description: description.trim() || undefined,
+        renderType,
+        markdownRender: markdownRender.trim() || undefined,
+        htmlRender: htmlRender.trim() || undefined,
         id: id as Id<"products">,
         hasVariants: variantEnabled ? hasVariants : undefined,
         image,
@@ -382,6 +420,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       const persistedSnapshot = {
         ...currentSnapshot,
         description: normalizeRichText(description.trim()),
+        renderType,
+        markdownRender: markdownRender.trim(),
+        htmlRender: htmlRender.trim(),
         metaDescription: resolvedMetaDescriptionValue,
         metaTitle: resolvedMetaTitleValue,
       };
@@ -509,6 +550,48 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
               )}
             </CardContent>
           </Card>
+
+          {showAdvancedRenderCard && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Render nâng cao</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Kiểu render</Label>
+                  <select
+                    value={renderType}
+                    onChange={(e) =>{  setRenderType(e.target.value as 'content' | 'markdown' | 'html'); }}
+                    className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="content">Content (mặc định)</option>
+                    {hasMarkdownRender && <option value="markdown">Markdown</option>}
+                    {hasHtmlRender && <option value="html">HTML</option>}
+                  </select>
+                </div>
+                {hasMarkdownRender && (
+                  <div className="space-y-2">
+                    <Label>Markdown render</Label>
+                    <textarea
+                      value={markdownRender}
+                      onChange={(e) =>{  setMarkdownRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán markdown để render..."
+                    />
+                  </div>
+                )}
+                {hasHtmlRender && (
+                  <div className="space-y-2">
+                    <Label>HTML render</Label>
+                    <textarea
+                      value={htmlRender}
+                      onChange={(e) =>{  setHtmlRender(e.target.value); }}
+                      className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono"
+                      placeholder="Dán HTML inline để render..."
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle className="text-base">Giá & Kho hàng</CardTitle></CardHeader>

@@ -205,7 +205,7 @@ export const seedPostsModule = mutation({
             { authorName: "Admin", categoryId: tinTucCat._id, content: "<p>Chính sách bảo hành mới sẽ có hiệu lực từ ngày 01/02/2025 với nhiều cải tiến...</p>", excerpt: "Thông tin chính sách bảo hành", order: 3, slug: "cap-nhat-chinh-sach-bao-hanh-moi", status: "Draft" as const, thumbnail: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400", title: "Cập nhật chính sách bảo hành mới", views: 0 },
             { authorName: "Admin", categoryId: huongDanCat._id, content: "<p>Các phương thức thanh toán online được hỗ trợ và hướng dẫn chi tiết...</p>", excerpt: "Thanh toán nhanh chóng, an toàn", order: 4, publishedAt: Date.now() - 345_600_000, slug: "huong-dan-thanh-toan-online", status: "Published" as const, thumbnail: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400", title: "Hướng dẫn thanh toán online", views: 650 },
             { authorName: "Admin", categoryId: tinTucCat._id, content: "<p>Điểm lại những sản phẩm được yêu thích nhất trong năm qua...</p>", excerpt: "Những sản phẩm hot nhất năm", order: 5, publishedAt: Date.now() - 604_800_000, slug: "top-10-san-pham-ban-chay-nhat-2024", status: "Archived" as const, thumbnail: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400", title: "Top 10 sản phẩm bán chạy nhất 2024", views: 3200 },
-          ];
+          ].map((post) => ({ ...post, renderType: "content" as const }));
           for (const post of posts) {
             await ctx.db.insert("posts", post);
           }
@@ -485,7 +485,7 @@ export const seedProductsModule = mutation({
             { categoryId: giaDungCat._id, description: "Robot hút bụi lau nhà Xiaomi", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400", name: "Robot hút bụi Xiaomi", order: 6, price: 8_500_000, sales: 42, sku: "ROBOT-XIAOMI-01", slug: "robot-hut-bui-xiaomi", status: "Active" as const, stock: 5 },
             { categoryId: dienTuCat._id, description: "Tai nghe AirPods Pro thế hệ 2", image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400", name: "Tai nghe AirPods Pro 2", order: 7, price: 6_990_000, sales: 0, sku: "APP2-2024", slug: "tai-nghe-airpods-pro-2", status: "Draft" as const, stock: 0 },
             { categoryId: thoiTrangCat._id, description: "Váy đầm nữ sang trọng dự tiệc", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400", name: "Váy đầm nữ dự tiệc", order: 8, price: 890_000, sales: 75, sku: "DRESS-NU-001", slug: "vay-dam-nu-du-tiec", status: "Archived" as const, stock: 60 },
-          ];
+          ].map((product) => ({ ...product, renderType: "content" as const }));
           for (const product of products) {
             await ctx.db.insert("products", product);
           }
@@ -2833,6 +2833,8 @@ export const seedServicesModule = mutation({
         { description: "Hiển thị giá dịch vụ", enabled: true, featureKey: "enablePrice", linkedFieldKey: "price", moduleKey: "services", name: "Hiển thị giá" },
         { description: "Hiển thị thời gian hoàn thành dịch vụ", enabled: true, featureKey: "enableDuration", linkedFieldKey: "duration", moduleKey: "services", name: "Thời gian thực hiện" },
         { description: "Đánh dấu dịch vụ nổi bật", enabled: true, featureKey: "enableFeatured", linkedFieldKey: "featured", moduleKey: "services", name: "Nổi bật" },
+        { description: "Bật nội dung Markdown tùy chọn", enabled: false, featureKey: "enableMarkdownRender", linkedFieldKey: "markdownRender", moduleKey: "services", name: "Markdown render" },
+        { description: "Bật nội dung HTML tùy chọn", enabled: false, featureKey: "enableHtmlRender", linkedFieldKey: "htmlRender", moduleKey: "services", name: "HTML render" },
       ];
       for (const feature of features) {
         await ctx.db.insert("moduleFeatures", feature);
@@ -2856,6 +2858,9 @@ export const seedServicesModule = mutation({
         { enabled: true, fieldKey: "featured", isSystem: false, linkedFeature: "enableFeatured", moduleKey: "services", name: "Nổi bật", order: 10, required: false, type: "boolean" as const },
         { enabled: true, fieldKey: "metaTitle", group: "seo", isSystem: false, moduleKey: "services", name: "Meta Title", order: 11, required: false, type: "text" as const },
         { enabled: true, fieldKey: "metaDescription", group: "seo", isSystem: false, moduleKey: "services", name: "Meta Description", order: 12, required: false, type: "textarea" as const },
+        { enabled: true, fieldKey: "renderType", isSystem: false, moduleKey: "services", name: "Kiểu render", order: 13, required: false, type: "select" as const },
+        { enabled: false, fieldKey: "markdownRender", isSystem: false, linkedFeature: "enableMarkdownRender", moduleKey: "services", name: "Markdown render", order: 14, required: false, type: "textarea" as const },
+        { enabled: false, fieldKey: "htmlRender", isSystem: false, linkedFeature: "enableHtmlRender", moduleKey: "services", name: "HTML render", order: 15, required: false, type: "textarea" as const },
       ];
       for (const field of serviceFields) {
         await ctx.db.insert("moduleFields", field);

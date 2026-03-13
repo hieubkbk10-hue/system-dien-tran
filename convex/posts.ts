@@ -13,6 +13,13 @@ const postDoc = v.object({
   authorName: v.optional(v.string()),
   categoryId: v.id("postCategories"),
   content: v.string(),
+  renderType: v.optional(v.union(
+    v.literal("content"),
+    v.literal("markdown"),
+    v.literal("html")
+  )),
+  markdownRender: v.optional(v.string()),
+  htmlRender: v.optional(v.string()),
   excerpt: v.optional(v.string()),
   metaDescription: v.optional(v.string()),
   metaTitle: v.optional(v.string()),
@@ -587,6 +594,13 @@ export const create = mutation({
     authorName: v.optional(v.string()),
     categoryId: v.id("postCategories"),
     content: v.string(),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     metaTitle: v.optional(v.string()),
@@ -605,6 +619,13 @@ export const update = mutation({
     authorName: v.optional(v.string()),
     categoryId: v.optional(v.id("postCategories")),
     content: v.optional(v.string()),
+    renderType: v.optional(v.union(
+      v.literal("content"),
+      v.literal("markdown"),
+      v.literal("html")
+    )),
+    markdownRender: v.optional(v.string()),
+    htmlRender: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     id: v.id("posts"),
     metaDescription: v.optional(v.string()),

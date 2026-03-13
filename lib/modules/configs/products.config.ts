@@ -1,4 +1,4 @@
-import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree } from 'lucide-react';
+import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree, FileText, Code } from 'lucide-react';
 import { defineModuleWithRuntime } from '../define-module';
  
 export const productsModule = defineModuleWithRuntime({
@@ -15,6 +15,8 @@ export const productsModule = defineModuleWithRuntime({
      { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku' },
     { key: 'enableBarcode', label: 'Mã vạch phiên bản', icon: Tag, linkedField: 'barcode', enabled: false },
      { key: 'enableStock', label: 'Quản lý kho', icon: Box, linkedField: 'stock' },
+     { key: 'enableMarkdownRender', label: 'Markdown render', icon: FileText, linkedField: 'markdownRender' },
+     { key: 'enableHtmlRender', label: 'HTML render', icon: Code, linkedField: 'htmlRender' },
      {
        key: 'enableCategoryHierarchy',
        label: 'Danh mục cha - con',
@@ -176,6 +178,9 @@ export const productsModule = defineModuleWithRuntime({
       { enabled: true, fieldKey: 'images', isSystem: false, linkedFeature: 'enableGallery', name: 'Thư viện ảnh', order: 11, required: false, type: 'gallery' },
       { enabled: true, fieldKey: 'metaTitle', group: 'seo', isSystem: false, name: 'Meta Title', order: 12, required: false, type: 'text' },
       { enabled: true, fieldKey: 'metaDescription', group: 'seo', isSystem: false, name: 'Meta Description', order: 13, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'renderType', isSystem: false, name: 'Kiểu render', order: 14, required: false, type: 'select' },
+      { enabled: true, fieldKey: 'markdownRender', isSystem: false, linkedFeature: 'enableMarkdownRender', name: 'Markdown render', order: 15, required: false, type: 'textarea' },
+      { enabled: true, fieldKey: 'htmlRender', isSystem: false, linkedFeature: 'enableHtmlRender', name: 'HTML render', order: 16, required: false, type: 'textarea' },
     ],
   },
 
