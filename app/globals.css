@@ -23,8 +23,7 @@
   color-scheme: dark;
 }
 
-html[data-theme='light'],
-body[data-theme='light'] {
+[data-theme='light'] {
   color-scheme: light;
 }
 

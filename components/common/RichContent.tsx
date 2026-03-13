@@ -33,7 +33,7 @@ export function RichContent({ content, className, style }: RichContentProps) {
   }
 
   const baseClass = clsx(
-    "prose dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_*]:break-words",
+    "prose max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_*]:break-words",
     className,
   );
 

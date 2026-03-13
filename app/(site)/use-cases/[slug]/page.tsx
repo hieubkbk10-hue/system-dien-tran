@@ -27,8 +27,8 @@ export default async function UseCasePage({ params }: Props) {
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       {page.heroImage && <img src={page.heroImage} alt={page.title} className="w-full h-64 object-cover rounded-lg mb-8" />}
       <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
-      <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">{page.summary}</p>
-      {page.content && <RichContent content={page.content} className="prose dark:prose-invert max-w-none" />}
+      <p className="text-xl text-slate-600 mb-8">{page.summary}</p>
+      {page.content && <RichContent content={page.content} className="prose max-w-none" />}
       {page.faqItems && page.faqItems.length > 0 && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Câu hỏi thường gặp</h2>
