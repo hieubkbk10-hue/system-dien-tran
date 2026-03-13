@@ -2894,7 +2894,7 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
   };
   
   const categoriesData = useQuery(api.productCategories.listActive);
-  const productsData = useQuery(api.products.listAll, {});
+  const productsData = useQuery(api.products.listPublicResolved, {});
   
   const categoryMap = React.useMemo(() => {
     const map: Record<string, { name: string; slug: string; image?: string; description?: string }> = {};
@@ -3492,7 +3492,7 @@ function CategoryProductsSection({
 
   // Query categories and products
   const categoriesData = useQuery(api.productCategories.listActive);
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const productsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
 
@@ -3516,7 +3516,7 @@ function CategoryProductsSection({
       categoryId: string; 
       itemCount: number;
       category: { _id: string; name: string; slug?: string; image?: string }; 
-      products: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string }[] 
+      products: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string; hasVariants?: boolean }[] 
     }[];
 
   const getGridCols = () => {
@@ -3532,13 +3532,13 @@ function CategoryProductsSection({
 
   const getMobileGridCols = () => columnsMobile === 1 ? 'grid-cols-1' : 'grid-cols-2';
 
-  const getPriceDisplay = (price?: number, salePrice?: number) =>
-    getHomeComponentPriceLabel({ saleMode, price, salePrice });
+  const getPriceDisplay = (price?: number, salePrice?: number, isRangeFromVariant?: boolean) =>
+    getHomeComponentPriceLabel({ saleMode, price, salePrice, isRangeFromVariant });
   const formatComparePrice = (price?: number) =>
     price ? getHomeComponentPriceLabel({ saleMode: 'cart', price }).label : '';
 
   // Product Card Component with Equal Height (line-clamp + min-height)
-  const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string } }) => (
+  const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string; hasVariants?: boolean } }) => (
     <a href={`/products/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
       <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
         {product.image ? (
@@ -3556,7 +3556,7 @@ function CategoryProductsSection({
       <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name || 'Tên sản phẩm'}</h4>
       <div className="flex flex-col mt-auto">
         {(() => {
-          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
           if (priceDisplay.comparePrice) {
             return (
               <>
@@ -3741,7 +3741,7 @@ function CategoryProductsSection({
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2 mb-1" style={{ color: colors.bodyText }}>{product.name}</h4>
                           <span className="font-bold text-base" style={{ color: colors.priceText }}>
-                            {getPriceDisplay(product.price, product.salePrice).label}
+                            {getPriceDisplay(product.price, product.salePrice, product.hasVariants).label}
                           </span>
                         </a>
                       ))}
@@ -3903,7 +3903,7 @@ function CategoryProductsSection({
                             <h3 className="font-bold text-lg line-clamp-2 mb-1">{featured.name}</h3>
                             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
                               {(() => {
-                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice, featured?.hasVariants);
                                 if (priceDisplay.comparePrice) {
                                   return (
                                     <>
@@ -3941,7 +3941,7 @@ function CategoryProductsSection({
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                           <div className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform">
                             <h4 className="font-medium text-sm line-clamp-1">{product.name}</h4>
-                            <span className="font-bold text-sm">{getPriceDisplay(product.price, product.salePrice).label}</span>
+                            <span className="font-bold text-sm">{getPriceDisplay(product.price, product.salePrice, product.hasVariants).label}</span>
                           </div>
                         </a>
                       ))}
@@ -4036,7 +4036,7 @@ function CategoryProductsSection({
                             <h3 className="font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featured.name}</h3>
                             <div className="flex items-baseline gap-3">
                               {(() => {
-                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                                const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice, featured?.hasVariants);
                                 if (priceDisplay.comparePrice) {
                                   return (
                                     <>
@@ -4091,7 +4091,7 @@ function CategoryProductsSection({
                           <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name}</h4>
                             <div className="flex items-baseline gap-2 mt-1">
                               {(() => {
-                                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                                const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                                 if (priceDisplay.comparePrice) {
                                   return (
                                     <>
@@ -4208,7 +4208,7 @@ function CategoryProductsSection({
                       
                       {/* Badge for sale */}
                       {(() => {
-                        const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                        const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                         if (!priceDisplay.comparePrice) {return null;}
                         return (
                           <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white bg-red-500 z-30">
@@ -4223,7 +4223,7 @@ function CategoryProductsSection({
                       <h4 className="font-medium text-sm line-clamp-2 group-hover:opacity-80 transition-opacity" style={{ color: colors.bodyText }}>{product.name}</h4>
                       <div className="flex flex-col">
                         {(() => {
-                          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                          const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                           if (priceDisplay.comparePrice) {
                             return (
                               <>

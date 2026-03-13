@@ -68,6 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       saleMode,
       price: product.price,
       salePrice: product.salePrice,
+      isRangeFromVariant: product.hasVariants,
     }).label;
 
     return buildSeoMetadata({

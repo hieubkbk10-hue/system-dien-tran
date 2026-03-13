@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { ModuleGuard } from '../../components/ModuleGuard';
 import { OptionForm, type ProductOptionFormValues } from '../components/OptionForm';
 
@@ -42,7 +43,7 @@ function ProductOptionCreateContent() {
       toast.success('Đã tạo option');
       router.push('/admin/product-options');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể tạo option');
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể tạo option'));
     } finally {
       setIsSubmitting(false);
     }

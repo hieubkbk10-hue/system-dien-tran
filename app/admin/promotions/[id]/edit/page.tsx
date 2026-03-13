@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 
 const MODULE_KEY = 'promotions';
@@ -198,7 +199,7 @@ export default function PromotionEditPage({ params }: { params: Promise<{ id: st
       });
       toast.success('Cập nhật khuyến mãi thành công');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật khuyến mãi');
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể cập nhật khuyến mãi'));
     } finally {
       setIsSubmitting(false);
     }

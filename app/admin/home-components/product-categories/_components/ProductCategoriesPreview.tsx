@@ -55,7 +55,7 @@ export const ProductCategoriesPreview = ({
   const [circularPageCount, setCircularPageCount] = useState(1);
   const circularScrollRef = React.useRef<HTMLDivElement>(null);
   
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const productsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   const categoryMap = React.useMemo(() => {
     const map: Record<string, CategoryData> = {};
     for (const cat of categoriesData) {

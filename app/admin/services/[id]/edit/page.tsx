@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, ExternalLink, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
@@ -160,7 +161,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật dịch vụ thành công");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể cập nhật dịch vụ");
+      toast.error(getAdminMutationErrorMessage(error, "Không thể cập nhật dịch vụ"));
     } finally {
       setIsSubmitting(false);
     }

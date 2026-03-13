@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 
 const categoryDoc = v.object({
@@ -197,7 +197,12 @@ export const create = mutation({
       .query("productCategories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (existing) {throw new Error("Slug này đã được sử dụng, vui lòng chọn slug khác");}
+    if (existing) {
+      throw new ConvexError({
+        code: "DUPLICATE_SLUG",
+        message: "Slug đã tồn tại, vui lòng chọn slug khác",
+      });
+    }
     
     // FIX: Get last order instead of fetching ALL
     let nextOrder = args.order;
@@ -251,7 +256,12 @@ export const update = mutation({
         .query("productCategories")
         .withIndex("by_slug", (q) => q.eq("slug", newSlug))
         .unique();
-      if (existing) {throw new Error("Slug này đã được sử dụng, vui lòng chọn slug khác");}
+      if (existing) {
+        throw new ConvexError({
+          code: "DUPLICATE_SLUG",
+          message: "Slug đã tồn tại, vui lòng chọn slug khác",
+        });
+      }
     }
     await ctx.db.patch(id, updates);
     return null;

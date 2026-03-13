@@ -27,7 +27,7 @@ export default function CategoryProductsCreatePage() {
   const brandMode: CategoryProductsBrandMode = mode === 'single' ? 'single' : 'dual';
   
   const categoriesData = useQuery(api.productCategories.listActive);
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const productsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   
   const [sections, setSections] = useState<CategoryProductItem[]>([]);
   const [style, setStyle] = useState<CategoryProductsStyle>('grid');

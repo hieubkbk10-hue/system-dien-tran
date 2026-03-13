@@ -7,6 +7,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { FolderTree, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, Input, Label } from '../../components/ui';
 
 const MODULE_KEY = 'serviceCategories';
@@ -53,7 +54,7 @@ export default function ServiceCategoryCreatePage() {
       toast.success("Đã tạo danh mục mới");
       router.push('/admin/service-categories');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể tạo danh mục");
+      toast.error(getAdminMutationErrorMessage(error, "Không thể tạo danh mục"));
     } finally {
       setIsSubmitting(false);
     }

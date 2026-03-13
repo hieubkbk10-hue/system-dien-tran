@@ -66,6 +66,7 @@ const productPreviewDoc = v.object({
   name: v.string(),
   price: v.number(),
   salePrice: v.optional(v.number()),
+  hasVariants: v.optional(v.boolean()),
   slug: v.string(),
   stock: v.number(),
 });
@@ -355,6 +356,7 @@ export const listByCustomerWithProducts = query({
             name: products[index]!.name,
             price: products[index]!.price,
             salePrice: products[index]!.salePrice,
+            hasVariants: products[index]!.hasVariants,
             slug: products[index]!.slug,
             stock: products[index]!.stock,
           }

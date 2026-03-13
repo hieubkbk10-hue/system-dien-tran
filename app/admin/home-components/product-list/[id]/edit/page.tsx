@@ -45,8 +45,13 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const resolvedProductsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
+
+  const resolvedProductMap = useMemo(() => new Map(
+    (resolvedProductsData ?? []).map((product) => [product._id, product])
+  ), [resolvedProductsData]);
 
   const filteredProducts = useMemo(() => {
     if (!productsData) {return [];}
@@ -352,8 +357,9 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
                   image: product.image,
                   name: product.name,
                   ...(() => {
-                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
-                    const hasBasePrice = product.price != null || product.salePrice != null;
+                    const resolvedProduct = resolvedProductMap.get(product._id as Id<'products'>) ?? product;
+                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: resolvedProduct.price, salePrice: resolvedProduct.salePrice, isRangeFromVariant: resolvedProduct.hasVariants });
+                    const hasBasePrice = resolvedProduct.price != null || resolvedProduct.salePrice != null;
                     return {
                       price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
                       originalPrice: priceDisplay.comparePrice
@@ -368,8 +374,9 @@ export default function ProductListEditPage({ params }: { params: Promise<{ id: 
                   image: product.image,
                   name: product.name,
                   ...(() => {
-                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
-                    const hasBasePrice = product.price != null || product.salePrice != null;
+                    const resolvedProduct = resolvedProductMap.get(product._id as Id<'products'>) ?? product;
+                    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: resolvedProduct.price, salePrice: resolvedProduct.salePrice, isRangeFromVariant: resolvedProduct.hasVariants });
+                    const hasBasePrice = resolvedProduct.price != null || resolvedProduct.salePrice != null;
                     return {
                       price: !hasBasePrice && saleMode === 'cart' ? undefined : priceDisplay.label,
                       originalPrice: priceDisplay.comparePrice

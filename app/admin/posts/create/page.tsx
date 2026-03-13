@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUploader } from '../../components/ImageUploader';
@@ -91,7 +92,7 @@ export default function PostCreatePage() {
       toast.success("Tạo bài viết mới thành công");
       router.push('/admin/posts');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể tạo bài viết");
+      toast.error(getAdminMutationErrorMessage(error, "Không thể tạo bài viết"));
     } finally {
       setIsSubmitting(false);
     }

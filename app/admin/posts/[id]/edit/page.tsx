@@ -6,6 +6,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ExternalLink, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
@@ -132,7 +133,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       initialSnapshotRef.current = currentSnapshot;
       toast.success("Cập nhật bài viết thành công");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể cập nhật bài viết");
+      toast.error(getAdminMutationErrorMessage(error, "Không thể cập nhật bài viết"));
     } finally {
       setIsSubmitting(false);
     }

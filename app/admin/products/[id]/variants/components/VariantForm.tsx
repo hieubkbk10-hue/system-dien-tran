@@ -117,6 +117,17 @@ export function VariantForm({
       return;
     }
 
+    if (showVariantPricing && salePrice.trim() !== '') {
+      const parsedSalePrice = Number.parseInt(salePrice);
+      if (Number.isFinite(parsedSalePrice) && parsedSalePrice > 0) {
+        const parsedPrice = Number.parseInt(price);
+        if (!Number.isFinite(parsedPrice) || parsedPrice <= 0 || parsedSalePrice <= parsedPrice) {
+          toast.error('Giá so sánh phải lớn hơn giá bán');
+          return;
+        }
+      }
+    }
+
     const optionValuesPayload = options.map((option) => {
       const selection = optionSelections[option._id];
       return {
@@ -352,15 +363,15 @@ export function VariantForm({
               {showVariantPricing ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Giá so sánh (trước giảm)</Label>
-                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    <Label>Giá bán (VNĐ)</Label>
+                    <Input type="number" value={price} onChange={(e) =>{  setPrice(e.target.value); }} placeholder="0" min="0" />
                     {price.trim() !== '' && Number.isFinite(Number.parseInt(price)) && (
                       <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(price))}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Giá bán (VNĐ)</Label>
-                    <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="0" min="0" />
+                    <Label>Giá so sánh (trước giảm)</Label>
+                    <Input type="number" value={salePrice} onChange={(e) =>{  setSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
                     {salePrice.trim() !== '' && Number.isFinite(Number.parseInt(salePrice)) && (
                       <p className="text-xs text-slate-500">{new Intl.NumberFormat('en-US').format(Number.parseInt(salePrice))}</p>
                     )}

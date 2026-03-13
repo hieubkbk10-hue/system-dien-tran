@@ -24,4 +24,5 @@ export interface CategoryProductsProduct {
   price?: number;
   salePrice?: number;
   categoryId?: string;
+  hasVariants?: boolean;
 }

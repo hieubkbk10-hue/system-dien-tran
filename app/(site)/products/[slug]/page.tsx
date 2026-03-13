@@ -819,6 +819,7 @@ interface RelatedProduct {
   price: number;
   salePrice?: number;
   image?: string;
+  hasVariants?: boolean;
 }
 
 interface CommentData {
@@ -1056,7 +1057,8 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice, isRangeFromVariant });
   const discountPercent = priceDisplay.comparePrice
     ? Math.round((1 - basePrice / priceDisplay.comparePrice) * 100)
     : 0;
@@ -1338,7 +1340,8 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice, isRangeFromVariant });
   const discountPercent = priceDisplay.comparePrice
     ? Math.round((1 - basePrice / priceDisplay.comparePrice) * 100)
     : 0;
@@ -1685,7 +1688,8 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
-  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice, isRangeFromVariant });
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
@@ -2257,7 +2261,7 @@ function RelatedProductsSection({
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {products.map((p) => {
-          const priceDisplay = getPublicPriceLabel({ saleMode, price: p.price, salePrice: p.salePrice });
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: p.price, salePrice: p.salePrice, isRangeFromVariant: p.hasVariants });
           return (
           <Link
             key={p._id}

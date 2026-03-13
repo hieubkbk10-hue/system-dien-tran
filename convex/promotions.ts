@@ -1,6 +1,6 @@
 import type { MutationCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 
 // HIGH-004 FIX: Helper function to update promotionStats counter
@@ -417,7 +417,12 @@ export const create = mutation({
         .query("promotions")
         .withIndex("by_code", (q) => q.eq("code", code!))
         .unique();
-      if (existing) {throw new Error("Mã voucher đã tồn tại");}
+      if (existing) {
+        throw new ConvexError({
+          code: "DUPLICATE_VOUCHER",
+          message: "Mã voucher đã tồn tại, vui lòng chọn mã khác",
+        });
+      }
     }
     
     // Get order from last item
@@ -533,7 +538,12 @@ export const update = mutation({
           .query("promotions")
           .withIndex("by_code", (q) => q.eq("code", code))
           .unique();
-        if (existing) {throw new Error("Mã voucher đã tồn tại");}
+        if (existing) {
+          throw new ConvexError({
+            code: "DUPLICATE_VOUCHER",
+            message: "Mã voucher đã tồn tại, vui lòng chọn mã khác",
+          });
+        }
       }
       updates.code = code;
     } else if (args.code === '') {

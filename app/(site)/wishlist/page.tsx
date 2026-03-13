@@ -57,8 +57,8 @@ export default function WishlistPage() {
     return 'cart';
   }, [saleModeSetting?.value]);
   const showStock = stockFeature?.enabled ?? true;
-  const getPriceDisplay = (price?: number, salePrice?: number) =>
-    getPublicPriceLabel({ saleMode, price, salePrice });
+  const getPriceDisplay = (price?: number, salePrice?: number, isRangeFromVariant?: boolean) =>
+    getPublicPriceLabel({ saleMode, price, salePrice, isRangeFromVariant });
   const formatComparePrice = (price?: number) =>
     price ? getPublicPriceLabel({ saleMode: 'cart', price }).label : '';
 
@@ -253,7 +253,7 @@ export default function WishlistPage() {
                 {filteredItems.map((item) => {
                   const product = item.product;
                   if (!product) {return null;}
-                  const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                  const priceDisplay = getPriceDisplay(product.price, product.salePrice, (product as { hasVariants?: boolean }).hasVariants);
 
                   return (
                     <tr key={item._id} className="border-t" style={{ borderColor: tokens.tableRowBorder }}>
@@ -335,7 +335,7 @@ export default function WishlistPage() {
             {filteredItems.map((item) => {
               const product = item.product;
               if (!product) {return null;}
-              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice, (product as { hasVariants?: boolean }).hasVariants);
 
               return (
                 <div
@@ -399,7 +399,7 @@ export default function WishlistPage() {
           {items.map((item) => {
             const product = item.product;
             if (!product) {return null;}
-            const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+            const priceDisplay = getPriceDisplay(product.price, product.salePrice, (product as { hasVariants?: boolean }).hasVariants);
 
             if (layoutStyle === 'grid') {
               return (

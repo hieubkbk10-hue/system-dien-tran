@@ -38,6 +38,20 @@ const bulkRowDoc = v.object({
   stock: v.optional(v.number()),
 });
 
+const resolveSalePrice = (value?: number) => (typeof value === "number" && value > 0 ? value : undefined);
+
+const assertSalePrice = (price?: number, salePrice?: number) => {
+  if (typeof salePrice === "number") {
+    const normalizedPrice = typeof price === "number" ? price : NaN;
+    if (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0) {
+      throw new Error("Giá bán phải lớn hơn 0");
+    }
+    if (salePrice <= normalizedPrice) {
+      throw new Error("Giá so sánh phải lớn hơn giá bán");
+    }
+  }
+};
+
 const buildVariantKey = (optionValues: { optionId: string; valueId: string; customValue?: string }[]) =>
   optionValues
     .slice()
@@ -252,8 +266,12 @@ export const create = mutation({
       nextOrder = lastVariant ? lastVariant.order + 1 : 0;
     }
 
+    const resolvedSalePrice = resolveSalePrice(args.salePrice);
+    assertSalePrice(args.price, resolvedSalePrice);
+
     return ctx.db.insert("productVariants", {
       ...args,
+      salePrice: resolvedSalePrice,
       order: nextOrder,
       status: args.status ?? "Active",
     });
@@ -279,6 +297,8 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
+    const hasSalePrice = Object.prototype.hasOwnProperty.call(args, "salePrice");
+    const resolvedSalePrice = resolveSalePrice(updates.salePrice);
     const variant = await ctx.db.get(id);
     if (!variant) {throw new Error("Variant không tồn tại");}
 
@@ -308,7 +328,16 @@ export const update = mutation({
       if (!product) {throw new Error("Product không tồn tại");}
     }
 
-    await ctx.db.patch(id, updates);
+    const nextPrice = updates.price ?? variant.price;
+    const nextSalePrice = hasSalePrice ? resolvedSalePrice : variant.salePrice;
+    assertSalePrice(nextPrice, nextSalePrice);
+
+    const nextUpdates = {
+      ...updates,
+      ...(hasSalePrice ? { salePrice: resolvedSalePrice } : {}),
+    };
+
+    await ctx.db.patch(id, nextUpdates);
     return null;
   },
   returns: v.null(),
@@ -420,6 +449,9 @@ export const bulkUpsertFromCombinations = mutation({
           continue;
         }
 
+        const resolvedSalePrice = resolveSalePrice(row.salePrice);
+        assertSalePrice(row.price, resolvedSalePrice);
+
         const resolvedSku = args.skuEnabled
           ? row.sku?.trim() || (args.skuPrefix?.trim() ? nextSkuWithPrefix(args.skuPrefix.trim()) : '')
           : nextFallbackSku();
@@ -432,7 +464,7 @@ export const bulkUpsertFromCombinations = mutation({
           const updates = {
             allowBackorder: row.allowBackorder,
             price: row.price,
-            salePrice: row.salePrice,
+            salePrice: resolvedSalePrice,
             status: row.status ?? existing.status,
             stock: row.stock,
           };
@@ -462,7 +494,7 @@ export const bulkUpsertFromCombinations = mutation({
             order: nextOrder,
             price: row.price,
             productId: args.productId,
-            salePrice: row.salePrice,
+            salePrice: resolvedSalePrice,
             sku: skuCandidate,
             status: row.status ?? "Active",
             stock: row.stock,

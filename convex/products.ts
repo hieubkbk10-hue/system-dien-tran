@@ -1,6 +1,6 @@
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { productStatus } from "./lib/validators";
 import { rankByFuzzyMatches } from "./lib/search";
@@ -86,6 +86,7 @@ const productAdminDoc = v.object({
   stock: v.number(),
   variantMinPrice: v.optional(v.union(v.number(), v.null())),
   hasPricedActiveVariant: v.optional(v.boolean()),
+  hasInvalidVariantComparePrice: v.optional(v.boolean()),
 });
 
 const paginatedProducts = v.object({
@@ -197,6 +198,13 @@ async function searchAdminProducts(ctx: QueryCtx, args: AdminSearchArgs, limit?:
   return Array.from(combined.values());
 }
 
+function resolveVariantPrice(variant: Doc<"productVariants">): number | null {
+  if (typeof variant.price === "number" && variant.price > 0) {
+    return variant.price;
+  }
+  return null;
+}
+
 async function getVariantAggregates(
   ctx: VariantCtx,
   products: Doc<"products">[]
@@ -215,13 +223,8 @@ async function getVariantAggregates(
       variants.forEach((variant) => {
         const stockValue = variant.stock ?? 0;
         totalStock += stockValue;
-
-        if (stockValue <= 0) {
-          return;
-        }
-
-        const effectivePrice = variant.salePrice ?? variant.price;
-        if (typeof effectivePrice !== "number") {
+        const effectivePrice = resolveVariantPrice(variant);
+        if (effectivePrice === null) {
           return;
         }
         minPrice = minPrice === null ? effectivePrice : Math.min(minPrice, effectivePrice);
@@ -247,19 +250,27 @@ async function getVariantAdminAggregates(
         .collect();
 
       let minPrice: number | null = null;
+      let hasInvalidVariantComparePrice = false;
       variants.forEach((variant) => {
-        const effectivePrice = variant.salePrice ?? variant.price;
-        if (typeof effectivePrice !== "number") {
+        const effectivePrice = resolveVariantPrice(variant);
+        if (effectivePrice === null) {
           return;
         }
         minPrice = minPrice === null ? effectivePrice : Math.min(minPrice, effectivePrice);
+        const salePrice = variant.salePrice;
+        if (typeof salePrice === "number" && salePrice > 0) {
+          const price = variant.price;
+          if (!Number.isFinite(price ?? NaN) || (price ?? 0) <= 0 || salePrice <= (price ?? 0)) {
+            hasInvalidVariantComparePrice = true;
+          }
+        }
       });
 
-      return [product._id, { hasPricedActiveVariant: minPrice !== null, minPrice }] as const;
+      return [product._id, { hasInvalidVariantComparePrice, hasPricedActiveVariant: minPrice !== null, minPrice }] as const;
     })
   );
 
-  return new Map<Id<"products">, { hasPricedActiveVariant: boolean; minPrice: number | null }>(aggregates);
+  return new Map<Id<"products">, { hasInvalidVariantComparePrice: boolean; hasPricedActiveVariant: boolean; minPrice: number | null }>(aggregates);
 }
 
 async function resolveVariantOverrides(
@@ -289,7 +300,7 @@ async function resolveVariantOverrides(
       nextProduct.stock = aggregate.stock;
     }
     if (settings.variantPricing === "variant") {
-      nextProduct.price = aggregate.price ?? product.price;
+      nextProduct.price = aggregate.price ?? 0;
       nextProduct.salePrice = undefined;
     }
     return nextProduct;
@@ -343,11 +354,12 @@ export const listAdminWithOffset = query({
       const aggregates = await getVariantAdminAggregates(ctx, page);
       return page.map((product) => {
         if (!product.hasVariants) {
-          return { ...product, hasPricedActiveVariant: false, variantMinPrice: undefined };
+          return { ...product, hasInvalidVariantComparePrice: false, hasPricedActiveVariant: false, variantMinPrice: undefined };
         }
         const aggregate = aggregates.get(product._id);
         return {
           ...product,
+          hasInvalidVariantComparePrice: aggregate?.hasInvalidVariantComparePrice ?? false,
           hasPricedActiveVariant: aggregate?.hasPricedActiveVariant ?? false,
           variantMinPrice: aggregate?.minPrice ?? null,
         };
@@ -610,6 +622,21 @@ export const listBestSellers = query({
 // ============================================================
 // PUBLIC QUERIES (for frontend)
 // ============================================================
+
+export const listPublicResolved = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = Math.min(args.limit ?? 100, 200);
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_status_order", (q) => q.eq("status", "Active"))
+      .order("desc")
+      .take(limit);
+    const settings = await getVariantSettings(ctx);
+    return resolveVariantOverrides(ctx, products, settings);
+  },
+  returns: v.array(productDoc),
+});
 
 // Paginated published products for usePaginatedQuery hook (infinite scroll)
 export const listPublishedPaginated = query({
@@ -1116,11 +1143,11 @@ export const importFromExcelRows = mutation({
 
       if (typeof row.salePrice === "number") {
         if (row.salePrice < 0) {
-          errors.push({ message: "Giá khuyến mãi không hợp lệ", row: rowNumber });
+          errors.push({ message: "Giá so sánh không hợp lệ", row: rowNumber });
           continue;
         }
-        if (row.salePrice > 0 && row.salePrice >= row.price) {
-          errors.push({ message: "Giá khuyến mãi phải nhỏ hơn giá bán", row: rowNumber });
+        if (row.salePrice > 0 && row.salePrice <= row.price) {
+          errors.push({ message: "Giá so sánh phải lớn hơn giá bán", row: rowNumber });
           continue;
         }
       }
@@ -1220,14 +1247,24 @@ export const create = mutation({
       .query("products")
       .withIndex("by_sku", (q) => q.eq("sku", args.sku))
       .unique();
-    if (existingSku) {throw new Error("SKU already exists");}
+    if (existingSku) {
+      throw new ConvexError({
+        code: "DUPLICATE_SKU",
+        message: "Mã SKU đã tồn tại, vui lòng chọn mã khác",
+      });
+    }
 
     // Validate unique slug
     const existingSlug = await ctx.db
       .query("products")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (existingSlug) {throw new Error("Slug already exists");}
+    if (existingSlug) {
+      throw new ConvexError({
+        code: "DUPLICATE_SLUG",
+        message: "Slug đã tồn tại, vui lòng chọn slug khác",
+      });
+    }
 
     // FIX #3: Get next order from stats instead of fetching ALL
     const nextOrder = await getNextOrder(ctx);
@@ -1273,6 +1310,14 @@ export const create = mutation({
         : (args.productType ?? "physical");
     const { salePrice, ...restArgs } = args;
     const resolvedSalePrice = typeof salePrice === "number" && salePrice > 0 ? salePrice : undefined;
+    if (resolvedSalePrice !== undefined) {
+      if (!Number.isFinite(args.price) || args.price <= 0) {
+        throw new Error("Giá bán phải lớn hơn 0");
+      }
+      if (resolvedSalePrice <= args.price) {
+        throw new Error("Giá so sánh phải lớn hơn giá bán");
+      }
+    }
     const productId = await ctx.db.insert("products", {
       ...restArgs,
       productType,
@@ -1347,7 +1392,12 @@ export const update = mutation({
         .query("products")
         .withIndex("by_sku", (q) => q.eq("sku", newSku))
         .unique();
-      if (existing) {throw new Error("SKU already exists");}
+      if (existing) {
+        throw new ConvexError({
+          code: "DUPLICATE_SKU",
+          message: "Mã SKU đã tồn tại, vui lòng chọn mã khác",
+        });
+      }
     }
 
     // Validate unique slug if changing
@@ -1357,7 +1407,12 @@ export const update = mutation({
         .query("products")
         .withIndex("by_slug", (q) => q.eq("slug", newSlug))
         .unique();
-      if (existing) {throw new Error("Slug already exists");}
+      if (existing) {
+        throw new ConvexError({
+          code: "DUPLICATE_SLUG",
+          message: "Slug đã tồn tại, vui lòng chọn slug khác",
+        });
+      }
     }
 
     // Update stats if status changed
@@ -1385,6 +1440,15 @@ export const update = mutation({
     const nextPrice = updates.price ?? product.price;
     if (saleMode === "cart" && !hideBasePricing && (!Number.isFinite(nextPrice) || nextPrice <= 0)) {
       throw new Error("Giá bán phải lớn hơn 0");
+    }
+    const nextSalePrice = hasSalePrice ? resolvedSalePrice : product.salePrice;
+    if (nextSalePrice !== undefined) {
+      if (!Number.isFinite(nextPrice) || nextPrice <= 0) {
+        throw new Error("Giá bán phải lớn hơn 0");
+      }
+      if (nextSalePrice <= nextPrice) {
+        throw new Error("Giá so sánh phải lớn hơn giá bán");
+      }
     }
     const productTypeMode = (productTypeSetting?.value as "physical" | "digital" | "both") ?? "both";
     const resolvedProductType = productTypeMode === "physical"

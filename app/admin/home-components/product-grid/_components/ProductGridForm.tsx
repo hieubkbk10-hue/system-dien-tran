@@ -11,6 +11,8 @@ export interface ProductGridProductItem {
   name: string;
   image?: string | null;
   price?: number | null;
+  salePrice?: number | null;
+  hasVariants?: boolean;
 }
 
 export const ProductGridForm = ({

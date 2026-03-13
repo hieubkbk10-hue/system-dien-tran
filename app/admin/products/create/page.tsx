@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUpload } from '../../components/ImageUpload';
@@ -20,19 +21,6 @@ import { ProductCategoryCombobox } from '@/app/admin/products/components/Product
 import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickCreateCategoryModal';
 
 const MODULE_KEY = 'products';
-
-const getProductMutationErrorMessage = (error: unknown, fallback: string) => {
-  if (!(error instanceof Error) || !error.message) {
-    return fallback;
-  }
-  if (error.message === 'Slug already exists') {
-    return 'Slug đã tồn tại, vui lòng chọn slug khác';
-  }
-  if (error.message === 'SKU already exists') {
-    return 'Mã SKU đã tồn tại';
-  }
-  return error.message;
-};
 
 export default function ProductCreatePage() {
   return (
@@ -217,6 +205,16 @@ function ProductCreateContent() {
       toast.error('Vui lòng nhập mã SKU');
       return;
     }
+    if (!hideBasePricing && salePrice.trim() !== '') {
+      const parsedSalePrice = resolveSalePrice(salePrice);
+      if (parsedSalePrice) {
+        const parsedPrice = Number.parseInt(price) || 0;
+        if (parsedPrice <= 0 || parsedSalePrice <= parsedPrice) {
+          toast.error('Giá so sánh phải lớn hơn giá bán');
+          return;
+        }
+      }
+    }
 
     setIsSubmitting(true);
     try {
@@ -255,7 +253,7 @@ function ProductCreateContent() {
       toast.success("Tạo sản phẩm mới thành công");
       router.push('/admin/products');
     } catch (error) {
-      toast.error(getProductMutationErrorMessage(error, 'Không thể tạo sản phẩm'));
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể tạo sản phẩm'));
     } finally {
       setIsSubmitting(false);
     }
@@ -309,9 +307,7 @@ function ProductCreateContent() {
           <Card>
             <CardHeader><CardTitle className="text-base">Giá & Kho hàng</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              {hideBasePricing ? (
-                <p className="text-sm text-slate-500">Giá lấy theo phiên bản.</p>
-              ) : (
+              {!hideBasePricing && (
                 <div className={enabledFields.has('salePrice') ? "grid grid-cols-2 gap-4" : ""}>
                   <div className="space-y-2">
                     <Label>

@@ -40,7 +40,7 @@ export default function CategoryProductsEditPage({ params }: { params: Promise<{
   const component = useQuery(api.homeComponents.getById, { id: id as Id<'homeComponents'> });
   const updateMutation = useMutation(api.homeComponents.update);
   const categoriesData = useQuery(api.productCategories.listActive);
-  const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const productsData = useQuery(api.products.listPublicResolved, { limit: 100 });
 
   const [title, setTitle] = useState('');
   const [active, setActive] = useState(true);

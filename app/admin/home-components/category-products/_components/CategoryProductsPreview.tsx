@@ -92,8 +92,8 @@ export const CategoryProductsPreview = ({
     }
   };
 
-  const getPriceDisplay = (price?: number, salePrice?: number) =>
-    getHomeComponentPriceLabel({ saleMode, price, salePrice });
+  const getPriceDisplay = (price?: number, salePrice?: number, isRangeFromVariant?: boolean) =>
+    getHomeComponentPriceLabel({ saleMode, price, salePrice, isRangeFromVariant });
 
   // Get info for PreviewWrapper based on style with image size recommendations
   const getPreviewInfo = () => {
@@ -176,7 +176,7 @@ export const CategoryProductsPreview = ({
       </h4>
       <div className="flex flex-col mt-auto">
         {(() => {
-          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
           if (priceDisplay.comparePrice) {
             return (
               <>
@@ -310,7 +310,7 @@ export const CategoryProductsPreview = ({
                           device === 'mobile' ? 'text-xs' : 'text-sm'
                         )}>{product.name}</h4>
                         <span className={cn('font-bold', device === 'mobile' ? 'text-sm' : 'text-base')} style={{ color: colors.buttonText }}>
-                          {getPriceDisplay(product.price, product.salePrice).label}
+                          {getPriceDisplay(product.price, product.salePrice, product.hasVariants).label}
                         </span>
                       </div>
                     ))}
@@ -473,7 +473,7 @@ export const CategoryProductsPreview = ({
                           <h3 className="font-bold text-base line-clamp-2 mb-1">{featured.name}</h3>
                           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
                             {(() => {
-                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice, featured?.hasVariants);
                               if (priceDisplay.comparePrice) {
                                 return (
                                   <>
@@ -506,7 +506,7 @@ export const CategoryProductsPreview = ({
                         )}
                         <div className="absolute inset-x-0 bottom-0 p-3 text-white bg-black/55">
                           <h4 className="font-medium text-xs line-clamp-1">{product.name}</h4>
-                          <span className="font-bold text-xs">{getPriceDisplay(product.price, product.salePrice).label}</span>
+                          <span className="font-bold text-xs">{getPriceDisplay(product.price, product.salePrice, product.hasVariants).label}</span>
                         </div>
                       </div>
                     ))}
@@ -600,7 +600,7 @@ export const CategoryProductsPreview = ({
                           <h3 className="font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featured.name}</h3>
                           <div className="flex items-baseline gap-3">
                             {(() => {
-                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice);
+                              const priceDisplay = getPriceDisplay(featured?.price, featured?.salePrice, featured?.hasVariants);
                               if (priceDisplay.comparePrice) {
                                 return (
                                   <>
@@ -650,7 +650,7 @@ export const CategoryProductsPreview = ({
                           <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
                           <div className="flex items-baseline gap-2 mt-1">
                             {(() => {
-                              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                               if (priceDisplay.comparePrice) {
                                 return (
                                   <>
@@ -778,7 +778,7 @@ export const CategoryProductsPreview = ({
                           </h4>
                           <div className="flex flex-col mt-1">
                             {(() => {
-                              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                               if (priceDisplay.comparePrice) {
                                 return (
                                   <>
@@ -808,7 +808,7 @@ export const CategoryProductsPreview = ({
                         </span>
 
                         {(() => {
-                          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                          const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                           if (!priceDisplay.comparePrice) {return null;}
                           return (
                             <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-bold text-white bg-red-500">

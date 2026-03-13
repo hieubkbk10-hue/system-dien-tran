@@ -13,8 +13,10 @@ export const getHomeComponentPriceLabel = ({
   saleMode,
   price,
   salePrice,
+  isRangeFromVariant,
 }: {
   saleMode: HomeComponentSaleMode;
   price?: number;
   salePrice?: number;
-}) => getPublicPriceLabel({ saleMode, price, salePrice });
+  isRangeFromVariant?: boolean;
+}) => getPublicPriceLabel({ saleMode, price, salePrice, isRangeFromVariant });

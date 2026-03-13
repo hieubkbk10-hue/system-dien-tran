@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { seedPresetProductOptions } from "./seeders/productOptions.seeder";
 
@@ -194,7 +194,12 @@ export const create = mutation({
       .query("productOptions")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (existing) {throw new Error("Slug đã tồn tại");}
+    if (existing) {
+      throw new ConvexError({
+        code: "DUPLICATE_SLUG",
+        message: "Slug đã tồn tại, vui lòng chọn slug khác",
+      });
+    }
 
     let nextOrder = args.order;
     if (nextOrder === undefined) {
@@ -236,7 +241,12 @@ export const update = mutation({
         .query("productOptions")
         .withIndex("by_slug", (q) => q.eq("slug", updates.slug!))
         .unique();
-      if (existing) {throw new Error("Slug đã tồn tại");}
+      if (existing) {
+        throw new ConvexError({
+          code: "DUPLICATE_SLUG",
+          message: "Slug đã tồn tại, vui lòng chọn slug khác",
+        });
+      }
     }
 
     await ctx.db.patch(id, updates);

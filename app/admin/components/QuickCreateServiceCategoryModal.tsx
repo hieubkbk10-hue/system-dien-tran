@@ -5,6 +5,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Input, Label } from './ui';
 
 interface QuickCreateServiceCategoryModalProps {
@@ -43,7 +44,7 @@ export function QuickCreateServiceCategoryModal({
       setName('');
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Khong the tao danh muc');
+      toast.error(getAdminMutationErrorMessage(error, 'Khong the tao danh muc'));
     } finally {
       setIsSubmitting(false);
     }

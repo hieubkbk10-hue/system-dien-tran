@@ -6,6 +6,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 
 const MODULE_KEY = 'promotions';
@@ -164,7 +165,7 @@ export default function PromotionCreatePage() {
       toast.success('Tạo khuyến mãi thành công');
       router.push('/admin/promotions');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể tạo khuyến mãi');
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể tạo khuyến mãi'));
     } finally {
       setIsSubmitting(false);
     }

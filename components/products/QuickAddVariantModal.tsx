@@ -172,6 +172,7 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
   }
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
+  const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
   const saleMode = useMemo<'cart' | 'contact' | 'affiliate'>(() => {
     const value = saleModeSetting?.value;
     if (value === 'contact' || value === 'affiliate') {
@@ -180,7 +181,7 @@ export function QuickAddVariantModal({ isOpen, product, brandColor, actionLabel,
     return 'cart';
   }, [saleModeSetting?.value]);
   const showStock = stockFeature?.enabled ?? true;
-  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice });
+  const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice, isRangeFromVariant });
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const isLoading = variants === undefined || (hasVariantData && (!variantOptionsSource || !variantValuesSource));

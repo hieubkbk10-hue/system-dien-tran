@@ -5,6 +5,7 @@ import { useMutation } from 'convex/react';
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Input, Label } from '@/app/admin/components/ui';
 
 interface QuickCreateCategoryModalProps {
@@ -46,7 +47,7 @@ export function QuickCreateCategoryModal({
       setName('');
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể tạo danh mục');
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể tạo danh mục'));
     } finally {
       setIsSubmitting(false);
     }

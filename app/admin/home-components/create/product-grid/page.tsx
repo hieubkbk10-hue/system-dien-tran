@@ -32,8 +32,13 @@ function ProductGridCreateContent() {
   const [style, setStyle] = useState<ProductGridStyle>('commerce');
 
   const productsData = useQuery(api.products.listAll, { limit: 100 });
+  const resolvedProductsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
   const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
+
+  const resolvedProductMap = useMemo(() => new Map(
+    (resolvedProductsData ?? []).map((product) => [product._id, product])
+  ), [resolvedProductsData]);
 
   const filteredProducts = useMemo<ProductGridProductItem[]>(() => {
     if (!productsData) {return [];}
@@ -63,8 +68,11 @@ function ProductGridCreateContent() {
   }, [productsData, selectedProductIds]);
 
   const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((p) => {
-    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: p.price ?? undefined });
-    const hasBasePrice = p.price != null;
+    const resolvedProduct = resolvedProductMap.get(p._id as Id<'products'>);
+    const priceValue = resolvedProduct?.price ?? p.price ?? undefined;
+    const salePriceValue = resolvedProduct?.salePrice ?? undefined;
+    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: priceValue, salePrice: salePriceValue, isRangeFromVariant: resolvedProduct?.hasVariants ?? p.hasVariants });
+    const hasBasePrice = priceValue != null || salePriceValue != null;
     return {
       description: p.name,
       id: p._id,
@@ -78,12 +86,13 @@ function ProductGridCreateContent() {
   }), [selectedProducts, saleMode]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
-    if (!productsData) {return [];} 
-    return productsData
+    const source = resolvedProductsData ?? productsData;
+    if (!source) {return [];} 
+    return source
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
       .map(product => {
-        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price ?? undefined, salePrice: product.salePrice ?? undefined });
+        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price ?? undefined, salePrice: product.salePrice ?? undefined, isRangeFromVariant: product.hasVariants });
         const hasBasePrice = product.price != null || product.salePrice != null;
         return {
           description: product.name,
@@ -96,7 +105,7 @@ function ProductGridCreateContent() {
             : undefined,
         };
       });
-  }, [productsData, itemCount, saleMode]);
+  }, [productsData, resolvedProductsData, itemCount, saleMode]);
 
   const onSubmit = (e: React.FormEvent) => {
     void handleSubmit(e, {

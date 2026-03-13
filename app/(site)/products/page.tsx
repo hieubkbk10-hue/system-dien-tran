@@ -967,7 +967,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
       {products.map((product) => (
         (() => {
-          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice, isRangeFromVariant: product.hasVariants });
           return (
         <Link
           key={product._id}
@@ -1043,7 +1043,7 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
     <div className="space-y-4">
       {products.map((product) => (
         (() => {
-          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+          const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice, isRangeFromVariant: product.hasVariants });
           return (
         <Link
           key={product._id}
@@ -1277,7 +1277,7 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {products.map((product) => (
                   (() => {
-                    const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+                    const priceDisplay = getPublicPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice, isRangeFromVariant: product.hasVariants });
                     return (
                   <Link
                     key={product._id}

@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { ModuleGuard } from '../../../components/ModuleGuard';
 import { OptionForm, type ProductOptionFormValues } from '../../components/OptionForm';
 
@@ -61,7 +62,7 @@ function ProductOptionEditContent({ params }: { params: Promise<{ id: string }> 
       });
       toast.success('Đã cập nhật option');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Không thể cập nhật option');
+      toast.error(getAdminMutationErrorMessage(error, 'Không thể cập nhật option'));
     } finally {
       setIsSubmitting(false);
     }

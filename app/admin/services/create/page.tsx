@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Briefcase, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUploader } from '../../components/ImageUploader';
@@ -109,7 +110,7 @@ export default function ServiceCreatePage() {
       toast.success("Tạo dịch vụ mới thành công");
       router.push('/admin/services');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể tạo dịch vụ");
+      toast.error(getAdminMutationErrorMessage(error, "Không thể tạo dịch vụ"));
     } finally {
       setIsSubmitting(false);
     }

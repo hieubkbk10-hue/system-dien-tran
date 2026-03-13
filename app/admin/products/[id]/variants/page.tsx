@@ -561,8 +561,11 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
   const hasInvalidPrices = useMemo(() => (
     rows.some((row) => {
       if (!row.selected) {return false;}
-      if (!row.price || !row.salePrice) {return false;}
-      return Number(row.salePrice) > Number(row.price);
+      if (!row.salePrice) {return false;}
+      const parsedSalePrice = Number(row.salePrice);
+      if (!Number.isFinite(parsedSalePrice) || parsedSalePrice <= 0) {return false;}
+      if (!row.price || Number(row.price) <= 0) {return true;}
+      return parsedSalePrice <= Number(row.price);
     })
   ), [rows]);
 
@@ -593,7 +596,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
       return;
     }
     if (hasInvalidPrices) {
-      toast.error('Giá so sánh phải lớn hơn hoặc bằng giá bán');
+      toast.error('Giá so sánh phải lớn hơn giá bán');
       return;
     }
 
@@ -806,16 +809,16 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                 )}
                 {variantSettings.variantPricing === 'variant' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Giá so sánh (trước giảm)</Label>
-                    <Input type="number" value={defaultPrice} onChange={(e) =>{  setDefaultPrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
+                    <div className="space-y-2">
+                      <Label>Giá bán</Label>
+                      <Input type="number" value={defaultPrice} onChange={(e) =>{  setDefaultPrice(e.target.value); }} placeholder="0" min="0" />
                       {formatNumberHelper(defaultPrice) && (
                         <p className="text-[11px] text-slate-500">{formatNumberHelper(defaultPrice)}</p>
                       )}
                     </div>
                     <div className="space-y-2">
-                    <Label>Giá bán</Label>
-                    <Input type="number" value={defaultSalePrice} onChange={(e) =>{  setDefaultSalePrice(e.target.value); }} placeholder="0" min="0" />
+                      <Label>Giá so sánh (trước giảm)</Label>
+                      <Input type="number" value={defaultSalePrice} onChange={(e) =>{  setDefaultSalePrice(e.target.value); }} placeholder="Để trống nếu không KM" min="0" />
                       {formatNumberHelper(defaultSalePrice) && (
                         <p className="text-[11px] text-slate-500">{formatNumberHelper(defaultSalePrice)}</p>
                       )}
@@ -870,7 +873,7 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                     <Button variant="outline" size="sm" onClick={handleSelectNewOnly}>Chỉ chọn phiên bản mới</Button>
                   </div>
                   {hasInvalidPrices && (
-                    <p className="text-xs text-red-500">Giá so sánh phải lớn hơn hoặc bằng giá bán.</p>
+                    <p className="text-xs text-red-500">Giá so sánh phải lớn hơn giá bán.</p>
                   )}
                 </div>
               </div>
@@ -954,8 +957,8 @@ function ProductVariantsContent({ params }: { params: Promise<{ id: string }> })
                         <TableHead className="min-w-[120px]">Hiện có</TableHead>
                         {variantSettings.variantPricing === 'variant' && (
                           <>
-                            <TableHead className="min-w-[170px]">Giá so sánh (trước giảm)</TableHead>
                             <TableHead className="min-w-[140px]">Giá bán</TableHead>
+                            <TableHead className="min-w-[170px]">Giá so sánh (trước giảm)</TableHead>
                           </>
                         )}
                         {variantSettings.variantStock === 'variant' && (

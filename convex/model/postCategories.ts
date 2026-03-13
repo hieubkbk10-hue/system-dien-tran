@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 
@@ -168,7 +169,10 @@ export async function create(
   }
 ): Promise<Id<"postCategories">> {
   if (await isSlugExists(ctx, { slug: args.slug })) {
-    throw new Error("Slug already exists");
+    throw new ConvexError({
+      code: "DUPLICATE_SLUG",
+      message: "Slug đã tồn tại, vui lòng chọn slug khác",
+    });
   }
 
   const order = args.order ?? (await getNextOrder(ctx));
@@ -204,7 +208,10 @@ export async function update(
 
   if (args.slug && args.slug !== category.slug) {
     if (await isSlugExists(ctx, { excludeId: args.id, slug: args.slug })) {
-      throw new Error("Slug already exists");
+      throw new ConvexError({
+        code: "DUPLICATE_SLUG",
+        message: "Slug đã tồn tại, vui lòng chọn slug khác",
+      });
     }
   }
 

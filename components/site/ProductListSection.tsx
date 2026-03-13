@@ -77,7 +77,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   
   // Query products based on selection mode
   const productsData = useQuery(
-    api.products.listAll, 
+    api.products.listPublicResolved,
     selectionMode === 'auto' ? { limit: Math.min(itemCount, 20) } : { limit: 100 }
   );
   
@@ -121,8 +121,8 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   }
 
   // Format price
-  const getPriceDisplay = (price?: number, salePrice?: number) =>
-    getPublicPriceLabel({ saleMode, price, salePrice });
+  const getPriceDisplay = (price?: number, salePrice?: number, isRangeFromVariant?: boolean) =>
+    getPublicPriceLabel({ saleMode, price, salePrice, isRangeFromVariant });
 
   const formatComparePrice = (price?: number) =>
     price ? getPublicPriceLabel({ saleMode: 'cart', price }).label : '';
@@ -143,7 +143,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 md:gap-x-6 md:gap-y-10">
             {products.slice(0, 4).map((product) => {
-              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer">
@@ -211,7 +211,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {products.slice(0, 4).map((product) => {
-              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link 
@@ -391,7 +391,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               }}
             >
               {displayedProducts.map((product) => {
-                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                 const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
                 return (
                   <Link
@@ -455,7 +455,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Compact Grid - More items, smaller cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {products.slice(0, 6).map((product) => {
-              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer bg-white rounded-lg border border-slate-100 p-2 hover:shadow-md hover:border-slate-200 transition-all">
@@ -493,7 +493,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
     const showcaseFeatured = products[0];
     const showcaseOthers = products.slice(1, 5);
     const showcasePriceDisplay = showcaseFeatured
-      ? getPriceDisplay(showcaseFeatured.price, showcaseFeatured.salePrice)
+      ? getPriceDisplay(showcaseFeatured.price, showcaseFeatured.salePrice, showcaseFeatured.hasVariants)
       : null;
     const showcaseDiscount = getDiscount(showcaseFeatured?.price, showcasePriceDisplay?.comparePrice, showcasePriceDisplay?.isContactPrice);
 
@@ -505,7 +505,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           {/* Showcase Layout - Mobile */}
           <div className="grid md:hidden grid-cols-2 gap-3">
             {products.slice(0, 4).map((product) => {
-              const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+              const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
@@ -566,7 +566,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             {/* Right Grid - 2x2 */}
             <div className="col-span-2 grid grid-cols-2 gap-3">
               {showcaseOthers.map((product) => {
-                const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+                const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
                 const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
                 return (
                   <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 transition-all">
@@ -603,7 +603,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   const featured = products.at(-1) ?? products[0];
   const others = products.slice(0, 4);
   const featuredPriceDisplay = featured
-    ? getPriceDisplay(featured.price, featured.salePrice)
+    ? getPriceDisplay(featured.price, featured.salePrice, featured.hasVariants)
     : null;
   const featuredDiscount = getDiscount(featured?.price, featuredPriceDisplay?.comparePrice, featuredPriceDisplay?.isContactPrice);
 
@@ -658,7 +658,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
 
           {/* Small Grid Items */}
           {others.slice(0, 4).map((product) => {
-            const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+            const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
             const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
             return (
               <Link 
@@ -717,7 +717,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
         {/* Mobile: 2x2 simple grid */}
         <div className="grid md:hidden grid-cols-2 gap-3">
         {products.slice(0, 4).map((product) => {
-          const priceDisplay = getPriceDisplay(product.price, product.salePrice);
+          const priceDisplay = getPriceDisplay(product.price, product.salePrice, product.hasVariants);
           const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
             return (
               <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">

@@ -68,11 +68,16 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   const [postSearchTerm, setPostSearchTerm] = useState('');
 
   const productsData = useQuery(api.products.listAll, type === 'ProductList' ? { limit: 100 } : 'skip');
+  const resolvedProductsData = useQuery(api.products.listPublicResolved, type === 'ProductList' ? { limit: 100 } : 'skip');
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, type === 'ProductList' ? { moduleKey: 'products', settingKey: 'saleMode' } : 'skip');
   const saleMode = useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
   const servicesData = useQuery(api.services.listAll, type === 'ServiceList' ? { limit: 100 } : 'skip');
   const postsData = useQuery(api.posts.listAll, type === 'Blog' ? { limit: 100 } : 'skip');
   const postCategoriesData = useQuery(api.postCategories.listAll, type === 'Blog' ? { limit: 200 } : 'skip');
+
+  const resolvedProductMap = useMemo(() => new Map(
+    (resolvedProductsData ?? []).map((product) => [product._id, product])
+  ), [resolvedProductsData]);
 
   const filteredProducts = useMemo(() => {
     if (!productsData) {return [];}
@@ -90,8 +95,11 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   }, [productsData, selectedProductIds]);
 
   const productPreviewItems: ProductListPreviewItem[] = useMemo(() => selectedProducts.map((product) => {
-    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
-    const hasBasePrice = product.price != null || product.salePrice != null;
+    const resolvedProduct = resolvedProductMap.get(product._id as Id<'products'>);
+    const priceValue = resolvedProduct?.price ?? product.price;
+    const salePriceValue = resolvedProduct?.salePrice ?? product.salePrice;
+    const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: priceValue, salePrice: salePriceValue, isRangeFromVariant: resolvedProduct?.hasVariants ?? product.hasVariants });
+    const hasBasePrice = priceValue != null || salePriceValue != null;
     return {
       description: product.description,
       id: product._id,
@@ -105,12 +113,13 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
   }), [selectedProducts, saleMode]);
 
   const autoProductPreviewItems: ProductListPreviewItem[] = useMemo(() => {
-    if (!productsData) {return [];}
-    return productsData
+    const source = resolvedProductsData ?? productsData;
+    if (!source) {return [];}
+    return source
       .filter(product => product.status === 'Active')
       .slice(0, itemCount)
       .map(product => {
-        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice });
+        const priceDisplay = getHomeComponentPriceLabel({ saleMode, price: product.price, salePrice: product.salePrice, isRangeFromVariant: product.hasVariants });
         const hasBasePrice = product.price != null || product.salePrice != null;
         return {
           description: product.description,
@@ -123,7 +132,7 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
             : undefined,
         };
       });
-  }, [productsData, itemCount, saleMode]);
+  }, [productsData, resolvedProductsData, itemCount, saleMode]);
 
   const filteredServices = useMemo(() => {
     if (!servicesData) {return [];}

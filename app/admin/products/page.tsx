@@ -495,11 +495,11 @@ function ProductsContent() {
 
         const salePrice = values.salePrice ? parseExcelNumber(values.salePrice) : null;
         if (salePrice !== null && salePrice < 0) {
-          clientErrors.push({ message: 'Giá khuyến mãi không hợp lệ', row: rowIndex });
+          clientErrors.push({ message: 'Giá so sánh không hợp lệ', row: rowIndex });
           continue;
         }
-        if (salePrice !== null && salePrice > 0 && salePrice >= price) {
-          clientErrors.push({ message: 'Giá khuyến mãi phải nhỏ hơn giá bán', row: rowIndex });
+        if (salePrice !== null && salePrice > 0 && salePrice <= price) {
+          clientErrors.push({ message: 'Giá so sánh phải lớn hơn giá bán', row: rowIndex });
           continue;
         }
         const stock = values.stock ? parseExcelNumber(values.stock) : null;
@@ -674,6 +674,23 @@ function ProductsContent() {
       ? <span className="text-slate-500">Giá liên hệ</span>
       : <span>{formatPrice(resolvedPrice)}</span>
   );
+
+  const getInvalidPriceContext = (product: (typeof products)[number]) => {
+    if (variantEnabled && variantPricing === 'variant' && product.hasVariants) {
+      const meta = product as typeof product & { hasInvalidVariantComparePrice?: boolean };
+      return meta.hasInvalidVariantComparePrice ? { scope: 'variant' as const } : null;
+    }
+    const salePrice = product.salePrice ?? 0;
+    const price = product.price ?? 0;
+    if (salePrice > 0 && salePrice <= price) {
+      return { scope: 'product' as const };
+    }
+    return null;
+  };
+
+  const invalidPriceCount = useMemo(() =>
+    paginatedData.reduce((count, product) => (getInvalidPriceContext(product) ? count + 1 : count), 0),
+  [paginatedData, variantEnabled, variantPricing]);
 
   if (isLoading) {
     return (
@@ -868,7 +885,14 @@ function ProductsContent() {
             </select>
             <Button variant="outline" size="sm" onClick={handleResetFilters}>Xóa lọc</Button>
           </div>
-          <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
+          <div className="flex items-center gap-2">
+            {invalidPriceCount > 0 && (
+              <Badge variant="destructive" className="text-[11px]">
+                {invalidPriceCount} sản phẩm giá không hợp lệ
+              </Badge>
+            )}
+            <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
+          </div>
         </div>
         <Table>
           <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white dark:[&_th]:bg-slate-900">
@@ -905,28 +929,36 @@ function ProductsContent() {
                 {visibleColumns.includes('category') && <TableCell>{product.category}</TableCell>}
                 {visibleColumns.includes('price') && (
                   <TableCell>
-                    <div>
-                      {variantEnabled && variantPricing === 'variant' && product.hasVariants ? (() => {
-                        const meta = product as typeof product & {
-                          hasPricedActiveVariant?: boolean;
-                          variantMinPrice?: number | null;
-                        };
-                        if (!meta.hasPricedActiveVariant) {
-                          return <span className="text-slate-500">Chưa có giá</span>;
-                        }
-                        const resolvedPrice = meta.variantMinPrice ?? product.price ?? 0;
-                        return renderContactPrice(resolvedPrice);
-                      })() : (
-                        (product.salePrice ?? 0) > (product.price ?? 0) && enabledFields.has('salePrice') ? (
-                          <>
-                            <span className="text-red-500 font-medium">{formatPrice(product.price ?? 0)}</span>
-                            <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.salePrice ?? 0)}</span>
-                          </>
-                        ) : (
-                          renderContactPrice(product.price ?? 0)
-                        )
-                      )}
-                    </div>
+                    {(() => {
+                      const invalidContext = getInvalidPriceContext(product);
+                      return (
+                        <div>
+                          {variantEnabled && variantPricing === 'variant' && product.hasVariants ? (() => {
+                            const meta = product as typeof product & {
+                              hasPricedActiveVariant?: boolean;
+                              variantMinPrice?: number | null;
+                            };
+                            if (!meta.hasPricedActiveVariant) {
+                              return <span className="text-slate-500">Chưa có giá</span>;
+                            }
+                            const resolvedPrice = meta.variantMinPrice ?? product.price ?? 0;
+                            return renderContactPrice(resolvedPrice);
+                          })() : (
+                            (product.salePrice ?? 0) > (product.price ?? 0) && enabledFields.has('salePrice') ? (
+                              <>
+                                <span className="text-red-500 font-medium">{formatPrice(product.price ?? 0)}</span>
+                                <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.salePrice ?? 0)}</span>
+                              </>
+                            ) : (
+                              renderContactPrice(product.price ?? 0)
+                            )
+                          )}
+                          {invalidContext && (
+                            <p className="text-xs text-red-500 mt-1">Giá so sánh không hợp lệ</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                 )}
                 {visibleColumns.includes('stock') && enabledFields.has('stock') && <TableCell className={product.stock < 10 ? 'text-red-500 font-medium' : ''}>{product.stock}</TableCell>}
