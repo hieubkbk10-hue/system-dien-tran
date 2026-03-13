@@ -358,7 +358,7 @@ export const HeroPreview = ({
               ))}
               {showFullscreenContent && (
                 <div className={cn(
-                  "absolute inset-0 z-10 flex flex-col justify-center",
+                  "absolute inset-0 z-30 flex flex-col justify-center",
                   device === 'mobile' ? 'px-4' : 'px-8 md:px-16'
                 )}>
                   <div className={cn("max-w-xl", device === 'mobile' ? 'space-y-3' : 'space-y-4')}>
