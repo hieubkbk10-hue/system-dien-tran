@@ -1,6 +1,7 @@
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
+import { api } from "../_generated/api";
 import { v } from "convex/values";
 import { dependencyType, fieldType, moduleCategory } from "../lib/validators";
 import { syncModuleRuntimeConfig } from "../lib/moduleConfigSync";
@@ -232,12 +233,14 @@ export const createModule = mutation({
       .unique();
     if (existing) {throw new Error("Module key already exists");}
     const count = (await ctx.db.query("adminModules").collect()).length;
-    return  ctx.db.insert("adminModules", {
+    const id = await ctx.db.insert("adminModules", {
       ...args,
       enabled: args.enabled ?? true,
       isCore: args.isCore ?? false,
       order: args.order ?? count,
     });
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "module" });
+    return id;
   },
   returns: v.id("adminModules"),
 });
@@ -259,6 +262,7 @@ export const updateModule = mutation({
     const moduleRecord = await ctx.db.get(id);
     if (!moduleRecord) {throw new Error("Module not found");}
     await ctx.db.patch(id, updates);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "module" });
     return null;
   },
   returns: v.null(),
@@ -346,6 +350,7 @@ export const toggleModule = mutation({
     if (args.enabled && args.key === "homepage") {
       await resetHomeComponentCreateVisibility(ctx);
     }
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "module" });
     return createToggleBasicResult({ code: "OK", success: true });
   },
   returns: v.object({
@@ -588,6 +593,7 @@ export const removeModule = mutation({
       await ctx.db.delete(setting._id);
     }
     await ctx.db.delete(args.id);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "module" });
     return null;
   },
   returns: v.null(),

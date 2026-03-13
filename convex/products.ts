@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { productStatus } from "./lib/validators";
@@ -1358,6 +1359,7 @@ export const create = mutation({
 
     // Update stats counters
     await updateStats(ctx, { new: status });
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "product" });
 
     return productId;
   },
@@ -1522,6 +1524,7 @@ export const update = mutation({
     }
 
     await ctx.db.patch(id, nextUpdates);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "product" });
     return null;
   },
   returns: v.null(),
@@ -1622,6 +1625,7 @@ export const remove = mutation({
 
     await ctx.db.delete(args.id);
     await updateStats(ctx, { old: product.status });
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "product" });
 
     return null;
   },

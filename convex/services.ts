@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { contentStatus } from "./lib/validators";
@@ -548,7 +549,11 @@ export const create = mutation({
     thumbnail: v.optional(v.string()),
     title: v.string(),
   },
-  handler: async (ctx, args) => ServicesModel.create(ctx, args),
+  handler: async (ctx, args) => {
+    const id = await ServicesModel.create(ctx, args);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "service" });
+    return id;
+  },
   returns: v.id("services"),
 });
 
@@ -578,6 +583,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     await ServicesModel.update(ctx, args);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "service" });
     return null;
   },
   returns: v.null(),
@@ -596,6 +602,7 @@ export const remove = mutation({
   args: { cascade: v.optional(v.boolean()), id: v.id("services") },
   handler: async (ctx, args) => {
     await ServicesModel.remove(ctx, args);
+    await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "service" });
     return null;
   },
   returns: v.null(),

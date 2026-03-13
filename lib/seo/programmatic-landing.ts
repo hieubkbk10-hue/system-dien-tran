@@ -32,7 +32,7 @@ export type ProgrammaticLandingPlan = {
   items: ProgrammaticLandingItem[];
 };
 
-type LandingInput = {
+export type ProgrammaticLandingSeed = {
   homeComponents: Array<{ title: string; type: string }>;
   modules: ModuleSeed[];
   posts: Array<{ slug: string; title: string }>;
@@ -40,6 +40,8 @@ type LandingInput = {
   services: Array<{ slug: string; title: string }>;
   siteName: string;
 };
+
+type LandingInput = ProgrammaticLandingSeed;
 
 const CATEGORY_LABELS: Record<ModuleSeed['category'], string> = {
   commerce: 'Bán hàng & thương mại',

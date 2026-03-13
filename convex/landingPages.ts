@@ -1,7 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
-import { buildProgrammaticLandingPlan } from "../lib/seo/programmatic-landing";
+import { buildProgrammaticLandingPlan, type ProgrammaticLandingSeed } from "../lib/seo/programmatic-landing";
+import {
+  buildProgrammaticSyncDecision,
+  type ExistingProgrammaticLandingPage,
+} from "../lib/seo/programmatic-landing-sync";
 
 const landingPageDoc = v.object({
   _creationTime: v.number(),
@@ -50,19 +54,9 @@ const getSettingValue = async (ctx: { db: any }, key: string): Promise<string | 
   return setting?.value as string | undefined;
 };
 
-const resolveProgrammaticStatus = (params: {
-  content: string;
-  existingStatus?: "draft" | "published";
-}): "draft" | "published" => {
-  if (params.existingStatus === "published") {
-    return "published";
-  }
-  return "draft";
-};
-
 const PROGRAMMATIC_LIMIT = 6;
 
-const getProgrammaticSeedData = async (ctx: { db: any }) => {
+const getProgrammaticSeedData = async (ctx: { db: any }): Promise<ProgrammaticLandingSeed> => {
   const [siteName, modules, products, services, posts, homeComponents] = await Promise.all([
     getSettingValue(ctx, "site_name"),
     ctx.db.query("adminModules").withIndex("by_enabled_order", (q: any) => q.eq("enabled", true)).collect(),
@@ -113,6 +107,86 @@ const getProgrammaticSeedData = async (ctx: { db: any }) => {
     })),
     siteName: siteName ?? "Website",
   };
+};
+
+const listExistingProgrammaticPages = async (ctx: { db: any }): Promise<ExistingProgrammaticLandingPage[]> => {
+  const existing = await ctx.db.query("landingPages").collect();
+  return existing.map((page: any) => ({
+    _id: page._id,
+    content: page.content,
+    faqItems: page.faqItems,
+    heroImage: page.heroImage,
+    landingType: page.landingType,
+    order: page.order,
+    primaryIntent: page.primaryIntent,
+    publishedAt: page.publishedAt,
+    relatedProductSlugs: page.relatedProductSlugs,
+    relatedServiceSlugs: page.relatedServiceSlugs,
+    relatedSlugs: page.relatedSlugs,
+    slug: page.slug,
+    status: page.status,
+    summary: page.summary,
+    title: page.title,
+  }));
+};
+
+const buildProgrammaticDecision = async (ctx: { db: any }) => {
+  const seed = await getProgrammaticSeedData(ctx);
+  const plan = buildProgrammaticLandingPlan(seed);
+  const existingPages = await listExistingProgrammaticPages(ctx);
+
+  return buildProgrammaticSyncDecision({
+    existingPages,
+    nextPlan: plan,
+  });
+};
+
+const applyProgrammaticDecision = async (ctx: { db: any }, now: number) => {
+  const decision = await buildProgrammaticDecision(ctx);
+
+  for (const item of decision.create) {
+    await ctx.db.insert("landingPages", {
+      content: item.content,
+      faqItems: item.faqItems,
+      landingType: item.landingType,
+      order: item.order,
+      primaryIntent: item.primaryIntent,
+      relatedProductSlugs: item.relatedProductSlugs,
+      relatedServiceSlugs: item.relatedServiceSlugs,
+      relatedSlugs: item.relatedSlugs,
+      slug: item.slug,
+      status: "draft",
+      summary: item.summary,
+      title: item.title,
+      updatedAt: now,
+      publishedAt: undefined,
+    });
+  }
+
+  for (const item of decision.update) {
+    const publishedAt =
+      item.status === "published" && item.existing.status !== "published"
+        ? now
+        : item.existing.publishedAt;
+    await ctx.db.patch(item.existing._id, {
+      content: item.next.content,
+      faqItems: item.next.faqItems,
+      landingType: item.next.landingType,
+      order: item.next.order,
+      primaryIntent: item.next.primaryIntent,
+      relatedProductSlugs: item.next.relatedProductSlugs,
+      relatedServiceSlugs: item.next.relatedServiceSlugs,
+      relatedSlugs: item.next.relatedSlugs,
+      slug: item.next.slug,
+      status: item.status,
+      summary: item.next.summary,
+      title: item.next.title,
+      updatedAt: now,
+      publishedAt,
+    });
+  }
+
+  return decision;
 };
 
 // Public: list published by type
@@ -319,51 +393,15 @@ export const bulkUpdateStatus = mutation({
 export const previewProgrammaticPlan = mutation({
   args: {},
   handler: async (ctx) => {
-    const seed = await getProgrammaticSeedData(ctx);
-    const plan = buildProgrammaticLandingPlan(seed);
-
-    const existing = await ctx.db.query("landingPages").collect();
-    const existingBySlug = new Map(existing.map((page) => [page.slug, page]));
-
-    const byType: Record<string, number> = {};
-    let createCount = 0;
-    let updateCount = 0;
-    let draftCount = 0;
-    let publishedCount = 0;
-
-    for (const item of plan.items) {
-      byType[item.landingType] = (byType[item.landingType] ?? 0) + 1;
-      const existingItem = existingBySlug.get(item.slug);
-      if (existingItem) {
-        updateCount += 1;
-      } else {
-        createCount += 1;
-      }
-      const status = resolveProgrammaticStatus({
-        content: item.content,
-        existingStatus: existingItem?.status,
-      });
-      if (status === "published") {
-        publishedCount += 1;
-      } else {
-        draftCount += 1;
-      }
-    }
-
-    return {
-      byType,
-      createCount,
-      draftCount,
-      publishedCount,
-      total: plan.items.length,
-      updateCount,
-    };
+    const decision = await buildProgrammaticDecision(ctx);
+    return decision.preview;
   },
   returns: v.object({
     byType: v.record(v.string(), v.number()),
     createCount: v.number(),
     draftCount: v.number(),
     publishedCount: v.number(),
+    skippedCount: v.number(),
     total: v.number(),
     updateCount: v.number(),
   }),
@@ -372,86 +410,56 @@ export const previewProgrammaticPlan = mutation({
 export const upsertProgrammaticFromModules = mutation({
   args: {},
   handler: async (ctx) => {
-    const seed = await getProgrammaticSeedData(ctx);
-    const plan = buildProgrammaticLandingPlan(seed);
-
-    const existing = await ctx.db.query("landingPages").collect();
-    const existingBySlug = new Map(existing.map((page) => [page.slug, page]));
-    const now = Date.now();
-
-    let created = 0;
-    let updated = 0;
-    let draftCount = 0;
-    let publishedCount = 0;
-
-    for (const item of plan.items) {
-      const existingItem = existingBySlug.get(item.slug);
-      const status = resolveProgrammaticStatus({
-        content: item.content,
-        existingStatus: existingItem?.status,
-      });
-
-      if (status === "published") {
-        publishedCount += 1;
-      } else {
-        draftCount += 1;
-      }
-
-      if (existingItem) {
-        const publishedAt =
-          status === "published" && existingItem.status !== "published"
-            ? now
-            : existingItem.publishedAt;
-        await ctx.db.patch(existingItem._id, {
-          content: item.content,
-          faqItems: item.faqItems,
-          landingType: item.landingType,
-          order: item.order,
-          primaryIntent: item.primaryIntent,
-          relatedProductSlugs: item.relatedProductSlugs,
-          relatedServiceSlugs: item.relatedServiceSlugs,
-          relatedSlugs: item.relatedSlugs,
-          slug: item.slug,
-          status,
-          summary: item.summary,
-          title: item.title,
-          updatedAt: now,
-          publishedAt,
-        });
-        updated += 1;
-      } else {
-        await ctx.db.insert("landingPages", {
-          content: item.content,
-          faqItems: item.faqItems,
-          landingType: item.landingType,
-          order: item.order,
-          primaryIntent: item.primaryIntent,
-          relatedProductSlugs: item.relatedProductSlugs,
-          relatedServiceSlugs: item.relatedServiceSlugs,
-          relatedSlugs: item.relatedSlugs,
-          slug: item.slug,
-          status: "draft",
-          summary: item.summary,
-          title: item.title,
-          updatedAt: now,
-          publishedAt: undefined,
-        });
-        created += 1;
-      }
-    }
+    const decision = await applyProgrammaticDecision(ctx, Date.now());
 
     return {
-      created,
-      draftCount,
-      publishedCount,
-      total: plan.items.length,
-      updated,
+      created: decision.create.length,
+      draftCount: decision.preview.draftCount,
+      publishedCount: decision.preview.publishedCount,
+      skippedCount: decision.preview.skippedCount,
+      total: decision.preview.total,
+      updated: decision.update.length,
     };
   },
   returns: v.object({
     created: v.number(),
     draftCount: v.number(),
     publishedCount: v.number(),
+    skippedCount: v.number(),
+    total: v.number(),
+    updated: v.number(),
+  }),
+});
+
+export const syncProgrammaticFromSourceChange = mutation({
+  args: {
+    source: v.union(
+      v.literal("module"),
+      v.literal("product"),
+      v.literal("service"),
+      v.literal("post")
+    ),
+  },
+  handler: async (ctx, args) => {
+    const decision = await applyProgrammaticDecision(ctx, Date.now());
+
+    return {
+      created: decision.create.length,
+      skippedCount: decision.preview.skippedCount,
+      source: args.source,
+      total: decision.preview.total,
+      updated: decision.update.length,
+    };
+  },
+  returns: v.object({
+    created: v.number(),
+    skippedCount: v.number(),
+    source: v.union(
+      v.literal("module"),
+      v.literal("product"),
+      v.literal("service"),
+      v.literal("post")
+    ),
     total: v.number(),
     updated: v.number(),
   }),
