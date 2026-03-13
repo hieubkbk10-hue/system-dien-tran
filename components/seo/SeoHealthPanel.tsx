@@ -5,108 +5,123 @@
 
 'use client';
 
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { AlertTriangle, CheckCircle, Globe, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { AlertTriangle, CheckCircle, ExternalLink, Globe, Info, XCircle } from 'lucide-react';
+import type { SeoChecklistCategory, SeoChecklistItem, SeoChecklistResult } from '@/lib/seo/checklist';
 
-type HealthCheck = {
-  status: 'pass' | 'warning' | 'fail';
-  message: string;
-  field?: string;
+const CATEGORY_LABELS: Record<SeoChecklistCategory, string> = {
+  crawl: 'Crawl & Index',
+  entity: 'Trust & Entity',
+  content: 'Content & Links',
+  speed: 'Speed & Rendering',
+  external: 'External Boost',
 };
 
-export function SeoHealthPanel() {
-  const siteSettings = useQuery(api.settings.getMultiple, {
-    keys: ['site_name', 'site_url', 'site_logo'],
-  });
-  const seoSettings = useQuery(api.settings.getMultiple, {
-    keys: ['seo_title', 'seo_description', 'seo_og_image'],
-  });
-  const contactSettings = useQuery(api.settings.getMultiple, {
-    keys: ['contact_email', 'contact_phone', 'contact_address'],
-  });
+const STATUS_ICON = {
+  pass: CheckCircle,
+  warning: AlertTriangle,
+  fail: XCircle,
+  info: Info,
+};
 
-  if (!siteSettings || !seoSettings || !contactSettings) {
-    return <div className="text-sm text-slate-500">Đang tải...</div>;
+const STATUS_COLOR = {
+  pass: 'text-green-600',
+  warning: 'text-yellow-600',
+  fail: 'text-red-600',
+  info: 'text-slate-500',
+};
+
+type SeoHealthPanelProps = {
+  checklist: SeoChecklistResult | null;
+  isLoading: boolean;
+  initialTab?: SeoChecklistCategory;
+};
+
+export function SeoHealthPanel({ checklist, isLoading, initialTab = 'crawl' }: SeoHealthPanelProps) {
+  const [activeTab, setActiveTab] = useState<SeoChecklistCategory>(initialTab);
+
+  if (isLoading || !checklist) {
+    return <div className="text-sm text-slate-500">Đang tải checklist SEO...</div>;
   }
 
-  const checks: HealthCheck[] = [];
-
-  // Critical checks
-  if (!siteSettings.site_url) {
-    checks.push({ status: 'fail', message: 'Thiếu Site URL (bắt buộc cho SEO)', field: 'site_url' });
-  } else {
-    checks.push({ status: 'pass', message: 'Site URL đã cấu hình' });
-  }
-
-  if (!siteSettings.site_name) {
-    checks.push({ status: 'fail', message: 'Thiếu Site Name', field: 'site_name' });
-  } else {
-    checks.push({ status: 'pass', message: 'Site Name đã cấu hình' });
-  }
-
-  // SEO checks
-  if (!seoSettings.seo_description) {
-    checks.push({ status: 'warning', message: 'Nên có SEO Description mặc định', field: 'seo_description' });
-  } else {
-    checks.push({ status: 'pass', message: 'SEO Description đã cấu hình' });
-  }
-
-  if (!seoSettings.seo_og_image && !siteSettings.site_logo) {
-    checks.push({ status: 'warning', message: 'Nên có OG Image hoặc Site Logo', field: 'seo_og_image' });
-  } else {
-    checks.push({ status: 'pass', message: 'OG Image/Logo đã cấu hình' });
-  }
-
-  // LocalBusiness schema check
-  const hasAddress = Boolean(contactSettings.contact_address);
-  const hasContact = Boolean(contactSettings.contact_phone || contactSettings.contact_email);
-  if (hasAddress && hasContact) {
-    checks.push({ status: 'pass', message: 'LocalBusiness schema sẽ được tự động phát (có đủ contact info)' });
-  } else {
-    checks.push({ status: 'warning', message: 'Chỉ phát Organization schema (thiếu contact info cho LocalBusiness)' });
-  }
-
-  const passCount = checks.filter(c => c.status === 'pass').length;
-  const warningCount = checks.filter(c => c.status === 'warning').length;
-  const failCount = checks.filter(c => c.status === 'fail').length;
+  const items = checklist.items.filter((item) => item.category === activeTab);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 space-y-6">
+      <div className="flex items-center gap-2">
         <Globe size={20} className="text-cyan-600" />
-        <h3 className="text-lg font-semibold">SEO Health Check</h3>
+        <h3 className="text-lg font-semibold">SEO Checklist Center</h3>
       </div>
 
-      <div className="flex gap-4 mb-6 text-sm">
-        <div className="flex items-center gap-1">
-          <CheckCircle size={16} className="text-green-600" />
-          <span>{passCount} Pass</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <AlertTriangle size={16} className="text-yellow-600" />
-          <span>{warningCount} Warning</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <XCircle size={16} className="text-red-600" />
-          <span>{failCount} Fail</span>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {checks.map((check, index) => (
-          <div key={index} className="flex items-start gap-2 text-sm">
-            {check.status === 'pass' && <CheckCircle size={16} className="text-green-600 mt-0.5 flex-shrink-0" />}
-            {check.status === 'warning' && <AlertTriangle size={16} className="text-yellow-600 mt-0.5 flex-shrink-0" />}
-            {check.status === 'fail' && <XCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />}
-            <span className={check.status === 'fail' ? 'text-red-700 dark:text-red-400' : ''}>{check.message}</span>
-          </div>
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveTab(key as SeoChecklistCategory)}
+            className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+              activeTab === key
+                ? 'border-cyan-500 text-cyan-700 bg-cyan-50 dark:bg-cyan-900/20'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
-      <div className="mt-6 pt-4 border-t text-xs text-slate-500">
-        <p>💡 Hệ thống SEO tự động derive metadata từ dữ liệu thật. Chỉ cần cấu hình các field bắt buộc ở trên.</p>
+      <div className="space-y-4">
+        {items.map((item) => (
+          <SeoChecklistItemCard key={item.id} item={item} />
+        ))}
       </div>
     </div>
   );
 }
+
+const SeoChecklistItemCard = ({ item }: { item: SeoChecklistItem }) => {
+  const Icon = STATUS_ICON[item.status];
+  const statusColor = STATUS_COLOR[item.status];
+
+  return (
+    <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <Icon size={18} className={`${statusColor} mt-0.5`} />
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</p>
+          <p className="text-xs text-slate-500">{item.whyItMatters}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300">{item.howToFix}</p>
+        </div>
+      </div>
+
+      {item.quickActions && item.quickActions.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {item.quickActions.map((action) => (
+            <Link
+              key={`${item.id}-${action.label}`}
+              href={action.href}
+              target={action.external ? '_blank' : undefined}
+              className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
+            >
+              {action.label}
+              {action.external && <ExternalLink size={12} />}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {item.learnMoreUrl && (
+        <a
+          href={item.learnMoreUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs text-cyan-600 inline-flex items-center gap-1"
+        >
+          Best practice
+          <ExternalLink size={12} />
+        </a>
+      )}
+    </div>
+  );
+};

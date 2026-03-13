@@ -50,6 +50,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     latestLandingTimestamp?.getTime(),
   ]);
 
+  const landingByType = landingPages.reduce<Record<string, number>>((acc, page) => {
+    acc[page.landingType] = (acc[page.landingType] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const hasLandingType = (type: string) => (landingByType[type] ?? 0) > 0;
+
+  const buildHubEntry = (url: string, priority: number): MetadataRoute.Sitemap[number] => ({
+    changeFrequency: 'weekly',
+    lastModified: latestLandingTimestamp ?? fallbackTimestamp,
+    priority,
+    url,
+  });
+
   const staticWithFreshness: MetadataRoute.Sitemap = [
     {
       changeFrequency: 'daily',
@@ -93,49 +107,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
       url: `${baseUrl}/stores`,
     },
-    // SaaS landing hubs
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.8,
-      url: `${baseUrl}/features`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.8,
-      url: `${baseUrl}/use-cases`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.8,
-      url: `${baseUrl}/solutions`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.7,
-      url: `${baseUrl}/compare`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.7,
-      url: `${baseUrl}/integrations`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.7,
-      url: `${baseUrl}/templates`,
-    },
-    {
-      changeFrequency: 'weekly',
-      lastModified: latestLandingTimestamp ?? fallbackTimestamp,
-      priority: 0.8,
-      url: `${baseUrl}/guides`,
-    },
+    // SaaS landing hubs (chỉ include khi có landing pages thật)
+    ...(hasLandingType('feature') ? [buildHubEntry(`${baseUrl}/features`, 0.8)] : []),
+    ...(hasLandingType('use-case') ? [buildHubEntry(`${baseUrl}/use-cases`, 0.8)] : []),
+    ...(hasLandingType('solution') ? [buildHubEntry(`${baseUrl}/solutions`, 0.8)] : []),
+    ...(hasLandingType('compare') ? [buildHubEntry(`${baseUrl}/compare`, 0.7)] : []),
+    ...(hasLandingType('integration') ? [buildHubEntry(`${baseUrl}/integrations`, 0.7)] : []),
+    ...(hasLandingType('template') ? [buildHubEntry(`${baseUrl}/templates`, 0.7)] : []),
+    ...(hasLandingType('guide') ? [buildHubEntry(`${baseUrl}/guides`, 0.8)] : []),
   ];
 
   // Generate post URLs
