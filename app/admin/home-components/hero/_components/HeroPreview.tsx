@@ -392,7 +392,7 @@ export const HeroPreview = ({
                 </div>
               )}
               {slides.length > 1 && (
-                <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+                <div className="absolute bottom-4 right-4 flex gap-2 z-40">
                   {slides.map((_, idx) => (
                     <button key={idx} type="button" onClick={() =>{  setCurrentSlide(idx); }} 
                       className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "")}

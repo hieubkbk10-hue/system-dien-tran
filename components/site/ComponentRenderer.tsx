@@ -589,7 +589,7 @@ function HeroSection({
           )}
           {/* Navigation dots */}
           {slides.length > 1 && (
-            <div className="absolute bottom-6 right-6 flex gap-2 z-20">
+            <div className="absolute bottom-6 right-6 flex gap-2 z-40">
               {slides.map((_, idx) => (
                 <button key={idx} onClick={() =>{  setCurrentSlide(idx); }} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'w-8' : ''}`} style={{ backgroundColor: idx === currentSlide ? fullscreenColors.dotActive : fullscreenColors.dotInactive }} />
               ))}
