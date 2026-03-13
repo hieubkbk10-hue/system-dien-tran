@@ -89,6 +89,25 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
   const servicesCount = input.servicesCount ?? 0;
   const landingPagesCount = input.landingPagesCount ?? 0;
 
+  const landingPagesHint = landingPagesCount > 0
+    ? 'Duy trì tối thiểu 3 landing pages và cập nhật định kỳ.'
+    : 'Tạo tối thiểu 3 landing pages (feature, use-case, solution) trước khi submit sitemap.'
+  const postsHint = postsCount > 0
+    ? 'Duy trì 3-5 bài viết nền và cập nhật đều mỗi tháng.'
+    : 'Tạo tối thiểu 3 bài viết nền (giới thiệu, FAQ, hướng dẫn) để bot hiểu chủ đề.'
+  const productsHint = productsCount > 0
+    ? 'Duy trì danh mục sản phẩm có mô tả rõ, giá và hình ảnh.'
+    : 'Publish tối thiểu 3 sản phẩm thật (tên, giá, mô tả, hình) để bot index.'
+  const servicesHint = servicesCount > 0
+    ? 'Duy trì danh mục dịch vụ có mô tả, lợi ích, CTA rõ.'
+    : 'Publish tối thiểu 3 dịch vụ (title, mô tả, CTA) để bot hiểu dịch vụ chính.'
+  const contactHint = hasAnyContact
+    ? 'Giữ email/số điện thoại chính xác và đồng bộ với website.'
+    : 'Điền ít nhất 1 thông tin liên hệ (email hoặc số điện thoại) trong Settings Contact.'
+  const addressHint = hasContactAddress
+    ? 'Đảm bảo địa chỉ đầy đủ (phường/quận/tỉnh) để LocalBusiness schema rõ.'
+    : 'Thêm địa chỉ doanh nghiệp (phường/quận/tỉnh) để tăng trust local.'
+
   const items: SeoChecklistItem[] = [
     {
       id: 'site-url',
@@ -137,7 +156,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: landingPagesCount > 0 ? 'pass' : 'warning',
       title: 'Landing hub có nội dung thật để tránh sitemap loãng',
       whyItMatters: 'Hub rỗng làm bot crawl nhiều nhưng index kém.',
-      howToFix: 'Tạo/publish landing pages hoặc tắt hub rỗng khỏi sitemap.',
+      howToFix: landingPagesHint,
       quickActions: buildQuickActions([
         { label: 'Mở Landing Pages', href: '/system/seo?tab=landing-pages' },
       ]),
@@ -189,7 +208,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: hasAnyContact ? 'pass' : 'warning',
       title: 'Có số điện thoại hoặc email liên hệ',
       whyItMatters: 'Thiếu liên hệ khiến bot khó xác nhận đây là site thật.',
-      howToFix: 'Điền ít nhất 1 thông tin liên hệ.',
+      howToFix: contactHint,
       quickActions: buildQuickActions([
         { label: 'Mở Settings Contact', href: '/admin/settings' },
       ]),
@@ -202,7 +221,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: hasContactAddress ? 'pass' : 'warning',
       title: 'Có địa chỉ để phát LocalBusiness schema',
       whyItMatters: 'Địa chỉ giúp bot hiểu bạn là doanh nghiệp thật và local.',
-      howToFix: 'Điền địa chỉ nếu có.',
+      howToFix: addressHint,
       quickActions: buildQuickActions([
         { label: 'Mở Settings Contact', href: '/admin/settings' },
       ]),
@@ -228,7 +247,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: postsCount > 0 ? 'pass' : 'warning',
       title: 'Có bài viết published',
       whyItMatters: 'Bài viết giúp bot hiểu nội dung và chủ đề site.',
-      howToFix: 'Publish ít nhất 1-3 bài viết thật.',
+      howToFix: postsHint,
       quickActions: buildQuickActions([
         { label: 'Mở Posts', href: '/admin/posts' },
       ]),
@@ -241,7 +260,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: productsCount > 0 ? 'pass' : 'warning',
       title: 'Có sản phẩm published',
       whyItMatters: 'Sản phẩm là nguồn traffic và index quan trọng nhất.',
-      howToFix: 'Publish ít nhất 1-3 sản phẩm thật.',
+      howToFix: productsHint,
       quickActions: buildQuickActions([
         { label: 'Mở Products', href: '/admin/products' },
       ]),
@@ -254,7 +273,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       status: servicesCount > 0 ? 'pass' : 'warning',
       title: 'Có dịch vụ published',
       whyItMatters: 'Dịch vụ giúp bot hiểu business scope và tăng index.',
-      howToFix: 'Publish ít nhất 1-3 dịch vụ thật.',
+      howToFix: servicesHint,
       quickActions: buildQuickActions([
         { label: 'Mở Services', href: '/admin/services' },
       ]),

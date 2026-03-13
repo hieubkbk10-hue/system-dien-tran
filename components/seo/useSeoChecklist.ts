@@ -11,6 +11,10 @@ type SeoChecklistHookResult = {
   sitemapUrl: string;
   robotsUrl: string;
   llmsUrl: string;
+  postsCount: number;
+  productsCount: number;
+  servicesCount: number;
+  landingPagesCount: number;
   checklist: SeoChecklistResult | null;
 };
 
@@ -113,6 +117,10 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
     sitemapUrl,
     robotsUrl,
     llmsUrl,
+    postsCount: postsCount ?? 0,
+    productsCount: productsCount ?? 0,
+    servicesCount: servicesCount ?? 0,
+    landingPagesCount: landingPagesResult?.page?.length ?? 0,
     checklist,
   };
 };

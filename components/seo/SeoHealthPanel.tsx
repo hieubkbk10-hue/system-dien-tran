@@ -101,7 +101,8 @@ const SeoChecklistItemCard = ({ item }: { item: SeoChecklistItem }) => {
             <Link
               key={`${item.id}-${action.label}`}
               href={action.href}
-              target={action.external ? '_blank' : undefined}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700"
             >
               {action.label}
@@ -115,7 +116,7 @@ const SeoChecklistItemCard = ({ item }: { item: SeoChecklistItem }) => {
         <a
           href={item.learnMoreUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="text-xs text-cyan-600 inline-flex items-center gap-1"
         >
           Best practice

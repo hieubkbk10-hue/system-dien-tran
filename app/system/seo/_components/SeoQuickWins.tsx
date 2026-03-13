@@ -29,7 +29,8 @@ export const SeoQuickWins = ({ items }: SeoQuickWinsProps) => {
                 <Link
                   key={`${item.id}-${action.label}`}
                   href={action.href}
-                  target={action.external ? '_blank' : undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-amber-50 text-amber-700"
                 >
                   {action.label}
