@@ -10,7 +10,9 @@ export interface HeroContent {
   heading?: string;
   description?: string;
   primaryButtonText?: string;
+  primaryButtonLink?: string;
   secondaryButtonText?: string;
+  secondaryButtonLink?: string;
   countdownText?: string;
   showFullscreenContent?: boolean;
 }

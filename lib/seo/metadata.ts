@@ -25,6 +25,11 @@ export type SeoContext = {
   title: string;
 };
 
+const resolveBaseUrl = (siteUrl?: string): string => {
+  const baseUrl = (siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com').replace(/\/$/, '');
+  return baseUrl || 'https://example.com';
+};
+
 const buildMetadataBase = (baseUrl: string): URL | undefined => {
   if (!baseUrl) {
     return undefined;
@@ -41,7 +46,7 @@ const resolveLocale = (language: string): string => {
 
 // Legacy: giữ để backward compatibility
 export const buildSeoContext = (site: SiteSettings, seo: SEOSettings): SeoContext => {
-  const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+  const baseUrl = resolveBaseUrl(site.site_url);
   const siteName = site.site_name || 'Website';
   const title = seo.seo_title || siteName;
   const description = seo.seo_description || site.site_tagline || '';
@@ -137,7 +142,7 @@ export const buildSeoMetadata = (params: {
   openGraphType?: 'website' | 'article';
   useTitleTemplate?: boolean;
 }): Metadata => {
-  const baseUrl = (params.site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+  const baseUrl = resolveBaseUrl(params.site.site_url);
   const locale = resolveLocale(params.site.site_language || 'vi');
   const siteName = params.site.site_name || 'Website';
 

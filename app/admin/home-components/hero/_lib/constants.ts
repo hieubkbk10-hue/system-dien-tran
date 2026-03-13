@@ -17,6 +17,8 @@ export const DEFAULT_HERO_CONTENT: HeroContent = {
   description: 'Sản phẩm chất lượng cao với giá thành hợp lý',
   heading: 'Khám phá bộ sưu tập mới nhất',
   primaryButtonText: 'Khám phá ngay',
+  primaryButtonLink: '',
   secondaryButtonText: 'Tìm hiểu thêm',
+  secondaryButtonLink: '',
   showFullscreenContent: true,
 };

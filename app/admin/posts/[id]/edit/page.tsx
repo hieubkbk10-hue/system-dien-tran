@@ -12,6 +12,7 @@ import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
 import { QuickCreateCategoryModal } from '../../../components/QuickCreateCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
+import { normalizeRichText } from '@/app/admin/lib/normalize-rich-text';
 
 const MODULE_KEY = 'posts';
 
@@ -34,7 +35,10 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [authorName, setAuthorName] = useState('');
   const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     title: string;
     slug: string;
@@ -55,10 +59,12 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     return fields;
   }, [fieldsData]);
 
+  const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
+
   const currentSnapshot = useMemo(() => ({
     authorName: authorName.trim(),
     categoryId,
-    content,
+    content: normalizedContent,
     excerpt: excerpt.trim(),
     metaDescription: metaDescription.trim(),
     metaTitle: metaTitle.trim(),
@@ -66,14 +72,25 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     status,
     thumbnail: thumbnail ?? '',
     title: title.trim(),
-  }), [authorName, categoryId, content, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
+  }), [authorName, categoryId, normalizedContent, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
 
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
     const initialSnapshot = initialSnapshotRef.current;
     return (Object.keys(initialSnapshot) as Array<keyof typeof initialSnapshot>)
       .some((key) => initialSnapshot[key] !== currentSnapshot[key]);
-  }, [currentSnapshot]);
+  }, [currentSnapshot, snapshotVersion]);
+
+  useEffect(() => {
+    if (saveStatus === 'saving') {return;}
+    if (hasChanges && saveStatus === 'saved') {
+      setSaveStatus('idle');
+      return;
+    }
+    if (!hasChanges && saveStatus === 'idle') {
+      setSaveStatus('saved');
+    }
+  }, [hasChanges, saveStatus]);
 
   useEffect(() => {
     if (postData) {
@@ -90,7 +107,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       initialSnapshotRef.current = {
         authorName: (postData.authorName ?? '').trim(),
         categoryId: postData.categoryId,
-        content: postData.content,
+        content: normalizeRichText(postData.content),
         excerpt: (postData.excerpt ?? '').trim(),
         metaDescription: (postData.metaDescription ?? '').trim(),
         metaTitle: (postData.metaTitle ?? '').trim(),
@@ -99,6 +116,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         thumbnail: postData.thumbnail ?? '',
         title: postData.title.trim(),
       };
+      setSnapshotVersion((prev) => prev + 1);
     }
   }, [postData]);
 
@@ -107,12 +125,19 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     if (!title.trim()) {return;}
 
     setIsSubmitting(true);
+    setSaveStatus('saving');
     try {
       const resolvedMetaTitle = truncateText(title.trim(), 60);
       const resolvedMetaDescription = truncateText(
         stripHtml(enabledFields.has('excerpt') && excerpt ? excerpt : content || ''),
         160
       );
+      const resolvedMetaTitleValue = enabledFields.has('metaTitle')
+        ? (metaTitle.trim() || resolvedMetaTitle || '')
+        : metaTitle.trim();
+      const resolvedMetaDescriptionValue = enabledFields.has('metaDescription')
+        ? (metaDescription.trim() || resolvedMetaDescription || '')
+        : metaDescription.trim();
       await updatePost({
         authorName: enabledFields.has('author_name') ? authorName.trim() || undefined : undefined,
         categoryId: categoryId as Id<"postCategories">,
@@ -120,20 +145,38 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         excerpt: excerpt.trim() || undefined,
         id: id as Id<"posts">,
         metaDescription: enabledFields.has('metaDescription')
-          ? (metaDescription.trim() || resolvedMetaDescription || undefined)
+          ? (resolvedMetaDescriptionValue || undefined)
           : undefined,
         metaTitle: enabledFields.has('metaTitle')
-          ? (metaTitle.trim() || resolvedMetaTitle || undefined)
+          ? (resolvedMetaTitleValue || undefined)
           : undefined,
         slug: slug.trim(),
         status,
         thumbnail,
         title: title.trim(),
       });
-      initialSnapshotRef.current = currentSnapshot;
+      const persistedSnapshot = {
+        ...currentSnapshot,
+        authorName: authorName.trim(),
+        content: normalizeRichText(content),
+        excerpt: excerpt.trim(),
+        metaDescription: resolvedMetaDescriptionValue,
+        metaTitle: resolvedMetaTitleValue,
+        thumbnail: thumbnail ?? '',
+      };
+      if (enabledFields.has('metaTitle')) {
+        setMetaTitle(resolvedMetaTitleValue);
+      }
+      if (enabledFields.has('metaDescription')) {
+        setMetaDescription(resolvedMetaDescriptionValue);
+      }
+      initialSnapshotRef.current = persistedSnapshot;
+      setSnapshotVersion((prev) => prev + 1);
+      setSaveStatus('saved');
       toast.success("Cập nhật bài viết thành công");
     } catch (error) {
       toast.error(getAdminMutationErrorMessage(error, "Không thể cập nhật bài viết"));
+      setSaveStatus('idle');
     } finally {
       setIsSubmitting(false);
     }
@@ -201,7 +244,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
               {/* Content - always shown (system field) */}
               <div className="space-y-2">
                 <Label>Nội dung</Label>
-                <LexicalEditor onChange={setContent} initialContent={postData.content} />
+                <LexicalEditor onChange={setContent} initialContent={content} resetKey={editorResetKey} />
               </div>
             </CardContent>
           </Card>
@@ -324,9 +367,18 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       </div>
 
       <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end items-center z-10">
-        <Button type="submit" variant="accent" disabled={isSubmitting || !hasChanges}>
+        <Button
+          type="submit"
+          variant="accent"
+          disabled={isSubmitting || !hasChanges}
+          className={!hasChanges && !isSubmitting
+            ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
+            : undefined}
+        >
           {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Cập nhật' : 'Đã lưu')}
+          {isSubmitting || saveStatus === 'saving'
+            ? 'Đang lưu...'
+            : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
         </Button>
       </div>
     </form>

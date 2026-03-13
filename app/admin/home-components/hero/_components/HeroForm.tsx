@@ -122,6 +122,26 @@ export const HeroForm = ({
               </div>
             )}
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Liên kết nút chính</Label>
+              <Input 
+                value={heroContent.primaryButtonLink} 
+                onChange={(e) =>{  setHeroContent({ ...heroContent, primaryButtonLink: e.target.value }); }}
+                placeholder="/contact hoặc https://..."
+              />
+            </div>
+            {heroStyle === 'fullscreen' && (
+              <div className="space-y-2">
+                <Label>Liên kết nút phụ</Label>
+                <Input 
+                  value={heroContent.secondaryButtonLink} 
+                  onChange={(e) =>{  setHeroContent({ ...heroContent, secondaryButtonLink: e.target.value }); }}
+                  placeholder="/pricing hoặc https://..."
+                />
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     )}

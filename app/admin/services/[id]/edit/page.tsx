@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -11,9 +11,9 @@ import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
-import { useFormShortcuts } from '../../../components/useKeyboardShortcuts';
 import { QuickCreateServiceCategoryModal } from '../../../components/QuickCreateServiceCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
+import { normalizeRichText } from '@/app/admin/lib/normalize-rich-text';
 
 const MODULE_KEY = 'services';
 
@@ -39,7 +39,10 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [snapshotVersion, setSnapshotVersion] = useState(0);
   const initialSnapshotRef = useRef<{
     categoryId: string;
     content: string;
@@ -55,31 +58,28 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     title: string;
   } | null>(null);
 
-  const handleSaveShortcut = useCallback(() => {
-    const form = document.querySelector('form');
-    if (form && title.trim()) {
-      form.requestSubmit();
-    }
-  }, [title]);
-
-  const handleCancelShortcut = useCallback(() => {
-    router.push('/admin/services');
-  }, [router]);
-
-  useFormShortcuts({
-    onCancel: handleCancelShortcut,
-    onSave: handleSaveShortcut,
-  });
-
   const enabledFields = useMemo(() => {
     const fields = new Set<string>();
     fieldsData?.forEach(f => fields.add(f.fieldKey));
     return fields;
   }, [fieldsData]);
 
+  const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val);
+    const generatedSlug = val.toLowerCase()
+      .normalize("NFD").replaceAll(/[\u0300-\u036F]/g, "")
+      .replaceAll(/[đĐ]/g, "d")
+      .replaceAll(/[^a-z0-9\s]/g, '')
+      .replaceAll(/\s+/g, '-');
+    setSlug(generatedSlug);
+  };
+
   const currentSnapshot = useMemo(() => ({
     categoryId,
-    content,
+    content: normalizedContent,
     duration: duration.trim(),
     excerpt: excerpt.trim(),
     featured,
@@ -90,12 +90,23 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     status,
     thumbnail: thumbnail ?? '',
     title: title.trim(),
-  }), [categoryId, content, duration, excerpt, featured, metaDescription, metaTitle, price, slug, status, thumbnail, title]);
+  }), [categoryId, normalizedContent, duration, excerpt, featured, metaDescription, metaTitle, price, slug, status, thumbnail, title]);
 
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
     return JSON.stringify(initialSnapshotRef.current) !== JSON.stringify(currentSnapshot);
-  }, [currentSnapshot]);
+  }, [currentSnapshot, snapshotVersion]);
+
+  useEffect(() => {
+    if (saveStatus === 'saving') {return;}
+    if (hasChanges && saveStatus === 'saved') {
+      setSaveStatus('idle');
+      return;
+    }
+    if (!hasChanges && saveStatus === 'idle') {
+      setSaveStatus('saved');
+    }
+  }, [hasChanges, saveStatus]);
 
   useEffect(() => {
     if (serviceData) {
@@ -113,7 +124,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       setStatus(serviceData.status);
       initialSnapshotRef.current = {
         categoryId: serviceData.categoryId,
-        content: serviceData.content,
+        content: normalizeRichText(serviceData.content),
         duration: (serviceData.duration ?? '').trim(),
         excerpt: (serviceData.excerpt ?? '').trim(),
         featured: serviceData.featured ?? false,
@@ -125,6 +136,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
         thumbnail: serviceData.thumbnail ?? '',
         title: serviceData.title.trim(),
       };
+      setSnapshotVersion((prev) => prev + 1);
     }
   }, [serviceData]);
 
@@ -133,12 +145,19 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
     if (!title.trim()) {return;}
 
     setIsSubmitting(true);
+    setSaveStatus('saving');
     try {
       const resolvedMetaTitle = truncateText(title.trim(), 60);
       const resolvedMetaDescription = truncateText(
         stripHtml(enabledFields.has('excerpt') && excerpt ? excerpt : content || ''),
         160
       );
+      const resolvedMetaTitleValue = enabledFields.has('metaTitle')
+        ? (metaTitle.trim() || resolvedMetaTitle || '')
+        : metaTitle.trim();
+      const resolvedMetaDescriptionValue = enabledFields.has('metaDescription')
+        ? (metaDescription.trim() || resolvedMetaDescription || '')
+        : metaDescription.trim();
       await updateService({
         categoryId: categoryId as Id<"serviceCategories">,
         content,
@@ -147,10 +166,10 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
         featured,
         id: id as Id<"services">,
         metaDescription: enabledFields.has('metaDescription')
-          ? (metaDescription.trim() || resolvedMetaDescription || undefined)
+          ? (resolvedMetaDescriptionValue || undefined)
           : undefined,
         metaTitle: enabledFields.has('metaTitle')
-          ? (metaTitle.trim() || resolvedMetaTitle || undefined)
+          ? (resolvedMetaTitleValue || undefined)
           : undefined,
         price,
         slug: slug.trim(),
@@ -158,10 +177,28 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
         thumbnail,
         title: title.trim(),
       });
-      initialSnapshotRef.current = currentSnapshot;
+      const persistedSnapshot = {
+        ...currentSnapshot,
+        content: normalizeRichText(content),
+        duration: duration.trim(),
+        excerpt: excerpt.trim(),
+        metaDescription: resolvedMetaDescriptionValue,
+        metaTitle: resolvedMetaTitleValue,
+        thumbnail: thumbnail ?? '',
+      };
+      if (enabledFields.has('metaTitle')) {
+        setMetaTitle(resolvedMetaTitleValue);
+      }
+      if (enabledFields.has('metaDescription')) {
+        setMetaDescription(resolvedMetaDescriptionValue);
+      }
+      initialSnapshotRef.current = persistedSnapshot;
+      setSnapshotVersion((prev) => prev + 1);
+      setSaveStatus('saved');
       toast.success("Cập nhật dịch vụ thành công");
     } catch (error) {
       toast.error(getAdminMutationErrorMessage(error, "Không thể cập nhật dịch vụ"));
+      setSaveStatus('idle');
     } finally {
       setIsSubmitting(false);
     }
@@ -216,7 +253,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
             <CardContent className="p-6 space-y-4">
               <div className="space-y-2">
                 <Label>Tiêu đề <span className="text-red-500">*</span></Label>
-                <Input value={title} onChange={(e) =>{  setTitle(e.target.value); }} required />
+                <Input value={title} onChange={handleTitleChange} required />
               </div>
               <div className="space-y-2">
                 <Label>Slug</Label>
@@ -230,7 +267,7 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
               )}
               <div className="space-y-2">
                 <Label>Nội dung</Label>
-                <LexicalEditor onChange={setContent} initialContent={serviceData.content} />
+                <LexicalEditor onChange={setContent} initialContent={content} resetKey={editorResetKey} />
               </div>
             </CardContent>
           </Card>
@@ -384,21 +421,20 @@ export default function ServiceEditPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/services'); }} title="Hủy (Esc)">Hủy bỏ</Button>
-        <div className="flex gap-2">
-          <span className="text-xs text-slate-400 self-center hidden sm:block">Ctrl+S để lưu</span>
-           <Button type="button" variant="secondary" onClick={() =>{  setStatus('Draft'); }}>Lưu nháp</Button>
-           <Button
-             type="submit"
-             variant="accent"
-             disabled={isSubmitting || !hasChanges}
-             title="Lưu (Ctrl+S)"
-             className={!hasChanges && !isSubmitting ? 'bg-teal-600 hover:bg-teal-600 opacity-60' : 'bg-teal-600 hover:bg-teal-500'}
-           >
-             {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-             {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Cập nhật' : 'Đã lưu')}
-           </Button>
-        </div>
+        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/services'); }}>Hủy bỏ</Button>
+        <Button
+          type="submit"
+          variant="accent"
+          disabled={isSubmitting || !hasChanges}
+          className={!hasChanges && !isSubmitting
+            ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
+            : 'bg-teal-600 hover:bg-teal-500'}
+        >
+          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+          {isSubmitting || saveStatus === 'saving'
+            ? 'Đang lưu...'
+            : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
+        </Button>
       </div>
     </form>
     </>

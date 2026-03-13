@@ -319,7 +319,9 @@ interface HeroContent {
   heading?: string;
   description?: string;
   primaryButtonText?: string;
+  primaryButtonLink?: string;
   secondaryButtonText?: string;
+  secondaryButtonLink?: string;
   countdownText?: string;
   showFullscreenContent?: boolean;
 }
@@ -339,6 +341,8 @@ function HeroSection({
   const style = (config.style as HeroStyle) || 'slider';
   const content = (config.content as HeroContent) || {};
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const primaryHref = content.primaryButtonLink || slides[currentSlide]?.link || '#';
+  const secondaryHref = content.secondaryButtonLink || '#';
   const sliderColors = getSliderColors(brandColor, secondary, mode);
   const fadeColors = getFadeColors(brandColor, secondary, mode);
   const bentoColors = getBentoColors(brandColor, secondary, mode);
@@ -552,12 +556,12 @@ function HeroSection({
                 )}
                 <div className="flex flex-col sm:flex-row gap-3">
                   {content.primaryButtonText && (
-                    <a href={slides[currentSlide]?.link || '#'} className="px-6 py-3 font-medium rounded-lg text-center" style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
+                    <a href={primaryHref} className="px-6 py-3 font-medium rounded-lg text-center" style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
                       {content.primaryButtonText}
                     </a>
                   )}
                   {content.secondaryButtonText && (
-                    <a href="#" className="px-6 py-3 font-medium rounded-lg border border-white/30 text-white hover:bg-white/10 transition-colors text-center">
+                    <a href={secondaryHref} className="px-6 py-3 font-medium rounded-lg border border-white/30 text-white hover:bg-white/10 transition-colors text-center">
                       {content.secondaryButtonText}
                     </a>
                   )}
@@ -599,7 +603,7 @@ function HeroSection({
               )}
               {content.primaryButtonText && (
                 <div className="pt-2">
-                  <a href={slides[currentSlide]?.link || '#'} className="inline-block px-6 py-3 font-medium rounded-lg" style={{ backgroundColor: splitColors.primaryCTA, color: splitColors.primaryCTAText }}>
+                  <a href={primaryHref} className="inline-block px-6 py-3 font-medium rounded-lg" style={{ backgroundColor: splitColors.primaryCTA, color: splitColors.primaryCTAText }}>
                     {content.primaryButtonText}
                   </a>
                 </div>
@@ -678,7 +682,7 @@ function HeroSection({
               )}
               <div className="flex items-center gap-3 mt-4">
                 {content.primaryButtonText && (
-                  <a href={slides[currentSlide]?.link || '#'} className="px-5 py-2 font-medium rounded-lg text-sm" style={{ backgroundColor: parallaxColors.primaryCTA, color: parallaxColors.primaryCTAText }}>
+                  <a href={primaryHref} className="px-5 py-2 font-medium rounded-lg text-sm" style={{ backgroundColor: parallaxColors.primaryCTA, color: parallaxColors.primaryCTAText }}>
                     {content.primaryButtonText}
                   </a>
                 )}

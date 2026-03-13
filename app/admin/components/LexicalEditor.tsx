@@ -351,6 +351,7 @@ interface LexicalEditorProps {
   onChange?: (html: string) => void;
   initialContent?: string;
   folder?: string;
+  resetKey?: number | string;
 }
 
 // Plugin to handle paste events and auto-upload base64 images
@@ -400,48 +401,53 @@ const PasteImagePlugin: React.FC<PasteImagePluginProps> = ({ onImageUpload }) =>
   return null;
 };
 
-const InitialContentPlugin: React.FC<{ initialContent?: string }> = ({ initialContent }) => {
+const InitialContentPlugin: React.FC<{ initialContent?: string; resetKey?: number | string }> = ({ initialContent, resetKey }) => {
   const [editor] = useLexicalComposerContext();
   const isInitializedRef = useRef(false);
+  const lastResetKeyRef = useRef<number | string | undefined>(undefined);
 
   useEffect(() => {
-    if (initialContent && !isInitializedRef.current) {
-      editor.update(() => {
-        const parser = new DOMParser();
-        const dom = parser.parseFromString(initialContent, 'text/html');
-        const nodes = $generateNodesFromDOM(editor, dom);
-        const root = $getRoot();
-        root.clear();
-        
-        // Filter: only ElementNode or DecoratorNode can be appended to root
-        // TextNodes need to be wrapped in ParagraphNode
-        const validNodes: LexicalNode[] = [];
-        for (const node of nodes) {
-          if ($isElementNode(node) || $isDecoratorNode(node)) {
-            validNodes.push(node);
-          } else if ($isTextNode(node)) {
-            // Wrap text nodes in paragraph
-            const text = node.getTextContent().trim();
-            if (text) {
-              const paragraph = $createParagraphNode();
-              paragraph.append(node);
-              validNodes.push(paragraph);
-            }
+    if (!initialContent) {return;}
+    const shouldReset = resetKey !== undefined
+      ? lastResetKeyRef.current !== resetKey
+      : !isInitializedRef.current;
+    if (!shouldReset) {return;}
+    editor.update(() => {
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(initialContent, 'text/html');
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      
+      // Filter: only ElementNode or DecoratorNode can be appended to root
+      // TextNodes need to be wrapped in ParagraphNode
+      const validNodes: LexicalNode[] = [];
+      for (const node of nodes) {
+        if ($isElementNode(node) || $isDecoratorNode(node)) {
+          validNodes.push(node);
+        } else if ($isTextNode(node)) {
+          // Wrap text nodes in paragraph
+          const text = node.getTextContent().trim();
+          if (text) {
+            const paragraph = $createParagraphNode();
+            paragraph.append(node);
+            validNodes.push(paragraph);
           }
         }
-        
-        if (validNodes.length > 0) {
-          root.append(...validNodes);
-        }
-      });
-      isInitializedRef.current = true;
-    }
-  }, [editor, initialContent]);
+      }
+      
+      if (validNodes.length > 0) {
+        root.append(...validNodes);
+      }
+    });
+    isInitializedRef.current = true;
+    lastResetKeyRef.current = resetKey;
+  }, [editor, initialContent, resetKey]);
 
   return null;
 };
 
-export const LexicalEditor: React.FC<LexicalEditorProps> = ({ onChange, initialContent, folder = 'posts-content' }) => {
+export const LexicalEditor: React.FC<LexicalEditorProps> = ({ onChange, initialContent, folder = 'posts-content', resetKey }) => {
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
   const saveImage = useMutation(api.storage.saveImage);
   
@@ -515,7 +521,7 @@ export const LexicalEditor: React.FC<LexicalEditorProps> = ({ onChange, initialC
           <LinkPlugin />
           <ImagesPlugin />
           <PasteImagePlugin onImageUpload={handleImageUpload} />
-          <InitialContentPlugin initialContent={initialContent} />
+          <InitialContentPlugin initialContent={initialContent} resetKey={resetKey} />
           <OnChangePlugin onChange={(editorState, editor) => {
              editorState.read(() => {
                 const html = $generateHtmlFromNodes(editor, null);

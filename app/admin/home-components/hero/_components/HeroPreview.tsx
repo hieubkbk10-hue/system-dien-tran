@@ -308,6 +308,8 @@ export const HeroPreview = ({
   const renderFullscreenStyle = () => {
     const mainSlide = slides[currentSlide] || slides[0];
     const c = content ?? {};
+    const primaryHref = c.primaryButtonLink || slides[currentSlide]?.link || '#';
+    const secondaryHref = c.secondaryButtonLink || '#';
     const showFullscreenContent = c.showFullscreenContent !== false;
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden">
@@ -351,14 +353,14 @@ export const HeroPreview = ({
                     )}
                     <div className={cn("flex gap-3", device === 'mobile' ? 'flex-col' : 'flex-row')}>
                       {c.primaryButtonText && (
-                        <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
+                        <a href={primaryHref} className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: fullscreenColors.primaryCTA, color: fullscreenColors.primaryCTAText }}>
                           {c.primaryButtonText}
-                        </button>
+                        </a>
                       )}
                       {c.secondaryButtonText && (
-                        <button className={cn("font-medium rounded-lg border border-white/30 text-white hover:bg-white/10", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')}>
+                        <a href={secondaryHref} className={cn("font-medium rounded-lg border border-white/30 text-white hover:bg-white/10", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')}>
                           {c.secondaryButtonText}
-                        </button>
+                        </a>
                       )}
                     </div>
                   </div>
@@ -387,6 +389,7 @@ export const HeroPreview = ({
   const renderSplitStyle = () => {
     const mainSlide = slides[currentSlide] || slides[0];
     const c = content ?? {};
+    const primaryHref = c.primaryButtonLink || slides[currentSlide]?.link || '#';
     return (
       <section className="relative w-full bg-white dark:bg-slate-900 overflow-hidden">
         <div className={cn(
@@ -413,9 +416,9 @@ export const HeroPreview = ({
                   )}
                   {c.primaryButtonText && (
                     <div className="pt-2">
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: splitColors.primaryCTA, color: splitColors.primaryCTAText }}>
+                      <a href={primaryHref} className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-4 py-2 text-sm' : 'px-6 py-2.5')} style={{ backgroundColor: splitColors.primaryCTA, color: splitColors.primaryCTAText }}>
                         {c.primaryButtonText}
-                      </button>
+                      </a>
                     </div>
                   )}
                 </div>
@@ -469,6 +472,7 @@ export const HeroPreview = ({
   const renderParallaxStyle = () => {
     const mainSlide = slides[currentSlide] || slides[0];
     const c = content ?? {};
+    const primaryHref = c.primaryButtonLink || slides[currentSlide]?.link || '#';
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden">
         <div className={cn(
@@ -511,9 +515,9 @@ export const HeroPreview = ({
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     {c.primaryButtonText && (
-                      <button className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: parallaxColors.primaryCTA, color: parallaxColors.primaryCTAText }}>
+                      <a href={primaryHref} className={cn("font-medium rounded-lg text-white", device === 'mobile' ? 'px-3 py-1.5 text-xs' : 'px-5 py-2 text-sm')} style={{ backgroundColor: parallaxColors.primaryCTA, color: parallaxColors.primaryCTAText }}>
                         {c.primaryButtonText}
-                      </button>
+                      </a>
                     )}
                     {c.countdownText && (
                       <span className={cn("text-slate-500", device === 'mobile' ? 'text-xs' : 'text-sm')}>{c.countdownText}</span>

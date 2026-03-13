@@ -19,6 +19,7 @@ import { DigitalCredentialsForm } from '@/components/orders/DigitalCredentialsFo
 import { stripHtml, truncateText } from '@/lib/seo';
 import { ProductCategoryCombobox } from '@/app/admin/products/components/ProductCategoryCombobox';
 import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickCreateCategoryModal';
+import { normalizeRichText } from '@/app/admin/lib/normalize-rich-text';
 
 const MODULE_KEY = 'products';
 
@@ -56,6 +57,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [galleryItems, setGalleryItems] = useState<ImageItem[]>([]);
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
+  const [editorResetKey, setEditorResetKey] = useState(0);
+  const [snapshotVersion, setSnapshotVersion] = useState(0);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [hasVariants, setHasVariants] = useState(false);
@@ -138,10 +142,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const showProductTypeSelector = productTypeMode === 'both';
   const hideBasePricing = variantEnabled && variantPricing === 'variant';
 
+  const normalizedDescription = useMemo(() => normalizeRichText(description), [description]);
+
   const currentSnapshot = useMemo(() => ({
     affiliateLink: affiliateLink.trim(),
     categoryId,
-    description: description.trim(),
+    description: normalizedDescription,
     digitalCredentialsTemplate: digitalCredentialsTemplate ?? {},
     digitalDeliveryType,
     galleryImages: galleryItems.map(item => item.url).filter(Boolean),
@@ -161,7 +167,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   }), [
     affiliateLink,
     categoryId,
-    description,
+    normalizedDescription,
     digitalCredentialsTemplate,
     digitalDeliveryType,
     galleryItems,
@@ -183,7 +189,18 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
     return JSON.stringify(initialSnapshotRef.current) !== JSON.stringify(currentSnapshot);
-  }, [currentSnapshot]);
+  }, [currentSnapshot, snapshotVersion]);
+
+  useEffect(() => {
+    if (saveStatus === 'saving') {return;}
+    if (hasChanges && saveStatus === 'saved') {
+      setSaveStatus('idle');
+      return;
+    }
+    if (!hasChanges && saveStatus === 'idle') {
+      setSaveStatus('saved');
+    }
+  }, [hasChanges, saveStatus]);
 
   useEffect(() => {
     if (productData && !isDataLoaded) {
@@ -209,7 +226,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       initialSnapshotRef.current = {
         affiliateLink: ((productData as { affiliateLink?: string }).affiliateLink ?? '').trim(),
         categoryId: productData.categoryId,
-        description: (productData.description ?? '').trim(),
+        description: normalizeRichText(productData.description ?? ''),
         digitalCredentialsTemplate: productData.digitalCredentialsTemplate ?? {},
         digitalDeliveryType: productData.digitalDeliveryType ?? 'account',
         galleryImages: (productData.images ?? []).filter(Boolean),
@@ -227,6 +244,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         status: productData.status,
         stock: productData.stock.toString(),
       };
+      setSnapshotVersion((prev) => prev + 1);
       setIsDataLoaded(true);
     }
   }, [productData, isDataLoaded]);
@@ -320,12 +338,19 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     }
 
     setIsSubmitting(true);
+    setSaveStatus('saving');
     try {
       const resolvedStock = productType === 'digital' ? 0 : (parseInt(stock) || 0);
       const resolvedMetaTitle = truncateText(name.trim(), 60);
       const resolvedMetaDescription = truncateText(stripHtml(description || ''), 160);
       const resolvedImages = galleryItems.map(item => item.url).filter(Boolean);
       const resolvedSalePrice = hideBasePricing ? undefined : resolveSalePrice(salePrice);
+      const resolvedMetaTitleValue = enabledFields.has('metaTitle')
+        ? (metaTitle.trim() || resolvedMetaTitle || '')
+        : metaTitle.trim();
+      const resolvedMetaDescriptionValue = enabledFields.has('metaDescription')
+        ? (metaDescription.trim() || resolvedMetaDescription || '')
+        : metaDescription.trim();
       await updateProduct({
         ...(isAffiliateMode ? { affiliateLink: affiliateLink.trim() || undefined } : {}),
         categoryId: categoryId as Id<"productCategories">,
@@ -335,10 +360,10 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         image,
         images: enabledFields.has('images') ? resolvedImages : undefined,
         metaDescription: enabledFields.has('metaDescription')
-          ? (metaDescription.trim() || resolvedMetaDescription || undefined)
+          ? (resolvedMetaDescriptionValue || undefined)
           : undefined,
         metaTitle: enabledFields.has('metaTitle')
-          ? (metaTitle.trim() || resolvedMetaTitle || undefined)
+          ? (resolvedMetaTitleValue || undefined)
           : undefined,
         name: name.trim(),
         optionIds: variantEnabled ? (hasVariants ? selectedOptionIds : []) : undefined,
@@ -354,10 +379,25 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           ? digitalCredentialsTemplate
           : undefined,
       });
-      initialSnapshotRef.current = currentSnapshot;
+      const persistedSnapshot = {
+        ...currentSnapshot,
+        description: normalizeRichText(description.trim()),
+        metaDescription: resolvedMetaDescriptionValue,
+        metaTitle: resolvedMetaTitleValue,
+      };
+      if (enabledFields.has('metaTitle')) {
+        setMetaTitle(resolvedMetaTitleValue);
+      }
+      if (enabledFields.has('metaDescription')) {
+        setMetaDescription(resolvedMetaDescriptionValue);
+      }
+      initialSnapshotRef.current = persistedSnapshot;
+      setSnapshotVersion((prev) => prev + 1);
+      setSaveStatus('saved');
       toast.success("Cập nhật sản phẩm thành công");
     } catch (error) {
       toast.error(getAdminMutationErrorMessage(error, 'Không thể cập nhật sản phẩm'));
+      setSaveStatus('idle');
     } finally {
       setIsSubmitting(false);
     }
@@ -460,7 +500,8 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
                   {isDataLoaded && (
                     <LexicalEditor 
                       onChange={setDescription} 
-                      initialContent={productData.description}
+                      initialContent={description}
+                      resetKey={editorResetKey}
                       folder="products-content"
                     />
                   )}
@@ -767,10 +808,14 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           type="submit"
           variant="accent"
           disabled={isSubmitting || !hasChanges}
-          className={!hasChanges && !isSubmitting ? 'bg-slate-300 hover:bg-slate-300 text-slate-600' : undefined}
+          className={!hasChanges && !isSubmitting
+            ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
+            : undefined}
         >
           {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          {isSubmitting ? 'Đang lưu...' : (hasChanges ? 'Lưu thay đổi' : 'Đã lưu')}
+          {isSubmitting || saveStatus === 'saving'
+            ? 'Đang lưu...'
+            : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
         </Button>
       </div>
     </form>
