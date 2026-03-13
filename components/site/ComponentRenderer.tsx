@@ -556,7 +556,7 @@ function HeroSection({
           ))}
           {/* CTA Overlay Content */}
           {showFullscreenContent && (
-            <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 md:px-8 lg:px-16">
+            <div className="absolute inset-0 z-30 flex flex-col justify-center px-4 md:px-8 lg:px-16">
               <div className="max-w-xl space-y-4 md:space-y-6">
                 {content.badge && (
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: fullscreenColors.badgeBg, color: fullscreenColors.badgeText }}>
