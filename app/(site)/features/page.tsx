@@ -50,7 +50,7 @@ export default async function FeaturesPage() {
       {features.length > 0 && <JsonLd data={itemListSchema} />}
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-4">Tính năng</h1>
-        <p className="text-xl text-slate-600 dark:text-slate-400 mb-12">
+        <p className="text-xl text-slate-600 mb-12">
           Khám phá toàn bộ tính năng của hệ thống
         </p>
 
@@ -72,7 +72,7 @@ export default async function FeaturesPage() {
                   />
                 )}
                 <h2 className="text-xl font-semibold mb-2">{feature.title}</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3">
+                <p className="text-slate-600 text-sm line-clamp-3">
                   {feature.summary}
                 </p>
               </a>

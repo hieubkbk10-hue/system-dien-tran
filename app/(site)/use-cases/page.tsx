@@ -41,7 +41,7 @@ export default async function UseCasesPage() {
       {items.length > 0 && <JsonLd data={itemListSchema} />}
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-4">Trường hợp sử dụng</h1>
-        <p className="text-xl text-slate-600 dark:text-slate-400 mb-12">Khám phá các trường hợp sử dụng thực tế</p>
+        <p className="text-xl text-slate-600 mb-12">Khám phá các trường hợp sử dụng thực tế</p>
         {items.length === 0 ? (
           <p className="text-slate-500">Chưa có dữ liệu.</p>
         ) : (
@@ -50,7 +50,7 @@ export default async function UseCasesPage() {
               <a key={item._id} href={`${baseUrl}/use-cases/${item.slug}`} className="block border rounded-lg p-6 hover:border-primary transition-colors">
                 {item.heroImage && <img src={item.heroImage} alt={item.title} className="w-full h-40 object-cover rounded mb-4" />}
                 <h2 className="text-xl font-semibold mb-2">{item.title}</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3">{item.summary}</p>
+                <p className="text-slate-600 text-sm line-clamp-3">{item.summary}</p>
               </a>
             ))}
           </div>

@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors, useSiteSettings, useSocialLinks } from './hooks';
 import { getFooterLayoutColors } from '@/app/admin/home-components/footer/_lib/colors';
+import { getFooterLogoSize } from '@/app/admin/home-components/footer/_lib/constants';
 import type { FooterBrandMode, FooterStyle } from '@/app/admin/home-components/footer/_types';
 import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
 import { resolveTypeOverrideFont } from '@/app/admin/home-components/_shared/lib/typeFontOverride';
@@ -16,6 +17,7 @@ interface SocialLinkItem { id: number; platform: string; url: string; icon: stri
 interface FooterConfig {
   logo?: string;
   description?: string;
+  logoSizeLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   columns?: { id: number; title: string; links: { label: string; url: string }[] }[];
   socialLinks?: SocialLinkItem[];
   copyright?: string;
@@ -165,6 +167,8 @@ export function DynamicFooter() {
   const config = footerComponent.config as FooterConfig;
   const style = (config.style ?? 'classic') as FooterStyle;
   const logo = config.logo ?? siteLogo;
+  const logoSizeLevel = config.logoSizeLevel ?? 1;
+  const resolveLogoSize = (baseSize: number) => getFooterLogoSize(baseSize, logoSizeLevel);
   const socials = getSocials(config);
   const columns = getColumns(config);
   const colors = getFooterLayoutColors(style, brandColor, secondary, mode as FooterBrandMode);
@@ -216,15 +220,23 @@ export function DynamicFooter() {
             {/* Brand Column */}
             <div className="lg:col-span-5 space-y-4">
               <Link href="/" className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
-                  {logo ? (
-                    <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain brightness-110" />
-                  ) : (
-                    <div className="h-6 w-6 rounded flex items-center justify-center text-sm font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
-                      {(siteName ?? 'V').charAt(0)}
-                    </div>
-                  )}
-                </div>
+                {logo ? (
+                  <Image
+                    src={logo}
+                    alt={siteName ?? 'VietAdmin'}
+                    width={resolveLogoSize(24)}
+                    height={resolveLogoSize(24)}
+                    className="object-contain brightness-110"
+                    style={{ width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                  />
+                ) : (
+                  <div
+                    className="rounded flex items-center justify-center text-sm font-bold"
+                    style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                  >
+                    {(siteName ?? 'V').charAt(0)}
+                  </div>
+                )}
                 <span className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</span>
               </Link>
               <p className="text-sm leading-relaxed max-w-sm" style={{ color: colors.textMuted }}>
@@ -298,15 +310,23 @@ export function DynamicFooter() {
           
           {/* Brand */}
           <div className="flex flex-col items-center gap-2">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-              {logo ? (
-                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={28} height={28} className="h-7 w-7 object-contain" />
-              ) : (
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold text-base" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
-                  {(siteName ?? 'V').charAt(0)}
-                </div>
-              )}
-            </div>
+            {logo ? (
+              <Image
+                src={logo}
+                alt={siteName ?? 'VietAdmin'}
+                width={resolveLogoSize(28)}
+                height={resolveLogoSize(28)}
+                className="object-contain"
+                style={{ width: resolveLogoSize(28), height: resolveLogoSize(28) }}
+              />
+            ) : (
+              <div
+                className="rounded flex items-center justify-center font-bold text-base"
+                style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(28), height: resolveLogoSize(28) }}
+              >
+                {(siteName ?? 'V').charAt(0)}
+              </div>
+            )}
             <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h2>
             <p className="max-w-md text-sm leading-relaxed" style={{ color: colors.textMuted }}>
               {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}
@@ -376,9 +396,19 @@ export function DynamicFooter() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <Link href="/" className="flex items-center gap-2">
               {logo ? (
-                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain" />
+                <Image
+                  src={logo}
+                  alt={siteName ?? 'VietAdmin'}
+                  width={resolveLogoSize(24)}
+                  height={resolveLogoSize(24)}
+                  className="object-contain"
+                  style={{ width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                />
               ) : (
-                <div className="h-6 w-6 rounded flex items-center justify-center text-sm font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
+                <div
+                  className="rounded flex items-center justify-center text-sm font-bold"
+                  style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                >
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
@@ -460,9 +490,19 @@ export function DynamicFooter() {
             {/* Left: Logo & Copy */}
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
               {logo ? (
-                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={20} height={20} className="h-5 w-5 opacity-80" />
+                <Image
+                  src={logo}
+                  alt={siteName ?? 'VietAdmin'}
+                  width={resolveLogoSize(20)}
+                  height={resolveLogoSize(20)}
+                  className="opacity-80"
+                  style={{ width: resolveLogoSize(20), height: resolveLogoSize(20) }}
+                />
               ) : (
-                <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
+                <div
+                  className="rounded flex items-center justify-center text-xs font-bold"
+                  style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(20), height: resolveLogoSize(20) }}
+                >
                   {(siteName ?? 'V').charAt(0)}
                 </div>
               )}
@@ -508,19 +548,24 @@ export function DynamicFooter() {
         <div className="container max-w-6xl mx-auto px-4 md:px-6 text-center">
           
           {/* Brand Center */}
-          <div className="flex flex-col items-center gap-3 mb-6">
-            <div
-              className="h-12 w-12 rounded-2xl flex items-center justify-center"
-              style={{ backgroundColor: colors.centeredBrandBg, border: `2px solid ${colors.centeredBrandBorder}` }}
-            >
-              {logo ? (
-                <Image src={logo} alt={siteName ?? 'VietAdmin'} width={28} height={28} className="h-7 w-7 object-contain" />
-              ) : (
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
-                  {(siteName ?? 'V').charAt(0)}
-                </div>
-              )}
-            </div>
+          <div className="flex flex-col items-center gap-2 mb-6">
+            {logo ? (
+              <Image
+                src={logo}
+                alt={siteName ?? 'VietAdmin'}
+                width={resolveLogoSize(28)}
+                height={resolveLogoSize(28)}
+                className="object-contain"
+                style={{ width: resolveLogoSize(28), height: resolveLogoSize(28) }}
+              />
+            ) : (
+              <div
+                className="rounded flex items-center justify-center font-bold"
+                style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(28), height: resolveLogoSize(28) }}
+              >
+                {(siteName ?? 'V').charAt(0)}
+              </div>
+            )}
             <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h2>
             <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>
               {config.description ?? 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}
@@ -599,17 +644,24 @@ export function DynamicFooter() {
       <div className="container max-w-4xl mx-auto px-4 md:px-6">
         
         {/* Logo + Description */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
-          <div 
-            className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}
-          >
-            {logo ? (
-              <Image src={logo} alt={siteName ?? 'VietAdmin'} width={24} height={24} className="h-6 w-6 object-contain brightness-110" />
-            ) : (
-              <span className="font-bold text-sm">{(siteName ?? 'V').charAt(0)}</span>
-            )}
-          </div>
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-2 mb-5 text-center md:text-left">
+          {logo ? (
+            <Image
+              src={logo}
+              alt={siteName ?? 'VietAdmin'}
+              width={resolveLogoSize(24)}
+              height={resolveLogoSize(24)}
+              className="object-contain brightness-110"
+              style={{ width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+            />
+          ) : (
+            <div
+              className="rounded flex items-center justify-center text-sm font-bold"
+              style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+            >
+              {(siteName ?? 'V').charAt(0)}
+            </div>
+          )}
           <div className="md:flex-1">
             <h3 className="text-sm font-bold mb-1" style={{ color: colors.heading }}>{siteName ?? 'VietAdmin'}</h3>
             <p className="text-xs leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>

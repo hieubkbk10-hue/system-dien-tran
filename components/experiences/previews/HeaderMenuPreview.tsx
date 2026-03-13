@@ -11,7 +11,7 @@ export type HeaderLayoutStyle = 'classic' | 'topbar' | 'allbirds';
 export type HeaderMenuConfig = {
   brandName: string;
   showBrandName: boolean;
-  logoSizeLevel: 1 | 2 | 3 | 4 | 5;
+  logoSizeLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
   headerBackground: 'white' | 'dots' | 'stripes';
   headerSeparator: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky: boolean;
@@ -45,6 +45,11 @@ type MenuItem = {
 };
 
 type MenuItemWithChildren = MenuItem & { children: MenuItemWithChildren[] };
+
+const buildLinearSteps = (min: number, max: number, count = 20) => {
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, index) => Math.round(min + step * index));
+};
 
 export type HeaderMenuPreviewProps = {
   brandColor: string;
@@ -97,11 +102,11 @@ export function HeaderMenuPreview({
   const showBrandName = config.showBrandName !== false;
   const logoSizeLevel = config.logoSizeLevel ?? 2;
   const logoSizeMap: Record<HeaderLayoutStyle, number[]> = {
-    classic: [24, 32, 40, 48, 56],
-    topbar: [28, 36, 44, 52, 60],
-    allbirds: [16, 24, 32, 40, 48],
+    classic: buildLinearSteps(24, 96),
+    topbar: buildLinearSteps(28, 108),
+    allbirds: buildLinearSteps(16, 80),
   };
-  const logoSize = logoSizeMap[layoutStyle][logoSizeLevel - 1];
+  const logoSize = logoSizeMap[layoutStyle][logoSizeLevel - 1] ?? logoSizeMap[layoutStyle][0];
   const logoDotSize = Math.max(2, Math.round(logoSize / 4));
   const ctaLabel = config.cta.text || 'Liên hệ';
   const loginLabel = config.login.text || 'Đăng nhập';

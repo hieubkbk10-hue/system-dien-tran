@@ -68,6 +68,11 @@ const HINTS = [
   'Cart/Wishlist chỉ bật khi module tương ứng đang active.',
 ];
 
+const clampLogoSizeLevel = (level?: number): HeaderMenuConfig['logoSizeLevel'] => {
+  const value = Number.isFinite(level) ? Math.round(level as number) : 2;
+  return Math.min(20, Math.max(1, value)) as HeaderMenuConfig['logoSizeLevel'];
+};
+
 function ModuleFeatureStatus({ label, enabled, href, moduleName }: { label: string; enabled: boolean; href: string; moduleName: string }) {
   return (
     <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
@@ -139,7 +144,7 @@ export default function HeaderMenuExperiencePage() {
       ...raw,
       brandName: resolvedBrandName,
       showBrandName: raw?.showBrandName ?? true,
-      logoSizeLevel: raw?.logoSizeLevel ?? 2,
+      logoSizeLevel: clampLogoSizeLevel(raw?.logoSizeLevel ?? 2),
       topbar: { ...DEFAULT_CONFIG.topbar, ...raw?.topbar },
       search: { ...DEFAULT_CONFIG.search, ...raw?.search },
       cta: { ...DEFAULT_CONFIG.cta, ...raw?.cta, text: 'Liên hệ' },
@@ -280,8 +285,14 @@ export default function HeaderMenuExperiencePage() {
 
   const showLoginToggle = Boolean(config.login?.show);
   const showCtaToggle = Boolean(config.cta?.show);
-  const logoSizeLabels = ['Nhỏ hơn', 'Mặc định', 'Lớn 1', 'Lớn 2', 'Lớn 3'] as const;
-  const logoSizeLabel = logoSizeLabels[(config.logoSizeLevel ?? 2) - 1] ?? 'Mặc định';
+  const logoSizeOptions = useMemo(
+    () => Array.from({ length: 20 }, (_, index) => ({
+      value: (index + 1) as HeaderMenuConfig['logoSizeLevel'],
+      label: `Nấc ${index + 1}`,
+    })),
+    []
+  );
+  const logoSizeLabel = logoSizeOptions[(config.logoSizeLevel ?? 2) - 1]?.label ?? 'Mặc định';
   const cartEnabled = cartModule?.enabled ?? false;
   const wishlistEnabled = wishlistModule?.enabled ?? false;
   const productsEnabled = productsModule?.enabled ?? false;
@@ -429,22 +440,15 @@ export default function HeaderMenuExperiencePage() {
             />
             <div className="space-y-2 pt-1">
               <Label className="text-xs">Kích thước logo</Label>
-              <input
-                type="range"
-                min={1}
-                max={5}
-                step={1}
+              <select
                 value={config.logoSizeLevel ?? 2}
                 onChange={(event) => updateLogoSizeLevel(Number(event.target.value) as HeaderMenuConfig['logoSizeLevel'])}
-                className="w-full"
-              />
-              <div className="flex items-center justify-between text-[11px] text-slate-500">
-                <span>Nhỏ hơn</span>
-                <span>Mặc định</span>
-                <span>Lớn 1</span>
-                <span>Lớn 2</span>
-                <span>Lớn 3</span>
-              </div>
+                className="h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-sm text-slate-700"
+              >
+                {logoSizeOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
               <div className="text-xs font-medium text-slate-600">Đang chọn: {logoSizeLabel}</div>
             </div>
             <ToggleRow

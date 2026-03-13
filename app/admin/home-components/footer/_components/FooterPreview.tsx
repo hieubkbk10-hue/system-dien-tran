@@ -7,6 +7,7 @@ import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { getFooterLayoutColors } from '../_lib/colors';
+import { getFooterLogoSize } from '../_lib/constants';
 import type { FooterBrandMode, FooterConfig, FooterStyle } from '../_types';
 
 const TikTokIcon = ({ size = 18 }: { size?: number }) => (
@@ -89,6 +90,8 @@ export const FooterPreview = ({
   const setPreviewStyle = (value: string) => onStyleChange?.(value as FooterStyle);
   const colors = getFooterLayoutColors(previewStyle, brandColor, secondary, mode);
   const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
+  const logoSizeLevel = config.logoSizeLevel ?? 1;
+  const resolveLogoSize = (baseSize: number) => getFooterLogoSize(baseSize, logoSizeLevel);
   const resolveSocialStyles = (platform: string, fallbackBg: string, fallbackText: string) => {
     if (!useOriginalSocialIconColors) {
       return { bg: fallbackBg, color: fallbackText };
@@ -142,11 +145,16 @@ export const FooterPreview = ({
             <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-12">
               <div className="md:col-span-5 space-y-3 text-center md:text-left">
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
-                    {config.logo
-                      ? <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" />
-                      : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
-                  </div>
+                  {config.logo
+                    ? <PreviewImage src={config.logo} alt="Logo" className="object-contain brightness-110" style={{ width: resolveLogoSize(20), height: resolveLogoSize(20) }} />
+                    : (
+                      <div
+                        className="rounded flex items-center justify-center text-xs font-bold"
+                        style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(20), height: resolveLogoSize(20) }}
+                      >
+                        V
+                      </div>
+                    )}
                   <span className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</span>
                 </div>
                 <p className="text-xs leading-relaxed md:max-w-sm" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ và sáng tạo kỹ thuật số.'}</p>
@@ -206,11 +214,16 @@ export const FooterPreview = ({
         <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg }}>
           <div className="max-w-5xl mx-auto px-3 md:px-4 flex flex-col items-center text-center space-y-4">
             <div className="flex flex-col items-center gap-2">
-              <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-                {config.logo
-                  ? <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain" />
-                  : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
-              </div>
+              {config.logo
+                ? <PreviewImage src={config.logo} alt="Logo" className="object-contain" style={{ width: resolveLogoSize(24), height: resolveLogoSize(24) }} />
+                : (
+                  <div
+                    className="rounded flex items-center justify-center font-bold text-sm"
+                    style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                  >
+                    V
+                  </div>
+                )}
               <h2 className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
               <p className="text-xs leading-relaxed max-w-md" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>
             </div>
@@ -261,8 +274,15 @@ export const FooterPreview = ({
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
               <div className="flex items-center gap-2">
                 {config.logo
-                  ? <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain" />
-                  : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+                  ? <PreviewImage src={config.logo} alt="Logo" className="object-contain" style={{ width: resolveLogoSize(20), height: resolveLogoSize(20) }} />
+                  : (
+                    <div
+                      className="rounded flex items-center justify-center text-xs font-bold"
+                      style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(20), height: resolveLogoSize(20) }}
+                    >
+                      V
+                    </div>
+                  )}
                 <span className="text-sm font-bold" style={{ color: colors.heading }}>VietAdmin</span>
               </div>
               {config.showSocialLinks && (
@@ -322,8 +342,15 @@ export const FooterPreview = ({
           <div className="max-w-7xl mx-auto px-3 md:px-4 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {config.logo
-                ? <PreviewImage src={config.logo} alt="Logo" className="h-4 w-4 object-contain" />
-                : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+                ? <PreviewImage src={config.logo} alt="Logo" className="object-contain" style={{ width: resolveLogoSize(16), height: resolveLogoSize(16) }} />
+                : (
+                  <div
+                    className="rounded flex items-center justify-center text-[10px] font-bold"
+                    style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(16), height: resolveLogoSize(16) }}
+                  >
+                    V
+                  </div>
+                )}
               {config.showCopyright !== false && (
                 <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
@@ -359,12 +386,17 @@ export const FooterPreview = ({
       return (
         <footer className="w-full py-6 md:py-8" style={{ backgroundColor: colors.bg }}>
           <div className="max-w-6xl mx-auto px-3 md:px-4 text-center">
-            <div className="flex flex-col items-center gap-3 mb-5">
-              <div className="h-10 w-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: colors.centeredBrandBg, border: `2px solid ${colors.centeredBrandBorder}` }}>
-                {config.logo
-                  ? <PreviewImage src={config.logo} alt="Logo" className="h-6 w-6 object-contain" />
-                  : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
-              </div>
+            <div className="flex flex-col items-center gap-2 mb-5">
+              {config.logo
+                ? <PreviewImage src={config.logo} alt="Logo" className="object-contain" style={{ width: resolveLogoSize(24), height: resolveLogoSize(24) }} />
+                : (
+                  <div
+                    className="rounded flex items-center justify-center font-bold text-sm"
+                    style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(24), height: resolveLogoSize(24) }}
+                  >
+                    V
+                  </div>
+                )}
               <h2 className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
               <p className="text-xs leading-relaxed max-w-md" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>
             </div>
@@ -424,12 +456,17 @@ export const FooterPreview = ({
     return (
       <footer className="w-full py-5" style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.stackedTopBorder}` }}>
         <div className="max-w-4xl mx-auto px-3 md:px-4">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-4 text-center md:text-left">
-            <div className="h-8 w-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: colors.primary }}>
-              {config.logo
-                ? <PreviewImage src={config.logo} alt="Logo" className="h-5 w-5 object-contain" />
-                : <span className="text-white font-bold text-xs">V</span>}
-            </div>
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-2 mb-4 text-center md:text-left">
+            {config.logo
+              ? <PreviewImage src={config.logo} alt="Logo" className="object-contain" style={{ width: resolveLogoSize(20), height: resolveLogoSize(20) }} />
+              : (
+                <div
+                  className="rounded flex items-center justify-center text-xs font-bold"
+                  style={{ backgroundColor: colors.primary, color: colors.textOnPrimary, width: resolveLogoSize(20), height: resolveLogoSize(20) }}
+                >
+                  V
+                </div>
+              )}
             <div className="md:flex-1">
               <h3 className="text-xs font-bold mb-1" style={{ color: colors.heading }}>VietAdmin</h3>
               <p className="text-[10px] leading-relaxed line-clamp-2" style={{ color: colors.textMuted }}>{config.description || 'Đối tác tin cậy của bạn trong mọi giải pháp công nghệ.'}</p>

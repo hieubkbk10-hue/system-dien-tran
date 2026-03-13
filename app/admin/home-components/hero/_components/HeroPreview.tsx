@@ -87,6 +87,32 @@ export const HeroPreview = ({
     </div>
   );
 
+  const renderSlideWithContain = (
+    slide: { image: string },
+    options?: {
+      blur?: number;
+      overlay?: React.ReactNode;
+    }
+  ) => (
+    <div className="w-full h-full relative">
+      <div
+        className="absolute inset-0 scale-110"
+        style={{
+          backgroundImage: `url(${slide.image})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+          filter: `blur(${options?.blur ?? 25}px)`,
+        }}
+      />
+      <PreviewImage
+        src={slide.image}
+        alt=""
+        className="relative w-full h-full object-contain z-10"
+      />
+      {options?.overlay}
+    </div>
+  );
+
   const renderPlaceholder = (
     idx: number,
     options?: {
@@ -322,12 +348,11 @@ export const HeroPreview = ({
               {slides.map((slide, idx) => (
                 <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-1000", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
                   {slide.image ? (
-                    <div className="w-full h-full relative">
-                      <PreviewImage src={slide.image} alt="" className="w-full h-full object-cover" />
-                      {showFullscreenContent && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-                      )}
-                    </div>
+                    renderSlideWithContain(slide, {
+                      overlay: showFullscreenContent ? (
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-20" />
+                      ) : null,
+                    })
                   ) : renderPlaceholder(idx, { backgroundColor: fullscreenColors.placeholderBg, iconColor: fullscreenColors.placeholderIcon })}
                 </div>
               ))}
@@ -484,10 +509,11 @@ export const HeroPreview = ({
               {slides.map((slide, idx) => (
                 <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700", idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
                   {slide.image ? (
-                    <div className="w-full h-full relative">
-                      <div className="absolute inset-0 scale-110 transform-gpu" style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: 'center', backgroundSize: 'cover' }} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                    </div>
+                    renderSlideWithContain(slide, {
+                      overlay: (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-20" />
+                      ),
+                    })
                   ) : renderPlaceholder(idx, { backgroundColor: parallaxColors.placeholderBg, iconColor: parallaxColors.placeholderIcon })}
                 </div>
               ))}

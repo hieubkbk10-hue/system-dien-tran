@@ -69,13 +69,15 @@ const SiteLayout = ({
     });
 
     return (
-      <SiteShell>
-        {siteSchemas.map((schema, index) => (
-          <JsonLd key={index} data={schema} />
-        ))}
-        {headerItems.length > 0 && <JsonLd data={navigationSchema} />}
-        {children}
-      </SiteShell>
+      <div data-theme="light" style={{ colorScheme: 'light' }}>
+        <SiteShell>
+          {siteSchemas.map((schema, index) => (
+            <JsonLd key={index} data={schema} />
+          ))}
+          {headerItems.length > 0 && <JsonLd data={navigationSchema} />}
+          {children}
+        </SiteShell>
+      </div>
     );
   });
 };

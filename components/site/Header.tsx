@@ -53,7 +53,7 @@ interface SearchConfig {
 interface HeaderConfig {
   brandName?: string;
   showBrandName?: boolean;
-  logoSizeLevel?: 1 | 2 | 3 | 4 | 5;
+  logoSizeLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
   headerBackground?: 'white' | 'dots' | 'stripes';
   headerSeparator?: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky?: boolean;
@@ -102,6 +102,16 @@ const DEFAULT_LINKS = {
   accountOrders: '/account/orders',
 };
 
+const clampLogoSizeLevel = (level?: number): NonNullable<HeaderConfig['logoSizeLevel']> => {
+  const value = Number.isFinite(level) ? Math.round(level as number) : 2;
+  return Math.min(20, Math.max(1, value)) as NonNullable<HeaderConfig['logoSizeLevel']>;
+};
+
+const buildLinearSteps = (min: number, max: number, count = 20) => {
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, index) => Math.round(min + step * index));
+};
+
 function cn(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
@@ -130,6 +140,7 @@ export function Header() {
   const config: HeaderConfig = {
     ...DEFAULT_CONFIG,
     ...savedConfig,
+    logoSizeLevel: clampLogoSizeLevel(savedConfig.logoSizeLevel ?? DEFAULT_CONFIG.logoSizeLevel),
     topbar: { ...DEFAULT_CONFIG.topbar, ...savedConfig.topbar },
     search: { ...DEFAULT_CONFIG.search, ...savedConfig.search },
     cta: { ...DEFAULT_CONFIG.cta, ...savedConfig.cta },
@@ -167,11 +178,11 @@ export function Header() {
   const showBrandName = config.showBrandName !== false;
   const logoSizeLevel = config.logoSizeLevel ?? 2;
   const logoSizeMap: Record<HeaderStyle, number[]> = {
-    classic: [24, 32, 40, 48, 56],
-    topbar: [28, 36, 44, 52, 60],
-    allbirds: [16, 24, 32, 40, 48],
+    classic: buildLinearSteps(24, 96),
+    topbar: buildLinearSteps(28, 108),
+    allbirds: buildLinearSteps(16, 80),
   };
-  const logoSize = logoSizeMap[headerStyle][logoSizeLevel - 1];
+  const logoSize = logoSizeMap[headerStyle][logoSizeLevel - 1] ?? logoSizeMap[headerStyle][0];
   const logoDotSize = Math.max(2, Math.round(logoSize / 4));
 
   const tokens = useMemo<MenuColors>(

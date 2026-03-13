@@ -432,7 +432,7 @@ function ClassicStylePreview({
               )}
             </div>
 
-            <div className="prose prose-zinc prose-lg max-w-none lg:max-w-[640px] dark:prose-invert">
+            <div className="prose prose-zinc prose-lg max-w-none lg:max-w-[640px]">
               <div dangerouslySetInnerHTML={{ __html: MOCK_POST.content }} />
             </div>
 
@@ -626,7 +626,7 @@ function ModernStylePreview({ showRelated, showShare, showAuthor = true, showTag
             </p>
           )}
 
-          <div className="prose prose-lg prose-zinc dark:prose-invert max-w-none text-muted-foreground leading-loose">
+          <div className="prose prose-lg prose-zinc max-w-none text-muted-foreground leading-loose">
             <div dangerouslySetInnerHTML={{ __html: MOCK_POST.content }} />
           </div>
         </article>

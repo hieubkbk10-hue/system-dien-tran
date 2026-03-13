@@ -40,13 +40,13 @@ export default async function FeaturePage({ params }: Props) {
 
       <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
       
-      <p className="text-xl text-slate-600 dark:text-slate-400 mb-8">
+      <p className="text-xl text-slate-600 mb-8">
         {page.summary}
       </p>
 
       {page.content && (
         <div
-          className="prose dark:prose-invert max-w-none"
+          className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: page.content }}
         />
       )}
@@ -60,7 +60,7 @@ export default async function FeaturePage({ params }: Props) {
                 <summary className="font-semibold cursor-pointer">
                   {faq.question}
                 </summary>
-                <p className="mt-2 text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-slate-600">
                   {faq.answer}
                 </p>
               </details>

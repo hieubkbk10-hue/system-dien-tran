@@ -64,6 +64,7 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
   const bctLogoSrc = bctLogoType === 'dang-ky'
     ? '/images/bct/logo-da-dang-ky-bct.png'
     : '/images/bct/logo-da-thong-bao-bct.png';
+  const logoSizeLevel = value.logoSizeLevel ?? 1;
 
   const updateConfig = (patch: Partial<FooterConfig>) => {
     onChange({ ...value, ...patch });
@@ -233,6 +234,19 @@ export function FooterForm({ value, onChange, primary, secondary, mode }: Footer
               folder="footer"
               previewSize="sm"
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Kích thước logo</Label>
+            <input
+              type="range"
+              min={1}
+              max={10}
+              step={1}
+              value={logoSizeLevel}
+              onChange={(event) =>{  updateConfig({ logoSizeLevel: Number(event.target.value) as FooterConfig['logoSizeLevel'] }); }}
+              className="w-full"
+            />
+            <div className="text-xs font-medium text-slate-600">Nấc {logoSizeLevel}/10</div>
           </div>
           <div className="space-y-2">
             <Label>Mô tả công ty</Label>

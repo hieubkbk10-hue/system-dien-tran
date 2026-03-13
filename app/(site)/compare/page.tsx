@@ -38,13 +38,13 @@ export default async function ComparePage() {
       {result.page.length > 0 && <JsonLd data={itemListSchema} />}
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-4">So sánh</h1>
-        <p className="text-xl text-slate-600 dark:text-slate-400 mb-12">So sánh chi tiết với các giải pháp khác</p>
+        <p className="text-xl text-slate-600 mb-12">So sánh chi tiết với các giải pháp khác</p>
         {result.page.length === 0 ? <p className="text-slate-500">Chưa có dữ liệu.</p> : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {result.page.map((item) => (
               <a key={item._id} href={`${baseUrl}/compare/${item.slug}`} className="block border rounded-lg p-6 hover:border-primary transition-colors">
                 <h2 className="text-xl font-semibold mb-2">{item.title}</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3">{item.summary}</p>
+                <p className="text-slate-600 text-sm line-clamp-3">{item.summary}</p>
               </a>
             ))}
           </div>

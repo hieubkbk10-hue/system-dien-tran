@@ -10,6 +10,7 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   copyright: '',
   description: '',
   logo: '',
+  logoSizeLevel: 1,
   showCopyright: true,
   showBctLogo: false,
   bctLogoType: 'thong-bao',
@@ -25,6 +26,24 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   ],
   style: 'classic',
 };
+
+type FooterLogoLevel = NonNullable<FooterConfig['logoSizeLevel']>;
+
+const clampLogoSizeLevel = (level?: number): FooterLogoLevel => {
+  const value = Number.isFinite(level) ? Math.round(level as number) : 1;
+  return Math.min(10, Math.max(1, value)) as FooterLogoLevel;
+};
+
+const FOOTER_LOGO_MAX_SCALE = 1 + (5 / 9) * 7;
+
+export const getFooterLogoScale = (level?: number) => {
+  const safeLevel = clampLogoSizeLevel(level);
+  return 1 + ((safeLevel - 1) / 9) * (FOOTER_LOGO_MAX_SCALE - 1);
+};
+
+export const getFooterLogoSize = (baseSize: number, level?: number) => (
+  Math.round(baseSize * getFooterLogoScale(level))
+);
 
 const FOOTER_STYLES: FooterStyle[] = ['classic', 'modern', 'corporate', 'minimal', 'centered', 'stacked'];
 const BCT_LOGO_TYPES = ['thong-bao', 'dang-ky'] as const;
@@ -55,6 +74,7 @@ export const normalizeFooterConfig = (raw: Partial<FooterConfig> | null | undefi
     copyright: typeof safe.copyright === 'string' ? safe.copyright : DEFAULT_FOOTER_CONFIG.copyright,
     description: typeof safe.description === 'string' ? safe.description : DEFAULT_FOOTER_CONFIG.description,
     logo: typeof safe.logo === 'string' ? safe.logo : DEFAULT_FOOTER_CONFIG.logo,
+    logoSizeLevel: clampLogoSizeLevel(safe.logoSizeLevel),
     showCopyright: safe.showCopyright !== false,
     showBctLogo: safe.showBctLogo === true,
     bctLogoType: BCT_LOGO_TYPES.includes(safe.bctLogoType as typeof BCT_LOGO_TYPES[number])

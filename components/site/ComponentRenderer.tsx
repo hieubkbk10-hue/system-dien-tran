@@ -518,6 +518,25 @@ function HeroSection({
     );
   }
 
+  const renderHeroSlideContain = (
+    slide: { image?: string },
+    options?: { overlay?: React.ReactNode; blur?: number }
+  ) => (
+    <div className="w-full h-full relative">
+      <div
+        className="absolute inset-0 scale-110"
+        style={{
+          backgroundImage: `url(${slide.image})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+          filter: `blur(${options?.blur ?? 25}px)`,
+        }}
+      />
+      <SiteImage src={slide.image ?? ''} alt="" className="relative w-full h-full object-contain z-10" />
+      {options?.overlay}
+    </div>
+  );
+
   // Style 4: Fullscreen - Hero toàn màn hình với CTA overlay
   if (style === 'fullscreen') {
     const showFullscreenContent = content.showFullscreenContent !== false;
@@ -527,12 +546,11 @@ function HeroSection({
           {slides.map((slide, idx) => (
             <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               {slide.image ? (
-                <div className="w-full h-full relative">
-                  <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" />
-                  {showFullscreenContent && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-                  )}
-                </div>
+                renderHeroSlideContain(slide, {
+                  overlay: showFullscreenContent ? (
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-20" />
+                  ) : null,
+                })
               ) : renderPlaceholder(fullscreenColors.placeholderBg, fullscreenColors.placeholderIcon)}
             </div>
           ))}
@@ -656,10 +674,11 @@ function HeroSection({
           {slides.map((slide, idx) => (
             <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               {slide.image ? (
-                <div className="w-full h-full relative">
-                  <div className="absolute inset-0 scale-110 transform-gpu" style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: 'center', backgroundSize: 'cover' }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                </div>
+                renderHeroSlideContain(slide, {
+                  overlay: (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-20" />
+                  ),
+                })
               ) : renderPlaceholder(parallaxColors.placeholderBg, parallaxColors.placeholderIcon)}
             </div>
           ))}
@@ -3429,8 +3448,8 @@ function ProductCategoriesSection({ config, brandColor, secondary, mode, title }
         <div className="mx-auto h-1 w-12 rounded-full mb-6 md:mb-8" style={{ backgroundColor: colors.sectionAccent }} />
         <div className="relative overflow-hidden rounded-xl">
           {/* Gradient masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none" />
           
           {/* Marquee track */}
           <div 
