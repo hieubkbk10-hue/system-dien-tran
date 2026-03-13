@@ -179,7 +179,7 @@ export function DynamicFooter() {
   const bctLogoSrc = bctLogoType === 'dang-ky'
     ? '/images/bct/logo-da-dang-ky-bct.png'
     : '/images/bct/logo-da-thong-bao-bct.png';
-  const renderBctLogo = (className = 'h-10') => {
+  const renderBctLogo = (className = 'h-14') => {
     if (!showBctLogo) {return null;}
     const image = (
       <Image
@@ -253,10 +253,10 @@ export function DynamicFooter() {
                         href={s.url || '#'} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="h-7 w-7 flex items-center justify-center rounded-full transition-colors"
+                        className="h-9 w-9 flex items-center justify-center rounded-full transition-colors"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={17} />
+                        <SocialIcon platform={s.platform} size={22} />
                       </a>
                     );
                   })}
@@ -295,7 +295,7 @@ export function DynamicFooter() {
                 {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
               </p>
             )}
-            {renderBctLogo('h-10')}
+            {renderBctLogo('h-14')}
           </div>
         </div>
       </footer>
@@ -364,16 +364,16 @@ export function DynamicFooter() {
                       href={s.url || '#'} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-7 w-7 flex items-center justify-center rounded-full transition-colors"
+                      className="h-9 w-9 flex items-center justify-center rounded-full transition-colors"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      <SocialIcon platform={s.platform} size={17} />
+                      <SocialIcon platform={s.platform} size={22} />
                     </a>
                   );
                 })}
               </div>
             )}
-            {renderBctLogo('h-10')}
+            {renderBctLogo('h-14')}
           </div>
 
           {config.showCopyright !== false && (
@@ -425,10 +425,10 @@ export function DynamicFooter() {
                       href={s.url || '#'} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      <SocialIcon platform={s.platform} size={17} />
+                      <SocialIcon platform={s.platform} size={22} />
                     </a>
                   );
                 })}
@@ -473,7 +473,7 @@ export function DynamicFooter() {
                 {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}
               </span>
             )}
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
           </div>
         </div>
       </footer>
@@ -524,16 +524,16 @@ export function DynamicFooter() {
                         href={s.url || '#'} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                        className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={17} />
+                        <SocialIcon platform={s.platform} size={22} />
                       </a>
                     );
                   })}
                 </div>
               )}
-              {renderBctLogo('h-8')}
+              {renderBctLogo('h-10')}
             </div>
           </div>
         </div>
@@ -621,16 +621,16 @@ export function DynamicFooter() {
                         href={s.url || '#'} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="h-10 w-10 flex items-center justify-center rounded-full transition-colors"
+                        className="h-14 w-14 flex items-center justify-center rounded-full transition-colors"
                         style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={17} />
+                        <SocialIcon platform={s.platform} size={22} />
                       </a>
                     );
                   })}
                 </div>
               )}
-              {renderBctLogo('h-8')}
+              {renderBctLogo('h-10')}
             </div>
           </div>
         </div>
@@ -701,17 +701,17 @@ export function DynamicFooter() {
                     href={s.url || '#'} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-lg transition-colors"
+                    className="h-10 w-10 flex items-center justify-center rounded-lg transition-colors"
                     style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                   >
-                    <SocialIcon platform={s.platform} size={17} />
+                    <SocialIcon platform={s.platform} size={22} />
                   </a>
                 );
               })}
             </div>
           )}
           <div className="flex flex-col md:flex-row items-center gap-2">
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
             {config.showCopyright !== false && (
               <p className="text-[10px]" style={{ color: colors.textSubtle }}>
                 {config.copyright || `© ${currentYear} ${siteName ?? 'VietAdmin'}. All rights reserved.`}

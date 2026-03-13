@@ -119,7 +119,7 @@ export const FooterPreview = ({
   const bctLogoSrc = bctLogoType === 'dang-ky'
     ? '/images/bct/logo-da-dang-ky-bct.png'
     : '/images/bct/logo-da-thong-bao-bct.png';
-  const renderBctLogo = (baseHeight = 32) => {
+  const renderBctLogo = (baseHeight = 42) => {
     if (!showBctLogo) {return null;}
     const image = (
       <img
@@ -173,10 +173,10 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-7 w-7 flex items-center justify-center rounded-full"
+                          className="h-9 w-9 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={17} />
+                          <SocialIcon platform={s.platform} size={22} />
                         </span>
                       );
                     })}
@@ -209,7 +209,7 @@ export const FooterPreview = ({
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
                 </p>
               )}
-              {renderBctLogo(32)}
+              {renderBctLogo(42)}
             </div>
           </div>
         </footer>
@@ -252,16 +252,16 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-7 w-7 flex items-center justify-center rounded-full"
+                          className="h-9 w-9 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={17} />
+                          <SocialIcon platform={s.platform} size={22} />
                         </span>
                       );
                     })}
                 </div>
               )}
-              {renderBctLogo(32)}
+              {renderBctLogo(42)}
             </div>
 
             {config.showCopyright !== false && (
@@ -300,10 +300,10 @@ export const FooterPreview = ({
                     return (
                       <span
                         key={`${s.id ?? 'social'}-${index}`}
-                        className="h-6 w-6 flex items-center justify-center rounded-full"
+                        className="h-8 w-8 flex items-center justify-center rounded-full"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={14} />
+                        <SocialIcon platform={s.platform} size={18} />
                       </span>
                     );
                   })}
@@ -336,7 +336,7 @@ export const FooterPreview = ({
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}
                 </span>
               )}
-              {renderBctLogo(28)}
+              {renderBctLogo(36)}
             </div>
           </div>
         </footer>
@@ -373,16 +373,16 @@ export const FooterPreview = ({
                     return (
                       <span
                         key={`${s.id ?? 'social'}-${index}`}
-                        className="h-6 w-6 flex items-center justify-center rounded-full"
+                        className="h-8 w-8 flex items-center justify-center rounded-full"
                         style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                       >
-                        <SocialIcon platform={s.platform} size={14} />
+                        <SocialIcon platform={s.platform} size={18} />
                       </span>
                     );
                   })}
                 </div>
               )}
-              {renderBctLogo(28)}
+              {renderBctLogo(36)}
             </div>
           </div>
         </footer>
@@ -443,16 +443,16 @@ export const FooterPreview = ({
                       return (
                         <span
                           key={`${s.id ?? 'social'}-${index}`}
-                          className="h-8 w-8 flex items-center justify-center rounded-full"
+                          className="h-10 w-10 flex items-center justify-center rounded-full"
                           style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
                         >
-                          <SocialIcon platform={s.platform} size={17} />
+                          <SocialIcon platform={s.platform} size={22} />
                         </span>
                       );
                     })}
                   </div>
                 )}
-                {renderBctLogo(28)}
+                {renderBctLogo(36)}
               </div>
             </div>
           </div>
@@ -497,17 +497,17 @@ export const FooterPreview = ({
                   return (
                     <span
                       key={`${s.id ?? 'social'}-${index}`}
-                      className="h-7 w-7 flex items-center justify-center rounded-lg"
+                      className="h-9 w-9 flex items-center justify-center rounded-lg"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      <SocialIcon platform={s.platform} size={14} />
+                      <SocialIcon platform={s.platform} size={18} />
                     </span>
                   );
                 })}
               </div>
             )}
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {renderBctLogo(28)}
+              {renderBctLogo(36)}
               {config.showCopyright !== false && (
                 <p className="text-[10px]" style={{ color: colors.textSubtle }}>
                   {config.copyright || '© 2024 VietAdmin. All rights reserved.'}

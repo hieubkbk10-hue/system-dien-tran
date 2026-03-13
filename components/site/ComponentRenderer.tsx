@@ -4880,7 +4880,7 @@ function FooterSection({
     return { bg: original.bg, color: original.icon };
   };
 
-  const renderBctLogo = (className = 'h-8') => {
+  const renderBctLogo = (className = 'h-10') => {
     if (!showBctLogo) {return null;}
     const image = (
       <SiteImage src={bctLogoSrc} alt="Bộ Công Thương" className={`${className} w-auto object-contain`} />
@@ -4961,10 +4961,10 @@ function FooterSection({
                         <a
                           key={`${s.id ?? 'social'}-${i}`}
                           href={s.url}
-                          className="h-7 w-7 flex items-center justify-center rounded-full transition-colors"
+                          className="h-9 w-9 flex items-center justify-center rounded-full transition-colors"
                           style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                         >
-                          {renderSocialIcon(s.platform, 17)}
+                          {renderSocialIcon(s.platform, 22)}
                         </a>
                       );
                     })}
@@ -4996,7 +4996,7 @@ function FooterSection({
           </div>
           <div className="mt-6 pt-3 flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left" style={{ borderTop: `1px solid ${colors.borderSoft}` }}>
             <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
-            {renderBctLogo('h-10')}
+            {renderBctLogo('h-14')}
           </div>
         </div>
       </footer>
@@ -5038,17 +5038,17 @@ function FooterSection({
                   <a
                     key={`${s.id ?? 'social'}-${i}`}
                     href={s.url}
-                    className="h-7 w-7 flex items-center justify-center rounded-full transition-colors"
+                    className="h-9 w-9 flex items-center justify-center rounded-full transition-colors"
                     style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                   >
-                    {renderSocialIcon(s.platform, 17)}
+                    {renderSocialIcon(s.platform, 22)}
                   </a>
                 );
               })}
             </div>
           )}
           <div className="flex flex-col items-center gap-2">
-            {renderBctLogo('h-10')}
+            {renderBctLogo('h-14')}
             <p className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{copyright}</p>
           </div>
         </div>
@@ -5074,10 +5074,10 @@ function FooterSection({
                     <a
                       key={`${s.id ?? 'social'}-${i}`}
                       href={s.url}
-                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      {renderSocialIcon(s.platform, 14)}
+                      {renderSocialIcon(s.platform, 18)}
                     </a>
                   );
                 })}
@@ -5112,7 +5112,7 @@ function FooterSection({
           </div>
           <div className="pt-3 flex flex-col md:flex-row items-center justify-between gap-2 text-center md:text-left">
             <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
           </div>
         </div>
       </footer>
@@ -5137,16 +5137,16 @@ function FooterSection({
                     <a
                       key={`${s.id ?? 'social'}-${i}`}
                       href={s.url}
-                      className="h-6 w-6 flex items-center justify-center rounded-full transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full transition-colors"
                       style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     >
-                      {renderSocialIcon(s.platform, 14)}
+                      {renderSocialIcon(s.platform, 18)}
                     </a>
                   );
                 })}
               </div>
             )}
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
           </div>
         </div>
       </footer>
@@ -5202,7 +5202,7 @@ function FooterSection({
                   <a
                     key={`${s.id ?? 'social'}-${i}`}
                     href={s.url}
-                    className="h-10 w-10 flex items-center justify-center rounded-full transition-colors"
+                    className="h-14 w-14 flex items-center justify-center rounded-full transition-colors"
                     style={{ backgroundColor: socialStyles.bg, border: `1px solid ${socialBorder}`, color: socialStyles.color }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = hoverStyles.bg;
@@ -5215,14 +5215,14 @@ function FooterSection({
                       e.currentTarget.style.color = socialStyles.color;
                     }}
                   >
-                    {renderSocialIcon(s.platform, 17)}
+                    {renderSocialIcon(s.platform, 22)}
                   </a>
                 );
               })}
             </div>
           )}
           <div className="flex flex-col items-center gap-2">
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
             <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
           </div>
         </div>
@@ -5271,7 +5271,7 @@ function FooterSection({
                   <a
                     key={`${s.id ?? 'social'}-${i}`}
                     href={s.url}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg transition-colors"
+                    className="h-10 w-10 flex items-center justify-center rounded-lg transition-colors"
                     style={{ backgroundColor: socialStyles.bg, color: socialStyles.color }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = hoverStyles.bg;
@@ -5282,14 +5282,14 @@ function FooterSection({
                       e.currentTarget.style.color = socialStyles.color;
                     }}
                   >
-                    {renderSocialIcon(s.platform, 17)}
+                    {renderSocialIcon(s.platform, 22)}
                   </a>
                 );
               })}
             </div>
           )}
           <div className="flex flex-col md:flex-row items-center gap-2">
-            {renderBctLogo('h-8')}
+            {renderBctLogo('h-10')}
             <p className="text-[10px]" style={{ color: colors.textSubtle }}>{copyright}</p>
           </div>
         </div>
