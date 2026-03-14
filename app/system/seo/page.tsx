@@ -10,7 +10,6 @@ import { SeoCommandBar } from './_components/SeoCommandBar';
 import { SeoCriticalActions } from './_components/SeoCriticalActions';
 import { SeoQuickWins } from './_components/SeoQuickWins';
 import { SeoGuidedActions } from './_components/SeoGuidedActions';
-import { SeoPromptStudio } from './_components/SeoPromptStudio';
 import { SeoOverviewSummary } from './_components/SeoOverviewSummary';
 
 export default function SEOConfigPage(): React.ReactElement {
@@ -26,10 +25,6 @@ export default function SEOConfigPage(): React.ReactElement {
     robotsUrl,
     llmsUrl,
     checklist,
-    postsCount,
-    productsCount,
-    servicesCount,
-    landingPagesCount,
   } = useSeoChecklist();
 
   useEffect(() => {
@@ -93,17 +88,6 @@ export default function SEOConfigPage(): React.ReactElement {
           <SeoCriticalActions items={checklist?.criticalItems ?? []} />
           <SeoQuickWins items={checklist?.quickWins ?? []} />
           <SeoGuidedActions items={checklist?.externalItems ?? []} />
-          <SeoPromptStudio
-            baseUrl={baseUrl}
-            sitemapUrl={sitemapUrl}
-            robotsUrl={robotsUrl}
-            llmsUrl={llmsUrl}
-            postsCount={postsCount}
-            productsCount={productsCount}
-            servicesCount={servicesCount}
-            landingPagesCount={landingPagesCount}
-            checklist={checklist}
-          />
         </div>
       )}
 
