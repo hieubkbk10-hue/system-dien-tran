@@ -109,7 +109,7 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
       setIsUrlLoading(false);
     };
 
-    run();
+    void run();
 
     return () => {
       isActive = false;
@@ -140,7 +140,7 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
       socialSettings.social_twitter,
       socialSettings.social_linkedin,
       socialSettings.social_pinterest,
-    ].map((value) => (value ? value.toString() : '')).filter(Boolean);
+    ].flatMap((value) => (typeof value === 'string' && value.trim() ? [value] : []));
 
     return buildSeoChecklist({
       baseUrl,
