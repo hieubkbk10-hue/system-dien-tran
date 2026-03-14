@@ -99,6 +99,9 @@ const resolveMetadataBase = (): URL => {
 
 export const metadata: Metadata = {
   metadataBase: resolveMetadataBase(),
+  verification: {
+    google: "M_4ZKEZ30LCdbEftU2mpaV9O2Pad57Mt3LuhNdvOU7U",
+  },
 };
 
 export default function RootLayout({
