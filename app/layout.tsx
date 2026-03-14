@@ -1,4 +1,5 @@
 import "./globals.css";
+import type { Metadata } from "next";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { BrandColorProvider } from "@/components/providers/BrandColorProvider";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
@@ -86,6 +87,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 });
+
+const resolveMetadataBase = (): URL => {
+  const rawBaseUrl = process.env.NEXT_PUBLIC_SITE_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "")
+    || process.env.VERCEL_URL
+    || "http://localhost:3000";
+  const normalizedBaseUrl = rawBaseUrl.startsWith("http") ? rawBaseUrl : `https://${rawBaseUrl}`;
+  return new URL(normalizedBaseUrl);
+};
+
+export const metadata: Metadata = {
+  metadataBase: resolveMetadataBase(),
+};
 
 export default function RootLayout({
   children,
