@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { buildSeoChecklist, type SeoChecklistResult } from '@/lib/seo/checklist';
+import { buildSeoChecklist, type SeoChecklistResult, type SeoUrlHealth } from '@/lib/seo/checklist';
 
 type SeoChecklistHookResult = {
   isLoading: boolean;
@@ -53,6 +53,69 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
   const robotsUrl = `${baseUrl}/robots.txt`;
   const llmsUrl = `${baseUrl}/llms.txt`;
 
+  const [urlHealth, setUrlHealth] = useState<SeoUrlHealth>({
+    robotsReachable: false,
+    sitemapReachable: false,
+    llmsReachable: false,
+  });
+  const [isUrlLoading, setIsUrlLoading] = useState(false);
+
+  useEffect(() => {
+    const isValidBaseUrl = baseUrl.startsWith('http://') || baseUrl.startsWith('https://');
+    if (!isValidBaseUrl || baseUrl === 'https://example.com') {
+      setUrlHealth({
+        robotsReachable: false,
+        sitemapReachable: false,
+        llmsReachable: false,
+      });
+      return;
+    }
+
+    let isActive = true;
+
+    const checkUrl = async (url: string): Promise<boolean> => {
+      try {
+        const headResponse = await fetch(url, { method: 'HEAD' });
+        if (headResponse.ok) {
+          return true;
+        }
+        if (headResponse.status === 405 || headResponse.status === 403) {
+          const getResponse = await fetch(url, { method: 'GET' });
+          return getResponse.ok;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    };
+
+    const run = async () => {
+      setIsUrlLoading(true);
+      const [robotsReachable, sitemapReachable, llmsReachable] = await Promise.all([
+        checkUrl(robotsUrl),
+        checkUrl(sitemapUrl),
+        checkUrl(llmsUrl),
+      ]);
+
+      if (!isActive) {
+        return;
+      }
+
+      setUrlHealth({
+        robotsReachable,
+        sitemapReachable,
+        llmsReachable,
+      });
+      setIsUrlLoading(false);
+    };
+
+    run();
+
+    return () => {
+      isActive = false;
+    };
+  }, [baseUrl, llmsUrl, robotsUrl, sitemapUrl]);
+
   const isLoading = [
     siteSettings,
     seoSettings,
@@ -62,7 +125,7 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
     productsCount,
     servicesCount,
     landingPagesResult,
-  ].some((value) => value === undefined);
+  ].some((value) => value === undefined) || isUrlLoading;
 
   const checklist = useMemo(() => {
     if (isLoading || !siteSettings || !seoSettings || !contactSettings || !socialSettings) {
@@ -81,6 +144,7 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
 
     return buildSeoChecklist({
       baseUrl,
+      urlHealth,
       siteName: siteSettings.site_name as string,
       siteLogo: siteSettings.site_logo as string,
       siteTagline: siteSettings.site_tagline as string,
@@ -109,6 +173,7 @@ export const useSeoChecklist = (): SeoChecklistHookResult => {
     seoSettings,
     siteSettings,
     socialSettings,
+    urlHealth,
   ]);
 
   return {

@@ -2,6 +2,14 @@ export type SeoChecklistCategory = 'crawl' | 'entity' | 'content' | 'speed' | 'e
 export type SeoChecklistSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type SeoChecklistStatus = 'pass' | 'warning' | 'fail' | 'info';
 
+export type SeoBestPractice = {
+  summary: string;
+  doFirst: string;
+  checklist: string[];
+  pitfalls: string[];
+  referenceUrl?: string;
+};
+
 export type SeoQuickAction = {
   label: string;
   href: string;
@@ -21,10 +29,26 @@ export type SeoChecklistItem = {
   steps?: string[];
   isExternal?: boolean;
   autoCheck?: boolean;
+  bestPractice?: SeoBestPractice;
+};
+
+export type SeoUrlHealth = {
+  robotsReachable: boolean;
+  sitemapReachable: boolean;
+  llmsReachable: boolean;
+};
+
+export type SeoChecklistSummary = {
+  progressPercent: number;
+  completedWeight: number;
+  totalWeight: number;
+  bySeverity: Record<SeoChecklistSeverity, { total: number; completed: number }>;
+  byCategory: Record<SeoChecklistCategory, { total: number; completed: number }>;
 };
 
 export type SeoChecklistBuildInput = {
   baseUrl: string;
+  urlHealth?: SeoUrlHealth;
   siteName?: string;
   siteLogo?: string;
   siteTagline?: string;
@@ -48,6 +72,7 @@ export type SeoChecklistResult = {
   criticalItems: SeoChecklistItem[];
   quickWins: SeoChecklistItem[];
   externalItems: SeoChecklistItem[];
+  summary: SeoChecklistSummary;
 };
 
 const sanitizeUrl = (value?: string): string => {
@@ -68,12 +93,72 @@ const buildQuickActions = (actions: SeoQuickAction[]): SeoQuickAction[] => {
   return actions.filter((action) => Boolean(action.href));
 };
 
+const SEVERITY_WEIGHT: Record<SeoChecklistSeverity, number> = {
+  critical: 40,
+  high: 30,
+  medium: 20,
+  low: 10,
+};
+
+const calculateSummary = (items: SeoChecklistItem[]): SeoChecklistSummary => {
+  const bySeverity: Record<SeoChecklistSeverity, { total: number; completed: number }> = {
+    critical: { total: 0, completed: 0 },
+    high: { total: 0, completed: 0 },
+    medium: { total: 0, completed: 0 },
+    low: { total: 0, completed: 0 },
+  };
+
+  const byCategory: Record<SeoChecklistCategory, { total: number; completed: number }> = {
+    crawl: { total: 0, completed: 0 },
+    entity: { total: 0, completed: 0 },
+    content: { total: 0, completed: 0 },
+    speed: { total: 0, completed: 0 },
+    external: { total: 0, completed: 0 },
+  };
+
+  let totalWeight = 0;
+  let completedWeight = 0;
+
+  items.forEach((item) => {
+    const weight = SEVERITY_WEIGHT[item.severity];
+    totalWeight += weight;
+
+    const isCompleted = item.status === 'pass';
+    const cat = item.category;
+
+    bySeverity[item.severity].total += 1;
+    byCategory[cat].total += 1;
+
+    if (isCompleted) {
+      completedWeight += weight;
+      bySeverity[item.severity].completed += 1;
+      byCategory[cat].completed += 1;
+    }
+  });
+
+  const progressPercent = totalWeight === 0 ? 0 : Math.round((completedWeight / totalWeight) * 100);
+
+  return {
+    progressPercent,
+    completedWeight,
+    totalWeight,
+    bySeverity,
+    byCategory,
+  };
+};
+
 export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistResult => {
   const baseUrl = sanitizeUrl(input.baseUrl);
   const hasValidBaseUrl = isValidBaseUrl(baseUrl);
   const sitemapUrl = baseUrl ? `${baseUrl}/sitemap.xml` : '';
   const robotsUrl = baseUrl ? `${baseUrl}/robots.txt` : '';
   const llmsUrl = baseUrl ? `${baseUrl}/llms.txt` : '';
+
+  const urlHealth = input.urlHealth ?? {
+    robotsReachable: false,
+    sitemapReachable: false,
+    llmsReachable: false,
+  };
 
   const hasSeoDescription = Boolean(input.seoDescription?.trim());
   const hasOgImage = Boolean((input.seoOgImage || input.siteLogo)?.trim());
@@ -126,7 +211,7 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       id: 'robots',
       category: 'crawl',
       severity: 'high',
-      status: hasValidBaseUrl ? 'pass' : 'warning',
+      status: hasValidBaseUrl && urlHealth.robotsReachable ? 'pass' : hasValidBaseUrl ? 'warning' : 'fail',
       title: 'Robots.txt hoạt động và không chặn nhầm trang public',
       whyItMatters: 'Robots sai khiến bot không crawl được dù nội dung tốt.',
       howToFix: 'Mở robots.txt để kiểm tra và đảm bảo không chặn trang public.',
@@ -134,12 +219,27 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
         { label: 'Mở robots.txt', href: robotsUrl, external: true },
       ]),
       autoCheck: hasValidBaseUrl,
+      bestPractice: {
+        summary: 'Robots.txt cần truy cập được và không block nhầm trang public quan trọng.',
+        doFirst: 'Mở robots.txt để chắc chắn không có dòng Disallow chặn homepage, posts, products, services.',
+        checklist: [
+          'Robots.txt trả về 200 OK',
+          'Không có Disallow: / với site public',
+          'Chỉ block admin, private paths',
+          'Có dòng Sitemap trỏ đúng URL',
+        ],
+        pitfalls: [
+          'Copy nhầm robots staging sang production',
+          'Quên cập nhật sitemap URL sau khi đổi domain',
+        ],
+        referenceUrl: 'https://developers.google.com/search/docs/crawling-indexing/robots/intro',
+      },
     },
     {
       id: 'sitemap',
       category: 'crawl',
       severity: 'high',
-      status: hasValidBaseUrl ? 'pass' : 'warning',
+      status: hasValidBaseUrl && urlHealth.sitemapReachable ? 'pass' : hasValidBaseUrl ? 'warning' : 'fail',
       title: 'Sitemap có URL quan trọng để bot crawl nhanh',
       whyItMatters: 'Sitemap giúp bot biết URL mới và ưu tiên đúng trang.',
       howToFix: 'Mở sitemap để kiểm tra URL chính và dọn URL rỗng.',
@@ -148,6 +248,21 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       ]),
       autoCheck: hasValidBaseUrl,
       learnMoreUrl: 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap',
+      bestPractice: {
+        summary: 'Sitemap cần chứa URL thật, ưu tiên trang quan trọng, tránh URL rỗng.',
+        doFirst: 'Kiểm tra sitemap có đúng domain chính và đủ trang core (homepage, products, services).',
+        checklist: [
+          'Sitemap trả về 200 OK',
+          'URL trong sitemap là domain chính',
+          'Không có URL /404 hoặc draft',
+          'Có cập nhật lastmod hợp lý',
+        ],
+        pitfalls: [
+          'Để URL staging/test trong sitemap',
+          'Nhồi quá nhiều URL rác khiến bot chậm index',
+        ],
+        referenceUrl: 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap',
+      },
     },
     {
       id: 'sitemap-hubs',
@@ -305,6 +420,19 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       ]),
       autoCheck: false,
       learnMoreUrl: 'https://developers.google.com/search/docs/crawling-indexing',
+      bestPractice: {
+        summary: 'Nội dung chính phải render sẵn, tránh blank/flash khi crawl.',
+        doFirst: 'Kiểm tra homepage có text/CTA xuất hiện ngay khi load (view page source).',
+        checklist: [
+          'Hero có text thật, không chỉ hình',
+          'Có nội dung sản phẩm/dịch vụ trong HTML ban đầu',
+          'Không che nội dung bằng skeleton quá lâu',
+        ],
+        pitfalls: [
+          'Render toàn bộ bằng client và để trống server HTML',
+          'Che nội dung bởi modal/overlay không cần thiết',
+        ],
+      },
     },
     {
       id: 'gsc',
@@ -327,6 +455,20 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       isExternal: true,
       autoCheck: false,
       learnMoreUrl: 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap',
+      bestPractice: {
+        summary: 'GSC giúp Google nhận sitemap và hiểu lỗi index nhanh hơn.',
+        doFirst: 'Chỉ cần submit 1 lần sau khi có domain và sitemap.',
+        checklist: [
+          'Add property đúng domain',
+          'Submit sitemap thành công (Status: Success)',
+          'Theo dõi Coverage/Pages mỗi tuần',
+        ],
+        pitfalls: [
+          'Submit nhầm domain có www/không www',
+          'Sitemap chưa có URL thật nhưng vẫn submit',
+        ],
+        referenceUrl: 'https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap',
+      },
     },
     {
       id: 'bing-webmaster',
@@ -349,6 +491,19 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       isExternal: true,
       autoCheck: false,
       learnMoreUrl: 'https://www.bing.com/webmasters/help/why-is-my-site-not-in-the-index-2141dfab',
+      bestPractice: {
+        summary: 'Bing/Edge vẫn mang traffic ổn định, nên submit sitemap để index nhanh.',
+        doFirst: 'Sau khi GSC ổn, vào Bing Webmaster submit sitemap tương tự.',
+        checklist: [
+          'Add site thành công',
+          'Sitemap status OK',
+          'Không có lỗi fetch sitemap',
+        ],
+        pitfalls: [
+          'Bỏ qua Bing khiến Edge không index đều',
+        ],
+        referenceUrl: 'https://www.bing.com/webmasters/help/why-is-my-site-not-in-the-index-2141dfab',
+      },
     },
     {
       id: 'indexnow',
@@ -369,12 +524,25 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
       isExternal: true,
       autoCheck: false,
       learnMoreUrl: 'https://www.bing.com/indexnow/getstarted',
+      bestPractice: {
+        summary: 'IndexNow giúp báo nhanh URL mới, đặc biệt với Bing/Edge.',
+        doFirst: 'Chỉ cần tạo key 1 lần, sau đó ping khi có bài mới.',
+        checklist: [
+          'Key đặt đúng root domain',
+          'Ping URL khi publish mới',
+          'Không ping quá nhiều URL lỗi',
+        ],
+        pitfalls: [
+          'Đặt key sai path khiến IndexNow thất bại',
+        ],
+        referenceUrl: 'https://www.bing.com/indexnow/getstarted',
+      },
     },
     {
       id: 'llms',
       category: 'external',
       severity: 'low',
-      status: llmsUrl ? 'info' : 'warning',
+      status: hasValidBaseUrl && urlHealth.llmsReachable ? 'pass' : hasValidBaseUrl ? 'warning' : 'fail',
       title: 'Có llms.txt để AI hiểu site rõ hơn',
       whyItMatters: 'AI search ngày càng quan trọng, llms.txt giúp hiểu nội dung nhanh.',
       howToFix: 'Mở llms.txt và bổ sung thông tin nếu cần.',
@@ -382,7 +550,21 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
         { label: 'Mở llms.txt', href: llmsUrl, external: true },
       ]),
       isExternal: true,
-      autoCheck: Boolean(llmsUrl),
+      autoCheck: hasValidBaseUrl,
+      bestPractice: {
+        summary: 'llms.txt giúp AI hiểu cấu trúc site và ưu tiên trang quan trọng.',
+        doFirst: 'Đảm bảo llms.txt có link sitemap, trang chính, và nội dung nổi bật.',
+        checklist: [
+          'llms.txt trả về 200 OK',
+          'Có mô tả ngắn về website',
+          'Liệt kê 5-10 URL quan trọng',
+          'Trỏ về sitemap/robots',
+        ],
+        pitfalls: [
+          'Để llms.txt rỗng hoặc chỉ có 1 link',
+          'Không cập nhật khi đổi cấu trúc site',
+        ],
+      },
     },
   ];
 
@@ -399,11 +581,13 @@ export const buildSeoChecklist = (input: SeoChecklistBuildInput): SeoChecklistRe
     .slice(0, 5);
 
   const externalItems = items.filter((item) => item.category === 'external');
+  const summary = calculateSummary(items);
 
   return {
     items,
     criticalItems,
     quickWins,
     externalItems,
+    summary,
   };
 };

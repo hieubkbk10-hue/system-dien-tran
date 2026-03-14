@@ -11,6 +11,7 @@ import { SeoCriticalActions } from './_components/SeoCriticalActions';
 import { SeoQuickWins } from './_components/SeoQuickWins';
 import { SeoGuidedActions } from './_components/SeoGuidedActions';
 import { SeoPromptStudio } from './_components/SeoPromptStudio';
+import { SeoOverviewSummary } from './_components/SeoOverviewSummary';
 
 export default function SEOConfigPage(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -32,10 +33,8 @@ export default function SEOConfigPage(): React.ReactElement {
   } = useSeoChecklist();
 
   useEffect(() => {
-    if (initialTab !== activeTab) {
-      setActiveTab(initialTab);
-    }
-  }, [activeTab, initialTab]);
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="space-y-6">
@@ -46,7 +45,7 @@ export default function SEOConfigPage(): React.ReactElement {
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sitemap và robots.txt được sinh tự động.</p>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
+      <div className="relative z-20 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
         <button
           type="button"
           onClick={() => setActiveTab('overview')}
@@ -78,6 +77,7 @@ export default function SEOConfigPage(): React.ReactElement {
 
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          <SeoOverviewSummary checklist={checklist} isLoading={isLoading} />
           <SeoCommandBar
             baseUrl={baseUrl}
             sitemapUrl={sitemapUrl}
