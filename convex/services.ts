@@ -20,6 +20,12 @@ const serviceDoc = v.object({
   markdownRender: v.optional(v.string()),
   htmlRender: v.optional(v.string()),
   duration: v.optional(v.string()),
+  bookingEnabled: v.optional(v.boolean()),
+  bookingDurationMin: v.optional(v.number()),
+  bookingSlotIntervalMin: v.optional(v.number()),
+  bookingCapacityPerSlot: v.optional(v.number()),
+  bookingSlotTemplateDefault: v.optional(v.array(v.string())),
+  bookingSlotTemplateByWeekday: v.optional(v.record(v.string(), v.array(v.string()))),
   excerpt: v.optional(v.string()),
   featured: v.optional(v.boolean()),
   metaDescription: v.optional(v.string()),
@@ -30,6 +36,7 @@ const serviceDoc = v.object({
   slug: v.string(),
   status: contentStatus,
   thumbnail: v.optional(v.string()),
+  thumbnailStorageId: v.optional(v.union(v.id("_storage"), v.null())),
   title: v.string(),
   views: v.number(),
 });
@@ -538,6 +545,12 @@ export const create = mutation({
     markdownRender: v.optional(v.string()),
     htmlRender: v.optional(v.string()),
     duration: v.optional(v.string()),
+    bookingEnabled: v.optional(v.boolean()),
+    bookingDurationMin: v.optional(v.number()),
+    bookingSlotIntervalMin: v.optional(v.number()),
+    bookingCapacityPerSlot: v.optional(v.number()),
+    bookingSlotTemplateDefault: v.optional(v.array(v.string())),
+    bookingSlotTemplateByWeekday: v.optional(v.record(v.string(), v.array(v.string()))),
     excerpt: v.optional(v.string()),
     featured: v.optional(v.boolean()),
     metaDescription: v.optional(v.string()),
@@ -547,6 +560,7 @@ export const create = mutation({
     slug: v.string(),
     status: v.optional(contentStatus),
     thumbnail: v.optional(v.string()),
+    thumbnailStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     title: v.string(),
   },
   handler: async (ctx, args) => {
@@ -569,6 +583,12 @@ export const update = mutation({
     markdownRender: v.optional(v.string()),
     htmlRender: v.optional(v.string()),
     duration: v.optional(v.string()),
+    bookingEnabled: v.optional(v.boolean()),
+    bookingDurationMin: v.optional(v.number()),
+    bookingSlotIntervalMin: v.optional(v.number()),
+    bookingCapacityPerSlot: v.optional(v.number()),
+    bookingSlotTemplateDefault: v.optional(v.array(v.string())),
+    bookingSlotTemplateByWeekday: v.optional(v.record(v.string(), v.array(v.string()))),
     excerpt: v.optional(v.string()),
     featured: v.optional(v.boolean()),
     id: v.id("services"),
@@ -579,10 +599,23 @@ export const update = mutation({
     slug: v.optional(v.string()),
     status: v.optional(contentStatus),
     thumbnail: v.optional(v.string()),
+    thumbnailStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     title: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const previous = await ctx.db.get(args.id);
     await ServicesModel.update(ctx, args);
+    const shouldCheckStorage = Object.prototype.hasOwnProperty.call(args, "thumbnailStorageId");
+    if (shouldCheckStorage && previous?.thumbnailStorageId) {
+      const nextThumbnailStorageId = Object.prototype.hasOwnProperty.call(args, "thumbnailStorageId")
+        ? args.thumbnailStorageId ?? null
+        : previous.thumbnailStorageId ?? null;
+      if (!nextThumbnailStorageId || nextThumbnailStorageId !== previous.thumbnailStorageId) {
+        await ctx.runMutation(api.storage.cleanupStorageIfUnreferenced, {
+          storageId: previous.thumbnailStorageId,
+        });
+      }
+    }
     await ctx.runMutation(api.landingPages.syncProgrammaticFromSourceChange, { source: "service" });
     return null;
   },

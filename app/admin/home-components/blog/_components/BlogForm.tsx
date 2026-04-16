@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { Check, FileText, GripVertical, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 
@@ -212,3 +212,4 @@ export const BlogForm = ({
     </CardContent>
   </Card>
 );
+

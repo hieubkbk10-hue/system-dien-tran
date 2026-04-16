@@ -1,8 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { PageViewTracker } from "@/components/PageViewTracker";
 import { BrandColorProvider } from "@/components/providers/BrandColorProvider";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
+import { InitialBrandColorsProvider } from "@/components/providers/InitialBrandColorsProvider";
+import { TelemetryGate } from "@/components/telemetry/TelemetryGate";
+import { getSEOSettings, getSiteSettings } from "@/lib/get-settings";
 import {
   Be_Vietnam_Pro,
   Geist,
@@ -33,54 +35,63 @@ const robotoSans = Roboto({
   subsets: ["latin", "vietnamese"],
   variable: "--font-roboto",
   weight: ["400", "500", "700"],
+  preload: false,
 });
 
 const notoSans = Noto_Sans({
   subsets: ["latin", "vietnamese"],
   variable: "--font-noto-sans",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const nunitoSans = Nunito({
   subsets: ["latin", "vietnamese"],
   variable: "--font-nunito",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin", "vietnamese"],
   variable: "--font-source-sans-3",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const merriweather = Merriweather({
   subsets: ["latin", "vietnamese"],
   variable: "--font-merriweather",
   weight: ["400", "700"],
+  preload: false,
 });
 
 const lora = Lora({
   subsets: ["latin", "vietnamese"],
   variable: "--font-lora",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
   variable: "--font-montserrat",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const robotoSlab = Roboto_Slab({
   subsets: ["latin", "vietnamese"],
   variable: "--font-roboto-slab",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const notoSerif = Noto_Serif({
   subsets: ["latin", "vietnamese"],
   variable: "--font-noto-serif",
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
@@ -97,30 +108,59 @@ const resolveMetadataBase = (): URL => {
   return new URL(normalizedBaseUrl);
 };
 
-export const metadata: Metadata = {
-  metadataBase: resolveMetadataBase(),
-  verification: {
-    google: "M_4ZKEZ30LCdbEftU2mpaV9O2Pad57Mt3LuhNdvOU7U",
-    other: {
-      "msvalidate.01": "9B303080DC2D655419DD32E2EFE2D686",
+export const dynamic = "force-dynamic";
+
+export const generateMetadata = async (): Promise<Metadata> => {
+  const seo = await getSEOSettings();
+
+  return {
+    metadataBase: resolveMetadataBase(),
+    verification: {
+      google: seo.seo_google_verification || undefined,
+      other: seo.seo_bing_verification
+        ? { "msvalidate.01": seo.seo_bing_verification }
+        : undefined,
     },
-  },
+  };
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>): React.ReactElement {
+}>): Promise<React.ReactElement> {
+  const site = await getSiteSettings();
+  const brandPrimary = site.site_brand_primary || site.site_brand_color || '#3b82f6';
+  const brandMode = site.site_brand_mode === 'single' ? 'single' : 'dual';
+  const brandSecondary = brandMode === 'single'
+    ? ''
+    : (site.site_brand_secondary || '');
+
   return (
-    <html lang="vi">
+    <html
+      lang="vi"
+      style={{
+        '--site-brand-primary': brandPrimary,
+        '--site-brand-mode': brandMode,
+        '--site-brand-secondary': brandSecondary,
+        '--scrollbar-color': brandPrimary,
+      } as React.CSSProperties}
+    >
       <body
         className={`${vietnameseSans.variable} ${geistSans.variable} ${geistMono.variable} ${robotoSans.variable} ${notoSans.variable} ${nunitoSans.variable} ${sourceSans.variable} ${merriweather.variable} ${lora.variable} ${montserrat.variable} ${robotoSlab.variable} ${notoSerif.variable} antialiased`}
       >
         <ConvexClientProvider>
-          <BrandColorProvider />
-          <PageViewTracker />
-          {children}
+          <InitialBrandColorsProvider
+            value={{
+              mode: brandMode,
+              primary: brandPrimary,
+              secondary: brandSecondary,
+            }}
+          >
+            <BrandColorProvider />
+            {children}
+            <TelemetryGate includeAnalytics includePageView />
+          </InitialBrandColorsProvider>
         </ConvexClientProvider>
       </body>
     </html>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -16,6 +16,7 @@ import { Badge, Button, Card, Input, cn } from '../components/ui';
 import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { ModuleGuard } from '../components/ModuleGuard';
 import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
+import { resolveNamingContext } from '@/lib/image/uploadNaming';
 
 const MODULE_KEY = 'media';
 type ViewMode = 'grid' | 'list';
@@ -145,14 +146,19 @@ function MediaContent() {
     let uploadedCount = 0;
 
     try {
-      for (const file of files) {
+      for (const [fileIndex, file] of Array.from(files).entries()) {
         const validationError = validateImageFile(file, 10);
         if (validationError) {
           toast.error(`${file.name}: ${validationError}`);
           continue;
         }
 
-        const prepared = await prepareImageForUpload(file);
+        const resolvedNaming = resolveNamingContext(undefined, {
+          entityName: 'media',
+          field: 'upload',
+          index: fileIndex + 1,
+        });
+        const prepared = await prepareImageForUpload(file, { naming: resolvedNaming });
         const uploadUrl = await generateUploadUrl();
 
         const response = await fetch(uploadUrl, {
@@ -510,6 +516,17 @@ function MediaContent() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
+                      {media.url && (
+                        <a
+                          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                          href={media.url}
+                          rel="noreferrer"
+                          target="_blank"
+                          title="Mở tab mới"
+                        >
+                          <Eye size={16} className="text-slate-400" />
+                        </a>
+                      )}
                       <button
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                         onClick={ async () => handleCopyUrl(media.url, media._id)}
@@ -574,3 +591,4 @@ function MediaContent() {
     </div>
   );
 }
+

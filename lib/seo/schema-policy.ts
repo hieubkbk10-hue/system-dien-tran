@@ -120,10 +120,13 @@ export const buildProductSchema = (params: {
   inStock: boolean;
   description?: string;
   image?: string;
+  images?: string[];
   salePrice?: number;
   currency?: string;
   brand?: string;
   aggregateRating?: { ratingValue: number; reviewCount: number };
+  createdAt?: number;
+  updatedAt?: number;
 }): SchemaRecord => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -132,7 +135,11 @@ export const buildProductSchema = (params: {
   sku: params.sku,
   mainEntityOfPage: { '@type': 'WebPage', '@id': params.url },
   ...(params.description && { description: params.description }),
-  ...(params.image && { image: params.image }),
+  ...(params.images && params.images.length > 0
+    ? { image: params.images }
+    : (params.image ? { image: params.image } : {})),
+  ...(params.createdAt && { dateCreated: new Date(params.createdAt).toISOString() }),
+  ...(params.updatedAt && { dateModified: new Date(params.updatedAt).toISOString() }),
   ...(params.brand && { brand: { '@type': 'Brand', name: params.brand } }),
   offers: {
     '@type': 'Offer',
@@ -253,26 +260,24 @@ export const buildSiteSchemas = (params: {
     })
   );
 
+  schemas.push(
+    buildOrganizationSchema({
+      description: params.seo.seo_description || params.site.site_tagline,
+      email: params.contact.contact_email,
+      logo: params.site.site_logo,
+      name: params.site.site_name,
+      phone: params.contact.contact_phone,
+      sameAs,
+      url: params.site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '',
+    })
+  );
+
   if (
     shouldIncludeLocalBusiness({ contact: params.contact, site: params.site })
   ) {
-    // LocalBusiness thay thế Organization khi đủ local signals
     schemas.push(
       buildLocalBusinessSchema({
         address: params.contact.contact_address,
-        description: params.seo.seo_description || params.site.site_tagline,
-        email: params.contact.contact_email,
-        logo: params.site.site_logo,
-        name: params.site.site_name,
-        phone: params.contact.contact_phone,
-        sameAs,
-        url: params.site.site_url || process.env.NEXT_PUBLIC_SITE_URL || '',
-      })
-    );
-  } else {
-    // Organization schema mặc định an toàn
-    schemas.push(
-      buildOrganizationSchema({
         description: params.seo.seo_description || params.site.site_tagline,
         email: params.contact.contact_email,
         logo: params.site.site_logo,

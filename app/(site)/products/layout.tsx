@@ -3,16 +3,17 @@ import { notFound } from 'next/navigation';
 import { JsonLd, generateItemListSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
-import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getContactSettings, getSEOSettings, getSiteSettings, getSocialSettings } from '@/lib/get-settings';
 import { buildSeoMetadata } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const client = getConvexClient();
-  const [site, seo, contact, productsModule] = await Promise.all([
+  const [site, seo, contact, productsModule, social] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
     getContactSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'products' }),
+    getSocialSettings(),
   ]);
   const moduleEnabled = Boolean(productsModule?.enabled);
 
@@ -25,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
       routeType: 'list',
       seo,
       site,
+      social,
       titleOverride: 'Không tìm thấy sản phẩm',
       useTitleTemplate: true,
     });
@@ -38,6 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     routeType: 'list',
     seo,
     site,
+    social,
     titleOverride: 'Sản phẩm',
     useTitleTemplate: true,
   });

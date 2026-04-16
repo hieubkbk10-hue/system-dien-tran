@@ -3,15 +3,16 @@ import { notFound } from 'next/navigation';
 import { JsonLd, generateBreadcrumbSchema } from '@/components/seo/JsonLd';
 import { api } from '@/convex/_generated/api';
 import { getConvexClient } from '@/lib/convex';
-import { getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getSEOSettings, getSiteSettings, getSocialSettings } from '@/lib/get-settings';
 import { buildCanonicalUrl, buildMetadata, buildSeoContext } from '@/lib/seo/metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   const client = getConvexClient();
-  const [site, seo, promotionsModule] = await Promise.all([
+  const [site, seo, promotionsModule, social] = await Promise.all([
     getSiteSettings(),
     getSEOSettings(),
     client.query(api.admin.modules.getModuleByKey, { key: 'promotions' }),
+    getSocialSettings(),
   ]);
 
   if (promotionsModule?.enabled === false) {
@@ -21,6 +22,8 @@ export async function generateMetadata(): Promise<Metadata> {
       description: 'Trang khuyến mãi hiện không khả dụng.',
       indexable: false,
       title: 'Không tìm thấy khuyến mãi',
+      twitterCreator: social.social_twitter,
+      twitterSite: social.social_twitter,
     });
   }
 
@@ -34,6 +37,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     indexable: true,
     title,
+    twitterCreator: social.social_twitter,
+    twitterSite: social.social_twitter,
   });
 }
 

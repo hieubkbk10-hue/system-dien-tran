@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { ArrowRight, ChevronLeft, ChevronRight, Eye, FileText, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, cn } from '../../../components/ui';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
@@ -581,3 +581,4 @@ export const BlogPreview = ({
     </div>
   );
 };
+

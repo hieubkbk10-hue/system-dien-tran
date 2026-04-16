@@ -91,6 +91,7 @@ export default function PostDetailPage({ params }: PageProps) {
   const brandColors = useBrandColors();
   const brandColor = brandColors.primary;
   const secondaryColor = resolveSecondary(brandColors.primary, brandColors.secondary, brandColors.mode || 'single');
+  const SCHEDULE_SKEW_MS = 30_000;
   const postDetailConfig = usePostsDetailConfig();
   const style = postDetailConfig.layoutStyle;
   const enabledFields = useEnabledPostFields();
@@ -104,6 +105,10 @@ export default function PostDetailPage({ params }: PageProps) {
     api.postCategories.getById, 
     post?.categoryId ? { id: post.categoryId } : 'skip'
   );
+  const isVisiblePost = useMemo(() => {
+    if (!post) {return false;}
+    return post.status === 'Published' && (!post.publishedAt || post.publishedAt <= Date.now() + SCHEDULE_SKEW_MS);
+  }, [post]);
   const incrementViews = useMutation(api.posts.incrementViews);
   const createComment = useMutation(api.comments.create);
   const shouldShowAuthor = enabledFields.has('author_name') && postDetailConfig.showAuthor;
@@ -162,23 +167,23 @@ export default function PostDetailPage({ params }: PageProps) {
   // Related posts - lấy cùng category
   const relatedPosts = useQuery(
     api.posts.listByCategory,
-    post?.categoryId 
+    post?.categoryId && isVisiblePost
       ? { categoryId: post.categoryId, paginationOpts: { cursor: null, numItems: 4 }, status: 'Published' }
       : 'skip'
   );
 
   // Increment views on mount
   useEffect(() => {
-    if (post?._id) {
+    if (post?._id && isVisiblePost) {
       void incrementViews({ id: post._id });
     }
-  }, [post?._id, incrementViews]);
+  }, [post?._id, incrementViews, isVisiblePost]);
 
   if (post === undefined) {
     return <PostDetailSkeleton />;
   }
 
-  if (post === null) {
+  if (post === null || (!isVisiblePost && post)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -327,6 +332,8 @@ export default function PostDetailPage({ params }: PageProps) {
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
+          showShare={postDetailConfig.showShare}
+          showThumbnail={postDetailConfig.showThumbnail}
           tags={postTags}
           commentsSection={commentsSection}
         />
@@ -341,6 +348,8 @@ export default function PostDetailPage({ params }: PageProps) {
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
+          showShare={postDetailConfig.showShare}
+          showThumbnail={postDetailConfig.showThumbnail}
           tags={postTags}
           commentsSection={commentsSection}
         />
@@ -355,6 +364,8 @@ export default function PostDetailPage({ params }: PageProps) {
           showAuthor={shouldShowAuthor}
           authorName={authorName}
           showTags={shouldShowTags}
+          showShare={postDetailConfig.showShare}
+          showThumbnail={postDetailConfig.showThumbnail}
           tags={postTags}
           commentsSection={commentsSection}
         />
@@ -405,12 +416,14 @@ interface StyleProps {
   showAuthor: boolean;
   authorName: string;
   showTags: boolean;
+  showShare: boolean;
+  showThumbnail: boolean;
   tags: string[];
   commentsSection?: React.ReactNode;
 }
 
 // Style 1: Classic - Truyền thống với sidebar
-function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, showShare, showThumbnail, tags, commentsSection }: StyleProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   const { isBroken, markBroken } = useImageFallback();
@@ -471,43 +484,27 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
         <div className={`grid grid-cols-1 gap-10 ${hasRelatedPosts ? 'lg:grid-cols-12' : ''}`}>
           <article className={`space-y-8 ${hasRelatedPosts ? 'lg:col-span-9' : 'max-w-4xl mx-auto'}`}>
             <header className="space-y-4">
-              <div className="flex items-center gap-2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]" style={{ color: brandColor }}>
+                {post.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pt-2">
                 <span
                   className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
                   style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30`, color: accentColor }}
                 >
                   {post.categoryName}
                 </span>
-              </div>
-
-              {visibleTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {visibleTags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                      style={{ borderColor: `${accentColor}20`, color: accentColor }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.15]" style={{ color: brandColor }}>
-                {post.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pt-2">
                 {showAuthor && authorName && (
                   <>
+                    <span className="text-muted-foreground/40">•</span>
                     <div className="flex items-center gap-1.5">
                       <User className="h-4 w-4" />
                       <span>{authorName}</span>
                     </div>
-                    <span className="text-muted-foreground/40">•</span>
                   </>
                 )}
+                <span className="text-muted-foreground/40">•</span>
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
                   <span>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
@@ -523,10 +520,24 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                   <span>{post.views.toLocaleString()} lượt xem</span>
                 </div>
               </div>
+
+              {visibleTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {visibleTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                      style={{ borderColor: `${accentColor}20`, color: accentColor }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </header>
 
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted/60 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
-              {post.thumbnail && !isBroken(post.thumbnail) ? (
+            {showThumbnail && post.thumbnail && !isBroken(post.thumbnail) && (
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted/60 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
                 <Image
                   src={post.thumbnail}
                   alt={post.title}
@@ -541,17 +552,13 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                   }}
                   onError={() =>{  markBroken(post.thumbnail); }}
                 />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                  <FileText className="h-8 w-8" />
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {resolvedContent && (
               <RichContent
                 content={resolvedContent}
-                className="prose-zinc prose-lg max-w-none lg:max-w-[640px]"
+                className="max-w-none"
               />
             )}
 
@@ -566,17 +573,19 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                 </Link>
               </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 w-full sm:w-auto min-w-[140px]"
-                  style={{ backgroundColor: isCopied ? `${brandColor}15` : brandColor, color: isCopied ? brandColor : '#fff' }}
-                >
-                  {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-                  {isCopied ? 'Đã copy link' : 'Chia sẻ'}
-                </button>
-              </div>
+              {showShare && (
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 w-full sm:w-auto min-w-[140px]"
+                    style={{ backgroundColor: isCopied ? `${brandColor}15` : brandColor, color: isCopied ? brandColor : '#fff' }}
+                  >
+                    {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                    {isCopied ? 'Đã copy link' : 'Chia sẻ'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {commentsSection}
@@ -590,9 +599,13 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                 </div>
                 <div className="p-6 pt-0 px-0 sm:px-6 gap-3 flex flex-col">
                   {relatedPosts.map((p) => (
-                    <Link key={p._id} href={`/posts/${p.slug}`} className="group flex gap-3 items-start">
-                      <div className="relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted/60">
-                        {p.thumbnail && !isBroken(p.thumbnail) ? (
+                    <Link
+                      key={p._id}
+                      href={`/posts/${p.slug}`}
+                      className="group -mx-2 flex items-start gap-3 rounded-md border border-transparent px-2 py-2 transition-colors hover:border-border/60 hover:bg-background/80"
+                    >
+                      {p.thumbnail && !isBroken(p.thumbnail) ? (
+                        <div className="relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted/60">
                           <Image
                             src={p.thumbnail}
                             alt={p.title}
@@ -606,13 +619,13 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                             }}
                             onError={() =>{  markBroken(p.thumbnail); }}
                           />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <FileText className="h-4 w-4" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-1">
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex flex-col gap-1">
                         <h4 className="text-sm font-medium leading-snug line-clamp-2 group-hover:opacity-80 transition-colors">
                           {p.title}
                         </h4>
@@ -633,7 +646,7 @@ function ClassicStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
 }
 
 // Style 2: Modern - Medium/Substack inspired - Focus on typography and reading experience
-function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFields, showAuthor, authorName, showTags, showShare, showThumbnail, tags, commentsSection }: StyleProps) {
   const resolvedContent = useMemo(() => resolvePostContent(post), [post]);
   const resolvedContentLength = useMemo(() => resolvePostContentLength(post), [post]);
   const readingTime = Math.max(1, Math.ceil(resolvedContentLength / 1000));
@@ -674,46 +687,31 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
                 {post.title}
               </li>
             </ol>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-input bg-background px-4 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="Copy link"
-            >
-              {isCopied ? <Check className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
-              {isCopied ? 'Đã copy' : 'Copy link'}
-            </button>
+            {showShare && (
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="inline-flex h-11 items-center gap-2 rounded-md border border-input bg-background px-4 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Copy link"
+              >
+                {isCopied ? <Check className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
+                {isCopied ? 'Đã copy' : 'Copy link'}
+              </button>
+            )}
           </nav>
 
           <section className="max-w-7xl mx-auto w-full space-y-4">
-            <div className="flex items-center justify-center md:justify-start">
+            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance" style={{ color: brandColor }}>
+              {post.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <span
                 className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
                 style={{ backgroundColor: `${accentColor}10`, borderColor: `${accentColor}25`, color: accentColor }}
               >
                 {post.categoryName}
               </span>
-            </div>
-
-            {visibleTags.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                {visibleTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-                    style={{ borderColor: `${accentColor}20`, color: accentColor }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold tracking-tight text-foreground leading-[1.2] text-balance" style={{ color: brandColor }}>
-              {post.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               {showAuthor && authorName && (
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -733,11 +731,25 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
                 <span className="font-medium">{post.views.toLocaleString()} lượt xem</span>
               </div>
             </div>
+
+            {visibleTags.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                {visibleTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ borderColor: `${accentColor}20`, color: accentColor }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
-        <section className="relative overflow-hidden rounded-2xl bg-muted aspect-[16/9] md:aspect-[21/9] max-w-7xl mx-auto">
-          {post.thumbnail && !isBroken(post.thumbnail) ? (
+        {showThumbnail && post.thumbnail && !isBroken(post.thumbnail) && (
+          <section className="relative overflow-hidden rounded-2xl bg-muted aspect-[16/9] md:aspect-[21/9] max-w-7xl mx-auto">
             <Image
               src={post.thumbnail}
               alt={post.title}
@@ -751,12 +763,8 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
               }}
               onError={() =>{  markBroken(post.thumbnail); }}
             />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-              <FileText className="h-14 w-14" />
-            </div>
-          )}
-        </section>
+          </section>
+        )}
 
         <article className="max-w-7xl mx-auto space-y-6">
           {showExcerpt && post.excerpt && (
@@ -771,7 +779,7 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
           {resolvedContent && (
             <RichContent
               content={resolvedContent}
-              className="prose-lg prose-zinc max-w-none text-muted-foreground leading-loose"
+              className="max-w-none text-muted-foreground leading-loose"
             />
           )}
 
@@ -843,7 +851,7 @@ function ModernStyle({ post, brandColor, secondaryColor, relatedPosts, enabledFi
 }
 
 // Style 3: Minimal - Tối giản, tập trung nội dung
-function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, tags, commentsSection }: StyleProps) {
+function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuthor, authorName, showTags, showShare, showThumbnail, tags, commentsSection }: StyleProps) {
   const [isCopied, setIsCopied] = useState(false);
   const resolvedContent = useMemo(() => resolvePostContent(post), [post]);
   const resolvedContentLength = useMemo(() => resolvePostContentLength(post), [post]);
@@ -851,6 +859,7 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
   const { isBroken, markBroken } = useImageFallback();
   const visibleTags = showTags ? tags : [];
   const accentColor = secondaryColor || brandColor;
+  const canShowThumbnail = showThumbnail && post.thumbnail && !isBroken(post.thumbnail);
 
   const handleShare = async () => {
     if (navigator?.clipboard) {
@@ -863,11 +872,11 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="pb-16">
-        <section className="relative w-full overflow-hidden bg-muted">
-          <div className="relative h-[clamp(220px,45vh,520px)] w-full">
-            {post.thumbnail && !isBroken(post.thumbnail) ? (
+        {canShowThumbnail ? (
+          <section className="relative w-full overflow-hidden bg-muted">
+            <div className="relative h-[clamp(220px,45vh,520px)] w-full">
               <Image
-                src={post.thumbnail}
+                src={post.thumbnail as string}
                 alt={post.title}
                 fill
                 sizes="100vw"
@@ -879,84 +888,153 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
                 }}
                 onError={() =>{  markBroken(post.thumbnail); }}
               />
-            ) : (
-              <div className="h-full w-full" style={{ backgroundColor: `${brandColor}10` }} />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
-            <div className="absolute inset-x-0 top-0 z-10">
-              <div className="container max-w-6xl mx-auto px-4 md:px-6">
-                <div className="flex items-center justify-between pt-4">
-                  <Link
-                    href="/posts"
-                    className="group inline-flex h-11 items-center gap-2 rounded-md border border-white/30 bg-white/15 px-3 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
-                    aria-label="Quay lại"
-                  >
-                    <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
-                    Danh sách
-                  </Link>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 top-0 z-10">
+                <div className="container max-w-7xl mx-auto px-4 md:px-6">
+                  <div className="flex items-center justify-between pt-4">
+                    <Link
+                      href="/posts"
+                      className="group inline-flex h-11 items-center gap-2 rounded-md border border-white/30 bg-white/15 px-3 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
+                      aria-label="Quay lại"
+                    >
+                      <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+                      Danh sách
+                    </Link>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleShare}
-                    aria-label="Chia sẻ"
-                    className="h-11 w-11 border-white/30 bg-white/15 text-white hover:bg-white/20"
-                  >
-                    {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-                  </Button>
+                    {showShare && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleShare}
+                        aria-label="Chia sẻ"
+                        className="h-11 w-11 border-white/30 bg-white/15 text-white hover:bg-white/20"
+                      >
+                        {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="container max-w-7xl mx-auto h-full px-4 md:px-6 flex items-end pb-6 md:pb-8">
+                <Card className="w-full max-w-7xl border-border/70 bg-background/90 shadow-sm backdrop-blur-sm">
+                  <CardContent className="space-y-3 p-4 md:p-6">
+                    <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
+                      {post.title}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
+                        {post.categoryName}
+                      </span>
+                      {showAuthor && authorName && (
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          <span>{authorName}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <time>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>{readingTime} phút đọc</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        <span>{post.views.toLocaleString()} lượt xem</span>
+                      </div>
+                    </div>
+                    {visibleTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {visibleTags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
+                            style={{ borderColor: `${accentColor}20`, color: accentColor }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-            <div className="container max-w-6xl mx-auto h-full px-4 md:px-6 flex items-end pb-6 md:pb-8">
-              <Card className="w-full max-w-3xl border-border/70 bg-background/90 shadow-sm backdrop-blur-sm">
-                <CardContent className="space-y-3 p-4 md:p-6">
+          </section>
+        ) : (
+          <section className="container max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                href="/posts"
+                className="group inline-flex h-11 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Quay lại"
+              >
+                <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+                Danh sách
+              </Link>
+
+              {showShare && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleShare}
+                  aria-label="Chia sẻ"
+                  className="h-11 w-11"
+                >
+                  {isCopied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                </Button>
+              )}
+            </div>
+            <Card>
+              <CardContent className="space-y-3 p-4 md:p-6">
+                <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
+                  {post.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: accentColor }}>
                     {post.categoryName}
                   </span>
-                  <h1 className="text-[clamp(1.6rem,4vw,2.9rem)] font-semibold leading-[1.2] text-foreground" style={{ color: brandColor }}>
-                    {post.title}
-                  </h1>
-                  {visibleTags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {visibleTags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
-                          style={{ borderColor: `${accentColor}20`, color: accentColor }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                  {showAuthor && authorName && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{authorName}</span>
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    {showAuthor && authorName && (
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>{authorName}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <time>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>{readingTime} phút đọc</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      <span>{post.views.toLocaleString()} lượt xem</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <time>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('vi-VN') : ''}</time>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{readingTime} phút đọc</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    <span>{post.views.toLocaleString()} lượt xem</span>
+                  </div>
+                </div>
+                {visibleTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {visibleTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold"
+                        style={{ borderColor: `${accentColor}20`, color: accentColor }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
-        <section className="container max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-6">
+        <section className="container max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-6">
           {post.excerpt && (
             <p className="text-[clamp(1rem,2vw,1.25rem)] text-muted-foreground leading-relaxed">
               {post.excerpt}
@@ -965,7 +1043,7 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
           {resolvedContent && (
             <RichContent
               content={resolvedContent}
-              className="prose-slate prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-img:rounded-lg"
+              className="max-w-none text-muted-foreground"
             />
           )}
 
@@ -973,7 +1051,7 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
         </section>
 
         {relatedPosts.length > 0 && (
-          <section className="container max-w-3xl mx-auto px-4 md:px-6 pb-12">
+          <section className="container max-w-7xl mx-auto px-4 md:px-6 pb-12">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-semibold text-foreground">Bài viết liên quan</h2>
               <Link
@@ -985,49 +1063,55 @@ function MinimalStyle({ post, brandColor, secondaryColor, relatedPosts, showAuth
               </Link>
             </div>
             <div className="space-y-4">
-              {relatedPosts.map((p) => (
-                <Link
-                  key={p._id}
-                  href={`/posts/${p.slug}`}
-                  className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <Card className="transition-colors hover:bg-muted/40">
-                    <CardContent className="flex items-center justify-between gap-4 px-4 py-4">
-                      <div className="flex min-w-0 items-center gap-4">
-                        <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                          {p.thumbnail && !isBroken(p.thumbnail) ? (
-                            <Image
-                              src={p.thumbnail}
-                              alt={p.title}
-                              fill
-                              sizes="80px"
-                              className="object-cover"
-                              ref={(img) => {
-                                if (img?.complete && img.naturalWidth === 0) {
-                                  markBroken(p.thumbnail);
-                                }
-                              }}
-                              onError={() =>{  markBroken(p.thumbnail); }}
-                            />
+              {relatedPosts.map((p) => {
+                const hasThumbnail = Boolean(p.thumbnail && !isBroken(p.thumbnail));
+
+                return (
+                  <Link
+                    key={p._id}
+                    href={`/posts/${p.slug}`}
+                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Card className="transition-colors hover:bg-muted/40">
+                      <CardContent className="flex items-center justify-between gap-4 px-4 py-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          {hasThumbnail ? (
+                            <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                              <Image
+                                src={p.thumbnail as string}
+                                alt={p.title}
+                                fill
+                                sizes="80px"
+                                className="object-cover"
+                                ref={(img) => {
+                                  if (img?.complete && img.naturalWidth === 0) {
+                                    markBroken(p.thumbnail);
+                                  }
+                                }}
+                                onError={() =>{  markBroken(p.thumbnail); }}
+                              />
+                            </div>
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
                               <FileText className="h-4 w-4" />
                             </div>
                           )}
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                              {p.title}
+                            </h3>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              <span>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
+                            </div>
+                          </div>
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
-                          {p.title}
-                        </h3>
-                        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('vi-VN') : ''}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}

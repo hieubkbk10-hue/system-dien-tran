@@ -2,28 +2,43 @@
 
 import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useMutation, useQuery } from 'convex/react';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
+import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
+import type { PaginationStatus } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useInView } from 'react-intersection-observer';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from '@/components/site/hooks';
 import { getProductDetailColors, type ProductDetailColors } from '@/components/site/products/detail/_lib/colors';
+import { ProductImageLightbox } from '@/components/site/products/detail/_components/ProductImageLightbox';
+import {
+  DEFAULT_PRODUCT_IMAGE_ASPECT_RATIO,
+  getProductImageFrameConfig,
+  getVerticalThumbnailSlots,
+  isProductImageAspectRatio,
+  type ProductImageAspectRatio,
+} from '@/components/site/products/detail/_lib/image-aspect-ratio';
+import { resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import { RichContent, withFormatMarker } from '@/components/common/RichContent';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import { notifyAddToCart, useCart } from '@/lib/cart';
 import { useCartConfig, useCheckoutConfig } from '@/lib/experiences';
-import { ArrowLeft, Award, BadgeCheck, Bell, Bolt, Calendar, Camera, Check, CheckCircle2, ChevronRight, Clock, CreditCard, Gift, Globe, Heart, HeartHandshake, Leaf, Lock, MapPin, MessageSquare, Minus, Package, Phone, Plus, Reply, RotateCcw, Share2, Shield, ShoppingBag, ShoppingCart, Star, ThumbsUp, Truck } from 'lucide-react';
+import { ArrowLeft, Award, BadgeCheck, Bell, Bolt, Calendar, Camera, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, CreditCard, Gift, Globe, Heart, HeartHandshake, Leaf, Lock, MapPin, MessageSquare, Minus, Package, Phone, Plus, Reply, RotateCcw, Share2, Shield, ShoppingBag, ShoppingCart, Star, ThumbsUp, Truck } from 'lucide-react';
 import { VariantSelector, type VariantSelectorOption } from '@/components/products/VariantSelector';
 import type { Id } from '@/convex/_generated/dataModel';
 import { getPublicPriceLabel } from '@/lib/products/public-price';
+import { sortSupplementalFaqItems, toRichTextContent } from '@/lib/products/product-supplemental-content';
 
 type ProductDetailStyle = 'classic' | 'modern' | 'minimal';
 type ModernHeroStyle = 'full' | 'split' | 'minimal';
 type MinimalContentWidth = 'narrow' | 'medium' | 'wide';
 type ProductsSaleMode = 'cart' | 'contact' | 'affiliate';
+type RelatedProductsMode = 'fixed' | 'infiniteScroll' | 'pagination';
+type ProductImageAspectRatioSource = 'module' | 'custom';
 
-type ClassicLayoutConfig = {
+type BaseImageLayoutConfig = {
   showRating: boolean;
   showComments: boolean;
   showCommentLikes: boolean;
@@ -31,33 +46,23 @@ type ClassicLayoutConfig = {
   showWishlist: boolean;
   showShare: boolean;
   showAddToCart: boolean;
+};
+
+type ClassicLayoutConfig = BaseImageLayoutConfig & {
   showClassicHighlights: boolean;
 };
 
-type ModernLayoutConfig = {
-  showRating: boolean;
-  showComments: boolean;
-  showCommentLikes: boolean;
-  showCommentReplies: boolean;
-  showWishlist: boolean;
-  showShare: boolean;
-  showAddToCart: boolean;
+type ModernLayoutConfig = BaseImageLayoutConfig & {
   heroStyle: ModernHeroStyle;
 };
 
-type MinimalLayoutConfig = {
-  showRating: boolean;
-  showComments: boolean;
-  showCommentLikes: boolean;
-  showCommentReplies: boolean;
-  showWishlist: boolean;
-  showShare: boolean;
-  showAddToCart: boolean;
+type MinimalLayoutConfig = BaseImageLayoutConfig & {
   contentWidth: MinimalContentWidth;
 };
 
 type ProductDetailExperienceConfig = {
   layoutStyle: ProductDetailStyle;
+  imageAspectRatioSource: ProductImageAspectRatioSource;
   showAddToCart: boolean;
   showClassicHighlights: boolean;
   showHighlights: boolean;
@@ -68,8 +73,13 @@ type ProductDetailExperienceConfig = {
   showWishlist: boolean;
   showShare: boolean;
   showBuyNow: boolean;
+  showAllProductImagesSection: boolean;
+  enableImageLightbox: boolean;
   heroStyle: ModernHeroStyle;
   contentWidth: MinimalContentWidth;
+  imageAspectRatio: ProductImageAspectRatio;
+  relatedProductsMode: RelatedProductsMode;
+  relatedProductsPerPage: number;
 };
 
 type ProductVariantOptionValue = {
@@ -164,6 +174,7 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
   const experienceSetting = useQuery(api.settings.getByKey, { key: 'product_detail_ui' });
   const detailStyleSetting = useQuery(api.settings.getByKey, { key: 'products_detail_style' });
   const highlightsSetting = useQuery(api.settings.getByKey, { key: 'products_detail_classic_highlights_enabled' });
+  const moduleAspectRatioSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
   const cartModule = useQuery(api.admin.modules.getModuleByKey, { key: 'cart' });
   const ordersModule = useQuery(api.admin.modules.getModuleByKey, { key: 'orders' });
   const wishlistModule = useQuery(api.admin.modules.getModuleByKey, { key: 'wishlist' });
@@ -180,10 +191,17 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
   const canUseCommentLikes = canUseComments && (commentsLikesFeature?.enabled ?? false);
   const canUseCommentReplies = canUseComments && (commentsRepliesFeature?.enabled ?? false);
 
+  const moduleDefaultAspectRatio = useMemo(
+    () => resolveProductImageAspectRatio(moduleAspectRatioSetting?.value),
+    [moduleAspectRatioSetting?.value]
+  );
+
   return useMemo(() => {
     const raw = experienceSetting?.value as Partial<{
       layoutStyle: ProductDetailStyle;
-      layouts: Partial<Record<ProductDetailStyle, Partial<ClassicLayoutConfig & ModernLayoutConfig & MinimalLayoutConfig>>>;
+      layouts: Partial<Record<ProductDetailStyle, Partial<ClassicLayoutConfig & ModernLayoutConfig & MinimalLayoutConfig & {
+        imageAspectRatio?: ProductImageAspectRatio;
+      }>>>;
       showAddToCart: boolean;
       showClassicHighlights: boolean;
       showHighlights: boolean;
@@ -194,11 +212,43 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
       showWishlist: boolean;
       showShare: boolean;
       showBuyNow: boolean;
+      showAllProductImagesSection: boolean;
+      enableImageLightbox?: boolean;
       heroStyle: ModernHeroStyle;
       contentWidth: MinimalContentWidth;
+      imageAspectRatio: ProductImageAspectRatio;
+      imageAspectRatioSource?: ProductImageAspectRatioSource;
+      relatedProductsMode: RelatedProductsMode;
+      relatedProductsPerPage: number;
     }> | undefined;
     const layoutStyle = raw?.layoutStyle ?? legacyStyle;
     const layoutConfig = raw?.layouts?.[layoutStyle];
+    const normalizedRelatedMode = raw?.relatedProductsMode === 'infiniteScroll' || raw?.relatedProductsMode === 'pagination'
+      ? raw.relatedProductsMode
+      : 'fixed';
+    const relatedProductsPerPage = typeof raw?.relatedProductsPerPage === 'number' && raw.relatedProductsPerPage > 0
+      ? raw.relatedProductsPerPage
+      : 8;
+    const legacyAspectRatio = isProductImageAspectRatio(raw?.imageAspectRatio)
+      ? raw.imageAspectRatio
+      : isProductImageAspectRatio(raw?.layouts?.classic?.imageAspectRatio)
+        ? raw.layouts.classic.imageAspectRatio
+        : isProductImageAspectRatio(raw?.layouts?.modern?.imageAspectRatio)
+          ? raw.layouts.modern.imageAspectRatio
+          : isProductImageAspectRatio(raw?.layouts?.minimal?.imageAspectRatio)
+            ? raw.layouts.minimal.imageAspectRatio
+            : DEFAULT_PRODUCT_IMAGE_ASPECT_RATIO;
+    const imageAspectRatioSource = raw?.imageAspectRatioSource === 'custom' || raw?.imageAspectRatioSource === 'module'
+      ? raw.imageAspectRatioSource
+      : isProductImageAspectRatio(raw?.imageAspectRatio)
+        || isProductImageAspectRatio(raw?.layouts?.classic?.imageAspectRatio)
+        || isProductImageAspectRatio(raw?.layouts?.modern?.imageAspectRatio)
+        || isProductImageAspectRatio(raw?.layouts?.minimal?.imageAspectRatio)
+        ? 'custom'
+        : 'module';
+    const resolvedImageAspectRatio = imageAspectRatioSource === 'module'
+      ? moduleDefaultAspectRatio
+      : legacyAspectRatio;
     const configShowAddToCart = layoutConfig?.showAddToCart ?? raw?.showAddToCart ?? true;
     const classicLayoutHighlights = raw?.layouts?.classic?.showClassicHighlights
       ?? (layoutConfig as Partial<Record<'showClassicHighlights', boolean>>)?.showClassicHighlights;
@@ -227,14 +277,20 @@ function useProductDetailExperienceConfig(): ProductDetailExperienceConfig {
       showWishlist: canUseWishlist ? (layoutConfig?.showWishlist ?? raw?.showWishlist ?? true) : false,
       showShare,
       showBuyNow: (raw?.showBuyNow ?? true) && ordersEnabled,
+      showAllProductImagesSection: raw?.showAllProductImagesSection ?? false,
+      enableImageLightbox: raw?.enableImageLightbox ?? false,
       heroStyle: layoutStyle === 'modern'
         ? (layoutConfig as Partial<ModernLayoutConfig>)?.heroStyle ?? raw?.heroStyle ?? 'full'
         : 'full',
       contentWidth: layoutStyle === 'minimal'
         ? (layoutConfig as Partial<MinimalLayoutConfig>)?.contentWidth ?? raw?.contentWidth ?? 'medium'
         : 'medium',
+      imageAspectRatioSource,
+      imageAspectRatio: resolvedImageAspectRatio,
+      relatedProductsMode: normalizedRelatedMode,
+      relatedProductsPerPage,
     };
-  }, [experienceSetting?.value, legacyHighlightsEnabled, legacyStyle, cartAvailable, canUseComments, canUseCommentLikes, canUseCommentReplies, canUseWishlist, ordersEnabled]);
+  }, [experienceSetting?.value, legacyHighlightsEnabled, legacyStyle, cartAvailable, canUseComments, canUseCommentLikes, canUseCommentReplies, canUseWishlist, ordersEnabled, moduleDefaultAspectRatio]);
 }
 
 type RatingSummary = { average: number | null; count: number };
@@ -325,15 +381,34 @@ export default function ProductDetailPage({ params }: PageProps) {
   const decrementLike = useMutation(api.comments.decrementLike);
   
   const product = useQuery(api.products.getBySlug, { slug });
+  const supplementalTemplate = useQuery(
+    api.productSupplementalContents.getEffectiveByProduct,
+    product?._id ? { productId: product._id } : 'skip'
+  );
+  const lightboxImages = useMemo(() => (product ? buildProductImages(product) : []), [product]);
   const category = useQuery(
     api.productCategories.getById,
     product?.categoryId ? { id: product.categoryId } : 'skip'
   );
-  
-  const relatedProducts = useQuery(
-    api.products.searchPublished,
-    product?.categoryId ? { categoryId: product.categoryId, limit: 4 } : 'skip'
+
+  const relatedProductsMode = experienceConfig.relatedProductsMode;
+  const relatedProductsPerPage = experienceConfig.relatedProductsPerPage;
+  const [relatedPage, setRelatedPage] = useState(1);
+  const { ref: relatedLoadMoreRef, inView: relatedInView } = useInView({ rootMargin: '120px' });
+
+  const {
+    results: relatedInfiniteResults,
+    status: relatedInfiniteStatus,
+    loadMore: loadMoreRelated,
+  } = usePaginatedQuery(
+    api.products.listPublishedPaginated,
+    { categoryId: product?.categoryId },
+    { initialNumItems: relatedProductsMode === 'fixed' ? 4 : relatedProductsPerPage }
   );
+
+  const relatedTotalCountSource = useQuery(api.products.countPublished, {
+    categoryId: product?.categoryId,
+  });
 
   const variants = useQuery(
     api.productVariants.listByProductActive,
@@ -457,6 +532,61 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [replyDrafts, setReplyDrafts] = useState<Record<string, { content: string; email: string; name: string }>>({});
   const [replySubmittingId, setReplySubmittingId] = useState<string | null>(null);
   const [likingIds, setLikingIds] = useState<Set<string>>(new Set());
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const { frame } = useProductFrameConfig();
+
+  useEffect(() => {
+    setRelatedPage(1);
+  }, [product?._id, relatedProductsMode, relatedProductsPerPage]);
+
+  const relatedCandidates = useMemo<RelatedProduct[]>(() => {
+    if (!relatedInfiniteResults) {
+      return [];
+    }
+    return relatedInfiniteResults.filter(item => item._id !== product?._id);
+  }, [relatedInfiniteResults, product?._id]);
+
+  const isRelatedPagination = relatedProductsMode === 'pagination';
+  const relatedRequiredCount = relatedProductsMode === 'fixed'
+    ? 4
+    : isRelatedPagination
+      ? relatedProductsPerPage * relatedPage
+      : relatedProductsPerPage;
+
+  useEffect(() => {
+    if (relatedProductsMode === 'fixed') {
+      return;
+    }
+    if (relatedCandidates.length < relatedRequiredCount && relatedInfiniteStatus === 'CanLoadMore') {
+      loadMoreRelated(relatedRequiredCount - relatedCandidates.length);
+    }
+  }, [relatedCandidates.length, relatedInfiniteStatus, relatedProductsMode, relatedRequiredCount, loadMoreRelated]);
+
+  useEffect(() => {
+    if (relatedProductsMode !== 'infiniteScroll') {
+      return;
+    }
+    if (relatedInView && relatedInfiniteStatus === 'CanLoadMore') {
+      loadMoreRelated(relatedProductsPerPage);
+    }
+  }, [relatedInView, relatedInfiniteStatus, relatedProductsMode, relatedProductsPerPage, loadMoreRelated]);
+
+  const relatedTotalCount = typeof relatedTotalCountSource === 'number' ? relatedTotalCountSource : 0;
+  const relatedProducts = useMemo<RelatedProduct[]>(() => {
+    if (relatedProductsMode === 'fixed') {
+      return relatedCandidates.slice(0, 4);
+    }
+    if (isRelatedPagination) {
+      const start = (relatedPage - 1) * relatedProductsPerPage;
+      return relatedCandidates.slice(start, start + relatedProductsPerPage);
+    }
+    return relatedCandidates;
+  }, [relatedCandidates, isRelatedPagination, relatedPage, relatedProductsMode, relatedProductsPerPage]);
+
+  const relatedIsLoading = relatedProductsMode !== 'fixed' && (
+    relatedInfiniteStatus === 'LoadingFirstPage' ||
+    (isRelatedPagination && relatedInfiniteStatus !== 'Exhausted' && relatedCandidates.length < relatedRequiredCount)
+  );
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated || !customer || !product?._id) {
@@ -668,6 +798,23 @@ export default function ProductDetailPage({ params }: PageProps) {
       onReplySubmit={handleSubmitReply}
     />
   ) : null;
+  const supplementalContent = supplementalTemplate
+    ? {
+        preContent: supplementalTemplate.preContent,
+        postContent: supplementalTemplate.postContent,
+        faqItems: supplementalTemplate.faqItems,
+      }
+    : null;
+  const canOpenLightbox = experienceConfig.enableImageLightbox && lightboxImages.length > 0;
+
+  const handleOpenLightbox = (index: number) => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    setLightboxIndex(Math.min(Math.max(index, 0), Math.max(lightboxImages.length - 1, 0)));
+  };
+
+  const handleCloseLightbox = () => setLightboxIndex(null);
 
   if (product === undefined) {
     return <ProductDetailSkeleton tokens={tokens} />;
@@ -695,7 +842,6 @@ export default function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  const filteredRelated = relatedProducts?.filter(p => p._id !== product._id).slice(0, 4) ?? [];
   const productData = {
     ...product,
     categoryName: category?.name ?? 'Sản phẩm',
@@ -710,7 +856,9 @@ export default function ProductDetailPage({ params }: PageProps) {
           product={productData}
           brandColor={brandColor}
           tokens={tokens}
-          relatedProducts={filteredRelated}
+          enableImageLightbox={experienceConfig.enableImageLightbox}
+          onOpenLightbox={handleOpenLightbox}
+          relatedProducts={relatedProducts}
           enabledFields={enabledFields}
           variants={variants ?? []}
           variantOptions={variantOptions}
@@ -724,6 +872,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
+          imageAspectRatio={experienceConfig.imageAspectRatio}
+          showAllProductImagesSection={experienceConfig.showAllProductImagesSection}
           requireStockForBuyNow={requireStockForBuyNow}
           isWishlisted={isWishlisted}
           onToggleWishlist={handleWishlistToggle}
@@ -731,6 +881,15 @@ export default function ProductDetailPage({ params }: PageProps) {
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
+          supplementalContent={supplementalContent}
+          relatedProductsMode={relatedProductsMode}
+          relatedProductsPerPage={relatedProductsPerPage}
+          relatedProductsPage={relatedPage}
+          relatedProductsTotalCount={relatedTotalCount}
+          onRelatedProductsPageChange={setRelatedPage}
+          relatedLoadMoreRef={relatedLoadMoreRef}
+          relatedInfiniteStatus={relatedInfiniteStatus}
+          relatedIsLoading={relatedIsLoading}
         />
       )}
       {experienceConfig.layoutStyle === 'modern' && (
@@ -738,7 +897,9 @@ export default function ProductDetailPage({ params }: PageProps) {
           product={productData}
           brandColor={brandColor}
           tokens={tokens}
-          relatedProducts={filteredRelated}
+          enableImageLightbox={experienceConfig.enableImageLightbox}
+          onOpenLightbox={handleOpenLightbox}
+          relatedProducts={relatedProducts}
           enabledFields={enabledFields}
           variants={variants ?? []}
           variantOptions={variantOptions}
@@ -752,6 +913,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
+          imageAspectRatio={experienceConfig.imageAspectRatio}
+          showAllProductImagesSection={experienceConfig.showAllProductImagesSection}
           requireStockForBuyNow={requireStockForBuyNow}
           heroStyle={experienceConfig.heroStyle}
           isWishlisted={isWishlisted}
@@ -760,6 +923,15 @@ export default function ProductDetailPage({ params }: PageProps) {
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
+          supplementalContent={supplementalContent}
+          relatedProductsMode={relatedProductsMode}
+          relatedProductsPerPage={relatedProductsPerPage}
+          relatedProductsPage={relatedPage}
+          relatedProductsTotalCount={relatedTotalCount}
+          onRelatedProductsPageChange={setRelatedPage}
+          relatedLoadMoreRef={relatedLoadMoreRef}
+          relatedInfiniteStatus={relatedInfiniteStatus}
+          relatedIsLoading={relatedIsLoading}
         />
       )}
       {experienceConfig.layoutStyle === 'minimal' && (
@@ -767,7 +939,9 @@ export default function ProductDetailPage({ params }: PageProps) {
           product={productData}
           brandColor={brandColor}
           tokens={tokens}
-          relatedProducts={filteredRelated}
+          enableImageLightbox={experienceConfig.enableImageLightbox}
+          onOpenLightbox={handleOpenLightbox}
+          relatedProducts={relatedProducts}
           enabledFields={enabledFields}
           variants={variants ?? []}
           variantOptions={variantOptions}
@@ -781,6 +955,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           showShare={experienceConfig.showShare}
           showBuyNow={canUseCartActions ? canBuyNow : true}
           buyNowLabel={buyNowLabel}
+          imageAspectRatio={experienceConfig.imageAspectRatio}
+          showAllProductImagesSection={experienceConfig.showAllProductImagesSection}
           requireStockForBuyNow={requireStockForBuyNow}
           contentWidth={experienceConfig.contentWidth}
           isWishlisted={isWishlisted}
@@ -789,8 +965,25 @@ export default function ProductDetailPage({ params }: PageProps) {
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           commentsSection={commentsSection}
+          supplementalContent={supplementalContent}
+          relatedProductsMode={relatedProductsMode}
+          relatedProductsPerPage={relatedProductsPerPage}
+          relatedProductsPage={relatedPage}
+          relatedProductsTotalCount={relatedTotalCount}
+          onRelatedProductsPageChange={setRelatedPage}
+          relatedLoadMoreRef={relatedLoadMoreRef}
+          relatedInfiniteStatus={relatedInfiniteStatus}
+          relatedIsLoading={relatedIsLoading}
         />
       )}
+      <ProductImageLightbox
+        images={lightboxImages}
+        currentIndex={lightboxIndex ?? 0}
+        open={canOpenLightbox && lightboxIndex !== null}
+        onClose={handleCloseLightbox}
+        onIndexChange={setLightboxIndex}
+        frame={frame}
+      />
     </>
   );
 }
@@ -836,16 +1029,33 @@ interface CommentData {
   rating?: number;
 }
 
+interface ProductSupplementalContentData {
+  preContent?: string;
+  postContent?: string;
+  faqItems: Array<{ id: string; question: string; answer: string; order: number }>;
+}
+
 interface StyleProps {
   product: ProductData;
   brandColor: string;
   tokens: ProductDetailColors;
+  enableImageLightbox: boolean;
+  onOpenLightbox: (index: number) => void;
   relatedProducts: RelatedProduct[];
+  relatedProductsMode: RelatedProductsMode;
+  relatedProductsPerPage: number;
+  relatedProductsPage: number;
+  relatedProductsTotalCount: number;
+  onRelatedProductsPageChange: (page: number) => void;
+  relatedLoadMoreRef: (node?: Element | null) => void;
+  relatedInfiniteStatus: PaginationStatus;
+  relatedIsLoading: boolean;
   enabledFields: Set<string>;
   variants: ProductVariant[];
   variantOptions: VariantSelectorOption[];
   saleMode: ProductsSaleMode;
   commentsSection?: React.ReactNode;
+  supplementalContent: ProductSupplementalContentData | null;
 }
 
 interface ExperienceBlocksProps {
@@ -856,6 +1066,8 @@ interface ExperienceBlocksProps {
   showShare: boolean;
   showBuyNow: boolean;
   buyNowLabel: string;
+  imageAspectRatio: ProductImageAspectRatio;
+  showAllProductImagesSection: boolean;
   requireStockForBuyNow: boolean;
   isWishlisted: boolean;
   onToggleWishlist: () => void;
@@ -878,20 +1090,163 @@ function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', { currency: 'VND', style: 'currency' }).format(price);
 }
 
-function BlurredProductImage({ src, alt, sizes }: { src: string; alt: string; sizes?: string }) {
+function generatePaginationItems(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
+  const items: (number | 'ellipsis')[] = [];
+  const startPages = [1, 2];
+  const endPages = [totalPages - 1, totalPages];
+  const middlePages = [currentPage - 1, currentPage, currentPage + 1];
+  const allPages = Array.from(new Set([...startPages, ...middlePages, ...endPages]))
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((a, b) => a - b);
+
+  let lastPage = 0;
+  allPages.forEach((page) => {
+    if (page - lastPage > 1) {
+      items.push('ellipsis');
+    }
+    items.push(page);
+    lastPage = page;
+  });
+  return items;
+}
+
+function isValidImageSrc(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function buildProductImages(product: { image?: unknown; images?: unknown[] }): string[] {
+  const images = new Set<string>();
+  if (isValidImageSrc(product.image)) {
+    images.add(product.image.trim());
+  }
+  if (Array.isArray(product.images)) {
+    product.images.forEach((img) => {
+      if (isValidImageSrc(img)) {
+        images.add(img.trim());
+      }
+    });
+  }
+  return Array.from(images);
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+function preloadNeighborImages(images: string[], centerIndex: number) {
+  if (typeof window === 'undefined' || images.length === 0) {
+    return;
+  }
+
+  const candidates = [images[centerIndex], images[centerIndex - 1], images[centerIndex + 1]];
+  candidates.forEach((candidate) => {
+    if (!isValidImageSrc(candidate)) {
+      return;
+    }
+    const image = new window.Image();
+    image.src = candidate;
+  });
+}
+
+function BlurredProductImage({ src, alt, sizes }: { src?: string | null; alt: string; sizes?: string }) {
+  const normalizedSrc = isValidImageSrc(src) ? src.trim() : null;
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const { frame } = useProductFrameConfig();
+  const [currentSrc, setCurrentSrc] = useState<string | null>(normalizedSrc);
+  const [incomingSrc, setIncomingSrc] = useState<string | null>(null);
+  const [incomingVisible, setIncomingVisible] = useState(false);
+
+  useEffect(() => {
+    if (!normalizedSrc) {
+      setCurrentSrc(null);
+      setIncomingSrc(null);
+      setIncomingVisible(false);
+      return;
+    }
+
+    if (!currentSrc) {
+      setCurrentSrc(normalizedSrc);
+      return;
+    }
+
+    if (currentSrc === normalizedSrc) {
+      return;
+    }
+
+    if (prefersReducedMotion) {
+      setCurrentSrc(normalizedSrc);
+      setIncomingSrc(null);
+      setIncomingVisible(false);
+      return;
+    }
+
+    setIncomingSrc(normalizedSrc);
+    setIncomingVisible(false);
+
+    const frame = window.requestAnimationFrame(() => setIncomingVisible(true));
+    const timeout = window.setTimeout(() => {
+      setCurrentSrc(normalizedSrc);
+      setIncomingSrc(null);
+      setIncomingVisible(false);
+    }, 160);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
+  }, [currentSrc, normalizedSrc, prefersReducedMotion]);
+
+  if (!currentSrc) {
+    return null;
+  }
+
   return (
     <>
       <div
         className="absolute inset-0 scale-110"
         style={{
-          backgroundImage: `url(${src})`,
+          backgroundImage: `url(${currentSrc})`,
           backgroundPosition: 'center',
           backgroundSize: 'cover',
           filter: 'blur(24px)',
         }}
       />
       <div className="absolute inset-0 bg-black/10" />
-      <Image src={src} alt={alt} fill sizes={sizes} className="relative z-10 object-contain" />
+      <Image mode="primary" src={currentSrc} alt={alt} fill sizes={sizes} className="relative z-10 object-contain" />
+
+      {incomingSrc && (
+        <div className={`absolute inset-0 transition-opacity duration-150 ease-out ${incomingVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div
+            className="absolute inset-0 scale-110"
+            style={{
+              backgroundImage: `url(${incomingSrc})`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              filter: 'blur(24px)',
+            }}
+          />
+          <div className="absolute inset-0 bg-black/10" />
+          <Image mode="primary" src={incomingSrc} alt={alt} fill sizes={sizes} className="relative z-10 object-contain" />
+        </div>
+      )}
+      <div className="absolute inset-0 pointer-events-none z-20">
+        <ProductImageFrameOverlay frame={frame} />
+      </div>
     </>
   );
 }
@@ -915,21 +1270,31 @@ function HighlightsGrid({ highlights, tokens }: { highlights: ClassicHighlightIt
   );
 }
 
-function ExpandableDescription({ content, className, style, buttonStyle }: { content: string; className?: string; style?: React.CSSProperties; buttonStyle?: React.CSSProperties }) {
+function ExpandableProductDescriptionBlock({
+  children,
+  buttonStyle,
+}: {
+  children: React.ReactNode;
+  buttonStyle?: React.CSSProperties;
+}) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
 
   useEffect(() => {
-    if (expanded) {
-      return;
-    }
     const element = contentRef.current;
     if (!element) {
       return;
     }
+    const getCollapsedMaxHeight = () => {
+      if (typeof window === 'undefined') {
+        return 640;
+      }
+      return window.matchMedia('(min-width: 768px)').matches ? 860 : 640;
+    };
     const checkOverflow = () => {
-      setCanExpand(element.scrollHeight > element.clientHeight + 1);
+      const maxHeight = getCollapsedMaxHeight();
+      setCanExpand(element.scrollHeight > maxHeight + 1);
     };
     checkOverflow();
     if (typeof ResizeObserver === 'undefined') {
@@ -938,25 +1303,246 @@ function ExpandableDescription({ content, className, style, buttonStyle }: { con
     const observer = new ResizeObserver(checkOverflow);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [expanded, content]);
+  }, [children]);
 
   return (
     <div>
       <div
         ref={contentRef}
-        className={`${expanded ? '' : 'line-clamp-4 md:line-clamp-5'}`.trim()}
-        style={style}
+        className={`${expanded ? '' : 'max-h-[640px] overflow-hidden md:max-h-[860px]'}`.trim()}
       >
-        <RichContent content={content} className={className} />
+        {children}
       </div>
-      {canExpand && (
+      {(canExpand || expanded) && (
         <button
           type="button"
-          className="mt-2 text-sm font-medium"
+          className="mt-3 text-sm font-medium"
           style={buttonStyle}
           onClick={() => setExpanded((prev) => !prev)}
         >
           {expanded ? 'Thu gọn' : 'Xem thêm'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProductDescriptionImages({
+  images,
+  tokens,
+  frameAspectRatio,
+}: {
+  images: string[];
+  tokens: ProductDetailColors;
+  frameAspectRatio: string;
+}) {
+  const { frame } = useProductFrameConfig();
+  if (images.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-6 border-t pt-6" style={{ borderColor: tokens.divider }}>
+      <div className="space-y-4">
+        {images.map((image, index) => (
+          <div
+            key={`${image}-${index}`}
+            className="relative w-full overflow-hidden rounded-2xl"
+            style={{ aspectRatio: frameAspectRatio, backgroundColor: tokens.surfaceMuted }}
+          >
+            <Image mode="primary" src={image} alt={`Ảnh sản phẩm ${index + 1}`} fill sizes="100vw" className="object-contain" />
+            <ProductImageFrameOverlay frame={frame} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type MobileImageCarouselProps = {
+  images: string[];
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  alt: string;
+};
+
+function MobileImageCarousel({ images, selectedIndex, onSelect, alt }: MobileImageCarouselProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { frame } = useProductFrameConfig();
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+    const width = container.clientWidth;
+    if (!width) {
+      return;
+    }
+    const targetLeft = selectedIndex * width;
+    if (Math.abs(container.scrollLeft - targetLeft) > 2) {
+      container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    }
+  }, [selectedIndex]);
+
+  useEffect(() => () => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+  }, []);
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      const width = container.clientWidth;
+      if (!width) {
+        return;
+      }
+      const nextIndex = Math.round(container.scrollLeft / width);
+      if (nextIndex !== selectedIndex) {
+        onSelect(nextIndex);
+      }
+    }, 120);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex h-full w-full snap-x snap-mandatory overflow-x-auto no-scrollbar scroll-smooth"
+    >
+      {images.map((image, index) => (
+        <div key={`${image}-${index}`} className="relative h-full w-full shrink-0 snap-center">
+          <Image mode="primary" src={image} alt={`${alt} ${index + 1}`} fill sizes="100vw" className="object-contain" />
+          <ProductImageFrameOverlay frame={frame} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type ThumbnailRailProps = {
+  images: string[];
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  orientation: 'horizontal' | 'vertical';
+  visibleSlots: number;
+  tokens: ProductDetailColors;
+  thumbnailAspectRatio: string;
+  className?: string;
+  listClassName?: string;
+  itemClassName?: string;
+  inactiveClassName?: string;
+};
+
+function ThumbnailRail({
+  images,
+  selectedIndex,
+  onSelect,
+  orientation,
+  visibleSlots,
+  tokens,
+  thumbnailAspectRatio,
+  className,
+  listClassName,
+  itemClassName,
+  inactiveClassName,
+}: ThumbnailRailProps) {
+  const { frame } = useProductFrameConfig();
+  const [startIndex, setStartIndex] = useState(0);
+  const hasOverflow = images.length > visibleSlots;
+  const maxStartIndex = Math.max(0, images.length - visibleSlots);
+  const isVertical = orientation === 'vertical';
+
+  useEffect(() => {
+    if (!hasOverflow) {
+      if (startIndex !== 0) {
+        setStartIndex(0);
+      }
+      return;
+    }
+    if (startIndex > maxStartIndex) {
+      setStartIndex(maxStartIndex);
+    }
+  }, [hasOverflow, maxStartIndex, startIndex]);
+
+  useEffect(() => {
+    if (!hasOverflow) {
+      return;
+    }
+    if (selectedIndex < startIndex) {
+      setStartIndex(selectedIndex);
+      return;
+    }
+    if (selectedIndex >= startIndex + visibleSlots) {
+      setStartIndex(Math.max(0, selectedIndex - visibleSlots + 1));
+    }
+  }, [hasOverflow, selectedIndex, startIndex, visibleSlots]);
+
+  if (images.length <= 1) {
+    return null;
+  }
+
+  const canScrollPrev = hasOverflow && selectedIndex > 0;
+  const canScrollNext = hasOverflow && selectedIndex < images.length - 1;
+  const visibleImages = hasOverflow ? images.slice(startIndex, startIndex + visibleSlots) : images;
+  const railClassName = `${isVertical ? 'flex flex-col items-center gap-2' : 'flex items-center gap-2'} ${className ?? ''}`.trim();
+  const listClass = `${isVertical ? 'flex flex-col gap-2' : 'flex gap-2'} ${listClassName ?? ''}`.trim();
+  const arrowClassName = 'h-9 w-9 rounded-full border flex items-center justify-center transition-colors disabled:opacity-40';
+  const handlePrev = () => onSelect(Math.max(0, selectedIndex - 1));
+  const handleNext = () => onSelect(Math.min(images.length - 1, selectedIndex + 1));
+
+  return (
+    <div className={railClassName}>
+      {hasOverflow && (
+        <button
+          type="button"
+          aria-label={isVertical ? 'Ảnh trước' : 'Ảnh trước'}
+          disabled={!canScrollPrev}
+          onClick={handlePrev}
+          className={arrowClassName}
+          style={{ borderColor: tokens.thumbnailBorder, color: tokens.thumbnailBorderActive, backgroundColor: tokens.surface }}
+        >
+          {isVertical ? <ChevronUp size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      )}
+
+      <div className={listClass}>
+        {visibleImages.map((img, index) => {
+          const actualIndex = hasOverflow ? startIndex + index : index;
+          const isActive = actualIndex === selectedIndex;
+          return (
+            <button
+              key={`${img}-${actualIndex}`}
+              type="button"
+              onClick={() => onSelect(actualIndex)}
+              className={`${itemClassName ?? 'w-20 rounded-lg'} relative overflow-hidden border-2 transition-colors ${isActive ? '' : inactiveClassName ?? ''}`.trim()}
+              style={{ aspectRatio: thumbnailAspectRatio, borderColor: isActive ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
+            >
+              <Image mode="thumb" src={img} alt="" width={80} height={80} className="object-contain w-full h-full" />
+              <ProductImageFrameOverlay frame={frame} />
+            </button>
+          );
+        })}
+      </div>
+
+      {hasOverflow && (
+        <button
+          type="button"
+          aria-label={isVertical ? 'Ảnh kế tiếp' : 'Ảnh kế tiếp'}
+          disabled={!canScrollNext}
+          onClick={handleNext}
+          className={arrowClassName}
+          style={{ borderColor: tokens.thumbnailBorder, color: tokens.thumbnailBorderActive, backgroundColor: tokens.surface }}
+        >
+          {isVertical ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
       )}
     </div>
@@ -1001,6 +1587,59 @@ const findExactVariant = (variants: ProductVariant[], selection: VariantSelectio
     variant.optionValues.every((optionValue) => selection[optionValue.optionId] === optionValue.valueId)
   ) ?? null;
 
+const stripHtmlTags = (value?: string) =>
+  (value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+function ProductSupplementalFaqAccordion({
+  faqItems,
+  tokens,
+}: {
+  faqItems: ProductSupplementalContentData['faqItems'];
+  tokens: ProductDetailColors;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const sortedFaqItems = sortSupplementalFaqItems(faqItems ?? []).filter((item) => item.question?.trim() && item.answer?.trim());
+
+  if (sortedFaqItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border px-5 py-5" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
+      <div className="space-y-3">
+        {sortedFaqItems.map((item, index) => {
+          const isOpen = openIndex === index;
+          return (
+            <div key={item.id} className="overflow-hidden rounded-xl border" style={{ borderColor: tokens.divider, backgroundColor: tokens.surfaceMuted }}>
+              <button
+                type="button"
+                onClick={() => setOpenIndex((prev) => (prev === index ? null : index))}
+                className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors hover:opacity-90"
+                style={{ color: tokens.headingColor }}
+                aria-expanded={isOpen}
+              >
+                <span className="font-medium">{item.question}</span>
+                <ChevronDown size={18} className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`.trim()} />
+              </button>
+              <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`.trim()}>
+                <div className="overflow-hidden">
+                  <div className="border-t px-4 py-4 text-sm whitespace-pre-line" style={{ borderColor: tokens.divider, color: tokens.bodyText }}>
+                    {stripHtmlTags(item.answer)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: ProductDetailColors }) {
   if (!summary.average || summary.count <= 0) {
     return null;
@@ -1027,12 +1666,52 @@ function RatingInline({ summary, tokens }: { summary: RatingSummary; tokens: Pro
 // ====================================================================================
 // STYLE 1: CLASSIC - Standard e-commerce product page
 // ====================================================================================
-function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, highlightsEnabled, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showShare, showBuyNow, buyNowLabel, requireStockForBuyNow, isWishlisted, onToggleWishlist, onShare, onAddToCart, onBuyNow, commentsSection }: ClassicStyleProps) {
+function ClassicStyle({
+  product,
+  brandColor,
+  tokens,
+  enableImageLightbox,
+  onOpenLightbox,
+  relatedProducts,
+  relatedProductsMode,
+  relatedProductsPerPage,
+  relatedProductsPage,
+  relatedProductsTotalCount,
+  onRelatedProductsPageChange,
+  relatedLoadMoreRef,
+  relatedInfiniteStatus,
+  relatedIsLoading,
+  enabledFields,
+  variants,
+  variantOptions,
+  highlights,
+  highlightsEnabled,
+  ratingSummary,
+  saleMode,
+  showAddToCart,
+  showRating,
+  showWishlist,
+  showShare,
+  showBuyNow,
+  buyNowLabel,
+  imageAspectRatio,
+  showAllProductImagesSection,
+  requireStockForBuyNow,
+  isWishlisted,
+  onToggleWishlist,
+  onShare,
+  onAddToCart,
+  onBuyNow,
+  commentsSection,
+  supplementalContent,
+}: ClassicStyleProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
 
   const hasVariants = Boolean(product.hasVariants && variants.length > 0 && variantOptions.length > 0);
+  const imageFrame = getProductImageFrameConfig(imageAspectRatio, 'classic');
+  const mainImageFrameStyle: React.CSSProperties = { aspectRatio: imageFrame.frameAspectRatio };
   const resolvedDescription = useMemo(() => resolveProductContent(product), [product]);
 
   useEffect(() => {
@@ -1075,7 +1754,41 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const showDescription = enabledFields.has('description');
   const showSku = enabledFields.has('sku');
 
-  const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
+  const images = buildProductImages(product);
+  const safeSelectedImage = Math.min(selectedImage, Math.max(images.length - 1, 0));
+  const canOpenLightbox = enableImageLightbox && images.length > 0;
+
+  const handleOpenLightbox = () => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    onOpenLightbox(safeSelectedImage);
+  };
+
+  const handleLightboxKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleOpenLightbox();
+    }
+  };
+
+  useEffect(() => {
+    if (images.length === 0 && selectedImage !== 0) {
+      setSelectedImage(0);
+      return;
+    }
+    if (images.length > 0 && selectedImage >= images.length) {
+      setSelectedImage(images.length - 1);
+    }
+  }, [images.length, selectedImage]);
+
+  useEffect(() => {
+    preloadNeighborImages(images, safeSelectedImage);
+  }, [images, safeSelectedImage]);
+
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
   const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
@@ -1086,13 +1799,34 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
+  const stockStatus = showStock
+    ? stockValue > 10
+      ? { label: 'Còn hàng', color: tokens.stockSuccessText }
+      : stockValue > 0
+        ? { label: `Chỉ còn ${stockValue} sản phẩm`, color: tokens.stockWarningText }
+        : { label: 'Hết hàng', color: tokens.stockDangerText }
+    : null;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
       {/* Breadcrumb */}
       <div className="border-b" style={{ borderColor: tokens.divider }}>
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <nav className="flex items-center gap-2 text-sm" style={{ color: tokens.breadcrumbText }}>
+        <div className="max-w-6xl mx-auto px-4 py-2 md:py-3">
+          <nav className="flex items-center gap-1 text-[11px] md:hidden" style={{ color: tokens.breadcrumbText }}>
+            {product.categorySlug && product.categoryName ? (
+              <>
+                <Link href={`/products?category=${product.categorySlug}`} className="transition-colors">{product.categoryName}</Link>
+                <ChevronRight size={10} />
+              </>
+            ) : (
+              <>
+                <Link href="/products" className="transition-colors">Sản phẩm</Link>
+                <ChevronRight size={10} />
+              </>
+            )}
+            <span className="font-medium truncate max-w-[180px]" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
+          </nav>
+          <nav className="hidden md:flex items-center gap-2 text-sm" style={{ color: tokens.breadcrumbText }}>
             <Link href="/" className="transition-colors">Trang chủ</Link>
             <ChevronRight size={14} />
             <Link href="/products" className="transition-colors">Sản phẩm</Link>
@@ -1108,56 +1842,92 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-5 md:py-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-12">
           {/* Product Images */}
-          <div className="mb-8 lg:mb-0">
-            <div className="aspect-square rounded-2xl overflow-hidden mb-4 relative" style={{ backgroundColor: tokens.surfaceMuted }}>
-              {images.length > 0 ? (
-                <BlurredProductImage src={images[selectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 50vw" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
-              )}
-              {showSalePrice && priceDisplay.comparePrice && (
-                <span className="absolute top-4 left-4 px-3 py-1.5 text-sm font-bold rounded-lg" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{discountPercent}%</span>
-              )}
+          <div className="mb-6 lg:mb-0">
+            <div className={`${imageFrame.frameWidthClassName} mb-3 md:mb-4`}>
+              <div
+                className={`relative rounded-2xl overflow-hidden ${canOpenLightbox ? 'cursor-zoom-in' : ''}`.trim()}
+                style={{ ...mainImageFrameStyle, backgroundColor: tokens.surfaceMuted }}
+                role={canOpenLightbox ? 'button' : undefined}
+                tabIndex={canOpenLightbox ? 0 : -1}
+                onClick={canOpenLightbox ? handleOpenLightbox : undefined}
+                onKeyDown={handleLightboxKeyDown}
+              >
+                {images.length > 0 ? (
+                  <>
+                    <div className="h-full w-full md:hidden">
+                      <MobileImageCarousel
+                        images={images}
+                        selectedIndex={safeSelectedImage}
+                        onSelect={setSelectedImage}
+                        alt={product.name}
+                      />
+                    </div>
+                    <div className="hidden md:block h-full w-full">
+                      <BlurredProductImage src={images[safeSelectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 50vw" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"><Package size={64} style={{ color: tokens.emptyStateIcon }} /></div>
+                )}
+                {images.length > 1 && (
+                  <span className="absolute bottom-3 right-3 md:hidden px-2 py-0.5 text-[11px] font-semibold rounded-full backdrop-blur-sm" style={{ backgroundColor: tokens.surface, color: tokens.headingColor }}>
+                    {safeSelectedImage + 1}/{images.length}
+                  </span>
+                )}
+                {showSalePrice && priceDisplay.comparePrice && (
+                  <span className="absolute top-3 left-3 px-3 py-1.5 text-sm font-bold rounded-lg" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{discountPercent}%</span>
+                )}
+              </div>
             </div>
             {images.length > 1 && (
-              <div className="flex gap-3">
-                {images.map((img, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>{  setSelectedImage(index); }}
-                    className="w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors"
-                    style={{ borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
-                  >
-                    <Image src={img} alt="" width={80} height={80} className="object-contain" />
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="hidden md:block">
+                  <ThumbnailRail
+                    images={images}
+                    selectedIndex={safeSelectedImage}
+                    onSelect={setSelectedImage}
+                    orientation="horizontal"
+                    visibleSlots={6}
+                    tokens={tokens}
+                    thumbnailAspectRatio={imageFrame.thumbnailAspectRatio}
+                    itemClassName="w-20 rounded-lg"
+                  />
+                </div>
+              </>
             )}
           </div>
 
           {/* Product Info */}
           <div>
-            <Link
-              href={`/products?category=${product.categorySlug}`}
-              className="inline-block px-3 py-1 text-sm font-medium rounded-full mb-4 transition-colors hover:opacity-80"
-              style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
-            >
-              {product.categoryName}
-            </Link>
+            <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-4">
+              <Link
+                href={`/products?category=${product.categorySlug}`}
+                className="inline-block px-3 py-1 text-xs md:text-sm font-medium rounded-full transition-colors hover:opacity-80"
+                style={{ backgroundColor: tokens.categoryBadgeBg, color: tokens.categoryBadgeText }}
+              >
+                {product.categoryName}
+              </Link>
+              {stockStatus && (
+                <div className="flex items-center gap-2 text-[11px] font-semibold md:hidden" style={{ color: stockStatus.color }}>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                  <span>{stockStatus.label}</span>
+                </div>
+              )}
+            </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: tokens.headingColor }}>{product.name}</h1>
+            <h1 className="text-xl md:text-3xl font-bold mb-2 md:mb-4" style={{ color: tokens.headingColor }}>{product.name}</h1>
 
-            <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-4 md:mb-6">
               {showSku && <span className="text-sm" style={{ color: tokens.metaText }}>SKU: <span className="font-mono">{product.sku}</span></span>}
               {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
             </div>
 
             {showPrice && (
-              <div className="flex items-end gap-3 mb-6">
-                <span className="text-3xl font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
+              <div className="flex items-end gap-3 mb-3 md:mb-6">
+                <span className="text-xl md:text-3xl font-bold" style={{ color: tokens.priceColor }}>{priceDisplay.label}</span>
                 {showSalePrice && priceDisplay.comparePrice && (
                   <>
                     <span className="text-xl line-through" style={{ color: tokens.priceOriginalText }}>{formatPrice(priceDisplay.comparePrice)}</span>
@@ -1168,7 +1938,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             )}
 
             {hasVariants && (
-              <div className="mb-6">
+              <div className="mb-4 md:mb-6">
                 <VariantSelector
                   options={variantOptions}
                   selectedOptions={selectedOptions}
@@ -1179,19 +1949,7 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               </div>
             )}
 
-            {showStock && (
-              <div className="flex items-center gap-2 mb-6">
-                {stockValue > 10 ? (
-                  <><Check size={18} style={{ color: tokens.stockSuccessText }} /><span className="font-medium" style={{ color: tokens.stockSuccessText }}>Còn hàng</span></>
-                ) : (stockValue > 0 ? (
-                  <><span className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.stockWarningText }} /><span className="font-medium" style={{ color: tokens.stockWarningText }}>Chỉ còn {stockValue} sản phẩm</span></>
-                ) : (
-                  <><span className="w-2 h-2 rounded-full" style={{ backgroundColor: tokens.stockDangerText }} /><span className="font-medium" style={{ color: tokens.stockDangerText }}>Hết hàng</span></>
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center gap-4 mb-8">
+            <div className="flex flex-wrap items-center gap-4 mb-4 md:mb-8">
               <div className="flex items-center border rounded-lg" style={{ borderColor: tokens.quantityBorder }}>
                 <button
                   onClick={() =>{  setQuantity(q => Math.max(1, q - 1)); }}
@@ -1224,8 +1982,14 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                 )}
                 {showBuyNow && (
                   <button
-                    className={`py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
+                    className={`py-3.5 px-8 rounded-xl font-semibold flex items-center justify-center gap-2 border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer bg-[var(--cta-secondary-bg)] shadow-sm hover:bg-[var(--cta-secondary-hover-bg)] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cta-secondary-ring)]'}`}
+                    style={{
+                      borderColor: tokens.ctaSecondaryBorder,
+                      color: tokens.ctaSecondaryText,
+                      '--cta-secondary-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-hover-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-ring': tokens.inputRing,
+                    } as React.CSSProperties}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(quantity, selectedVariant?._id); } }}
                   >
@@ -1259,6 +2023,13 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               )}
             </div>
 
+            {stockStatus && (
+              <div className="hidden md:flex items-center gap-2 text-xs md:text-sm font-medium" style={{ color: stockStatus.color }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                <span>{stockStatus.label}</span>
+              </div>
+            )}
+
             {highlightsEnabled && highlights.length > 0 && (
               <div className="grid grid-cols-3 gap-4 p-4 rounded-xl mb-8" style={{ backgroundColor: tokens.highlightBg }}>
                 {highlights.map((item, index) => {
@@ -1273,17 +2044,42 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
               </div>
             )}
 
-            {showDescription && resolvedDescription && (
+            {(showDescription && resolvedDescription) || showAllProductImagesSection || supplementalContent?.preContent || supplementalContent?.postContent ? (
               <div className="border-t pt-6" style={{ borderColor: tokens.divider }}>
-                <h3 className="font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h3>
-                <ExpandableDescription
-                  content={resolvedDescription}
-                  className="prose prose-sm max-w-none"
-                  style={{ color: tokens.bodyText }}
-                  buttonStyle={{ color: tokens.primary }}
-                />
+                <ExpandableProductDescriptionBlock buttonStyle={{ color: tokens.primary }}>
+                  {supplementalContent?.preContent ? (
+                    <RichContent
+                      content={toRichTextContent(supplementalContent.preContent)}
+                      className="max-w-none"
+                      style={{ color: tokens.bodyText }}
+                    />
+                  ) : null}
+                  {showDescription && resolvedDescription && (
+                    <RichContent
+                      content={resolvedDescription}
+                      className="max-w-none"
+                      style={{ color: tokens.bodyText }}
+                    />
+                  )}
+                  {supplementalContent?.postContent ? (
+                    <RichContent
+                      content={toRichTextContent(supplementalContent.postContent)}
+                      className="max-w-none"
+                      style={{ color: tokens.bodyText }}
+                    />
+                  ) : null}
+                  {showAllProductImagesSection && (
+                    <ProductDescriptionImages
+                      images={images}
+                      tokens={tokens}
+                      frameAspectRatio={imageFrame.frameAspectRatio}
+                    />
+                  )}
+                </ExpandableProductDescriptionBlock>
               </div>
-            )}
+            ) : null}
+
+            <ProductSupplementalFaqAccordion faqItems={supplementalContent?.faqItems ?? []} tokens={tokens} />
           </div>
         </div>
 
@@ -1294,9 +2090,18 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
           categorySlug={product.categorySlug}
           brandColor={brandColor}
           tokens={tokens}
+          imageAspectRatio={imageAspectRatio}
           showPrice={enabledFields.has('price') || enabledFields.size === 0}
           showSalePrice={enabledFields.has('salePrice')}
           saleMode={saleMode}
+          mode={relatedProductsMode}
+          page={relatedProductsPage}
+          perPage={relatedProductsPerPage}
+          totalCount={relatedProductsTotalCount}
+          onPageChange={onRelatedProductsPageChange}
+          loadMoreRef={relatedLoadMoreRef}
+          infiniteStatus={relatedInfiniteStatus}
+          isLoading={relatedIsLoading}
         />
 
         <div className="mt-12 pt-8 border-t" style={{ borderColor: tokens.divider }}>
@@ -1312,7 +2117,44 @@ function ClassicStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 // ====================================================================================
 // STYLE 2: MODERN - Landing page style with hero
 // ====================================================================================
-function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, showHighlights, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, heroStyle, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { heroStyle: ModernHeroStyle }) {
+function ModernStyle({
+  product,
+  brandColor,
+  tokens,
+  enableImageLightbox,
+  onOpenLightbox,
+  relatedProducts,
+  relatedProductsMode,
+  relatedProductsPerPage,
+  relatedProductsPage,
+  relatedProductsTotalCount,
+  onRelatedProductsPageChange,
+  relatedLoadMoreRef,
+  relatedInfiniteStatus,
+  relatedIsLoading,
+  enabledFields,
+  variants,
+  variantOptions,
+  highlights,
+  showHighlights,
+  ratingSummary,
+  saleMode,
+  showAddToCart,
+  showRating,
+  showWishlist,
+  showBuyNow,
+  buyNowLabel,
+  imageAspectRatio,
+  showAllProductImagesSection,
+  requireStockForBuyNow,
+  heroStyle,
+  isWishlisted,
+  onToggleWishlist,
+  onAddToCart,
+  onBuyNow,
+  commentsSection,
+  supplementalContent,
+}: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { heroStyle: ModernHeroStyle }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
@@ -1359,7 +2201,43 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const showStock = enabledFields.has('stock');
   const showDescription = enabledFields.has('description');
 
-  const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
+  const images = buildProductImages(product);
+  const imageFrame = getProductImageFrameConfig(imageAspectRatio, 'modern');
+  const mainImageFrameStyle: React.CSSProperties = { aspectRatio: imageFrame.frameAspectRatio };
+  const safeSelectedImageIndex = Math.min(selectedImageIndex, Math.max(images.length - 1, 0));
+  const canOpenLightbox = enableImageLightbox && images.length > 0;
+
+  const handleOpenLightbox = () => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    onOpenLightbox(safeSelectedImageIndex);
+  };
+
+  const handleLightboxKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleOpenLightbox();
+    }
+  };
+
+  useEffect(() => {
+    if (images.length === 0 && selectedImageIndex !== 0) {
+      setSelectedImageIndex(0);
+      return;
+    }
+    if (images.length > 0 && selectedImageIndex >= images.length) {
+      setSelectedImageIndex(images.length - 1);
+    }
+  }, [images.length, selectedImageIndex]);
+
+  useEffect(() => {
+    preloadNeighborImages(images, safeSelectedImageIndex);
+  }, [images, safeSelectedImageIndex]);
+
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
   const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
@@ -1371,6 +2249,13 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
   const maxQuantity = showStock ? Math.min(stockValue, 10) : 10;
+  const stockStatus = showStock
+    ? stockValue > 10
+      ? { label: 'Còn hàng', color: tokens.stockSuccessText }
+      : stockValue > 0
+        ? { label: `Chỉ còn ${stockValue} sản phẩm`, color: tokens.stockWarningText }
+        : { label: 'Hết hàng', color: tokens.stockDangerText }
+    : null;
 
   const heroContainerClass = heroStyle === 'full'
     ? 'border rounded-2xl'
@@ -1382,17 +2267,31 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
     : { borderColor: tokens.border, backgroundColor: tokens.surface };
 
   const heroImageWrapperClass = heroStyle === 'split'
-    ? 'relative aspect-square flex items-center justify-center p-6'
+    ? 'relative flex items-center justify-center p-6'
     : heroStyle === 'minimal'
-      ? 'relative aspect-square flex items-center justify-center p-3'
-      : 'relative aspect-square flex items-center justify-center p-6';
+      ? 'relative flex items-center justify-center p-3'
+      : 'relative flex items-center justify-center p-6';
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
       <header className="border-b" style={{ borderColor: tokens.divider }}>
-        <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 md:py-4">
           <nav className="flex items-center justify-between gap-4">
-            <div className="text-sm truncate" style={{ color: tokens.breadcrumbText }}>
+            <div className="md:hidden flex items-center gap-1 text-[11px] truncate" style={{ color: tokens.breadcrumbText }}>
+              {product.categorySlug && product.categoryName ? (
+                <>
+                  <Link href={`/products?category=${product.categorySlug}`} className="transition-colors">{product.categoryName}</Link>
+                  <ChevronRight size={10} />
+                </>
+              ) : (
+                <>
+                  <Link href="/products" className="transition-colors">Sản phẩm</Link>
+                  <ChevronRight size={10} />
+                </>
+              )}
+              <span className="truncate" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
+            </div>
+            <div className="hidden md:block text-sm truncate" style={{ color: tokens.breadcrumbText }}>
               <Link href="/" className="transition-colors">Trang chủ</Link>
               {' / '}
               <Link href="/products" className="transition-colors">Sản phẩm</Link>
@@ -1414,73 +2313,135 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          <div className="space-y-4">
+      <main className="max-w-6xl mx-auto px-4 py-4 md:py-6 lg:py-10">
+        <div className="grid lg:grid-cols-2 gap-5 md:gap-6 lg:gap-8">
+          <div className="space-y-3 md:space-y-4">
             {heroStyle === 'split' ? (
               <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
-                <div className="grid md:grid-cols-2 gap-4 items-center p-4 md:p-6">
-                  <div className="relative aspect-square rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
-                    {images[selectedImageIndex] ? (
-                      <BlurredProductImage
-                        src={images[selectedImageIndex]}
-                        alt={product.name}
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <div className="rounded-lg w-48 h-48 mx-auto mb-3" style={{ backgroundColor: tokens.surfaceSoft }} />
-                        <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="hidden md:flex flex-col gap-3 text-sm" style={{ color: tokens.metaText }}>
-                    <span className="text-xs uppercase tracking-widest" style={{ color: tokens.softText }}>Điểm nổi bật</span>
-                    <ul className="space-y-2">
-                      <li>• Thiết kế cao cấp, hoàn thiện tinh tế</li>
-                      <li>• Công nghệ mới nhất, hiệu năng ổn định</li>
-                      <li>• Bảo hành chính hãng toàn quốc</li>
-                    </ul>
+                <div className="grid md:grid-cols-2 gap-3 items-center p-3 md:p-5">
+                  <div className={imageFrame.frameWidthClassName}>
+                    <div
+                      className={`relative rounded-xl flex items-center justify-center overflow-hidden ${canOpenLightbox ? 'cursor-zoom-in' : ''}`.trim()}
+                      style={{ ...mainImageFrameStyle, backgroundColor: tokens.surfaceMuted }}
+                      role={canOpenLightbox ? 'button' : undefined}
+                      tabIndex={canOpenLightbox ? 0 : -1}
+                      onClick={canOpenLightbox ? handleOpenLightbox : undefined}
+                      onKeyDown={handleLightboxKeyDown}
+                    >
+                      {showSalePrice && priceDisplay.comparePrice && discountPercent > 0 && (
+                        <span
+                          className="absolute left-3 top-3 z-20 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                          style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>
+                          -{discountPercent}%
+                        </span>
+                      )}
+                      {images[safeSelectedImageIndex] ? (
+                        <>
+                          <div className="h-full w-full md:hidden">
+                            <MobileImageCarousel
+                              images={images}
+                              selectedIndex={safeSelectedImageIndex}
+                              onSelect={setSelectedImageIndex}
+                              alt={product.name}
+                            />
+                          </div>
+                          <div className="hidden md:block h-full w-full">
+                            <BlurredProductImage
+                              src={images[safeSelectedImageIndex]}
+                              alt={product.name}
+                              sizes="(max-width: 1024px) 100vw, 50vw"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center">
+                          <div className="rounded-lg w-48 h-48 mx-auto mb-3" style={{ backgroundColor: tokens.surfaceSoft }} />
+                          <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
+                        </div>
+                      )}
+                      {images.length > 1 && (
+                        <span className="absolute bottom-3 right-3 md:hidden px-2 py-0.5 text-[11px] font-semibold rounded-full backdrop-blur-sm" style={{ backgroundColor: tokens.surface, color: tokens.headingColor }}>
+                          {safeSelectedImageIndex + 1}/{images.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
               <div className={`overflow-hidden ${heroContainerClass}`} style={heroContainerStyle}>
                 <div className={heroImageWrapperClass}>
-                  {images[selectedImageIndex] ? (
-                    <BlurredProductImage
-                      src={images[selectedImageIndex]}
-                      alt={product.name}
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <div className="rounded-lg w-64 h-64 mx-auto mb-4" style={{ backgroundColor: tokens.surfaceSoft }} />
-                      <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
+                  <div className={imageFrame.frameWidthClassName}>
+                    <div
+                      className={`relative overflow-hidden rounded-xl ${canOpenLightbox ? 'cursor-zoom-in' : ''}`.trim()}
+                      style={{ ...mainImageFrameStyle, backgroundColor: tokens.surfaceMuted }}
+                      role={canOpenLightbox ? 'button' : undefined}
+                      tabIndex={canOpenLightbox ? 0 : -1}
+                      onClick={canOpenLightbox ? handleOpenLightbox : undefined}
+                      onKeyDown={handleLightboxKeyDown}
+                    >
+                      {showSalePrice && priceDisplay.comparePrice && discountPercent > 0 && (
+                        <span
+                          className="absolute left-3 top-3 z-20 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                          style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>
+                          -{discountPercent}%
+                        </span>
+                      )}
+                      {images[safeSelectedImageIndex] ? (
+                        <>
+                          <div className="h-full w-full md:hidden">
+                            <MobileImageCarousel
+                              images={images}
+                              selectedIndex={safeSelectedImageIndex}
+                              onSelect={setSelectedImageIndex}
+                              alt={product.name}
+                            />
+                          </div>
+                          <div className="hidden md:block h-full w-full">
+                            <BlurredProductImage
+                              src={images[safeSelectedImageIndex]}
+                              alt={product.name}
+                              sizes="(max-width: 1024px) 100vw, 50vw"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center">
+                          <div className="rounded-lg w-64 h-64 mx-auto mb-4" style={{ backgroundColor: tokens.surfaceSoft }} />
+                          <p className="text-sm" style={{ color: tokens.softText }}>Chưa có hình ảnh sản phẩm</p>
+                        </div>
+                      )}
+                      {images.length > 1 && (
+                        <span className="absolute bottom-3 right-3 md:hidden px-2 py-0.5 text-[11px] font-semibold rounded-full backdrop-blur-sm" style={{ backgroundColor: tokens.surface, color: tokens.headingColor }}>
+                          {safeSelectedImageIndex + 1}/{images.length}
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
 
             {images.length > 1 && heroStyle !== 'minimal' && (
-              <div className="grid grid-cols-3 gap-3">
-                {images.map((image, index) => (
-                  <button
-                    key={`${image}-${index}`}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className="relative aspect-square overflow-hidden rounded-xl border-2 transition-all"
-                    style={{ borderColor: selectedImageIndex === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder }}
-                  >
-                    <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-contain" />
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="hidden md:block">
+                  <ThumbnailRail
+                    images={images}
+                    selectedIndex={safeSelectedImageIndex}
+                    onSelect={setSelectedImageIndex}
+                    orientation="horizontal"
+                    visibleSlots={5}
+                    tokens={tokens}
+                    thumbnailAspectRatio={imageFrame.thumbnailAspectRatio}
+                    itemClassName="w-20 rounded-xl"
+                  />
+                </div>
+              </>
             )}
           </div>
 
-          <div className="space-y-6 lg:space-y-8">
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-3 md:space-y-4 lg:space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
                 style={{
@@ -1492,34 +2453,32 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
               >
                 {product.categoryName}
               </span>
+              {stockStatus && (
+                <div className="flex items-center gap-2 text-[11px] font-semibold md:hidden" style={{ color: stockStatus.color }}>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                  <span>{stockStatus.label}</span>
+                </div>
+              )}
             </div>
 
-            <h1 className="text-3xl lg:text-4xl font-light tracking-tight" style={{ color: tokens.headingColor }}>
+            <h1 className="text-xl md:text-3xl lg:text-4xl font-light tracking-tight" style={{ color: tokens.headingColor }}>
               {product.name}
             </h1>
 
             {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
 
             {showPrice && (
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl lg:text-4xl font-light" style={{ color: tokens.priceColor }}>
+              <div className="space-y-1.5">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-xl md:text-3xl lg:text-4xl font-light" style={{ color: tokens.priceColor }}>
                     {priceDisplay.label}
                   </span>
                   {showSalePrice && priceDisplay.comparePrice && (
-                    <span className="text-lg line-through" style={{ color: tokens.priceOriginalText }}>
+                    <span className="text-base line-through" style={{ color: tokens.priceOriginalText }}>
                       {formatPrice(priceDisplay.comparePrice)}
                     </span>
                   )}
                 </div>
-                {showSalePrice && priceDisplay.comparePrice && (
-                  <span
-                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}
-                  >
-                    Giảm {discountPercent}%
-                  </span>
-                )}
               </div>
             )}
 
@@ -1535,7 +2494,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
 
             <div className="h-px w-full" style={{ backgroundColor: tokens.divider }} />
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium" style={{ color: tokens.bodyText }}>Số lượng</label>
               <div className="flex items-center gap-3">
                 <button
@@ -1563,7 +2522,7 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
             </div>
 
             {(showAddToCart || showBuyNow || showWishlist) && (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-2.5">
                 {showAddToCart && (
                   <button
                     className={`w-full h-12 text-base font-semibold transition-all ${inStock ? 'hover:shadow-lg hover:scale-[1.01]' : 'opacity-50 cursor-not-allowed'}`}
@@ -1577,8 +2536,14 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
                 )}
                 {showBuyNow && (
                   <button
-                    className={`w-full h-12 text-base font-semibold border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
+                    className={`w-full h-12 text-base font-semibold border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer bg-[var(--cta-secondary-bg)] shadow-sm hover:bg-[var(--cta-secondary-hover-bg)] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cta-secondary-ring)]'}`}
+                    style={{
+                      borderColor: tokens.ctaSecondaryBorder,
+                      color: tokens.ctaSecondaryText,
+                      '--cta-secondary-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-hover-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-ring': tokens.inputRing,
+                    } as React.CSSProperties}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(quantity, selectedVariant?._id); } }}
                   >
@@ -1596,49 +2561,58 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
                     {isWishlisted ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
                   </button>
                 )}
+                {stockStatus && (
+                  <div className="hidden md:flex items-center gap-2 text-xs md:text-sm font-medium" style={{ color: stockStatus.color }}>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                    <span>{stockStatus.label}</span>
+                  </div>
+                )}
               </div>
             )}
 
             {showHighlights && <HighlightsGrid highlights={highlights} tokens={tokens} />}
-
-            {showStock && (
-              <div className="grid grid-cols-3 gap-4 pt-2">
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                    <Truck className="w-4 h-4" style={{ color: tokens.metaText }} />
-                  </div>
-                  <p className="text-xs" style={{ color: tokens.metaText }}>Miễn phí vận chuyển</p>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                    <Shield className="w-4 h-4" style={{ color: tokens.metaText }} />
-                  </div>
-                  <p className="text-xs" style={{ color: tokens.metaText }}>Bảo hành 12 tháng</p>
-                </div>
-                <div className="text-center space-y-2">
-                  <div className="mx-auto w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: tokens.surfaceMuted }}>
-                    <ShoppingBag className="w-4 h-4" style={{ color: tokens.metaText }} />
-                  </div>
-                  <p className="text-xs" style={{ color: tokens.metaText }}>Đổi trả 30 ngày</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="mt-12 lg:mt-16">
+        <div className="mt-12 lg:mt-16 space-y-6">
           <div className="mt-6 border rounded-2xl p-6" style={{ borderColor: tokens.border }}>
-            {showDescription && resolvedDescription ? (
-              <ExpandableDescription
-                content={resolvedDescription}
-                className="prose prose-sm max-w-none"
-                style={{ color: tokens.bodyText }}
-                buttonStyle={{ color: tokens.primary }}
-              />
+            {(showDescription && resolvedDescription) || showAllProductImagesSection || supplementalContent?.preContent || supplementalContent?.postContent ? (
+              <ExpandableProductDescriptionBlock buttonStyle={{ color: tokens.primary }}>
+                {supplementalContent?.preContent ? (
+                  <RichContent
+                    content={toRichTextContent(supplementalContent.preContent)}
+                    className="max-w-none"
+                    style={{ color: tokens.bodyText }}
+                  />
+                ) : null}
+                {showDescription && resolvedDescription ? (
+                  <RichContent
+                    content={resolvedDescription}
+                    className="max-w-none"
+                    style={{ color: tokens.bodyText }}
+                  />
+                ) : null}
+                {supplementalContent?.postContent ? (
+                  <RichContent
+                    content={toRichTextContent(supplementalContent.postContent)}
+                    className="max-w-none"
+                    style={{ color: tokens.bodyText }}
+                  />
+                ) : null}
+                {showAllProductImagesSection ? (
+                  <ProductDescriptionImages
+                    images={images}
+                    tokens={tokens}
+                    frameAspectRatio={imageFrame.frameAspectRatio}
+                  />
+                ) : null}
+              </ExpandableProductDescriptionBlock>
             ) : (
               <p style={{ color: tokens.metaText }}>Chưa có mô tả chi tiết.</p>
             )}
           </div>
+
+          <ProductSupplementalFaqAccordion faqItems={supplementalContent?.faqItems ?? []} tokens={tokens} />
         </div>
 
         {commentsSection}
@@ -1649,9 +2623,18 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
             categorySlug={product.categorySlug}
             brandColor={brandColor}
             tokens={tokens}
+            imageAspectRatio={imageAspectRatio}
             showPrice={showPrice}
             showSalePrice={showSalePrice}
-          saleMode={saleMode}
+            saleMode={saleMode}
+            mode={relatedProductsMode}
+            page={relatedProductsPage}
+            perPage={relatedProductsPerPage}
+            totalCount={relatedProductsTotalCount}
+            onPageChange={onRelatedProductsPageChange}
+            loadMoreRef={relatedLoadMoreRef}
+            infiniteStatus={relatedInfiniteStatus}
+            isLoading={relatedIsLoading}
           />
         </div>
       </main>
@@ -1662,12 +2645,69 @@ function ModernStyle({ product, brandColor, tokens, relatedProducts, enabledFiel
 // ====================================================================================
 // STYLE 3: MINIMAL - Clean, focused design
 // ====================================================================================
-function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFields, variants, variantOptions, highlights, showHighlights, ratingSummary, saleMode, showAddToCart, showRating, showWishlist, showBuyNow, buyNowLabel, requireStockForBuyNow, contentWidth, isWishlisted, onToggleWishlist, onAddToCart, onBuyNow, commentsSection }: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { contentWidth: MinimalContentWidth }) {
+function MinimalStyle({
+  product,
+  brandColor,
+  tokens,
+  enableImageLightbox,
+  onOpenLightbox,
+  relatedProducts,
+  relatedProductsMode,
+  relatedProductsPerPage,
+  relatedProductsPage,
+  relatedProductsTotalCount,
+  onRelatedProductsPageChange,
+  relatedLoadMoreRef,
+  relatedInfiniteStatus,
+  relatedIsLoading,
+  enabledFields,
+  variants,
+  variantOptions,
+  highlights,
+  showHighlights,
+  ratingSummary,
+  saleMode,
+  showAddToCart,
+  showRating,
+  showWishlist,
+  showBuyNow,
+  buyNowLabel,
+  imageAspectRatio,
+  showAllProductImagesSection,
+  requireStockForBuyNow,
+  contentWidth,
+  isWishlisted,
+  onToggleWishlist,
+  onAddToCart,
+  onBuyNow,
+  commentsSection,
+  supplementalContent,
+}: StyleProps & ExperienceBlocksProps & HighlightBlockProps & { contentWidth: MinimalContentWidth }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<VariantSelectionMap>({});
+  const [mainImageHeight, setMainImageHeight] = useState<number | null>(null);
+  const mainImageRef = useRef<HTMLDivElement>(null);
+  const mainImageHeightRef = useRef<number | null>(null);
 
   const hasVariants = Boolean(product.hasVariants && variants.length > 0 && variantOptions.length > 0);
   const resolvedDescription = useMemo(() => resolveProductContent(product), [product]);
+
+  useEffect(() => {
+    const element = mainImageRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const nextHeight = Math.round(entries[0]?.contentRect?.height ?? 0);
+      if (!nextHeight || nextHeight === mainImageHeightRef.current) {
+        return;
+      }
+      mainImageHeightRef.current = nextHeight;
+      setMainImageHeight(nextHeight);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!hasVariants) {
@@ -1704,18 +2744,78 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
     );
 
   const showPrice = enabledFields.has('price') || enabledFields.size === 0;
+  const showSalePrice = enabledFields.has('salePrice');
   const showStock = enabledFields.has('stock');
   const showDescription = enabledFields.has('description');
   const showSku = enabledFields.has('sku');
 
-  const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
+  const images = buildProductImages(product);
+  const safeSelectedImage = Math.min(selectedImage, Math.max(images.length - 1, 0));
+
+  useEffect(() => {
+    if (images.length === 0 && selectedImage !== 0) {
+      setSelectedImage(0);
+      return;
+    }
+    if (images.length > 0 && selectedImage >= images.length) {
+      setSelectedImage(images.length - 1);
+    }
+  }, [images.length, selectedImage]);
+
+  useEffect(() => {
+    preloadNeighborImages(images, safeSelectedImage);
+  }, [images, safeSelectedImage]);
+
   const basePrice = selectedVariant?.price ?? product.price;
   const salePrice = selectedVariant ? selectedVariant.salePrice : product.salePrice;
   const isRangeFromVariant = Boolean(product.hasVariants && !selectedVariant);
   const priceDisplay = getPublicPriceLabel({ saleMode, price: basePrice, salePrice, isRangeFromVariant });
+  const discountPercent = priceDisplay.comparePrice
+    ? Math.round((1 - basePrice / priceDisplay.comparePrice) * 100)
+    : 0;
   const stockValue = selectedVariant?.stock ?? product.stock;
   const inStock = !showStock || stockValue > 0;
   const buyNowDisabled = requireStockForBuyNow && !inStock;
+
+  const stockStatus = showStock
+    ? stockValue > 10
+      ? { label: 'Còn hàng', color: tokens.stockSuccessText }
+      : stockValue > 0
+        ? { label: `Chỉ còn ${stockValue} sản phẩm`, color: tokens.stockWarningText }
+        : { label: 'Hết hàng', color: tokens.stockDangerText }
+    : null;
+  const canOpenLightbox = enableImageLightbox && images.length > 0;
+
+  const handleOpenLightbox = () => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    onOpenLightbox(safeSelectedImage);
+  };
+
+  const handleLightboxKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!canOpenLightbox) {
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleOpenLightbox();
+    }
+  };
+
+  const imageFrame = getProductImageFrameConfig(imageAspectRatio, 'minimal');
+  const mainImageFrameStyle: React.CSSProperties = { aspectRatio: imageFrame.frameAspectRatio };
+  const verticalVisibleSlots = mainImageHeight
+    ? getVerticalThumbnailSlots({
+      frameHeight: mainImageHeight,
+      thumbnailWidth: 80,
+      thumbnailAspectRatio: imageFrame.thumbnailAspectRatio,
+      gap: 8,
+      arrowHeight: 36,
+      imageCount: images.length,
+      minSlots: 1,
+    })
+    : 6;
 
   const contentWidthClass = contentWidth === 'narrow'
     ? 'max-w-4xl'
@@ -1725,9 +2825,23 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: tokens.surface }}>
-      <main className={`${contentWidthClass} mx-auto px-0 md:px-6 py-10`}>
-        <div className="px-6 md:px-0 mb-6">
-          <nav className="flex items-center gap-2 text-xs" style={{ color: tokens.breadcrumbText }}>
+      <main className={`${contentWidthClass} mx-auto px-0 md:px-6 py-6 md:py-10`}>
+        <div className="px-4 md:px-0 mb-3 md:mb-6">
+          <nav className="flex items-center gap-1 text-[11px] md:hidden" style={{ color: tokens.breadcrumbText }}>
+            {product.categorySlug && product.categoryName ? (
+              <>
+                <Link href={`/products?category=${product.categorySlug}`} className="transition-colors">{product.categoryName}</Link>
+                <ChevronRight size={10} />
+              </>
+            ) : (
+              <>
+                <Link href="/products" className="transition-colors">Sản phẩm</Link>
+                <ChevronRight size={10} />
+              </>
+            )}
+            <span className="truncate max-w-[180px]" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
+          </nav>
+          <nav className="hidden md:flex items-center gap-2 text-xs" style={{ color: tokens.breadcrumbText }}>
             <Link href="/" className="transition-colors">Trang chủ</Link>
             <ChevronRight size={12} />
             <Link href="/products" className="transition-colors">Sản phẩm</Link>
@@ -1735,57 +2849,115 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             <span className="truncate max-w-[160px]" style={{ color: tokens.breadcrumbActive }}>{product.name}</span>
           </nav>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 min-h-[calc(100vh-4rem)]">
-          <div className="lg:col-span-7 h-[60vh] lg:h-auto lg:py-0">
-            <div className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]">
-              <div className="flex flex-col-reverse md:flex-row gap-4 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+          <div className="lg:col-span-7 lg:py-0">
+            <div className="lg:sticky lg:top-8">
+              <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 items-start">
                 {images.length > 1 && (
-                  <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto no-scrollbar md:w-24 shrink-0 px-6 md:px-0">
-                    {images.map((img, index) => (
-                      <button
-                        key={img}
-                        onClick={() =>{  setSelectedImage(index); }}
-                        className={`relative aspect-square w-20 md:w-full overflow-hidden rounded-sm transition-all duration-300 border ${
-                          selectedImage === index ? 'opacity-100' : 'opacity-70 hover:opacity-100'
-                        }`}
-                        style={{
-                          borderColor: selectedImage === index ? tokens.thumbnailBorderActive : tokens.thumbnailBorder,
-                        }}
-                      >
-                        <Image src={img} alt={product.name} fill sizes="(max-width: 768px) 80px, 96px" className="object-contain" />
-                      </button>
-                    ))}
+                  <div className="hidden md:flex md:flex-col md:w-20 shrink-0">
+                    <ThumbnailRail
+                      images={images}
+                      selectedIndex={safeSelectedImage}
+                      onSelect={setSelectedImage}
+                      orientation="vertical"
+                      visibleSlots={verticalVisibleSlots}
+                      tokens={tokens}
+                      thumbnailAspectRatio={imageFrame.thumbnailAspectRatio}
+                      itemClassName="w-full rounded-sm"
+                      inactiveClassName="opacity-70 hover:opacity-100"
+                    />
                   </div>
                 )}
 
-                <div className="flex-1 relative aspect-[4/5] md:aspect-auto rounded-sm overflow-hidden" style={{ backgroundColor: tokens.surfaceMuted }}>
-                  {images.length > 0 ? (
-                    <BlurredProductImage src={images[selectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 60vw" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package size={64} style={{ color: tokens.emptyStateIcon }} />
-                    </div>
-                  )}
+                <div className={`flex-1 ${imageFrame.frameWidthClassName}`}>
+                  <div
+                    ref={mainImageRef}
+                    className={`relative w-full rounded-sm overflow-hidden ${canOpenLightbox ? 'cursor-zoom-in' : ''}`.trim()}
+                    style={{ ...mainImageFrameStyle, backgroundColor: tokens.surfaceMuted }}
+                    role={canOpenLightbox ? 'button' : undefined}
+                    tabIndex={canOpenLightbox ? 0 : -1}
+                    onClick={canOpenLightbox ? handleOpenLightbox : undefined}
+                    onKeyDown={handleLightboxKeyDown}
+                  >
+                    {showSalePrice && priceDisplay.comparePrice && discountPercent > 0 && (
+                      <span
+                        className="absolute left-3 top-3 z-20 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                        style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>
+                        -{discountPercent}%
+                      </span>
+                    )}
+                    {images.length > 0 ? (
+                      <>
+                        <div className="h-full w-full md:hidden">
+                          <MobileImageCarousel
+                            images={images}
+                            selectedIndex={safeSelectedImage}
+                            onSelect={setSelectedImage}
+                            alt={product.name}
+                          />
+                        </div>
+                        <div className="hidden md:block h-full w-full">
+                          <BlurredProductImage src={images[safeSelectedImage]} alt={product.name} sizes="(max-width: 1024px) 100vw, 60vw" />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package size={64} style={{ color: tokens.emptyStateIcon }} />
+                      </div>
+                    )}
+                    {images.length > 1 && (
+                      <span className="absolute bottom-3 right-3 md:hidden px-2 py-0.5 text-[11px] font-semibold rounded-full backdrop-blur-sm" style={{ backgroundColor: tokens.surface, color: tokens.headingColor }}>
+                        {safeSelectedImage + 1}/{images.length}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-5 px-6 py-6 lg:py-0 flex flex-col justify-center" style={{ backgroundColor: tokens.surface }}>
-            <div className="mb-6">
-              <h1 className="text-3xl md:text-5xl font-light tracking-tight mb-4" style={{ color: tokens.headingColor }}>
+          <div className="lg:col-span-5 px-4 md:px-6 py-2 lg:py-0 flex flex-col justify-center" style={{ backgroundColor: tokens.surface }}>
+            <div className="mb-3 md:mb-5 space-y-2 md:space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] md:text-xs font-semibold"
+                  style={{
+                    backgroundColor: tokens.categoryBadgeBg,
+                    color: tokens.categoryBadgeText,
+                    borderColor: tokens.categoryBadgeBorder,
+                    borderWidth: 1,
+                  }}
+                >
+                  {product.categoryName}
+                </span>
+                {stockStatus && (
+                  <div className="flex items-center gap-2 text-[11px] font-semibold md:hidden" style={{ color: stockStatus.color }}>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                    <span>{stockStatus.label}</span>
+                  </div>
+                )}
+              </div>
+
+              <h1 className="text-xl md:text-3xl lg:text-[2rem] font-medium leading-tight tracking-tight" style={{ color: tokens.headingColor }}>
                 {product.name}
               </h1>
               {showRating && <RatingInline summary={ratingSummary} tokens={tokens} />}
               {showPrice && (
-                <p className="text-2xl font-light" style={{ color: tokens.priceColor }}>
-                  {priceDisplay.label}
-                </p>
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <p className="text-lg md:text-2xl font-semibold" style={{ color: tokens.priceColor }}>
+                    {priceDisplay.label}
+                  </p>
+                  {showSalePrice && priceDisplay.comparePrice && (
+                    <span className="text-sm md:text-base line-through" style={{ color: tokens.priceOriginalText }}>
+                      {formatPrice(priceDisplay.comparePrice)}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 
             {hasVariants && (
-              <div className="mb-6">
+              <div className="mb-4 md:mb-6">
                 <VariantSelector
                   options={variantOptions}
                   selectedOptions={selectedOptions}
@@ -1797,7 +2969,7 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
             )}
 
             {(showAddToCart || showBuyNow || showWishlist) && (
-              <div className="flex flex-col gap-3 mb-8 border-t pt-6" style={{ borderColor: tokens.divider }}>
+              <div className="flex flex-col gap-2.5 md:gap-3 mb-5 md:mb-6 border-t pt-4 md:pt-5" style={{ borderColor: tokens.divider }}>
                 <div className="flex gap-4">
                   {showAddToCart && (
                     <button
@@ -1824,13 +2996,25 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                 </div>
                 {showBuyNow && (
                   <button
-                    className={`h-12 uppercase tracking-wider text-xs font-medium border transition-colors ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={{ borderColor: tokens.ctaSecondaryBorder, color: tokens.ctaSecondaryText }}
+                    className={`h-12 uppercase tracking-wider text-xs font-medium border transition-all ${buyNowDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer bg-[var(--cta-secondary-bg)] shadow-sm hover:bg-[var(--cta-secondary-hover-bg)] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cta-secondary-ring)]'}`}
+                    style={{
+                      borderColor: tokens.ctaSecondaryBorder,
+                      color: tokens.ctaSecondaryText,
+                      '--cta-secondary-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-hover-bg': tokens.ctaSecondaryHoverBg,
+                      '--cta-secondary-ring': tokens.inputRing,
+                    } as React.CSSProperties}
                     disabled={buyNowDisabled}
                     onClick={() => { if (!buyNowDisabled) { onBuyNow(1, selectedVariant?._id); } }}
                   >
                     {buyNowLabel}
                   </button>
+                )}
+                {stockStatus && (
+                  <div className="hidden md:flex items-center gap-2 text-xs md:text-sm font-medium" style={{ color: stockStatus.color }}>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stockStatus.color }} />
+                    <span>{stockStatus.label}</span>
+                  </div>
                 )}
               </div>
             )}
@@ -1845,39 +3029,66 @@ function MinimalStyle({ product, brandColor, tokens, relatedProducts, enabledFie
                     <span className="font-mono" style={{ color: tokens.bodyText }}>{product.sku}</span>
                   </div>
                 )}
-                {showStock && (
-                  <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: tokens.divider }}>
-                    <span>Tình trạng</span>
-                    <span style={{ color: inStock ? tokens.stockSuccessText : tokens.stockDangerText }}>
-                      {inStock ? 'Còn hàng' : 'Hết hàng'}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
 
         {commentsSection}
-        {showDescription && resolvedDescription && (
+        {(showDescription && resolvedDescription) || showAllProductImagesSection || supplementalContent?.preContent || supplementalContent?.postContent ? (
           <section className="mt-10 rounded-2xl border px-6 py-8" style={{ borderColor: tokens.border }}>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: tokens.headingColor }}>Mô tả sản phẩm</h2>
-            <ExpandableDescription
-              content={resolvedDescription}
-              className="leading-relaxed font-light text-justify"
-              style={{ color: tokens.bodyText }}
-              buttonStyle={{ color: tokens.primary }}
-            />
+            <ExpandableProductDescriptionBlock buttonStyle={{ color: tokens.primary }}>
+              {supplementalContent?.preContent ? (
+                <RichContent
+                  content={toRichTextContent(supplementalContent.preContent)}
+                  className="leading-relaxed font-light text-justify"
+                  style={{ color: tokens.bodyText }}
+                />
+              ) : null}
+              {showDescription && resolvedDescription && (
+                <RichContent
+                  content={resolvedDescription}
+                  className="leading-relaxed font-light text-justify"
+                  style={{ color: tokens.bodyText }}
+                />
+              )}
+              {supplementalContent?.postContent ? (
+                <RichContent
+                  content={toRichTextContent(supplementalContent.postContent)}
+                  className="leading-relaxed font-light text-justify"
+                  style={{ color: tokens.bodyText }}
+                />
+              ) : null}
+              {showAllProductImagesSection && (
+                <ProductDescriptionImages
+                  images={images}
+                  tokens={tokens}
+                  frameAspectRatio={imageFrame.frameAspectRatio}
+                />
+              )}
+            </ExpandableProductDescriptionBlock>
           </section>
-        )}
+        ) : null}
+        <section className="mt-10">
+          <ProductSupplementalFaqAccordion faqItems={supplementalContent?.faqItems ?? []} tokens={tokens} />
+        </section>
         <RelatedProductsSection
           products={relatedProducts}
           categorySlug={product.categorySlug}
           brandColor={brandColor}
           tokens={tokens}
+          imageAspectRatio={imageAspectRatio}
           showPrice={showPrice}
           showSalePrice={enabledFields.has('salePrice')}
           saleMode={saleMode}
+          mode={relatedProductsMode}
+          page={relatedProductsPage}
+          perPage={relatedProductsPerPage}
+          totalCount={relatedProductsTotalCount}
+          onPageChange={onRelatedProductsPageChange}
+          loadMoreRef={relatedLoadMoreRef}
+          infiniteStatus={relatedInfiniteStatus}
+          isLoading={relatedIsLoading}
         />
       </main>
     </div>
@@ -2258,24 +3469,58 @@ function RelatedProductsSection({
   categorySlug,
   brandColor,
   tokens,
+  imageAspectRatio,
   showPrice,
   showSalePrice,
   saleMode,
+  mode,
+  page,
+  perPage,
+  totalCount,
+  onPageChange,
+  loadMoreRef,
+  infiniteStatus,
+  isLoading,
 }: {
   products: RelatedProduct[];
   categorySlug?: string;
   brandColor: string;
   tokens: ProductDetailColors;
+  imageAspectRatio: ProductImageAspectRatio;
   showPrice: boolean;
   showSalePrice: boolean;
   saleMode: ProductsSaleMode;
+  mode: RelatedProductsMode;
+  page: number;
+  perPage: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
+  loadMoreRef: (node?: Element | null) => void;
+  infiniteStatus: PaginationStatus;
+  isLoading: boolean;
 }) {
-  if (products.length === 0) {return null;}
+  const { frame } = useProductFrameConfig();
+  if (products.length === 0 && !isLoading) {return null;}
+  const totalPages = totalCount > 0 ? Math.max(Math.ceil(totalCount / perPage), 1) : 1;
+  const paginationItems = mode === 'pagination' ? generatePaginationItems(page, totalPages) : [];
+  const canGoPrev = page > 1;
+  const canGoNext = page < totalPages;
+  const isExhausted = infiniteStatus === 'Exhausted';
+  const relatedImageStyle: React.CSSProperties = {
+    aspectRatio: getProductImageFrameConfig(imageAspectRatio, 'classic').frameAspectRatio,
+  };
 
   return (
     <section className="mt-16 pt-12 border-t" style={{ borderColor: tokens.divider }}>
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm liên quan</h2>
+        <div>
+          <h2 className="text-2xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm liên quan</h2>
+          <p className="text-xs mt-1" style={{ color: tokens.metaText }}>
+            {mode === 'fixed' && '4 sản phẩm'}
+            {mode === 'infiniteScroll' && `Cuộn vô hạn · ${perPage}/lần`}
+            {mode === 'pagination' && `Phân trang · ${perPage}/trang`}
+          </p>
+        </div>
         {categorySlug && (
           <Link href={`/products?category=${categorySlug}`} className="text-sm font-medium flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: brandColor }}>
             Xem tất cả <ChevronRight size={16} />
@@ -2292,12 +3537,13 @@ function RelatedProductsSection({
             className="rounded-xl overflow-hidden border"
             style={{ borderColor: tokens.relatedCardBorder, backgroundColor: tokens.relatedCardBg }}
           >
-            <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.surfaceMuted }}>
+            <div className="overflow-hidden relative" style={{ ...relatedImageStyle, backgroundColor: tokens.surfaceMuted }}>
               {p.image ? (
-                <Image src={p.image} alt={p.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+                <Image mode="thumb" src={p.image} alt={p.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.emptyStateIcon }} /></div>
               )}
+              <ProductImageFrameOverlay frame={frame} />
               {showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
                 <span className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded" style={{ backgroundColor: tokens.discountBadgeBg, color: tokens.discountBadgeText }}>-{Math.round((1 - p.price / priceDisplay.comparePrice) * 100)}%</span>
               )}
@@ -2317,6 +3563,65 @@ function RelatedProductsSection({
           );
         })}
       </div>
+      {isLoading && (
+        <div className="text-center mt-6 text-xs" style={{ color: tokens.metaText }}>
+          Đang tải sản phẩm...
+        </div>
+      )}
+      {mode === 'infiniteScroll' && (
+        <div ref={loadMoreRef} className="text-center mt-6 text-xs" style={{ color: tokens.metaText }}>
+          {isLoading ? 'Đang tải thêm...' : (isExhausted ? 'Đã hiển thị hết sản phẩm.' : 'Cuộn để xem thêm...')}
+        </div>
+      )}
+      {mode === 'pagination' && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            type="button"
+            className="h-8 px-3 rounded-md border text-xs font-medium"
+            onClick={() => onPageChange(Math.max(page - 1, 1))}
+            disabled={!canGoPrev}
+            style={{
+              borderColor: tokens.border,
+              color: canGoPrev ? tokens.metaText : tokens.softText,
+              backgroundColor: tokens.surface,
+            }}
+          >
+            Trước
+          </button>
+          {paginationItems.map((item, index) => {
+            if (item === 'ellipsis') {
+              return <span key={`ellipsis-${index}`} className="text-xs" style={{ color: tokens.metaText }}>…</span>;
+            }
+            const isActive = item === page;
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onPageChange(item)}
+                className="h-8 w-8 rounded-md border text-xs font-semibold"
+                style={isActive
+                  ? { backgroundColor: tokens.ctaPrimaryBg, color: tokens.ctaPrimaryText, borderColor: tokens.ctaPrimaryBg }
+                  : { borderColor: tokens.border, color: tokens.metaText, backgroundColor: tokens.surface }}
+              >
+                {item}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="h-8 px-3 rounded-md border text-xs font-medium"
+            onClick={() => onPageChange(Math.min(page + 1, totalPages))}
+            disabled={!canGoNext}
+            style={{
+              borderColor: tokens.border,
+              color: canGoNext ? tokens.metaText : tokens.softText,
+              backgroundColor: tokens.surface,
+            }}
+          >
+            Sau
+          </button>
+        </div>
+      )}
     </section>
   );
 }

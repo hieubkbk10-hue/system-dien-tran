@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -124,7 +124,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                 <article className="flex flex-col overflow-hidden rounded-xl border h-full" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   <div className="relative aspect-[16/10] overflow-hidden">
                     {post.thumbnail ? (
-                      <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" />
+                      <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" />
                     ) : (
                       renderImagePlaceholder(32)
                     )}
@@ -168,7 +168,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                 <article className="flex w-full flex-col sm:flex-row overflow-hidden rounded-lg border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   <div className="relative aspect-[16/9] sm:aspect-[4/3] w-full sm:w-[220px] overflow-hidden flex-shrink-0">
                     {post.thumbnail ? (
-                      <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 640px) 220px, 100vw" />
+                      <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 640px) 220px, 100vw" />
                     ) : (
                       renderImagePlaceholder(24)
                     )}
@@ -219,7 +219,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                 <article className="relative flex h-full min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex-col justify-end overflow-hidden rounded-xl border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   <div className="absolute inset-0 z-0">
                     {featuredPost.thumbnail ? (
-                      <Image src={featuredPost.thumbnail} alt={featuredPost.title} fill className="object-cover" sizes="(min-width: 1024px) 70vw, 100vw" />
+                      <Image mode="primary" src={featuredPost.thumbnail} alt={featuredPost.title} fill className="object-cover" sizes="(min-width: 1024px) 70vw, 100vw" />
                     ) : (
                       renderImagePlaceholder(40)
                     )}
@@ -245,7 +245,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                   <article className="flex items-center space-x-4 rounded-lg p-2 border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                     <div className="relative h-14 w-14 md:h-16 md:w-16 shrink-0 overflow-hidden rounded-md border" style={{ borderColor: tokens.cardBorder }}>
                       {post.thumbnail ? (
-                        <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="64px" />
+                        <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="64px" />
                       ) : (
                         renderImagePlaceholder(16)
                       )}
@@ -292,7 +292,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
               <Link href={`/posts/${featured.slug}`} className="group block">
                 <article className="relative rounded-xl overflow-hidden aspect-[16/9] border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   {featured.thumbnail ? (
-                    <Image src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+                    <Image mode="primary" src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
                   ) : (
                     renderImagePlaceholder(36)
                   )}
@@ -313,7 +313,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                   <article className="rounded-xl border overflow-hidden h-full" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                     <div className="relative aspect-[16/10] overflow-hidden">
                       {post.thumbnail ? (
-                        <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 50vw" />
+                        <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 50vw" />
                       ) : (
                         renderImagePlaceholder(20)
                       )}
@@ -333,7 +333,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
               <Link href={`/posts/${featured.slug}`} className="lg:row-span-2 group">
                 <article className="relative rounded-2xl overflow-hidden h-full min-h-[420px] border" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   {featured.thumbnail ? (
-                    <Image src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+                    <Image mode="primary" src={featured.thumbnail} alt={featured.title} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
                   ) : (
                     renderImagePlaceholder(42)
                   )}
@@ -355,7 +355,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                 <article className="rounded-xl border overflow-hidden h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                   <div className="relative aspect-[16/10] overflow-hidden flex-shrink-0">
                     {post.thumbnail ? (
-                      <Image src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 50vw" />
+                      <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" sizes="(min-width: 1024px) 33vw, 50vw" />
                     ) : (
                       renderImagePlaceholder(28)
                     )}
@@ -455,7 +455,7 @@ export function BlogSection({ config, brandColor, secondary, mode, title }: Blog
                   <article className="rounded-xl border overflow-hidden h-full flex flex-col" style={{ borderColor: tokens.cardBorder, backgroundColor: tokens.cardBg }}>
                     <div className="relative aspect-[16/10] overflow-hidden flex-shrink-0">
                       {post.thumbnail ? (
-                        <Image src={post.thumbnail} alt={post.title} fill className="object-cover" draggable={false} sizes="(min-width: 1024px) 360px, (min-width: 768px) 320px, 280px" />
+                        <Image mode="thumb" src={post.thumbnail} alt={post.title} fill className="object-cover" draggable={false} sizes="(min-width: 1024px) 360px, (min-width: 768px) 320px, 280px" />
                       ) : (
                         renderImagePlaceholder(32)
                       )}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { Eye, FileText } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { PostsListColors } from '../colors';
@@ -68,8 +68,9 @@ export function FullWidthLayout({ posts, brandColor: _brandColor, tokens, catego
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  ref={(img) => {
-                    if (img?.complete && img.naturalWidth === 0) {
+                    mode="thumb"
+                  onLoadingComplete={(img) => {
+                    if (img.naturalWidth === 0) {
                       markThumbnailBroken(post._id);
                     }
                   }}

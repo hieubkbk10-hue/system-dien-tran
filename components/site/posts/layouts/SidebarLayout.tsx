@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { ChevronDown, Eye, FileText, Folder, Search } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { SortOption } from '../PostsFilter';
@@ -211,8 +211,9 @@ export function SidebarLayout({
                               fill
                               sizes="96px"
                               className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              ref={(img) => {
-                                if (img?.complete && img.naturalWidth === 0) {
+                              mode="thumb"
+                              onLoadingComplete={(img) => {
+                                if (img.naturalWidth === 0) {
                                   markThumbnailBroken(post._id);
                                 }
                               }}

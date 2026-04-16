@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import type { PreviewDevice } from '../../_shared/hooks/usePreviewDevice';
@@ -846,3 +846,4 @@ export function TeamSectionShared({
     }
   }
 }
+

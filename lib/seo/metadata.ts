@@ -4,7 +4,7 @@
  */
 
 import type { Metadata } from 'next';
-import type { ContactSettings, SEOSettings, SiteSettings } from '@/lib/get-settings';
+import type { ContactSettings, SEOSettings, SiteSettings, SocialSettings } from '@/lib/get-settings';
 import {
   type EntitySeoData,
   resolveCanonicalUrl,
@@ -25,6 +25,33 @@ export type SeoContext = {
   title: string;
 };
 
+const resolveTwitterHandle = (value?: string): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  if (trimmed.startsWith('@')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('http')) {
+    try {
+      const url = new URL(trimmed);
+      const segments = url.pathname.split('/').filter(Boolean);
+      const handle = segments[0];
+      if (!handle) {
+        return undefined;
+      }
+      return handle.startsWith('@') ? handle : `@${handle}`;
+    } catch {
+      return undefined;
+    }
+  }
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+};
+
 const resolveBaseUrl = (siteUrl?: string): string => {
   const baseUrl = (siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com').replace(/\/$/, '');
   return baseUrl || 'https://example.com';
@@ -42,6 +69,26 @@ const resolveLocale = (language: string): string => {
     return 'vi_VN';
   }
   return 'en_US';
+};
+
+const buildAlternates = (params: {
+  canonical?: string;
+  indexable: boolean;
+}): Metadata['alternates'] | undefined => {
+  if (!params.canonical) {
+    return undefined;
+  }
+
+  if (!params.indexable) {
+    return undefined;
+  }
+
+  return {
+    canonical: params.canonical,
+    languages: {
+      'vi-VN': params.canonical,
+    },
+  };
 };
 
 // Legacy: giữ để backward compatibility
@@ -88,21 +135,32 @@ export const buildMetadata = (params: {
   openGraph?: Partial<NonNullable<Metadata['openGraph']>>;
   title: string;
   useTitleTemplate?: boolean;
+  twitterSite?: string;
+  twitterCreator?: string;
 }): Metadata => {
   const resolvedImage = params.image || params.context.image;
   const resolvedKeywords = params.keywords ?? params.context.keywords;
   const openGraphTitle = params.useTitleTemplate
     ? params.title
     : `${params.title} | ${params.context.siteName}`;
+  const twitterSite = resolveTwitterHandle(params.twitterSite);
+  const twitterCreator = resolveTwitterHandle(params.twitterCreator || params.twitterSite);
+  const openGraphImage = resolvedImage
+    ? { url: resolvedImage, width: 1200, height: 630, alt: openGraphTitle }
+    : undefined;
+  const twitterImage = resolvedImage ? { url: resolvedImage, alt: openGraphTitle } : undefined;
 
   return {
-    alternates: params.canonical ? { canonical: params.canonical } : undefined,
+    alternates: buildAlternates({
+      canonical: params.canonical,
+      indexable: params.indexable,
+    }),
     description: params.description,
     keywords: resolvedKeywords.length > 0 ? resolvedKeywords : undefined,
     metadataBase: buildMetadataBase(params.context.baseUrl),
     openGraph: {
       description: params.description,
-      images: resolvedImage ? [{ url: resolvedImage }] : undefined,
+      images: openGraphImage ? [openGraphImage] : undefined,
       locale: params.context.locale,
       siteName: params.context.siteName,
       title: openGraphTitle,
@@ -120,7 +178,9 @@ export const buildMetadata = (params: {
     twitter: {
       card: 'summary_large_image',
       description: params.description,
-      images: resolvedImage ? [resolvedImage] : undefined,
+      images: twitterImage ? [twitterImage] : undefined,
+      ...(twitterSite && { site: twitterSite }),
+      ...(twitterCreator && { creator: twitterCreator }),
       title: openGraphTitle,
     },
   };
@@ -141,6 +201,7 @@ export const buildSeoMetadata = (params: {
   descriptionOverride?: string;
   openGraphType?: 'website' | 'article';
   useTitleTemplate?: boolean;
+  social?: SocialSettings;
 }): Metadata => {
   const baseUrl = resolveBaseUrl(params.site.site_url);
   const locale = resolveLocale(params.site.site_language || 'vi');
@@ -188,15 +249,24 @@ export const buildSeoMetadata = (params: {
   });
 
   const openGraphTitle = params.useTitleTemplate ? title : `${title} | ${siteName}`;
+  const twitterSite = resolveTwitterHandle(params.social?.social_twitter);
+  const twitterCreator = resolveTwitterHandle(params.social?.social_twitter);
+  const openGraphImage = image
+    ? { url: image, width: 1200, height: 630, alt: openGraphTitle }
+    : undefined;
+  const twitterImage = image ? { url: image, alt: openGraphTitle } : undefined;
 
   return {
-    alternates: canonical ? { canonical } : undefined,
+    alternates: buildAlternates({
+      canonical,
+      indexable,
+    }),
     description,
     keywords: keywords.length > 0 ? keywords : undefined,
     metadataBase: buildMetadataBase(baseUrl),
     openGraph: {
       description,
-      images: image ? [{ url: image }] : undefined,
+      images: openGraphImage ? [openGraphImage] : undefined,
       locale,
       siteName,
       title: openGraphTitle,
@@ -213,7 +283,9 @@ export const buildSeoMetadata = (params: {
     twitter: {
       card: 'summary_large_image',
       description,
-      images: image ? [image] : undefined,
+      images: twitterImage ? [twitterImage] : undefined,
+      ...(twitterSite && { site: twitterSite }),
+      ...(twitterCreator && { creator: twitterCreator }),
       title: openGraphTitle,
     },
   };
@@ -227,6 +299,7 @@ export const buildHubMetadata = (params: {
   site: SiteSettings;
   title: string;
   routeType?: RouteType;
+  social?: SocialSettings;
 }): Metadata => buildSeoMetadata({
   contact: params.contact,
   descriptionOverride: params.description,
@@ -234,5 +307,6 @@ export const buildHubMetadata = (params: {
   routeType: params.routeType ?? 'list',
   seo: params.seo,
   site: params.site,
+  social: params.social,
   titleOverride: params.title,
 });

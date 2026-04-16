@@ -9,6 +9,7 @@ export interface SiteSettings {
   site_favicon: string;
   site_brand_primary: string;
   site_brand_secondary: string;
+  site_brand_mode: 'single' | 'dual';
   site_brand_color: string;
   site_timezone: string;
   site_language: string;
@@ -19,6 +20,8 @@ export interface SEOSettings {
   seo_description: string;
   seo_keywords: string;
   seo_og_image: string;
+  seo_google_verification: string;
+  seo_bing_verification: string;
 }
 
 export interface ContactSettings {
@@ -61,6 +64,8 @@ const SETTINGS_KEYS = {
     "seo_description",
     "seo_keywords",
     "seo_og_image",
+    "seo_google_verification",
+    "seo_bing_verification",
   ],
   social: [
     "social_facebook",
@@ -79,69 +84,81 @@ const SETTINGS_KEYS = {
     "site_favicon",
     "site_brand_primary",
     "site_brand_secondary",
+    "site_brand_mode",
     "site_brand_color",
     "site_timezone",
     "site_language",
   ],
 };
 
+const normalizeSiteSettings = (settings: Record<string, unknown>): SiteSettings => ({
+  site_brand_primary: (settings.site_brand_primary as string) || (settings.site_brand_color as string) || "#3b82f6",
+  site_brand_secondary: (settings.site_brand_secondary as string) || "",
+  site_brand_mode: settings.site_brand_mode === 'single' ? 'single' : 'dual',
+  site_brand_color: (settings.site_brand_primary as string) || (settings.site_brand_color as string) || "#3b82f6",
+  site_favicon: (settings.site_favicon as string) || "",
+  site_language: (settings.site_language as string) || "vi",
+  site_logo: (settings.site_logo as string) || "",
+  site_name: (settings.site_name as string) || "Website",
+  site_tagline: (settings.site_tagline as string) || "",
+  site_timezone: (settings.site_timezone as string) || "Asia/Ho_Chi_Minh",
+  site_url: (settings.site_url as string) || "",
+});
+
+const normalizeSEOSettings = (settings: Record<string, unknown>): SEOSettings => ({
+  seo_bing_verification: (settings.seo_bing_verification as string) || "",
+  seo_description: (settings.seo_description as string) || "",
+  seo_google_verification: (settings.seo_google_verification as string) || "",
+  seo_keywords: (settings.seo_keywords as string) || "",
+  seo_og_image: (settings.seo_og_image as string) || "",
+  seo_title: (settings.seo_title as string) || "",
+});
+
+const normalizeContactSettings = (settings: Record<string, unknown>): ContactSettings => ({
+  contact_address: (settings.contact_address as string) || "",
+  contact_email: (settings.contact_email as string) || "",
+  contact_google_map_embed_iframe: (settings.contact_google_map_embed_iframe as string) || "",
+  contact_map_provider: (settings.contact_map_provider as string) || "openstreetmap",
+  contact_phone: (settings.contact_phone as string) || "",
+  contact_zalo: (settings.contact_zalo as string) || "",
+});
+
+const normalizeSocialSettings = (settings: Record<string, unknown>): SocialSettings => ({
+  social_facebook: (settings.social_facebook as string) || "",
+  social_instagram: (settings.social_instagram as string) || "",
+  social_linkedin: (settings.social_linkedin as string) || "",
+  social_pinterest: (settings.social_pinterest as string) || "",
+  social_tiktok: (settings.social_tiktok as string) || "",
+  social_twitter: (settings.social_twitter as string) || "",
+  social_youtube: (settings.social_youtube as string) || "",
+});
+
 export const getSiteSettings =  async (): Promise<SiteSettings> => {
   const client = getConvexClient();
   return client.query(api.settings.getMultiple, {
     keys: SETTINGS_KEYS.site,
-  }).then((settings) => ({
-    site_brand_primary: (settings.site_brand_primary as string) || (settings.site_brand_color as string) || "#3b82f6",
-    site_brand_secondary: (settings.site_brand_secondary as string) || "",
-    site_brand_color: (settings.site_brand_primary as string) || (settings.site_brand_color as string) || "#3b82f6",
-    site_favicon: (settings.site_favicon as string) || "",
-    site_language: (settings.site_language as string) || "vi",
-    site_logo: (settings.site_logo as string) || "",
-    site_name: (settings.site_name as string) || "Website",
-    site_tagline: (settings.site_tagline as string) || "",
-    site_timezone: (settings.site_timezone as string) || "Asia/Ho_Chi_Minh",
-    site_url: (settings.site_url as string) || "",
-  }));
+  }).then(normalizeSiteSettings);
 };
 
 export const getSEOSettings =  async (): Promise<SEOSettings> => {
   const client = getConvexClient();
   return client.query(api.settings.getMultiple, {
     keys: SETTINGS_KEYS.seo,
-  }).then((settings) => ({
-    seo_description: (settings.seo_description as string) || "",
-    seo_keywords: (settings.seo_keywords as string) || "",
-    seo_og_image: (settings.seo_og_image as string) || "",
-    seo_title: (settings.seo_title as string) || "",
-  }));
+  }).then(normalizeSEOSettings);
 };
 
 export const getContactSettings =  async (): Promise<ContactSettings> => {
   const client = getConvexClient();
   return client.query(api.settings.getMultiple, {
     keys: SETTINGS_KEYS.contact,
-  }).then((settings) => ({
-    contact_address: (settings.contact_address as string) || "",
-    contact_email: (settings.contact_email as string) || "",
-    contact_google_map_embed_iframe: (settings.contact_google_map_embed_iframe as string) || "",
-    contact_map_provider: (settings.contact_map_provider as string) || "openstreetmap",
-    contact_phone: (settings.contact_phone as string) || "",
-    contact_zalo: (settings.contact_zalo as string) || "",
-  }));
+  }).then(normalizeContactSettings);
 };
 
 export const getSocialSettings = async (): Promise<SocialSettings> => {
   const client = getConvexClient();
   return client.query(api.settings.getMultiple, {
     keys: SETTINGS_KEYS.social,
-  }).then((settings) => ({
-    social_facebook: (settings.social_facebook as string) || "",
-    social_instagram: (settings.social_instagram as string) || "",
-    social_linkedin: (settings.social_linkedin as string) || "",
-    social_pinterest: (settings.social_pinterest as string) || "",
-    social_tiktok: (settings.social_tiktok as string) || "",
-    social_twitter: (settings.social_twitter as string) || "",
-    social_youtube: (settings.social_youtube as string) || "",
-  }));
+  }).then(normalizeSocialSettings);
 };
 
 export const getAllPublicSettings =  async (): Promise<PublicSettings> => Promise.all([
@@ -150,3 +167,5 @@ export const getAllPublicSettings =  async (): Promise<PublicSettings> => Promis
   getContactSettings(),
   getSocialSettings(),
 ]).then(([site, seo, contact, social]) => ({ contact, seo, site, social }));
+
+export const getPublicSettings = async (): Promise<PublicSettings> => getAllPublicSettings();

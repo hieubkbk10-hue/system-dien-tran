@@ -19,6 +19,8 @@ import { DigitalCredentialsForm } from '@/components/orders/DigitalCredentialsFo
 import { stripHtml, truncateText } from '@/lib/seo';
 import { ProductCategoryCombobox } from '@/app/admin/products/components/ProductCategoryCombobox';
 import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickCreateCategoryModal';
+import { resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
+import { HomeComponentStickyFooter } from '@/app/admin/home-components/_shared/components/HomeComponentStickyFooter';
 
 const MODULE_KEY = 'products';
 
@@ -53,6 +55,7 @@ function ProductCreateContent() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState<string | undefined>();
+  const [imageStorageId, setImageStorageId] = useState<Id<'_storage'> | undefined>();
   const [galleryItems, setGalleryItems] = useState<ImageItem[]>([]);
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,6 +119,15 @@ function ProductCreateContent() {
       return value;
     }
     return 'cart';
+  }, [settingsData]);
+
+  const enableImageCrop = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'enableImageCrop');
+    return Boolean(setting?.value);
+  }, [settingsData]);
+  const defaultImageAspectRatio = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'defaultImageAspectRatio');
+    return resolveProductImageAspectRatio(setting?.value);
   }, [settingsData]);
 
   const isAffiliateMode = saleMode === 'affiliate';
@@ -228,7 +240,11 @@ function ProductCreateContent() {
       const resolvedStock = productType === 'digital' ? 0 : (Number.parseInt(stock) || 0);
       const resolvedMetaTitle = truncateText(name.trim(), 60);
       const resolvedMetaDescription = truncateText(stripHtml(description || ''), 160);
-      const resolvedImages = galleryItems.map(item => item.url).filter(Boolean);
+      const resolvedGalleryItems = galleryItems
+        .map(item => ({ url: item.url, storageId: item.storageId }))
+        .filter(item => Boolean(item.url));
+      const resolvedImages = resolvedGalleryItems.map(item => item.url);
+      const resolvedImageStorageIds = resolvedGalleryItems.map(item => item.storageId ?? null);
       const resolvedSalePrice = hideBasePricing ? undefined : resolveSalePrice(salePrice);
       await createProduct({
         ...(isAffiliateMode ? { affiliateLink: affiliateLink.trim() || undefined } : {}),
@@ -239,7 +255,9 @@ function ProductCreateContent() {
         htmlRender: htmlRender.trim() || undefined,
         hasVariants: variantEnabled ? hasVariants : false,
         image,
+        imageStorageId: image ? (imageStorageId ?? null) : null,
         images: enabledFields.has('images') ? resolvedImages : undefined,
+        imageStorageIds: enabledFields.has('images') ? resolvedImageStorageIds : undefined,
         metaDescription: enabledFields.has('metaDescription')
           ? (metaDescription.trim() || resolvedMetaDescription || undefined)
           : undefined,
@@ -605,7 +623,16 @@ function ProductCreateContent() {
           <Card>
             <CardHeader><CardTitle className="text-base">Ảnh sản phẩm</CardTitle></CardHeader>
             <CardContent>
-              <ImageUpload value={image} onChange={setImage} folder="products" />
+              <ImageUpload
+                value={image}
+                storageId={imageStorageId}
+                onChange={setImage}
+                onStorageIdChange={setImageStorageId}
+                folder="products"
+                naming={{ entityName: slug.trim() || 'product', style: 'slug-index', index: 1 }}
+                enableCrop={enableImageCrop}
+                cropAspectRatio={defaultImageAspectRatio}
+              />
             </CardContent>
           </Card>
 
@@ -617,10 +644,16 @@ function ProductCreateContent() {
                   items={galleryItems}
                   onChange={setGalleryItems}
                   folder="products"
+                  naming={{ entityName: slug.trim() || 'product', style: 'slug-index' }}
+                  namingIndexOffset={image ? 1 : 0}
+                  deleteMode="defer"
                   imageKey="url"
                   minItems={0}
                   maxItems={20}
                   aspectRatio="square"
+                  enableCrop={enableImageCrop}
+                  cropAspectRatio={defaultImageAspectRatio}
+                  imageAspectRatio={defaultImageAspectRatio}
                   columns={2}
                   addButtonText="Thêm ảnh"
                   emptyText="Chưa có ảnh trong thư viện"
@@ -632,16 +665,23 @@ function ProductCreateContent() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/products'); }}>Hủy bỏ</Button>
-        <div className="flex gap-2">
-          <Button type="button" variant="secondary" onClick={() =>{  setStatus('Draft'); }}>Lưu nháp</Button>
-          <Button type="submit" variant="accent" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-            Tạo sản phẩm
-          </Button>
-        </div>
-      </div>
+      <HomeComponentStickyFooter
+        isSubmitting={isSubmitting}
+        submitLabel="Tạo sản phẩm"
+        onCancel={() =>{  router.push('/admin/products'); }}
+        disableSave={isSubmitting}
+      >
+        <>
+          <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/products'); }}>Hủy bỏ</Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" onClick={() =>{  setStatus('Draft'); }}>Lưu nháp</Button>
+            <Button type="submit" variant="accent" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+              Tạo sản phẩm
+            </Button>
+          </div>
+        </>
+      </HomeComponentStickyFooter>
     </form>
     </>
   );

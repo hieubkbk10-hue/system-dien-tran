@@ -20,6 +20,8 @@ import { stripHtml, truncateText } from '@/lib/seo';
 import { ProductCategoryCombobox } from '@/app/admin/products/components/ProductCategoryCombobox';
 import { QuickCreateCategoryModal } from '@/app/admin/products/components/QuickCreateCategoryModal';
 import { normalizeRichText } from '@/app/admin/lib/normalize-rich-text';
+import { resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
+import { HomeComponentStickyFooter } from '@/app/admin/home-components/_shared/components/HomeComponentStickyFooter';
 
 const MODULE_KEY = 'products';
 
@@ -57,6 +59,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [image, setImage] = useState<string | undefined>();
+  const [imageStorageId, setImageStorageId] = useState<Id<'_storage'> | undefined>();
   const [galleryItems, setGalleryItems] = useState<ImageItem[]>([]);
   const [status, setStatus] = useState<'Draft' | 'Active' | 'Archived'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,6 +100,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     galleryImages: string[];
     hasVariants: boolean;
     image: string;
+    imageStorageId?: Id<'_storage'>;
     metaDescription: string;
     metaTitle: string;
     name: string;
@@ -147,6 +151,15 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     return 'cart';
   }, [settingsData]);
 
+  const enableImageCrop = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'enableImageCrop');
+    return Boolean(setting?.value);
+  }, [settingsData]);
+  const defaultImageAspectRatio = useMemo(() => {
+    const setting = settingsData?.find(s => s.settingKey === 'defaultImageAspectRatio');
+    return resolveProductImageAspectRatio(setting?.value);
+  }, [settingsData]);
+
   const isAffiliateMode = saleMode === 'affiliate';
   const isPriceRequired = saleMode === 'cart';
   const showProductTypeSelector = productTypeMode === 'both';
@@ -166,6 +179,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     galleryImages: galleryItems.map(item => item.url).filter(Boolean),
     hasVariants,
     image: image ?? '',
+    imageStorageId,
     metaDescription: metaDescription.trim(),
     metaTitle: metaTitle.trim(),
     name: name.trim(),
@@ -189,6 +203,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
     galleryItems,
     hasVariants,
     image,
+    imageStorageId,
     metaDescription,
     metaTitle,
     name,
@@ -239,7 +254,13 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       setMetaTitle(productData.metaTitle ?? '');
       setMetaDescription(productData.metaDescription ?? '');
       setImage(productData.image);
-      setGalleryItems((productData.images ?? []).map((url, index) => ({ id: `${productData._id}-img-${index}`, url })));
+      setImageStorageId((productData as { imageStorageId?: Id<'_storage'> }).imageStorageId);
+      const galleryStorageIds = (productData as { imageStorageIds?: (Id<'_storage'> | null)[] }).imageStorageIds ?? [];
+      setGalleryItems((productData.images ?? []).map((url, index) => ({
+        id: `${productData._id}-img-${index}`,
+        url,
+        storageId: galleryStorageIds[index] ?? undefined,
+      })));
       setStatus(productData.status);
       setHasVariants(productData.hasVariants ?? false);
       setSelectedOptionIds(productData.optionIds ?? []);
@@ -258,6 +279,7 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         galleryImages: (productData.images ?? []).filter(Boolean),
         hasVariants: productData.hasVariants ?? false,
         image: productData.image ?? '',
+        imageStorageId: (productData as { imageStorageId?: Id<'_storage'> }).imageStorageId,
         metaDescription: (productData.metaDescription ?? '').trim(),
         metaTitle: (productData.metaTitle ?? '').trim(),
         name: productData.name.trim(),
@@ -378,7 +400,11 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
       const resolvedStock = productType === 'digital' ? 0 : (parseInt(stock) || 0);
       const resolvedMetaTitle = truncateText(name.trim(), 60);
       const resolvedMetaDescription = truncateText(stripHtml(description || ''), 160);
-      const resolvedImages = galleryItems.map(item => item.url).filter(Boolean);
+      const resolvedGalleryItems = galleryItems
+        .map(item => ({ url: item.url, storageId: item.storageId }))
+        .filter(item => Boolean(item.url));
+      const resolvedImages = resolvedGalleryItems.map(item => item.url);
+      const resolvedImageStorageIds = resolvedGalleryItems.map(item => item.storageId ?? null);
       const resolvedSalePrice = hideBasePricing ? undefined : resolveSalePrice(salePrice);
       const resolvedMetaTitleValue = enabledFields.has('metaTitle')
         ? (metaTitle.trim() || resolvedMetaTitle || '')
@@ -396,7 +422,9 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         id: id as Id<"products">,
         hasVariants: variantEnabled ? hasVariants : undefined,
         image,
+        imageStorageId: image ? (imageStorageId ?? null) : null,
         images: enabledFields.has('images') ? resolvedImages : undefined,
+        imageStorageIds: enabledFields.has('images') ? resolvedImageStorageIds : undefined,
         metaDescription: enabledFields.has('metaDescription')
           ? (resolvedMetaDescriptionValue || undefined)
           : undefined,
@@ -842,7 +870,16 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
           <Card>
             <CardHeader><CardTitle className="text-base">Ảnh sản phẩm</CardTitle></CardHeader>
             <CardContent>
-              <ImageUpload value={image} onChange={setImage} folder="products" />
+              <ImageUpload
+                value={image}
+                storageId={imageStorageId}
+                onChange={setImage}
+                onStorageIdChange={setImageStorageId}
+                folder="products"
+                naming={{ entityName: slug.trim() || 'product', style: 'slug-index', index: 1 }}
+                enableCrop={enableImageCrop}
+                cropAspectRatio={defaultImageAspectRatio}
+              />
             </CardContent>
           </Card>
 
@@ -854,10 +891,16 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
                   items={galleryItems}
                   onChange={setGalleryItems}
                   folder="products"
+                  naming={{ entityName: slug.trim() || 'product', style: 'slug-index' }}
+                  namingIndexOffset={image ? 1 : 0}
+                  deleteMode="defer"
                   imageKey="url"
                   minItems={0}
                   maxItems={20}
                   aspectRatio="square"
+                  enableCrop={enableImageCrop}
+                  cropAspectRatio={defaultImageAspectRatio}
+                  imageAspectRatio={defaultImageAspectRatio}
                   columns={2}
                   addButtonText="Thêm ảnh"
                   emptyText="Chưa có ảnh trong thư viện"
@@ -885,22 +928,12 @@ function ProductEditContent({ params }: { params: Promise<{ id: string }> }) {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/products'); }}>Hủy bỏ</Button>
-        <Button
-          type="submit"
-          variant="accent"
-          disabled={isSubmitting || !hasChanges}
-          className={!hasChanges && !isSubmitting
-            ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
-            : undefined}
-        >
-          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          {isSubmitting || saveStatus === 'saving'
-            ? 'Đang lưu...'
-            : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
-        </Button>
-      </div>
+      <HomeComponentStickyFooter
+        isSubmitting={isSubmitting || saveStatus === 'saving'}
+        hasChanges={hasChanges}
+        onCancel={() =>{  router.push('/admin/products'); }}
+        submitLabel="Lưu thay đổi"
+      />
     </form>
     </>
   );

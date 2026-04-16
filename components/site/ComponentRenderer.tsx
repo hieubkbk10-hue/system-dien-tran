@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColors } from './hooks';
@@ -10,6 +11,7 @@ import { cn } from '@/app/admin/components/ui';
 import { resolveTypeOverrideColors } from '@/app/admin/home-components/_shared/lib/typeColorOverride';
 import { resolveTypeOverrideFont } from '@/app/admin/home-components/_shared/lib/typeFontOverride';
 import { getHomeComponentPriceLabel, resolveSaleMode } from '@/app/admin/home-components/_shared/lib/productPrice';
+import { getProductImageAspectRatioCssValue, resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
 import {
   getBentoColors,
   getFadeColors,
@@ -59,9 +61,20 @@ import type { CTAStyle } from '@/app/admin/home-components/cta/_types';
 import type { BenefitItem, BenefitsBrandMode, BenefitsConfig } from '@/app/admin/home-components/benefits/_types';
 import type { FaqConfig, FaqItem, FaqStyle } from '@/app/admin/home-components/faq/_types';
 import { BrandBadge } from './shared/BrandColorHelpers';
-import { BlogSection } from './BlogSection';
-import { ProductListSection } from './ProductListSection';
-import { ServiceListSection } from './ServiceListSection';
+const BlogSection = dynamic(
+  () => import('./BlogSection').then((mod) => ({ default: mod.BlogSection })),
+  { ssr: false, loading: () => null }
+);
+const ProductListSection = dynamic(
+  () => import('./ProductListSection').then((mod) => ({ default: mod.ProductListSection })),
+  { ssr: false, loading: () => null }
+);
+const ServiceListSection = dynamic(
+  () => import('./ServiceListSection').then((mod) => ({ default: mod.ServiceListSection })),
+  { ssr: false, loading: () => null }
+);
+import { HomepageCategoryHeroSection } from './HomepageCategoryHeroSection';
+import { getHomepageCategoryHeroColors } from '@/app/admin/home-components/homepage-category-hero/_lib/colors';
 import { PricingSection as PricingSectionRuntime } from './PricingSection';
 import { CareerSection as CareerSectionRuntime } from './CareerSection';
 import { VoucherPromotionsSection as VoucherPromotionsSectionRuntime } from './VoucherPromotionsSection';
@@ -78,6 +91,8 @@ import { ContactSection as ContactSectionRuntime } from './ContactSection';
 import { CaseStudySection } from './CaseStudySection';
 import { SpeedDialSection } from './SpeedDialSection';
 import { CountdownSectionWrapper } from './CountdownSectionWrapper';
+import type { HomepageCategoryHeroConfig } from '@/app/admin/home-components/homepage-category-hero/_types';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import {
   ArrowRight, ArrowUpRight,
   ChevronLeft, ChevronRight, Globe,
@@ -92,20 +107,22 @@ type SiteImageProps = Omit<React.ComponentProps<typeof Image>, 'width' | 'height
   sizes?: string;
 };
 
-const SiteImage = ({ src, alt = '', width = 1200, height = 800, sizes = '100vw', ...rest }: SiteImageProps) => {
+const SiteImage = ({ src, alt = '', width = 1200, height = 800, sizes = '100vw', mode = 'primary', ...rest }: SiteImageProps) => {
   if (!src) {return null;}
   const normalizedWidth = typeof width === 'string' ? Number.parseInt(width, 10) || 1200 : width;
   const normalizedHeight = typeof height === 'string' ? Number.parseInt(height, 10) || 800 : height;
+  const fetchPriority = rest.priority ? 'high' : rest.fetchPriority;
 
   return (
     <Image
       src={src}
       {...rest}
+      fetchPriority={fetchPriority}
       alt={alt}
       width={normalizedWidth}
       height={normalizedHeight}
       sizes={sizes}
-      unoptimized
+      mode={mode}
     />
   );
 };
@@ -154,6 +171,22 @@ export function ComponentRenderer({ component }: ComponentRendererProps) {
     case 'Hero': {
       return wrapWithFont(
         <HeroSection config={config} brandColor={resolvedColors.primary} secondary={resolvedColors.secondary} mode={resolvedColors.mode} />
+      );
+    }
+    case 'HomepageCategoryHero': {
+      const heroTokens = getHomepageCategoryHeroColors(
+        resolvedColors.primary,
+        resolvedColors.secondary,
+        resolvedColors.mode,
+      );
+      return wrapWithFont(
+        <HomepageCategoryHeroSection
+          config={config as unknown as HomepageCategoryHeroConfig}
+          brandColor={resolvedColors.primary}
+          secondary={resolvedColors.secondary}
+          mode={resolvedColors.mode}
+          tokens={heroTokens}
+        />
       );
     }
     case 'Stats': {
@@ -341,6 +374,7 @@ function HeroSection({
   const style = (config.style as HeroStyle) || 'slider';
   const content = (config.content as HeroContent) || {};
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const touchStartX = React.useRef<number | null>(null);
   const primaryHref = content.primaryButtonLink || slides[currentSlide]?.link || '#';
   const secondaryHref = content.secondaryButtonLink || '#';
   const sliderColors = getSliderColors(brandColor, secondary, mode);
@@ -370,11 +404,11 @@ function HeroSection({
   }
 
   // Helper: Render slide với blurred background
-  const renderSlideWithBlur = (slide: { image: string; link: string }) => (
+  const renderSlideWithBlur = (slide: { image: string; link: string }, options?: { priority?: boolean }) => (
     <a href={slide.link || '#'} className="block w-full h-full relative">
       <div className="absolute inset-0 scale-110" style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: 'center', backgroundSize: 'cover', filter: 'blur(30px)' }} />
       <div className="absolute inset-0 bg-black/20" />
-      <SiteImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" />
+      <SiteImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" priority={options?.priority} />
     </a>
   );
 
@@ -384,26 +418,56 @@ function HeroSection({
     </div>
   );
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const startX = touchStartX.current;
+    const endX = event.changedTouches[0]?.clientX;
+    touchStartX.current = null;
+
+    if (slides.length <= 1 || startX == null || endX == null) {
+      return;
+    }
+
+    const deltaX = endX - startX;
+    if (Math.abs(deltaX) < 40) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      setCurrentSlide(prev => (prev + 1) % slides.length);
+      return;
+    }
+
+    setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1);
+  };
+
   // Style 1: Slider
   if (style === 'slider') {
     return (
       <section className="relative w-full bg-slate-900 overflow-hidden">
-        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] max-h-[400px] md:max-h-[550px]">
+        <div
+          className="relative w-full aspect-[16/9] md:aspect-[21/9] max-h-[400px] md:max-h-[550px]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {slides.map((slide, idx) => (
             <div
               key={idx}
               className={`absolute inset-0 transition-opacity duration-700 hover:ring-2 hover:ring-offset-2 hover:ring-offset-slate-900 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
               style={{ '--tw-ring-color': sliderColors.hoverRingColor } as React.CSSProperties}
             >
-              {slide.image ? renderSlideWithBlur(slide) : renderPlaceholder(sliderColors.placeholderBg, sliderColors.placeholderIconColor)}
+              {slide.image ? renderSlideWithBlur(slide, { priority: idx === 0 }) : renderPlaceholder(sliderColors.placeholderBg, sliderColors.placeholderIconColor)}
             </div>
           ))}
           {slides.length > 1 && (
             <>
-              <button onClick={() =>{  setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBg, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>
+              <button onClick={() =>{  setCurrentSlide(prev => prev === 0 ? slides.length - 1 : prev - 1); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBg, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: sliderColors.navButtonIconColor }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <button onClick={() =>{  setCurrentSlide(prev => (prev + 1) % slides.length); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBgHover, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>
+              <button onClick={() =>{  setCurrentSlide(prev => (prev + 1) % slides.length); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg hidden md:flex items-center justify-center transition-all z-20 border-2" style={{ backgroundColor: sliderColors.navButtonBgHover, borderColor: sliderColors.navButtonBorderColor, boxShadow: `0 0 0 2px ${sliderColors.navButtonOuterRing}` }}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: sliderColors.navButtonIconColor }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
@@ -434,7 +498,7 @@ function HeroSection({
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9] max-h-[450px] md:max-h-[600px]">
           {slides.map((slide, idx) => (
             <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-              {slide.image ? renderSlideWithBlur(slide) : renderPlaceholder(fadeColors.placeholderBg, fadeColors.placeholderIconColor)}
+              {slide.image ? renderSlideWithBlur(slide, { priority: idx === 0 }) : renderPlaceholder(fadeColors.placeholderBg, fadeColors.placeholderIconColor)}
             </div>
           ))}
           {slides.length > 1 && (
@@ -466,7 +530,7 @@ function HeroSection({
                   <div className="w-full h-full relative">
                     <div className="absolute inset-0 scale-110" style={{ backgroundImage: `url(${slide.image})`, backgroundPosition: 'center', backgroundSize: 'cover', filter: 'blur(20px)' }} />
                     <div className="absolute inset-0 bg-black/20" />
-                    <SiteImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" />
+                    <SiteImage src={slide.image} alt="" className="relative w-full h-full object-contain z-10" priority={idx === 0} />
                   </div>
                 ) : (
                   renderPlaceholder(bentoPlaceholders[idx] ?? bentoColors.gridTint1, bentoColors.placeholderIcon, 20)
@@ -481,7 +545,7 @@ function HeroSection({
                 <div className="w-full h-full relative">
                   <div className="absolute inset-0 scale-110" style={{ backgroundImage: `url(${bentoSlides[0].image})`, backgroundPosition: 'center', backgroundSize: 'cover', filter: 'blur(25px)' }} />
                   <div className="absolute inset-0 bg-black/20" />
-                  <SiteImage src={bentoSlides[0].image} alt="" className="relative w-full h-full object-contain z-10" />
+                  <SiteImage src={bentoSlides[0].image} alt="" className="relative w-full h-full object-contain z-10" priority />
                 </div>
               ) : renderPlaceholder(bentoPlaceholders[0], bentoColors.placeholderIcon, 24)}
             </a>
@@ -520,7 +584,7 @@ function HeroSection({
 
   const renderHeroSlideContain = (
     slide: { image?: string },
-    options?: { overlay?: React.ReactNode; blur?: number }
+    options?: { overlay?: React.ReactNode; blur?: number; fit?: 'contain' | 'cover'; priority?: boolean }
   ) => (
     <div className="w-full h-full relative">
       <div
@@ -532,7 +596,15 @@ function HeroSection({
           filter: `blur(${options?.blur ?? 25}px)`,
         }}
       />
-      <SiteImage src={slide.image ?? ''} alt="" className="relative w-full h-full object-contain z-10" />
+      <SiteImage
+        src={slide.image ?? ''}
+        alt=""
+        className={cn(
+          'relative w-full h-full z-10',
+          options?.fit === 'cover' ? 'object-cover' : 'object-contain'
+        )}
+        priority={options?.priority}
+      />
       {options?.overlay}
     </div>
   );
@@ -547,6 +619,8 @@ function HeroSection({
             <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               {slide.image ? (
                 renderHeroSlideContain(slide, {
+                  fit: 'cover',
+                  priority: idx === 0,
                   overlay: showFullscreenContent ? (
                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-20" />
                   ) : null,
@@ -641,7 +715,7 @@ function HeroSection({
             {slides.map((slide, idx) => (
               <div key={idx} className={`absolute inset-0 transition-all duration-700 ${idx === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'}`}>
                 {slide.image ? (
-                  <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" />
+                  <SiteImage src={slide.image} alt="" className="w-full h-full object-cover" priority={idx === 0} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-slate-200">
                     <LayoutTemplate size={48} className="text-slate-400" />
@@ -675,6 +749,7 @@ function HeroSection({
             <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               {slide.image ? (
                 renderHeroSlideContain(slide, {
+                  priority: idx === 0,
                   overlay: (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 z-20" />
                   ),
@@ -992,6 +1067,9 @@ function BenefitsSection({
     style?: BenefitsSharedStyle;
     subHeading?: string;
     heading?: string;
+    headerAlign?: 'left' | 'center' | 'right';
+    gridColumnsDesktop?: 3 | 4;
+    gridColumnsMobile?: 1 | 2;
     buttonText?: string;
     buttonLink?: string;
     harmony?: unknown;
@@ -1024,10 +1102,13 @@ function BenefitsSection({
     secondary,
   });
 
-  const sectionConfig: Pick<BenefitsConfig, 'subHeading' | 'heading' | 'buttonText' | 'buttonLink'> = {
+  const sectionConfig: Pick<BenefitsConfig, 'subHeading' | 'heading' | 'buttonText' | 'buttonLink' | 'headerAlign' | 'gridColumnsDesktop' | 'gridColumnsMobile'> = {
     buttonLink: benefitsConfig.buttonLink,
     buttonText: benefitsConfig.buttonText,
+    gridColumnsDesktop: benefitsConfig.gridColumnsDesktop,
+    gridColumnsMobile: benefitsConfig.gridColumnsMobile,
     heading: benefitsConfig.heading,
+    headerAlign: benefitsConfig.headerAlign,
     subHeading: benefitsConfig.subHeading,
   };
 
@@ -2465,12 +2546,12 @@ function GallerySection({ config, brandColor, secondary, mode, title, type }: { 
 
     return (
       <div
-        className="grid gap-4 grid-cols-1 auto-rows-[200px] sm:auto-rows-[250px] md:grid-cols-3 md:auto-rows-[300px] rounded-lg border p-2"
+        className="grid gap-4 grid-cols-3 auto-rows-[110px] sm:auto-rows-[250px] md:grid-cols-3 md:auto-rows-[300px] rounded-lg border p-2"
         style={{ backgroundColor: colors.neutralBackground, borderColor: colors.neutralBorder }}
       >
         {normalizedItems.map((photo, i) => {
           const isLarge = i % 4 === 0 || i % 4 === 3;
-          const colSpan = isLarge ? 'md:col-span-2' : 'md:col-span-1';
+          const colSpan = isLarge ? 'col-span-2 md:col-span-2' : 'col-span-1 md:col-span-1';
 
           return (
             <div
@@ -3517,7 +3598,17 @@ function CategoryProductsSection({
   const categoriesData = useQuery(api.productCategories.listActive);
   const productsData = useQuery(api.products.listPublicResolved, { limit: 100 });
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const imageAspectRatioSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
   const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
+  const imageAspectRatio = React.useMemo(
+    () => resolveProductImageAspectRatio(imageAspectRatioSetting?.value),
+    [imageAspectRatioSetting?.value]
+  );
+  const imageAspectRatioStyle = React.useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
+  const { frame } = useProductFrameConfig();
 
   // Resolve sections with category and products data
   const resolvedSections = sections
@@ -3563,7 +3654,7 @@ function CategoryProductsSection({
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: { _id: string; name: string; image?: string; price?: number; salePrice?: number; slug?: string; hasVariants?: boolean } }) => (
     <a href={`/products/${product.slug ?? product._id}`} aria-label={`${sectionTitle}: ${product.name}`} className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
+      <div className="rounded-lg overflow-hidden mb-2" style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}>
         {product.image ? (
           <SiteImage 
             src={product.image} 
@@ -3575,6 +3666,7 @@ function CategoryProductsSection({
             <Package size={24} style={{ color: colors.emptyStateIcon }} />
           </div>
         )}
+        <ProductImageFrameOverlay frame={frame} />
       </div>
       <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]" style={{ color: colors.bodyText }}>{product.name || 'Tên sản phẩm'}</h4>
       <div className="flex flex-col mt-auto">
@@ -3748,7 +3840,7 @@ function CategoryProductsSection({
                           className="snap-start flex-shrink-0 w-40 md:w-48 group cursor-pointer"
                           draggable={false}
                         >
-                          <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
+                          <div className="rounded-lg overflow-hidden mb-2" style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}>
                             {product.image ? (
                               <SiteImage
                                 src={product.image}
@@ -3761,6 +3853,7 @@ function CategoryProductsSection({
                                 <Package size={24} style={{ color: colors.emptyStateIcon }} />
                               </div>
                             )}
+                          <ProductImageFrameOverlay frame={frame} />
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2 mb-1" style={{ color: colors.bodyText }}>{product.name}</h4>
                           <span className="font-bold text-base" style={{ color: colors.priceText }}>
@@ -3902,7 +3995,7 @@ function CategoryProductsSection({
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
                           className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -3915,6 +4008,7 @@ function CategoryProductsSection({
                               <Package size={48} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
+                          <ProductImageFrameOverlay frame={frame} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                             <span
@@ -3948,7 +4042,7 @@ function CategoryProductsSection({
                           key={product._id}
                           href={`/products/${product.slug ?? product._id}`}
                           className="group cursor-pointer relative rounded-xl overflow-hidden"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}
                         >
                           {product.image ? (
                             <SiteImage 
@@ -3961,6 +4055,7 @@ function CategoryProductsSection({
                               <Package size={24} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
+                          <ProductImageFrameOverlay frame={frame} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                           <div className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform">
                             <h4 className="font-medium text-sm line-clamp-1">{product.name}</h4>
@@ -4032,8 +4127,8 @@ function CategoryProductsSection({
                       {featured && (
                         <a 
                           href={`/products/${featured.slug ?? featured._id}`}
-                          className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]"
-                          style={{ backgroundColor: colors.imageBackground }}
+                          className="group cursor-pointer relative rounded-2xl overflow-hidden"
+                          style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}
                         >
                           {featured.image ? (
                             <SiteImage 
@@ -4046,6 +4141,7 @@ function CategoryProductsSection({
                               <Package size={48} style={{ color: colors.emptyStateIcon }} />
                             </div>
                           )}
+                          <ProductImageFrameOverlay frame={frame} />
                           {/* Gradient overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                           {/* Content */}
@@ -4084,8 +4180,8 @@ function CategoryProductsSection({
                             className="group cursor-pointer"
                           >
                             <div 
-                              className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                            style={{ backgroundColor: colors.imageBackground }}
+                              className="rounded-xl overflow-hidden mb-3 relative"
+                              style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}
                             >
                               {product.image ? (
                                 <SiteImage 
@@ -4098,6 +4194,7 @@ function CategoryProductsSection({
                                 <Package size={24} style={{ color: colors.emptyStateIcon }} />
                                 </div>
                               )}
+                              <ProductImageFrameOverlay frame={frame} />
                               {/* Quick view overlay */}
                               <div 
                                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -4197,7 +4294,7 @@ function CategoryProductsSection({
                     className="group cursor-pointer block"
                   >
                     {/* Image Container với effects */}
-                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-3">
+                    <div className="relative rounded-2xl overflow-hidden mb-3" style={imageAspectRatioStyle}>
                       {/* Background gradient on hover */}
                       <div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
@@ -4215,6 +4312,7 @@ function CategoryProductsSection({
                           <Package size={32} style={{ color: colors.emptyStateIcon }} />
                         </div>
                       )}
+                      <ProductImageFrameOverlay frame={frame} />
                       
                       {/* Gradient overlay bottom */}
                       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20" />
@@ -4863,7 +4961,7 @@ function FooterSection({
   const bctLogoType = (config.bctLogoType as 'thong-bao' | 'dang-ky') ?? 'thong-bao';
   const bctLogoLink = typeof config.bctLogoLink === 'string' ? config.bctLogoLink.trim() : '';
   const bctLogoSrc = bctLogoType === 'dang-ky'
-    ? '/images/bct/logo-da-dang-ky-bct.png'
+    ? '/images/bct/logo-da-dang-ky-bct.webp'
     : '/images/bct/logo-da-thong-bao-bct.png';
   const colors: FooterLayoutColors = getFooterLayoutColors(style, brandColor, secondary, mode);
   const useOriginalSocialIconColors = config.useOriginalSocialIconColors !== false;
@@ -4883,7 +4981,7 @@ function FooterSection({
   const renderBctLogo = (className = 'h-10') => {
     if (!showBctLogo) {return null;}
     const image = (
-      <SiteImage src={bctLogoSrc} alt="Bộ Công Thương" className={`${className} w-auto object-contain`} />
+      <SiteImage src={bctLogoSrc} alt="Bộ Công Thương" className={`${className} w-auto object-contain`} mode="decorative" />
     );
     if (!bctLogoLink) {return image;}
     return (
@@ -4947,7 +5045,7 @@ function FooterSection({
             <div className="md:col-span-5 space-y-3 text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <div className="p-1.5 rounded-lg" style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}` }}>
-                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+                  {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain brightness-110" mode="logo" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
                 </div>
                 <span className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</span>
               </div>
@@ -5009,7 +5107,7 @@ function FooterSection({
         <div className="max-w-5xl mx-auto px-3 md:px-4 flex flex-col items-center text-center space-y-3 md:space-y-4">
           <div className="flex flex-col items-center gap-2">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-1 border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain" mode="logo" /> : <div className="h-6 w-6 rounded-lg flex items-center justify-center font-bold text-sm" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
             </div>
             <h2 className="text-base font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
             <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
@@ -5062,7 +5160,7 @@ function FooterSection({
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <div className="flex items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-5 w-5 object-contain" mode="logo" /> : <div className="h-5 w-5 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
               <span className="text-sm font-bold" style={{ color: colors.heading }}>VietAdmin</span>
             </div>
             {showSocialLinks && (
@@ -5125,7 +5223,7 @@ function FooterSection({
         <div className="max-w-7xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex flex-col md:flex-row items-center gap-2">
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-4 w-4" mode="logo" /> : <div className="h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
               <span className="text-[10px] font-medium" style={{ color: colors.textSubtle }}>{copyright}</span>
             </div>
             {showSocialLinks && (
@@ -5159,7 +5257,7 @@ function FooterSection({
         <div className="max-w-6xl mx-auto px-3 md:px-4 text-center">
           <div className="flex flex-col items-center gap-3 mb-6">
           <div className="h-12 w-12 rounded-2xl flex items-center justify-center border" style={{ backgroundColor: colors.centeredBrandBg, borderColor: colors.centeredBrandBorder }}>
-              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
+              {logo ? <SiteImage src={logo} alt="Logo" className="h-7 w-7 object-contain" mode="logo" /> : <div className="h-7 w-7 rounded-lg flex items-center justify-center font-bold" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>V</div>}
             </div>
             <h2 className="text-lg font-bold tracking-tight" style={{ color: colors.heading }}>VietAdmin</h2>
             <p className="text-xs leading-relaxed max-w-xs md:max-w-md" style={{ color: colors.textMuted }}>{description}</p>
@@ -5235,7 +5333,7 @@ function FooterSection({
       <div className="max-w-4xl mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-5 text-center md:text-left">
           <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.primary, color: colors.textOnPrimary }}>
-            {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" /> : <span className="font-bold text-sm">V</span>}
+            {logo ? <SiteImage src={logo} alt="Logo" className="h-6 w-6 object-contain brightness-110" mode="logo" /> : <span className="font-bold text-sm">V</span>}
           </div>
           <div className="md:flex-1">
             <h3 className="text-sm font-bold mb-1" style={{ color: colors.heading }}>VietAdmin</h3>

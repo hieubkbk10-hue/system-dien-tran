@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Briefcase, Loader2, Plus } from 'lucide-react';
+import { Briefcase, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../components/ui';
@@ -13,6 +13,11 @@ import { LexicalEditor } from '../../components/LexicalEditor';
 import { ImageUploader } from '../../components/ImageUploader';
 import { QuickCreateServiceCategoryModal } from '../../components/QuickCreateServiceCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
+import {
+  normalizeSlotTemplate,
+  normalizeSlotTemplateByWeekday,
+} from '@/lib/bookings/slotTemplate';
+import { HomeComponentStickyFooter } from '@/app/admin/home-components/_shared/components/HomeComponentStickyFooter';
 
 const MODULE_KEY = 'services';
 
@@ -22,6 +27,8 @@ export default function ServiceCreatePage() {
   const createService = useMutation(api.services.create);
   const fieldsData = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: MODULE_KEY });
   const settingsData = useQuery(api.admin.modules.listModuleSettings, { moduleKey: MODULE_KEY });
+  const bookingsModule = useQuery(api.admin.modules.getModuleByKey, { key: 'bookings' });
+  const isBookingsModuleEnabled = bookingsModule?.enabled ?? false;
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -33,9 +40,16 @@ export default function ServiceCreatePage() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [thumbnail, setThumbnail] = useState<string | undefined>();
+  const [thumbnailStorageId, setThumbnailStorageId] = useState<Id<'_storage'> | undefined>();
   const [categoryId, setCategoryId] = useState('');
   const [price, setPrice] = useState<number | undefined>();
   const [duration, setDuration] = useState('');
+  const [bookingEnabled, setBookingEnabled] = useState(true);
+  const [bookingDurationMin, setBookingDurationMin] = useState<number>(60);
+  const [bookingSlotIntervalMin, setBookingSlotIntervalMin] = useState<number>(30);
+  const [bookingCapacityPerSlot, setBookingCapacityPerSlot] = useState<number>(1);
+  const [bookingSlotTemplateDefault] = useState<string[]>([]);
+  const [bookingSlotTemplateByWeekday] = useState<Record<string, string[]>>({});
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState<'Draft' | 'Published'>('Draft');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +93,7 @@ export default function ServiceCreatePage() {
     try {
       const resolvedMetaTitle = truncateText(title.trim(), 60);
       const resolvedMetaDescription = truncateText(stripHtml(excerpt || content || ''), 160);
+      const resolvedBookingEnabled = isBookingsModuleEnabled ? bookingEnabled : false;
       await createService({
         categoryId: categoryId as Id<"serviceCategories">,
         content,
@@ -86,6 +101,12 @@ export default function ServiceCreatePage() {
         markdownRender: markdownRender.trim() || undefined,
         htmlRender: htmlRender.trim() || undefined,
         duration: duration.trim() || undefined,
+        bookingEnabled: resolvedBookingEnabled,
+        bookingDurationMin: resolvedBookingEnabled ? bookingDurationMin : undefined,
+        bookingSlotIntervalMin: resolvedBookingEnabled ? bookingSlotIntervalMin : undefined,
+        bookingCapacityPerSlot: resolvedBookingEnabled ? bookingCapacityPerSlot : undefined,
+        bookingSlotTemplateDefault: resolvedBookingEnabled ? normalizeSlotTemplate(bookingSlotTemplateDefault) : undefined,
+        bookingSlotTemplateByWeekday: resolvedBookingEnabled ? normalizeSlotTemplateByWeekday(bookingSlotTemplateByWeekday) : undefined,
         excerpt: excerpt.trim() || undefined,
         featured,
         metaDescription: enabledFields.has('metaDescription')
@@ -98,6 +119,7 @@ export default function ServiceCreatePage() {
         slug: slug.trim() || title.toLowerCase().replaceAll(/\s+/g, '-'),
         status,
         thumbnail,
+        thumbnailStorageId: thumbnail ? (thumbnailStorageId ?? null) : null,
         title: title.trim(),
       });
       toast.success("Tạo dịch vụ mới thành công");
@@ -153,6 +175,58 @@ export default function ServiceCreatePage() {
               </div>
             </CardContent>
           </Card>
+
+          {isBookingsModuleEnabled && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Đặt lịch</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={bookingEnabled}
+                    onChange={(e) =>{  setBookingEnabled(e.target.checked); }}
+                    className="w-4 h-4 rounded border-slate-300"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-200">Cho phép đặt lịch</span>
+                </label>
+
+                {bookingEnabled && (
+                  <div className="space-y-4 rounded-md border border-slate-200 dark:border-slate-700 p-3">
+                    <div className="space-y-2">
+                      <Label>Thời lượng (phút)</Label>
+                      <Input
+                        type="number"
+                        min={15}
+                        step={5}
+                        value={bookingDurationMin}
+                        onChange={(e) =>{  setBookingDurationMin(Number(e.target.value || 60)); }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Bước lịch (phút)</Label>
+                      <Input
+                        type="number"
+                        min={5}
+                        step={5}
+                        value={bookingSlotIntervalMin}
+                        onChange={(e) =>{  setBookingSlotIntervalMin(Number(e.target.value || 30)); }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Số khách / khung</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        step={1}
+                        value={bookingCapacityPerSlot}
+                        onChange={(e) =>{  setBookingCapacityPerSlot(Number(e.target.value || 1)); }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {showAdvancedRenderCard && (
             <Card>
@@ -330,14 +404,21 @@ export default function ServiceCreatePage() {
               </CardContent>
             </Card>
           )}
-          
+
+
           <Card>
             <CardHeader><CardTitle className="text-base">Ảnh đại diện</CardTitle></CardHeader>
             <CardContent>
               <ImageUploader
                 value={thumbnail}
-                onChange={(url) =>{  setThumbnail(url); }}
+                storageId={thumbnailStorageId}
+                onChange={(url, storageId) => {
+                  setThumbnail(url);
+                  setThumbnailStorageId(storageId);
+                }}
                 folder="services"
+                naming={{ entityName: slug.trim() || 'service', style: 'slug-index', index: 1 }}
+                deleteMode="defer"
                 aspectRatio="video"
               />
             </CardContent>
@@ -345,13 +426,13 @@ export default function ServiceCreatePage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-        <Button type="button" variant="ghost" onClick={() =>{  router.push('/admin/services'); }}>Hủy bỏ</Button>
-        <Button type="submit" variant="accent" disabled={isSubmitting} className="bg-teal-600 hover:bg-teal-500">
-          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          Đăng
-        </Button>
-      </div>
+      <HomeComponentStickyFooter
+        isSubmitting={isSubmitting}
+        submitLabel="Đăng"
+        onCancel={() =>{  router.push('/admin/services'); }}
+        disableSave={isSubmitting}
+        submitClassName="bg-teal-600 hover:bg-teal-500"
+      />
     </form>
     </>
   );

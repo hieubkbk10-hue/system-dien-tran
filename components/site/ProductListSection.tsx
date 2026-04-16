@@ -2,13 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Package } from 'lucide-react';
 import { BrandBadge, SaleBadge } from '@/components/site/shared/BrandColorHelpers';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import { getPublicPriceLabel } from '@/lib/products/public-price';
+import { getProductImageAspectRatioCssValue, resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
 
 // 6 Styles theo mẫu previews.tsx
 // 'minimal' = Luxury Minimal, 'commerce' = Commerce Card, 'bento' = Bento Grid
@@ -67,6 +69,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
   const carouselId = React.useId();
   const carouselElementId = `product-carousel-${carouselId.replaceAll(':', '')}`;
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const aspectRatioSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
   const saleMode = React.useMemo<'cart' | 'contact' | 'affiliate'>(() => {
     const value = saleModeSetting?.value;
     if (value === 'contact' || value === 'affiliate') {
@@ -74,6 +77,15 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
     }
     return 'cart';
   }, [saleModeSetting?.value]);
+  const imageAspectRatio = React.useMemo(
+    () => resolveProductImageAspectRatio(aspectRatioSetting?.value),
+    [aspectRatioSetting?.value]
+  );
+  const imageAspectRatioStyle = React.useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
+  const { frame } = useProductFrameConfig();
   
   // Query products based on selection mode
   const productsData = useQuery(
@@ -148,9 +160,13 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer">
                   {/* Image Container */}
-                  <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100 mb-4 border border-transparent hover:border-slate-200 transition-all">
+                  <div
+                    className="relative overflow-hidden rounded-2xl bg-slate-100 mb-4 border border-transparent hover:border-slate-200 transition-all"
+                    style={imageAspectRatioStyle}
+                  >
                     {product.image ? (
                       <Image
+                        mode="thumb"
                         src={product.image}
                         alt={product.name}
                         fill
@@ -162,6 +178,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                         <Package size={48} className="text-slate-300" />
                       </div>
                     )}
+                    <ProductImageFrameOverlay frame={frame} />
                     
                     {/* Discount / New Badge */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1">
@@ -220,9 +237,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                   className="group bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300 flex flex-col"
                 >
                   {/* Image */}
-                  <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                  <div className="relative bg-slate-100 overflow-hidden" style={imageAspectRatioStyle}>
                     {product.image ? (
                       <Image
+                        mode="thumb"
                         src={product.image}
                         alt={product.name}
                         fill
@@ -234,6 +252,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                         <Package size={40} className="text-slate-300" />
                       </div>
                     )}
+                    <ProductImageFrameOverlay frame={frame} />
                     {discount && (
                       <div className="absolute top-2 right-2">
                         <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
@@ -400,9 +419,13 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     className="flex-shrink-0 snap-start w-[160px] md:w-[220px] lg:w-[260px] group cursor-pointer"
                     draggable={false}
                   >
-                    <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 mb-3 border border-transparent hover:border-slate-200 transition-all">
+                    <div
+                      className="relative overflow-hidden rounded-xl bg-slate-100 mb-3 border border-transparent hover:border-slate-200 transition-all"
+                      style={imageAspectRatioStyle}
+                    >
                       {product.image ? (
                         <Image
+                          mode="thumb"
                           src={product.image}
                           alt={product.name}
                           fill
@@ -413,6 +436,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       ) : (
                         <div className="h-full w-full flex items-center justify-center"><Package size={40} className="text-slate-300" /></div>
                       )}
+                      <ProductImageFrameOverlay frame={frame} />
                       {discount && (
                         <div className="absolute top-2 left-2">
                           <SaleBadge text={discount} className="text-[10px] px-2 py-1" />
@@ -459,9 +483,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group cursor-pointer bg-white rounded-lg border border-slate-100 p-2 hover:shadow-md hover:border-slate-200 transition-all">
-                  <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 mb-2">
+                  <div className="relative overflow-hidden rounded-md bg-slate-50 mb-2" style={imageAspectRatioStyle}>
                     {product.image ? (
                       <Image
+                        mode="thumb"
                         src={product.image}
                         alt={product.name}
                         fill
@@ -471,6 +496,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                     ) : (
                       <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                     )}
+                    <ProductImageFrameOverlay frame={frame} />
                     {discount && (
                       <div className="absolute top-1 left-1">
                         <SaleBadge text={discount} className="text-[9px] px-1.5 py-0.5" />
@@ -509,12 +535,13 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
               return (
                 <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
-                  <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">
+                  <div className="relative w-full rounded-lg bg-slate-100 overflow-hidden mb-2" style={imageAspectRatioStyle}>
                     {product.image ? (
-                      <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 160px" className="object-cover" />
+                      <Image mode="thumb" src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 160px" className="object-cover" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                     )}
+                    <ProductImageFrameOverlay frame={frame} />
                     {discount && (
                       <div className="absolute top-2 left-2">
                         <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
@@ -534,10 +561,11 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
             <Link
               href={`/products/${showcaseFeatured?.slug}`}
               className="relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-slate-200 hover:border-slate-300 transition-colors"
-              style={{ backgroundColor: `${secondary}05` }}
+              style={{ ...imageAspectRatioStyle, backgroundColor: `${secondary}05` }}
             >
               {showcaseFeatured?.image ? (
                 <Image
+                  mode="thumb"
                   src={showcaseFeatured.image}
                   alt={showcaseFeatured.name}
                   fill
@@ -547,6 +575,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
               ) : (
                 <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-100"><Package size={64} className="text-slate-300" /></div>
               )}
+              <ProductImageFrameOverlay frame={frame} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               {showcaseDiscount && (
                 <div className="absolute top-4 left-4">
@@ -570,12 +599,13 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
                 return (
                   <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 transition-all">
-                    <div className="relative aspect-square w-full rounded-lg bg-slate-50 overflow-hidden mb-3">
+                    <div className="relative w-full rounded-lg bg-slate-50 overflow-hidden mb-3" style={imageAspectRatioStyle}>
                       {product.image ? (
-                        <Image src={product.image} alt={product.name} fill sizes="(max-width: 1024px) 50vw, 200px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <Image mode="thumb" src={product.image} alt={product.name} fill sizes="(max-width: 1024px) 50vw, 200px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>
                       )}
+                      <ProductImageFrameOverlay frame={frame} />
                       {discount && (
                         <div className="absolute top-2 left-2">
                           <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />
@@ -618,10 +648,11 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           <Link 
             href={`/products/${featured?.slug}`}
             className="col-span-2 row-span-2 relative group rounded-2xl overflow-hidden cursor-pointer min-h-[400px] border border-transparent hover:border-slate-300 transition-colors"
-            style={{ backgroundColor: `${secondary}10` }}
+            style={{ ...imageAspectRatioStyle, backgroundColor: `${secondary}10` }}
           >
             {featured?.image ? (
               <Image
+                mode="thumb"
                 src={featured.image}
                 alt={featured.name}
                 fill
@@ -633,6 +664,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 <Package size={64} className="text-slate-300" />
               </div>
             )}
+            <ProductImageFrameOverlay frame={frame} />
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
             
@@ -667,9 +699,10 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                 className="col-span-1 row-span-1 bg-white border border-slate-200 rounded-2xl p-3 flex flex-col group hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden"
               >
                 {/* Image Area */}
-                <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${secondary}08` }}>
+                <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ ...imageAspectRatioStyle, backgroundColor: `${secondary}08` }}>
                   {product.image ? (
                     <Image
+                      mode="thumb"
                       src={product.image}
                       alt={product.name}
                       fill
@@ -681,6 +714,7 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
                       <Package size={32} className="text-slate-300" />
                     </div>
                   )}
+                  <ProductImageFrameOverlay frame={frame} />
                   
                   {/* Discount Badge */}
                   {discount && (
@@ -721,12 +755,13 @@ export function ProductListSection({ config, brandColor, secondary, title }: Pro
           const discount = getDiscount(product.price, priceDisplay.comparePrice, priceDisplay.isContactPrice);
             return (
               <Link key={product._id} href={`/products/${product.slug}`} className="group bg-white border border-slate-200 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
-                <div className="relative aspect-square w-full rounded-lg bg-slate-100 overflow-hidden mb-2">
+                <div className="relative w-full rounded-lg bg-slate-100 overflow-hidden mb-2" style={imageAspectRatioStyle}>
                   {product.image ? (
-                    <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 160px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image mode="thumb" src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 160px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>
                   )}
+                  <ProductImageFrameOverlay frame={frame} />
                   {discount && (
                     <div className="absolute top-2 left-2">
                       <SaleBadge text={discount} className="text-[10px] px-1.5 py-0.5" />

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { Briefcase, Check, GripVertical, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import type { ServiceSelectionMode } from '../_types';
@@ -216,3 +216,4 @@ export const ServiceListForm = ({
     </Card>
   );
 };
+

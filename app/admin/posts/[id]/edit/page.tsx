@@ -7,17 +7,32 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { ExternalLink, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAdminMutationErrorMessage } from '@/app/admin/lib/mutation-error';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../../../components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Input, Label } from '../../../components/ui';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { ImageUploader } from '../../../components/ImageUploader';
 import { QuickCreateCategoryModal } from '../../../components/QuickCreateCategoryModal';
 import { stripHtml, truncateText } from '@/lib/seo';
 import { normalizeRichText } from '@/app/admin/lib/normalize-rich-text';
+import { HomeComponentStickyFooter } from '@/app/admin/home-components/_shared/components/HomeComponentStickyFooter';
 
 const MODULE_KEY = 'posts';
 
+const toLocalDatetimeInput = (timestamp?: number) => {
+  if (!timestamp) {return '';}
+  const date = new Date(timestamp);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+};
+
+const toTimestamp = (value: string) => {
+  if (!value) {return undefined;}
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
 export default function PostEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const SCHEDULE_SKEW_MS = 30_000;
 
   const postData = useQuery(api.posts.getById, { id: id as Id<"posts"> });
   const categoriesData = useQuery(api.postCategories.listAll, {});
@@ -34,9 +49,12 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [thumbnail, setThumbnail] = useState<string | undefined>();
+  const [thumbnailStorageId, setThumbnailStorageId] = useState<Id<'_storage'> | undefined>();
   const [categoryId, setCategoryId] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [status, setStatus] = useState<'Draft' | 'Published' | 'Archived'>('Draft');
+  const [publishAtLocal, setPublishAtLocal] = useState('');
+  const [publishImmediately, setPublishImmediately] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('saved');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -53,9 +71,11 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     metaTitle: string;
     metaDescription: string;
     thumbnail: string;
+    thumbnailStorageId?: Id<'_storage'> | null;
     categoryId: string;
     authorName: string;
     status: 'Draft' | 'Published' | 'Archived';
+    publishedAt?: number;
   } | null>(null);
 
   // Check which fields are enabled
@@ -68,8 +88,14 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const hasMarkdownRender = enabledFields.has('markdownRender');
   const hasHtmlRender = enabledFields.has('htmlRender');
   const showAdvancedRenderCard = hasMarkdownRender || hasHtmlRender;
+  const schedulingFeature = useQuery(api.admin.modules.getModuleFeature, { featureKey: 'enableScheduling', moduleKey: MODULE_KEY });
+  const schedulingEnabled = enabledFields.has('publish_date') && (schedulingFeature?.enabled ?? false);
 
   const normalizedContent = useMemo(() => normalizeRichText(content), [content]);
+  const resolvedPublishedAt = useMemo(
+    () => (status === 'Published' && !publishImmediately ? toTimestamp(publishAtLocal) : undefined),
+    [publishAtLocal, publishImmediately, status],
+  );
 
   const currentSnapshot = useMemo(() => ({
     authorName: authorName.trim(),
@@ -83,9 +109,11 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
     metaTitle: metaTitle.trim(),
     slug: slug.trim(),
     status,
+    publishedAt: resolvedPublishedAt,
     thumbnail: thumbnail ?? '',
     title: title.trim(),
-  }), [authorName, categoryId, normalizedContent, renderType, markdownRender, htmlRender, excerpt, metaDescription, metaTitle, slug, status, thumbnail, title]);
+    thumbnailStorageId,
+  }), [authorName, categoryId, normalizedContent, renderType, markdownRender, htmlRender, excerpt, metaDescription, metaTitle, slug, status, resolvedPublishedAt, thumbnail, title, thumbnailStorageId]);
 
   const hasChanges = useMemo(() => {
     if (!initialSnapshotRef.current) {return false;}
@@ -106,6 +134,27 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   }, [hasChanges, saveStatus]);
 
   useEffect(() => {
+    if (status !== 'Published') {
+      setPublishImmediately(true);
+      setPublishAtLocal('');
+    }
+  }, [status]);
+
+  const generateSlugFromTitle = (value: string) => {
+    return value.toLowerCase()
+      .normalize("NFD").replaceAll(/[\u0300-\u036F]/g, "")
+      .replaceAll(/[đĐ]/g, "d")
+      .replaceAll(/[^a-z0-9\s]/g, '')
+      .replaceAll(/\s+/g, '-');
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val);
+    setSlug(generateSlugFromTitle(val));
+  };
+
+  useEffect(() => {
     if (postData) {
       setTitle(postData.title);
       setSlug(postData.slug);
@@ -121,9 +170,14 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       setMetaTitle(postData.metaTitle ?? '');
       setMetaDescription(postData.metaDescription ?? '');
       setThumbnail(postData.thumbnail);
+      setThumbnailStorageId((postData as { thumbnailStorageId?: Id<'_storage'> }).thumbnailStorageId);
       setCategoryId(postData.categoryId);
       setAuthorName(postData.authorName ?? '');
       setStatus(postData.status);
+      const now = Date.now();
+      const isScheduled = Boolean(postData.publishedAt && postData.publishedAt > now + SCHEDULE_SKEW_MS);
+      setPublishImmediately(!isScheduled);
+      setPublishAtLocal(isScheduled && postData.publishedAt ? toLocalDatetimeInput(postData.publishedAt) : '');
       initialSnapshotRef.current = {
         authorName: (postData.authorName ?? '').trim(),
         categoryId: postData.categoryId,
@@ -136,8 +190,10 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         metaTitle: (postData.metaTitle ?? '').trim(),
         slug: postData.slug.trim(),
         status: postData.status,
+        publishedAt: isScheduled ? postData.publishedAt : undefined,
         thumbnail: postData.thumbnail ?? '',
         title: postData.title.trim(),
+        thumbnailStorageId: (postData as { thumbnailStorageId?: Id<'_storage'> }).thumbnailStorageId,
       };
       setSnapshotVersion((prev) => prev + 1);
     }
@@ -146,6 +202,10 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {return;}
+    if (status === 'Published' && schedulingEnabled && !publishImmediately && !publishAtLocal) {
+      toast.error('Vui lòng chọn thời gian xuất bản.');
+      return;
+    }
 
     setIsSubmitting(true);
     setSaveStatus('saving');
@@ -176,9 +236,12 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         metaTitle: enabledFields.has('metaTitle')
           ? (resolvedMetaTitleValue || undefined)
           : undefined,
+        publishImmediately: status === 'Published' ? publishImmediately : undefined,
+        publishedAt: status === 'Published' ? resolvedPublishedAt : undefined,
         slug: slug.trim(),
         status,
         thumbnail,
+        thumbnailStorageId: thumbnail ? (thumbnailStorageId ?? null) : null,
         title: title.trim(),
       });
       const persistedSnapshot = {
@@ -192,6 +255,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         metaDescription: resolvedMetaDescriptionValue,
         metaTitle: resolvedMetaTitleValue,
         thumbnail: thumbnail ?? '',
+        thumbnailStorageId: thumbnail ? (thumbnailStorageId ?? null) : null,
       };
       if (enabledFields.has('metaTitle')) {
         setMetaTitle(resolvedMetaTitleValue);
@@ -231,22 +295,9 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
       onCreated={(id) =>{  setCategoryId(id); }}
     />
     <form onSubmit={handleSubmit} className="space-y-6 pb-20">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa bài viết</h1>
-          <div className="text-sm text-slate-500 mt-1">Cập nhật nội dung bài viết hiện có</div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => window.open(`/posts/${slug}`, '_blank')}
-            className="gap-2"
-          >
-            <ExternalLink size={16} />
-            Xem trên web
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa bài viết</h1>
+        <div className="text-sm text-slate-500 mt-1">Cập nhật nội dung bài viết hiện có</div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -256,7 +307,7 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
               {/* Title - always shown (system field) */}
               <div className="space-y-2">
                 <Label>Tiêu đề <span className="text-red-500">*</span></Label>
-                <Input value={title} onChange={(e) =>{  setTitle(e.target.value); }} required />
+                <Input value={title} onChange={handleTitleChange} required />
               </div>
               {/* Slug - always shown (system field) */}
               <div className="space-y-2">
@@ -387,6 +438,30 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
                   <option value="Archived">Lưu trữ</option>
                 </select>
               </div>
+              {schedulingEnabled && status === 'Published' && (
+                <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <Checkbox
+                      checked={publishImmediately}
+                      onCheckedChange={(checked) => {
+                        setPublishImmediately(checked);
+                        if (checked) {setPublishAtLocal('');}
+                      }}
+                    />
+                    Xuất bản ngay
+                  </label>
+                  {!publishImmediately && (
+                    <div className="space-y-2">
+                      <Label>Thời gian xuất bản</Label>
+                      <Input
+                        type="datetime-local"
+                        value={publishAtLocal}
+                        onChange={(e) =>{  setPublishAtLocal(e.target.value); }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Danh mục</Label>
                 <div className="flex gap-2">
@@ -428,8 +503,14 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
             <CardContent>
               <ImageUploader
                 value={thumbnail}
-                onChange={(url) =>{  setThumbnail(url); }}
+                storageId={thumbnailStorageId}
+                onChange={(url, storageId) => {
+                  setThumbnail(url);
+                  setThumbnailStorageId(storageId);
+                }}
                 folder="posts"
+                naming={{ entityName: slug.trim() || 'post', style: 'slug-index', index: 1 }}
+                deleteMode="defer"
                 aspectRatio="video"
               />
             </CardContent>
@@ -437,21 +518,37 @@ export default function PostEditPage({ params }: { params: Promise<{ id: string 
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-[280px] right-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end items-center z-10">
-        <Button
-          type="submit"
-          variant="accent"
-          disabled={isSubmitting || !hasChanges}
-          className={!hasChanges && !isSubmitting
-            ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
-            : undefined}
-        >
-          {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-          {isSubmitting || saveStatus === 'saving'
-            ? 'Đang lưu...'
-            : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
-        </Button>
-      </div>
+      <HomeComponentStickyFooter
+        isSubmitting={isSubmitting || saveStatus === 'saving'}
+        hasChanges={hasChanges}
+        submitLabel="Lưu thay đổi"
+        align="end"
+      >
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.open(`/posts/${slug}`, '_blank')}
+            className="gap-2"
+            disabled={!slug.trim()}
+          >
+            <ExternalLink size={16} />
+            Xem trên web
+          </Button>
+          <Button
+            type="submit"
+            variant="accent"
+            disabled={isSubmitting || !hasChanges}
+            className={!hasChanges && !isSubmitting
+              ? 'bg-slate-300 hover:bg-slate-300 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-800 dark:text-slate-400'
+              : undefined}
+          >
+            {isSubmitting || saveStatus === 'saving'
+              ? 'Đang lưu...'
+              : (saveStatus === 'saved' && !hasChanges ? 'Đã lưu' : 'Lưu thay đổi')}
+          </Button>
+        </>
+      </HomeComponentStickyFooter>
     </form>
     </>
   );

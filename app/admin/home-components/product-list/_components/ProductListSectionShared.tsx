@@ -2,10 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { ArrowRight, ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { cn } from '../../../components/ui';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import { withAlpha, type ProductListColorTokens } from '../_lib/colors';
 import type { ProductListPreviewItem, ProductListStyle } from '../_types';
 
@@ -93,24 +94,32 @@ const ProductImage = ({
   className: string;
   sizes: string;
 }) => {
+  const { frame } = useProductFrameConfig();
+
   if (context === 'site') {
     return (
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={sizes}
-        className={className}
-      />
+      <>
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes={sizes}
+          className={className}
+        />
+        <ProductImageFrameOverlay frame={frame} />
+      </>
     );
   }
 
   return (
-    <PreviewImage
-      src={src}
-      alt={alt}
-      className={className}
-    />
+    <>
+      <PreviewImage
+        src={src}
+        alt={alt}
+        className={className}
+      />
+      <ProductImageFrameOverlay frame={frame} />
+    </>
   );
 };
 
@@ -831,3 +840,4 @@ export function ProductListSectionShared({
   if (style === 'showcase') {return renderShowcase();}
   return renderBento();
 }
+

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { Check, GripVertical, Package, Search, X } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../../../components/ui';
 import type { ProductListConfig, ProductSelectionMode } from '../_types';
@@ -244,3 +244,4 @@ export const ProductListForm = ({
     </Card>
   </>
 );
+

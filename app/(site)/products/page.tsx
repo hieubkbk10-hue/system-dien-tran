@@ -2,7 +2,7 @@
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
@@ -12,14 +12,23 @@ import { getProductsListColors, type ProductsListColors } from '@/components/sit
 import { useCartConfig, useCheckoutConfig, useProductsListConfig } from '@/lib/experiences';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import { notifyAddToCart, useCart } from '@/lib/cart';
+import { buildCategoryPath, buildModuleListPath, normalizeRouteMode } from '@/lib/ia/route-mode';
 import { QuickAddVariantModal } from '@/components/products/QuickAddVariantModal';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import { ChevronDown, Heart, Package, Search, ShoppingCart, SlidersHorizontal, X } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { getPublicPriceLabel } from '@/lib/products/public-price';
+import { getProductImageAspectRatioCssValue, resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
+import type { ProductImageFrame } from '@/lib/products/product-frame';
 
 type ProductSortOption = 'newest' | 'oldest' | 'popular' | 'price_asc' | 'price_desc' | 'name';
 type ProductsListLayout = 'grid' | 'list' | 'catalog';
 type ProductsSaleMode = 'cart' | 'contact' | 'affiliate';
+
+function useProductImageAspectRatioSetting() {
+  const setting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
+  return useMemo(() => resolveProductImageAspectRatio(setting?.value), [setting?.value]);
+}
 
 function useEnabledProductFields(): Set<string> {
   const fields = useQuery(api.admin.modules.listEnabledModuleFields, { moduleKey: 'products' });
@@ -31,9 +40,14 @@ function useEnabledProductFields(): Set<string> {
 
 function ProductsListSkeleton() {
   const brandColors = useBrandColors();
+  const imageAspectRatio = useProductImageAspectRatioSetting();
   const tokens = useMemo(
     () => getProductsListColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
     [brandColors.primary, brandColors.secondary, brandColors.mode]
+  );
+  const imageAspectRatioStyle = useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
   );
 
   return (
@@ -55,14 +69,14 @@ function ProductsListSkeleton() {
             </div>
           </div>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div
               key={i}
               className="rounded-xl overflow-hidden border"
               style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
             >
-              <div className="aspect-square" style={{ backgroundColor: tokens.filterChipBg }} />
+              <div style={{ ...imageAspectRatioStyle, backgroundColor: tokens.filterChipBg }} />
               <div className="p-4 space-y-3">
                 <div className="h-4 w-full rounded" style={{ backgroundColor: tokens.filterChipBg }} />
                 <div className="h-5 w-24 rounded" style={{ backgroundColor: tokens.filterChipBg }} />
@@ -127,6 +141,11 @@ function generatePaginationItems(currentPage: number, totalPages: number): (numb
 }
 
 function ProductsGridSkeleton({ count = 8, tokens }: { count?: number; tokens: ProductsListColors }) {
+  const imageAspectRatio = useProductImageAspectRatioSetting();
+  const imageAspectRatioStyle = useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
@@ -135,7 +154,7 @@ function ProductsGridSkeleton({ count = 8, tokens }: { count?: number; tokens: P
           className="rounded-xl overflow-hidden border"
           style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
         >
-          <div className="aspect-square" style={{ backgroundColor: tokens.filterChipBg }} />
+          <div style={{ ...imageAspectRatioStyle, backgroundColor: tokens.filterChipBg }} />
           <div className="p-4 space-y-3">
             <div className="h-4 w-full rounded" style={{ backgroundColor: tokens.filterChipBg }} />
             <div className="h-5 w-24 rounded" style={{ backgroundColor: tokens.filterChipBg }} />
@@ -161,6 +180,12 @@ function ProductsContent() {
     () => getProductsListColors(brandColors.primary, brandColors.secondary, brandColors.mode || 'single'),
     [brandColors.primary, brandColors.secondary, brandColors.mode]
   );
+  const imageAspectRatio = useProductImageAspectRatioSetting();
+  const imageAspectRatioStyle = useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
+  const { frame: productFrame } = useProductFrameConfig();
   const listConfig = useProductsListConfig();
   const layout: ProductsListLayout = listConfig.layoutStyle === 'sidebar' ? 'catalog' : listConfig.layoutStyle;
   const enableQuickAddVariant = listConfig.enableQuickAddVariant ?? true;
@@ -177,6 +202,8 @@ function ProductsContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const routeModeSetting = useQuery(api.settings.getValue, { key: 'ia_route_mode', defaultValue: 'unified' });
+  const routeMode = useMemo(() => normalizeRouteMode(routeModeSetting), [routeModeSetting]);
 
   const saleMode = useMemo<ProductsSaleMode>(() => {
     const value = saleModeSetting?.value;
@@ -201,7 +228,6 @@ function ProductsContent() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<ProductSortOption>('newest');
-  const [showFilters, setShowFilters] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const isSearching = searchQuery.trim() !== debouncedSearchQuery.trim();
   const [pageSizeOverride, setPageSizeOverride] = useState<number | null>(null);
@@ -235,12 +261,19 @@ function ProductsContent() {
     [visibleCategories, categories]
   );
 
+  const categorySlugFromPath = useMemo(() => {
+    if (routeMode !== 'unified') {return null;}
+    const segment = pathname.split('/').filter(Boolean)[0];
+    if (!segment || segment === 'products') {return null;}
+    return segment;
+  }, [pathname, routeMode]);
+
   const categoryFromUrl = useMemo(() => {
-    const catSlug = searchParams.get('category');
+    const catSlug = categorySlugFromPath ?? searchParams.get('category');
     if (!catSlug || categoryOptions.length === 0) {return null;}
     const matchedCategory = categoryOptions.find((c) => c.slug === catSlug);
     return matchedCategory?._id ?? null;
-  }, [searchParams, categoryOptions]);
+  }, [categorySlugFromPath, searchParams, categoryOptions]);
 
   const activeCategory = categoryFromUrl;
 
@@ -334,14 +367,20 @@ function ProductsContent() {
     if (categoryId && categoryOptions.length > 0) {
       const category = categoryOptions.find(c => c._id === categoryId);
       if (category) {
+        if (routeMode === 'unified') {
+          router.push(buildCategoryPath({ categorySlug: category.slug, mode: routeMode, moduleKey: 'products' }), { scroll: false });
+          return;
+        }
         params.set('category', category.slug);
       }
     } else {
       params.delete('category');
     }
-    const newUrl = params.toString() ? `/products?${params.toString()}` : '/products';
+    const newUrl = params.toString()
+      ? `${buildModuleListPath('products')}?${params.toString()}`
+      : buildModuleListPath('products');
     router.push(newUrl, { scroll: false });
-  }, [searchParams, categoryOptions, router]);
+  }, [searchParams, categoryOptions, router, routeMode]);
 
   const handlePageSizeChange = useCallback((value: number) => {
     setPageSizeOverride(value);
@@ -363,15 +402,19 @@ function ProductsContent() {
   }, [searchParams, pathname, router]);
 
   useEffect(() => {
-    const catSlug = searchParams.get('category');
+    const catSlug = categorySlugFromPath ?? searchParams.get('category');
     if (!catSlug || categoryOptions.length === 0) {return;}
     const hasMatch = categoryOptions.some((category) => category.slug === catSlug);
     if (hasMatch) {return;}
+    if (routeMode === 'unified' && categorySlugFromPath) {
+      router.replace(buildModuleListPath('products'), { scroll: false });
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.delete('category');
     const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [categoryOptions, pathname, router, searchParams]);
+  }, [categoryOptions, categorySlugFromPath, pathname, router, routeMode, searchParams]);
 
 
   const filterKey = `${activeCategory ?? ''}|${debouncedSearchQuery}|${sortBy}|${postsPerPage}`;
@@ -691,6 +734,8 @@ function ProductsContent() {
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           canUseWishlist={canUseWishlist}
+          imageAspectRatioStyle={imageAspectRatioStyle}
+          frame={productFrame}
         />
         {quickAddModal}
       </>
@@ -727,6 +772,8 @@ function ProductsContent() {
           onAddToCart={handleAddToCart}
           onBuyNow={handlePrimaryAction}
           canUseWishlist={canUseWishlist}
+          imageAspectRatioStyle={imageAspectRatioStyle}
+          frame={productFrame}
         />
         {quickAddModal}
       </>
@@ -741,12 +788,21 @@ function ProductsContent() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
-            <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
           </div>
 
-        {/* Filter Bar */}
+        <MobileProductsFilters
+          categories={categoryOptions}
+          selectedCategory={activeCategory}
+          onCategoryChange={handleCategoryChange}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          tokens={tokens}
+        />
+
         <div
-          className="rounded-xl border p-4 mb-8"
+          className="hidden lg:block rounded-xl border p-4 mb-8"
           style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}
         >
           <div className="flex flex-col lg:flex-row gap-4">
@@ -797,18 +853,6 @@ function ProductsContent() {
               </div>
             </div>
 
-            <button
-              onClick={() =>{  setShowFilters(!showFilters); }}
-              className="lg:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-lg border"
-              style={{
-                borderColor: tokens.filterButtonBorder,
-                backgroundColor: tokens.filterButtonBg,
-                color: tokens.filterButtonText,
-              }}
-            >
-              <SlidersHorizontal size={18} /> Bộ lọc
-            </button>
-
             <div className="flex items-center gap-2 ml-auto">
               <select
                 value={sortBy}
@@ -828,37 +872,6 @@ function ProductsContent() {
               </select>
             </div>
           </div>
-
-          {showFilters && (
-            <div className="lg:hidden mt-4 pt-4 border-t" style={{ borderColor: tokens.filterBarBorder }}>
-              <p className="text-sm font-medium mb-3" style={{ color: tokens.bodyText }}>Danh mục</p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() =>{  handleCategoryChange(null); }}
-                  className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                  style={activeCategory === null
-                    ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
-                    : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
-                  }
-                >
-                  Tất cả
-                </button>
-                {categoryOptions.map((cat) => (
-                  <button
-                    key={cat._id}
-                    onClick={() =>{  handleCategoryChange(cat._id); }}
-                    className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
-                    style={activeCategory === cat._id
-                      ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
-                      : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
-                    }
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Results Count */}
@@ -893,6 +906,8 @@ function ProductsContent() {
             onAddToCart={handleAddToCart}
             onBuyNow={handlePrimaryAction}
             canUseWishlist={canUseWishlist}
+            imageAspectRatioStyle={imageAspectRatioStyle}
+            frame={productFrame}
           />
         )}
 
@@ -962,7 +977,7 @@ function ProductCardActions({ product, tokens, showStock, showAddToCartButton, s
   );
 }
 
-function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
+function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist, imageAspectRatioStyle, frame }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean; imageAspectRatioStyle: React.CSSProperties; frame: ProductImageFrame | null }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
       {products.map((product) => (
@@ -975,12 +990,13 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
           className="group rounded-xl overflow-hidden border transition-colors flex flex-col h-full"
           style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
         >
-          <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.filterChipBg }}>
+          <div className="overflow-hidden relative" style={{ ...imageAspectRatioStyle, backgroundColor: tokens.filterChipBg }}>
             {product.image ? (
-                <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Image mode="thumb" src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={48} style={{ color: tokens.neutralTextLight }} /></div>
             )}
+            <ProductImageFrameOverlay frame={frame} />
             {showPromotionBadge && showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
@@ -1038,7 +1054,7 @@ function ProductGrid({ products, categoryMap, tokens, showPrice, showSalePrice, 
   );
 }
 
-function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean }) {
+function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, showStock, saleMode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist, imageAspectRatioStyle, frame }: { products: ProductCardProps['product'][]; categoryMap: Map<string, string>; tokens: ProductsListColors; showPrice: boolean; showSalePrice: boolean; showStock: boolean; saleMode: ProductsSaleMode; showWishlistButton: boolean; showAddToCartButton: boolean; showBuyNowButton: boolean; buyNowLabel: string; showPromotionBadge: boolean; wishlistIdSet: Set<Id<'products'>>; onToggleWishlist: (id: Id<'products'>) => void; onAddToCart: (product: ProductCardProps['product']) => void; onBuyNow: (product: ProductCardProps['product']) => void; canUseWishlist: boolean; imageAspectRatioStyle: React.CSSProperties; frame: ProductImageFrame | null }) {
   return (
     <div className="space-y-4">
       {products.map((product) => (
@@ -1051,12 +1067,13 @@ function ProductList({ products, categoryMap, tokens, showPrice, showSalePrice, 
           className="group flex gap-4 rounded-xl overflow-hidden border transition-colors p-4"
           style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
         >
-          <div className="w-32 h-32 md:w-40 md:h-40 shrink-0 overflow-hidden rounded-lg relative" style={{ backgroundColor: tokens.filterChipBg }}>
+          <div className="w-32 md:w-40 shrink-0 overflow-hidden rounded-lg relative" style={{ ...imageAspectRatioStyle, backgroundColor: tokens.filterChipBg }}>
             {product.image ? (
-                <Image src={product.image} alt={product.name} fill sizes="160px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Image mode="thumb" src={product.image} alt={product.name} fill sizes="160px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
             ) : (
               <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
             )}
+            <ProductImageFrameOverlay frame={frame} />
             {showPromotionBadge && showSalePrice && priceDisplay.comparePrice && !priceDisplay.isContactPrice && (
               <span
                 className="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded"
@@ -1178,16 +1195,160 @@ interface LayoutProps {
   onAddToCart: (product: ProductCardProps['product']) => void;
   onBuyNow: (product: ProductCardProps['product']) => void;
   canUseWishlist: boolean;
+  imageAspectRatioStyle: React.CSSProperties;
+  frame: ProductImageFrame | null;
 }
 
-function CatalogLayout({ products, categories, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
+interface MobileProductsFiltersProps {
+  categories: { _id: Id<'productCategories'>; name: string; slug: string }[];
+  selectedCategory: Id<'productCategories'> | null;
+  onCategoryChange: (categoryId: Id<'productCategories'> | null) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  sortBy: ProductSortOption;
+  onSortChange: (sort: ProductSortOption) => void;
+  tokens: ProductsListColors;
+}
+
+function MobileProductsFilters({
+  categories,
+  selectedCategory,
+  onCategoryChange,
+  searchQuery,
+  onSearchChange,
+  sortBy,
+  onSortChange,
+  tokens,
+}: MobileProductsFiltersProps) {
+  const [open, setOpen] = useState(false);
+  const hasActiveFilters = Boolean(selectedCategory || searchQuery) || sortBy !== 'newest';
+
+  return (
+    <div className="lg:hidden rounded-xl border p-3 mb-4" style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}>
+      <button
+        onClick={() => { setOpen(prev => !prev); }}
+        className="flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm font-medium"
+        style={{
+          borderColor: tokens.filterButtonBorder,
+          backgroundColor: tokens.filterButtonBg,
+          color: tokens.filterButtonText,
+        }}
+        aria-expanded={open}
+        aria-label="Bật tắt bộ lọc sản phẩm"
+      >
+        <span className="flex items-center gap-2">
+          <SlidersHorizontal size={16} />
+          Bộ lọc sản phẩm
+          {hasActiveFilters && (
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tokens.filterChipActiveBg }} />
+          )}
+        </span>
+        <ChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3 border-t pt-3" style={{ borderColor: tokens.filterBarBorder }}>
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: tokens.inputIcon }} />
+            <input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchQuery}
+              onChange={(e) => { onSearchChange(e.target.value); }}
+              className="w-full h-10 pl-9 pr-9 rounded-lg border text-sm outline-none placeholder:text-[var(--placeholder-color)]"
+              style={{
+                borderColor: tokens.inputBorder,
+                backgroundColor: tokens.inputBackground,
+                color: tokens.inputText,
+                '--placeholder-color': tokens.inputPlaceholder,
+              } as React.CSSProperties}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { onSearchChange(''); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: tokens.inputIcon }}
+                aria-label="Xóa tìm kiếm"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider" style={{ color: tokens.metaText }}>Danh mục</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => { onCategoryChange(null); }}
+                className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
+                style={selectedCategory === null
+                  ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
+                  : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
+                }
+              >
+                Tất cả
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat._id}
+                  onClick={() => { onCategoryChange(cat._id); }}
+                  className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
+                  style={selectedCategory === cat._id
+                    ? { backgroundColor: tokens.filterChipActiveBg, color: tokens.filterChipActiveText, borderColor: tokens.filterChipActiveBorder }
+                    : { backgroundColor: tokens.filterChipBg, color: tokens.filterChipText, borderColor: tokens.filterChipBorder }
+                  }
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wider" style={{ color: tokens.metaText }}>
+              Sắp xếp
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => { onSortChange(e.target.value as ProductSortOption); }}
+              className="w-full h-10 rounded-lg border px-3 text-sm outline-none"
+              style={{
+                borderColor: tokens.inputBorder,
+                backgroundColor: tokens.inputBackground,
+                color: tokens.inputText,
+              }}
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="popular">Bán chạy</option>
+              <option value="price_asc">Giá thấp → cao</option>
+              <option value="price_desc">Giá cao → thấp</option>
+              <option value="name">Tên A-Z</option>
+            </select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CatalogLayout({ products, categories, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist, imageAspectRatioStyle }: LayoutProps) {
   return (
     <div className="py-8 md:py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
-          <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
         </div>
+
+        <MobileProductsFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={onCategoryChange}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          sortBy={sortBy}
+          onSortChange={onSortChange}
+          tokens={tokens}
+        />
 
         <div className="flex gap-6">
           {/* Sidebar */}
@@ -1285,9 +1446,9 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
                     className="group rounded-xl overflow-hidden border transition-colors flex flex-col h-full"
                     style={{ backgroundColor: tokens.cardBackground, borderColor: tokens.cardBorder }}
                   >
-                    <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: tokens.filterChipBg }}>
+                    <div className="overflow-hidden relative" style={{ ...imageAspectRatioStyle, backgroundColor: tokens.filterChipBg }}>
                       {product.image ? (
-                        <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <Image mode="thumb" src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-500" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"><Package size={32} style={{ color: tokens.neutralTextLight }} /></div>
                       )}
@@ -1347,18 +1508,27 @@ function CatalogLayout({ products, categories, selectedCategory, onCategoryChang
 
 // ========== LIST LAYOUT (Full width list view) ==========
 
-function ListLayout({ products, categories, categoryMap, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist }: LayoutProps) {
+function ListLayout({ products, categories, categoryMap, selectedCategory, onCategoryChange, searchQuery, onSearchChange, sortBy, onSortChange, tokens, showPrice, showSalePrice, showStock, saleMode, totalCount, paginationNode, showWishlistButton, showAddToCartButton, showBuyNowButton, buyNowLabel, showPromotionBadge, wishlistIdSet, onToggleWishlist, onAddToCart, onBuyNow, canUseWishlist, imageAspectRatioStyle, frame }: LayoutProps) {
   return (
     <div className="py-8 md:py-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold" style={{ color: tokens.headingColor }}>Sản phẩm</h1>
-          <p className="mt-2" style={{ color: tokens.subtitleText }}>Khám phá các sản phẩm chất lượng của chúng tôi</p>
         </div>
 
-        {/* Filter Bar */}
+        <MobileProductsFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={onCategoryChange}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          sortBy={sortBy}
+          onSortChange={onSortChange}
+          tokens={tokens}
+        />
+
         <div
-          className="rounded-xl border p-4 mb-6"
+          className="hidden md:block rounded-xl border p-4 mb-6"
           style={{ backgroundColor: tokens.filterBarBackground, borderColor: tokens.filterBarBorder }}
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -1437,6 +1607,8 @@ function ListLayout({ products, categories, categoryMap, selectedCategory, onCat
             onAddToCart={onAddToCart}
             onBuyNow={onBuyNow}
             canUseWishlist={canUseWishlist}
+            imageAspectRatioStyle={imageAspectRatioStyle}
+            frame={frame}
           />
         )}
 

@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from 'convex/react';
 import { ArrowRight, ChevronLeft, ChevronRight, Package } from 'lucide-react';
+import { api } from '@/convex/_generated/api';
 import { BrandBadge, SaleBadge } from '@/components/site/shared/BrandColorHelpers';
 import { cn } from '../../../components/ui';
 import { BrowserFrame } from '../../_shared/components/BrowserFrame';
@@ -11,6 +13,7 @@ import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { PRODUCT_LIST_STYLES } from '../_lib/constants';
 import type { ProductListPreviewItem, ProductListStyle } from '../_types';
+import { getProductImageAspectRatioCssValue, resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
 
 export const ProductListPreview = ({
   brandColor,
@@ -43,6 +46,15 @@ export const ProductListPreview = ({
   const previewStyle = selectedStyle ?? 'commerce';
   const setPreviewStyle = (style: string) => onStyleChange?.(style as ProductListStyle);
   const isProduct = componentType !== 'ServiceList';
+  const aspectRatioSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
+  const imageAspectRatio = React.useMemo(
+    () => resolveProductImageAspectRatio(aspectRatioSetting?.value),
+    [aspectRatioSetting?.value]
+  );
+  const imageAspectRatioStyle = React.useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
 
   const mockProducts: ProductListPreviewItem[] = [
     { category: 'Smartphone', id: 1, image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&h=500&fit=crop&q=80', name: 'iPhone 15 Pro Max', originalPrice: '36.990.000đ', price: '34.990.000đ', tag: 'new' },
@@ -97,7 +109,10 @@ export const ProductListPreview = ({
           const discount = getDiscount(item.price, item.originalPrice);
           return (
             <div key={item.id} className="group cursor-pointer">
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4 border border-transparent transition-all" style={{ '--hover-border': `${secondary}20` } as React.CSSProperties}>
+              <div
+                className="relative overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4 border border-transparent transition-all"
+                style={{ ...imageAspectRatioStyle, '--hover-border': `${secondary}20` } as React.CSSProperties}
+              >
                 {item.image ? (
                   <PreviewImage
                     src={item.image}
@@ -183,7 +198,7 @@ export const ProductListPreview = ({
               className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
               style={{ '--hover-border': `${secondary}30`, '--hover-shadow': `0 10px 15px -3px ${secondary}10` } as React.CSSProperties}
             >
-              <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div className="relative bg-slate-100 dark:bg-slate-700 overflow-hidden" style={imageAspectRatioStyle}>
                 {item.image ? (
                   <PreviewImage
                     src={item.image}
@@ -266,7 +281,7 @@ export const ProductListPreview = ({
               const itemDiscount = getDiscount(item.price, item.originalPrice);
               return (
                 <div key={item.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
-                  <div className="relative aspect-square w-full rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden mb-2">
+                  <div className="relative w-full rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden mb-2" style={imageAspectRatioStyle}>
                     {item.image ? (
                       <PreviewImage src={item.image} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" alt={item.name} />
                     ) : (
@@ -330,7 +345,7 @@ export const ProductListPreview = ({
                   className="col-span-1 row-span-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 flex flex-col group hover:shadow-lg transition-all cursor-pointer relative overflow-hidden"
                   style={{ '--hover-border': `${secondary}40` } as React.CSSProperties}
                 >
-                  <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-3" style={{ backgroundColor: `${secondary}08` }}>
+                  <div className="relative w-full rounded-xl overflow-hidden mb-3" style={{ ...imageAspectRatioStyle, backgroundColor: `${secondary}08` }}>
                     {item.image ? (
                       <PreviewImage
                         src={item.image}
@@ -424,10 +439,11 @@ export const ProductListPreview = ({
                   device === 'mobile' ? 'w-[160px]' : (device === 'tablet' ? 'w-[220px]' : 'w-[260px]')
                 )}
               >
-                <div
-                  className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3 border border-transparent transition-all"
+              <div
+                  className="relative overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 mb-3 border border-transparent transition-all"
                   onMouseEnter={(event) => { event.currentTarget.style.borderColor = `${secondary}20`; }}
                   onMouseLeave={(event) => { event.currentTarget.style.borderColor = 'transparent'; }}
+                  style={imageAspectRatioStyle}
                 >
                   {item.image ? (
                     <PreviewImage src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -494,7 +510,7 @@ export const ProductListPreview = ({
               onMouseEnter={(event) => { event.currentTarget.style.borderColor = `${secondary}20`; }}
               onMouseLeave={(event) => { event.currentTarget.style.borderColor = ''; }}
             >
-              <div className="relative aspect-square overflow-hidden rounded-md bg-slate-50 dark:bg-slate-700 mb-2">
+              <div className="relative overflow-hidden rounded-md bg-slate-50 dark:bg-slate-700 mb-2" style={imageAspectRatioStyle}>
                 {item.image ? (
                   <PreviewImage src={item.image} alt={item.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
@@ -548,7 +564,7 @@ export const ProductListPreview = ({
               const discount = getDiscount(item.price, item.originalPrice);
               return (
                 <div key={item.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex flex-col cursor-pointer hover:shadow-md transition-all">
-                  <div className="relative aspect-square w-full rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden mb-2">
+                  <div className="relative w-full rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden mb-2" style={imageAspectRatioStyle}>
                     {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={24} className="text-slate-300" /></div>}
                     {discount && (
                       <div className="absolute top-2 left-2">
@@ -591,7 +607,7 @@ export const ProductListPreview = ({
                 const discount = getDiscount(item.price, item.originalPrice);
                 return (
                   <div key={item.id} className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col cursor-pointer hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all">
-                    <div className="relative aspect-square w-full rounded-lg bg-slate-50 dark:bg-slate-700 overflow-hidden mb-3">
+                    <div className="relative w-full rounded-lg bg-slate-50 dark:bg-slate-700 overflow-hidden mb-3" style={imageAspectRatioStyle}>
                       {item.image ? <PreviewImage src={item.image} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" alt={item.name} /> : <div className="h-full w-full flex items-center justify-center"><Package size={32} className="text-slate-300" /></div>}
                       {discount && (
                         <div className="absolute top-2 left-2">

@@ -12,7 +12,7 @@ export type VariantPricing = 'product' | 'variant';
 export type VariantStock = 'product' | 'variant';
 export type VariantImages = 'inherit' | 'override' | 'both';
 
-export type DataScale = 'low' | 'medium' | 'high';
+export type DataScale = 'low' | 'medium' | 'high' | 'none';
 
 export type BusinessInfo = {
   address: string;
@@ -75,5 +75,7 @@ export type WizardState = {
   variantPresetKey: VariantPresetKey;
   variantPricing: VariantPricing;
   variantStock: VariantStock;
+  productFramesEnabled: boolean;
+  productSupplementalContentEnabled: boolean;
   websiteType: WebsiteType;
 };

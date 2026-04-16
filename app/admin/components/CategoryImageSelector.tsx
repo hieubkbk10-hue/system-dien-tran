@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { Button, Input, Label, cn } from './ui';
 import { prepareImageForUpload, validateImageFile } from '@/lib/image/uploadPipeline';
+import { resolveNamingContext } from '@/lib/image/uploadNaming';
 
 // Available icons for categories
 const CATEGORY_ICONS = [
@@ -202,7 +203,8 @@ export function CategoryImageSelector({
 
     setIsUploading(true);
     try {
-      const prepared = await prepareImageForUpload(file);
+      const resolvedNaming = resolveNamingContext(undefined, { entityName: 'category', field: 'image', index: 1 });
+      const prepared = await prepareImageForUpload(file, { naming: resolvedNaming });
 
       const uploadUrl = await generateUploadUrl();
       const response = await fetch(uploadUrl, {
@@ -532,3 +534,4 @@ export function CategoryImageSelector({
 }
 
 export { CATEGORY_ICONS };
+

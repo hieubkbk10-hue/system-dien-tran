@@ -108,6 +108,13 @@ export const BulkActionBar = ({
   onSelectPage,
   onSelectAllResults,
   isSelectingAllResults,
+  onPublish,
+  onUnpublish,
+  isStatusLoading,
+  publishLabel = 'Đăng bán',
+  publishLoadingLabel = 'Đang đăng bán...',
+  unpublishLabel = 'Chuyển nháp',
+  unpublishLoadingLabel = 'Đang chuyển nháp...',
   onDelete,
   onClearSelection,
   isLoading,
@@ -120,6 +127,13 @@ export const BulkActionBar = ({
   onSelectPage?: () => void;
   onSelectAllResults?: () => void;
   isSelectingAllResults?: boolean;
+  onPublish?: () => void;
+  onUnpublish?: () => void;
+  isStatusLoading?: 'publish' | 'unpublish' | null;
+  publishLabel?: string;
+  publishLoadingLabel?: string;
+  unpublishLabel?: string;
+  unpublishLoadingLabel?: string;
   onDelete: () => void;
   onClearSelection: () => void;
   isLoading?: boolean;
@@ -170,7 +184,31 @@ export const BulkActionBar = ({
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={onDelete} disabled={isLoading}>
+        {onPublish && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 h-8"
+            onClick={onPublish}
+            disabled={isLoading || Boolean(isStatusLoading)}
+          >
+            {isStatusLoading === 'publish' ? <Loader2 size={14} className="animate-spin" /> : null}
+            {isStatusLoading === 'publish' ? publishLoadingLabel : `${publishLabel} (${selectedCount})`}
+          </Button>
+        )}
+        {onUnpublish && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 h-8"
+            onClick={onUnpublish}
+            disabled={isLoading || Boolean(isStatusLoading)}
+          >
+            {isStatusLoading === 'unpublish' ? <Loader2 size={14} className="animate-spin" /> : null}
+            {isStatusLoading === 'unpublish' ? unpublishLoadingLabel : `${unpublishLabel} (${selectedCount})`}
+          </Button>
+        )}
+        <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={onDelete} disabled={isLoading || Boolean(isStatusLoading)}>
           {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           {isLoading ? 'Đang xóa...' : `Xóa (${selectedCount})`}
         </Button>

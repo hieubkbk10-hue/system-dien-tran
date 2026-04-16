@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { Briefcase, ChevronDown, Clock, Eye, Folder, Search, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
@@ -220,8 +220,9 @@ export function SidebarLayout({
                               fill
                               sizes="96px"
                               className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              ref={(img) => {
-                                if (img?.complete && img.naturalWidth === 0) {
+                              mode="thumb"
+                              onLoadingComplete={(img) => {
+                                if (img.naturalWidth === 0) {
                                   markThumbnailBroken(service._id);
                                 }
                               }}

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { ChevronLeft, ChevronRight, ImageIcon, Link as LinkIcon, Loader2, Plus, Upload } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../../../components/ui';
 import type { ClientEditorItem } from '../_types';
@@ -224,3 +224,4 @@ export const ClientsForm = ({
     </Card>
   );
 };
+

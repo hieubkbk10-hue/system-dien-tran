@@ -1,19 +1,23 @@
+import { buildImageFilename, getExtensionFromMime, slugify, type ImageNamingContext } from './uploadNaming';
+import { getProductImageAspectRatioValue, isAspectRatioMatch, type ProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
+
 export const WEBP_UPLOAD_QUALITY = 0.85;
 
 const DEFAULT_MAX_FILE_SIZE_MB = 10;
-
-const MIME_EXTENSION_MAP: Record<string, string> = {
-  'image/gif': 'gif',
-  'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-};
 
 type PrepareImageOptions = {
   quality?: number;
   preserveGif?: boolean;
   preservePngWithTransparency?: boolean;
+  crop?: ImageCropSelection;
+  naming?: ImageNamingContext;
+};
+
+export type ImageCropSelection = {
+  scale: number;
+  xPercent: number;
+  yPercent: number;
+  aspectRatio: ProductImageAspectRatio;
 };
 
 export type PreparedUploadImage = {
@@ -26,25 +30,7 @@ export type PreparedUploadImage = {
   width: number;
 };
 
-function slugify(value: string): string {
-  const normalized = value
-    .toLowerCase()
-    .normalize('NFD')
-    .replaceAll(/[\u0300-\u036f]/g, '')
-    .replaceAll(/[đĐ]/g, 'd')
-    .replaceAll(/[^a-z0-9\s-]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .replaceAll(/-+/g, '-')
-    .trim();
-
-  return normalized || 'image';
-}
-
-function getExtensionFromMime(mimeType: string): string {
-  return MIME_EXTENSION_MAP[mimeType] ?? 'bin';
-}
-
-function buildFilename(originalName: string, mimeType: string): string {
+function buildLegacyFilename(originalName: string, mimeType: string): string {
   const baseName = originalName.replace(/\.[^/.]+$/, '');
   const timestamp = Date.now();
   const random = Math.random().toString(36).slice(2, 6);
@@ -150,6 +136,70 @@ async function convertToWebP(file: File, quality: number): Promise<Blob | null> 
   });
 }
 
+async function cropImageToAspectRatio(file: File, selection: ImageCropSelection): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const sourceWidth = img.width;
+      const sourceHeight = img.height;
+      const safeScale = Number.isFinite(selection.scale) ? Math.max(1, selection.scale) : 1;
+      const targetRatio = getProductImageAspectRatioValue(selection.aspectRatio);
+      const sourceRatio = sourceWidth / sourceHeight;
+      const baseWidth = sourceRatio >= targetRatio ? sourceHeight * targetRatio : sourceWidth;
+      const baseHeight = sourceRatio >= targetRatio ? sourceHeight : sourceWidth / targetRatio;
+      const cropWidth = baseWidth / safeScale;
+      const cropHeight = baseHeight / safeScale;
+
+      const maxX = Math.max(0, sourceWidth - cropWidth);
+      const maxY = Math.max(0, sourceHeight - cropHeight);
+      const xRatio = Number.isFinite(selection.xPercent) ? Math.min(1, Math.max(0, selection.xPercent)) : 0;
+      const yRatio = Number.isFinite(selection.yPercent) ? Math.min(1, Math.max(0, selection.yPercent)) : 0;
+
+      const srcX = maxX * xRatio;
+      const srcY = maxY * yRatio;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Không thể khởi tạo canvas để cắt ảnh'));
+        return;
+      }
+
+      const outputWidth = Math.max(1, Math.round(cropWidth));
+      const outputHeight = Math.max(1, Math.round(cropHeight));
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
+      ctx.drawImage(img, srcX, srcY, cropWidth, cropHeight, 0, 0, outputWidth, outputHeight);
+
+      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const quality = mimeType === 'image/jpeg' ? 0.92 : undefined;
+
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(objectUrl);
+        if (!blob) {
+          reject(new Error('Không thể tạo ảnh sau khi cắt'));
+          return;
+        }
+
+        const extension = mimeType === 'image/png' ? 'png' : 'jpg';
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        const croppedFile = new File([blob], `${baseName}-crop.${extension}`, { type: mimeType });
+        resolve(croppedFile);
+      }, mimeType, quality);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Không thể đọc ảnh để cắt'));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export function validateImageFile(file: File, maxFileSizeMb: number = DEFAULT_MAX_FILE_SIZE_MB): string | null {
   if (!file.type.startsWith('image/')) {
     return 'Vui lòng chọn file hình ảnh';
@@ -170,28 +220,38 @@ export async function prepareImageForUpload(
   const preserveGif = options.preserveGif ?? true;
   const preservePngWithTransparency = options.preservePngWithTransparency ?? true;
 
-  const dimensions = await getImageDimensions(file);
+  const cropSelection = 'crop' in options ? options.crop : undefined;
+  const initialDimensions = await getImageDimensions(file);
+  let sourceFile = file;
+  let dimensions = initialDimensions;
 
-  let targetMimeType = file.type;
-  let targetBlob: Blob = file;
+  if (cropSelection && !isAspectRatioMatch(initialDimensions, cropSelection.aspectRatio)) {
+    sourceFile = await cropImageToAspectRatio(file, cropSelection);
+    dimensions = await getImageDimensions(sourceFile);
+  }
 
-  const isGif = file.type === 'image/gif';
-  const isPng = file.type === 'image/png';
-  const isSvg = file.type === 'image/svg+xml';
+  let targetMimeType = sourceFile.type;
+  let targetBlob: Blob = sourceFile;
+
+  const isGif = sourceFile.type === 'image/gif';
+  const isPng = sourceFile.type === 'image/png';
+  const isSvg = sourceFile.type === 'image/svg+xml';
 
   const shouldKeepGif = preserveGif && isGif;
-  const shouldKeepPng = preservePngWithTransparency && isPng && await hasTransparency(file);
+  const shouldKeepPng = preservePngWithTransparency && isPng && await hasTransparency(sourceFile);
   const shouldKeepOriginal = shouldKeepGif || shouldKeepPng || isSvg;
 
   if (!shouldKeepOriginal) {
-    const webpBlob = await convertToWebP(file, quality);
+    const webpBlob = await convertToWebP(sourceFile, quality);
     if (webpBlob) {
       targetBlob = webpBlob;
       targetMimeType = 'image/webp';
     }
   }
 
-  const filename = buildFilename(file.name, targetMimeType);
+  const filename = options.naming
+    ? buildImageFilename({ context: options.naming, originalName: sourceFile.name, mimeType: targetMimeType })
+    : buildLegacyFilename(sourceFile.name, targetMimeType);
   const uploadFile = new File([targetBlob], filename, { type: targetMimeType });
 
   return {

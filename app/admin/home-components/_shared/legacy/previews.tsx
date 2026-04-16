@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { BrandBadge, IconContainer, CheckIcon, AccentLine } from '@/components/site/shared/BrandColorHelpers';
 import { 
   ArrowRight, Briefcase, Building2, Check, ChevronDown, ChevronLeft,
@@ -6888,3 +6888,4 @@ export const VoucherPromotionsPreview = ({
     </PreviewWrapper>
   );
 };
+

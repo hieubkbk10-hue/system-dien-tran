@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { QuickContactButtons } from '@/components/site/QuickContact';
 import { ArrowLeft, ArrowRight, Calendar, ChevronRight, Clock, Copy, Eye, Image as ImageIcon, Star } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -131,6 +131,7 @@ function RelatedServiceThumb({ title, thumbnail, tokens, size }: { title: string
       sizes={size === 'small' ? '64px' : '(max-width: 768px) 100vw, 33vw'}
       className={size === 'small' ? "object-cover group-hover:scale-110 transition-transform duration-300" : "object-cover group-hover:scale-110 transition-transform duration-500"}
       onError={() =>{  setHasError(true); }}
+      mode="thumb"
     />
   );
 }
@@ -249,6 +250,7 @@ export function ClassicStyle({ service, brandColor: _brandColor, tokens, related
                   fill
                   sizes="(max-width: 1024px) 100vw, 800px"
                   className="object-cover"
+                  mode="primary"
                 />
               </div>
             )}
@@ -466,6 +468,7 @@ export function ModernStyle({ service, brandColor: _brandColor, tokens, relatedS
               fill
               sizes="(max-width: 1024px) 100vw, 1200px"
               className="object-cover"
+              mode="primary"
             />
           </div>
         </div>
@@ -639,6 +642,7 @@ export function MinimalStyle({ service, brandColor: _brandColor, tokens, related
                 fill
                 sizes="(max-width: 1024px) 100vw, 800px"
                 className="object-cover"
+                mode="primary"
               />
             </div>
           </figure>

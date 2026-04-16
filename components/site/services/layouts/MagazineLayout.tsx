@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { Briefcase, ChevronDown, Clock, Eye, Search, Star, TrendingUp } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import type { ServiceSortOption } from '../ServicesFilter';
@@ -120,8 +120,9 @@ export function MagazineLayout({
                   fill
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  ref={(img) => {
-                    if (img?.complete && img.naturalWidth === 0) {
+                  mode="thumb"
+                  onLoadingComplete={(img) => {
+                    if (img.naturalWidth === 0) {
                       markThumbnailBroken(mainFeatured._id);
                     }
                   }}
@@ -185,8 +186,9 @@ export function MagazineLayout({
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      ref={(img) => {
-                        if (img?.complete && img.naturalWidth === 0) {
+                      mode="thumb"
+                      onLoadingComplete={(img) => {
+                        if (img.naturalWidth === 0) {
                           markThumbnailBroken(service._id);
                         }
                       }}
@@ -337,8 +339,9 @@ export function MagazineLayout({
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        ref={(img) => {
-                          if (img?.complete && img.naturalWidth === 0) {
+                        mode="thumb"
+                        onLoadingComplete={(img) => {
+                          if (img.naturalWidth === 0) {
                             markThumbnailBroken(service._id);
                           }
                         }}

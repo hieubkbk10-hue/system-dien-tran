@@ -1,5 +1,27 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { getExtensionFromMime } from "../lib/image/uploadNaming";
+
+const getExtensionFromFilename = (filename: string) => {
+  const match = filename.toLowerCase().match(/\.([a-z0-9]+)$/);
+  return match?.[1];
+};
+
+const resolveExtension = (filename: string, mimeType: string) => {
+  const byName = getExtensionFromFilename(filename);
+  if (byName) {
+    return byName;
+  }
+  const ext = getExtensionFromMime(mimeType);
+  if (ext !== "bin") {
+    return ext;
+  }
+  const fallback = mimeType.split("/")[1];
+  if (!fallback) {
+    return "bin";
+  }
+  return fallback.replace("+xml", "").replace("jpeg", "jpg");
+};
 
 export const generateUploadUrl = mutation({
   args: {},
@@ -29,9 +51,11 @@ export const saveImage = mutation({
     folder: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const extension = resolveExtension(args.filename, args.mimeType);
     const id = await ctx.db.insert("images", {
       storageId: args.storageId,
       filename: args.filename,
+      extension,
       mimeType: args.mimeType,
       size: args.size,
       width: args.width,
@@ -66,6 +90,47 @@ export const deleteImage = mutation({
     return null;
   },
   returns: v.null(),
+});
+
+export const cleanupStorageIfUnreferenced = mutation({
+  args: { storageId: v.id("_storage"), maxScan: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const maxScan = args.maxScan ?? 1000;
+    const products = await ctx.db.query("products").take(maxScan);
+    const posts = await ctx.db.query("posts").take(maxScan);
+    const services = await ctx.db.query("services").take(maxScan);
+
+    const hitScanLimit = products.length === maxScan || posts.length === maxScan || services.length === maxScan;
+    if (hitScanLimit) {
+      return { deleted: false, reason: "scan_limit" as const };
+    }
+
+    const isUsedInProducts = products.some((product) =>
+      product.imageStorageId === args.storageId
+      || (product.imageStorageIds ?? []).some((storageId) => storageId === args.storageId)
+    );
+    const isUsedInPosts = posts.some((post) => post.thumbnailStorageId === args.storageId);
+    const isUsedInServices = services.some((service) => service.thumbnailStorageId === args.storageId);
+
+    if (isUsedInProducts || isUsedInPosts || isUsedInServices) {
+      return { deleted: false, reason: "referenced" as const };
+    }
+
+    await ctx.storage.delete(args.storageId);
+    const image = await ctx.db
+      .query("images")
+      .filter(q => q.eq(q.field("storageId"), args.storageId))
+      .first();
+    if (image) {
+      await ctx.db.delete(image._id);
+    }
+
+    return { deleted: true, reason: "deleted" as const };
+  },
+  returns: v.object({
+    deleted: v.boolean(),
+    reason: v.union(v.literal("deleted"), v.literal("referenced"), v.literal("scan_limit")),
+  }),
 });
 
 // QA-HIGH-006 FIX: Add limit to prevent fetching ALL images

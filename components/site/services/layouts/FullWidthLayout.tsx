@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import Link from 'next/link';
 import { Briefcase, Clock, Star } from 'lucide-react';
 import React from 'react';
@@ -85,8 +85,9 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        ref={(img) => {
-                          if (img?.complete && img.naturalWidth === 0) {
+                        mode="thumb"
+                        onLoadingComplete={(img) => {
+                          if (img.naturalWidth === 0) {
                             markThumbnailBroken(service._id);
                           }
                         }}
@@ -177,8 +178,9 @@ export const FullWidthLayout = ({ services, tokens, categoryMap, viewMode, enabl
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  ref={(img) => {
-                    if (img?.complete && img.naturalWidth === 0) {
+                  mode="thumb"
+                  onLoadingComplete={(img) => {
+                    if (img.naturalWidth === 0) {
                       markThumbnailBroken(service._id);
                     }
                   }}

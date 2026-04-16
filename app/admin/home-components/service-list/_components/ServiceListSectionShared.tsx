@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Briefcase, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { cn } from '../../../components/ui';
@@ -1032,3 +1032,4 @@ export function ServiceListSectionShared({
   if (style === 'minimal') {return renderMinimal();}
   return renderShowcase();
 }
+

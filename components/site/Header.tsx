@@ -2,17 +2,18 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useBrandColors, useSiteSettings } from './hooks';
-import { HeaderSearchAutocomplete } from './HeaderSearchAutocomplete';
+import dynamic from 'next/dynamic';
 import { ChevronDown, ChevronRight, Heart, LogOut, Mail, Package, Phone, Search, User } from 'lucide-react';
 import { CartIcon } from './CartIcon';
 import { useCustomerAuth } from '@/app/(site)/auth/context';
 import { getMenuColors, type MenuColors } from './header/colors';
+import { buildMenuTree, type MenuTreeNode } from '@/lib/utils/menu-tree';
 
 interface MenuItem {
   _id: Id<"menuItems">;
@@ -25,11 +26,18 @@ interface MenuItem {
   openInNewTab?: boolean;
 }
 
-interface MenuItemWithChildren extends MenuItem {
-  children: MenuItemWithChildren[];
-}
+type MenuItemWithChildren = MenuTreeNode<MenuItem>;
+
+export type HeaderInitialData = {
+  menuData?: { menu: { _creationTime: number; _id: Id<'menus'>; location: string; name: string }; items: MenuItem[] } | null;
+  headerStyle?: string | null;
+  headerConfig?: HeaderConfig | null;
+  contact?: { contact_phone?: string; contact_email?: string };
+  site?: { site_name?: string; site_logo?: string; site_tagline?: string };
+};
 
 type HeaderStyle = 'classic' | 'topbar' | 'allbirds';
+type DropdownAlign = 'center' | 'left' | 'right';
 
 interface TopbarConfig {
   show?: boolean;
@@ -50,13 +58,19 @@ interface SearchConfig {
   searchServices?: boolean;
 }
 
+type LogoBackgroundStyle = 'none' | 'border' | 'shadow' | 'soft' | 'solid' | 'outline' | 'hairline' | 'inset' | 'pill';
+
 interface HeaderConfig {
   brandName?: string;
   showBrandName?: boolean;
   logoSizeLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+  headerSpacingLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  logoBackgroundStyle?: LogoBackgroundStyle;
   headerBackground?: 'white' | 'dots' | 'stripes';
   headerSeparator?: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky?: boolean;
+  headerStickyDesktop?: boolean;
+  headerStickyMobile?: boolean;
   showBrandAccent?: boolean;
   cta?: { show?: boolean; text?: string };
   topbar?: TopbarConfig;
@@ -70,9 +84,13 @@ const DEFAULT_CONFIG: HeaderConfig = {
   brandName: 'YourBrand',
   showBrandName: true,
   logoSizeLevel: 2,
+  headerSpacingLevel: 5,
+  logoBackgroundStyle: 'none',
   headerBackground: 'white',
   headerSeparator: 'none',
   headerSticky: true,
+  headerStickyDesktop: true,
+  headerStickyMobile: true,
   showBrandAccent: false,
   cart: { show: true },
   cta: { show: true, text: 'Liên hệ' },
@@ -107,19 +125,65 @@ const clampLogoSizeLevel = (level?: number): NonNullable<HeaderConfig['logoSizeL
   return Math.min(20, Math.max(1, value)) as NonNullable<HeaderConfig['logoSizeLevel']>;
 };
 
+const clampHeaderSpacingLevel = (level?: number): NonNullable<HeaderConfig['headerSpacingLevel']> => {
+  const value = Number.isFinite(level) ? Math.round(level as number) : 5;
+  return Math.min(7, Math.max(1, value)) as NonNullable<HeaderConfig['headerSpacingLevel']>;
+};
+
+const DROPDOWN_VIEWPORT_PADDING = 16;
+
 const buildLinearSteps = (min: number, max: number, count = 20) => {
   const step = (max - min) / (count - 1);
   return Array.from({ length: count }, (_, index) => Math.round(min + step * index));
+};
+
+const resolveStickyState = (config: HeaderConfig) => ({
+  desktop: config.headerStickyDesktop ?? config.headerSticky ?? true,
+  mobile: config.headerStickyMobile ?? config.headerSticky ?? true,
+});
+
+const getStickyClass = (desktop: boolean, mobile: boolean) => {
+  if (desktop && mobile) {
+    return 'sticky top-0 z-50';
+  }
+  if (desktop && !mobile) {
+    return 'relative z-50 lg:sticky lg:top-0';
+  }
+  if (!desktop && mobile) {
+    return 'sticky top-0 z-50 lg:relative lg:top-auto';
+  }
+  return 'relative z-50';
 };
 
 function cn(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function Header() {
+const getMegaMenuWidthValue = (columnCount: number) => {
+  if (columnCount <= 1) {return 260;}
+  if (columnCount === 2) {return 420;}
+  if (columnCount === 3) {return 620;}
+  if (columnCount === 4) {return 820;}
+  return 960;
+};
+
+const getDropdownPositionClass = (align: DropdownAlign) => {
+  if (align === 'left') {return 'left-0';}
+  if (align === 'right') {return 'right-0';}
+  return 'left-1/2 -translate-x-1/2';
+};
+
+const getViewportSafeMaxWidth = () => `calc(100vw - ${DROPDOWN_VIEWPORT_PADDING}px)`;
+
+const HeaderSearchAutocomplete = dynamic(
+  () => import('./HeaderSearchAutocomplete').then((mod) => ({ default: mod.HeaderSearchAutocomplete })),
+  { ssr: false, loading: () => null }
+);
+
+export function Header({ initialData }: { initialData?: HeaderInitialData }) {
   const brandColors = useBrandColors();
-  const { siteName, logo, settings } = useSiteSettings();
-  const menuData = useQuery(api.menus.getFullMenu, { location: 'header' });
+  const siteSettings = useSiteSettings();
+  const menuDataQuery = useQuery(api.menus.getFullMenu, { location: 'header' });
   const headerStyleSetting = useQuery(api.settings.getByKey, { key: 'header_style' });
   const headerConfigSetting = useQuery(api.settings.getByKey, { key: 'header_config' });
   const contactSettings = useQuery(api.settings.listByGroup, { group: 'contact' });
@@ -134,13 +198,15 @@ export function Header() {
   const router = useRouter();
   const { customer, isAuthenticated, logout } = useCustomerAuth();
   
-  const headerStyleRaw = headerStyleSetting?.value as string | undefined;
+  const menuData = menuDataQuery ?? initialData?.menuData;
+  const headerStyleRaw = (headerStyleSetting?.value ?? initialData?.headerStyle) as string | undefined;
   const headerStyle: HeaderStyle = (headerStyleRaw === 'transparent' || headerStyleRaw === 'centered' ? 'allbirds' : headerStyleRaw as HeaderStyle) || 'classic';
-  const savedConfig = (headerConfigSetting?.value as HeaderConfig) || {};
+  const savedConfig = ((headerConfigSetting?.value ?? initialData?.headerConfig) as HeaderConfig) || {};
   const config: HeaderConfig = {
     ...DEFAULT_CONFIG,
     ...savedConfig,
     logoSizeLevel: clampLogoSizeLevel(savedConfig.logoSizeLevel ?? DEFAULT_CONFIG.logoSizeLevel),
+    headerSpacingLevel: clampHeaderSpacingLevel(savedConfig.headerSpacingLevel ?? DEFAULT_CONFIG.headerSpacingLevel),
     topbar: { ...DEFAULT_CONFIG.topbar, ...savedConfig.topbar },
     search: { ...DEFAULT_CONFIG.search, ...savedConfig.search },
     cta: { ...DEFAULT_CONFIG.cta, ...savedConfig.cta },
@@ -149,8 +215,10 @@ export function Header() {
     login: { ...DEFAULT_CONFIG.login, ...savedConfig.login },
   };
   
-  const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string | undefined;
-  const settingsEmail = contactSettings?.find(s => s.key === 'contact_email')?.value as string | undefined;
+  const settingsPhone = contactSettings?.find(s => s.key === 'contact_phone')?.value as string
+    ?? initialData?.contact?.contact_phone;
+  const settingsEmail = contactSettings?.find(s => s.key === 'contact_email')?.value as string
+    ?? initialData?.contact?.contact_email;
   
   const topbarConfig = useMemo(() => {
     const base = config.topbar ?? {};
@@ -162,28 +230,64 @@ export function Header() {
   }, [config.topbar, settingsPhone, settingsEmail]);
 
   const canLogin = (customersModule?.enabled ?? false) && (customerLoginFeature?.enabled ?? false);
+  const cartEnabled = cartModule?.enabled ?? false;
+  const wishlistEnabled = wishlistModule?.enabled ?? false;
+  const ordersEnabled = ordersModule?.enabled ?? false;
+  const productsEnabled = productsModule?.enabled ?? false;
+  const postsEnabled = postsModule?.enabled ?? false;
+  const servicesEnabled = servicesModule?.enabled ?? false;
   const showLogin = Boolean(config.login?.show && canLogin);
   const showUserMenu = showLogin && isAuthenticated;
   const showLoginLink = showLogin && !isAuthenticated;
-  const canTrackOrder = ordersModule?.enabled ?? false;
+  const canTrackOrder = ordersEnabled;
   const showTrackOrder = Boolean(topbarConfig.showTrackOrder && canTrackOrder);
-  const canSearchProducts = Boolean(config.search?.searchProducts && (productsModule?.enabled ?? false));
-  const canSearchPosts = Boolean(config.search?.searchPosts && (postsModule?.enabled ?? false));
-  const canSearchServices = Boolean(config.search?.searchServices && (servicesModule?.enabled ?? false));
+  const canSearchProducts = Boolean(config.search?.searchProducts && productsEnabled);
+  const canSearchPosts = Boolean(config.search?.searchPosts && postsEnabled);
+  const canSearchServices = Boolean(config.search?.searchServices && servicesEnabled);
   const showSearch = Boolean(config.search?.show && (canSearchProducts || canSearchPosts || canSearchServices));
-  const showCart = Boolean(config.cart?.show && (cartModule?.enabled ?? false));
-  const showWishlist = Boolean(config.wishlist?.show && (wishlistModule?.enabled ?? false));
+  const showCart = Boolean(config.cart?.show && cartEnabled);
+  const showWishlist = Boolean(config.wishlist?.show && wishlistEnabled);
   
-  const displayName = (siteName ?? config.brandName) ?? 'YourBrand';
+  const resolvedSiteName = siteSettings.isLoading
+    ? (initialData?.site?.site_name ?? 'Website')
+    : siteSettings.siteName;
+  const resolvedLogo = siteSettings.isLoading
+    ? (initialData?.site?.site_logo ?? '')
+    : siteSettings.logo;
+  const resolvedTagline = siteSettings.isLoading
+    ? (initialData?.site?.site_tagline ?? '')
+    : (siteSettings.settings.site_tagline as string | undefined) ?? '';
+
+  const displayName = (resolvedSiteName ?? config.brandName) ?? 'YourBrand';
+  const logo = resolvedLogo;
   const showBrandName = config.showBrandName !== false;
   const logoSizeLevel = config.logoSizeLevel ?? 2;
+  const headerSpacingLevel = clampHeaderSpacingLevel(config.headerSpacingLevel);
   const logoSizeMap: Record<HeaderStyle, number[]> = {
     classic: buildLinearSteps(24, 96),
     topbar: buildLinearSteps(28, 108),
     allbirds: buildLinearSteps(16, 80),
   };
+  const headerSpacingMap: Record<HeaderStyle, number[]> = {
+    classic: [6, 8, 10, 12, 14, 16, 18],
+    topbar: [4, 6, 8, 10, 12, 14, 16],
+    allbirds: [6, 8, 10, 12, 14, 16, 18],
+  };
   const logoSize = logoSizeMap[headerStyle][logoSizeLevel - 1] ?? logoSizeMap[headerStyle][0];
+  const headerSpacingY = headerSpacingMap[headerStyle][headerSpacingLevel - 1] ?? headerSpacingMap[headerStyle][3];
   const logoDotSize = Math.max(2, Math.round(logoSize / 4));
+  const logoBackgroundStyle: LogoBackgroundStyle =
+    config.logoBackgroundStyle === 'border'
+    || config.logoBackgroundStyle === 'shadow'
+    || config.logoBackgroundStyle === 'soft'
+    || config.logoBackgroundStyle === 'solid'
+    || config.logoBackgroundStyle === 'outline'
+    || config.logoBackgroundStyle === 'hairline'
+    || config.logoBackgroundStyle === 'inset'
+    || config.logoBackgroundStyle === 'pill'
+      ? config.logoBackgroundStyle
+      : 'none';
+  const logoContainerSize = Math.round(logoSize + Math.max(10, logoSize * 0.28));
 
   const tokens = useMemo<MenuColors>(
     () => getMenuColors(brandColors.primary, brandColors.secondary, brandColors.mode),
@@ -197,14 +301,90 @@ export function Header() {
     '--menu-dropdown-sub-hover-text': tokens.dropdownSubItemHoverText,
     '--menu-icon-hover': tokens.iconButtonHoverText,
   } as React.CSSProperties;
+  const logoBackgroundStyles: Record<LogoBackgroundStyle, React.CSSProperties> = {
+    none: {},
+    border: {
+      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+      border: `1px solid ${tokens.borderStrong}`,
+      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08)',
+    },
+    outline: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      border: `1px solid ${tokens.borderStrong}`,
+    },
+    hairline: {
+      backgroundColor: 'transparent',
+      border: `1px solid ${tokens.border}`,
+    },
+    inset: {
+      backgroundColor: tokens.surfaceAlt,
+      border: `1px solid ${tokens.border}`,
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+    },
+    pill: {
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      border: `1px solid ${tokens.border}`,
+    },
+    shadow: {
+      backgroundColor: 'rgba(255, 255, 255, 0.88)',
+      boxShadow: '0 10px 30px rgba(15, 23, 42, 0.16)',
+      border: '1px solid rgba(148, 163, 184, 0.2)',
+      backdropFilter: 'blur(10px)',
+    },
+    soft: {
+      backgroundColor: tokens.surfaceAlt,
+      border: `1px solid ${tokens.border}`,
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+    },
+    solid: {
+      backgroundColor: tokens.textPrimary,
+      border: `1px solid ${tokens.textPrimary}`,
+      boxShadow: '0 12px 28px rgba(15, 23, 42, 0.18)',
+    },
+  };
+  const logoWrapStyle: React.CSSProperties = {
+    width: logoBackgroundStyle === 'none' ? logoSize : logoContainerSize,
+    height: logoBackgroundStyle === 'none' ? logoSize : logoContainerSize,
+    borderRadius: logoBackgroundStyle === 'pill'
+      ? logoContainerSize
+      : headerStyle === 'allbirds'
+        ? logoContainerSize
+        : Math.max(16, Math.round(logoContainerSize * 0.24)),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    ...logoBackgroundStyles[logoBackgroundStyle],
+  };
+  const logoInnerBaseStyle: React.CSSProperties = {
+    width: logoSize,
+    height: logoSize,
+    borderRadius: headerStyle === 'allbirds' ? logoSize : Math.max(8, Math.round(logoSize * 0.24)),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  };
+  const logoInnerStyle: React.CSSProperties = logo
+    ? logoInnerBaseStyle
+    : {
+        ...logoInnerBaseStyle,
+        backgroundColor: tokens.brandBadgeBg,
+        color: tokens.brandBadgeText,
+      };
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [activeLevel3Id, setActiveLevel3Id] = useState<string | null>(null);
+  const [activeLevel4Id, setActiveLevel4Id] = useState<string | null>(null);
   const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([]);
   const [visibleRootCount, setVisibleRootCount] = useState<number | null>(null);
+  const [dropdownAlign, setDropdownAlign] = useState<Record<string, DropdownAlign>>({});
+  const [flyoutDirection, setFlyoutDirection] = useState<Record<string, 'left' | 'right'>>({});
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deepMenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLDivElement | null>(null);
   const headerRowRef = useRef<HTMLDivElement | null>(null);
@@ -213,6 +393,8 @@ export function Header() {
   const measureContainerRef = useRef<HTMLDivElement | null>(null);
   const measureItemRefs = useRef<Array<HTMLDivElement | null>>([]);
   const moreMeasureRef = useRef<HTMLDivElement | null>(null);
+  const dropdownTriggerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const dropdownWidthByIdRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -224,18 +406,84 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const clearDeepMenuCloseIntent = useCallback(() => {
+    if (deepMenuTimeoutRef.current) {
+      clearTimeout(deepMenuTimeoutRef.current);
+      deepMenuTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleDeepMenuClose = useCallback(() => {
+    clearDeepMenuCloseIntent();
+    deepMenuTimeoutRef.current = setTimeout(() => {
+      setActiveLevel4Id(null);
+    }, 320);
+  }, [clearDeepMenuCloseIntent]);
+
   const handleMenuEnter = useCallback((itemId: string) => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
+    clearDeepMenuCloseIntent();
     setHoveredItem(itemId);
+    setActiveLevel3Id(null);
+    setActiveLevel4Id(null);
+  }, [clearDeepMenuCloseIntent]);
+
+  const updateDropdownAlign = useCallback((itemId: string, desiredWidth: number) => {
+    if (typeof window === 'undefined') {return;}
+    const trigger = dropdownTriggerRefs.current[itemId];
+    if (!trigger) {return;}
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const safeWidth = Math.min(desiredWidth, viewportWidth - DROPDOWN_VIEWPORT_PADDING);
+    const centerX = rect.left + rect.width / 2;
+    const halfWidth = safeWidth / 2;
+    let align: DropdownAlign = 'center';
+    if (centerX - halfWidth < DROPDOWN_VIEWPORT_PADDING / 2) {
+      align = 'left';
+    } else if (centerX + halfWidth > viewportWidth - DROPDOWN_VIEWPORT_PADDING / 2) {
+      align = 'right';
+    }
+    setDropdownAlign(prev => (prev[itemId] === align ? prev : { ...prev, [itemId]: align }));
   }, []);
+
+  const updateFlyoutDirection = useCallback((key: string, trigger?: HTMLElement | null, desiredWidth = 320) => {
+    if (typeof window === 'undefined' || !trigger) {return;}
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const safeWidth = Math.min(desiredWidth, viewportWidth - DROPDOWN_VIEWPORT_PADDING);
+    const availableRight = viewportWidth - rect.right;
+    const availableLeft = rect.left;
+    const direction: 'left' | 'right' = availableRight < safeWidth && availableLeft > availableRight ? 'left' : 'right';
+    setFlyoutDirection(prev => (prev[key] === direction ? prev : { ...prev, [key]: direction }));
+  }, []);
+
+  const handleMenuEnterWithWidth = useCallback((itemId: string, desiredWidth: number) => {
+    dropdownWidthByIdRef.current[itemId] = desiredWidth;
+    updateDropdownAlign(itemId, desiredWidth);
+    handleMenuEnter(itemId);
+  }, [handleMenuEnter, updateDropdownAlign]);
+
+  useEffect(() => {
+    if (!hoveredItem) {return;}
+    const handleResize = () => {
+      const width = dropdownWidthByIdRef.current[hoveredItem];
+      if (width) {
+        updateDropdownAlign(hoveredItem, width);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [hoveredItem, updateDropdownAlign]);
 
   const handleMenuLeave = useCallback(() => {
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredItem(null);
-    }, 150);
+      setActiveLevel3Id(null);
+      setActiveLevel4Id(null);
+    }, 320);
   }, []);
 
   const menuItems = menuData?.items;
@@ -268,36 +516,24 @@ export function Header() {
     )
     : null;
 
-  const classicPositionClass = (config.headerSticky ?? true) ? 'sticky top-0 z-50' : 'relative z-50';
+  const { desktop: stickyDesktop, mobile: stickyMobile } = resolveStickyState(config);
+  const classicPositionClass = getStickyClass(stickyDesktop, stickyMobile);
   const menuTree = useMemo((): MenuItemWithChildren[] => {
     if (!menuItems) {return [];}
-    
-    const items = [...menuItems].sort((a, b) => a.order - b.order);
-    const rootItems = items.filter(item => item.depth === 0);
-    
-    return rootItems.map(root => {
-      const rootIndex = items.indexOf(root);
-      const nextRootIndex = items.findIndex((item, idx) => idx > rootIndex && item.depth === 0);
-      const childrenRange = nextRootIndex === -1 ? items.slice(rootIndex + 1) : items.slice(rootIndex + 1, nextRootIndex);
-
-      return {
-        ...root,
-        children: childrenRange.filter(c => c.depth === 1).map(child => {
-          const childIndex = items.indexOf(child);
-          const nextChildIndex = childrenRange.findIndex((item) => items.indexOf(item) > childIndex && item.depth <= 1);
-          const subRange = nextChildIndex === -1 
-            ? childrenRange.slice(childrenRange.indexOf(child) + 1) 
-            : childrenRange.slice(childrenRange.indexOf(child) + 1, nextChildIndex);
-          return {
-            ...child,
-            children: subRange.filter(s => s.depth === 2).map(s => ({ ...s, children: [] }))
-          };
-        })
-      };
-    });
+    return buildMenuTree(menuItems);
   }, [menuItems]);
 
   const rootItems = menuTree;
+  const maxLevelByRootId = useMemo(() => {
+    const getNodeMaxLevel = (node: MenuItemWithChildren, level = 1): number => {
+      if (!node.children || node.children.length === 0) {
+        return level;
+      }
+      return node.children.reduce((max, child) => Math.max(max, getNodeMaxLevel(child, level + 1)), level);
+    };
+    return new Map<Id<'menuItems'>, number>(rootItems.map((root) => [root._id, getNodeMaxLevel(root, 1)]));
+  }, [rootItems]);
+  const isDeepMenuForItem = useCallback((itemId: Id<'menuItems'>) => (maxLevelByRootId.get(itemId) ?? 1) >= 4, [maxLevelByRootId]);
 
   if (measureItemRefs.current.length !== rootItems.length) {
     measureItemRefs.current = Array(rootItems.length).fill(null);
@@ -374,7 +610,7 @@ export function Header() {
     return () => resizeObserver.disconnect();
   }, [rootItems.length, logoSizeLevel, showBrandName, headerStyle, config.cta?.show, showSearch, showCart, showWishlist, showLogin]);
 
-  const topbarSlogan = typeof settings.site_tagline === 'string' ? settings.site_tagline.trim() : '';
+  const topbarSlogan = resolvedTagline ? resolvedTagline.trim() : '';
   const topbarSloganEnabled = (topbarConfig.sloganEnabled ?? true) !== false;
   const showTopbarSlogan = Boolean(topbarConfig.show !== false && topbarSloganEnabled && topbarSlogan);
   const showTopbarHotline = Boolean(topbarConfig.show !== false && (topbarConfig.showHotline ?? true) && topbarConfig.hotline);
@@ -469,7 +705,7 @@ export function Header() {
   if (menuData === undefined) {
     return (
       <header style={{ backgroundColor: tokens.surface }}>
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4" style={{ paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}>
           <div className="h-8 w-32 animate-pulse rounded" style={{ backgroundColor: tokens.placeholderBg }}></div>
         </div>
       </header>
@@ -498,6 +734,161 @@ export function Header() {
       </button>
     );
   };
+
+  const getMegaMenuWidthClass = (columnCount: number) => {
+    if (columnCount <= 1) {return 'w-[260px]';}
+    if (columnCount === 2) {return 'w-[420px]';}
+    if (columnCount === 3) {return 'w-[620px]';}
+    if (columnCount === 4) {return 'w-[820px]';}
+    return 'w-[960px]';
+  };
+
+  const getMegaMenuGridClass = (columnCount: number) => {
+    if (columnCount <= 1) {return 'grid-cols-1';}
+    if (columnCount === 2) {return 'md:grid-cols-2';}
+    if (columnCount === 3) {return 'md:grid-cols-2 xl:grid-cols-3';}
+    if (columnCount === 4) {return 'md:grid-cols-2 xl:grid-cols-4';}
+    return 'md:grid-cols-2 xl:grid-cols-5';
+  };
+
+  const renderDesktopFlyoutNodes = (nodes: MenuItemWithChildren[], deepMode: boolean): React.ReactNode => nodes.map((node) => {
+    if (!deepMode) {
+      const flyoutKey = `flyout-${node._id}`;
+      const flyoutAlign = flyoutDirection[flyoutKey] ?? 'right';
+      const flyoutPositionClass = flyoutAlign === 'left' ? 'right-full mr-1' : 'left-full ml-1';
+
+      return (
+        <div
+          key={node._id}
+          className="relative group/menu-node"
+          onMouseEnter={(event) => {
+            updateFlyoutDirection(flyoutKey, event.currentTarget);
+          }}
+        >
+          <Link
+            href={node.url}
+            target={node.openInNewTab ? '_blank' : undefined}
+            rel={node.openInNewTab ? 'noreferrer' : undefined}
+            className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+            style={{ color: tokens.dropdownItemText, ...menuVars }}
+          >
+            <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{node.label}</span>
+            {node.children.length > 0 && <ChevronRight size={14} />}
+          </Link>
+          {node.children.length > 0 && (
+            <div className={cn('absolute top-0 z-50 hidden', flyoutPositionClass)}>
+              <div className="rounded-lg border py-2 min-w-[220px] max-w-[min(320px,calc(100vw-2rem))] shadow-lg group-hover/menu-node:block" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                {renderDesktopFlyoutNodes(node.children, deepMode)}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const isLevel4Open = activeLevel4Id === node._id;
+
+    return (
+      <div
+        key={node._id}
+        className="relative"
+        onMouseEnter={() => {
+          clearDeepMenuCloseIntent();
+          setActiveLevel4Id(node._id);
+        }}
+        onMouseLeave={scheduleDeepMenuClose}
+      >
+        <Link
+          href={node.url}
+          target={node.openInNewTab ? '_blank' : undefined}
+          rel={node.openInNewTab ? 'noreferrer' : undefined}
+          className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+          style={{
+            ...(isLevel4Open ? { backgroundColor: tokens.dropdownItemHoverBg, color: tokens.dropdownItemHoverText } : { color: tokens.dropdownItemText }),
+            ...menuVars,
+          }}
+        >
+          <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{node.label}</span>
+          {node.children.length > 0 && <ChevronRight size={14} />}
+        </Link>
+        {node.children.length > 0 && isLevel4Open && (
+          <div className="absolute left-0 top-full pt-1 z-50">
+            <div className="rounded-lg border py-2 min-w-[220px] max-w-[min(320px,calc(100vw-2rem))]" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+              {node.children.map((child) => (
+                <Link
+                  key={child._id}
+                  href={child.url}
+                  target={child.openInNewTab ? '_blank' : undefined}
+                  rel={child.openInNewTab ? 'noreferrer' : undefined}
+                  className="block rounded-lg px-3 py-2 text-sm whitespace-normal break-words leading-snug transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                  style={{ color: tokens.dropdownItemText, ...menuVars }}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  });
+
+  const renderMobileNodes = (nodes: MenuItemWithChildren[], parentKey = 'root'): React.ReactNode => nodes.map((node) => {
+    const nodeKey = `${parentKey}-${node._id}`;
+    const isExpanded = expandedMobileItems.includes(nodeKey);
+
+    return (
+      <div key={node._id}>
+        {node.children.length > 0 ? (
+          <div className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]">
+            <Link
+              href={node.url}
+              target={node.openInNewTab ? '_blank' : undefined}
+              rel={node.openInNewTab ? 'noreferrer' : undefined}
+              onClick={() => { setMobileMenuOpen(false); }}
+              className="flex-1 transition-colors hover:text-[var(--menu-hover-text)]"
+              style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+            >
+              {node.label}
+            </Link>
+            <button
+              type="button"
+              aria-label={`Mở menu con ${node.label}`}
+              aria-expanded={isExpanded}
+              aria-controls={`mobile-menu-${nodeKey}`}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleMobileItem(nodeKey);
+              }}
+              className="ml-3 flex items-center justify-center"
+              style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+            >
+              <ChevronDown size={16} className={cn('transition-transform', isExpanded && 'rotate-180')} />
+            </button>
+          </div>
+        ) : (
+          <Link
+            href={node.url}
+            target={node.openInNewTab ? '_blank' : undefined}
+            rel={node.openInNewTab ? 'noreferrer' : undefined}
+            onClick={() => { setMobileMenuOpen(false); }}
+            className="block w-full px-6 py-3 text-left text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-hover-text)]"
+            style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+          >
+            {node.label}
+          </Link>
+        )}
+        {node.children.length > 0 && isExpanded && (
+          <div id={`mobile-menu-${nodeKey}`} style={{ backgroundColor: tokens.surface }}>
+            <div className="border-l-2 ml-6" style={{ borderColor: tokens.mobileMenuSubItemBorder }}>
+              {renderMobileNodes(node.children, nodeKey)}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  });
 
   // Classic Style
   if (headerStyle === 'classic') {
@@ -551,15 +942,22 @@ export function Header() {
         {config.showBrandAccent && (
           <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
         )}
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+        <div
+          className="max-w-7xl mx-auto px-4 lg:px-6"
+          style={{ paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+        >
           <div ref={headerRowRef} className="flex items-center gap-4">
             {/* Logo */}
             <Link ref={brandBlockRef} href="/" className="flex items-center gap-3 flex-shrink-0">
-              {logo ? (
-                <Image src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
-              ) : (
-                <div className="rounded-lg" style={{ backgroundColor: tokens.brandBadgeBg, width: logoSize, height: logoSize }}></div>
-              )}
+              <div style={logoWrapStyle}>
+                {logo ? (
+                  <div style={logoInnerStyle}>
+                    <Image mode="logo" src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
+                  </div>
+                ) : (
+                  <div style={logoInnerStyle}></div>
+                )}
+              </div>
               {showBrandName && (
                 <span className="font-semibold" style={{ color: tokens.textPrimary }}>{displayName}</span>
               )}
@@ -571,7 +969,13 @@ export function Header() {
                 <div
                   key={item._id}
                   className="relative"
-                  onMouseEnter={() =>{  handleMenuEnter(item._id); }}
+                  ref={(el) => { dropdownTriggerRefs.current[item._id] = el; }}
+                  onMouseEnter={() => {
+                    const isMegaMenu = isDeepMenuForItem(item._id);
+                    const columnCount = Math.min(Math.max(item.children.length, 1), 5);
+                    const desiredWidth = isMegaMenu ? getMegaMenuWidthValue(columnCount) : 240;
+                    handleMenuEnterWithWidth(item._id, desiredWidth);
+                  }}
                   onMouseLeave={handleMenuLeave}
                 >
                   <Link
@@ -598,45 +1002,141 @@ export function Header() {
                   </Link>
 
                   {item.children.length > 0 && hoveredItem === item._id && (
-                    <div className="absolute top-full left-0 pt-2 z-50">
-                      <div
-                        className="rounded-lg border py-2 min-w-[200px]"
-                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                      >
-                        {item.children.map((child) => (
-                          <div key={child._id} className="relative group/child">
-                            <Link
-                              href={child.url}
-                              target={child.openInNewTab ? '_blank' : undefined}
-                              className="flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
-                              style={{ color: tokens.dropdownItemText, ...menuVars }}
-                            >
-                              {child.label}
-                              {child.children?.length > 0 && <ChevronRight size={14} />}
-                            </Link>
-                            {child.children?.length > 0 && (
-                              <div className="absolute left-full top-0 pl-1 hidden group-hover/child:block">
-                                <div
-                                  className="rounded-lg border py-2 min-w-[180px]"
-                                  style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                    <div
+                      className={cn(
+                        'absolute top-full z-50',
+                        getDropdownPositionClass(dropdownAlign[item._id] ?? 'center'),
+                        isDeepMenuForItem(item._id) ? 'pt-3' : 'pt-2'
+                      )}
+                    >
+                      {isDeepMenuForItem(item._id) ? (
+                        <div
+                          className={cn('rounded-2xl border p-5 shadow-xl', getMegaMenuWidthClass(Math.min(Math.max(item.children.length, 1), 5)))}
+                          style={{
+                            backgroundColor: tokens.dropdownBg,
+                            borderColor: tokens.dropdownBorder,
+                            maxWidth: getViewportSafeMaxWidth(),
+                          }}
+                        >
+                          <div className={cn('grid gap-6', getMegaMenuGridClass(Math.min(Math.max(item.children.length, 1), 5)))}>
+                            {item.children.map((child) => (
+                              <div key={child._id} className="space-y-3">
+                                <Link
+                                  href={child.url}
+                                  target={child.openInNewTab ? '_blank' : undefined}
+                                  className="block text-sm font-semibold whitespace-normal break-words leading-snug"
+                                  style={{ color: tokens.textPrimary }}
                                 >
-                                  {child.children.map((sub) => (
-                                    <Link
-                                      key={sub._id}
-                                      href={sub.url}
-                                      target={sub.openInNewTab ? '_blank' : undefined}
-                                      className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                      style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                    >
-                                      {sub.label}
-                                    </Link>
-                                  ))}
+                                  {child.label}
+                                </Link>
+                                <div className="space-y-1">
+                                  {child.children.length > 0 && child.children.map((sub) => {
+                                    const isLevel3Active = activeLevel3Id === sub._id;
+
+                                    return (
+                                      <div
+                                        key={sub._id}
+                                        className="relative"
+                                        onMouseEnter={() => {
+                                          clearDeepMenuCloseIntent();
+                                          setActiveLevel3Id(sub._id);
+                                        }}
+                                        onMouseLeave={() => {
+                                          if (activeLevel4Id !== sub._id) {
+                                            setActiveLevel3Id(prev => (prev === sub._id ? null : prev));
+                                          }
+                                          scheduleDeepMenuClose();
+                                        }}
+                                      >
+                                        <Link
+                                          href={sub.url}
+                                          target={sub.openInNewTab ? '_blank' : undefined}
+                                          rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                          className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                          style={{
+                                            ...(isLevel3Active ? { backgroundColor: tokens.dropdownItemHoverBg, color: tokens.dropdownItemHoverText } : { color: tokens.dropdownItemText }),
+                                            ...menuVars,
+                                          }}
+                                        >
+                                          <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{sub.label}</span>
+                                          {sub.children.length > 0 && <ChevronRight size={14} />}
+                                        </Link>
+                                        {sub.children.length > 0 && isLevel3Active && (
+                                          <div
+                                            className="absolute left-0 top-full pt-1 z-50"
+                                            onMouseEnter={clearDeepMenuCloseIntent}
+                                            onMouseLeave={scheduleDeepMenuClose}
+                                          >
+                                            <div className="rounded-xl border py-2 min-w-[220px] max-w-[min(320px,calc(100vw-2rem))] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                              {renderDesktopFlyoutNodes(sub.children, true)}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
-                            )}
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="rounded-lg border py-2 min-w-[200px]"
+                          style={{
+                            backgroundColor: tokens.dropdownBg,
+                            borderColor: tokens.dropdownBorder,
+                            maxWidth: getViewportSafeMaxWidth(),
+                          }}
+                        >
+                          {item.children.map((child) => (
+                            <div
+                              key={child._id}
+                              className="relative group/child"
+                              onMouseEnter={(event) => {
+                                updateFlyoutDirection(`flyout-child-${child._id}`, event.currentTarget);
+                              }}
+                            >
+                              <Link
+                                href={child.url}
+                                target={child.openInNewTab ? '_blank' : undefined}
+                                rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                className="flex min-w-0 items-start justify-between gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                style={{ color: tokens.dropdownItemText, ...menuVars }}
+                              >
+                                <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{child.label}</span>
+                                {child.children.length > 0 && <ChevronRight size={14} />}
+                              </Link>
+                              {child.children.length > 0 && (
+                                <div
+                                  className={cn(
+                                    'absolute top-0 hidden group-hover/child:block',
+                                    (flyoutDirection[`flyout-child-${child._id}`] ?? 'right') === 'left' ? 'right-full mr-1' : 'left-full ml-1'
+                                  )}
+                                >
+                                  <div
+                                    className="rounded-lg border py-2 min-w-[180px]"
+                                    style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                                  >
+                                    {child.children.map((sub) => (
+                                    <Link
+                                        key={sub._id}
+                                        href={sub.url}
+                                        target={sub.openInNewTab ? '_blank' : undefined}
+                                        rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                      className="block px-4 py-2 text-sm whitespace-normal break-words leading-snug transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                        style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                      >
+                                        {sub.label}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -645,7 +1145,10 @@ export function Header() {
               {overflowRootItems.length > 0 && (
                 <div
                   className="relative"
-                  onMouseEnter={() =>{  handleMenuEnter(moreKey); }}
+                  ref={(el) => { dropdownTriggerRefs.current[moreKey] = el; }}
+                  onMouseEnter={() => {
+                    handleMenuEnterWithWidth(moreKey, 240);
+                  }}
                   onMouseLeave={handleMenuLeave}
                 >
                   <button
@@ -667,10 +1170,19 @@ export function Header() {
                   </button>
 
                   {hoveredItem === moreKey && (
-                    <div className="absolute top-full left-0 pt-2 z-50">
+                    <div
+                      className={cn(
+                        'absolute top-full pt-2 z-50',
+                        getDropdownPositionClass(dropdownAlign[moreKey] ?? 'left')
+                      )}
+                    >
                       <div
                         className="rounded-lg border py-2 min-w-[240px]"
-                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                        style={{
+                          backgroundColor: tokens.dropdownBg,
+                          borderColor: tokens.dropdownBorder,
+                          maxWidth: getViewportSafeMaxWidth(),
+                        }}
                       >
                         {overflowRootItems.map((root) => (
                           <div key={root._id} className="px-3 py-2">
@@ -816,36 +1328,7 @@ export function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
-            {menuTree.map((item) => (
-              <div key={item._id}>
-                <button
-                  onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                  className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
-                  style={{ color: tokens.mobileMenuItemText, ...menuVars }}
-                >
-                  {item.label}
-                  {item.children.length > 0 && (
-                    <ChevronDown size={16} className={cn("transition-transform", expandedMobileItems.includes(item._id) && "rotate-180")} />
-                  )}
-                </button>
-                {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                  <div style={{ backgroundColor: tokens.surface }}>
-                    {item.children.map((child) => (
-                      <Link 
-                        key={child._id} 
-                        href={child.url}
-                        target={child.openInNewTab ? '_blank' : undefined}
-                        onClick={() =>{  setMobileMenuOpen(false); }}
-                        className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                        style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {renderMobileNodes(menuTree)}
             {config.cta?.show && (
               <div className="p-4">
               <Link 
@@ -912,20 +1395,24 @@ export function Header() {
         )}
 
         {/* Main Header */}
-        <div className="px-4 py-3 border-b" style={{ borderColor: tokens.border }}>
+        <div
+          className="px-4 border-b"
+          style={{ borderColor: tokens.border, paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+        >
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              {logo ? (
-                <Image src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
-              ) : (
-                <div 
-                  className="rounded-lg flex items-center justify-center font-bold" 
-                  style={{ backgroundColor: tokens.brandBadgeBg, color: tokens.brandBadgeText, width: logoSize, height: logoSize }}
-                >
-                  {displayName.charAt(0)}
-                </div>
-              )}
+              <div style={logoWrapStyle}>
+                {logo ? (
+                  <div style={logoInnerStyle}>
+                    <Image mode="logo" src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
+                  </div>
+                ) : (
+                  <div style={logoInnerStyle} className="font-bold">
+                    {displayName.charAt(0)}
+                  </div>
+                )}
+              </div>
               {showBrandName && (
                 <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{displayName}</span>
               )}
@@ -1027,7 +1514,13 @@ export function Header() {
               <div
                 key={item._id}
                 className="relative"
-                onMouseEnter={() =>{  handleMenuEnter(item._id); }}
+                ref={(el) => { dropdownTriggerRefs.current[item._id] = el; }}
+                onMouseEnter={() => {
+                  const isMegaMenu = isDeepMenuForItem(item._id);
+                  const columnCount = Math.min(Math.max(item.children.length, 1), 5);
+                  const desiredWidth = isMegaMenu ? getMegaMenuWidthValue(columnCount) : 240;
+                  handleMenuEnterWithWidth(item._id, desiredWidth);
+                }}
                 onMouseLeave={handleMenuLeave}
               >
                 <Link
@@ -1051,23 +1544,107 @@ export function Header() {
                 </Link>
 
                 {item.children.length > 0 && hoveredItem === item._id && (
-                  <div className="absolute top-full left-0 pt-2 z-50">
-                    <div
-                      className="rounded-lg border py-2 min-w-[200px]"
-                      style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                    >
-                      {item.children.map((child) => (
-                        <Link 
-                          key={child._id} 
-                          href={child.url}
-                          target={child.openInNewTab ? '_blank' : undefined}
-                          className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
-                          style={{ color: tokens.dropdownItemText, ...menuVars }}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
+                  <div
+                    className={cn(
+                      'absolute top-full z-50',
+                      getDropdownPositionClass(dropdownAlign[item._id] ?? 'center'),
+                      isDeepMenuForItem(item._id) ? 'pt-3' : 'pt-2'
+                    )}
+                  >
+                    {isDeepMenuForItem(item._id) ? (
+                      <div
+                        className={cn('rounded-2xl border p-5 shadow-xl', getMegaMenuWidthClass(Math.min(Math.max(item.children.length, 1), 5)))}
+                        style={{
+                          backgroundColor: tokens.dropdownBg,
+                          borderColor: tokens.dropdownBorder,
+                          maxWidth: getViewportSafeMaxWidth(),
+                        }}
+                      >
+                        <div className={cn('grid gap-6', getMegaMenuGridClass(Math.min(Math.max(item.children.length, 1), 5)))}>
+                          {item.children.map((child) => (
+                            <div key={child._id} className="space-y-3">
+                              <Link
+                                href={child.url}
+                                target={child.openInNewTab ? '_blank' : undefined}
+                                className="block text-sm font-semibold"
+                                style={{ color: tokens.textPrimary }}
+                              >
+                                {child.label}
+                              </Link>
+                              <div className="space-y-1">
+                                {child.children.length > 0 && child.children.map((sub) => {
+                                  const isLevel3Active = activeLevel3Id === sub._id;
+
+                                  return (
+                                    <div
+                                      key={sub._id}
+                                      className="relative"
+                                      onMouseEnter={() => {
+                                        clearDeepMenuCloseIntent();
+                                        setActiveLevel3Id(sub._id);
+                                      }}
+                                      onMouseLeave={() => {
+                                        if (activeLevel4Id !== sub._id) {
+                                          setActiveLevel3Id(prev => (prev === sub._id ? null : prev));
+                                        }
+                                        scheduleDeepMenuClose();
+                                      }}
+                                    >
+                                      <Link
+                                        href={sub.url}
+                                        target={sub.openInNewTab ? '_blank' : undefined}
+                                        rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                        style={{
+                                          ...(isLevel3Active ? { backgroundColor: tokens.dropdownItemHoverBg, color: tokens.dropdownItemHoverText } : { color: tokens.dropdownItemText }),
+                                          ...menuVars,
+                                        }}
+                                      >
+                                        <span>{sub.label}</span>
+                                        {sub.children.length > 0 && <ChevronRight size={14} />}
+                                      </Link>
+                                      {sub.children.length > 0 && isLevel3Active && (
+                                        <div
+                                          className="absolute left-0 top-full pt-1 z-50"
+                                          onMouseEnter={clearDeepMenuCloseIntent}
+                                          onMouseLeave={scheduleDeepMenuClose}
+                                        >
+                                            <div className="rounded-xl border py-2 min-w-[220px] max-w-[min(320px,calc(100vw-2rem))] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                              {renderDesktopFlyoutNodes(sub.children, true)}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="rounded-lg border py-2 min-w-[200px]"
+                        style={{
+                          backgroundColor: tokens.dropdownBg,
+                          borderColor: tokens.dropdownBorder,
+                          maxWidth: getViewportSafeMaxWidth(),
+                        }}
+                      >
+                        {item.children.map((child) => (
+                          <Link
+                            key={child._id}
+                            href={child.url}
+                            target={child.openInNewTab ? '_blank' : undefined}
+                            rel={child.openInNewTab ? 'noreferrer' : undefined}
+                            className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                            style={{ color: tokens.dropdownItemText, ...menuVars }}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1078,36 +1655,7 @@ export function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
-            {menuTree.map((item) => (
-              <div key={item._id} className="border-b" style={{ borderColor: tokens.border }}>
-                <button
-                  onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                  className="w-full px-4 py-3 text-left flex items-center justify-between text-sm font-medium"
-                  style={{ color: tokens.mobileMenuItemText }}
-                >
-                  {item.label}
-                  {item.children.length > 0 && (
-                    <ChevronDown size={16} className={cn("transition-transform", expandedMobileItems.includes(item._id) && "rotate-180")} />
-                  )}
-                </button>
-                {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                  <div className="pb-2" style={{ backgroundColor: tokens.mobileMenuBg }}>
-                    {item.children.map((child) => (
-                      <Link 
-                        key={child._id} 
-                        href={child.url}
-                        target={child.openInNewTab ? '_blank' : undefined}
-                        onClick={() =>{  setMobileMenuOpen(false); }}
-                        className="block px-6 py-2 text-sm"
-                        style={{ color: tokens.mobileMenuSubItemText }}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {renderMobileNodes(menuTree)}
             {config.cta?.show && (
               <div className="p-4">
                 <Link
@@ -1172,14 +1720,21 @@ export function Header() {
         {config.showBrandAccent && (
           <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
         )}
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
+        <div
+          className="max-w-7xl mx-auto px-4 lg:px-6 border-b"
+          style={{ borderColor: tokens.border, paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+        >
           <div className="flex items-center justify-between gap-6">
             <Link href="/" className="flex items-center gap-2">
-              {logo ? (
-                <Image src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
-              ) : (
-                <div className="rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}></div>
-              )}
+              <div style={logoWrapStyle}>
+                {logo ? (
+                  <div style={logoInnerStyle}>
+                    <Image mode="logo" src={logo} alt={displayName} width={logoSize} height={logoSize} className="h-auto w-auto" />
+                  </div>
+                ) : (
+                  <div className="rounded-full" style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}></div>
+                )}
+              </div>
               {showBrandName && (
                 <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>
                   {displayName}
@@ -1193,6 +1748,7 @@ export function Header() {
                 const totalSubItems = item.children.reduce((acc, child) => acc + child.children.length, 0);
                 const isMega = item.children.length >= 3 || totalSubItems > 6;
                 const isMedium = !isMega && (item.children.length > 1 || hasSubItems);
+                const dropdownWidthValue = isMega ? 720 : isMedium ? 420 : 240;
                 const dropdownWidth = isMega ? 'w-[720px]' : isMedium ? 'w-[420px]' : 'w-[240px]';
                 const gridCols = isMega
                   ? 'grid-cols-3'
@@ -1204,7 +1760,10 @@ export function Header() {
                   <div
                     key={item._id}
                     className="relative"
-                    onMouseEnter={() => { handleMenuEnter(item._id); }}
+                    ref={(el) => { dropdownTriggerRefs.current[item._id] = el; }}
+                    onMouseEnter={() => {
+                      handleMenuEnterWithWidth(item._id, dropdownWidthValue);
+                    }}
                     onMouseLeave={handleMenuLeave}
                   >
                     <Link
@@ -1222,50 +1781,106 @@ export function Header() {
                     </Link>
 
                     {item.children.length > 0 && hoveredItem === item._id && (
-                      <div className="absolute left-1/2 top-full pt-6 -translate-x-1/2 z-50">
-                        <div
-                          className={cn('rounded-2xl border p-6', dropdownWidth)}
-                          style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                        >
-                          <div className={cn('grid gap-6', gridCols)}>
-                            {item.children.map((child) => (
-                              <div key={child._id} className="space-y-3">
-                                <Link
-                                  href={child.url}
-                                  target={child.openInNewTab ? '_blank' : undefined}
-                                  className="text-sm font-semibold"
-                                  style={{ color: tokens.textPrimary }}
-                                >
-                                  {child.label}
-                                </Link>
-                                <div className="space-y-2">
-                                  {child.children.length > 0 ? (
-                                    child.children.map((sub) => (
-                                      <Link
-                                        key={sub._id}
-                                        href={sub.url}
-                                        target={sub.openInNewTab ? '_blank' : undefined}
-                                        className="block text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                        style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                      >
-                                        {sub.label}
-                                      </Link>
-                                    ))
-                                  ) : (
-                                    <Link
-                                      href={child.url}
-                                      target={child.openInNewTab ? '_blank' : undefined}
-                                      className="text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                      style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                    >
-                                      Xem thêm
-                                    </Link>
-                                  )}
+                      <div
+                        className={cn(
+                          'absolute top-full pt-6 z-50',
+                          getDropdownPositionClass(dropdownAlign[item._id] ?? 'center')
+                        )}
+                      >
+                        {isDeepMenuForItem(item._id) ? (
+                          <div
+                            className={cn('rounded-2xl border p-6', dropdownWidth)}
+                            style={{
+                              backgroundColor: tokens.dropdownBg,
+                              borderColor: tokens.dropdownBorder,
+                              maxWidth: getViewportSafeMaxWidth(),
+                            }}
+                          >
+                            <div className={cn('grid gap-6', gridCols)}>
+                              {item.children.map((child) => (
+                                <div key={child._id} className="space-y-3">
+                                  <Link
+                                    href={child.url}
+                                    target={child.openInNewTab ? '_blank' : undefined}
+                                    className="text-sm font-semibold"
+                                    style={{ color: tokens.textPrimary }}
+                                  >
+                                    {child.label}
+                                  </Link>
+                                  <div className="space-y-2">
+                                    {child.children.length > 0 && child.children.map((sub) => {
+                                      const isLevel3Active = activeLevel3Id === sub._id;
+
+                                      return (
+                                        <div
+                                          key={sub._id}
+                                          className="relative"
+                                          onMouseEnter={() => {
+                                            clearDeepMenuCloseIntent();
+                                            setActiveLevel3Id(sub._id);
+                                          }}
+                                          onMouseLeave={() => {
+                                            if (activeLevel4Id !== sub._id) {
+                                              setActiveLevel3Id(prev => (prev === sub._id ? null : prev));
+                                            }
+                                            scheduleDeepMenuClose();
+                                          }}
+                                        >
+                                          <Link
+                                            href={sub.url}
+                                            target={sub.openInNewTab ? '_blank' : undefined}
+                                            rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                            className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                            style={{
+                                              ...(isLevel3Active ? { backgroundColor: tokens.dropdownItemHoverBg, color: tokens.dropdownItemHoverText } : { color: tokens.dropdownSubItemText }),
+                                              ...menuVars,
+                                            }}
+                                          >
+                                            <span>{sub.label}</span>
+                                            {sub.children.length > 0 && <ChevronRight size={14} />}
+                                          </Link>
+                                          {sub.children.length > 0 && isLevel3Active && (
+                                            <div
+                                              className="absolute left-0 top-full pt-1 z-50"
+                                              onMouseEnter={clearDeepMenuCloseIntent}
+                                              onMouseLeave={scheduleDeepMenuClose}
+                                            >
+                                              <div className="rounded-xl border py-2 min-w-[220px] max-w-[min(320px,calc(100vw-2rem))] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                                {renderDesktopFlyoutNodes(sub.children, true)}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className="rounded-lg border py-2 min-w-[240px]"
+                            style={{
+                              backgroundColor: tokens.dropdownBg,
+                              borderColor: tokens.dropdownBorder,
+                              maxWidth: getViewportSafeMaxWidth(),
+                            }}
+                          >
+                            {item.children.map((child) => (
+                              <Link
+                                key={child._id}
+                                href={child.url}
+                                target={child.openInNewTab ? '_blank' : undefined}
+                                rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                style={{ color: tokens.dropdownItemText, ...menuVars }}
+                              >
+                                {child.label}
+                              </Link>
                             ))}
                           </div>
-                        </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1368,36 +1983,7 @@ export function Header() {
 
         {mobileMenuOpen && (
           <div className="lg:hidden border-t" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
-            {menuTree.map((item) => (
-              <div key={item._id}>
-                <button
-                  onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                  className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
-                  style={{ color: tokens.mobileMenuItemText, ...menuVars }}
-                >
-                  {item.label}
-                  {item.children.length > 0 && (
-                    <ChevronDown size={16} className={cn("transition-transform", expandedMobileItems.includes(item._id) && "rotate-180")} />
-                  )}
-                </button>
-                {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                  <div style={{ backgroundColor: tokens.surface }}>
-                    {item.children.map((child) => (
-                      <Link
-                        key={child._id}
-                        href={child.url}
-                        target={child.openInNewTab ? '_blank' : undefined}
-                        onClick={() => { setMobileMenuOpen(false); }}
-                        className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                        style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {renderMobileNodes(menuTree)}
             {config.cta?.show && (
               <div className="p-4">
                 <Link

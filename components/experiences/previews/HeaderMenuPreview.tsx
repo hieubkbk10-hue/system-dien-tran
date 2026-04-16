@@ -5,16 +5,22 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { ChevronDown, ChevronRight, Eye, Heart, LogOut, Mail, Package, Phone, Search, ShoppingCart, User } from 'lucide-react';
 import { Card, CardContent, cn } from '@/app/admin/components/ui';
 import { getMenuColors, type MenuColorMode, type MenuColors } from '@/components/site/header/colors';
+import { buildMenuTree, type MenuTreeNode } from '@/lib/utils/menu-tree';
 
 export type HeaderLayoutStyle = 'classic' | 'topbar' | 'allbirds';
+export type LogoBackgroundStyle = 'none' | 'border' | 'shadow' | 'soft' | 'solid' | 'outline' | 'hairline' | 'inset' | 'pill';
 
 export type HeaderMenuConfig = {
   brandName: string;
   showBrandName: boolean;
   logoSizeLevel: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+  headerSpacingLevel?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  logoBackgroundStyle?: LogoBackgroundStyle;
   headerBackground: 'white' | 'dots' | 'stripes';
   headerSeparator: 'none' | 'shadow' | 'border' | 'gradient';
   headerSticky: boolean;
+  headerStickyDesktop?: boolean;
+  headerStickyMobile?: boolean;
   showBrandAccent: boolean;
   cart: { show: boolean };
   cta: { show: boolean; text: string };
@@ -44,18 +50,29 @@ type MenuItem = {
   openInNewTab?: boolean;
 };
 
-type MenuItemWithChildren = MenuItem & { children: MenuItemWithChildren[] };
+type MenuItemWithChildren = MenuTreeNode<MenuItem>;
 
 const buildLinearSteps = (min: number, max: number, count = 20) => {
   const step = (max - min) / (count - 1);
   return Array.from({ length: count }, (_, index) => Math.round(min + step * index));
 };
 
+const clampHeaderSpacingLevel = (level?: number): NonNullable<HeaderMenuConfig['headerSpacingLevel']> => {
+  const value = Number.isFinite(level) ? Math.round(level as number) : 5;
+  return Math.min(7, Math.max(1, value)) as NonNullable<HeaderMenuConfig['headerSpacingLevel']>;
+};
+
+const resolveStickyState = (config: HeaderMenuConfig) => ({
+  desktop: config.headerStickyDesktop ?? config.headerSticky ?? true,
+  mobile: config.headerStickyMobile ?? config.headerSticky ?? true,
+});
+
 export type HeaderMenuPreviewProps = {
   brandColor: string;
   secondaryColor?: string;
   colorMode?: MenuColorMode;
   config: HeaderMenuConfig;
+  logo?: string;
   device: 'desktop' | 'tablet' | 'mobile';
   layoutStyle: HeaderLayoutStyle;
   menuItems: MenuItem[];
@@ -74,6 +91,7 @@ export function HeaderMenuPreview({
   secondaryColor,
   colorMode = 'single',
   config,
+  logo,
   device,
   layoutStyle,
   menuItems,
@@ -101,13 +119,103 @@ export function HeaderMenuPreview({
   const brandLabel = config.brandName || 'YourBrand';
   const showBrandName = config.showBrandName !== false;
   const logoSizeLevel = config.logoSizeLevel ?? 2;
+  const headerSpacingLevel = clampHeaderSpacingLevel(config.headerSpacingLevel);
   const logoSizeMap: Record<HeaderLayoutStyle, number[]> = {
     classic: buildLinearSteps(24, 96),
     topbar: buildLinearSteps(28, 108),
     allbirds: buildLinearSteps(16, 80),
   };
+  const headerSpacingMap: Record<HeaderLayoutStyle, number[]> = {
+    classic: [6, 8, 10, 12, 14, 16, 18],
+    topbar: [4, 6, 8, 10, 12, 14, 16],
+    allbirds: [6, 8, 10, 12, 14, 16, 18],
+  };
   const logoSize = logoSizeMap[layoutStyle][logoSizeLevel - 1] ?? logoSizeMap[layoutStyle][0];
+  const headerSpacingY = headerSpacingMap[layoutStyle][headerSpacingLevel - 1] ?? headerSpacingMap[layoutStyle][3];
   const logoDotSize = Math.max(2, Math.round(logoSize / 4));
+  const logoBackgroundStyle: LogoBackgroundStyle =
+    config.logoBackgroundStyle === 'border'
+    || config.logoBackgroundStyle === 'shadow'
+    || config.logoBackgroundStyle === 'soft'
+    || config.logoBackgroundStyle === 'solid'
+    || config.logoBackgroundStyle === 'outline'
+    || config.logoBackgroundStyle === 'hairline'
+    || config.logoBackgroundStyle === 'inset'
+    || config.logoBackgroundStyle === 'pill'
+      ? config.logoBackgroundStyle
+      : 'none';
+  const logoContainerSize = Math.round(logoSize + Math.max(10, logoSize * 0.28));
+  const logoBackgroundStyles: Record<LogoBackgroundStyle, React.CSSProperties> = {
+    none: {},
+    border: {
+      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+      border: `1px solid ${tokens.borderStrong}`,
+      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08)',
+    },
+    outline: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      border: `1px solid ${tokens.borderStrong}`,
+    },
+    hairline: {
+      backgroundColor: 'transparent',
+      border: `1px solid ${tokens.border}`,
+    },
+    inset: {
+      backgroundColor: tokens.surfaceAlt,
+      border: `1px solid ${tokens.border}`,
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+    },
+    pill: {
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      border: `1px solid ${tokens.border}`,
+    },
+    shadow: {
+      backgroundColor: 'rgba(255, 255, 255, 0.88)',
+      boxShadow: '0 10px 30px rgba(15, 23, 42, 0.16)',
+      border: '1px solid rgba(148, 163, 184, 0.2)',
+      backdropFilter: 'blur(10px)',
+    },
+    soft: {
+      backgroundColor: tokens.surfaceAlt,
+      border: `1px solid ${tokens.border}`,
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+    },
+    solid: {
+      backgroundColor: tokens.textPrimary,
+      border: `1px solid ${tokens.textPrimary}`,
+      boxShadow: '0 12px 28px rgba(15, 23, 42, 0.18)',
+    },
+  };
+  const logoWrapStyle: React.CSSProperties = {
+    width: logoBackgroundStyle === 'none' ? logoSize : logoContainerSize,
+    height: logoBackgroundStyle === 'none' ? logoSize : logoContainerSize,
+    borderRadius: logoBackgroundStyle === 'pill'
+      ? logoContainerSize
+      : layoutStyle === 'allbirds'
+        ? logoContainerSize
+        : Math.max(16, Math.round(logoContainerSize * 0.24)),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    ...logoBackgroundStyles[logoBackgroundStyle],
+  };
+  const logoInnerBaseStyle: React.CSSProperties = {
+    width: logoSize,
+    height: logoSize,
+    borderRadius: layoutStyle === 'allbirds' ? logoSize : Math.max(8, Math.round(logoSize * 0.24)),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  };
+  const logoInnerStyle: React.CSSProperties = logo
+    ? logoInnerBaseStyle
+    : {
+        ...logoInnerBaseStyle,
+        backgroundColor: tokens.brandBadgeBg,
+        color: tokens.brandBadgeText,
+      };
   const ctaLabel = config.cta.text || 'Liên hệ';
   const loginLabel = config.login.text || 'Đăng nhập';
   const defaultLinks = useMemo(() => ({
@@ -137,29 +245,19 @@ export function HeaderMenuPreview({
 
   const activeItems = useMemo(() => menuItems.filter(item => item.active), [menuItems]);
 
-  const menuTree = useMemo((): MenuItemWithChildren[] => {
-    const rootItems = activeItems.filter(item => item.depth === 0);
-    return rootItems.map(root => {
-      const rootIndex = activeItems.indexOf(root);
-      const nextRootIndex = activeItems.findIndex((item, idx) => idx > rootIndex && item.depth === 0);
-      const childrenRange = nextRootIndex === -1 ? activeItems.slice(rootIndex + 1) : activeItems.slice(rootIndex + 1, nextRootIndex);
-
-      return {
-        ...root,
-        children: childrenRange.filter(c => c.depth === 1).map(child => {
-          const childIndex = activeItems.indexOf(child);
-          const nextChildIndex = childrenRange.findIndex((item) => activeItems.indexOf(item) > childIndex && item.depth <= 1);
-          const subRange = nextChildIndex === -1 ? childrenRange.slice(childrenRange.indexOf(child) + 1) : childrenRange.slice(childrenRange.indexOf(child) + 1, nextChildIndex);
-          return {
-            ...child,
-            children: subRange.filter(s => s.depth === 2).map(s => ({ ...s, children: [] }))
-          };
-        })
-      };
-    });
-  }, [activeItems]);
+  const menuTree = useMemo((): MenuItemWithChildren[] => buildMenuTree(activeItems), [activeItems]);
 
   const rootItems = menuTree;
+  const maxLevelByRootId = useMemo(() => {
+    const getNodeMaxLevel = (node: MenuItemWithChildren, level = 1): number => {
+      if (!node.children || node.children.length === 0) {
+        return level;
+      }
+      return node.children.reduce((max, child) => Math.max(max, getNodeMaxLevel(child, level + 1)), level);
+    };
+    return new Map<Id<'menuItems'>, number>(rootItems.map((root) => [root._id, getNodeMaxLevel(root, 1)]));
+  }, [rootItems]);
+  const isDeepMenuForItem = (itemId: Id<'menuItems'>) => (maxLevelByRootId.get(itemId) ?? 1) >= 4;
 
   if (measureItemRefs.current.length !== rootItems.length) {
     measureItemRefs.current = Array(rootItems.length).fill(null);
@@ -347,7 +445,9 @@ export function HeaderMenuPreview({
     )
     : null;
 
-  const classicPositionClass = config.headerSticky ? 'sticky top-0 z-40' : 'relative z-40';
+  const { desktop: stickyDesktop, mobile: stickyMobile } = resolveStickyState(config);
+  const stickyEnabled = device === 'mobile' ? stickyMobile : stickyDesktop;
+  const classicPositionClass = stickyEnabled ? 'sticky top-0 z-40' : 'relative z-40';
 
   const toggleMobileItem = (id: string) => {
     setExpandedMobileItems(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
@@ -386,6 +486,81 @@ export function HeaderMenuPreview({
       </button>
     );
   };
+
+  const renderDesktopFlyoutNodes = (nodes: MenuItemWithChildren[], depth = 0): React.ReactNode => nodes.map((node) => (
+    <div key={node._id} className="relative group/menu-node">
+      <a
+        href={node.url}
+        target={node.openInNewTab ? '_blank' : undefined}
+        rel={node.openInNewTab ? 'noreferrer' : undefined}
+        className="flex min-w-0 items-start justify-between gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+        style={{ color: tokens.dropdownItemText, ...menuVars }}
+      >
+        <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{node.label}</span>
+        {node.children.length > 0 && <ChevronRight size={14} />}
+      </a>
+      {node.children.length > 0 && (
+        <div className={cn('absolute top-0 rounded-lg border py-2 min-w-[200px] z-50 hidden group-hover/menu-node:block', depth === 0 ? 'left-full ml-1' : 'right-full mr-1')} style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+          {renderDesktopFlyoutNodes(node.children, depth + 1)}
+        </div>
+      )}
+    </div>
+  ));
+
+  const renderMobileNodes = (nodes: MenuItemWithChildren[], parentKey = 'root'): React.ReactNode => nodes.map((node) => {
+    const nodeKey = `${parentKey}-${node._id}`;
+    const isExpanded = expandedMobileItems.includes(nodeKey);
+
+    return (
+      <div key={node._id}>
+        {node.children.length > 0 ? (
+          <div className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]">
+            <a
+              href={node.url}
+              target={node.openInNewTab ? '_blank' : undefined}
+              rel={node.openInNewTab ? 'noreferrer' : undefined}
+              className="flex-1 transition-colors hover:text-[var(--menu-hover-text)]"
+              style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+            >
+              {node.label}
+            </a>
+            <button
+              type="button"
+              aria-label={`Mở menu con ${node.label}`}
+              aria-expanded={isExpanded}
+              aria-controls={`mobile-menu-${nodeKey}`}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleMobileItem(nodeKey);
+              }}
+              className="ml-3 flex items-center justify-center"
+              style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+            >
+              <ChevronDown size={16} className={cn('transition-transform', isExpanded && 'rotate-180')} />
+            </button>
+          </div>
+        ) : (
+          <a
+            href={node.url}
+            target={node.openInNewTab ? '_blank' : undefined}
+            rel={node.openInNewTab ? 'noreferrer' : undefined}
+            className="block w-full px-6 py-3 text-left text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-hover-text)]"
+            style={{ color: tokens.mobileMenuItemText, ...menuVars }}
+          >
+            {node.label}
+          </a>
+        )}
+        {node.children.length > 0 && isExpanded && (
+          <div id={`mobile-menu-${nodeKey}`} style={{ backgroundColor: tokens.surface }}>
+            <div className="border-l-2 ml-6" style={{ borderColor: tokens.mobileMenuSubItemBorder }}>
+              {renderMobileNodes(node.children, nodeKey)}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  });
 
   if (activeItems.length === 0) {
     return (
@@ -444,13 +619,21 @@ export function HeaderMenuPreview({
       {config.showBrandAccent && (
         <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className="px-6 py-4 border-b" style={{ borderColor: tokens.border }}>
+      <div
+        className="px-6 border-b"
+        style={{ borderColor: tokens.border, paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+      >
         <div ref={headerRowRef} className="flex items-center gap-4">
           <div ref={brandBlockRef} className="flex items-center gap-3 flex-shrink-0">
-            <div
-              className="rounded-lg"
-              style={{ backgroundColor: tokens.brandBadgeBg, width: logoSize, height: logoSize }}
-            ></div>
+            <div style={logoWrapStyle}>
+              {logo ? (
+                <div style={logoInnerStyle}>
+                  <img src={logo} alt={brandLabel} className="h-full w-full object-contain" />
+                </div>
+              ) : (
+                <div style={logoInnerStyle}></div>
+              )}
+            </div>
             {showBrandName && (
               <span className="font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
             )}
@@ -486,37 +669,89 @@ export function HeaderMenuPreview({
                     </button>
 
                     {item.children.length > 0 && hoveredItem === item._id && (
-                      <div
-                        className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
-                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                      >
-                        {item.children.map((child) => (
-                          <div key={child._id} className="relative group">
-                            {renderLink(child, 'flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]', (
-                              <>
-                                {child.label}
-                                {child.children?.length > 0 && <ChevronRight size={14} />}
-                              </>
-                            ), { color: tokens.dropdownItemText, ...menuVars })}
-                            {child.children?.length > 0 && (
-                              <div
-                                className="absolute left-full top-0 ml-1 rounded-lg border py-2 min-w-[180px] hidden group-hover:block"
-                                style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                              >
-                                {child.children.map((sub) => (
+                      <div className="absolute top-full left-1/2 mt-3 -translate-x-1/2 z-50">
+                        {isDeepMenuForItem(item._id) ? (
+                          <div
+                            className="min-w-[720px] max-w-[960px] rounded-2xl border p-5 shadow-xl"
+                            style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                          >
+                            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                              {item.children.map((child) => (
+                                <div key={child._id} className="space-y-3">
                                   <a
-                                    key={sub._id}
-                                    href={sub.url}
-                                    className="block px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                    style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                    href={child.url}
+                                    target={child.openInNewTab ? '_blank' : undefined}
+                                    rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                    className="block text-sm font-semibold whitespace-normal break-words leading-snug"
+                                    style={{ color: tokens.textPrimary }}
                                   >
-                                    {sub.label}
+                                    {child.label}
                                   </a>
-                                ))}
-                              </div>
-                            )}
+                                  <div className="space-y-1">
+                                    {child.children.length > 0 ? child.children.map((sub) => (
+                                      <div key={sub._id} className="relative group/menu-node">
+                                        <a
+                                          href={sub.url}
+                                          target={sub.openInNewTab ? '_blank' : undefined}
+                                          rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                          className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                          style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                        >
+                                          <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{sub.label}</span>
+                                          {sub.children.length > 0 && <ChevronRight size={14} />}
+                                        </a>
+                                        {sub.children.length > 0 && (
+                                          <div className="absolute left-full top-0 ml-2 hidden group-hover/menu-node:block">
+                                            <div className="rounded-xl border py-2 min-w-[220px] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                              {renderDesktopFlyoutNodes(sub.children)}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )) : (
+                                      <a
+                                        href={child.url}
+                                        target={child.openInNewTab ? '_blank' : undefined}
+                                        rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                        className="block rounded-lg px-3 py-2 text-sm whitespace-normal break-words leading-snug transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                        style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                      >
+                                        Xem thêm
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
+                        ) : (
+                          <div
+                            className="rounded-lg border py-2 min-w-[200px]"
+                            style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                          >
+                            {item.children.map((child) => (
+                              <div key={child._id} className="relative group/menu-node">
+                                <a
+                                  href={child.url}
+                                  target={child.openInNewTab ? '_blank' : undefined}
+                                  rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                  className="flex min-w-0 items-start justify-between gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                  style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                >
+                                  <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{child.label}</span>
+                                  {child.children.length > 0 && <ChevronRight size={14} />}
+                                </a>
+                                {child.children.length > 0 && (
+                                  <div className="absolute left-full top-0 pl-1 hidden group-hover/menu-node:block">
+                                    <div className="rounded-lg border py-2 min-w-[180px]" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                      {renderDesktopFlyoutNodes(child.children)}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -553,10 +788,10 @@ export function HeaderMenuPreview({
                           <div key={root._id} className="px-3 py-2">
                             <a
                               href={root.url}
-                              className="flex items-center justify-between text-sm font-semibold transition-colors hover:text-[var(--menu-dropdown-hover-text)]"
+                              className="flex min-w-0 items-start justify-between gap-2 text-sm font-semibold transition-colors hover:text-[var(--menu-dropdown-hover-text)]"
                               style={{ color: tokens.dropdownItemText, ...menuVars }}
                             >
-                              {root.label}
+                              <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{root.label}</span>
                               {root.children.length > 0 && <ChevronRight size={14} />}
                             </a>
 
@@ -697,32 +932,7 @@ export function HeaderMenuPreview({
 
       {device === 'mobile' && mobileMenuOpen && (
         <div className="border-b" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
-          {menuTree.map((item) => (
-            <div key={item._id}>
-              <button
-                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
-                style={{ color: tokens.mobileMenuItemText, ...menuVars }}
-              >
-                {item.label}
-                {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
-              </button>
-              {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div style={{ backgroundColor: tokens.surface }}>
-                  {item.children.map((child) => (
-                    <a
-                      key={child._id}
-                      href={child.url}
-                      className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                      style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
-                    >
-                      {child.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          {renderMobileNodes(menuTree)}
           {config.cta.show && (
             <div className="p-4">
               <a
@@ -778,14 +988,16 @@ export function HeaderMenuPreview({
         </div>
       )}
 
-      <div className="px-4 py-3 border-b" style={{ borderColor: tokens.border }}>
+      <div
+        className="px-4 border-b"
+        style={{ borderColor: tokens.border, paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+      >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div
-              className="rounded-lg flex items-center justify-center font-bold"
-              style={{ backgroundColor: tokens.brandBadgeBg, color: tokens.brandBadgeText, width: logoSize, height: logoSize }}
-            >
-              {brandLabel.charAt(0)}
+            <div style={logoWrapStyle}>
+              <div style={logoInnerStyle} className="font-bold">
+                {brandLabel.charAt(0)}
+              </div>
             </div>
             {showBrandName && (
               <span className="font-bold text-lg" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
@@ -901,20 +1113,89 @@ export function HeaderMenuPreview({
                   {item.children.length > 0 && <ChevronDown size={14} />}
                 </a>
                 {item.children.length > 0 && hoveredItem === item._id && (
-                  <div
-                    className="absolute top-full left-0 mt-1 rounded-lg border py-2 min-w-[200px] z-50"
-                    style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                  >
-                    {item.children.map((child) => (
-                      <a
-                        key={child._id}
-                        href={child.url}
-                        className="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
-                        style={{ color: tokens.dropdownItemText, ...menuVars }}
+                  <div className="absolute top-full left-1/2 mt-3 -translate-x-1/2 z-50">
+                    {isDeepMenuForItem(item._id) ? (
+                      <div
+                        className="min-w-[720px] max-w-[960px] rounded-2xl border p-5 shadow-xl"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
                       >
-                        {child.label}
-                      </a>
-                    ))}
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                          {item.children.map((child) => (
+                            <div key={child._id} className="space-y-3">
+                              <a
+                                href={child.url}
+                                target={child.openInNewTab ? '_blank' : undefined}
+                                rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                className="block text-sm font-semibold whitespace-normal break-words leading-snug"
+                                style={{ color: tokens.textPrimary }}
+                              >
+                                {child.label}
+                              </a>
+                              <div className="space-y-1">
+                                {child.children.length > 0 ? child.children.map((sub) => (
+                                  <div key={sub._id} className="relative group/menu-node">
+                                    <a
+                                      href={sub.url}
+                                      target={sub.openInNewTab ? '_blank' : undefined}
+                                      rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                      className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                      style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                    >
+                                      <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{sub.label}</span>
+                                      {sub.children.length > 0 && <ChevronRight size={14} />}
+                                    </a>
+                                    {sub.children.length > 0 && (
+                                      <div className="absolute left-full top-0 ml-2 hidden group-hover/menu-node:block">
+                                        <div className="rounded-xl border py-2 min-w-[220px] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                          {renderDesktopFlyoutNodes(sub.children)}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )) : (
+                                  <a
+                                    href={child.url}
+                                    target={child.openInNewTab ? '_blank' : undefined}
+                                    rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                    className="block rounded-lg px-3 py-2 text-sm whitespace-normal break-words leading-snug transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                    style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                  >
+                                    Xem thêm
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="rounded-lg border py-2 min-w-[200px]"
+                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                      >
+                        {item.children.map((child) => (
+                          <div key={child._id} className="relative group/menu-node">
+                            <a
+                              href={child.url}
+                              target={child.openInNewTab ? '_blank' : undefined}
+                              rel={child.openInNewTab ? 'noreferrer' : undefined}
+                              className="flex min-w-0 items-start justify-between gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                              style={{ color: tokens.dropdownItemText, ...menuVars }}
+                            >
+                              <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{child.label}</span>
+                              {child.children.length > 0 && <ChevronRight size={14} />}
+                            </a>
+                            {child.children.length > 0 && (
+                              <div className="absolute left-full top-0 pl-1 hidden group-hover/menu-node:block">
+                                <div className="rounded-lg border py-2 min-w-[180px]" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                  {renderDesktopFlyoutNodes(child.children)}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -940,32 +1221,7 @@ export function HeaderMenuPreview({
 
       {device === 'mobile' && mobileMenuOpen && (
         <div className="border-t" style={{ borderColor: tokens.border, backgroundColor: tokens.surface }}>
-          {menuTree.map((item) => (
-            <div key={item._id} className="border-b" style={{ borderColor: tokens.border }}>
-              <button
-                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                className="w-full px-4 py-3 text-left flex items-center justify-between text-sm font-medium"
-                style={{ color: tokens.mobileMenuItemText }}
-              >
-                {item.label}
-                {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
-              </button>
-              {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div className="pb-2" style={{ backgroundColor: tokens.mobileMenuBg }}>
-                  {item.children.map((child) => (
-                    <a
-                      key={child._id}
-                      href={child.url}
-                      className="block px-6 py-2 text-sm"
-                      style={{ color: tokens.mobileMenuSubItemText }}
-                    >
-                      {child.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          {renderMobileNodes(menuTree)}
           {config.cta.show && (
             <div className="p-4">
               <a
@@ -1021,14 +1277,19 @@ export function HeaderMenuPreview({
       {config.showBrandAccent && (
         <div className="h-0.5" style={{ backgroundColor: tokens.accentLine }} />
       )}
-      <div className={cn('px-6 py-4', !isDesktop && 'border-b')} style={{ borderColor: tokens.border }}>
+      <div
+        className={cn('px-6', !isDesktop && 'border-b')}
+        style={{ borderColor: tokens.border, paddingTop: headerSpacingY, paddingBottom: headerSpacingY }}
+      >
         {device !== 'mobile' ? (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div
-                className="rounded-full"
-                style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
-              ></div>
+              <div style={logoWrapStyle}>
+                <div
+                  className="rounded-full"
+                  style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
+                ></div>
+              </div>
               {showBrandName && (
                 <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
               )}
@@ -1064,41 +1325,81 @@ export function HeaderMenuPreview({
                       {item.label}
                     </a>
                     {item.children.length > 0 && hoveredItem === item._id && (
-                      <div
-                        className={cn('absolute left-1/2 top-full mt-6 -translate-x-1/2 rounded-2xl border p-6 z-50', dropdownWidth)}
-                        style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
-                      >
-                        <div className={cn('grid gap-6', gridCols)}>
-                          {item.children.map((child) => (
-                            <div key={child._id} className="space-y-3">
-                              <a href={child.url} className="text-sm font-semibold" style={{ color: tokens.textPrimary }}>
-                                {child.label}
-                              </a>
-                              <div className="space-y-2">
-                                {child.children.length > 0 ? (
-                                  child.children.map((sub) => (
-                                    <a
-                                      key={sub._id}
-                                      href={sub.url}
-                                      className="block text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                      style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                    >
-                                      {sub.label}
-                                    </a>
-                                  ))
-                                ) : (
-                                  <a
-                                    href={child.url}
-                                    className="text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                                    style={{ color: tokens.dropdownSubItemText, ...menuVars }}
-                                  >
-                                    Xem thêm
+                      <div className="absolute left-1/2 top-full mt-6 -translate-x-1/2 z-50">
+                        {isDeepMenuForItem(item._id) ? (
+                          <div
+                            className={cn('rounded-2xl border p-6', dropdownWidth)}
+                            style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                          >
+                            <div className={cn('grid gap-6', gridCols)}>
+                              {item.children.map((child) => (
+                                <div key={child._id} className="space-y-3">
+                                  <a href={child.url} className="text-sm font-semibold whitespace-normal break-words leading-snug" style={{ color: tokens.textPrimary }}>
+                                    {child.label}
                                   </a>
+                                  <div className="space-y-2">
+                                    {child.children.length > 0 ? child.children.map((sub) => (
+                                      <div key={sub._id} className="relative group/menu-node">
+                                        <a
+                                          href={sub.url}
+                                          target={sub.openInNewTab ? '_blank' : undefined}
+                                          rel={sub.openInNewTab ? 'noreferrer' : undefined}
+                                          className="flex min-w-0 items-start justify-between gap-2 rounded-lg px-2 py-1.5 text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                          style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                        >
+                                          <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{sub.label}</span>
+                                          {sub.children.length > 0 && <ChevronRight size={14} />}
+                                        </a>
+                                        {sub.children.length > 0 && (
+                                          <div className="absolute left-full top-0 ml-2 hidden group-hover/menu-node:block">
+                                            <div className="rounded-xl border py-2 min-w-[220px] shadow-lg" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                              {renderDesktopFlyoutNodes(sub.children)}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )) : (
+                                      <a
+                                        href={child.url}
+                                        className="text-sm hover:text-[var(--menu-dropdown-sub-hover-text)]"
+                                        style={{ color: tokens.dropdownSubItemText, ...menuVars }}
+                                      >
+                                        Xem thêm
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className="rounded-lg border py-2 min-w-[240px]"
+                            style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}
+                          >
+                            {item.children.map((child) => (
+                              <div key={child._id} className="relative group/menu-node">
+                                <a
+                                  href={child.url}
+                                  target={child.openInNewTab ? '_blank' : undefined}
+                                  rel={child.openInNewTab ? 'noreferrer' : undefined}
+                                  className="flex min-w-0 items-start justify-between gap-2 px-4 py-2 text-sm transition-colors hover:bg-[var(--menu-dropdown-hover-bg)] hover:text-[var(--menu-dropdown-hover-text)]"
+                                  style={{ color: tokens.dropdownItemText, ...menuVars }}
+                                >
+                                  <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{child.label}</span>
+                                  {child.children.length > 0 && <ChevronRight size={14} />}
+                                </a>
+                                {child.children.length > 0 && (
+                                  <div className="absolute left-full top-0 pl-1 hidden group-hover/menu-node:block">
+                                    <div className="rounded-lg border py-2 min-w-[180px]" style={{ backgroundColor: tokens.dropdownBg, borderColor: tokens.dropdownBorder }}>
+                                      {renderDesktopFlyoutNodes(child.children)}
+                                    </div>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1168,10 +1469,12 @@ export function HeaderMenuPreview({
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div
-                className="rounded-full"
-                style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
-              ></div>
+              <div style={logoWrapStyle}>
+                <div
+                  className="rounded-full"
+                  style={{ backgroundColor: tokens.allbirdsAccentDot, width: logoDotSize, height: logoDotSize }}
+                ></div>
+              </div>
               {showBrandName && (
                 <span className="text-base font-semibold" style={{ color: tokens.textPrimary }}>{brandLabel}</span>
               )}
@@ -1220,32 +1523,7 @@ export function HeaderMenuPreview({
 
       {device === 'mobile' && mobileMenuOpen && (
         <div className="border-b" style={{ borderColor: tokens.border, backgroundColor: tokens.mobileMenuBg }}>
-          {menuTree.map((item) => (
-            <div key={item._id}>
-              <button
-                onClick={() => item.children.length > 0 && toggleMobileItem(item._id)}
-                className="w-full px-6 py-3 text-left flex items-center justify-between text-sm font-medium transition-colors hover:bg-[var(--menu-dropdown-hover-bg)]"
-                style={{ color: tokens.mobileMenuItemText, ...menuVars }}
-              >
-                {item.label}
-                {item.children.length > 0 && (<ChevronDown size={16} className={cn('transition-transform', expandedMobileItems.includes(item._id) && 'rotate-180')} />)}
-              </button>
-              {item.children.length > 0 && expandedMobileItems.includes(item._id) && (
-                <div style={{ backgroundColor: tokens.surface }}>
-                  {item.children.map((child) => (
-                    <a
-                      key={child._id}
-                      href={child.url}
-                      className="block px-8 py-2.5 text-sm border-l-2 ml-6 transition-colors hover:text-[var(--menu-dropdown-sub-hover-text)]"
-                      style={{ color: tokens.mobileMenuSubItemText, borderColor: tokens.mobileMenuSubItemBorder, ...menuVars }}
-                    >
-                      {child.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          {renderMobileNodes(menuTree)}
           {config.cta.show && (
             <div className="p-4">
               <a

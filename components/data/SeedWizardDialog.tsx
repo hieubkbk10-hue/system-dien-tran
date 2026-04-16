@@ -23,6 +23,7 @@ import { ExtraFeaturesStep } from './seed-wizard/steps/ExtraFeaturesStep';
 import { SaleModeStep } from './seed-wizard/steps/SaleModeStep';
 import { ProductTypeStep } from './seed-wizard/steps/ProductTypeStep';
 import { ProductVariantsStep } from './seed-wizard/steps/ProductVariantsStep';
+import { ProductEnhancementsStep } from './seed-wizard/steps/ProductEnhancementsStep';
 import { BusinessInfoStep } from './seed-wizard/steps/BusinessInfoStep';
 import { AdminConfigStep } from './seed-wizard/steps/AdminConfigStep';
 import { AdminPermissionModeStep } from './seed-wizard/steps/AdminPermissionModeStep';
@@ -119,6 +120,8 @@ const DEFAULT_STATE: WizardState = {
   variantPresetKey: DEFAULT_VARIANT_PRESET_KEY,
   variantPricing: 'variant',
   variantStock: 'variant',
+  productFramesEnabled: false,
+  productSupplementalContentEnabled: false,
   websiteType: 'landing',
 };
 
@@ -239,7 +242,7 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
     }
     list.push('extras');
     if (hasProducts) {
-      list.push('saleMode', 'productType', 'variants');
+      list.push('saleMode', 'productType', 'variants', 'productEnhancements');
     }
     list.push('business', 'adminConfig', 'permissionMode', 'experience');
     if (hasProducts || hasOrders || hasPosts || hasComments) {
@@ -465,7 +468,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       ? 'Ít (test nhanh)'
       : state.dataScale === 'medium'
         ? 'Vừa (dev)'
-        : 'Nhiều (demo)';
+        : state.dataScale === 'high'
+          ? 'Nhiều (demo)'
+          : 'Không tạo dữ liệu';
 
     const items: Array<{ label: string; value: string }> = [];
     if (industryTemplate) {
@@ -480,7 +485,9 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
       items.push(
         { label: 'Chế độ bán', value: saleModeLabel },
         { label: 'Loại sản phẩm', value: productTypeLabel },
-        { label: 'Phiên bản SP', value: variantLabel }
+        { label: 'Phiên bản SP', value: variantLabel },
+        { label: 'Khung viền SP', value: state.productFramesEnabled ? 'Bật' : 'Tắt' },
+        { label: 'Nội dung bổ sung SP', value: state.productSupplementalContentEnabled ? 'Bật' : 'Tắt' }
       );
     }
 
@@ -674,6 +681,8 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
         await setModuleSetting({ moduleKey: 'products', settingKey: 'variantImages', value: state.variantImages });
         await setModuleSetting({ moduleKey: 'products', settingKey: 'outOfStockDisplay', value: 'blur' });
         await setModuleSetting({ moduleKey: 'products', settingKey: 'imageChangeAnimation', value: 'fade' });
+        await setModuleSetting({ moduleKey: 'products', settingKey: 'enableProductFrames', value: state.productFramesEnabled });
+        await setModuleSetting({ moduleKey: 'products', settingKey: 'enableProductSupplementalContent', value: state.productSupplementalContentEnabled });
         await setModuleSetting({
           moduleKey: 'products',
           settingKey: 'productTypeMode',
@@ -718,20 +727,26 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
           : undefined,
       }));
 
-      const missingSeedModules = selectedModules.filter(
-        (moduleKey) => !seedConfigs.some((config) => config.module === moduleKey)
-      );
+      const shouldSeedContent = state.dataScale !== 'none';
 
-      if (missingSeedModules.length > 0) {
-        toast.error(`Thiếu cấu hình seed cho: ${missingSeedModules.join(', ')}`, { id: toastId });
-        return;
+      if (shouldSeedContent) {
+        const missingSeedModules = selectedModules.filter(
+          (moduleKey) => !seedConfigs.some((config) => config.module === moduleKey)
+        );
+
+        if (missingSeedModules.length > 0) {
+          toast.error(`Thiếu cấu hình seed cho: ${missingSeedModules.join(', ')}`, { id: toastId });
+          return;
+        }
       }
 
       if (state.businessInfo.brandMode === 'dual' && !state.businessInfo.brandSecondary) {
         toast.info('Chưa nhập màu phụ, wizard sẽ dùng màu best-practice theo ngành.');
       }
 
-      const seedResults = await seedBulk({ configs: seedConfigs });
+      const seedResults = shouldSeedContent
+        ? await seedBulk({ configs: seedConfigs })
+        : [];
 
       if (selectedModules.includes('customers') || customerLoginRequired) {
         const customerFeatureReady = await ensureModuleFeature(
@@ -903,16 +918,18 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
 
       await applyProductOverrides();
 
-      const zeroSeedModules = seedConfigs
-        .filter((config) => config.quantity > 0)
-        .map((config) => {
-          const result = seedResults.find((item) => item.module === config.module);
-          return result && result.created === 0 ? config.module : null;
-        })
-        .filter(Boolean) as string[];
+      if (shouldSeedContent) {
+        const zeroSeedModules = seedConfigs
+          .filter((config) => config.quantity > 0)
+          .map((config) => {
+            const result = seedResults.find((item) => item.module === config.module);
+            return result && result.created === 0 ? config.module : null;
+          })
+          .filter(Boolean) as string[];
 
-      if (zeroSeedModules.length > 0) {
-        toast.warning(`Seed xong nhưng dữ liệu trống: ${zeroSeedModules.join(', ')}`);
+        if (zeroSeedModules.length > 0) {
+          toast.warning(`Seed xong nhưng dữ liệu trống: ${zeroSeedModules.join(', ')}`);
+        }
       }
 
       toast.success('Seed wizard hoàn tất!', { id: toastId });
@@ -1054,6 +1071,16 @@ export function SeedWizardDialog({ open, onOpenChange, onComplete }: SeedWizardD
               onPricingChange={(value) => setState((prev) => ({ ...prev, variantPricing: value }))}
               onStockChange={(value) => setState((prev) => ({ ...prev, variantStock: value }))}
               onImagesChange={(value) => setState((prev) => ({ ...prev, variantImages: value }))}
+            />
+          )}
+
+          {stepKey === 'productEnhancements' && (
+            <ProductEnhancementsStep
+              productFramesEnabled={state.productFramesEnabled}
+              productSupplementalContentEnabled={state.productSupplementalContentEnabled}
+              onChangeFrames={(productFramesEnabled) => setState((prev) => ({ ...prev, productFramesEnabled }))}
+              onChangeSupplementalContent={(productSupplementalContentEnabled) =>
+                setState((prev) => ({ ...prev, productSupplementalContentEnabled }))}
             />
           )}
 

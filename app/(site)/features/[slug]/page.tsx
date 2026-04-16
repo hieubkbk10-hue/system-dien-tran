@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { RelatedPagesBlock } from '@/components/seo/RelatedPagesBlock';
 import InternalLinkCluster from '@/components/seo/InternalLinkCluster';
 import { getFunnelInternalLinks, getRelatedLandingPages } from '@/lib/seo/internal-links';
+import LandingHeroImage from '@/components/seo/LandingHeroImage';
+import { RichContent } from '@/components/common/RichContent';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -29,13 +31,7 @@ export default async function FeaturePage({ params }: Props) {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       {page.heroImage && (
-        <div className="mb-8">
-          <img
-            src={page.heroImage}
-            alt={page.title}
-            className="w-full h-64 object-cover rounded-lg"
-          />
-        </div>
+        <LandingHeroImage alt={page.title} src={page.heroImage} variant="hero" />
       )}
 
       <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
@@ -44,12 +40,7 @@ export default async function FeaturePage({ params }: Props) {
         {page.summary}
       </p>
 
-      {page.content && (
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.content }}
-        />
-      )}
+      {page.content && <RichContent content={page.content} className="max-w-none" />}
 
       {page.faqItems && page.faqItems.length > 0 && (
         <div className="mt-12">

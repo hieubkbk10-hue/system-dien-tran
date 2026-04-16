@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import Image from 'next/image';
+import { AdminImage as Image } from '@/app/admin/components/AdminImage';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
@@ -743,3 +743,4 @@ export function ProductListCreateShared({ type, titleLabel }: ProductListCreateS
     </ComponentFormWrapper>
   );
 }
+

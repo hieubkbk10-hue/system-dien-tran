@@ -1,5 +1,6 @@
-import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree, FileText, Code } from 'lucide-react';
+import { DollarSign, Image, Tag, Box, Package, Layers, Download, FolderTree, FileText, Code, SquareStack } from 'lucide-react';
 import { defineModuleWithRuntime } from '../define-module';
+import { PRODUCT_IMAGE_ASPECT_RATIO_OPTIONS } from '../../products/image-aspect-ratio';
  
 export const productsModule = defineModuleWithRuntime({
    key: 'products',
@@ -12,11 +13,11 @@ export const productsModule = defineModuleWithRuntime({
    features: [
      { key: 'enableSalePrice', label: 'Giá khuyến mãi', icon: DollarSign, linkedField: 'salePrice' },
      { key: 'enableGallery', label: 'Thư viện ảnh', icon: Image, linkedField: 'images' },
-     { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku' },
+     { key: 'enableSKU', label: 'Mã SKU', icon: Tag, linkedField: 'sku', enabled: false },
     { key: 'enableBarcode', label: 'Mã vạch phiên bản', icon: Tag, linkedField: 'barcode', enabled: false },
      { key: 'enableStock', label: 'Quản lý kho', icon: Box, linkedField: 'stock' },
-     { key: 'enableMarkdownRender', label: 'Markdown render', icon: FileText, linkedField: 'markdownRender' },
-     { key: 'enableHtmlRender', label: 'HTML render', icon: Code, linkedField: 'htmlRender' },
+     { key: 'enableMarkdownRender', label: 'Markdown render', icon: FileText, linkedField: 'markdownRender', enabled: false },
+     { key: 'enableHtmlRender', label: 'HTML render', icon: Code, linkedField: 'htmlRender', enabled: false },
      {
        key: 'enableCategoryHierarchy',
        label: 'Danh mục cha - con',
@@ -55,6 +56,73 @@ export const productsModule = defineModuleWithRuntime({
       label: 'Bật Import/Export Excel',
       type: 'toggle',
       default: true,
+    },
+    {
+      key: 'defaultImageAspectRatio',
+      label: 'Tỉ lệ ảnh sản phẩm mặc định',
+      type: 'select',
+      default: 'square',
+      options: PRODUCT_IMAGE_ASPECT_RATIO_OPTIONS,
+    },
+    {
+      key: 'enableProductFrames',
+      label: 'Bật khung viền sản phẩm',
+      type: 'toggle',
+      default: false,
+    },
+    {
+      key: 'productFrameOverlayFit',
+      label: 'Cách khung ôm ảnh',
+      type: 'select',
+      default: 'contain',
+      dependsOn: 'enableProductFrames',
+      options: [
+        { value: 'contain', label: 'Giữ khung trong ảnh (contain)' },
+        { value: 'cover', label: 'Tràn khung theo ảnh (cover)' },
+      ],
+    },
+    {
+      key: 'productFrameCleanupOnArChange',
+      label: 'Xóa khung lệch AR khi đổi tỉ lệ',
+      type: 'toggle',
+      default: true,
+      dependsOn: 'enableProductFrames',
+    },
+    {
+      key: 'enableImageCrop',
+      label: 'Bật cắt ảnh theo tỉ lệ khi upload',
+      type: 'toggle',
+      default: false,
+    },
+    {
+      key: 'enableProductSupplementalContent',
+      label: 'Bật nội dung bổ sung chi tiết sản phẩm',
+      type: 'toggle',
+      default: false,
+      group: 'supplementalContent',
+    },
+    {
+      key: 'supplementalContentAssignmentMode',
+      label: 'Kiểu áp dụng mặc định',
+      type: 'select',
+      default: 'products',
+      group: 'supplementalContent',
+      dependsOn: 'enableProductSupplementalContent',
+      options: [
+        { value: 'products', label: 'Theo sản phẩm' },
+        { value: 'categories', label: 'Theo danh mục' },
+      ],
+    },
+    {
+      key: 'supplementalContentConflictMode',
+      label: 'Chống chồng template',
+      type: 'select',
+      default: 'strict_single_effective',
+      group: 'supplementalContent',
+      dependsOn: 'enableProductSupplementalContent',
+      options: [
+        { value: 'strict_single_effective', label: 'Mỗi sản phẩm chỉ 1 template hiệu lực' },
+      ],
     },
     { key: 'lowStockThreshold', label: 'Ngưỡng tồn kho thấp', type: 'number', default: 10 },
     {
@@ -156,6 +224,7 @@ export const productsModule = defineModuleWithRuntime({
 
    settingGroups: [
      { key: 'general', label: 'Cài đặt chung' },
+     { key: 'supplementalContent', label: 'Nội dung bổ sung chi tiết', icon: SquareStack },
      { key: 'variants', label: 'Phiên bản sản phẩm', icon: Layers },
      { key: 'digital', label: 'Sản phẩm Digital', icon: Download },
    ],
@@ -166,7 +235,7 @@ export const productsModule = defineModuleWithRuntime({
     fields: [
       { enabled: true, fieldKey: 'name', isSystem: true, name: 'Tên sản phẩm', order: 0, required: true, type: 'text' },
       { enabled: true, fieldKey: 'slug', isSystem: true, name: 'Slug', order: 1, required: true, type: 'text' },
-      { enabled: true, fieldKey: 'sku', isSystem: false, linkedFeature: 'enableSKU', name: 'Mã SKU', order: 2, required: true, type: 'text' },
+      { enabled: false, fieldKey: 'sku', isSystem: false, linkedFeature: 'enableSKU', name: 'Mã SKU', order: 2, required: true, type: 'text' },
       { enabled: false, fieldKey: 'barcode', isSystem: false, linkedFeature: 'enableBarcode', name: 'Mã vạch phiên bản', order: 3, required: false, type: 'text' },
       { enabled: true, fieldKey: 'price', isSystem: true, name: 'Giá bán', order: 4, required: true, type: 'price' },
       { enabled: true, fieldKey: 'salePrice', isSystem: false, linkedFeature: 'enableSalePrice', name: 'Giá khuyến mãi', order: 5, required: false, type: 'price' },
@@ -179,8 +248,8 @@ export const productsModule = defineModuleWithRuntime({
       { enabled: true, fieldKey: 'metaTitle', group: 'seo', isSystem: false, name: 'Meta Title', order: 12, required: false, type: 'text' },
       { enabled: true, fieldKey: 'metaDescription', group: 'seo', isSystem: false, name: 'Meta Description', order: 13, required: false, type: 'textarea' },
       { enabled: true, fieldKey: 'renderType', isSystem: false, name: 'Kiểu render', order: 14, required: false, type: 'select' },
-      { enabled: true, fieldKey: 'markdownRender', isSystem: false, linkedFeature: 'enableMarkdownRender', name: 'Markdown render', order: 15, required: false, type: 'textarea' },
-      { enabled: true, fieldKey: 'htmlRender', isSystem: false, linkedFeature: 'enableHtmlRender', name: 'HTML render', order: 16, required: false, type: 'textarea' },
+      { enabled: false, fieldKey: 'markdownRender', isSystem: false, linkedFeature: 'enableMarkdownRender', name: 'Markdown render', order: 15, required: false, type: 'textarea' },
+      { enabled: false, fieldKey: 'htmlRender', isSystem: false, linkedFeature: 'enableHtmlRender', name: 'HTML render', order: 16, required: false, type: 'textarea' },
     ],
   },
 

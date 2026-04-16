@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { resolveUniqueSlug } from "../lib/iaSlugs";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 
@@ -155,23 +155,34 @@ export async function create(
     htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
+    thumbnailStorageId?: Id<"_storage"> | null;
     categoryId: Id<"postCategories">;
     authorName?: string;
     metaTitle?: string;
     metaDescription?: string;
     status?: Doc<"posts">["status"];
     order?: number;
+    publishImmediately?: boolean;
+    publishedAt?: number;
   }
 ): Promise<Id<"posts">> {
-  if (await isSlugExists(ctx, { slug: args.slug })) {
-    throw new ConvexError({
-      code: "DUPLICATE_SLUG",
-      message: "Slug đã tồn tại, vui lòng chọn slug khác",
-    });
-  }
+  const resolvedSlug = await resolveUniqueSlug(ctx, {
+    scope: "record",
+    slug: args.slug,
+  });
 
   const order = args.order ?? (await getNextOrder(ctx));
   const status = args.status ?? "Draft";
+  let resolvedPublishedAt: number | undefined = undefined;
+  if (status === "Published") {
+    if (args.publishImmediately === true) {
+      resolvedPublishedAt = Date.now();
+    } else if (typeof args.publishedAt === "number" && Number.isFinite(args.publishedAt)) {
+      resolvedPublishedAt = args.publishedAt;
+    } else if (args.publishImmediately !== false) {
+      resolvedPublishedAt = Date.now();
+    }
+  }
 
   return  ctx.db.insert("posts", {
     authorName: args.authorName,
@@ -184,10 +195,11 @@ export async function create(
     metaDescription: args.metaDescription,
     metaTitle: args.metaTitle,
     order,
-    publishedAt: status === "Published" ? Date.now() : undefined,
-    slug: args.slug,
+    publishedAt: resolvedPublishedAt,
+    slug: resolvedSlug.slug,
     status,
     thumbnail: args.thumbnail,
+    thumbnailStorageId: args.thumbnailStorageId ?? null,
     title: args.title,
     views: 0,
   });
@@ -209,28 +221,45 @@ export async function update(
     htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
+    thumbnailStorageId?: Id<"_storage"> | null;
     categoryId?: Id<"postCategories">;
     metaTitle?: string;
     metaDescription?: string;
     status?: Doc<"posts">["status"];
     order?: number;
+    publishImmediately?: boolean;
+    publishedAt?: number;
   }
 ): Promise<void> {
   const post = await getByIdOrThrow(ctx, { id: args.id });
 
   if (args.slug && args.slug !== post.slug) {
-    if (await isSlugExists(ctx, { excludeId: args.id, slug: args.slug })) {
-      throw new ConvexError({
-        code: "DUPLICATE_SLUG",
-        message: "Slug đã tồn tại, vui lòng chọn slug khác",
-      });
+    const resolvedSlug = await resolveUniqueSlug(ctx, {
+      scope: "record",
+      slug: args.slug,
+      exclude: { id: args.id, table: "posts" },
+    });
+    if (resolvedSlug.slug !== args.slug) {
+      (args as { slug?: string }).slug = resolvedSlug.slug;
     }
   }
 
-  const { id, ...updates } = args;
+  const { id, publishImmediately, ...updates } = args;
   const patchData: Record<string, unknown> = { ...updates };
 
-  if (args.status === "Published" && post.status !== "Published") {
+  const hasPublishedAt = Object.prototype.hasOwnProperty.call(args, "publishedAt");
+  const nextStatus = args.status ?? post.status;
+
+  if (nextStatus !== "Published") {
+    patchData.publishedAt = undefined;
+  } else if (publishImmediately === true) {
+    patchData.publishedAt = Date.now();
+  } else if (hasPublishedAt) {
+    const resolvedPublishedAt = typeof args.publishedAt === "number" && Number.isFinite(args.publishedAt)
+      ? args.publishedAt
+      : Date.now();
+    patchData.publishedAt = resolvedPublishedAt;
+  } else if (post.status !== "Published") {
     patchData.publishedAt = Date.now();
   }
 

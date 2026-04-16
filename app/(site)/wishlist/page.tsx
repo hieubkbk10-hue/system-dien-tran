@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { useMutation, useQuery } from 'convex/react';
 import { Heart, Package, Search, ShoppingCart } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
@@ -261,7 +261,7 @@ export default function WishlistPage() {
                         <div className="flex items-center gap-4">
                           <div className="relative h-12 w-12 rounded-xl overflow-hidden" style={{ backgroundColor: tokens.surfaceSoft }}>
                             {product.image ? (
-                              <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" />
+                              <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" mode="thumb" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <Package className="w-6 h-6" style={{ color: tokens.emptyStateIcon }} />
@@ -349,7 +349,7 @@ export default function WishlistPage() {
                     style={{ backgroundColor: tokens.surfaceSoft }}
                   >
                     {product.image ? (
-                      <Image src={product.image} alt={product.name} fill sizes="80px" className="object-cover" />
+                      <Image src={product.image} alt={product.name} fill sizes="80px" className="object-cover" mode="thumb" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Package className="w-6 h-6" style={{ color: tokens.emptyStateIcon }} />
@@ -411,7 +411,7 @@ export default function WishlistPage() {
                 >
                   <div className="aspect-square relative" style={{ backgroundColor: tokens.surfaceSoft }}>
                     {product.image ? (
-                      <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" />
+                      <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover" mode="thumb" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Package className="w-8 h-8" style={{ color: tokens.emptyStateIcon }} />
@@ -460,7 +460,7 @@ export default function WishlistPage() {
                   style={{ backgroundColor: tokens.surfaceSoft }}
                 >
                   {product.image ? (
-                    <Image src={product.image} alt={product.name} fill sizes="96px" className="object-cover" />
+                    <Image src={product.image} alt={product.name} fill sizes="96px" className="object-cover" mode="thumb" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package className="w-6 h-6" style={{ color: tokens.emptyStateIcon }} />

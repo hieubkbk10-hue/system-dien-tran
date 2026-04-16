@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { PublicImage as Image } from '@/components/shared/PublicImage';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useBrandColor, useContactSettings, useSiteSettings } from './hooks';
@@ -45,7 +45,7 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               {logo ? (
-                <Image src={logo} alt={siteName} width={140} height={32} className="h-8 w-auto" />
+                <Image src={logo} alt={siteName} width={140} height={32} className="h-8 w-auto" mode="logo" />
               ) : (
                 <div 
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold"

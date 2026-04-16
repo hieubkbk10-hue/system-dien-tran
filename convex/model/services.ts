@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { resolveUniqueSlug } from "../lib/iaSlugs";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 
@@ -116,9 +116,16 @@ export async function create(
     htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
+    thumbnailStorageId?: Id<"_storage"> | null;
     categoryId: Id<"serviceCategories">;
     price?: number;
     duration?: string;
+    bookingEnabled?: boolean;
+    bookingDurationMin?: number;
+    bookingSlotIntervalMin?: number;
+    bookingCapacityPerSlot?: number;
+    bookingSlotTemplateDefault?: string[];
+    bookingSlotTemplateByWeekday?: Record<string, string[]>;
     metaTitle?: string;
     metaDescription?: string;
     status?: Doc<"services">["status"];
@@ -126,12 +133,10 @@ export async function create(
     featured?: boolean;
   }
 ): Promise<Id<"services">> {
-  if (await isSlugExists(ctx, { slug: args.slug })) {
-    throw new ConvexError({
-      code: "DUPLICATE_SLUG",
-      message: "Slug đã tồn tại, vui lòng chọn slug khác",
-    });
-  }
+  const resolvedSlug = await resolveUniqueSlug(ctx, {
+    scope: "record",
+    slug: args.slug,
+  });
 
   const order = args.order ?? (await getNextOrder(ctx));
   const status = args.status ?? "Draft";
@@ -143,6 +148,12 @@ export async function create(
     markdownRender: args.markdownRender,
     htmlRender: args.htmlRender,
     duration: args.duration,
+    bookingEnabled: args.bookingEnabled,
+    bookingDurationMin: args.bookingDurationMin,
+    bookingSlotIntervalMin: args.bookingSlotIntervalMin,
+    bookingCapacityPerSlot: args.bookingCapacityPerSlot,
+    bookingSlotTemplateDefault: args.bookingSlotTemplateDefault,
+    bookingSlotTemplateByWeekday: args.bookingSlotTemplateByWeekday,
     excerpt: args.excerpt,
     featured: args.featured,
     metaDescription: args.metaDescription,
@@ -150,9 +161,10 @@ export async function create(
     order,
     price: args.price,
     publishedAt: status === "Published" ? Date.now() : undefined,
-    slug: args.slug,
+    slug: resolvedSlug.slug,
     status,
     thumbnail: args.thumbnail,
+    thumbnailStorageId: args.thumbnailStorageId ?? null,
     title: args.title,
     views: 0,
   });
@@ -170,9 +182,16 @@ export async function update(
     htmlRender?: string;
     excerpt?: string;
     thumbnail?: string;
+    thumbnailStorageId?: Id<"_storage"> | null;
     categoryId?: Id<"serviceCategories">;
     price?: number;
     duration?: string;
+    bookingEnabled?: boolean;
+    bookingDurationMin?: number;
+    bookingSlotIntervalMin?: number;
+    bookingCapacityPerSlot?: number;
+    bookingSlotTemplateDefault?: string[];
+    bookingSlotTemplateByWeekday?: Record<string, string[]>;
     metaTitle?: string;
     metaDescription?: string;
     status?: Doc<"services">["status"];
@@ -183,11 +202,13 @@ export async function update(
   const service = await getByIdOrThrow(ctx, { id: args.id });
 
   if (args.slug && args.slug !== service.slug) {
-    if (await isSlugExists(ctx, { excludeId: args.id, slug: args.slug })) {
-      throw new ConvexError({
-        code: "DUPLICATE_SLUG",
-        message: "Slug đã tồn tại, vui lòng chọn slug khác",
-      });
+    const resolvedSlug = await resolveUniqueSlug(ctx, {
+      scope: "record",
+      slug: args.slug,
+      exclude: { id: args.id, table: "services" },
+    });
+    if (resolvedSlug.slug !== args.slug) {
+      (args as { slug?: string }).slug = resolvedSlug.slug;
     }
   }
 

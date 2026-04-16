@@ -7,10 +7,12 @@ import { BrowserFrame } from '../../_shared/components/BrowserFrame';
 import { PreviewImage } from '../../_shared/components/PreviewImage';
 import { ColorInfoPanel } from '../../_shared/components/ColorInfoPanel';
 import { PreviewWrapper } from '../../_shared/components/PreviewWrapper';
+import { ProductImageFrameOverlay, useProductFrameConfig } from '@/components/shared/ProductImageFrameBox';
 import { deviceWidths, usePreviewDevice } from '../../_shared/hooks/usePreviewDevice';
 import { CATEGORY_PRODUCTS_STYLES } from '../_lib/constants';
 import { getCategoryProductsColors } from '../_lib/colors';
 import { getHomeComponentPriceLabel, resolveSaleMode } from '../../_shared/lib/productPrice';
+import { getProductImageAspectRatioCssValue, getProductImageAspectRatioLabel, resolveProductImageAspectRatio } from '@/lib/products/image-aspect-ratio';
 import type {
   CategoryProductsBrandMode,
   CategoryProductsConfig,
@@ -52,7 +54,20 @@ export const CategoryProductsPreview = ({
     [_brandColor, secondary, mode]
   );
   const saleModeSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'saleMode' });
+  const aspectRatioSetting = useQuery(api.admin.modules.getModuleSetting, { moduleKey: 'products', settingKey: 'defaultImageAspectRatio' });
   const saleMode = React.useMemo(() => resolveSaleMode(saleModeSetting?.value), [saleModeSetting?.value]);
+  const imageAspectRatio = React.useMemo(
+    () => resolveProductImageAspectRatio(aspectRatioSetting?.value),
+    [aspectRatioSetting?.value]
+  );
+  const imageAspectRatioStyle = React.useMemo(
+    () => ({ aspectRatio: getProductImageAspectRatioCssValue(imageAspectRatio) }),
+    [imageAspectRatio]
+  );
+  const imageAspectRatioLabel = React.useMemo(
+    () => getProductImageAspectRatioLabel(imageAspectRatio),
+    [imageAspectRatio]
+  );
 
   // Resolve sections with category and products data
   const resolvedSections = config.sections
@@ -104,22 +119,22 @@ export const CategoryProductsPreview = ({
 
     switch (previewStyle) {
       case 'grid': {
-        return `${sectionCount} section • ${totalProducts} SP • Ảnh: 800×800px (1:1)`;
+        return `${sectionCount} section • ${totalProducts} SP • Ảnh: ${imageAspectRatioLabel}`;
       }
       case 'carousel': {
-        return `${sectionCount} section • ${totalProducts} SP • Ảnh: 800×800px (1:1)`;
+        return `${sectionCount} section • ${totalProducts} SP • Ảnh: ${imageAspectRatioLabel}`;
       }
       case 'cards': {
-        return `${sectionCount} section • ${totalProducts} SP • Ảnh: 800×800px (1:1)`;
+        return `${sectionCount} section • ${totalProducts} SP • Ảnh: ${imageAspectRatioLabel}`;
       }
       case 'bento': {
-        return `${sectionCount} section • Featured: 800×800px • Others: 600×400px`;
+        return `${sectionCount} section • Ảnh: ${imageAspectRatioLabel}`;
       }
       case 'magazine': {
-        return `${sectionCount} section • Featured: 800×1000px (4:5) • Grid: 600×600px`;
+        return `${sectionCount} section • Ảnh: ${imageAspectRatioLabel}`;
       }
       case 'showcase': {
-        return `${sectionCount} section • Featured: 1200×800px (3:2) • Others: 600×600px`;
+        return `${sectionCount} section • Ảnh: ${imageAspectRatioLabel}`;
       }
       default: {
         return `${sectionCount} section • ${totalProducts} sản phẩm`;
@@ -149,12 +164,22 @@ export const CategoryProductsPreview = ({
     </div>
   );
 
+  const FramePreviewImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+    const { frame } = useProductFrameConfig();
+    return (
+      <>
+        <PreviewImage src={src} alt={alt} className={className} />
+        <ProductImageFrameOverlay frame={frame} />
+      </>
+    );
+  };
+
   // Product Card Component with Equal Height (line-clamp + min-height)
   const ProductCard = ({ product }: { product: CategoryProductsProduct }) => (
     <div className="group cursor-pointer flex flex-col h-full">
-      <div className="aspect-square rounded-lg overflow-hidden mb-2" style={{ backgroundColor: colors.imageBackground }}>
+      <div className="rounded-lg overflow-hidden mb-2" style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}>
         {product.image ? (
-          <PreviewImage
+          <FramePreviewImage
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover"
@@ -292,9 +317,9 @@ export const CategoryProductsPreview = ({
                           device === 'mobile' ? 'w-36' : 'w-48'
                         )}
                       >
-                        <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 mb-2">
+                        <div className="rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 mb-2" style={imageAspectRatioStyle}>
                           {product.image ? (
-                            <PreviewImage 
+                            <FramePreviewImage 
                               src={product.image} 
                               alt={product.name} 
                               className="w-full h-full object-cover" 
@@ -452,7 +477,7 @@ export const CategoryProductsPreview = ({
                     {featured && (
                       <div className="col-span-2 row-span-2 group cursor-pointer relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
                         {featured.image ? (
-                          <PreviewImage 
+                          <FramePreviewImage 
                             src={featured.image} 
                             alt={featured.name} 
                             className="w-full h-full object-cover" 
@@ -494,7 +519,7 @@ export const CategoryProductsPreview = ({
                     {others.map((product) => (
                       <div key={product._id} className="group cursor-pointer relative rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
                         {product.image ? (
-                          <PreviewImage 
+                          <FramePreviewImage 
                             src={product.image} 
                             alt={product.name} 
                             className="w-full h-full object-cover" 
@@ -577,9 +602,9 @@ export const CategoryProductsPreview = ({
                 ) : (
                   <div className="grid grid-cols-2 gap-6">
                     {featured && (
-                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden aspect-[4/5]" style={{ backgroundColor: colors.imageBackground }}>
+                      <div className="group cursor-pointer relative rounded-2xl overflow-hidden" style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}>
                         {featured.image ? (
-                          <PreviewImage 
+                          <FramePreviewImage 
                             src={featured.image} 
                             alt={featured.name} 
                             className="w-full h-full object-cover" 
@@ -622,11 +647,11 @@ export const CategoryProductsPreview = ({
                       {gridItems.map((product) => (
                         <div key={product._id} className="group cursor-pointer">
                           <div 
-                            className="aspect-square rounded-xl overflow-hidden mb-3 relative"
-                          style={{ backgroundColor: colors.imageBackground }}
+                            className="rounded-xl overflow-hidden mb-3 relative"
+                            style={{ ...imageAspectRatioStyle, backgroundColor: colors.imageBackground }}
                           >
                             {product.image ? (
-                              <PreviewImage 
+                              <FramePreviewImage 
                                 src={product.image} 
                                 alt={product.name} 
                                 className="w-full h-full object-cover" 
@@ -676,8 +701,8 @@ export const CategoryProductsPreview = ({
                       {gridItems.length < 4 && Array.from({ length: 4 - gridItems.length }).map((_, i) => (
                         <div
                           key={`empty-${i}`}
-                          className="aspect-square rounded-xl flex items-center justify-center"
-                          style={{ backgroundColor: colors.emptyStateBackground, border: `2px dashed ${colors.neutralBorder}` }}
+                          className="rounded-xl flex items-center justify-center"
+                          style={{ ...imageAspectRatioStyle, backgroundColor: colors.emptyStateBackground, border: `2px dashed ${colors.neutralBorder}` }}
                         >
                           <Package size={24} style={{ color: colors.emptyStateIcon }} />
                         </div>
@@ -755,11 +780,11 @@ export const CategoryProductsPreview = ({
                   {section.products.map((product) => (
                     <div key={product._id} className="cursor-pointer">
                       <div
-                        className="relative aspect-[3/4] rounded-2xl overflow-hidden border"
-                        style={{ borderColor: colors.cardBorder, backgroundColor: colors.imageBackground }}
+                        className="relative rounded-2xl overflow-hidden border"
+                        style={{ ...imageAspectRatioStyle, borderColor: colors.cardBorder, backgroundColor: colors.imageBackground }}
                       >
                         {product.image ? (
-                          <PreviewImage
+                          <FramePreviewImage
                             src={product.image}
                             alt={product.name}
                             className="w-full h-full object-cover"

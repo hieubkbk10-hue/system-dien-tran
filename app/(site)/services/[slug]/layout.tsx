@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getConvexClient } from '@/lib/convex';
 import { api } from '@/convex/_generated/api';
-import { getContactSettings, getSEOSettings, getSiteSettings } from '@/lib/get-settings';
+import { getContactSettings, getSEOSettings, getSiteSettings, getSocialSettings } from '@/lib/get-settings';
 import { JsonLd, generateBreadcrumbSchema, generateServiceSchema } from '@/components/seo/JsonLd';
 import { buildSeoMetadata } from '@/lib/seo/metadata';
+import { buildDetailPath } from '@/lib/ia/route-mode';
+import { getIASettings } from '@/lib/ia/settings';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,10 +19,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const servicesModule = await client.query(api.admin.modules.getModuleByKey, { key: 'services' });
 
   if (servicesModule?.enabled === false) {
-    const [site, seo, contact] = await Promise.all([
+    const [site, seo, contact, social] = await Promise.all([
       getSiteSettings(),
       getSEOSettings(),
       getContactSettings(),
+      getSocialSettings(),
     ]);
     return buildSeoMetadata({
       contact,
@@ -30,15 +33,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       routeType: 'detail',
       seo,
       site,
+      social,
       titleOverride: 'Không tìm thấy dịch vụ',
     });
   }
   
-  const [service, site, seo, contact] = await Promise.all([
+  const [service, site, seo, contact, social, iaSettings] = await Promise.all([
     client.query(api.services.getBySlug, { slug }),
     getSiteSettings(),
     getSEOSettings(),
     getContactSettings(),
+    getSocialSettings(),
+    getIASettings(),
   ]);
 
   if (!service) {
@@ -50,9 +56,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       routeType: 'detail',
       seo,
       site,
+      social,
       titleOverride: 'Không tìm thấy dịch vụ',
     });
   }
+
+  const category = await client.query(api.serviceCategories.getById, { id: service.categoryId });
+  const canonicalPath = buildDetailPath({
+    categorySlug: category?.slug,
+    mode: iaSettings.routeMode,
+    moduleKey: 'services',
+    recordSlug: service.slug,
+  });
 
   return buildSeoMetadata({
     contact,
@@ -64,10 +79,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: service.title,
     },
     entityExists: true,
-    pathname: `/services/${service.slug}`,
+    pathname: canonicalPath,
     routeType: 'detail',
     seo,
     site,
+    social,
   });
 }
 
@@ -80,16 +96,33 @@ export default async function ServiceLayout({ params, children }: Props) {
     notFound();
   }
   
-  const [service, site, seo] = await Promise.all([
+  const [service, site, seo, iaSettings] = await Promise.all([
     client.query(api.services.getBySlug, { slug }),
     getSiteSettings(),
     getSEOSettings(),
+    getIASettings(),
   ]);
 
   if (!service) {return children;}
 
+  const category = await client.query(api.serviceCategories.getById, { id: service.categoryId });
+  if (iaSettings.routeMode === 'unified' && category?.slug) {
+    permanentRedirect(buildDetailPath({
+      categorySlug: category.slug,
+      mode: iaSettings.routeMode,
+      moduleKey: 'services',
+      recordSlug: service.slug,
+    }));
+  }
+
   const baseUrl = (site.site_url || process.env.NEXT_PUBLIC_SITE_URL) ?? '';
-  const serviceUrl = `${baseUrl}/services/${service.slug}`;
+  const servicePath = buildDetailPath({
+    categorySlug: category?.slug,
+    mode: iaSettings.routeMode,
+    moduleKey: 'services',
+    recordSlug: service.slug,
+  });
+  const serviceUrl = `${baseUrl}${servicePath}`;
   const image = service.thumbnail ?? seo.seo_og_image;
 
   const ratingSummary = await client.query(api.comments.getRatingSummary, {
@@ -112,7 +145,12 @@ export default async function ServiceLayout({ params, children }: Props) {
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Trang chủ', url: baseUrl },
-    { name: 'Dịch vụ', url: `${baseUrl}/services` },
+    {
+      name: category?.name ?? 'Dịch vụ',
+      url: iaSettings.routeMode === 'unified' && category?.slug
+        ? `${baseUrl}/${category.slug}`
+        : `${baseUrl}/services`,
+    },
     { name: service.title, url: serviceUrl },
   ]);
 
